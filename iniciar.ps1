@@ -24,29 +24,28 @@ docker compose up -d 2>&1 | Out-Null
 Start-Sleep -Seconds 3
 Write-Host "       Base de dados pronta." -ForegroundColor Green
 
-# 3. Ler chave Groq do ficheiro .env
-$groqKey = ""
-$envFile = Join-Path $projectDir ".env"
-if (Test-Path $envFile) {
-    foreach ($line in Get-Content $envFile) {
-        if ($line -match "^GROQ_API_KEY=(.+)$") {
-            $groqKey = $Matches[1] -replace '["]', ''
-            break
-        }
+# 3. Carregar variaveis de ambiente
+Write-Host "  [3/3] A iniciar API e frontend..." -ForegroundColor Cyan
+$env:DATABASE_URL = 'postgresql://aidm:aidm_dev@localhost:5432/ai_dm'
+$env:REDIS_URL = 'redis://localhost:6379'
+$env:JWT_SECRET = 'ai_dm_dev_secret_troque_em_producao'
+$env:PORT = '3001'
+$env:NEXT_PUBLIC_API_URL = 'http://localhost:3001'
+
+foreach ($line in Get-Content "$projectDir\.env") {
+    if ($line -match "^GROQ_API_KEY=(.+)$") {
+        $env:GROQ_API_KEY = $Matches[1] -replace '["]', ''
+        break
     }
 }
 
-# 4. Iniciar API e frontend em janelas separadas
-Write-Host "  [3/3] A iniciar API e frontend..." -ForegroundColor Cyan
-
-Start-Process powershell -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $projectDir "scripts\start-api.ps1"), "-ProjectDir", $projectDir, "-GroqKey", $groqKey
-
-Start-Sleep -Seconds 5
-
-Start-Process powershell -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $projectDir "scripts\start-web.ps1"), "-ProjectDir", $projectDir
-
 Write-Host ""
-Write-Host "  Tudo iniciado!" -ForegroundColor Green
-Write-Host "  A abrir o browser em 20 segundos..." -ForegroundColor Gray
-Start-Sleep -Seconds 20
-Start-Process "http://localhost:3000"
+Write-Host "  O browser vai abrir automaticamente quando estiver pronto." -ForegroundColor Gray
+Write-Host "  Para fechar, fecha esta janela." -ForegroundColor Gray
+Write-Host ""
+
+# Abrir browser em background depois de 30 segundos
+Start-Job -ScriptBlock { Start-Sleep -Seconds 30; Start-Process "http://localhost:3000" } | Out-Null
+
+# Iniciar API e frontend na janela actual (pnpm dev inicia ambos em paralelo)
+pnpm dev

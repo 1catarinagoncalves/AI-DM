@@ -2,7 +2,7 @@
   "name": "ai-dm",
   "private": true,
   "scripts": {
-    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "dev": "pnpm --parallel --filter api --filter web dev",
     "build": "pnpm --filter './packages/*' build && pnpm --filter './apps/*' build",
     "lint": "pnpm --recursive lint",
     "test": "pnpm --recursive test",
