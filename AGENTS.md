@@ -9,7 +9,7 @@ outro sistema via upload de livro. O agente de IA atua como narrador, árbitro d
 memória da campanha.
 
 Stack: Next.js (App Router) + React + TypeScript no frontend; Node.js (NestJS) + TypeScript
-no backend; PostgreSQL + pgvector; Redis; S3-compatível; Vercel AI SDK sobre Claude.
+no backend; PostgreSQL + pgvector; Redis; S3-compatível; Vercel AI SDK sobre Groq e OpenRouter.
 
 Roadmap incremental (fase atual: MVP single-player):
 1. MVP single-player — SRD aberto, ficha, dados em código, narração via LLM + tool calling
@@ -60,7 +60,7 @@ Roadmap incremental (fase atual: MVP single-player):
 
 ### AI Engine (`packages/ai-engine`)
 - Vercel AI SDK (`ai` package) como camada de abstração de provedor
-- Modelo padrão: Claude (claude-sonnet-4-6 ou superior); roteável por custo/qualidade
+- Provedores: Groq (`@ai-sdk/groq`) para modelos rápidos e baratos; OpenRouter (`@ai-sdk/openai-compatible`) para acesso a modelos variados — roteável por custo/qualidade via Vercel AI SDK
 - Tools tipadas em `packages/ai-engine/src/tools/` — uma tool por arquivo
 - Prompt do sistema em `packages/ai-engine/src/prompts/dm-system.ts`
 

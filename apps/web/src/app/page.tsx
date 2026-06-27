@@ -1,8 +1,9 @@
+import { HomeHero } from '@/components/HomeHero'
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-4xl font-bold">AI Dungeon Master</h1>
-      <p className="mt-4 text-gray-500">Scaffold pronto. Hora de construir.</p>
+    <main className="min-h-screen bg-stone-950 text-white flex items-center justify-center p-4">
+      <HomeHero />
     </main>
   )
 }

@@ -21,6 +21,7 @@ model Character {
   userId         String
   user           User             @relation(fields: [userId], references: [id])
   name           String
+  gender         String
   race           String
   class          String
   level          Int              @default(1)
@@ -137,6 +138,7 @@ model System {
 }
 
 enum SourceType {
+  FREE
   SRD
   UPLOAD
 }

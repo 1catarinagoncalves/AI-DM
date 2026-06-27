@@ -70,7 +70,7 @@ baseada em **RAG + tool calling**, e estado de jogo persistido de forma autorita
 - Salas de realtime por campanha (Socket.IO)
 
 **AI Engine (DM Agent)**
-- Vercel AI SDK (streaming, tool calling agnóstico de provedor) sobre Claude
+- Vercel AI SDK (streaming, tool calling agnóstico de provedor) sobre Groq e OpenRouter
 - Loop do mestre:
   1. Recebe ação do jogador + contexto recuperado (RAG)
   2. Decide via tool calling quando precisa rolar dados, consultar regra, atualizar ficha, avançar missão
@@ -126,7 +126,7 @@ Jogador → ação → Game Server (valida)
 | 5 | pgvector como vector store inicial | Menos infraestrutura; um único Postgres para dados relacionais + embeddings no MVP |
 | 6 | Realtime via WebSocket + Redis pub/sub | Sessões em grupo exigem baixa latência e estado de sala compartilhado e escalável |
 | 7 | Ingestão assíncrona com BullMQ | Parsing/embedding de livros é pesado; não pode bloquear a requisição do usuário |
-| 8 | Provider de LLM abstraído (Vercel AI SDK) | Evita lock-in; permite trocar/rotear modelos por custo e qualidade |
+| 8 | Provider de LLM abstraído (Vercel AI SDK) | Evita lock-in; provedores atuais: Groq (velocidade/custo) e OpenRouter (variedade de modelos); permite trocar sem reescrever código |
 
 ---
 

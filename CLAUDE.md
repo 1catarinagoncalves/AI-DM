@@ -47,7 +47,7 @@ pnpm lint                 # ESLint + Prettier check
 - Commits seguem Conventional Commits. Exemplos:
   - `feat(ai-engine): add rollDice tool`
   - `fix(game): correct HP calculation on damage`
-  - `chore(deps): update @ai-sdk/anthropic`
+  - `chore(deps): update @ai-sdk/groq`
 
 ## Contexto de fase atual
 
