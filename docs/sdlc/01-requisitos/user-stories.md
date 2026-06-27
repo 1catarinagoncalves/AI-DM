@@ -50,6 +50,11 @@ Como jogador, quero que o mestre aplique as regras do sistema correto durante a 
 **US-11** — Ação em linguagem natural  
 Como jogador, quero descrever minhas ações em linguagem natural (ex: "ataco o goblin com minha espada") e o mestre resolve conforme as regras.
 
+**US-11b** — Estado de cena estruturado (continuidade espacial) — *Fase B da memória*  
+Como jogador, quero que o mestre mantenha um estado de cena explícito (local atual, personagens presentes, período do dia e objetos em cena) para que a narração nunca me teletransporte nem invente cenário que contradiz onde estou.
+
+> Detalhamento completo (contexto, modelo de dados, critérios de aceite e questões em aberto) em [`US-11b-estado-de-cena-estruturado.md`](./US-11b-estado-de-cena-estruturado.md).
+
 ---
 
 ### Épico 4: Upload de sistema (Fase 3)
@@ -81,6 +86,7 @@ Como jogador em uma campanha multiplayer, quero ver as ações dos outros jogado
 |-------|------|
 | US-01 a US-11 | Fase 1 — MVP |
 | US-03, US-06 (memória) | Fase 2 — Memória entre aventuras |
+| US-11b (estado de cena estruturado) | Fase 2 — Memória / continuidade espacial (Fase B) |
 | US-12, US-13 | Fase 3 — Upload de livros |
 | US-14, US-15, US-16 | Fase 4 — Multiplayer |
 | US-04 | Fase 5 — Multiverso |

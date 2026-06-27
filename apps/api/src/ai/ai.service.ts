@@ -1,8 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { streamText, tool, type CoreMessage } from 'ai'
+import { streamText, generateText, tool, type CoreMessage } from 'ai'
 import { z } from 'zod'
-import { defaultModel } from '@ai-dm/ai-engine'
-import { buildDmSystemPrompt } from '@ai-dm/ai-engine'
+import {
+  defaultModel,
+  summaryModel,
+  buildDmSystemPrompt,
+  buildSummaryInput,
+  SUMMARY_SYSTEM_PROMPT,
+  type SummaryTurn,
+} from '@ai-dm/ai-engine'
 import { DiceService } from '../game/dice.service'
 import { PrismaService } from '../prisma.service'
 
@@ -11,6 +17,12 @@ export interface ChatInput {
   characterId: string
   message: string
 }
+
+// Acima de SUMMARIZE_THRESHOLD turnos não-resumidos, fundimos os mais antigos
+// no resumo, mantendo apenas KEEP_RECENT turnos verbatim na janela. Cada turno
+// = 1 ACTION + 1 NARRATION = 2 eventos. ~15 turnos = ~30 eventos.
+const SUMMARIZE_THRESHOLD = 30
+const KEEP_RECENT = 12
 
 @Injectable()
 export class AiService {
@@ -35,23 +47,20 @@ export class AiService {
       this.prisma.quest.findMany({
         where: { adventureId, status: 'OPEN' },
       }),
-      // Histórico do turno: ações do jogador e narrações do mestre, em ordem.
-      // Sem isso o agente perde a memória da cena (onde está, o que recebeu)
-      // e inventa cenários novos a cada mensagem.
+      // Janela recente verbatim: só os turnos ainda NÃO resumidos. O que é
+      // antigo demais já foi condensado em adventure.memorySummary e entra no
+      // system prompt, não aqui. Sem isso o agente perde a memória da cena.
       this.prisma.eventLog.findMany({
-        where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION'] } },
-        orderBy: { createdAt: 'desc' },
-        take: 40,
+        where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION'] }, summarized: false },
+        orderBy: { createdAt: 'asc' },
       }),
     ])
 
     if (!character) throw new NotFoundException(`Character ${characterId} not found`)
     if (!adventure) throw new NotFoundException(`Adventure ${adventureId} not found`)
 
-    // Reconstrói o fio da conversa em ordem cronológica (findMany veio desc).
+    // Reconstrói o fio recente da conversa em ordem cronológica.
     const history: CoreMessage[] = historyLogs
-      .slice()
-      .reverse()
       .map((log) => {
         const text = (log.payload as { text?: string }).text ?? ''
         return {
@@ -71,6 +80,7 @@ export class AiService {
       characterClass: character.class,
       characterRace: character.race,
       activeQuests: quests.map((q) => q.title),
+      memorySummary: adventure.memorySummary,
     })
 
     // Monta as tools — cada tool chama o Game Server (this.dice, this.prisma)
@@ -141,14 +151,75 @@ export class AiService {
       messages,
       tools,
       maxSteps: 5, // permite até 5 tool calls por turno
-      // Persiste a narração do mestre ao final, mantendo a continuidade da cena.
+      // Persiste a narração do mestre ao final, mantendo a continuidade da cena,
+      // e condensa turnos antigos no resumo quando a janela cresce demais.
       onFinish: async ({ text }) => {
         if (text.trim().length > 0) {
           await this.prisma.eventLog.create({
             data: { adventureId, characterId, type: 'NARRATION', payload: { text } },
           })
         }
+        await this.summarizeOldTurns(adventureId, characterId)
       },
     })
+  }
+
+  /**
+   * Memória de longo prazo: quando os turnos não-resumidos ultrapassam o limite,
+   * funde os mais antigos no resumo acumulado da aventura (Adventure.memorySummary)
+   * e os marca como `summarized`, mantendo apenas a janela recente verbatim.
+   *
+   * Roda no onFinish, de forma assíncrona, e nunca deve derrubar o turno — uma
+   * falha aqui apenas adia a sumarização para o próximo turno.
+   */
+  private async summarizeOldTurns(adventureId: string, characterId: string): Promise<void> {
+    try {
+      const unsummarized = await this.prisma.eventLog.findMany({
+        where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION'] }, summarized: false },
+        orderBy: { createdAt: 'asc' },
+      })
+
+      if (unsummarized.length <= SUMMARIZE_THRESHOLD) return
+
+      // Mantém os KEEP_RECENT eventos mais recentes verbatim; o excedente vira resumo.
+      const overflow = unsummarized.slice(0, unsummarized.length - KEEP_RECENT)
+
+      const turns: SummaryTurn[] = overflow
+        .map((log) => ({
+          role: log.type === 'NARRATION' ? ('assistant' as const) : ('user' as const),
+          content: (log.payload as { text?: string }).text ?? '',
+        }))
+        .filter((t) => t.content.trim().length > 0)
+
+      if (turns.length === 0) return
+
+      const adventure = await this.prisma.adventure.findUnique({
+        where: { id: adventureId },
+        select: { memorySummary: true },
+      })
+
+      const { text: updatedSummary } = await generateText({
+        model: summaryModel,
+        system: SUMMARY_SYSTEM_PROMPT,
+        prompt: buildSummaryInput(adventure?.memorySummary, turns),
+      })
+
+      if (updatedSummary.trim().length === 0) return
+
+      // Atualiza o resumo e marca os turnos incorporados, atomicamente.
+      await this.prisma.$transaction([
+        this.prisma.adventure.update({
+          where: { id: adventureId },
+          data: { memorySummary: updatedSummary.trim() },
+        }),
+        this.prisma.eventLog.updateMany({
+          where: { id: { in: overflow.map((e) => e.id) } },
+          data: { summarized: true },
+        }),
+      ])
+    } catch (err) {
+      // Não propaga: a narração já foi entregue ao jogador.
+      console.error('[AiService] Falha ao sumarizar memória da sessão:', err)
+    }
   }
 }

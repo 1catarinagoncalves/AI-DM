@@ -5,8 +5,19 @@ export function buildDmSystemPrompt(params: {
   characterRace: string
   characterGender: string
   activeQuests: string[]
+  memorySummary?: string | null
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, activeQuests } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, activeQuests, memorySummary } = params
+
+  const hasSummary = !!memorySummary && memorySummary.trim().length > 0
+  const summarySection = hasSummary
+    ? `## A história até agora (memória da campanha)
+This is a condensed record of everything that happened earlier in the session, before the recent messages below. Treat it as established canon: honour these facts, locations, NPCs, promises and unresolved threads. Do NOT contradict or re-introduce them as if new.
+
+${memorySummary!.trim()}
+
+`
+    : ''
 
   const isFree = systemName === 'Free'
 
@@ -36,7 +47,7 @@ You are not bound to any official RPG system. Narrate freely and creatively.
 ## Active quests
 ${activeQuests.length > 0 ? activeQuests.map((q) => `- ${q}`).join('\n') : '- No active quests yet.'}
 
-${rulesSection}
+${summarySection}${rulesSection}
 
 ## Critical rules you must always follow
 - NEVER generate random numbers yourself. Always use \`rollDice\` for any chance-based outcome.

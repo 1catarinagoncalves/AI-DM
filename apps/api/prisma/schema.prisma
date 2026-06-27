@@ -117,7 +117,12 @@ model EventLog {
   character   Character? @relation(fields: [characterId], references: [id])
   type        EventType
   payload     Json
+  // Marca turnos (ACTION/NARRATION) já incorporados ao Adventure.memorySummary.
+  // Histórico não-resumido é o que vai verbatim para o agente a cada turno.
+  summarized  Boolean   @default(false)
   createdAt   DateTime  @default(now())
+
+  @@index([adventureId, characterId, type, summarized])
 }
 
 enum EventType {

@@ -12,5 +12,9 @@ const openrouter = createOpenAICompatible({
 // Modelo principal: rápido e barato para narração
 export const defaultModel = groq('llama-3.3-70b-versatile')
 
+// Modelo auxiliar para sumarização de memória: tarefa simples, modelo menor
+// e mais barato, para não consumir o limite de TPM da narração.
+export const summaryModel = groq('llama-3.1-8b-instant')
+
 // Modelo alternativo via OpenRouter (usar se quiser trocar)
 export const openrouterModel: ReturnType<typeof openrouter> = openrouter('openai/gpt-4o-mini')
