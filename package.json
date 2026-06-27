@@ -1,0 +1,17 @@
+{
+  "name": "ai-dm",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "build": "pnpm --filter './packages/*' build && pnpm --filter './apps/*' build",
+    "lint": "pnpm --recursive lint",
+    "test": "pnpm --recursive test",
+    "eval": "pnpm --filter ai-engine eval",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "db:studio": "pnpm --filter api db:studio",
+    "db:seed": "pnpm --filter api db:seed"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

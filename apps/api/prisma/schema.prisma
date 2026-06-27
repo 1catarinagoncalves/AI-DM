@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(cuid())
+  email      String      @unique
+  name       String
+  characters Character[]
+  campaigns  Campaign[]  @relation("CampaignCreator")
+  createdAt  DateTime    @default(now())
+}
+
+model Character {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id])
+  name           String
+  race           String
+  class          String
+  level          Int              @default(1)
+  baseAttributes Json
+  states         CharacterState[]
+  slots          CharacterSlot[]
+  eventLogs      EventLog[]
+  createdAt      DateTime         @default(now())
+}
+
+model CharacterState {
+  id          String    @id @default(cuid())
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
+  hp          Int
+  maxHp       Int
+  attributes  Json
+  inventory   Json      @default("[]")
+  conditions  Json      @default("[]")
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([characterId, adventureId])
+}
+
+model Campaign {
+  id         String          @id @default(cuid())
+  creatorId  String
+  creator    User            @relation("CampaignCreator", fields: [creatorId], references: [id])
+  name       String
+  systemId   String
+  system     System          @relation(fields: [systemId], references: [id])
+  maxPlayers Int             @default(10)
+  slots      CharacterSlot[]
+  adventures Adventure[]
+  createdAt  DateTime        @default(now())
+}
+
+model CharacterSlot {
+  id          String    @id @default(cuid())
+  campaignId  String
+  campaign    Campaign  @relation(fields: [campaignId], references: [id])
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+  joinedAt    DateTime  @default(now())
+
+  @@unique([campaignId, characterId])
+}
+
+model Adventure {
+  id            String           @id @default(cuid())
+  campaignId    String
+  campaign      Campaign         @relation(fields: [campaignId], references: [id])
+  title         String
+  order         Int
+  status        AdventureStatus  @default(ACTIVE)
+  memorySummary String?
+  characterStates CharacterState[]
+  quests        Quest[]
+  eventLogs     EventLog[]
+  createdAt     DateTime         @default(now())
+  completedAt   DateTime?
+}
+
+enum AdventureStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+model Quest {
+  id          String      @id @default(cuid())
+  adventureId String
+  adventure   Adventure   @relation(fields: [adventureId], references: [id])
+  title       String
+  description String
+  status      QuestStatus @default(OPEN)
+  completedAt DateTime?
+}
+
+enum QuestStatus {
+  OPEN
+  COMPLETED
+  FAILED
+}
+
+model EventLog {
+  id          String    @id @default(cuid())
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
+  characterId String?
+  character   Character? @relation(fields: [characterId], references: [id])
+  type        EventType
+  payload     Json
+  createdAt   DateTime  @default(now())
+}
+
+enum EventType {
+  ACTION
+  NARRATION
+  DICE_ROLL
+  QUEST_UPDATE
+  CHARACTER_UPDATE
+}
+
+model System {
+  id         String     @id @default(cuid())
+  name       String
+  version    String
+  sourceType SourceType
+  ragIndexId String?
+  campaigns  Campaign[]
+}
+
+enum SourceType {
+  SRD
+  UPLOAD
+}
