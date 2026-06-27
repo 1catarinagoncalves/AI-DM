@@ -18,6 +18,23 @@ interface Props {
   maxHp: number
 }
 
+function historyKey(adventureId: string) {
+  return `ai-dm-history-${adventureId}`
+}
+
+function loadHistory(adventureId: string): Message[] {
+  try {
+    const raw = localStorage.getItem(historyKey(adventureId))
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function saveHistory(adventureId: string, messages: Message[]) {
+  localStorage.setItem(historyKey(adventureId), JSON.stringify(messages))
+}
+
 export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -26,6 +43,13 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  // Carrega histórico ao abrir a página
+  useEffect(() => {
+    const history = loadHistory(adventureId)
+    setMessages(history)
+  }, [adventureId])
+
+  // Actualiza sessão
   useEffect(() => {
     const session = loadSession()
     if (session) {
@@ -33,6 +57,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
     }
   }, [adventureId, characterId, characterName])
 
+  // Scroll automático para o fundo
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -43,11 +68,14 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
     const userMessage = input.trim()
     setInput('')
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }])
+
+    const withUser: Message[] = [...messages, { role: 'user', content: userMessage }]
+    setMessages(withUser)
     setStreaming(true)
 
     let dmText = ''
-    setMessages(prev => [...prev, { role: 'dm', content: '' }])
+    const withDmPlaceholder: Message[] = [...withUser, { role: 'dm', content: '' }]
+    setMessages(withDmPlaceholder)
 
     try {
       const res = await fetch('/api/chat', {
@@ -81,12 +109,15 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           }
         }
       }
+
+      // Guarda o histórico completo após a resposta terminar
+      const finalMessages: Message[] = [...withUser, { role: 'dm', content: dmText }]
+      saveHistory(adventureId, finalMessages)
+
     } catch {
-      setMessages(prev => {
-        const next = [...prev]
-        next[next.length - 1] = { role: 'dm', content: 'Erro ao conectar com o DM. Tente novamente.' }
-        return next
-      })
+      const errorMessages: Message[] = [...withUser, { role: 'dm', content: 'Erro ao conectar com o Mestre. Tenta novamente.' }]
+      setMessages(errorMessages)
+      saveHistory(adventureId, errorMessages)
     } finally {
       setStreaming(false)
       textareaRef.current?.focus()
@@ -132,8 +163,8 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           {messages.length === 0 && (
             <div className="text-center text-stone-500 pt-16">
               <p className="text-4xl mb-4">⚔</p>
-              <p className="text-lg">Sua aventura começa aqui.</p>
-              <p className="text-sm mt-1">Diga ao Mestre o que você quer fazer.</p>
+              <p className="text-lg">A tua aventura começa aqui.</p>
+              <p className="text-sm mt-1">Diz ao Mestre o que queres fazer.</p>
             </div>
           )}
 
@@ -167,7 +198,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="O que você faz? (Enter para enviar, Shift+Enter para nova linha)"
+            placeholder="O que fazes? (Enter para enviar, Shift+Enter para nova linha)"
             disabled={streaming}
             className="flex-1 bg-stone-800 border border-stone-600 rounded-lg px-3 py-2 text-white placeholder-stone-500 resize-none disabled:opacity-50 focus:outline-none focus:border-amber-600"
           />
