@@ -19,10 +19,10 @@ export function HomeHero() {
     return (
       <div className="text-center max-w-lg">
         <p className="text-5xl mb-4">⚔</p>
-        <h1 className="text-4xl font-bold text-amber-400 mb-2">AI Dungeon Master</h1>
-        <p className="text-stone-400 mb-2">Bem-vindo de volta, <span className="text-white font-semibold">{session.userName}</span>.</p>
-        <p className="text-stone-500 text-sm mb-8">
-          Personagem: <span className="text-stone-300">{session.characterName}</span>
+        <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
+        <p className="text-stone-500 dark:text-stone-400 mb-2">Bem-vindo de volta, <span className="text-stone-900 dark:text-white font-semibold">{session.userName}</span>.</p>
+        <p className="text-stone-400 dark:text-stone-500 text-sm mb-8">
+          Personagem: <span className="text-stone-700 dark:text-stone-300">{session.characterName}</span>
         </p>
         <div className="flex flex-col gap-3">
           <Link
@@ -33,13 +33,13 @@ export function HomeHero() {
           </Link>
           <Link
             href="/setup"
-            className="inline-block border border-stone-600 hover:border-stone-400 text-stone-400 hover:text-white font-semibold px-8 py-2 rounded-lg transition-colors text-sm"
+            className="inline-block border border-stone-400 dark:border-stone-600 hover:border-stone-600 dark:hover:border-stone-400 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold px-8 py-2 rounded-lg transition-colors text-sm"
           >
             Nova aventura com {session.characterName}
           </Link>
           <button
             onClick={() => { clearSession(); setSession(null) }}
-            className="text-stone-600 hover:text-stone-400 text-xs transition-colors"
+            className="text-stone-400 dark:text-stone-600 hover:text-stone-600 dark:hover:text-stone-400 text-xs transition-colors"
           >
             Trocar de personagem
           </button>
@@ -51,8 +51,8 @@ export function HomeHero() {
   return (
     <div className="text-center max-w-lg">
       <p className="text-5xl mb-4">⚔</p>
-      <h1 className="text-4xl font-bold text-amber-400 mb-2">AI Dungeon Master</h1>
-      <p className="text-stone-400 text-lg mb-8">
+      <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
+      <p className="text-stone-500 dark:text-stone-400 text-lg mb-8">
         Um mestre de RPG movido por inteligência artificial. Cada aventura é única.
       </p>
       <Link

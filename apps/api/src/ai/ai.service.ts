@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { streamText, tool } from 'ai'
+import { streamText, tool, type CoreMessage } from 'ai'
 import { z } from 'zod'
 import { defaultModel } from '@ai-dm/ai-engine'
 import { buildDmSystemPrompt } from '@ai-dm/ai-engine'
@@ -23,7 +23,7 @@ export class AiService {
     const { adventureId, characterId, message } = input
 
     // Carrega contexto do banco
-    const [character, adventure, characterState, quests] = await Promise.all([
+    const [character, adventure, characterState, quests, historyLogs] = await Promise.all([
       this.prisma.character.findUnique({ where: { id: characterId } }),
       this.prisma.adventure.findUnique({
         where: { id: adventureId },
@@ -35,10 +35,33 @@ export class AiService {
       this.prisma.quest.findMany({
         where: { adventureId, status: 'OPEN' },
       }),
+      // Histórico do turno: ações do jogador e narrações do mestre, em ordem.
+      // Sem isso o agente perde a memória da cena (onde está, o que recebeu)
+      // e inventa cenários novos a cada mensagem.
+      this.prisma.eventLog.findMany({
+        where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION'] } },
+        orderBy: { createdAt: 'desc' },
+        take: 40,
+      }),
     ])
 
     if (!character) throw new NotFoundException(`Character ${characterId} not found`)
     if (!adventure) throw new NotFoundException(`Adventure ${adventureId} not found`)
+
+    // Reconstrói o fio da conversa em ordem cronológica (findMany veio desc).
+    const history: CoreMessage[] = historyLogs
+      .slice()
+      .reverse()
+      .map((log) => {
+        const text = (log.payload as { text?: string }).text ?? ''
+        return {
+          role: log.type === 'NARRATION' ? ('assistant' as const) : ('user' as const),
+          content: text,
+        }
+      })
+      .filter((m) => m.content.trim().length > 0)
+
+    const messages: CoreMessage[] = [...history, { role: 'user', content: message }]
 
     const systemName = adventure.campaign.system.name
     const systemPrompt = buildDmSystemPrompt({
@@ -105,13 +128,27 @@ export class AiService {
       }),
     }
 
+    // Persiste a ação do jogador antes de narrar, para que faça parte do
+    // histórico do próximo turno.
+    await this.prisma.eventLog.create({
+      data: { adventureId, characterId, type: 'ACTION', payload: { text: message } },
+    })
+
     // Retorna o stream — o controller vai encaminhar para o cliente
     return streamText({
       model: defaultModel,
       system: systemPrompt,
-      messages: [{ role: 'user', content: message }],
+      messages,
       tools,
       maxSteps: 5, // permite até 5 tool calls por turno
+      // Persiste a narração do mestre ao final, mantendo a continuidade da cena.
+      onFinish: async ({ text }) => {
+        if (text.trim().length > 0) {
+          await this.prisma.eventLog.create({
+            data: { adventureId, characterId, type: 'NARRATION', payload: { text } },
+          })
+        }
+      },
     })
   }
 }

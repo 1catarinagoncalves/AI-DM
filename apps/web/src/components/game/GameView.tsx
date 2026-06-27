@@ -43,13 +43,11 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Carrega histórico ao abrir a página
   useEffect(() => {
     const history = loadHistory(adventureId)
     setMessages(history)
   }, [adventureId])
 
-  // Actualiza sessão
   useEffect(() => {
     const session = loadSession()
     if (session) {
@@ -57,7 +55,6 @@ export function GameView({ adventureId, characterId, characterName, characterCla
     }
   }, [adventureId, characterId, characterName])
 
-  // Scroll automático para o fundo
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -110,7 +107,6 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         }
       }
 
-      // Guarda o histórico completo após a resposta terminar
       const finalMessages: Message[] = [...withUser, { role: 'dm', content: dmText }]
       saveHistory(adventureId, finalMessages)
 
@@ -135,21 +131,21 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   const hpColor = hpPercent > 60 ? 'bg-green-500' : hpPercent > 30 ? 'bg-yellow-500' : 'bg-red-500'
 
   return (
-    <div className="min-h-screen bg-stone-950 text-white flex flex-col md:flex-row">
+    <div className="min-h-screen bg-amber-50 dark:bg-stone-950 text-stone-900 dark:text-white flex flex-col md:flex-row">
 
       {/* Ficha do personagem — sidebar */}
-      <aside className="md:w-64 bg-stone-900 border-b md:border-b-0 md:border-r border-stone-800 p-4 flex md:flex-col gap-4 items-start overflow-x-auto md:overflow-x-visible">
+      <aside className="md:w-64 bg-stone-100 dark:bg-stone-900 border-b md:border-b-0 md:border-r border-stone-300 dark:border-stone-800 p-4 flex md:flex-col gap-4 items-start overflow-x-auto md:overflow-x-visible">
         <div>
-          <p className="text-amber-400 font-bold text-lg">{characterName}</p>
-          <p className="text-stone-400 text-sm">{characterRace} · {characterClass}</p>
+          <p className="text-amber-600 dark:text-amber-400 font-bold text-lg">{characterName}</p>
+          <p className="text-stone-500 dark:text-stone-400 text-sm">{characterRace} · {characterClass}</p>
         </div>
 
         <div className="md:w-full">
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-stone-400">HP</span>
-            <span className={hpPercent > 30 ? 'text-green-400' : 'text-red-400'}>{currentHp}/{maxHp}</span>
+            <span className="text-stone-500 dark:text-stone-400">HP</span>
+            <span className={hpPercent > 30 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>{currentHp}/{maxHp}</span>
           </div>
-          <div className="h-2 bg-stone-700 rounded-full overflow-hidden">
+          <div className="h-2 bg-stone-300 dark:bg-stone-700 rounded-full overflow-hidden">
             <div className={`h-full ${hpColor} rounded-full transition-all`} style={{ width: `${hpPercent}%` }} />
           </div>
         </div>
@@ -161,7 +157,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         {/* Histórico de mensagens */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0" style={{ maxHeight: 'calc(100vh - 120px)' }}>
           {messages.length === 0 && (
-            <div className="text-center text-stone-500 pt-16">
+            <div className="text-center text-stone-400 dark:text-stone-500 pt-16">
               <p className="text-4xl mb-4">⚔</p>
               <p className="text-lg">A tua aventura começa aqui.</p>
               <p className="text-sm mt-1">Diz ao Mestre o que queres fazer.</p>
@@ -171,18 +167,18 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'dm' && (
-                <div className="w-7 h-7 rounded-full bg-amber-900 border border-amber-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0 text-sm">
+                <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900 border border-amber-500 dark:border-amber-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0 text-sm text-amber-700 dark:text-amber-300">
                   ✦
                 </div>
               )}
               <div className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === 'user'
-                  ? 'bg-stone-700 text-white rounded-br-sm'
-                  : 'bg-stone-800 border border-stone-700 text-stone-100 rounded-bl-sm'
+                  ? 'bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-white rounded-br-sm'
+                  : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 rounded-bl-sm'
               }`}>
                 {msg.content}
                 {streaming && i === messages.length - 1 && msg.role === 'dm' && (
-                  <span className="inline-block w-2 h-4 bg-amber-400 ml-1 animate-pulse align-text-bottom" />
+                  <span className="inline-block w-2 h-4 bg-amber-500 dark:bg-amber-400 ml-1 animate-pulse align-text-bottom" />
                 )}
               </div>
             </div>
@@ -191,7 +187,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         </div>
 
         {/* Input */}
-        <form onSubmit={sendMessage} className="p-4 border-t border-stone-800 flex gap-3 items-end">
+        <form onSubmit={sendMessage} className="p-4 border-t border-stone-200 dark:border-stone-800 flex gap-3 items-end">
           <textarea
             ref={textareaRef}
             rows={2}
@@ -200,12 +196,12 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             onKeyDown={handleKeyDown}
             placeholder="O que fazes? (Enter para enviar, Shift+Enter para nova linha)"
             disabled={streaming}
-            className="flex-1 bg-stone-800 border border-stone-600 rounded-lg px-3 py-2 text-white placeholder-stone-500 resize-none disabled:opacity-50 focus:outline-none focus:border-amber-600"
+            className="flex-1 bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg px-3 py-2 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 resize-none disabled:opacity-50 focus:outline-none focus:border-amber-500 dark:focus:border-amber-600"
           />
           <button
             type="submit"
             disabled={streaming || !input.trim()}
-            className="bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-4 py-2 font-semibold transition-colors"
+            className="bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-semibold transition-colors"
           >
             {streaming ? '...' : '➤'}
           </button>
