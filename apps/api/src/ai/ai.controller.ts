@@ -18,23 +18,71 @@ export class AiController {
   async chat(@Body() body: unknown, @Res() res: Response) {
     const { adventureId, characterId, message } = ChatBodySchema.parse(body)
 
-    const result = await this.aiService.streamChat({ adventureId, characterId, message })
-
-    // Converte o stream do Vercel AI SDK para Server-Sent Events
-    const response = result.toDataStreamResponse()
-    const reader = response.body!.getReader()
-
     res.setHeader('Content-Type', 'text/event-stream')
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
 
-    const pump = async () => {
-      const { done, value } = await reader.read()
-      if (done) { res.end(); return }
-      res.write(value)
-      await pump()
+    // Em turnos multi-step o modelo às vezes narra a cena DUAS vezes (uma
+    // narração completa, tool call, e outra narração completa) — isso é
+    // duplicação e deve ser descartada. Mas ele também pode narrar a
+    // PREPARAÇÃO, rolar um dado, e narrar o DESFECHO — e aí os dois trechos se
+    // complementam e devem ser mantidos juntos.
+    //
+    // Distinguimos os casos pela lista de opções: toda narração completa
+    // termina com opções (`- 🗡️ ...`). Só descartamos o texto do step anterior
+    // (enviando um reset `R` ao cliente) quando ele JÁ era uma narração
+    // completa; preparação sem opções é preservada.
+    const COMPLETE_NARRATION = /(^|\n)\s*-\s/
+
+    // Fallback de provedor: tenta o modelo primário (NVIDIA) e, se ele falhar
+    // ANTES de emitir qualquer texto, cai para o próximo (OpenRouter) sem o
+    // jogador perceber. Uma vez que já enviamos texto, não há como voltar atrás
+    // — aí apenas sinalizamos o erro.
+    let emittedAnyText = false
+
+    for (let attempt = 0; ; attempt++) {
+      const { result, hasFallback } = await this.aiService.streamChat(
+        { adventureId, characterId, message },
+        attempt,
+      )
+
+      let prevStepText = ''
+      let curStepText = ''
+      let failedBeforeOutput = false
+
+      try {
+        for await (const part of result.fullStream) {
+          if (part.type === 'step-start') {
+            if (curStepText) prevStepText = curStepText
+            curStepText = ''
+          } else if (part.type === 'text-delta') {
+            if (curStepText === '' && COMPLETE_NARRATION.test(prevStepText)) {
+              res.write('R\n')
+              prevStepText = ''
+            }
+            curStepText += part.textDelta
+            emittedAnyText = true
+            res.write('0:' + JSON.stringify(part.textDelta) + '\n')
+          } else if (part.type === 'error') {
+            if (!emittedAnyText && hasFallback) {
+              failedBeforeOutput = true
+              break
+            }
+            res.write('0:' + JSON.stringify('\n\n[O Mestre encontrou um erro. Tenta novamente.]') + '\n')
+          }
+        }
+      } catch {
+        if (!emittedAnyText && hasFallback) {
+          failedBeforeOutput = true
+        } else {
+          res.write('0:' + JSON.stringify('\n\n[O Mestre encontrou um erro. Tenta novamente.]') + '\n')
+        }
+      }
+
+      if (failedBeforeOutput) continue // tenta o próximo provedor
+      break
     }
 
-    await pump()
+    res.end()
   }
 }

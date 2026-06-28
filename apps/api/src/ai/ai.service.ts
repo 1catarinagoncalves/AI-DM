@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { streamText, generateText, tool, type CoreMessage } from 'ai'
 import { z } from 'zod'
 import {
-  defaultModel,
+  narrationModels,
   summaryModel,
   buildDmSystemPrompt,
   buildSummaryInput,
@@ -31,7 +31,16 @@ export class AiService {
     private readonly dice: DiceService,
   ) {}
 
-  async streamChat(input: ChatInput) {
+  /**
+   * Cria o stream de narração para um turno. `attempt` seleciona o modelo na
+   * lista de prioridade (0 = NVIDIA, 1 = OpenRouter fallback). O controller
+   * tenta a próxima tentativa quando o modelo falha antes de emitir texto.
+   *
+   * A ação do jogador NÃO é persistida aqui — é gravada no `onFinish`, junto
+   * com a narração, apenas quando o turno produz texto. Assim uma tentativa de
+   * fallback não duplica a ação no histórico nem reconstrói a janela errada.
+   */
+  async streamChat(input: ChatInput, attempt = 0) {
     const { adventureId, characterId, message } = input
 
     // Carrega contexto do banco
@@ -86,7 +95,8 @@ export class AiService {
     // Monta as tools — cada tool chama o Game Server (this.dice, this.prisma)
     const tools = {
       rollDice: tool({
-        description: 'Roll dice using standard RPG notation. Always use this for any mechanical roll.',
+        description:
+          'Roll dice using standard RPG notation. ALWAYS call this BEFORE narrating any chance-based outcome, and WAIT for the result. Never state a dice result you did not get from this tool.',
         parameters: z.object({
           formula: z.string().describe('e.g. "1d20+5" or "2d6+3"'),
           reason: z.string().describe('Why this roll is happening'),
@@ -138,30 +148,50 @@ export class AiService {
       }),
     }
 
-    // Persiste a ação do jogador antes de narrar, para que faça parte do
-    // histórico do próximo turno.
-    await this.prisma.eventLog.create({
-      data: { adventureId, characterId, type: 'ACTION', payload: { text: message } },
-    })
+    const model = narrationModels[Math.min(attempt, narrationModels.length - 1)]!
+    const hasFallback = attempt < narrationModels.length - 1
 
     // Retorna o stream — o controller vai encaminhar para o cliente
-    return streamText({
-      model: defaultModel,
+    const result = streamText({
+      model,
       system: systemPrompt,
       messages,
       tools,
       maxSteps: 5, // permite até 5 tool calls por turno
       // Persiste a narração do mestre ao final, mantendo a continuidade da cena,
       // e condensa turnos antigos no resumo quando a janela cresce demais.
-      onFinish: async ({ text }) => {
-        if (text.trim().length > 0) {
+      onFinish: async ({ text, steps }) => {
+        // Em turnos multi-step, `text` concatena a narração de TODOS os steps.
+        // Reconstruímos exatamente o que foi mostrado ao jogador (mesma lógica
+        // do controller): descartamos um step anterior só quando ele já era uma
+        // narração completa (terminava com opções) — duplicação real — mas
+        // mantemos preparação + desfecho juntos. Sem isso o histórico grava a
+        // duplicação e realimenta o problema nos próximos turnos.
+        const COMPLETE_NARRATION = /(^|\n)\s*-\s/
+        let shown = ''
+        for (const step of steps) {
+          const t = step.text ?? ''
+          if (t.trim().length === 0) continue
+          if (COMPLETE_NARRATION.test(shown)) shown = ''
+          shown += t
+        }
+        const finalText = (shown || text).trim()
+        // Só registra o turno (ação + narração) quando ele de fato produziu
+        // narração. Uma tentativa que falhou antes de emitir texto não grava
+        // nada, evitando duplicar a ação quando o fallback assume.
+        if (finalText.length > 0) {
           await this.prisma.eventLog.create({
-            data: { adventureId, characterId, type: 'NARRATION', payload: { text } },
+            data: { adventureId, characterId, type: 'ACTION', payload: { text: message } },
+          })
+          await this.prisma.eventLog.create({
+            data: { adventureId, characterId, type: 'NARRATION', payload: { text: finalText } },
           })
         }
         await this.summarizeOldTurns(adventureId, characterId)
       },
     })
+
+    return { result, hasFallback }
   }
 
   /**

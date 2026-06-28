@@ -35,7 +35,12 @@ $env:NEXT_PUBLIC_API_URL = 'http://localhost:3001'
 foreach ($line in Get-Content "$projectDir\.env") {
     if ($line -match "^GROQ_API_KEY=(.+)$") {
         $env:GROQ_API_KEY = $Matches[1] -replace '["]', ''
-        break
+    }
+    if ($line -match "^OPENROUTER_API_KEY=(.+)$") {
+        $env:OPENROUTER_API_KEY = $Matches[1] -replace '["]', ''
+    }
+    if ($line -match "^NVIDIA_API_KEY=(.+)$") {
+        $env:NVIDIA_API_KEY = $Matches[1] -replace '["]', ''
     }
 }
 

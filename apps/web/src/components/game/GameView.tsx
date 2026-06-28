@@ -83,29 +83,50 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
       const reader = res.body!.getReader()
       const decoder = new TextDecoder()
+      let buffer = ''
+
+      const handleLine = (line: string) => {
+        // Sinal de reset: um novo step do modelo vai substituir a narração
+        // anterior (evita a resposta duplicada em turnos multi-step).
+        if (line === 'R') {
+          dmText = ''
+          setMessages(prev => {
+            const next = [...prev]
+            next[next.length - 1] = { role: 'dm', content: '' }
+            return next
+          })
+          return
+        }
+        if (!line.startsWith('0:"')) return
+        const token = line.slice(3, -1)
+          .replace(/\\n/g, '\n')
+          .replace(/\\"/g, '"')
+          .replace(/\\\\/g, '\\')
+        dmText += token
+        setMessages(prev => {
+          const next = [...prev]
+          next[next.length - 1] = { role: 'dm', content: dmText }
+          return next
+        })
+      }
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
+        // Acumula no buffer e só processa linhas completas; a última linha
+        // (possivelmente parcial) fica retida até chegar o resto no próximo read.
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
 
         for (const line of lines) {
-          if (line.startsWith('0:"')) {
-            const token = line.slice(3, -1)
-              .replace(/\\n/g, '\n')
-              .replace(/\\"/g, '"')
-              .replace(/\\\\/g, '\\')
-            dmText += token
-            setMessages(prev => {
-              const next = [...prev]
-              next[next.length - 1] = { role: 'dm', content: dmText }
-              return next
-            })
-          }
+          handleLine(line)
         }
       }
+
+      // Processa qualquer linha completa remanescente no buffer.
+      if (buffer.length > 0) handleLine(buffer)
 
       const finalMessages: Message[] = [...withUser, { role: 'dm', content: dmText }]
       saveHistory(adventureId, finalMessages)

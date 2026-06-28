@@ -1,7 +1,13 @@
-import { createGroq } from '@ai-sdk/groq'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 
-const groq = createGroq({ apiKey: process.env['GROQ_API_KEY'] })
+type OpenAICompatModel = ReturnType<ReturnType<typeof createOpenAICompatible>>
+
+// NVIDIA NIM — API OpenAI-compatible (https://integrate.api.nvidia.com/v1).
+const nvidia = createOpenAICompatible({
+  name: 'nvidia',
+  baseURL: 'https://integrate.api.nvidia.com/v1',
+  apiKey: process.env['NVIDIA_API_KEY'],
+})
 
 const openrouter = createOpenAICompatible({
   name: 'openrouter',
@@ -9,12 +15,19 @@ const openrouter = createOpenAICompatible({
   apiKey: process.env['OPENROUTER_API_KEY'],
 })
 
-// Modelo principal: rápido e barato para narração
-export const defaultModel = groq('llama-3.3-70b-versatile')
+// Narração: NVIDIA gpt-oss-120b como primário; OpenRouter como fallback.
+// O gpt-oss-120b segue as regras do system prompt (disciplina de dados,
+// formatação, sem duplicação) muito melhor que o antigo llama-3.3-70b.
+export const nvidiaModel: OpenAICompatModel = nvidia('openai/gpt-oss-120b')
+export const openrouterModel: OpenAICompatModel = openrouter('openai/gpt-oss-120b')
 
-// Modelo auxiliar para sumarização de memória: tarefa simples, modelo menor
-// e mais barato, para não consumir o limite de TPM da narração.
-export const summaryModel = groq('llama-3.1-8b-instant')
+// Modelos de narração em ordem de prioridade. O serviço tenta o primeiro e,
+// se ele falhar ANTES de emitir texto, cai para o próximo.
+export const narrationModels: OpenAICompatModel[] = [nvidiaModel, openrouterModel]
 
-// Modelo alternativo via OpenRouter (usar se quiser trocar)
-export const openrouterModel: ReturnType<typeof openrouter> = openrouter('openai/gpt-4o-mini')
+// Compat: modelo principal isolado.
+export const defaultModel: OpenAICompatModel = nvidiaModel
+
+// Sumarização de memória: tarefa simples; usa o mesmo provedor primário
+// (falha aqui é tolerada e só adia a sumarização para o próximo turno).
+export const summaryModel: OpenAICompatModel = nvidia('openai/gpt-oss-120b')
