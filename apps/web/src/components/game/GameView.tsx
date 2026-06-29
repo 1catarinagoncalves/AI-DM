@@ -8,6 +8,11 @@ interface Message {
   content: string
 }
 
+const ATTR_LABELS: Record<string, string> = {
+  strength: 'FOR', dexterity: 'DES', constitution: 'CON',
+  intelligence: 'INT', wisdom: 'SAB', charisma: 'CAR',
+}
+
 interface Props {
   adventureId: string
   characterId: string
@@ -16,6 +21,7 @@ interface Props {
   characterRace: string
   hp: number
   maxHp: number
+  attributes?: Record<string, number>
 }
 
 function historyKey(adventureId: string) {
@@ -35,7 +41,7 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(messages))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -170,6 +176,19 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             <div className={`h-full ${hpColor} rounded-full transition-all`} style={{ width: `${hpPercent}%` }} />
           </div>
         </div>
+
+        {attributes && Object.keys(attributes).length > 0 && (
+          <div className="md:w-full grid grid-cols-3 gap-x-2 gap-y-2">
+            {Object.entries(attributes).map(([key, value]) => (
+              <div key={key} className="flex flex-col items-center bg-stone-200 dark:bg-stone-800 rounded px-1 py-1">
+                <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">
+                  {ATTR_LABELS[key] ?? key.slice(0, 3).toUpperCase()}
+                </span>
+                <span className="text-sm font-bold text-stone-800 dark:text-stone-100">{value}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </aside>
 
       {/* Área de jogo */}
