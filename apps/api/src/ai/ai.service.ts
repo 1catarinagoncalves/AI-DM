@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { streamText, generateText, tool, type CoreMessage } from 'ai'
+import type { InventoryItem } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -82,6 +83,7 @@ export class AiService {
     const messages: CoreMessage[] = [...history, { role: 'user', content: message }]
 
     const systemName = adventure.campaign.system.name
+    const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
     const systemPrompt = buildDmSystemPrompt({
       systemName,
       characterName: character.name,
@@ -90,6 +92,7 @@ export class AiService {
       characterRace: character.race,
       activeQuests: quests.map((q) => q.title),
       memorySummary: adventure.memorySummary,
+      inventory: inventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
     })
 
     // Monta as tools — cada tool chama o Game Server (this.dice, this.prisma)
@@ -144,6 +147,64 @@ export class AiService {
             },
           })
           return { hp: clampedHp, maxHp }
+        },
+      }),
+
+      updateInventory: tool({
+        description:
+          'Add or remove items from the character inventory. Call when the character acquires, uses, gives away, or loses items. Positive delta = add, negative = remove.',
+        parameters: z.object({
+          changes: z.array(z.object({
+            name: z.string().describe('Item name, exactly as it should appear in the inventory'),
+            delta: z.number().int().describe('Quantity change: positive to add, negative to remove'),
+          })).describe('List of item changes to apply'),
+        }),
+        execute: async ({ changes }: { changes: { name: string; delta: number }[] }) => {
+          const state = await this.prisma.characterState.findUnique({
+            where: { characterId_adventureId: { characterId, adventureId } },
+          })
+
+          const current = (state?.inventory ?? []) as unknown as InventoryItem[]
+          const inv = new Map<string, number>(current.map(i => [i.name, i.qty]))
+
+          for (const { name, delta } of changes) {
+            const next = (inv.get(name) ?? 0) + delta
+            if (next <= 0) inv.delete(name)
+            else inv.set(name, next)
+          }
+
+          const total = Array.from(inv.values()).reduce((a, b) => a + b, 0)
+          if (total > 9999) {
+            return { error: 'Inventário cheio: limite de 9999 itens atingido. O item não foi adicionado.' }
+          }
+
+          const inventory: InventoryItem[] = Array.from(inv.entries()).map(([name, qty]) => ({ name, qty }))
+
+          const inventoryJson = inventory as unknown as object
+
+          await this.prisma.characterState.upsert({
+            where: { characterId_adventureId: { characterId, adventureId } },
+            update: { inventory: inventoryJson },
+            create: {
+              characterId,
+              adventureId,
+              hp: characterState?.hp ?? 10,
+              maxHp: characterState?.maxHp ?? 10,
+              attributes: (character.baseAttributes as object) ?? {},
+              inventory: inventoryJson,
+            },
+          })
+
+          await this.prisma.eventLog.create({
+            data: {
+              adventureId,
+              characterId,
+              type: 'CHARACTER_UPDATE',
+              payload: { field: 'inventory', changes: changes as unknown as object, result: inventoryJson },
+            },
+          })
+
+          return { inventory }
         },
       }),
     }

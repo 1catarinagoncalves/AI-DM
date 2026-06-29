@@ -55,6 +55,12 @@ export class AiController {
           if (part.type === 'step-start') {
             if (curStepText) prevStepText = curStepText
             curStepText = ''
+          } else if (part.type === 'tool-result') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const p = part as any
+            if (p.toolName === 'updateInventory' && p.result?.inventory) {
+              res.write('I:' + JSON.stringify(p.result.inventory) + '\n')
+            }
           } else if (part.type === 'text-delta') {
             if (curStepText === '' && COMPLETE_NARRATION.test(prevStepText)) {
               res.write('R\n')

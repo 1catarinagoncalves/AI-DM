@@ -13,6 +13,11 @@ const ATTR_LABELS: Record<string, string> = {
   intelligence: 'INT', wisdom: 'SAB', charisma: 'CAR',
 }
 
+interface InventoryItem {
+  name: string
+  qty: number
+}
+
 interface Props {
   adventureId: string
   characterId: string
@@ -22,6 +27,7 @@ interface Props {
   hp: number
   maxHp: number
   attributes?: Record<string, number>
+  inventory?: InventoryItem[]
 }
 
 function historyKey(adventureId: string) {
@@ -41,11 +47,12 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(messages))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [currentHp, setCurrentHp] = useState(hp)
+  const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory ?? [])
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -101,6 +108,10 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             next[next.length - 1] = { role: 'dm', content: '' }
             return next
           })
+          return
+        }
+        if (line.startsWith('I:')) {
+          try { setInventory(JSON.parse(line.slice(2))) } catch { /* ignore malformed */ }
           return
         }
         if (!line.startsWith('0:"')) return
@@ -178,7 +189,9 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         </div>
 
         {attributes && Object.keys(attributes).length > 0 && (
-          <div className="md:w-full grid grid-cols-3 gap-x-2 gap-y-2">
+          <div className="md:w-full">
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Atributos</p>
+          <div className="grid grid-cols-3 gap-x-2 gap-y-2">
             {Object.entries(attributes).map(([key, value]) => (
               <div key={key} className="flex flex-col items-center bg-stone-200 dark:bg-stone-800 rounded px-1 py-1">
                 <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">
@@ -188,7 +201,25 @@ export function GameView({ adventureId, characterId, characterName, characterCla
               </div>
             ))}
           </div>
+          </div>
         )}
+
+        <div className="md:w-full">
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">
+            Inventário ({inventory.length})
+          </p>
+          {inventory.length === 0
+            ? <p className="text-xs text-stone-400 dark:text-stone-500">Nenhum item</p>
+            : <ul className="space-y-1">
+                {inventory.map((item, i) => (
+                  <li key={i} className="text-xs text-stone-700 dark:text-stone-300 flex justify-between gap-1">
+                    <span>{item.name}</span>
+                    {item.qty > 1 && <span className="text-stone-400 dark:text-stone-500 shrink-0">({item.qty})</span>}
+                  </li>
+                ))}
+              </ul>
+          }
+        </div>
       </aside>
 
       {/* Área de jogo */}

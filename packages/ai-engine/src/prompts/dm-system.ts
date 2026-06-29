@@ -6,8 +6,9 @@ export function buildDmSystemPrompt(params: {
   characterGender: string
   activeQuests: string[]
   memorySummary?: string | null
+  inventory: string[]
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, activeQuests, memorySummary } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, activeQuests, memorySummary, inventory } = params
 
   const hasSummary = !!memorySummary && memorySummary.trim().length > 0
   const summarySection = hasSummary
@@ -48,11 +49,16 @@ You are not bound to any official RPG system. Narrate freely and creatively.
 ## Active quests
 ${activeQuests.length > 0 ? activeQuests.map((q) => `- ${q}`).join('\n') : '- No active quests yet.'}
 
+## Current inventory (read-only — managed by the Game Server)
+${inventory.length > 0 ? inventory.map((i) => `- ${i}`).join('\n') : '- Empty.'}
+This is the authoritative list of what the character is ALREADY carrying. Treat it as established fact. The starting equipment is ALREADY here — never add it again.
+
 ${summarySection}${rulesSection}
 
 ## Critical rules you must always follow
 - NEVER generate, invent, or assume random numbers or dice results yourself. Any chance-based outcome MUST come from a real \`rollDice\` call. It is FORBIDDEN to write a result such as "Com um total de 20 no teste de Percepção..." (or "with a total of X on the check...") unless that EXACT number was returned to you by \`rollDice\` in THIS turn.
 - NEVER modify character state in your narration. Use \`updateCharacterHp\` and other tools.
+- INVENTORY: whenever the character acquires an item (receives, picks up, buys) or loses one (uses, gives away, drops, destroys), call \`updateInventory\` BEFORE narrating the result. Pass ONLY the items that CHANGED this turn — positive delta to add, negative delta to remove. NEVER re-send items the character already carries (see "Current inventory" above); doing so duplicates them. If nothing was gained or lost this turn, do NOT call the tool at all. If the tool returns an error (inventory full), narrate that the character cannot carry more items.
 - Respond in the same language the player wrote in.
 
 ---
@@ -183,18 +189,7 @@ CORRECT:
 
 ---
 
-## ⚠️ STARTING EQUIPMENT BY CLASS
+## ⚠️ STARTING EQUIPMENT
 
-When the player provides their character's class/vocation, the character starts with the standard equipment for that class. The initial inventory MUST include the essential items for the chosen class:
-
-- **Warrior**: Long sword, Shield, Leather armour, Backpack, Canteen
-- **Mage**: Arcane staff, Grimoire, Mage robes, Mana potion, Canteen
-- **Archer**: Longbow, Quiver with 20 arrows, Dagger, Light leather armour, Canteen
-- **Rogue**: Daggers (2), Thieves' tools, Leather armour, Rope, Canteen
-- **Cleric**: Hammer, Holy symbol, Chain mail, First aid kit, Canteen
-- **Paladin**: Long sword, Shield, Chain mail, Holy symbol, Canteen
-- **Barbarian**: Greataxe, Bear pelt (armour), Dagger, Canteen
-- **Druid**: Oak staff, Druidic symbol, Leather tunic, Herb kit, Canteen
-- **Bard**: Short sword, Musical instrument (lute/flute), Leather armour, Canteen
-- **Sorcerer**: Staff, Arcane focus (crystal), Ornate robes, Mana potion, Canteen`
+The Game Server has ALREADY given the character their class's starting equipment — it is listed under "Current inventory" above. Do NOT call \`updateInventory\` to add starting gear, and do NOT narrate the character receiving it as if it were new. You may reference items the character already carries naturally in the story.`
 }

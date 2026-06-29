@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../prisma.service'
+import { getStartingInventory } from '../character/starting-inventory'
 
 export interface CreateCampaignDto {
   userId: string
@@ -115,6 +116,7 @@ export class CampaignService {
           hp: maxHp,
           maxHp,
           attributes: slot.character.baseAttributes as object,
+          inventory: getStartingInventory(slot.character.class) as unknown as object,
         },
       })
     }

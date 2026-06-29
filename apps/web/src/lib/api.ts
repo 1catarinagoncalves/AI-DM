@@ -39,5 +39,5 @@ export const api = {
     post<{ id: string; title: string }>(`/campaigns/${campaignId}/adventures`, { title }),
 
   getCharacter: (id: string) =>
-    get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; states: { hp: number; maxHp: number }[] }>(`/characters/${id}`),
+    get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; states: { hp: number; maxHp: number; inventory: { name: string; qty: number }[] }[] }>(`/characters/${id}`),
 }

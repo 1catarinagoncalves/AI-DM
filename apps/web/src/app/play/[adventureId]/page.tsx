@@ -33,6 +33,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       hp={state?.hp ?? 10}
       maxHp={state?.maxHp ?? 10}
       attributes={character.baseAttributes}
+      inventory={state?.inventory ?? []}
     />
   )
 }

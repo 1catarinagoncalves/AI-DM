@@ -23,10 +23,6 @@ export class CharacterService {
     const { userId, name, gender, race, class: charClass,
       strength, dexterity, constitution, intelligence, wisdom, charisma } = dto
 
-    // HP inicial = 10 + modificador de Constituição (regra D&D simplificada)
-    const conMod = Math.floor((constitution - 10) / 2)
-    const startingHp = 10 + conMod
-
     return this.prisma.character.create({
       data: {
         userId,
