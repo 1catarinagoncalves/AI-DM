@@ -43,6 +43,7 @@ model CharacterState {
   attributes  Json
   inventory   Json      @default("[]")
   conditions  Json      @default("[]")
+  sceneState  Json?
   updatedAt   DateTime  @updatedAt
 
   @@unique([characterId, adventureId])

@@ -23,3 +23,14 @@ export interface InventoryItem {
   name: string
   qty: number
 }
+
+// Estado de cena estruturado (US-03): fonte de verdade da continuidade
+// espacial, reinjetada no prompt a cada turno e atualizada deterministicamente.
+export interface SceneState {
+  local: string
+  ambiente: 'externo' | 'interno'
+  periodo: string
+  presentes: string[]
+  objetos_em_cena: string[]
+  atualizadoEm: string
+}

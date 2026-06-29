@@ -15,10 +15,10 @@ const openrouter = createOpenAICompatible({
   apiKey: process.env['OPENROUTER_API_KEY'],
 })
 
-// Narração: NVIDIA gpt-oss-120b como primário; OpenRouter como fallback.
-// O gpt-oss-120b segue as regras do system prompt (disciplina de dados,
-// formatação, sem duplicação) muito melhor que o antigo llama-3.3-70b.
-export const nvidiaModel: OpenAICompatModel = nvidia('openai/gpt-oss-120b')
+// Narração: NVIDIA mistral-medium-3.5-128b como primário; OpenRouter (gpt-oss-120b)
+// como fallback. O Medium 3.5 é denso 128B com toggle fast/reasoning e segue bem
+// as regras do system prompt.
+export const nvidiaModel: OpenAICompatModel = nvidia('mistralai/mistral-medium-3.5-128b')
 export const openrouterModel: OpenAICompatModel = openrouter('openai/gpt-oss-120b')
 
 // Modelos de narração em ordem de prioridade. O serviço tenta o primeiro e,
@@ -30,4 +30,4 @@ export const defaultModel: OpenAICompatModel = nvidiaModel
 
 // Sumarização de memória: tarefa simples; usa o mesmo provedor primário
 // (falha aqui é tolerada e só adia a sumarização para o próximo turno).
-export const summaryModel: OpenAICompatModel = nvidia('openai/gpt-oss-120b')
+export const summaryModel: OpenAICompatModel = nvidia('mistralai/mistral-medium-3.5-128b')

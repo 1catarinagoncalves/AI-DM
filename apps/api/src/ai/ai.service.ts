@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { streamText, generateText, tool, type CoreMessage } from 'ai'
-import type { InventoryItem } from '@ai-dm/shared'
+import type { InventoryItem, SceneState } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
   summaryModel,
   buildDmSystemPrompt,
   buildSummaryInput,
+  mergeSceneState,
+  formatSceneState,
   SUMMARY_SYSTEM_PROMPT,
   type SummaryTurn,
 } from '@ai-dm/ai-engine'
@@ -93,6 +95,7 @@ export class AiService {
       activeQuests: quests.map((q) => q.title),
       memorySummary: adventure.memorySummary,
       inventory: inventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
+      sceneState: (characterState?.sceneState ?? null) as SceneState | null,
     })
 
     // Monta as tools — cada tool chama o Game Server (this.dice, this.prisma)
@@ -207,6 +210,53 @@ export class AiService {
           return { inventory }
         },
       }),
+
+      updateScene: tool({
+        description:
+          'Update the structured scene state (source of truth for spatial continuity). Call BEFORE narrating whenever the scene CHANGES: the character moves to a new location, the environment switches indoor/outdoor, the time of day advances, an NPC arrives or leaves, or a notable object appears/disappears. Pass ONLY the fields that changed this turn — omitted fields keep their previous value. For `presentes` and `objetos_em_cena`, send the FULL current list (it replaces the previous one). Do NOT call this when the player merely inspects an item they are carrying — that does not move the character.',
+        parameters: z.object({
+          local: z.string().optional().describe('Current location in natural language, e.g. "praça central de Willowdale"'),
+          ambiente: z.enum(['externo', 'interno']).optional().describe('externo = open/outdoors, interno = enclosed/indoors'),
+          periodo: z.string().optional().describe('Time of day, e.g. manhã/tarde/entardecer/noite'),
+          presentes: z.array(z.string()).optional().describe('FULL list of NPCs/characters present in the scene now'),
+          objetos_em_cena: z.array(z.string()).optional().describe('FULL list of notable objects visible/available in the scene now (distinct from carried inventory)'),
+        }),
+        execute: async (patch: {
+          local?: string
+          ambiente?: 'externo' | 'interno'
+          periodo?: string
+          presentes?: string[]
+          objetos_em_cena?: string[]
+        }) => {
+          const current = (characterState?.sceneState ?? null) as SceneState | null
+          const next = mergeSceneState(current, patch)
+          const sceneJson = next as unknown as object
+
+          await this.prisma.characterState.upsert({
+            where: { characterId_adventureId: { characterId, adventureId } },
+            update: { sceneState: sceneJson },
+            create: {
+              characterId,
+              adventureId,
+              hp: characterState?.hp ?? 10,
+              maxHp: characterState?.maxHp ?? 10,
+              attributes: (character.baseAttributes as object) ?? {},
+              sceneState: sceneJson,
+            },
+          })
+
+          await this.prisma.eventLog.create({
+            data: {
+              adventureId,
+              characterId,
+              type: 'CHARACTER_UPDATE',
+              payload: { field: 'scene', patch: patch as unknown as object, result: sceneJson },
+            },
+          })
+
+          return next
+        },
+      }),
     }
 
     const model = narrationModels[Math.min(attempt, narrationModels.length - 1)]!
@@ -284,15 +334,23 @@ export class AiService {
 
       if (turns.length === 0) return
 
-      const adventure = await this.prisma.adventure.findUnique({
-        where: { id: adventureId },
-        select: { memorySummary: true },
-      })
+      const [adventure, state] = await Promise.all([
+        this.prisma.adventure.findUnique({
+          where: { id: adventureId },
+          select: { memorySummary: true },
+        }),
+        this.prisma.characterState.findUnique({
+          where: { characterId_adventureId: { characterId, adventureId } },
+          select: { sceneState: true },
+        }),
+      ])
+
+      const sceneLine = formatSceneState((state?.sceneState ?? null) as SceneState | null)
 
       const { text: updatedSummary } = await generateText({
         model: summaryModel,
         system: SUMMARY_SYSTEM_PROMPT,
-        prompt: buildSummaryInput(adventure?.memorySummary, turns),
+        prompt: buildSummaryInput(adventure?.memorySummary, turns, sceneLine),
       })
 
       if (updatedSummary.trim().length === 0) return

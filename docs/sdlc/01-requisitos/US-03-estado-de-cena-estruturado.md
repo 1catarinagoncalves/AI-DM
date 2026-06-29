@@ -1,4 +1,4 @@
-# US-11b — Estado de cena estruturado (continuidade espacial)
+# US-03 — Estado de cena estruturado (continuidade espacial)
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
@@ -25,6 +25,7 @@ Numa sessão real, o personagem estava na **praça central** de uma vila ao enta
 > *"Você olha para o mapa desdobrado **sobre a mesa**, mostrando a região de **Floresta Escura**..."*
 
 Três erros de continuidade num único parágrafo:
+
 1. **Cenário inventado** — não há mesa numa praça aberta; o personagem nunca foi colocado em local interno.
 2. **Reposicionamento implícito** — o personagem foi "sentado a uma mesa" sem ter se movido.
 3. **Conteúdo do objeto trocado** — o "mapa da estrada" virou "mapa da Floresta Escura".
@@ -74,16 +75,17 @@ Formato do `sceneState` (JSON):
 }
 ```
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `local` | string | Local atual do personagem em linguagem natural. |
-| `ambiente` | `"externo" \| "interno"` | Distingue cena aberta de fechada — base direta da regra "não há mesa numa praça". |
-| `periodo` | string | Período do dia (manhã/tarde/entardecer/noite). |
-| `presentes` | string[] | Personagens/NPCs presentes na cena agora. |
-| `objetos_em_cena` | string[] | Objetos relevantes visíveis/disponíveis na cena (distinto do inventário carregado). |
-| `atualizadoEm` | ISO datetime | Última atualização. |
+| Campo             | Tipo                     | Descrição                                                                           |
+| ----------------- | ------------------------ | ----------------------------------------------------------------------------------- |
+| `local`           | string                   | Local atual do personagem em linguagem natural.                                     |
+| `ambiente`        | `"externo" \| "interno"` | Distingue cena aberta de fechada — base direta da regra "não há mesa numa praça".   |
+| `periodo`         | string                   | Período do dia (manhã/tarde/entardecer/noite).                                      |
+| `presentes`       | string[]                 | Personagens/NPCs presentes na cena agora.                                           |
+| `objetos_em_cena` | string[]                 | Objetos relevantes visíveis/disponíveis na cena (distinto do inventário carregado). |
+| `atualizadoEm`    | ISO datetime             | Última atualização.                                                                 |
 
 **Persistência (decisão a tomar — ver Questões em aberto):**
+
 - Opção A: coluna `sceneState Json?` em `Adventure`.
 - Opção B: coluna `sceneState Json?` em `CharacterState` (já é por `(characterId, adventureId)`).
 
@@ -96,9 +98,11 @@ Recomendação: **`CharacterState`**, pois já é a granularidade certa (persona
 O agente **não** deve ter o estado extraído por parsing frágil da narração livre. Duas alternativas:
 
 1. **Tool dedicada `updateScene`** (recomendado) — análoga a `updateCharacterHp`. O agente declara mudanças explicitamente:
+   
    ```ts
    updateScene({ local?, ambiente?, periodo?, presentes?, objetos_em_cena? })
    ```
+   
    Vantagem: determinístico, validável com Zod, registrável em `EventLog`. O Game Server faz merge parcial com o estado atual.
 
 2. **Reuso das tags `[WORLD_STATE_UPDATE: {...}]`** que o prompt já manda emitir — interceptadas no `onFinish`/no stream e mescladas no `sceneState`.

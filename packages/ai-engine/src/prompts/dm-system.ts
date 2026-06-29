@@ -1,3 +1,6 @@
+import type { SceneState } from '@ai-dm/shared'
+import { formatSceneState } from '../scene'
+
 export function buildDmSystemPrompt(params: {
   systemName: string
   characterName: string
@@ -7,8 +10,19 @@ export function buildDmSystemPrompt(params: {
   activeQuests: string[]
   memorySummary?: string | null
   inventory: string[]
+  sceneState?: SceneState | null
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, activeQuests, memorySummary, inventory } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, activeQuests, memorySummary, inventory, sceneState } = params
+
+  const sceneText = formatSceneState(sceneState)
+  const sceneSection = sceneText
+    ? `## Cena atual (FONTE DE VERDADE — tem precedência sobre qualquer inferência da prosa)
+This is the authoritative, structured state of the scene RIGHT NOW. Trust it over anything you might infer from the narrative text. Do NOT contradict it.
+
+${sceneText}
+
+`
+    : ''
 
   const hasSummary = !!memorySummary && memorySummary.trim().length > 0
   const summarySection = hasSummary
@@ -148,9 +162,11 @@ Consistency rules:
 
 ---
 
-## ⚠️ SPATIAL & SCENE CONTINUITY RULE (CRITICAL)
+${sceneSection}## ⚠️ SPATIAL & SCENE CONTINUITY RULE (CRITICAL)
 
-The scene carries over between turns. The player's location, the people around them, the time of day, and the objects already in play do NOT reset when the player acts. Before narrating, re-read the established scene in the conversation history and continue from EXACTLY where it left off.
+The scene carries over between turns. The player's location, the people around them, the time of day, and the objects already in play do NOT reset when the player acts. Before narrating, re-read the "Cena atual" block above (the structured source of truth) and continue from EXACTLY where it left off.
+
+Whenever the scene genuinely changes — the player MOVES to a new place (walks, enters, leaves, travels), the environment switches indoor/outdoor, time of day advances, an NPC arrives or leaves, or a notable object appears or disappears — call \`updateScene\` with ONLY the changed fields BEFORE narrating. Merely inspecting an item the character is carrying (a map, a letter, a book) does NOT change the location: do NOT call \`updateScene\` and do NOT relocate the character.
 
 You must NEVER invent furniture, rooms, buildings, or surroundings that contradict the current location. If the character is outdoors (a town square, a road, a forest), they are NOT suddenly indoors, and there is NO table, chair, desk, or wall available unless one was already described.
 

@@ -25,12 +25,22 @@ export interface SummaryTurn {
  * Monta o conteúdo de usuário enviado ao modelo de resumo: o resumo anterior
  * seguido dos novos turnos a serem incorporados.
  */
-export function buildSummaryInput(previousSummary: string | null | undefined, turns: SummaryTurn[]): string {
+export function buildSummaryInput(
+  previousSummary: string | null | undefined,
+  turns: SummaryTurn[],
+  currentScene?: string,
+): string {
   const prev = previousSummary && previousSummary.trim().length > 0 ? previousSummary.trim() : '(no summary yet — this is the start of the campaign)'
 
   const events = turns
     .map((t) => `${t.role === 'assistant' ? 'DM' : 'Player'}: ${t.content.trim()}`)
     .join('\n\n')
 
-  return `PREVIOUS SUMMARY:\n${prev}\n\nNEW EVENTS (chronological):\n${events}`
+  // O estado de cena corrente (US-03) deve sobreviver à condensação: anexamos
+  // como contexto para que o resumo preserve o local/ambiente/presentes atuais.
+  const scene = currentScene && currentScene.trim().length > 0
+    ? `\n\nCURRENT SCENE STATE (carry this forward into the summary — do not drop the current location):\n${currentScene.trim()}`
+    : ''
+
+  return `PREVIOUS SUMMARY:\n${prev}\n\nNEW EVENTS (chronological):\n${events}${scene}`
 }
