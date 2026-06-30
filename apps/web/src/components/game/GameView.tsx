@@ -210,7 +210,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           </p>
           {inventory.length === 0
             ? <p className="text-xs text-stone-400 dark:text-stone-500">Nenhum item</p>
-            : <ul className="space-y-1">
+            : <ul className="space-y-1 max-h-48 overflow-y-auto pr-1">
                 {inventory.map((item, i) => (
                   <li key={i} className="text-xs text-stone-700 dark:text-stone-300 flex justify-between gap-1">
                     <span>{item.name}</span>
