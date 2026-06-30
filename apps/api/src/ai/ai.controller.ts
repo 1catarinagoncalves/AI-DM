@@ -21,6 +21,10 @@ export class AiController {
     res.setHeader('Content-Type', 'text/event-stream')
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
+    // SSE: envia os headers JÁ, antes da latência do primeiro token. Sem isto o
+    // Express só os envia no primeiro res.write() e o cliente (undici) aborta com
+    // UND_ERR_HEADERS_TIMEOUT quando o modelo demora a responder.
+    res.flushHeaders()
 
     // Em turnos multi-step o modelo às vezes narra a cena DUAS vezes (uma
     // narração completa, tool call, e outra narração completa) — isso é
@@ -85,7 +89,10 @@ export class AiController {
         }
       }
 
-      if (failedBeforeOutput) continue // tenta o próximo provedor
+      if (failedBeforeOutput) {
+        console.warn(`[AiController] modelo attempt=${attempt} falhou antes de emitir texto; caindo para fallback`)
+        continue // tenta o próximo provedor
+      }
       break
     }
 

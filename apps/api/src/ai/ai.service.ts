@@ -261,6 +261,7 @@ export class AiService {
 
     const model = narrationModels[Math.min(attempt, narrationModels.length - 1)]!
     const hasFallback = attempt < narrationModels.length - 1
+    console.log(`[AiService] turno attempt=${attempt} modelo=${model.modelId ?? 'unknown'}`)
 
     // Retorna o stream — o controller vai encaminhar para o cliente
     const result = streamText({

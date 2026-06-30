@@ -55,6 +55,11 @@ Como jogador, quero que o mestre mantenha um estado de cena explícito (local at
 
 > Detalhamento completo (contexto, modelo de dados, critérios de aceite e questões em aberto) em [`US-11b-estado-de-cena-estruturado.md`](./US-11b-estado-de-cena-estruturado.md).
 
+**US-17** — Comparação de modelos de narração via evals de coerência
+Como desenvolvedora, quero rodar a mesma bateria de cenários de coerência contra vários modelos candidatos e ver o resultado lado a lado (acerto + custo) para escolher o modelo de narração com base em dado objetivo.
+
+> Detalhamento completo em [`US-17-comparacao-modelos-eval.md`](./US-17-comparacao-modelos-eval.md).
+
 ---
 
 ### Épico 4: Upload de sistema (Fase 3)

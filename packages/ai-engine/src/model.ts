@@ -15,10 +15,8 @@ const openrouter = createOpenAICompatible({
   apiKey: process.env['OPENROUTER_API_KEY'],
 })
 
-// Narração: NVIDIA mistral-medium-3.5-128b como primário; OpenRouter (gpt-oss-120b)
-// como fallback. O Medium 3.5 é denso 128B com toggle fast/reasoning e segue bem
-// as regras do system prompt.
-export const nvidiaModel: OpenAICompatModel = nvidia('mistralai/mistral-medium-3.5-128b')
+// Narração: NVIDIA nemotron-3-super-120b-a12b como primário; OpenRouter (gpt-oss-120b) como fallback.
+export const nvidiaModel: OpenAICompatModel = nvidia('nvidia/nemotron-3-super-120b-a12b')
 export const openrouterModel: OpenAICompatModel = openrouter('openai/gpt-oss-120b')
 
 // Modelos de narração em ordem de prioridade. O serviço tenta o primeiro e,
@@ -30,4 +28,4 @@ export const defaultModel: OpenAICompatModel = nvidiaModel
 
 // Sumarização de memória: tarefa simples; usa o mesmo provedor primário
 // (falha aqui é tolerada e só adia a sumarização para o próximo turno).
-export const summaryModel: OpenAICompatModel = nvidia('mistralai/mistral-medium-3.5-128b')
+export const summaryModel: OpenAICompatModel = nvidia('nvidia/nemotron-3-super-120b-a12b')
