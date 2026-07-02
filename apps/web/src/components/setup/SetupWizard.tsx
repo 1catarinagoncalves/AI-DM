@@ -30,6 +30,7 @@ export function SetupWizard() {
   const [characterId, setCharacterId] = useState('')
 
   const [systems, setSystems] = useState<SystemOption[]>([])
+  const [systemsError, setSystemsError] = useState(false)
   const [system, setSystem] = useState<SystemOption | null>(null)
 
   const [charData, setCharData] = useState({ name: '', gender: '', race: '', class: '' })
@@ -47,7 +48,7 @@ export function SetupWizard() {
         saveSession({ userId: user.id, userName: 'Jogador', characterId: '', characterName: '', adventureId: '' })
       })
     }
-    api.listSystems().then(setSystems)
+    api.listSystems().then(setSystems).catch(() => setSystemsError(true))
   }, [])
 
   function handleSelectSystem(s: SystemOption) {
@@ -124,7 +125,9 @@ export function SetupWizard() {
                   <p className="text-sm text-stone-500 dark:text-stone-400">{SOURCE_TYPE_HINT[s.sourceType] ?? s.sourceType}</p>
                 </button>
               ))}
-              {systems.length === 0 && <p className="text-stone-500 dark:text-stone-400 text-sm">A carregar sistemas...</p>}
+              {systemsError
+                ? <p className="text-red-600 dark:text-red-400 text-sm">Não foi possível carregar os sistemas. Recarrega a página.</p>
+                : systems.length === 0 && <p className="text-stone-500 dark:text-stone-400 text-sm">A carregar sistemas...</p>}
             </div>
           </div>
         )}
