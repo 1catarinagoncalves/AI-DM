@@ -64,6 +64,8 @@ export class AiController {
             const p = part as any
             if (p.toolName === 'updateInventory' && p.result?.inventory) {
               res.write('I:' + JSON.stringify(p.result.inventory) + '\n')
+            } else if (p.toolName === 'updateCharacterHp' && typeof p.result?.hp === 'number') {
+              res.write('H:' + JSON.stringify({ hp: p.result.hp, maxHp: p.result.maxHp }) + '\n')
             }
           } else if (part.type === 'text-delta') {
             if (curStepText === '' && COMPLETE_NARRATION.test(prevStepText)) {

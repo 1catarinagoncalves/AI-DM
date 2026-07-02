@@ -28,6 +28,7 @@ interface Props {
   maxHp: number
   attributes?: Record<string, number>
   inventory?: InventoryItem[]
+  conditions?: string[]
 }
 
 function historyKey(adventureId: string) {
@@ -47,7 +48,7 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(messages))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -112,6 +113,13 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         }
         if (line.startsWith('I:')) {
           try { setInventory(JSON.parse(line.slice(2))) } catch { /* ignore malformed */ }
+          return
+        }
+        if (line.startsWith('H:')) {
+          try {
+            const s = JSON.parse(line.slice(2))
+            if (typeof s.hp === 'number') setCurrentHp(s.hp)
+          } catch { /* ignore malformed */ }
           return
         }
         if (!line.startsWith('0:"')) return
@@ -187,6 +195,19 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             <div className={`h-full ${hpColor} rounded-full transition-all`} style={{ width: `${hpPercent}%` }} />
           </div>
         </div>
+
+        {conditions && conditions.length > 0 && (
+          <div className="md:w-full">
+            <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Condições</p>
+            <div className="flex flex-wrap gap-1">
+              {conditions.map((c, i) => (
+                <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">
+                  {c}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {attributes && Object.keys(attributes).length > 0 && (
           <div className="md:w-full">
