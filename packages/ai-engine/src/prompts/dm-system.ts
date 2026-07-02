@@ -7,12 +7,13 @@ export function buildDmSystemPrompt(params: {
   characterClass: string
   characterRace: string
   characterGender: string
+  mainQuest?: string | null
   activeQuests: string[]
   memorySummary?: string | null
   inventory: string[]
   sceneState?: SceneState | null
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, activeQuests, memorySummary, inventory, sceneState } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState } = params
 
   const sceneText = formatSceneState(sceneState)
   const sceneSection = sceneText
@@ -60,8 +61,11 @@ You are not bound to any official RPG system. Narrate freely and creatively.
 - Race: ${characterRace}
 - Class: ${characterClass}
 
-## Active quests
-${activeQuests.length > 0 ? activeQuests.map((q) => `- ${q}`).join('\n') : '- No active quests yet.'}
+## Main quest
+${mainQuest ? mainQuest : '- No main quest set yet.'}
+
+## Active quests (secondary)
+${activeQuests.length > 0 ? activeQuests.map((q) => `- ${q}`).join('\n') : '- No secondary quests yet.'}
 
 ## Current inventory (read-only — managed by the Game Server)
 ${inventory.length > 0 ? inventory.map((i) => `- ${i}`).join('\n') : '- Empty.'}

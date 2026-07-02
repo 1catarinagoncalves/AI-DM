@@ -1,4 +1,4 @@
-import type { InventoryItem } from '@ai-dm/shared'
+import type { InventoryItem, SystemConfig } from '@ai-dm/shared'
 
 /** Lowercase + strip diacritics for fuzzy class-name matching only. */
 function normalize(s: string): string {
@@ -8,113 +8,38 @@ function normalize(s: string): string {
     .replace(/\p{M}/gu, '')
 }
 
-const KITS = {
-  guerreiro: [
-    { name: 'Espada longa', qty: 1 },
-    { name: 'Escudo', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Mochila', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  mago: [
-    { name: 'Cajado arcano', qty: 1 },
-    { name: 'Grimório', qty: 1 },
-    { name: 'Vestes de mago', qty: 1 },
-    { name: 'Poção de mana', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  arqueiro: [
-    { name: 'Arco longo', qty: 1 },
-    { name: 'Aljava (20 flechas)', qty: 1 },
-    { name: 'Adaga', qty: 1 },
-    { name: 'Armadura de couro leve', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  ladino: [
-    { name: 'Adaga', qty: 2 },
-    { name: 'Ferramentas de ladrão', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Corda', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  clerigo: [
-    { name: 'Martelo', qty: 1 },
-    { name: 'Símbolo sagrado', qty: 1 },
-    { name: 'Armadura de malha', qty: 1 },
-    { name: 'Kit de primeiros socorros', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  paladino: [
-    { name: 'Espada longa', qty: 1 },
-    { name: 'Escudo', qty: 1 },
-    { name: 'Armadura de malha', qty: 1 },
-    { name: 'Símbolo sagrado', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  barbaro: [
-    { name: 'Machado grande', qty: 1 },
-    { name: 'Pele de urso (armadura)', qty: 1 },
-    { name: 'Adaga', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  druida: [
-    { name: 'Cajado de carvalho', qty: 1 },
-    { name: 'Símbolo druídico', qty: 1 },
-    { name: 'Túnica de couro', qty: 1 },
-    { name: 'Kit de ervas', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  bardo: [
-    { name: 'Espada curta', qty: 1 },
-    { name: 'Instrumento musical', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  feiticeiro: [
-    { name: 'Cajado', qty: 1 },
-    { name: 'Foco arcano (cristal)', qty: 1 },
-    { name: 'Vestes ornamentadas', qty: 1 },
-    { name: 'Poção de mana', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  // Fallback: aventureiro genérico para classes fora da tabela (US: "bom senso
-  // baseado no arquétipo mais próximo"). Nunca devolvemos inventário vazio.
-  default: [
-    { name: 'Adaga', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Mochila', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-} satisfies Record<string, InventoryItem[]>
-
-// Cada par: [palavra-chave normalizada, kit]. Inclui variantes e arquétipos
-// próximos (ex.: Patrulheiro/Caçador → arqueiro). Ordem importa: chaves mais
-// específicas antes das amplas (ex.: 'paladin' antes de 'ladin').
-const MATCHERS: [string, InventoryItem[]][] = [
-  ['paladin', KITS.paladino],
-  ['guerreir', KITS.guerreiro],
-  ['lutador', KITS.guerreiro],
-  ['arqueir', KITS.arqueiro],
-  ['patrulhei', KITS.arqueiro],
-  ['cacador', KITS.arqueiro],
-  ['ranger', KITS.arqueiro],
-  ['ladin', KITS.ladino],
-  ['ladr', KITS.ladino],
-  ['assassin', KITS.ladino],
-  ['cleri', KITS.clerigo],
-  ['sacerdot', KITS.clerigo],
-  ['barbar', KITS.barbaro],
-  ['druid', KITS.druida],
-  ['bard', KITS.bardo],
-  ['feiticer', KITS.feiticeiro],
-  ['brux', KITS.feiticeiro],
-  ['mag', KITS.mago],
+// Cada par: [palavra-chave normalizada, chave canônica em config.startingKits]. Inclui variantes e
+// arquétipos próximos (ex.: Patrulheiro/Caçador → arqueiro). Ordem importa: chaves mais específicas
+// antes das amplas (ex.: 'paladin' antes de 'ladin'). Vocabulário específico de classes estilo D&D;
+// sistemas com outra nomenclatura simplesmente caem no `default` do próprio config.
+const CLASS_SYNONYMS: [string, string][] = [
+  ['paladin', 'paladino'],
+  ['guerreir', 'guerreiro'],
+  ['lutador', 'guerreiro'],
+  ['arqueir', 'arqueiro'],
+  ['patrulhei', 'arqueiro'],
+  ['cacador', 'arqueiro'],
+  ['ranger', 'arqueiro'],
+  ['ladin', 'ladino'],
+  ['ladr', 'ladino'],
+  ['assassin', 'ladino'],
+  ['cleri', 'clerigo'],
+  ['sacerdot', 'clerigo'],
+  ['barbar', 'barbaro'],
+  ['druid', 'druida'],
+  ['bard', 'bardo'],
+  ['feiticer', 'feiticeiro'],
+  ['brux', 'feiticeiro'],
+  ['mag', 'mago'],
 ]
 
-export function getStartingInventory(charClass: string): InventoryItem[] {
+export function getStartingInventory(config: SystemConfig, charClass: string): InventoryItem[] {
+  const kits = config.startingKits
   const cn = normalize(charClass)
-  for (const [keyword, items] of MATCHERS) {
-    if (cn.includes(keyword)) return items
+  for (const [keyword, key] of CLASS_SYNONYMS) {
+    const kit = kits[key]
+    if (cn.includes(keyword) && kit) return kit
   }
-  return KITS.default
+  // SystemConfigSchema garante a chave `default`; ver types/system.ts em @ai-dm/shared.
+  return kits.default as InventoryItem[]
 }

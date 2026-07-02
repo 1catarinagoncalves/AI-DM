@@ -8,28 +8,30 @@ datasource db {
 }
 
 model User {
-  id         String      @id @default(cuid())
-  email      String      @unique
-  name       String
-  characters Character[]
-  campaigns  Campaign[]  @relation("CampaignCreator")
-  createdAt  DateTime    @default(now())
+  id                 String      @id @default(cuid())
+  email              String      @unique
+  name               String
+  characters         Character[]
+  createdAdventures  Adventure[] @relation("AdventureCreator")
+  createdAt          DateTime    @default(now())
 }
 
 model Character {
-  id             String           @id @default(cuid())
+  id             String                 @id @default(cuid())
   userId         String
-  user           User             @relation(fields: [userId], references: [id])
+  user           User                   @relation(fields: [userId], references: [id])
+  systemId       String
+  system         System                 @relation(fields: [systemId], references: [id])
   name           String
   gender         String
   race           String
   class          String
-  level          Int              @default(1)
+  level          Int                    @default(1)
   baseAttributes Json
   states         CharacterState[]
-  slots          CharacterSlot[]
+  participations AdventureParticipant[]
   eventLogs      EventLog[]
-  createdAt      DateTime         @default(now())
+  createdAt      DateTime               @default(now())
 }
 
 model CharacterState {
@@ -49,43 +51,33 @@ model CharacterState {
   @@unique([characterId, adventureId])
 }
 
-model Campaign {
-  id         String          @id @default(cuid())
-  creatorId  String
-  creator    User            @relation("CampaignCreator", fields: [creatorId], references: [id])
-  name       String
-  systemId   String
-  system     System          @relation(fields: [systemId], references: [id])
-  maxPlayers Int             @default(10)
-  slots      CharacterSlot[]
-  adventures Adventure[]
-  createdAt  DateTime        @default(now())
+model Adventure {
+  id              String                 @id @default(cuid())
+  systemId        String
+  system          System                 @relation(fields: [systemId], references: [id])
+  creatorId       String
+  creator         User                   @relation("AdventureCreator", fields: [creatorId], references: [id])
+  title           String
+  order           Int
+  status          AdventureStatus        @default(ACTIVE)
+  memorySummary   String?
+  participants    AdventureParticipant[]
+  characterStates CharacterState[]
+  quests          Quest[]
+  eventLogs       EventLog[]
+  createdAt       DateTime               @default(now())
+  completedAt     DateTime?
 }
 
-model CharacterSlot {
+model AdventureParticipant {
   id          String    @id @default(cuid())
-  campaignId  String
-  campaign    Campaign  @relation(fields: [campaignId], references: [id])
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
   characterId String
   character   Character @relation(fields: [characterId], references: [id])
   joinedAt    DateTime  @default(now())
 
-  @@unique([campaignId, characterId])
-}
-
-model Adventure {
-  id            String           @id @default(cuid())
-  campaignId    String
-  campaign      Campaign         @relation(fields: [campaignId], references: [id])
-  title         String
-  order         Int
-  status        AdventureStatus  @default(ACTIVE)
-  memorySummary String?
-  characterStates CharacterState[]
-  quests        Quest[]
-  eventLogs     EventLog[]
-  createdAt     DateTime         @default(now())
-  completedAt   DateTime?
+  @@unique([adventureId, characterId])
 }
 
 enum AdventureStatus {
@@ -101,6 +93,7 @@ model Quest {
   title       String
   description String
   status      QuestStatus @default(OPEN)
+  isPrimary   Boolean     @default(false)
   completedAt DateTime?
 }
 
@@ -135,12 +128,15 @@ enum EventType {
 }
 
 model System {
-  id         String     @id @default(cuid())
+  id         String      @id @default(cuid())
   name       String
   version    String
   sourceType SourceType
   ragIndexId String?
-  campaigns  Campaign[]
+  // Atributos + kits iniciais (ADR 003, D1). Validado por SystemConfigSchema em @ai-dm/shared.
+  config     Json?
+  adventures Adventure[]
+  characters Character[]
 }
 
 enum SourceType {

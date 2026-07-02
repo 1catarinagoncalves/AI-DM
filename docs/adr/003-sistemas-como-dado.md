@@ -1,6 +1,6 @@
 # ADR 003 — Sistemas de regras como dado e hierarquia centrada no personagem
 
-**Status:** Aceito (planejado — não implementado)
+**Status:** Aceito (D1 e D2 implementadas)
 **Data:** 2026-07-01
 **Decisores:** Time de Produto e Engenharia
 **Relacionado:** [ADR 001 — Arquitetura](./001-arquitetura.md) · [US-21](../sdlc/01-requisitos/US-21-sistemas-como-dado.md)
@@ -30,7 +30,7 @@ Ao alinhar a hierarquia, ficou claro que:
 
 ## 2. Decisão
 
-### D1 — Regra de sistema vira dado no `System`, consumido por endpoints genéricos
+### D1 — Regra de sistema vira dado no `System`, consumido por endpoints genéricos (implementada)
 
 `System` ganha um `config Json?` (validado por Zod em `packages/shared`) que descreve **o schema de atributos** e **os kits iniciais** do sistema. Os endpoints genéricos passam a ler esse config em vez de constantes hardcoded:
 
@@ -76,12 +76,12 @@ User 1─* Character ── systemId  (o personagem pertence a um sistema)
 
 ### 2.1 Faseamento (as duas decisões são independentes)
 
-| Fase | Entregável | Depende de |
-|------|-----------|-----------|
-| 1 | D1 — `System.config` + `Character.systemId` + validação dinâmica + kits por sistema + setup reordenado | — |
-| 2 | D2 — colapso `Campaign`+`Adventure` numa entidade | Fase 1 (personagem já carrega o sistema) |
+| Fase | Entregável | Depende de | Status |
+|------|-----------|-----------|--------|
+| 1 | D1 — `System.config` + `Character.systemId` + validação dinâmica + kits por sistema + setup reordenado | — | ✅ Implementada — [US-21](../sdlc/01-requisitos/US-21-sistemas-como-dado.md) |
+| 2 | D2 — colapso `Campaign`+`Adventure` numa entidade | Fase 1 (personagem já carrega o sistema) | ✅ Implementada — [US-22](../sdlc/01-requisitos/US-22-fusao-campanha-aventura.md) |
 
-D1 entrega a reutilização (o requisito original) **sem** exigir o colapso: `Character.systemId` pode conviver com a `Campaign` atual (sistema derivado do personagem) até a Fase 2 remover a duplicação.
+D1 entregou a reutilização (o requisito original) **sem** exigir o colapso — `Character.systemId` conviveu com a `Campaign` (sistema derivado do personagem) até a Fase 2 remover a duplicação.
 
 ---
 
@@ -122,9 +122,8 @@ D1 entrega a reutilização (o requisito original) **sem** exigir o colapso: `Ch
 - Reaproveita armazenamento `Json` e memória já existentes.
 
 **Negativas / riscos**
-- D2 é migração estrutural com alcance amplo: setup, `campaign.controller/service`, `ai.service` (lê `adventure.campaign.system.name`), FKs `Adventure.campaignId`/`CharacterSlot`. Faseada e opcional face a D1 para conter o risco.
+- D2 foi migração estrutural com alcance amplo: setup, `campaign.controller/service`, `ai.service` (lia `adventure.campaign.system.name`), FKs `Adventure.campaignId`/`CharacterSlot`. Faseada e opcional face a D1 para conter o risco — migração por reseed destrutivo (ambiente de dev).
 - `config` inválido/ausente num sistema quebra criação de personagem → o Zod de `config` e um `default` de kit são obrigatórios.
-- O doc `docs/sdlc/02-design/modelo-de-dados.md` reflete a hierarquia antiga e precisa ser atualizado quando D2 for implementada.
 
 ---
 
@@ -132,7 +131,7 @@ D1 entrega a reutilização (o requisito original) **sem** exigir o colapso: `Ch
 
 - `apps/api/src/character/character.controller.ts` — Zod fixo dos 6 atributos → Zod dinâmico via `config`.
 - `apps/api/src/character/starting-inventory.ts` — tabela `KITS` hardcoded → `config.startingKits`.
-- `apps/api/prisma/schema.prisma` — `System.config Json?`, `Character.systemId`; (D2) fusão `Campaign`/`Adventure`.
-- `apps/api/src/ai/ai.service.ts` — `adventure.campaign.system.name` (D2: passa por `character.system`).
+- `apps/api/prisma/schema.prisma` — `System.config Json?`, `Character.systemId`; `Campaign`/`Adventure` fundidas em `Adventure` (`systemId`, `creatorId`, `AdventureParticipant`, `Quest.isPrimary`).
+- `apps/api/src/ai/ai.service.ts` — `adventure.campaign.system.name` → `adventure.system.name`.
 - `apps/web/src/components/setup/SetupWizard.tsx` — reordenar para *sistema → personagem → aventura*.
 - `packages/shared/src/types/` — schema Zod do `System.config` (novo).

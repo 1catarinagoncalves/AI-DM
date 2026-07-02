@@ -1,6 +1,6 @@
 # ADR 002 — Memória de sessão do DM Agent (contexto em sessões longas)
 
-**Status:** Aceito (Fase A implementada; Fase B planejada)
+**Status:** Aceito (Fases A e B implementadas)
 **Data:** 2026-06-27
 **Decisores:** Time de Produto e Engenharia
 **Relacionado:** [ADR 001 — Arquitetura](./001-arquitetura.md) · [US-11b](../sdlc/01-requisitos/US-11b-estado-de-cena-estruturado.md)
@@ -85,20 +85,21 @@ resumo_novo = LLM_pequeno(resumo_antigo + turnos_que_saem_da_janela)
 - **Marcação:** flag `EventLog.summarized` distingue o que já foi condensado do que ainda vai verbatim,
   tornando a fronteira da janela determinística e indexável.
 
-### 2.2 Continuidade espacial (Fase B — planejada)
+### 2.2 Continuidade espacial (Fase B — implementada)
 
 Resumo em prosa cobre bem o **enredo**, mas a continuidade **espacial** (onde estou, quem está comigo)
 é frágil em texto livre — foi a classe do bug do mapa. A **Fase B** ([US-11b](../sdlc/01-requisitos/US-11b-estado-de-cena-estruturado.md))
 adiciona um **estado de cena estruturado** (`sceneState`: local, ambiente, presentes, período, objetos)
-como **fonte de verdade**, alimentado deterministicamente (tool/tags) e reinjetado a cada turno. Não
-implementada nesta entrega.
+como **fonte de verdade**, alimentado deterministicamente (tool `updateScene`) e reinjetado a cada turno.
+Implementada: `CharacterState.sceneState`, merge parcial em `packages/ai-engine/src/scene.ts`, reinjeção
+no prompt e no resumo (ver §6).
 
 ### 2.3 Faseamento
 
 | Fase | Entregável | Status |
 |------|-----------|--------|
 | A | Resumo contínuo incremental + janela recente verbatim | ✅ Implementada |
-| B | Estado de cena estruturado (`sceneState`) | 📋 Planejada — [US-11b](../sdlc/01-requisitos/US-11b-estado-de-cena-estruturado.md) |
+| B | Estado de cena estruturado (`sceneState`) | ✅ Implementada — [US-11b](../sdlc/01-requisitos/US-11b-estado-de-cena-estruturado.md) |
 | C | Trocar gatilho de contagem por orçamento de tokens; RAG de memória entre aventuras | 🔭 Futuro (alinha com [ADR 001](./001-arquitetura.md), Fase 2/3) |
 
 ---
@@ -144,7 +145,7 @@ implementada nesta entrega.
 - Sumarização pode **perder nuance** ou introduzir viés; mitigar com prompt que prioriza fatos duráveis e
   proíbe inventar/resolver fios.
 - Uma chamada extra de LLM por condensação (em lote) — barata, mas existe; assíncrona para não pesar na UX.
-- Continuidade espacial **ainda depende da prosa** até a Fase B entrar.
+- ~~Continuidade espacial **ainda depende da prosa** até a Fase B entrar.~~ Resolvido na Fase B: `sceneState` estruturado é a fonte de verdade reinjetada a cada turno.
 - Se a sumarização falhar repetidamente, a janela não-resumida cresce até o problema se resolver — aceitável
   no MVP, mas vale alarme/observabilidade na Fase C.
 
@@ -160,3 +161,9 @@ implementada nesta entrega.
 - `packages/ai-engine/src/prompts/dm-system.ts` — seção *"A história até agora"* e regra
   *SPATIAL & SCENE CONTINUITY*.
 - `apps/api/prisma/schema.prisma` — `EventLog.summarized` (migração `20260627214045_add_eventlog_summarized`).
+
+**Fase B (continuidade espacial):**
+- `packages/ai-engine/src/scene.ts` — `mergeSceneState` (merge parcial) e `formatSceneState` (reinjeção).
+- `apps/api/src/ai/ai.service.ts` — tool `updateScene` e inclusão do `sceneState` em `summarizeOldTurns`.
+- `packages/shared/src/types/character.ts` — tipo `SceneState`.
+- `apps/api/prisma/schema.prisma` — `CharacterState.sceneState`.

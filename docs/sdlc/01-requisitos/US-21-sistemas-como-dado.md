@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma (para D1; o colapso de entidades é story separada)
 **Criada em:** 2026-07-01
 **Relacionado:** [ADR 003 — Sistemas como dado](../../adr/003-sistemas-como-dado.md) (decisão D1)
@@ -93,15 +93,16 @@ Kits **por classe**; todo sistema tem classe, e um sistema sem classes formais d
 
 ## Critérios de aceite
 
-- [ ] `System` tem `config` (`attributes[]` + `startingKits{}`), validado por um schema Zod em `packages/shared`.
-- [ ] `Character` tem `systemId`; `POST /characters` recebe e persiste o sistema.
-- [ ] `POST /characters` valida os atributos **contra `config.attributes`** do sistema (nomes, min/max), não contra um Zod fixo de D&D.
-- [ ] Criar personagem num sistema com conjunto de atributos diferente de D&D funciona sem alterar controller/serviço.
-- [ ] `getStartingInventory` devolve o kit de `config.startingKits`; classe sem match cai em `default`; nunca devolve vazio.
-- [ ] Os sistemas seed (`system-free`, `system-dnd5e`) têm `config` coerente com o comportamento atual (D&D 5e mantém os 6 atributos e os kits de hoje).
-- [ ] Setup segue a ordem *sistema → personagem → aventura*.
-- [ ] **Eval / teste de regressão:** dado um `System` de teste com atributos `["cool","hard"]` e um kit próprio, criar personagem valida esses dois atributos (rejeita `strength`) e recebe o kit do config — tudo sem tocar em código de controller.
-- [ ] **Docs:** após a implementação, atualizar [`modelo-de-dados.md`](../02-design/modelo-de-dados.md) e [`contratos-de-api.md`](../02-design/contratos-de-api.md) removendo os avisos de "planejado"/"legado" referentes a D1 (`System.config`, `Character.systemId`, criação de personagem), passando o alvo a estado atual.
+- [x] `System` tem `config` (`attributes[]` + `startingKits{}`), validado por um schema Zod em `packages/shared` ([system.ts](../../../packages/shared/src/types/system.ts)).
+- [x] `Character` tem `systemId`; `POST /characters` recebe e persiste o sistema.
+- [x] `POST /characters` valida os atributos **contra `config.attributes`** do sistema (nomes, min/max), não contra um Zod fixo de D&D (`buildCharacterAttributesSchema`, dinâmico por request).
+- [x] Criar personagem num sistema com conjunto de atributos diferente de D&D funciona sem alterar controller/serviço.
+- [x] `getStartingInventory` devolve o kit de `config.startingKits`; classe sem match cai em `default`; nunca devolve vazio.
+- [x] Os sistemas seed (`system-free`, `system-dnd5e`) têm `config` coerente com o comportamento atual (D&D 5e mantém os 6 atributos e os kits de hoje).
+- [x] Setup segue a ordem *sistema → personagem → aventura* ([SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx)).
+- [x] **Eval / teste de regressão:** dado um `System` de teste com atributos `["cool","hard"]` e um kit próprio, criar personagem valida esses dois atributos (rejeita `strength`) e recebe o kit do config — tudo sem tocar em código de controller. (`packages/shared/src/types/system.test.ts`, `apps/api/src/character/character.service.test.ts`)
+- [x] **Docs:** [`modelo-de-dados.md`](../02-design/modelo-de-dados.md) e [`contratos-de-api.md`](../02-design/contratos-de-api.md) atualizados — D1 passou a estado atual, D2 segue marcada como planejada.
+- [x] **ADR:** status da decisão **D1** na [ADR 003](../../adr/003-sistemas-como-dado.md) atualizado para implementado (banner de status + §2.1 faseamento).
 
 ---
 
@@ -111,16 +112,23 @@ Kits **por classe**; todo sistema tem classe, e um sistema sem classes formais d
 - `getStartingInventory(system, class)` passa a receber o sistema; manter a lógica de match/normalização atual, só trocando a fonte da tabela de constante para `config.startingKits`.
 - `ATTR_LABELS` no `GameView` pode passar a vir de `config.attributes[].label` (via a ficha que o `PlayPage` já carrega) — remove outro hardcode de D&D no front.
 - Seed: transportar a tabela `KITS` de `starting-inventory.ts` para o `config` de `system-dnd5e`; `system-free` recebe um `config` mínimo (atributos genéricos + kit `default`).
-- Guardar rede: se um `System` vier sem `config`, decidir entre rejeitar criação ou aplicar um `config` default — ver Questões em aberto.
+- Guardar rede: `config` é obrigatório; `System` sem `config` válido rejeita a criação de personagem com erro claro (ver Questões em aberto §1).
 
 ---
 
-## Questões em aberto
+## Questões em aberto (resolvidas)
 
-1. `System` sem `config`: rejeitar criação de personagem, ou aplicar um `config` default embutido? (Recomendação: `config` obrigatório no seed; rejeitar com erro claro se ausente.)
-2. Os `label`/`min/max` de atributo na UI vêm 100% do `config`, ou o front mantém um fallback para sistemas legados sem `config`?
-3. Ordem exata do setup: *sistema* como passo próprio, ou embutido na tela de personagem (dropdown no topo)?
-4. **Dois eixos por parâmetro (pendente de decisão):** estender o `config` de cada atributo/parâmetro com (a) `showToDm` — visibilidade no prompt do mestre (ver [US-23](./US-23-dm-ciente-da-ficha.md)) — e (b) limites de mutação (`min`/`max`/clamp) que uma tool genérica `updateResource(name, delta, reason)` aplicaria, no lugar de uma tool por recurso. Isso deixa leitura **e** escrita da ficha dirigidas por dados. Fazer agora (config já nasce completo) ou só quando surgir o 2º recurso além do HP? (Recomendação: esperar — manter `updateCharacterHp` e generalizar quando aparecer mana/ouro/etc. A regra de extensão já garante o caminho.)
+1. **`System` sem `config`: rejeitar criação, ou aplicar default embutido?**
+   **Decisão:** `config` obrigatório. Seed sempre define `config`; `POST /characters` rejeita com erro claro (422) se o `System` referenciado não tiver `config` válido. Já é a posição do [ADR 003](../../adr/003-sistemas-como-dado.md) §5 ("config inválido/ausente quebra criação de personagem → Zod de config e `default` de kit são obrigatórios") — esta story só formaliza o comportamento.
+
+2. **`label`/`min/max` na UI: 100% do `config`, ou fallback para sistema legado sem `config`?**
+   **Decisão:** 100% do `config`, sem fallback. Consequência direta da (1): não existe "sistema legado sem `config`" em runtime, todo `System` tem um. O único fallback que sobrevive é o transitório da [US-23](./US-23-dm-ciente-da-ficha.md) (renderizar a chave crua *enquanto esta story não aterrissa*) — não é um fallback permanente por sistema.
+
+3. **Ordem do setup: *sistema* como passo próprio, ou dropdown no topo da tela de personagem?**
+   **Decisão:** passo próprio, primeiro (*Sistema → Personagem → Aventura*, 3 passos). O form de atributos do passo "personagem" é dinâmico (`config.attributes`) — só dá para renderizá-lo sabendo o sistema. Embutir como dropdown faria os campos de atributo mudarem sob o usuário a cada troca de sistema, mais estado para o mesmo resultado. `SetupWizard.tsx` já é orientado a `Step` (`'character' | 'campaign'`); adicionar `'system'` como primeiro passo é a extensão natural do padrão existente — o passo "campaign" perde o `<select>` de sistema, que migra para o novo passo inicial.
+
+4. **Dois eixos por parâmetro (`showToDm`, limites de mutação): agora ou só no 2º recurso?**
+   **Decisão:** adiar. Mantém `updateCharacterHp` como está; generalizar para uma tool `updateResource` só quando aparecer um segundo recurso (mana, ouro, etc.) além do HP — YAGNI, a regra de extensão do [US-23](./US-23-dm-ciente-da-ficha.md) já garante o caminho quando for necessário.
 
 ---
 

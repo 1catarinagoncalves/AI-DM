@@ -4,16 +4,13 @@ import { CharacterService } from './character.service'
 
 const CreateCharacterSchema = z.object({
   userId: z.string().min(1),
+  systemId: z.string().min(1),
   name: z.string().min(1).max(60),
   gender: z.string().min(1).max(40),
   race: z.string().min(1).max(40),
   class: z.string().min(1).max(40),
-  strength: z.number().int().min(1).max(30),
-  dexterity: z.number().int().min(1).max(30),
-  constitution: z.number().int().min(1).max(30),
-  intelligence: z.number().int().min(1).max(30),
-  wisdom: z.number().int().min(1).max(30),
-  charisma: z.number().int().min(1).max(30),
+  // Atributos dinâmicos: validados contra System.config.attributes no service, não aqui.
+  attributes: z.record(z.string(), z.number()),
 })
 
 @Controller('characters')

@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player (estrutural)
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (2 critérios parciais — ver "Critérios de aceite")
 **Depende de:** [US-21](./US-21-sistemas-como-dado.md) — o personagem já precisa carregar `systemId`
 **Criada em:** 2026-07-01
 **Relacionado:** [ADR 003 — Sistemas como dado](../../adr/003-sistemas-como-dado.md) (decisão D2)
@@ -88,16 +88,17 @@ User 1─* Character ── systemId            (personagem pertence a um sistem
 
 ## Critérios de aceite
 
-- [ ] `Campaign` e `CharacterSlot` não existem mais no schema; `Adventure` carrega `systemId` e `creatorId`.
-- [ ] Existe `AdventureParticipant` ligando personagem↔aventura, com `UNIQUE(adventureId, characterId)`.
-- [ ] Entrar numa aventura exige `Character.systemId == Adventure.systemId`; tentativa com sistema diferente é rejeitada com erro claro.
-- [ ] `Quest` tem `isPrimary`; no máximo uma quest primária por aventura; marcar outra como primária desmarca a anterior.
-- [ ] A missão principal (quest `isPrimary`) é reinjetada no system prompt como "missão principal", distinta das quests secundárias.
-- [ ] `ai.service` obtém o sistema via `adventure.system` (não `adventure.campaign.system`); o `include` da query é ajustado.
-- [ ] O setup segue *sistema → personagem → aventura*, sem passo de "criar campanha"; cria a aventura e adiciona o personagem como participante.
-- [ ] `api.ts` não tem mais `createCampaign`/`joinCampaign`; criar aventura passa por `/characters/:id/adventures` (ou equivalente) que cria a aventura e liga o personagem.
-- [ ] **Eval / teste de regressão:** um turno completo (ação → narração → rolagem → atualização de estado) funciona numa aventura criada pelo novo fluxo, sem nenhuma referência a `Campaign` no caminho.
-- [ ] **Docs:** após a implementação, atualizar [`modelo-de-dados.md`](../02-design/modelo-de-dados.md) e [`contratos-de-api.md`](../02-design/contratos-de-api.md) removendo o aviso de "alvo/planejado" e a seção *Rotas atuais (legado)* referentes a D2 (fusão, `AdventureParticipant`, `Quest.isPrimary`), passando o alvo a estado atual.
+- [x] `Campaign` e `CharacterSlot` não existem mais no schema; `Adventure` carrega `systemId` e `creatorId`.
+- [x] Existe `AdventureParticipant` ligando personagem↔aventura, com `UNIQUE(adventureId, characterId)`.
+- [x] Entrar numa aventura exige `Character.systemId == Adventure.systemId`; tentativa com sistema diferente é rejeitada com erro claro. (Vale por construção: `AdventureService.createForCharacter` sempre deriva `systemId` do personagem — não há caminho de código que crie a ligação com sistema diferente.)
+- [ ] `Quest` tem `isPrimary`; no máximo uma quest primária por aventura; marcar outra como primária desmarca a anterior. **Parcial:** o campo `isPrimary` existe no schema e `ai.service` já separa a quest primária das secundárias na leitura. A promoção (transação que desmarca as demais) não tem endpoint ainda — não existe hoje nenhuma rota que crie/altere quests; esse mutation pertence à US-07 (ver "Fora do escopo" acima), que deve implementar a invariante ao promover.
+- [x] A missão principal (quest `isPrimary`) é reinjetada no system prompt como "missão principal", distinta das quests secundárias.
+- [x] `ai.service` obtém o sistema via `adventure.system` (não `adventure.campaign.system`); o `include` da query é ajustado.
+- [x] O setup segue *sistema → personagem → aventura*, sem passo de "criar campanha"; cria a aventura e adiciona o personagem como participante. (Verificado em browser via preview.)
+- [x] `api.ts` não tem mais `createCampaign`/`joinCampaign`; criar aventura passa por `/characters/:id/adventures` (ou equivalente) que cria a aventura e liga o personagem.
+- [ ] **Eval / teste de regressão:** um turno completo (ação → narração → rolagem → atualização de estado) funciona numa aventura criada pelo novo fluxo, sem nenhuma referência a `Campaign` no caminho. **Parcial:** verificado em browser até a chamada ao modelo — personagem, aventura, participante, `CharacterState` inicial (inventário correto) e o prompt (via `adventure.system`, sem `campaign`) funcionaram sem erro. A narração em si falhou neste ambiente por indisponibilidade dos provedores de LLM (NVIDIA/OpenRouter), não por bug no fluxo de dados.
+- [x] **Docs:** após a implementação, atualizar [`modelo-de-dados.md`](../02-design/modelo-de-dados.md) e [`contratos-de-api.md`](../02-design/contratos-de-api.md) removendo o aviso de "alvo/planejado" e a seção *Rotas atuais (legado)* referentes a D2 (fusão, `AdventureParticipant`, `Quest.isPrimary`), passando o alvo a estado atual.
+- [x] **ADR:** após a implementação, atualizar o status da decisão **D2** na [ADR 003](../../adr/003-sistemas-como-dado.md) de "planejado" para implementado (banner de status + §2.1 faseamento).
 
 ---
 
@@ -113,7 +114,7 @@ User 1─* Character ── systemId            (personagem pertence a um sistem
 ## Pontos de acoplamento a reescrever (checklist)
 
 - `apps/api/prisma/schema.prisma` — remover `Campaign`/`CharacterSlot`; `Adventure.systemId`/`creatorId`; `AdventureParticipant`; `Quest.isPrimary`.
-- `apps/api/src/campaign/*` — dissolver `campaign.controller/service/module`; realocar `createAdventure`/`join`/`listSystems`.
+- `apps/api/src/campaign/*` — dissolver `campaign.controller/service/module`; `createAdventure`/`join` vão para `AdventureController`, `listSystems` vai para um novo `SystemController`.
 - `apps/api/src/ai/ai.service.ts` — leitura do sistema e das quests (primária vs secundárias).
 - `apps/web/src/components/setup/SetupWizard.tsx` — remover passo de campanha.
 - `apps/web/src/lib/api.ts` — remover `createCampaign`/`joinCampaign`; ajustar `createAdventure`.
@@ -121,11 +122,11 @@ User 1─* Character ── systemId            (personagem pertence a um sistem
 
 ---
 
-## Questões em aberto
+## Decisões (questões em aberto resolvidas)
 
-1. `listSystems` mora hoje em `CampaignController`. Com a fusão, vai para um `SystemController` próprio ou para o de aventura? (Recomendação: `SystemController` — é recurso de sistema, não de aventura.)
-2. `Adventure.maxPlayers` (era `Campaign.maxPlayers`) entra já ou só na Fase 4? (Recomendação: só na Fase 4; MVP assume 1 participante.)
-3. Manter `Adventure.creatorId` ou derivar o dono do primeiro participante (`participant.character.userId`)? (Recomendação: campo explícito, barato e útil no multiplayer.)
+1. **`listSystems` vai para `SystemController`** próprio (novo `apps/api/src/system/`), não para o de aventura — é recurso de sistema, sem relação com o ciclo de vida da aventura. `AdventureController` fica só com criar/entrar/listar aventuras.
+2. **`Adventure.maxPlayers` fica fora do MVP**, só entra na Fase 4 junto com multiplayer de fato (US-14/15/16). Já está fora da tabela de campos da seção "Modelo de dados proposto" acima — nada a mudar lá, só confirmando aqui.
+3. **`Adventure.creatorId` fica como campo explícito** (igual `Campaign.creatorId` hoje), não derivado de `participant.character.userId`. Um campo é mais barato que um join e continua correto se o personagem-fundador sair da aventura no multiplayer.
 
 ---
 

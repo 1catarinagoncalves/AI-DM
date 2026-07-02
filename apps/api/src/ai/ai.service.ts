@@ -51,7 +51,7 @@ export class AiService {
       this.prisma.character.findUnique({ where: { id: characterId } }),
       this.prisma.adventure.findUnique({
         where: { id: adventureId },
-        include: { campaign: { include: { system: true } } },
+        include: { system: true },
       }),
       this.prisma.characterState.findUnique({
         where: { characterId_adventureId: { characterId, adventureId } },
@@ -84,15 +84,18 @@ export class AiService {
 
     const messages: CoreMessage[] = [...history, { role: 'user', content: message }]
 
-    const systemName = adventure.campaign.system.name
+    const systemName = adventure.system.name
     const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
+    const mainQuest = quests.find((q) => q.isPrimary)?.title ?? null
+    const activeQuests = quests.filter((q) => !q.isPrimary)
     const systemPrompt = buildDmSystemPrompt({
       systemName,
       characterName: character.name,
       characterGender: character.gender,
       characterClass: character.class,
       characterRace: character.race,
-      activeQuests: quests.map((q) => q.title),
+      mainQuest,
+      activeQuests: activeQuests.map((q) => q.title),
       memorySummary: adventure.memorySummary,
       inventory: inventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
       sceneState: (characterState?.sceneState ?? null) as SceneState | null,

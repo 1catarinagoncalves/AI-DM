@@ -1,7 +1,7 @@
 # User Stories — AI Dungeon Master
 
 **Fase atual:** Fase 1 — MVP single-player  
-**Atualizado em:** 2026-06-27
+**Atualizado em:** 2026-07-02
 
 ---
 
@@ -24,14 +24,14 @@ Como jogador, quero que a ficha na barra lateral (HP, inventário, condições) 
 Como jogador, quero que meu personagem lembre dos eventos da aventura anterior quando inicio uma nova aventura, para manter a continuidade da narrativa.
 
 **US-04** — Duplicar personagem (multiverso)  
-Como jogador, quero poder duplicar um personagem para participar de campanhas distintas ao mesmo tempo sem afetar o personagem original.
+Como jogador, quero poder duplicar um personagem para participar de aventuras distintas ao mesmo tempo sem afetar o personagem original.
 
 ---
 
-### Épico 2: Campanha e aventura
+### Épico 2: Aventura
 
-**US-05** — Criar campanha  
-Como jogador, quero criar uma campanha associada a um sistema de regras para organizar minhas aventuras.
+**US-05** — Iniciar aventura  
+Como jogador, quero iniciar uma aventura (a história com uma missão principal) para o meu personagem, herdando o sistema dele, para começar a jogar. *(Campanha e aventura são uma entidade só — ver [ADR 003](../../adr/003-sistemas-como-dado.md) / US-22.)*
 
 **US-21** — Sistema de regras como dado reutilizável pelas APIs  
 Como desenvolvedora, quero que atributos e kits iniciais venham de um `config` no `System`, para que integrar um sistema novo seja inserir um `System` + `config` sem tocar em controller/serviço.
@@ -44,7 +44,7 @@ Como desenvolvedora, quero que campanha e aventura sejam uma entidade só (a his
 > Detalhamento em [`US-22-fusao-campanha-aventura.md`](./US-22-fusao-campanha-aventura.md) · decisão em [ADR 003](../../adr/003-sistemas-como-dado.md) (D2). Depende de US-21.
 
 **US-06** — Listar e acessar histórico  
-Como jogador, quero acessar o histórico completo de aventuras e campanhas anteriores para revisitar o que aconteceu.
+Como jogador, quero acessar o histórico completo das aventuras anteriores do meu personagem para revisitar o que aconteceu.
 
 **US-07** — Múltiplas missões dentro de uma aventura  
 Como jogador, quero receber e acompanhar múltiplas missões dentro de uma mesma aventura para ter objetivos claros durante o jogo.
@@ -95,7 +95,7 @@ Como desenvolvedora, quero rodar a mesma bateria de cenários de coerência cont
 ### Épico 4: Upload de sistema (Fase 3)
 
 **US-12** — Upload de livro de regras  
-Como jogador ou mestre, quero fazer upload de um livro de RPG em PDF para criar um sistema customizado para minha campanha.
+Como jogador ou mestre, quero fazer upload de um livro de RPG em PDF para criar um sistema customizado para as minhas aventuras.
 
 **US-13** — Isolamento de conteúdo  
 Como jogador, quero que o conteúdo do meu livro upado seja privado e não acessível a outros usuários.
@@ -105,13 +105,13 @@ Como jogador, quero que o conteúdo do meu livro upado seja privado e não acess
 ### Épico 5: Multiplayer (Fase 4)
 
 **US-14** — Convidar jogadores  
-Como criador de campanha, quero enviar convite para outros jogadores participarem da minha campanha.
+Como criador de uma aventura, quero enviar convite para outros jogadores participarem da minha aventura.
 
 **US-15** — Limite de jogadores  
-Como criador de campanha, quero que a campanha aceite no máximo 10 personagens de jogador.
+Como criador de uma aventura, quero que a aventura aceite no máximo 10 personagens de jogador.
 
 **US-16** — Sessão em tempo real  
-Como jogador em uma campanha multiplayer, quero ver as ações dos outros jogadores e a narração do mestre em tempo real.
+Como jogador em uma aventura multiplayer, quero ver as ações dos outros jogadores e a narração do mestre em tempo real.
 
 ---
 

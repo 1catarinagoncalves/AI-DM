@@ -1,13 +1,11 @@
 # Modelo de Dados — AI Dungeon Master
 
-**Atualizado em:** 2026-07-01
+**Atualizado em:** 2026-07-02
 
-> ⚠️ **Alvo, não estado atual.** Este documento reflete a hierarquia decidida na
-> [ADR 003 — Sistemas como dado](../../adr/003-sistemas-como-dado.md) (D1: `System.config` +
-> `Character.systemId`; D2: fusão `Campaign`+`Adventure`). Ambas são **planejadas, ainda não
-> migradas** no `schema.prisma` — ver [US-21](../01-requisitos/US-21-sistemas-como-dado.md) e
-> [US-22](../01-requisitos/US-22-fusao-campanha-aventura.md). O schema em código ainda tem
-> `Campaign`/`CharacterSlot` e `Character` sem `systemId`.
+> D1 e D2 da [ADR 003 — Sistemas como dado](../../adr/003-sistemas-como-dado.md) estão implementadas
+> no `schema.prisma`: `System.config` + `Character.systemId` ([US-21](../01-requisitos/US-21-sistemas-como-dado.md))
+> e a fusão `Campaign`+`Adventure` ([US-22](../01-requisitos/US-22-fusao-campanha-aventura.md)). O
+> diagrama abaixo reflete o schema atual.
 
 ---
 
@@ -96,11 +94,12 @@ UNIQUE (character_id, adventure_id) ON character_state
 
 ## Notas de design
 
-- **Hierarquia (ADR 003):** `Campaign` e `CharacterSlot` deixam de existir; a `Adventure` é a história,
-  pertence a um `System` e liga personagens via `AdventureParticipant`. O `systemId` é fonte de verdade
-  no `Character` (criação) e na `Adventure` (a história); o join exige que coincidam.
-- **`System.config` (ADR 003, D1):** guarda os atributos (nomes, min/max, default) e os kits iniciais do
-  sistema. Integrar um sistema novo = inserir um `System` + `config`, sem tocar em controller/serviço.
+- **Hierarquia pós-D2 (implementada):** `Campaign` e `CharacterSlot` não existem mais; a `Adventure`
+  é a história, pertence a um `System` e liga personagens via `AdventureParticipant`.
+- **`System.config` (ADR 003, D1 — implementado):** guarda os atributos (nomes, min/max, default) e os
+  kits iniciais do sistema. Integrar um sistema novo = inserir um `System` + `config`, sem tocar em
+  controller/serviço. `Character.systemId` é conhecido na criação e valida `baseAttributes` contra o
+  `config` do sistema escolhido.
 - `EventLog` é append-only e serve como fonte para a sumarização de memória ([ADR 002](../../adr/002-memoria-de-sessao.md)).
   Nunca deletar ou reescrever payload; só a flag `summarized` é mutada.
 - `CharacterState` é o estado "ao vivo" do personagem na aventura ativa. O estado ao fim de cada aventura

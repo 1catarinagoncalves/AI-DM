@@ -1,4 +1,4 @@
-# US-03 — Estado de cena estruturado (continuidade espacial)
+# US-11b — Estado de cena estruturado (continuidade espacial)
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)

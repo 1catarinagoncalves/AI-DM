@@ -1,12 +1,10 @@
 # Contratos de API — AI Dungeon Master
 
-**Atualizado em:** 2026-07-01
+**Atualizado em:** 2026-07-02
 
-> ⚠️ **Reflete a ADR 003 (planejada).** As rotas de sistema/personagem/aventura abaixo já assumem a
-> hierarquia decidida na [ADR 003](../../adr/003-sistemas-como-dado.md): sistema como dado
-> ([US-21](../01-requisitos/US-21-sistemas-como-dado.md)) e fusão campanha+aventura
-> ([US-22](../01-requisitos/US-22-fusao-campanha-aventura.md)). O código atual ainda expõe
-> `/campaigns` e `/campaigns/:id/adventures` — ver seção *Rotas atuais (legado)* no fim.
+> D1 ([US-21](../01-requisitos/US-21-sistemas-como-dado.md)) e D2
+> ([US-22](../01-requisitos/US-22-fusao-campanha-aventura.md)) da [ADR 003](../../adr/003-sistemas-como-dado.md)
+> estão implementadas. As rotas abaixo são as que existem hoje em `apps/api`.
 
 ---
 
@@ -32,11 +30,13 @@ GET    /api/v1/systems/:id          — detalhes + config (atributos, kits) do s
 ### Personagens
 
 ```
-POST   /api/v1/characters           — criar personagem (body inclui systemId; atributos
-                                       validados contra System.config.attributes)
+POST   /api/v1/characters           — criar personagem (implementado, US-21)
+Body: { userId, systemId, name, gender, race, class, attributes: Record<string, number> }
+                                       attributes validado com Zod dinâmico a partir de
+                                       System.config.attributes (chaves fora do config = erro)
 GET    /api/v1/characters           — listar personagens do usuário
 GET    /api/v1/characters/:id       — buscar personagem
-GET    /api/v1/characters/:id/state — estado atual do personagem numa aventura
+GET    /api/v1/characters/:id/state — estado atual do personagem numa aventura (planejado)
 ```
 
 ### Aventuras e missões
@@ -107,20 +107,4 @@ player:left           { characterId }
 
 // Cliente → Servidor
 player:action         { characterId, message: string }
-```
-
----
-
-## Rotas atuais (legado — antes da ADR 003)
-
-O código em `apps/api` ainda expõe a hierarquia antiga (campanha separada da aventura). Estas rotas
-serão substituídas pelas de cima ao implementar [US-21](../01-requisitos/US-21-sistemas-como-dado.md) e
-[US-22](../01-requisitos/US-22-fusao-campanha-aventura.md):
-
-```
-GET    /api/v1/campaigns/systems        — listar sistemas        → vira /systems
-POST   /api/v1/campaigns                — criar campanha         → removido (fundido na aventura)
-POST   /api/v1/campaigns/:id/join       — entrar com personagem  → vira AdventureParticipant
-POST   /api/v1/campaigns/:id/adventures — criar aventura         → vira /characters/:id/adventures
-POST   /api/v1/characters               — criar personagem (sem systemId; 6 atributos fixos de D&D)
 ```
