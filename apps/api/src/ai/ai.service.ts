@@ -88,6 +88,21 @@ export class AiService {
     const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
     const mainQuest = quests.find((q) => q.isPrimary)?.title ?? null
     const activeQuests = quests.filter((q) => !q.isPrimary)
+
+    // Ficha que o mestre precisa conhecer (US-23). Prefere o estado (evolui com
+    // level-up) e cai em baseAttributes quando o estado ainda não existe.
+    const sheet = {
+      level: character.level,
+      hp: characterState?.hp ?? 0,
+      maxHp: characterState?.maxHp ?? 0,
+      attributes: (characterState?.attributes ?? character.baseAttributes ?? {}) as Record<string, number>,
+      conditions: (characterState?.conditions ?? []) as string[],
+    }
+    // Rótulos vêm de System.config (US-21, já validado na criação do personagem);
+    // ausente → o builder usa a chave crua. ponytail: leitura defensiva sem re-validar.
+    const config = adventure.system.config as { attributes?: { key: string; label: string }[] } | null
+    const attributeLabels = Object.fromEntries((config?.attributes ?? []).map((a) => [a.key, a.label]))
+
     const systemPrompt = buildDmSystemPrompt({
       systemName,
       characterName: character.name,
@@ -99,6 +114,8 @@ export class AiService {
       memorySummary: adventure.memorySummary,
       inventory: inventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
       sceneState: (characterState?.sceneState ?? null) as SceneState | null,
+      sheet,
+      attributeLabels,
     })
 
     // Monta as tools — cada tool chama o Game Server (this.dice, this.prisma)

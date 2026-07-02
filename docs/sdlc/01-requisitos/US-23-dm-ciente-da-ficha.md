@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma (renderiza a ficha atual; `System.config` da [US-21](./US-21-sistemas-como-dado.md) só melhora os rótulos)
 **Criada em:** 2026-07-01
 **Relacionado:** [US-19](./US-19-estado-de-ficha-via-api.md) (mesma fonte, `CharacterState`) · [US-21](./US-21-sistemas-como-dado.md) (atributos como dado)
@@ -87,12 +87,12 @@ Renderização no prompt (o builder itera, não enumera):
 
 ## Critérios de aceite
 
-- [ ] O system prompt inclui atributos, HP/HP máx, nível e condições da ficha atual.
-- [ ] Atributos são renderizados iterando o map `attributes`/`baseAttributes` — não há chaves de atributo hardcoded no builder.
-- [ ] A seção da ficha é marcada como read-only/fonte de verdade; o mestre não a altera na narração, só via tools.
-- [ ] **Extensibilidade (o critério-chave):** adicionar um parâmetro novo à ficha (ex.: um atributo `sorte`, ou uma condição nova no estado) faz esse parâmetro aparecer no prompt **sem editar `buildDmSystemPrompt`**.
-- [ ] Rótulos de atributo usam `System.config.attributes[].label` quando presente; sem config, caem na chave crua (nenhum crash).
-- [ ] **Eval / teste de regressão:** um personagem com HP baixo e a condição "envenenado" recebe narração coerente com esse estado (não é tratado como saudável), e o bloco de ficha no prompt contém HP, nível, condições e todos os atributos.
+- [x] O system prompt inclui atributos, HP/HP máx, nível e condições da ficha atual. (`dm-system.ts` — seção "Character sheet")
+- [x] Atributos são renderizados iterando o map `attributes`/`baseAttributes` — não há chaves de atributo hardcoded no builder. (`Object.entries(sheet.attributes)`)
+- [x] A seção da ficha é marcada como read-only/fonte de verdade; o mestre não a altera na narração, só via tools.
+- [x] **Extensibilidade (o critério-chave):** adicionar um parâmetro novo à ficha (ex.: um atributo `sorte`, ou uma condição nova no estado) faz esse parâmetro aparecer no prompt **sem editar `buildDmSystemPrompt`**. (`dm-system.test.ts` cobre o atributo `sorte`)
+- [x] Rótulos de atributo usam `System.config.attributes[].label` quando presente; sem config, caem na chave crua (nenhum crash).
+- [x] **Eval / teste de regressão:** bloco de ficha de um personagem com HP baixo + "envenenado" contém HP, nível, condições e todos os atributos (`evals/cases/us-23-dm-ciente-da-ficha.ts`). A metade "narração coerente" depende de modelo vivo e não roda na suite (sem API paga).
 
 ---
 
@@ -106,12 +106,19 @@ Renderização no prompt (o builder itera, não enumera):
 
 ---
 
-## Questões em aberto
+## Questões em aberto (resolvidas)
 
-1. Reservas com atual/máx no futuro (mana, stamina): modelar já como um grupo `resources: Record<string,{current,max}>` no `sheet`, ou só quando o primeiro aparecer? (Recomendação: só quando aparecer — YAGNI; a regra de extensão já cobre o caminho.)
-2. Condições precisam de descrição/efeito no prompt (ex.: "envenenado: -2 em testes") ou basta o nome? Depende de o sistema definir efeitos no `config`.
-3. Quão verboso deve ser o bloco para não inflar o prompt a cada turno? (Fichas grandes de sistemas futuros.)
-4. **Controle de visibilidade (pendente de decisão):** introduzir agora uma flag `showToDm` por parâmetro no `System.config` — para o autor do sistema escolher o que o mestre vê, contendo o bloat em fichas grandes — ou só quando existir um parâmetro que precise ser ocultado? A mitigação de bloat (render compacto + prioridade de HP/condições no topo) vale em qualquer caso; o `showToDm` é o que fica em aberto. Anda junto com a questão análoga na [US-21](./US-21-sistemas-como-dado.md). (Recomendação: esperar — YAGNI; hoje toda a ficha é narrativamente relevante.)
+1. **Reservas com atual/máx no futuro (mana, stamina): modelar já como grupo `resources`, ou só quando o primeiro aparecer?**
+   **Decisão:** só quando aparecer — YAGNI. A regra de extensão já cobre o caminho: o primeiro recurso entra como um grupo de dados no `sheet` (à imagem de `attributes`) e é renderizado pela iteração genérica, sem `if` novo no builder. Não se cria a estrutura `resources` especulativamente.
+
+2. **Condições precisam de descrição/efeito no prompt (ex.: "envenenado: -2 em testes") ou basta o nome?**
+   **Decisão:** só o nome, por ora. `CharacterState.conditions` é `string[]` — o builder renderiza a lista crua. Efeitos mecânicos de condição não existem como dado hoje (o `config` da [US-21](./US-21-sistemas-como-dado.md) define atributos e kits, não efeitos de condição). Quando/se o sistema definir efeitos no `config`, eles entram como mais um grupo de dados renderizado genericamente — mesma regra de extensão da (1), sem tocar na lógica de render.
+
+3. **Quão verboso deve ser o bloco para não inflar o prompt a cada turno?**
+   **Decisão:** render compacto, fixo. Uma linha por bloco (Level, HP, Conditions) e **todos os atributos numa única linha** (`FOR 16, DES 12, …`), exatamente como no exemplo da seção "Modelo de dados". Ordem por prioridade narrativa: HP e condições no topo, atributos por último. É barato e determinístico; o custo por turno é umas poucas linhas. Fichas grandes de sistemas futuros são endereçadas pela (4), não por truncar aqui.
+
+4. **Introduzir agora uma flag `showToDm` por parâmetro no `System.config`, ou só quando existir um parâmetro que precise ser ocultado?**
+   **Decisão:** adiar — YAGNI, alinhado à decisão análoga da [US-21 §4](./US-21-sistemas-como-dado.md) (adiar eixos por parâmetro até o 2º recurso). Hoje toda a ficha (atributos, HP, nível, condições) é narrativamente relevante, então não há nada a ocultar. A mitigação de bloat da (3) — render compacto + HP/condições no topo — vale independentemente e é suficiente para a Fase 1. Quando surgir um parâmetro que o autor do sistema queira esconder do mestre, `showToDm` no `config` é a extensão natural, e a iteração do builder já sabe pular chaves não marcadas.
 
 ---
 

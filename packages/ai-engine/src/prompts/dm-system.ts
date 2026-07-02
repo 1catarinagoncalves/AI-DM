@@ -1,6 +1,21 @@
 import type { SceneState } from '@ai-dm/shared'
 import { formatSceneState } from '../scene'
 
+/**
+ * Estado da ficha que o mestre precisa CONHECER (US-23). Renderizado dirigido
+ * por dados: `attributes` e `conditions` são iterados, então um atributo ou
+ * condição novos aparecem no prompt sem editar este builder. Um parâmetro de
+ * ficha genuinamente novo (uma reserva de mana, etc.) entra AQUI como mais um
+ * campo/grupo — não como um novo escalar no builder.
+ */
+export interface DmCharacterSheet {
+  level: number
+  hp: number
+  maxHp: number
+  attributes: Record<string, number>
+  conditions: string[]
+}
+
 export function buildDmSystemPrompt(params: {
   systemName: string
   characterName: string
@@ -12,8 +27,21 @@ export function buildDmSystemPrompt(params: {
   memorySummary?: string | null
   inventory: string[]
   sceneState?: SceneState | null
+  sheet: DmCharacterSheet
+  /** Rótulo por chave de atributo, de System.config (US-21). Ausente → chave crua. */
+  attributeLabels?: Record<string, string>
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels } = params
+
+  const attributesLine = Object.entries(sheet.attributes)
+    .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value}`)
+    .join(', ')
+  const sheetSection = `## Character sheet (read-only — source of truth, managed by the Game Server)
+This is the authoritative current state of the character. Trust it and narrate coherently with it — a low HP or an active condition MUST be reflected in tone and stakes. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
+- Level: ${sheet.level}
+- HP: ${sheet.hp}/${sheet.maxHp}
+- Conditions: ${sheet.conditions.length > 0 ? sheet.conditions.join(', ') : 'none'}
+- Attributes: ${attributesLine || 'none'}`
 
   const sceneText = formatSceneState(sceneState)
   const sceneSection = sceneText
@@ -60,6 +88,8 @@ You are not bound to any official RPG system. Narrate freely and creatively.
 - Gender: ${characterGender}
 - Race: ${characterRace}
 - Class: ${characterClass}
+
+${sheetSection}
 
 ## Main quest
 ${mainQuest ? mainQuest : '- No main quest set yet.'}
