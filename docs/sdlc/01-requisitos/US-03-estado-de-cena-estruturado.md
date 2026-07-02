@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 📋 Planejada (não iniciada)
+**Status:** Feito
 **Depende de:** Fase A da memória (resumo contínuo + janela recente) — já implementada
 **Criada em:** 2026-06-27
 

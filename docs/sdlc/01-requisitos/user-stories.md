@@ -15,6 +15,11 @@ Como jogador, quero criar um personagem com nome, raça, classe e atributos para
 **US-02** — Ver ficha do personagem  
 Como jogador, quero ver a ficha completa do meu personagem (HP, atributos, inventário, status) a qualquer momento durante a aventura.
 
+**US-19** — Estado de ficha legível e sincronizado via API  
+Como jogador, quero que a ficha na barra lateral (HP, inventário, condições) reflita o estado real persistido no servidor durante o jogo, e não um valor preso da carga inicial.
+
+> Detalhamento completo em [`US-19-estado-de-ficha-via-api.md`](./US-19-estado-de-ficha-via-api.md).
+
 **US-03** — Personagem persiste entre aventuras  
 Como jogador, quero que meu personagem lembre dos eventos da aventura anterior quando inicio uma nova aventura, para manter a continuidade da narrativa.
 
@@ -28,11 +33,31 @@ Como jogador, quero poder duplicar um personagem para participar de campanhas di
 **US-05** — Criar campanha  
 Como jogador, quero criar uma campanha associada a um sistema de regras para organizar minhas aventuras.
 
+**US-21** — Sistema de regras como dado reutilizável pelas APIs  
+Como desenvolvedora, quero que atributos e kits iniciais venham de um `config` no `System`, para que integrar um sistema novo seja inserir um `System` + `config` sem tocar em controller/serviço.
+
+> Detalhamento em [`US-21-sistemas-como-dado.md`](./US-21-sistemas-como-dado.md) · decisão em [ADR 003](../../adr/003-sistemas-como-dado.md).
+
+**US-22** — Fusão de campanha e aventura numa entidade só  
+Como desenvolvedora, quero que campanha e aventura sejam uma entidade só (a história com uma missão principal), com o personagem como fio de continuidade, para refletir o domínio e remover a duplicação de sistema.
+
+> Detalhamento em [`US-22-fusao-campanha-aventura.md`](./US-22-fusao-campanha-aventura.md) · decisão em [ADR 003](../../adr/003-sistemas-como-dado.md) (D2). Depende de US-21.
+
 **US-06** — Listar e acessar histórico  
 Como jogador, quero acessar o histórico completo de aventuras e campanhas anteriores para revisitar o que aconteceu.
 
 **US-07** — Múltiplas missões dentro de uma aventura  
 Como jogador, quero receber e acompanhar múltiplas missões dentro de uma mesma aventura para ter objetivos claros durante o jogo.
+
+**US-18** — Histórico de turnos servido pela API  
+Como jogador, quero que o histórico da aventura seja carregado do servidor (não do `localStorage`) ao abrir a tela de jogo, para não perder a conversa ao trocar de navegador ou dispositivo.
+
+> Detalhamento completo em [`US-18-historico-servido-pela-api.md`](./US-18-historico-servido-pela-api.md).
+
+**US-20** — Catálogo de sistemas servido pela API  
+Como jogador, quero escolher o sistema de regras a partir da lista real do servidor (`GET /campaigns/systems`), em vez de opções hardcoded no setup.
+
+> Detalhamento completo em [`US-20-catalogo-de-sistemas-via-api.md`](./US-20-catalogo-de-sistemas-via-api.md).
 
 ---
 
@@ -49,6 +74,11 @@ Como jogador, quero que o mestre aplique as regras do sistema correto durante a 
 
 **US-11** — Ação em linguagem natural  
 Como jogador, quero descrever minhas ações em linguagem natural (ex: "ataco o goblin com minha espada") e o mestre resolve conforme as regras.
+
+**US-23** — DM ciente da ficha completa (injeção dirigida por dados)  
+Como jogador, quero que o mestre tenha ciência de tudo na minha ficha (atributos, HP, nível, condições e o que for adicionado no futuro), sem precisar reescrever o prompt a cada campo novo.
+
+> Detalhamento em [`US-23-dm-ciente-da-ficha.md`](./US-23-dm-ciente-da-ficha.md).
 
 **US-11b** — Estado de cena estruturado (continuidade espacial) — *Fase B da memória*  
 Como jogador, quero que o mestre mantenha um estado de cena explícito (local atual, personagens presentes, período do dia e objetos em cena) para que a narração nunca me teletransporte nem invente cenário que contradiz onde estou.
@@ -92,6 +122,10 @@ Como jogador em uma campanha multiplayer, quero ver as ações dos outros jogado
 | US-01 a US-11 | Fase 1 — MVP |
 | US-03, US-06 (memória) | Fase 2 — Memória entre aventuras |
 | US-11b (estado de cena estruturado) | Fase 2 — Memória / continuidade espacial (Fase B) |
+| US-18, US-19, US-20 (componente ↔ API) | Fase 1 — MVP |
+| US-21 (sistemas como dado) | Fase 1 — MVP |
+| US-22 (fusão campanha/aventura) | Fase 1 — MVP · depende de US-21 |
+| US-23 (DM ciente da ficha) | Fase 1 — MVP |
 | US-12, US-13 | Fase 3 — Upload de livros |
 | US-14, US-15, US-16 | Fase 4 — Multiplayer |
 | US-04 | Fase 5 — Multiverso |

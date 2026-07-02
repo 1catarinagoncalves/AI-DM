@@ -1,18 +1,34 @@
 # Modelo de Dados — AI Dungeon Master
 
-**Atualizado em:** 2026-06-27
+**Atualizado em:** 2026-07-01
+
+> ⚠️ **Alvo, não estado atual.** Este documento reflete a hierarquia decidida na
+> [ADR 003 — Sistemas como dado](../../adr/003-sistemas-como-dado.md) (D1: `System.config` +
+> `Character.systemId`; D2: fusão `Campaign`+`Adventure`). Ambas são **planejadas, ainda não
+> migradas** no `schema.prisma` — ver [US-21](../01-requisitos/US-21-sistemas-como-dado.md) e
+> [US-22](../01-requisitos/US-22-fusao-campanha-aventura.md). O schema em código ainda tem
+> `Campaign`/`CharacterSlot` e `Character` sem `systemId`.
 
 ---
 
 ## Diagrama de entidades (núcleo)
 
+Hierarquia: **System → Character → Adventure** — o personagem pertence a um sistema, e é o fio de
+continuidade entre aventuras seguidas (ficha + memória, [ADR 002](../../adr/002-memoria-de-sessao.md)).
+
 ```
 User
   id, email, name, createdAt
 
-Character
-  id, userId, name, race, class, level
-  baseAttributes (JSON)
+System                  ← sistema de regras (Free, D&D SRD, customizado via upload)
+  id, name, version
+  sourceType (free | srd | upload)
+  config (JSON)         ← D1: schema de atributos + kits iniciais (validado por Zod em shared)
+  ragIndexId            ← referência ao índice no vector store
+
+Character               ← pertence a UM sistema (systemId conhecido na criação)
+  id, userId, systemId, name, race, class, level
+  baseAttributes (JSON) ← validado contra System.config.attributes
   createdAt
 
 CharacterState          ← estado vivo do personagem em uma aventura
@@ -21,25 +37,22 @@ CharacterState          ← estado vivo do personagem em uma aventura
   attributes (JSON)     ← pode evoluir com level-up
   inventory (JSON)
   conditions (JSON)     ← envenenado, incapacitado, etc.
+  sceneState (JSON)     ← continuidade espacial (ADR 002 / US-11b)
   updatedAt
 
-Campaign
-  id, creatorId (userId), name, systemId
-  maxPlayers (default: 10)
-  createdAt
-
-CharacterSlot           ← N:M entre Campaign e Character
-  id, campaignId, characterId
-  joinedAt
-
-Adventure
-  id, campaignId, title, order
+Adventure               ← a história (campanha e aventura FUNDIDAS; 1 missão principal)
+  id, systemId, creatorId (userId), title, order
   status (active | completed | archived)
-  memorySummary (text)  ← resumo gerado ao final da aventura
+  memorySummary (text)  ← resumo acumulado (ADR 002)
   createdAt, completedAt
+
+AdventureParticipant    ← N:M personagem ↔ aventura (ex-CharacterSlot; multiplayer-ready)
+  id, adventureId, characterId
+  joinedAt
 
 Quest
   id, adventureId, title, description
+  isPrimary (bool)      ← a missão principal; móvel (o mestre reaponta)
   status (open | completed | failed)
   completedAt
 
@@ -47,15 +60,11 @@ EventLog                ← append-only; base da memória de longo prazo
   id, adventureId, characterId (nullable)
   type (action | narration | dice_roll | quest_update | character_update)
   payload (JSON)
+  summarized (bool)     ← fronteira da janela de memória (ADR 002)
   createdAt
 
-System                  ← sistema de regras (D&D SRD, customizado via upload)
-  id, name, version
-  sourceType (srd | upload)
-  ragIndexId            ← referência ao índice no vector store
-
 Book                    ← livro upado pelo usuário (Fase 3)
-  id, userId, campaignId
+  id, userId, adventureId (nullable)
   filename, storagePath
   status (processing | ready | failed)
   systemId (nullable)   ← populado após ingestão
@@ -67,11 +76,17 @@ Book                    ← livro upado pelo usuário (Fase 3)
 ## Índices e constraints principais
 
 ```sql
--- Um personagem por jogador por campanha
-UNIQUE (campaign_id, character_id) ON character_slot
+-- Um personagem entra uma vez por aventura (join multiplayer-ready)
+UNIQUE (adventure_id, character_id) ON adventure_participant
 
--- EventLog imutável
--- sem UPDATE ou DELETE; apenas INSERT
+-- Só entra na aventura quem é do mesmo sistema
+-- (regra de aplicação: character.system_id == adventure.system_id)
+
+-- No máximo uma quest primária por aventura (invariante de aplicação)
+-- promover uma quest a isPrimary desmarca as demais da aventura
+
+-- EventLog imutável — sem UPDATE de payload/DELETE; apenas INSERT
+-- (a flag `summarized` é o único campo mutado, pela sumarização)
 
 -- CharacterState atualizado por adventure
 UNIQUE (character_id, adventure_id) ON character_state
@@ -81,11 +96,17 @@ UNIQUE (character_id, adventure_id) ON character_state
 
 ## Notas de design
 
-- `EventLog` é append-only e serve como fonte para o worker de sumarização (Fase 2).
-  Nunca deletar ou atualizar registros do EventLog.
-- `CharacterState` é o estado "ao vivo" do personagem na aventura ativa.
-  O estado ao fim de cada aventura é preservado via snapshot antes da criação da próxima.
-- `memorySummary` em `Adventure` é gerado pelo worker de sumarização ao final da aventura
-  e injetado como contexto no início da próxima. No MVP (Fase 1), pode ser nulo.
-- `System` para D&D 5e SRD é seed no banco no deploy; não depende de upload.
-- Todos os campos `JSON` terão tipos TypeScript definidos em `packages/shared/src/types/`.
+- **Hierarquia (ADR 003):** `Campaign` e `CharacterSlot` deixam de existir; a `Adventure` é a história,
+  pertence a um `System` e liga personagens via `AdventureParticipant`. O `systemId` é fonte de verdade
+  no `Character` (criação) e na `Adventure` (a história); o join exige que coincidam.
+- **`System.config` (ADR 003, D1):** guarda os atributos (nomes, min/max, default) e os kits iniciais do
+  sistema. Integrar um sistema novo = inserir um `System` + `config`, sem tocar em controller/serviço.
+- `EventLog` é append-only e serve como fonte para a sumarização de memória ([ADR 002](../../adr/002-memoria-de-sessao.md)).
+  Nunca deletar ou reescrever payload; só a flag `summarized` é mutada.
+- `CharacterState` é o estado "ao vivo" do personagem na aventura ativa. O estado ao fim de cada aventura
+  é preservado antes da criação da próxima; a continuidade entre aventuras mora no personagem.
+- `memorySummary` em `Adventure` é o resumo acumulado da própria aventura ([ADR 002](../../adr/002-memoria-de-sessao.md)).
+  No MVP (Fase 1), pode ser nulo.
+- `System` para Free e D&D 5e SRD é seed no banco no deploy; não depende de upload.
+- Todos os campos `JSON` têm tipos TypeScript definidos em `packages/shared/src/types/` (incluindo o schema
+  Zod de `System.config`).

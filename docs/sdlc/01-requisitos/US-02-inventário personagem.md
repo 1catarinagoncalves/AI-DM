@@ -1,7 +1,7 @@
 # US-02 — Inventário do personagem e equipamento inicial
 
 **Épico:** Free
-**Status:** Para desenvolvimento
+**Status:** Feito
 **Depende de:** US-01 — Atributos do personagem
 **Criada em:** 29-06-2026
 
@@ -76,15 +76,15 @@ O AI DM atualiza o inventário via mecanismo interno — metadados brutos (ex.: 
 
 O `CharacterService` deve usar a tabela abaixo ao criar o personagem. Para classes não listadas, usar bom senso baseado no arquétipo mais próximo.
 
-| Classe | Equipamentos iniciais |
-|---|---|
-| Guerreiro(a) | Espada longa, Escudo, Armadura de couro, Mochila, Cantil |
-| Mago(a) | Cajado arcano, Grimório, Vestes de mago, Poção de mana, Cantil |
-| Arqueiro(a) | Arco longo, Aljava (20 flechas), Adaga, Armadura de couro leve, Cantil |
-| Ladino/Ladina | Adaga ×2, Ferramentas de ladrão, Armadura de couro, Corda, Cantil |
-| Clérigo(a) | Martelo, Símbolo sagrado, Armadura de malha, Kit de primeiros socorros, Cantil |
-| Paladino(a) | Espada longa, Escudo, Armadura de malha, Símbolo sagrado, Cantil |
-| Bárbaro(a) | Machado grande, Pele de urso (armadura), Adaga, Cantil |
-| Druida | Cajado de carvalho, Símbolo druídico, Túnica de couro, Kit de ervas, Cantil |
-| Bardo | Espada curta, Instrumento musical, Armadura de couro, Cantil |
-| Feiticeiro(a) | Cajado, Foco arcano (cristal), Vestes ornamentadas, Poção de mana, Cantil |
+| Classe        | Equipamentos iniciais                                                          |
+| ------------- | ------------------------------------------------------------------------------ |
+| Guerreiro(a)  | Espada longa, Escudo, Armadura de couro, Mochila, Cantil                       |
+| Mago(a)       | Cajado arcano, Grimório, Vestes de mago, Poção de mana, Cantil                 |
+| Arqueiro(a)   | Arco longo, Aljava (20 flechas), Adaga, Armadura de couro leve, Cantil         |
+| Ladino/Ladina | Adaga ×2, Ferramentas de ladrão, Armadura de couro, Corda, Cantil              |
+| Clérigo(a)    | Martelo, Símbolo sagrado, Armadura de malha, Kit de primeiros socorros, Cantil |
+| Paladino(a)   | Espada longa, Escudo, Armadura de malha, Símbolo sagrado, Cantil               |
+| Bárbaro(a)    | Machado grande, Pele de urso (armadura), Adaga, Cantil                         |
+| Druida        | Cajado de carvalho, Símbolo druídico, Túnica de couro, Kit de ervas, Cantil    |
+| Bardo         | Espada curta, Instrumento musical, Armadura de couro, Cantil                   |
+| Feiticeiro(a) | Cajado, Foco arcano (cristal), Vestes ornamentadas, Poção de mana, Cantil      |

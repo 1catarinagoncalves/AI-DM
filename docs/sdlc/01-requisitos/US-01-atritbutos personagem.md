@@ -1,7 +1,7 @@
 # US-01 — Atributos do personagem
 
 **Épico:** Free
-**Status:** Para desenvolvimento
+**Status:** Feito
 **Depende de:** nenhuma
 **Criada em:** 28-06-2026
 

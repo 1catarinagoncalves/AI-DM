@@ -1,13 +1,19 @@
 # Contratos de API — AI Dungeon Master
 
-**Atualizado em:** 2026-06-27
+**Atualizado em:** 2026-07-01
+
+> ⚠️ **Reflete a ADR 003 (planejada).** As rotas de sistema/personagem/aventura abaixo já assumem a
+> hierarquia decidida na [ADR 003](../../adr/003-sistemas-como-dado.md): sistema como dado
+> ([US-21](../01-requisitos/US-21-sistemas-como-dado.md)) e fusão campanha+aventura
+> ([US-22](../01-requisitos/US-22-fusao-campanha-aventura.md)). O código atual ainda expõe
+> `/campaigns` e `/campaigns/:id/adventures` — ver seção *Rotas atuais (legado)* no fim.
 
 ---
 
 ## Convenções
 
-- REST para operações CRUD (campanhas, personagens, aventuras)
-- **POST /api/ai/chat** — endpoint de streaming para o DM Agent (Vercel AI SDK)
+- REST para operações CRUD (sistemas, personagens, aventuras)
+- **POST /api/v1/ai/chat** — endpoint de streaming para o DM Agent (Vercel AI SDK)
 - WebSocket (Socket.IO) para eventos de sala multiplayer (Fase 4)
 - Autenticação: JWT Bearer token em todos os endpoints
 - Prefixo de versão: `/api/v1/`
@@ -16,32 +22,35 @@
 
 ## Endpoints principais (Fase 1 — MVP)
 
+### Sistemas
+
+```
+GET    /api/v1/systems              — listar sistemas disponíveis (Free, D&D 5e SRD, ...)
+GET    /api/v1/systems/:id          — detalhes + config (atributos, kits) do sistema
+```
+
 ### Personagens
 
 ```
-POST   /api/v1/characters           — criar personagem
+POST   /api/v1/characters           — criar personagem (body inclui systemId; atributos
+                                       validados contra System.config.attributes)
 GET    /api/v1/characters           — listar personagens do usuário
 GET    /api/v1/characters/:id       — buscar personagem
-GET    /api/v1/characters/:id/state — estado atual do personagem na aventura ativa
-```
-
-### Campanhas
-
-```
-POST   /api/v1/campaigns            — criar campanha
-GET    /api/v1/campaigns            — listar campanhas do usuário
-GET    /api/v1/campaigns/:id        — detalhes da campanha
-POST   /api/v1/campaigns/:id/join   — entrar na campanha com um personagem
+GET    /api/v1/characters/:id/state — estado atual do personagem numa aventura
 ```
 
 ### Aventuras e missões
 
+Aventura = a história (campanha e aventura fundidas, ADR 003 D2). Criada sob o personagem, que é
+adicionado como participante; herda `systemId` do personagem.
+
 ```
-POST   /api/v1/campaigns/:id/adventures          — iniciar nova aventura
-GET    /api/v1/campaigns/:id/adventures          — listar aventuras da campanha
-GET    /api/v1/adventures/:id                    — detalhes da aventura
-GET    /api/v1/adventures/:id/quests             — missões da aventura
-GET    /api/v1/adventures/:id/log                — EventLog (histórico)
+POST   /api/v1/characters/:id/adventures  — criar aventura e ligar o personagem (participante)
+GET    /api/v1/characters/:id/adventures  — listar aventuras do personagem (em ordem)
+GET    /api/v1/adventures/:id             — detalhes da aventura
+GET    /api/v1/adventures/:id/turns       — histórico de turnos (EventLog: ACTION/NARRATION)
+GET    /api/v1/adventures/:id/quests      — missões da aventura (a primária tem isPrimary)
+GET    /api/v1/adventures/:id/log         — EventLog completo
 ```
 
 ### DM Agent (streaming)
@@ -98,4 +107,20 @@ player:left           { characterId }
 
 // Cliente → Servidor
 player:action         { characterId, message: string }
+```
+
+---
+
+## Rotas atuais (legado — antes da ADR 003)
+
+O código em `apps/api` ainda expõe a hierarquia antiga (campanha separada da aventura). Estas rotas
+serão substituídas pelas de cima ao implementar [US-21](../01-requisitos/US-21-sistemas-como-dado.md) e
+[US-22](../01-requisitos/US-22-fusao-campanha-aventura.md):
+
+```
+GET    /api/v1/campaigns/systems        — listar sistemas        → vira /systems
+POST   /api/v1/campaigns                — criar campanha         → removido (fundido na aventura)
+POST   /api/v1/campaigns/:id/join       — entrar com personagem  → vira AdventureParticipant
+POST   /api/v1/campaigns/:id/adventures — criar aventura         → vira /characters/:id/adventures
+POST   /api/v1/characters               — criar personagem (sem systemId; 6 atributos fixos de D&D)
 ```
