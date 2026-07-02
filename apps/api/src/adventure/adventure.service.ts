@@ -60,4 +60,23 @@ export class AdventureService {
       return adventure
     })
   }
+
+  /**
+   * Histórico visível ao jogador (US-18): turnos ACTION/NARRATION em ordem
+   * cronológica, mapeados para o formato do chat. Inclui os já `summarized` —
+   * a condensação da memória não deve apagar a conversa da tela.
+   */
+  async getTurns(characterId: string, adventureId: string): Promise<{ role: 'user' | 'dm'; content: string }[]> {
+    const logs = await this.prisma.eventLog.findMany({
+      where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION'] } },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    return logs
+      .map((log) => ({
+        role: (log.type === 'NARRATION' ? 'dm' : 'user') as 'user' | 'dm',
+        content: (log.payload as { text?: string }).text ?? '',
+      }))
+      .filter((m) => m.content.trim().length > 0)
+  }
 }

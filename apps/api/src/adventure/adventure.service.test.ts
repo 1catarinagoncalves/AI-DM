@@ -93,3 +93,32 @@ describe('AdventureService.createForCharacter', () => {
     await expect(service.createForCharacter('missing', { title: 'X' })).rejects.toThrow()
   })
 })
+
+describe('AdventureService.getTurns', () => {
+  it('devolve N turnos em ordem, mapeando ACTION→user e NARRATION→dm (inclui resumidos)', async () => {
+    const logs = [
+      { type: 'ACTION', payload: { text: 'Abro a porta.' }, summarized: true },
+      { type: 'NARRATION', payload: { text: 'A porta range.' }, summarized: true },
+      { type: 'ACTION', payload: { text: 'Entro.' }, summarized: false },
+      { type: 'NARRATION', payload: { text: 'Três figuras...' }, summarized: false },
+    ]
+    let captured: Record<string, unknown> = {}
+    const prisma = {
+      eventLog: {
+        findMany: async (args: Record<string, unknown>) => { captured = args; return logs },
+      },
+    } as unknown as PrismaService
+    const service = new AdventureService(prisma)
+
+    const turns = await service.getTurns('char-1', 'adv-1')
+
+    // Não filtra por summarized: o histórico visível não some com a condensação.
+    expect((captured['where'] as Record<string, unknown>)['summarized']).toBeUndefined()
+    expect(turns).toEqual([
+      { role: 'user', content: 'Abro a porta.' },
+      { role: 'dm', content: 'A porta range.' },
+      { role: 'user', content: 'Entro.' },
+      { role: 'dm', content: 'Três figuras...' },
+    ])
+  })
+})

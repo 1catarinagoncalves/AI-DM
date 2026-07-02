@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param } from '@nestjs/common'
+import { Controller, Post, Get, Body, Param } from '@nestjs/common'
 import { z } from 'zod'
 import { AdventureService } from './adventure.service'
 
@@ -14,5 +14,13 @@ export class AdventureController {
   create(@Param('characterId') characterId: string, @Body() body: unknown) {
     const dto = CreateAdventureSchema.parse(body)
     return this.adventureService.createForCharacter(characterId, dto)
+  }
+
+  @Get(':adventureId/turns')
+  getTurns(
+    @Param('characterId') characterId: string,
+    @Param('adventureId') adventureId: string,
+  ) {
+    return this.adventureService.getTurns(characterId, adventureId)
   }
 }

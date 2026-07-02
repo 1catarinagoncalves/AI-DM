@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { loadSession, saveSession } from '@/lib/session'
+import { api } from '@/lib/api'
 
 interface Message {
   role: 'user' | 'dm'
@@ -58,9 +59,16 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    const history = loadHistory(adventureId)
-    setMessages(history)
-  }, [adventureId])
+    // Fonte de verdade: o servidor (US-18). O localStorage vira só um cache
+    // otimista para evitar flash de tela vazia enquanto o fetch resolve.
+    setMessages(loadHistory(adventureId))
+    api.getTurns(characterId, adventureId)
+      .then((turns) => {
+        setMessages(turns)
+        saveHistory(adventureId, turns)
+      })
+      .catch(() => { /* mantém o cache local em caso de falha */ })
+  }, [adventureId, characterId])
 
   useEffect(() => {
     const session = loadSession()

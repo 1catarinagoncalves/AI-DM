@@ -35,4 +35,7 @@ export const api = {
 
   getCharacter: (id: string) =>
     get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; states: { hp: number; maxHp: number; inventory: { name: string; qty: number }[] }[] }>(`/characters/${id}`),
+
+  getTurns: (characterId: string, adventureId: string) =>
+    get<{ role: 'user' | 'dm'; content: string }[]>(`/characters/${characterId}/adventures/${adventureId}/turns`),
 }
