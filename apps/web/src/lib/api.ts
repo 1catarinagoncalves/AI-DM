@@ -33,6 +33,9 @@ export const api = {
   createAdventure: (characterId: string, title: string) =>
     post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, { title }),
 
+  listCharacters: (userId: string) =>
+    get<{ id: string; name: string; race: string; class: string; level: number; currentAdventure: { id: string; title: string } | null }[]>(`/characters/user/${userId}`),
+
   getCharacter: (id: string) =>
     get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; states: { hp: number; maxHp: number; inventory: { name: string; qty: number }[] }[] }>(`/characters/${id}`),
 

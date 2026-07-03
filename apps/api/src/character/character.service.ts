@@ -40,11 +40,40 @@ export class CharacterService {
     })
   }
 
+  /**
+   * Lista os personagens do usuário para o hub (US-25): cada um com a aventura
+   * em andamento (ACTIVE) embutida e a lista ordenada por último jogado.
+   * Uma query só (findMany com includes) — sem loop por personagem.
+   */
   async findAllByUser(userId: string) {
-    return this.prisma.character.findMany({
+    const characters = await this.prisma.character.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      include: {
+        // Estado mais recente → "último jogado" (CharacterState.updatedAt bumpa a cada turno).
+        states: { orderBy: { updatedAt: 'desc' }, take: 1 },
+        // Aventura em andamento: participação numa Adventure ACTIVE, a mais recente desempata.
+        participations: {
+          where: { adventure: { status: 'ACTIVE' } },
+          include: { adventure: { select: { id: true, title: true } } },
+          orderBy: { adventure: { createdAt: 'desc' } },
+          take: 1,
+        },
+      },
     })
+
+    return characters
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        race: c.race,
+        class: c.class,
+        level: c.level,
+        currentAdventure: c.participations[0]?.adventure ?? null,
+        // Chave de ordenação: último turno jogado; nunca jogou cai em createdAt.
+        _lastPlayed: c.states[0]?.updatedAt ?? c.createdAt,
+      }))
+      .sort((a, b) => b._lastPlayed.getTime() - a._lastPlayed.getTime())
+      .map(({ _lastPlayed, ...rest }) => rest)
   }
 
   async findOne(id: string) {

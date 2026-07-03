@@ -20,6 +20,45 @@ const config: SystemConfig = {
   startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
 }
 
+// Double do Prisma para findAllByUser: devolve os personagens que a query "encontraria".
+function fakePrismaList(characters: unknown[]): PrismaService {
+  return {
+    character: { findMany: async () => characters },
+  } as unknown as PrismaService
+}
+
+describe('CharacterService.findAllByUser (US-25)', () => {
+  it('embute currentAdventure da participação ACTIVE e ordena por último jogado', async () => {
+    const service = new CharacterService(fakePrismaList([
+      {
+        id: 'char-old', name: 'Antigo', race: 'Anão', class: 'Guerreiro', level: 2, createdAt: new Date('2020-01-01'),
+        states: [{ updatedAt: new Date('2026-01-01') }],
+        participations: [],
+      },
+      {
+        id: 'char-new', name: 'Lyra', race: 'Elfa', class: 'Maga', level: 1, createdAt: new Date('2020-02-01'),
+        states: [{ updatedAt: new Date('2026-06-01') }],
+        participations: [{ adventure: { id: 'adv-1', title: 'A Mina Perdida' } }],
+      },
+    ]))
+
+    const list = await service.findAllByUser('u1')
+
+    const [first, second] = list
+    // último jogado (char-new, updatedAt mais recente) primeiro
+    expect(list.map((c) => c.id)).toEqual(['char-new', 'char-old'])
+    expect(first!.currentAdventure).toEqual({ id: 'adv-1', title: 'A Mina Perdida' })
+    expect(second!.currentAdventure).toBeNull()
+    // não vaza a chave interna de ordenação
+    expect('_lastPlayed' in first!).toBe(false)
+  })
+
+  it('devolve [] para usuário sem personagens', async () => {
+    const service = new CharacterService(fakePrismaList([]))
+    expect(await service.findAllByUser('u1')).toEqual([])
+  })
+})
+
 describe('CharacterService.create', () => {
   it('valida os atributos contra o config do sistema e persiste', async () => {
     const service = new CharacterService(fakePrisma(config))

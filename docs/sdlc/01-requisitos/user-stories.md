@@ -103,6 +103,11 @@ Como jogador, quero entrar com e-mail e senha (ou criar conta / recuperar senha)
 **US-25** — Boas-vindas adaptativa (hub do jogador)  
 Como jogador, ao entrar quero uma tela de boas-vindas que reflete meu estado: se **não tenho personagem**, ela me convida a criar o primeiro; se **já tenho**, mostra meus personagens, a aventura em andamento e os botões "Continuar jogando" e "Criar novo personagem".  
 > Uma única tela orientada a dados, cobrindo o estado vazio do fluxo 1a (tela 2) e o estado com personagem do fluxo 2a (tela 2). "Continuar jogando" → US-29; "Criar novo personagem" → US-26; "Criar meu personagem" (estado vazio) → US-26.
+> Detalhamento completo em [`US-25-boas-vindas-adaptativa.md`](./US-25-boas-vindas-adaptativa.md).
+
+**US-30** — Deletar personagem pela interface  
+Como jogadora, quero deletar pela interface um personagem que criei, para remover fichas de teste, duplicadas ou indesejadas e manter meu hub limpo.  
+> Fecha a metade "excluir" que a [US-25](./US-25-boas-vindas-adaptativa.md) deixou fora de escopo. Entrega `DELETE /characters/:id` (com exclusão em cascata manual dos dependentes) + ação de deletar no hub com confirmação. Detalhamento em [`US-30-deletar-personagem.md`](./US-30-deletar-personagem.md).
 
 ---
 
