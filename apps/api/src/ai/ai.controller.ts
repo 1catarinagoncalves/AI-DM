@@ -1,7 +1,9 @@
 import { Controller, Post, Body, Res, HttpCode } from '@nestjs/common'
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Response } from 'express'
 import { z } from 'zod'
 import { AiService } from './ai.service'
+import { zodBody } from '../openapi'
 
 const ChatBodySchema = z.object({
   adventureId: z.string().min(1),
@@ -9,10 +11,19 @@ const ChatBodySchema = z.object({
   message: z.string().min(1).max(1000),
 })
 
+@ApiTags('Mestre (IA)')
 @Controller('ai')
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 
+  @ApiOperation({ summary: 'Envia a ação do jogador ao Mestre e recebe a narração em streaming (SSE). Pode atualizar HP e inventário via tool calls durante o turno.' })
+  @ApiBody({
+    schema: zodBody(ChatBodySchema, {
+      adventureId: 'adv_123',
+      characterId: 'char_456',
+      message: 'Abro a porta com cuidado.',
+    }),
+  })
   @Post('chat')
   @HttpCode(200)
   async chat(@Body() body: unknown, @Res() res: Response) {

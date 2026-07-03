@@ -23,15 +23,21 @@ Como jogador, quero que a ficha na barra lateral (HP, inventário, condições) 
 **US-03** — Personagem persiste entre aventuras  
 Como jogador, quero que meu personagem lembre dos eventos da aventura anterior quando inicio uma nova aventura, para manter a continuidade da narrativa.
 
-**US-04** — Duplicar personagem (multiverso)  
-Como jogador, quero poder duplicar um personagem para participar de aventuras distintas ao mesmo tempo sem afetar o personagem original.
+**US-26** — Criação de personagem em etapas com trilha de progresso  
+Como jogador, quero criar o personagem num assistente com etapas (Sistema → Raça/Classe → Atributos → Perícias → Revisão), com uma trilha lateral mostrando onde estou e o que já concluí, para conseguir avançar e voltar sem perder o que preenchi.  
+> Telas do design 1a: 3–6. Estende [US-01](#) e reusa [US-20](./US-20-catalogo-de-sistemas-via-api.md) para a etapa de Sistema.
+> - Cada etapa tem **Voltar/Próximo**; avançar valida a etapa atual (raça e classe obrigatórias, etc.).
+> - Atributos por **point-buy**: mostra "pontos restantes" e bloqueia confirmar se o orçamento estourar/sobrar.
+> - Tela de **Revisão** resume tudo (nome, raça, classe, nível, atributos, perícias) antes de **Confirmar personagem**, que persiste via API.
+> - O mesmo assistente é reusado pela ramificação "criar novo personagem" do fluxo 2a (a partir da etapa de Sistema).
+
+**US-27** — Perícias na criação de personagem  
+Como jogador, quero escolher perícias durante a criação (dentro do orçamento do sistema), para que o personagem tenha competências que o mestre leve em conta na narração.  
+> Tela do design 1a: etapa "Perícias". Lista de perícias vem do `config` do sistema ([US-21](./US-21-sistemas-como-dado.md)); persistidas na ficha e injetadas no DM automaticamente ([US-23](./US-23-dm-ciente-da-ficha.md)).
 
 ---
 
 ### Épico 2: Aventura
-
-**US-05** — Iniciar aventura  
-Como jogador, quero iniciar uma aventura (a história com uma missão principal) para o meu personagem, herdando o sistema dele, para começar a jogar. *(Campanha e aventura são uma entidade só — ver [ADR 003](../../adr/003-sistemas-como-dado.md) / US-22.)*
 
 **US-21** — Sistema de regras como dado reutilizável pelas APIs  
 Como desenvolvedora, quero que atributos e kits iniciais venham de um `config` no `System`, para que integrar um sistema novo seja inserir um `System` + `config` sem tocar em controller/serviço.
@@ -46,9 +52,6 @@ Como desenvolvedora, quero que campanha e aventura sejam uma entidade só (a his
 **US-06** — Listar e acessar histórico  
 Como jogador, quero acessar o histórico completo das aventuras anteriores do meu personagem para revisitar o que aconteceu.
 
-**US-07** — Múltiplas missões dentro de uma aventura  
-Como jogador, quero receber e acompanhar múltiplas missões dentro de uma mesma aventura para ter objetivos claros durante o jogo.
-
 **US-18** — Histórico de turnos servido pela API  
 Como jogador, quero que o histórico da aventura seja carregado do servidor (não do `localStorage`) ao abrir a tela de jogo, para não perder a conversa ao trocar de navegador ou dispositivo.
 
@@ -59,21 +62,20 @@ Como jogador, quero escolher o sistema de regras a partir da lista real do servi
 
 > Detalhamento completo em [`US-20-catalogo-de-sistemas-via-api.md`](./US-20-catalogo-de-sistemas-via-api.md).
 
+**US-28** — Seleção de aventura inicial  
+Como jogador, ao terminar de criar o personagem quero escolher uma aventura pré-pronta (ex.: "A Mina Perdida — Iniciante · masmorra") de uma lista, para começar a jogar sem montar a campanha do zero.  
+> Tela do design 1a: 7 (última etapa do stepper). Cria a aventura ([US-22](./US-22-fusao-campanha-aventura.md)) a partir do módulo escolhido e leva para a tela de jogo.
+
+**US-29** — Retomar aventura em andamento  
+Como jogador com personagem existente, quero continuar a aventura de onde parei carregando o estado salvo (histórico + ficha), sem recriar nada, para voltar direto à ação.  
+> Fluxo 2a → tela 3a ("Retomando 'A Mina Perdida'…" → Entrar na aventura). Carrega histórico via [US-18](./US-18-historico-servido-pela-api.md) e ficha via [US-19](./US-19-estado-de-ficha-via-api.md); acionado pelo "Continuar jogando" do hub (US-25).
+
 ---
 
 ### Épico 3: Narração e mecânica
 
-**US-08** — Narração em streaming  
-Como jogador, quero que a narração do mestre apareça progressivamente na tela (token-a-token) para uma experiência imersiva.
-
 **US-09** — Rolagem de dados transparente  
 Como jogador, quero que toda rolagem de dados mostre o resultado e o breakdown (ex: "2d6+3: [4, 2] +3 = 9") para entender as mecânicas.
-
-**US-10** — Consulta de regras  
-Como jogador, quero que o mestre aplique as regras do sistema correto durante a narração sem que eu precise consultá-las manualmente.
-
-**US-11** — Ação em linguagem natural  
-Como jogador, quero descrever minhas ações em linguagem natural (ex: "ataco o goblin com minha espada") e o mestre resolve conforme as regras.
 
 **US-23** — DM ciente da ficha completa (injeção dirigida por dados)  
 Como jogador, quero que o mestre tenha ciência de tudo na minha ficha (atributos, HP, nível, condições e o que for adicionado no futuro), sem precisar reescrever o prompt a cada campo novo.
@@ -92,40 +94,32 @@ Como desenvolvedora, quero rodar a mesma bateria de cenários de coerência cont
 
 ---
 
-### Épico 4: Upload de sistema (Fase 3)
+### Épico 4: Onboarding e navegação
 
-**US-12** — Upload de livro de regras  
-Como jogador ou mestre, quero fazer upload de um livro de RPG em PDF para criar um sistema customizado para as minhas aventuras.
+**US-24** — Login / criar conta  
+Como jogador, quero entrar com e-mail e senha (ou criar conta / recuperar senha), para que meus personagens e aventuras fiquem associados a mim e acessíveis em qualquer dispositivo.  
+> Tela do design 1a: 1. Pré-requisito das telas personalizadas ("Olá, Lyra") do fluxo 2a.
 
-**US-13** — Isolamento de conteúdo  
-Como jogador, quero que o conteúdo do meu livro upado seja privado e não acessível a outros usuários.
-
----
-
-### Épico 5: Multiplayer (Fase 4)
-
-**US-14** — Convidar jogadores  
-Como criador de uma aventura, quero enviar convite para outros jogadores participarem da minha aventura.
-
-**US-15** — Limite de jogadores  
-Como criador de uma aventura, quero que a aventura aceite no máximo 10 personagens de jogador.
-
-**US-16** — Sessão em tempo real  
-Como jogador em uma aventura multiplayer, quero ver as ações dos outros jogadores e a narração do mestre em tempo real.
+**US-25** — Boas-vindas adaptativa (hub do jogador)  
+Como jogador, ao entrar quero uma tela de boas-vindas que reflete meu estado: se **não tenho personagem**, ela me convida a criar o primeiro; se **já tenho**, mostra meus personagens, a aventura em andamento e os botões "Continuar jogando" e "Criar novo personagem".  
+> Uma única tela orientada a dados, cobrindo o estado vazio do fluxo 1a (tela 2) e o estado com personagem do fluxo 2a (tela 2). "Continuar jogando" → US-29; "Criar novo personagem" → US-26; "Criar meu personagem" (estado vazio) → US-26.
 
 ---
 
-## Prioridade por fase
+## Cobertura dos fluxos de design 1a e 2a
 
-| Story | Fase |
-|-------|------|
-| US-01 a US-11 | Fase 1 — MVP |
-| US-03, US-06 (memória) | Fase 2 — Memória entre aventuras |
-| US-11b (estado de cena estruturado) | Fase 2 — Memória / continuidade espacial (Fase B) |
-| US-18, US-19, US-20 (componente ↔ API) | Fase 1 — MVP |
-| US-21 (sistemas como dado) | Fase 1 — MVP |
-| US-22 (fusão campanha/aventura) | Fase 1 — MVP · depende de US-21 |
-| US-23 (DM ciente da ficha) | Fase 1 — MVP |
-| US-12, US-13 | Fase 3 — Upload de livros |
-| US-14, US-15, US-16 | Fase 4 — Multiplayer |
-| US-04 | Fase 5 — Multiverso |
+Mapa tela → US (design "Fluxo de criação de personagem RPG"):
+
+| Fluxo | Tela | US |
+|-------|------|----|
+| 1a | 1 Login | US-24 |
+| 1a | 2 Boas-vindas (sem personagem) | US-25 |
+| 1a | 3 Seleção de sistema | US-26 (etapa) + US-20 (catálogo) |
+| 1a | 4–5 Raça/Classe · Atributos · Perícias | US-26 + US-27 (reusa US-01) |
+| 1a | 6 Revisão / Confirmar personagem | US-26 |
+| 1a | 7 Seleção de aventura | US-28 |
+| 2a | 2 Boas-vindas (com personagem) | US-25 |
+| 2a | 3a Retomando aventura | US-29 |
+| 2a | 3b Criar novo personagem | US-26 (reentra na etapa de Sistema) |
+
+---
