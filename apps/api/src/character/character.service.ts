@@ -76,6 +76,41 @@ export class CharacterService {
       .map(({ _lastPlayed, ...rest }) => rest)
   }
 
+  /**
+   * Apaga o personagem, as aventuras dele e todos os dependentes (US-30).
+   * Cascata manual numa transação — o schema não tem onDelete: Cascade.
+   * Callback (não array) porque o passo 1 alimenta os deletes seguintes.
+   */
+  async remove(id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const character = await tx.character.findUnique({ where: { id } })
+      if (!character) throw new NotFoundException(`Personagem ${id} não encontrado`)
+
+      // Aventuras do personagem (single-player: pertencem só a ele).
+      const [parts, states] = await Promise.all([
+        tx.adventureParticipant.findMany({ where: { characterId: id }, select: { adventureId: true } }),
+        tx.characterState.findMany({ where: { characterId: id }, select: { adventureId: true } }),
+      ])
+      const adventureIds = [...new Set([...parts, ...states].map((r) => r.adventureId))]
+
+      // Filhos das aventuras → aventuras.
+      const byAdventure = { where: { adventureId: { in: adventureIds } } }
+      await tx.eventLog.deleteMany(byAdventure)
+      await tx.quest.deleteMany(byAdventure)
+      await tx.characterState.deleteMany(byAdventure)
+      await tx.adventureParticipant.deleteMany(byAdventure)
+      await tx.adventure.deleteMany({ where: { id: { in: adventureIds } } })
+
+      // Rede de segurança: registros do personagem fora das aventuras achadas.
+      const byCharacter = { where: { characterId: id } }
+      await tx.eventLog.deleteMany(byCharacter)
+      await tx.characterState.deleteMany(byCharacter)
+      await tx.adventureParticipant.deleteMany(byCharacter)
+
+      return tx.character.delete({ where: { id } })
+    })
+  }
+
   async findOne(id: string) {
     const character = await this.prisma.character.findUnique({
       where: { id },

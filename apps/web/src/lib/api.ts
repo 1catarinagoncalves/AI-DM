@@ -18,6 +18,11 @@ async function get<T>(path: string): Promise<T> {
   return res.json()
 }
 
+async function del(path: string): Promise<void> {
+  const res = await fetch(`${BASE}/api/v1${path}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(await res.text())
+}
+
 export const api = {
   createUser: (email: string, name: string) =>
     post<{ id: string; name: string }>('/users', { email, name }),
@@ -38,6 +43,8 @@ export const api = {
 
   getCharacter: (id: string) =>
     get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; states: { hp: number; maxHp: number; inventory: { name: string; qty: number }[] }[] }>(`/characters/${id}`),
+
+  deleteCharacter: (id: string) => del(`/characters/${id}`),
 
   getTurns: (characterId: string, adventureId: string) =>
     get<{ role: 'user' | 'dm'; content: string }[]>(`/characters/${characterId}/adventures/${adventureId}/turns`),

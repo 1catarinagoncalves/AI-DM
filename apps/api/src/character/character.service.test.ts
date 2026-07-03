@@ -59,6 +59,54 @@ describe('CharacterService.findAllByUser (US-25)', () => {
   })
 })
 
+// Double do Prisma para remove: $transaction roda o callback com um tx que registra os deletes.
+function fakePrismaRemove(character: unknown, adventureId = 'adv-1') {
+  const deletes: string[] = []
+  const tx = {
+    character: {
+      findUnique: async () => character,
+      delete: async () => character,
+    },
+    adventureParticipant: {
+      findMany: async () => (character ? [{ adventureId }] : []),
+      deleteMany: async () => { deletes.push('adventureParticipant'); return { count: 1 } },
+    },
+    characterState: {
+      findMany: async () => (character ? [{ adventureId }] : []),
+      deleteMany: async () => { deletes.push('characterState'); return { count: 1 } },
+    },
+    eventLog: { deleteMany: async () => { deletes.push('eventLog'); return { count: 1 } } },
+    quest: { deleteMany: async () => { deletes.push('quest'); return { count: 1 } } },
+    adventure: { deleteMany: async () => { deletes.push('adventure'); return { count: 1 } } },
+  }
+  const prisma = {
+    $transaction: (fn: (t: typeof tx) => unknown) => fn(tx),
+  } as unknown as PrismaService
+  return { prisma, deletes }
+}
+
+describe('CharacterService.remove (US-30)', () => {
+  it('apaga aventuras e dependentes antes do personagem (ordem: filhos → aventura → personagem)', async () => {
+    const { prisma, deletes } = fakePrismaRemove({ id: 'char-1', name: 'Lyra' })
+    const service = new CharacterService(prisma)
+
+    const removed = await service.remove('char-1')
+
+    expect(removed).toEqual({ id: 'char-1', name: 'Lyra' })
+    // filhos da aventura antes da aventura; aventura antes do delete final do personagem
+    expect(deletes.indexOf('adventure')).toBeGreaterThan(deletes.indexOf('eventLog'))
+    expect(deletes.indexOf('adventure')).toBeGreaterThan(deletes.indexOf('adventureParticipant'))
+    expect(deletes).toContain('quest')
+    expect(deletes).toContain('characterState')
+  })
+
+  it('id inexistente → NotFoundException (404)', async () => {
+    const { prisma } = fakePrismaRemove(null)
+    const service = new CharacterService(prisma)
+    await expect(service.remove('nope')).rejects.toThrow('não encontrado')
+  })
+})
+
 describe('CharacterService.create', () => {
   it('valida os atributos contra o config do sistema e persiste', async () => {
     const service = new CharacterService(fakePrisma(config))

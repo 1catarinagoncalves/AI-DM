@@ -30,6 +30,7 @@ export function HomeHero() {
   const [focus, setFocus] = useState(0)
   const [showAll, setShowAll] = useState(false)
   const [error, setError] = useState(false)
+  const [deleteError, setDeleteError] = useState(false)
   const [ready, setReady] = useState(false)
 
   function fetchCharacters(uid: string) {
@@ -38,6 +39,22 @@ export function HomeHero() {
     api.listCharacters(uid)
       .then((list) => { setCharacters(list); setFocus(0) })
       .catch(() => setError(true))
+  }
+
+  // ponytail: window.confirm no MVP, trocar por modal se o design pedir
+  function handleDelete(c: HubCharacter) {
+    if (!window.confirm(`Deletar ${c.name}? Esta ação não pode ser desfeita.`)) return
+    setDeleteError(false)
+    api.deleteCharacter(c.id)
+      .then(() => {
+        const list = characters ?? []
+        const focusedId = list[focus]?.id
+        const next = list.filter((x) => x.id !== c.id)
+        setCharacters(next)
+        // Re-foca: se o em foco foi apagado, cai no topo (último jogado); senão segue nele.
+        setFocus(focusedId === c.id ? 0 : Math.max(0, next.findIndex((x) => x.id === focusedId)))
+      })
+      .catch(() => setDeleteError(true))
   }
 
   useEffect(() => {
@@ -120,6 +137,17 @@ export function HomeHero() {
           Criar novo personagem
         </Link>
 
+        <button
+          onClick={() => handleDelete(hero)}
+          className="text-red-500/70 hover:text-red-600 dark:hover:text-red-400 text-sm transition-colors"
+        >
+          Deletar {hero.name}
+        </button>
+
+        {deleteError && (
+          <p className="text-red-500 text-sm">Não foi possível deletar o personagem. Tente de novo.</p>
+        )}
+
         {characters.length > 1 && (
           <div>
             <button
@@ -131,16 +159,23 @@ export function HomeHero() {
             {showAll && (
               <ul className="mt-3 flex flex-col gap-1">
                 {characters.map((c, i) => (
-                  <li key={c.id}>
+                  <li key={c.id} className="flex items-center gap-1">
                     <button
                       onClick={() => { setFocus(i); setShowAll(false) }}
-                      className={`w-full text-sm px-3 py-2 rounded-lg transition-colors ${
+                      className={`flex-1 text-sm px-3 py-2 rounded-lg transition-colors ${
                         i === focus
                           ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                           : 'text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
                       }`}
                     >
                       {c.name} · {c.race} · {c.class} · Nv.{c.level}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(c)}
+                      aria-label={`Deletar ${c.name}`}
+                      className="px-2 py-2 text-stone-400 hover:text-red-600 dark:hover:text-red-400 text-sm transition-colors"
+                    >
+                      ✕
                     </button>
                   </li>
                 ))}

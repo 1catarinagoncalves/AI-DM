@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common'
+import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common'
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { z } from 'zod'
 import { CharacterService } from './character.service'
@@ -48,5 +48,11 @@ export class CharacterController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.characterService.findOne(id)
+  }
+
+  @ApiOperation({ summary: 'Apaga a ficha, as aventuras dela e todos os dependentes numa transação. Id inexistente devolve 404.' })
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.characterService.remove(id)
   }
 }
