@@ -6,6 +6,10 @@ import type { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec
 // runtime — fonte única, a doc atualiza-se sozinha quando o schema muda. O
 // `example` é opcional e só ilustra (não influencia a validação).
 export function zodBody(schema: ZodType, example?: unknown): SchemaObject {
-  const s = zodToJsonSchema(schema, { target: 'openApi3', $refStrategy: 'none' }) as SchemaObject
+  // any: as tipagens genéricas do zodToJsonSchema causam TS2589 ("type
+  // instantiation excessively deep") ao inferir sobre ZodType; cortamos a
+  // inferência aqui. O output em runtime é um JSON Schema válido.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const s = (zodToJsonSchema as any)(schema, { target: 'openApi3', $refStrategy: 'none' }) as SchemaObject
   return example === undefined ? s : { ...s, example }
 }
