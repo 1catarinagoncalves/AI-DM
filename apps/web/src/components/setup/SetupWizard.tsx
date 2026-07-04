@@ -6,7 +6,22 @@ import type { SystemConfig } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { loadSession, saveSession } from '@/lib/session'
 
-type Step = 'system' | 'character' | 'adventure'
+type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'review'
+const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'review']
+const STEP_LABEL: Record<Step, string> = {
+  system: 'Sistema',
+  'race-class': 'Raça/Classe',
+  attributes: 'Atributos',
+  skills: 'Perícias',
+  review: 'Revisão',
+}
+
+const GENDERS = ['Feminino', 'Masculino', 'Não-binário'] as const
+const RACES = ['Anão', 'Meio-Orc', 'Elfo', 'Halfling', 'Humano', 'Dragonborn', 'Gnomo', 'Meio-Elfo', 'Tiefling'] as const
+const CLASSES = ['Bárbaro', 'Bardo', 'Clérigo', 'Druida', 'Guerreiro', 'Monge', 'Paladino', 'Patrulheiro', 'Ladino', 'Feiticeiro', 'Bruxo', 'Mago'] as const
+
+// Custo acumulado por valor (point-buy 5e). Não é linear: 13→14 e 14→15 custam 2 cada.
+const POINT_COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }
 
 type SystemOption = { id: string; name: string; sourceType: string; config: SystemConfig | null }
 
@@ -27,7 +42,6 @@ export function SetupWizard() {
   const [error, setError] = useState('')
 
   const [userId, setUserId] = useState('')
-  const [characterId, setCharacterId] = useState('')
 
   const [systems, setSystems] = useState<SystemOption[]>([])
   const [systemsError, setSystemsError] = useState(false)
@@ -35,7 +49,7 @@ export function SetupWizard() {
 
   const [charData, setCharData] = useState({ name: '', gender: '', race: '', class: '' })
   const [attrs, setAttrs] = useState<Record<string, number>>({})
-  const [adventureTitle, setAdventureTitle] = useState('')
+  const [skills, setSkills] = useState<string[]>(['', '', ''])
 
   useEffect(() => {
     const session = loadSession()
@@ -51,66 +65,99 @@ export function SetupWizard() {
     api.listSystems().then(setSystems).catch(() => setSystemsError(true))
   }, [])
 
+  const attributes = system?.config?.attributes ?? []
+  const budget = system?.config?.pointBuy?.budget
+  const spent = attributes.reduce((s, a) => s + (POINT_COST[attrs[a.key] ?? a.default] ?? 0), 0)
+  const remaining = budget !== undefined ? budget - spent : 0
+
   function handleSelectSystem(s: SystemOption) {
     setSystem(s)
     setAttrs(Object.fromEntries((s.config?.attributes ?? []).map(a => [a.key, a.default])))
-    setStep('character')
+    setStep('race-class')
   }
 
-  async function handleCharacter(e: React.FormEvent) {
-    e.preventDefault()
+  function canAdvance(s: Step): boolean {
+    switch (s) {
+      case 'system': return !!system
+      case 'race-class':
+        return charData.name.trim() !== ''
+          && (GENDERS as readonly string[]).includes(charData.gender)
+          && (RACES as readonly string[]).includes(charData.race)
+          && (CLASSES as readonly string[]).includes(charData.class)
+      case 'attributes': return budget === undefined || remaining === 0
+      case 'skills': return skills.every(sk => sk.trim() !== '')
+      case 'review': return true
+    }
+  }
+
+  function goTo(target: Step) {
+    // Só navega para etapas já concluídas (índice antes da atual).
+    if (steps.indexOf(target) < steps.indexOf(step)) setStep(target)
+  }
+
+  function next() {
+    const i = steps.indexOf(step)
+    if (canAdvance(step) && i < steps.length - 1) setStep(steps[i + 1]!)
+  }
+
+  function back() {
+    const i = steps.indexOf(step)
+    if (i > 0) setStep(steps[i - 1]!)
+  }
+
+  async function handleConfirm() {
     if (!system) return
     setLoading(true); setError('')
     try {
       const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs })
-      setCharacterId(char.id)
-      setStep('adventure')
+      saveSession({ userId, userName: charData.name, characterId: char.id, characterName: charData.name, adventureId: '' })
+      router.push('/')
     } catch { setError('Erro ao criar personagem. Tenta novamente.') }
     finally { setLoading(false) }
   }
 
-  async function handleAdventure(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true); setError('')
-    try {
-      const adv = await api.createAdventure(characterId, adventureTitle || 'Primeira Aventura')
-      saveSession({
-        userId,
-        userName: charData.name,
-        characterId,
-        characterName: charData.name,
-        adventureId: adv.id,
-      })
-      router.push(`/play/${adv.id}?characterId=${characterId}`)
-    } catch { setError('Erro ao criar aventura.') }
-    finally { setLoading(false) }
+  function setAttr(key: string, delta: number, min: number, max: number) {
+    setAttrs(p => {
+      const current = p[key] ?? min
+      const nextVal = current + delta
+      if (nextVal < min || nextVal > max) return p
+      // Point-buy: não deixa o gasto exceder o orçamento.
+      if (budget !== undefined) {
+        const cost = (POINT_COST[nextVal] ?? 0) - (POINT_COST[current] ?? 0)
+        if (remaining - cost < 0) return p
+      }
+      return { ...p, [key]: nextVal }
+    })
   }
 
   const inputClass = 'w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500'
+  const selectClass = 'w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white'
 
-  const attrInput = (attr: NonNullable<SystemConfig['attributes']>[number]) => (
-    <div key={attr.key} className="flex flex-col gap-1">
-      <label className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">{attr.label}</label>
-      <input
-        type="number" min={attr.min} max={attr.max}
-        value={attrs[attr.key] ?? attr.default}
-        onChange={e => setAttrs(p => ({ ...p, [attr.key]: Number(e.target.value) }))}
-        className="w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-2 py-1 text-center text-stone-900 dark:text-white"
-      />
-    </div>
-  )
-
-  const steps: Step[] = ['system', 'character', 'adventure']
+  const idx = steps.indexOf(step)
 
   return (
     <div className="min-h-screen bg-amber-50 dark:bg-stone-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
-        <div className="flex gap-2 mb-8">
-          {steps.map((s, i) => (
-            <div key={s} className={`flex-1 h-1 rounded-full ${step === s ? 'bg-amber-500' : i < steps.indexOf(step) ? 'bg-amber-700' : 'bg-stone-300 dark:bg-stone-700'}`} />
-          ))}
-        </div>
+        {/* Trilha de progresso navegável: etapas concluídas são clicáveis. */}
+        <nav className="flex gap-2 mb-8" aria-label="Progresso">
+          {steps.map((s, i) => {
+            const state = s === step ? 'atual' : i < idx ? 'concluída' : 'pendente'
+            return (
+              <button
+                key={s} type="button"
+                onClick={() => goTo(s)}
+                disabled={state === 'pendente'}
+                aria-current={state === 'atual' ? 'step' : undefined}
+                data-state={state}
+                className="flex-1 flex flex-col gap-1 text-left disabled:cursor-default"
+              >
+                <span className={`h-1 rounded-full ${state === 'atual' ? 'bg-amber-500' : state === 'concluída' ? 'bg-amber-700' : 'bg-stone-300 dark:bg-stone-700'}`} />
+                <span className={`text-[10px] ${state === 'pendente' ? 'text-stone-400 dark:text-stone-600' : 'text-stone-600 dark:text-stone-300'}`}>{STEP_LABEL[s]}</span>
+              </button>
+            )
+          })}
+        </nav>
 
         {error && <p className="text-red-600 dark:text-red-400 text-sm mb-4 bg-red-50 dark:bg-red-950 border border-red-300 dark:border-red-800 rounded p-3">{error}</p>}
 
@@ -120,7 +167,7 @@ export function SetupWizard() {
             <div className="space-y-3">
               {systems.map(s => (
                 <button key={s.id} type="button" onClick={() => handleSelectSystem(s)}
-                  className="w-full text-left bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-4 py-3 hover:border-amber-500">
+                  className={`w-full text-left bg-white dark:bg-stone-800 border rounded px-4 py-3 hover:border-amber-500 ${system?.id === s.id ? 'border-amber-500' : 'border-stone-300 dark:border-stone-600'}`}>
                   <p className="font-semibold text-stone-900 dark:text-white">{s.name}</p>
                   <p className="text-sm text-stone-500 dark:text-stone-400">{SOURCE_TYPE_HINT[s.sourceType] ?? s.sourceType}</p>
                 </button>
@@ -132,50 +179,134 @@ export function SetupWizard() {
           </div>
         )}
 
-        {step === 'character' && system && (
-          <form onSubmit={handleCharacter} className="space-y-4">
-            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Crie o seu Personagem</h1>
+        {step === 'race-class' && system && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Raça e Classe</h1>
             <p className="text-stone-500 dark:text-stone-400 text-sm">Sistema: {system.name}</p>
             <div className="space-y-3">
-              <input required placeholder="Nome do personagem"
-                value={charData.name} onChange={e => setCharData(p => ({...p, name: e.target.value}))}
+              <input required placeholder="Nome do personagem" aria-label="Nome do personagem"
+                value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
                 className={inputClass} />
+              <select aria-label="Género" value={charData.gender}
+                onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))} className={selectClass}>
+                <option value="">Género…</option>
+                {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
               <div className="grid grid-cols-2 gap-3">
-                <input required placeholder="Género (ex: Feminino)"
-                  value={charData.gender} onChange={e => setCharData(p => ({...p, gender: e.target.value}))}
-                  className="bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500" />
-                <input required placeholder="Raça (ex: Elfa)"
-                  value={charData.race} onChange={e => setCharData(p => ({...p, race: e.target.value}))}
-                  className="bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500" />
+                <select aria-label="Raça" value={charData.race}
+                  onChange={e => setCharData(p => ({ ...p, race: e.target.value }))} className={selectClass}>
+                  <option value="">Raça…</option>
+                  {RACES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+                <select aria-label="Classe" value={charData.class}
+                  onChange={e => setCharData(p => ({ ...p, class: e.target.value }))} className={selectClass}>
+                  <option value="">Classe…</option>
+                  {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
-              <input required placeholder="Classe (ex: Maga, Guerreiro)"
-                value={charData.class} onChange={e => setCharData(p => ({...p, class: e.target.value}))}
-                className={inputClass} />
             </div>
-            <p className="text-stone-500 dark:text-stone-400 text-sm">Atributos:</p>
-            <div className="grid grid-cols-3 gap-3">
-              {(system.config?.attributes ?? []).map(attrInput)}
-            </div>
-            <button type="submit" disabled={loading || !userId}
-              className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
-              {loading ? 'A criar...' : 'Continuar →'}
-            </button>
-          </form>
+          </div>
         )}
 
-        {step === 'adventure' && system && (
-          <form onSubmit={handleAdventure} className="space-y-4">
-            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Inicie a sua Aventura</h1>
-            <div className="space-y-3">
-              <input placeholder="Título da primeira aventura (opcional)"
-                value={adventureTitle} onChange={e => setAdventureTitle(e.target.value)}
-                className={inputClass} />
+        {step === 'attributes' && system && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Atributos</h1>
+            {budget !== undefined && (
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Pontos restantes: <span className={`font-semibold ${remaining === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{remaining}</span> / {budget}
+              </p>
+            )}
+            <div className="space-y-2">
+              {attributes.map(a => (
+                <div key={a.key} className="flex items-center justify-between gap-3">
+                  <label className="text-sm text-stone-700 dark:text-stone-300">{a.label}</label>
+                  {budget !== undefined ? (
+                    <div className="flex items-center gap-2">
+                      <button type="button" aria-label={`Diminuir ${a.label}`} onClick={() => setAttr(a.key, -1, a.min, a.max)}
+                        className="w-8 h-8 rounded bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-white disabled:opacity-40"
+                        disabled={(attrs[a.key] ?? a.default) <= a.min}>−</button>
+                      <span className="w-8 text-center font-semibold text-stone-900 dark:text-white" data-attr={a.key}>{attrs[a.key] ?? a.default}</span>
+                      <button type="button" aria-label={`Aumentar ${a.label}`} onClick={() => setAttr(a.key, 1, a.min, a.max)}
+                        className="w-8 h-8 rounded bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-white disabled:opacity-40"
+                        disabled={(attrs[a.key] ?? a.default) >= a.max || remaining - ((POINT_COST[(attrs[a.key] ?? a.default) + 1] ?? 0) - (POINT_COST[attrs[a.key] ?? a.default] ?? 0)) < 0}>+</button>
+                    </div>
+                  ) : (
+                    <input type="number" min={a.min} max={a.max} aria-label={a.label}
+                      value={attrs[a.key] ?? a.default}
+                      onChange={e => setAttrs(p => ({ ...p, [a.key]: Number(e.target.value) }))}
+                      className="w-20 bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-2 py-1 text-center text-stone-900 dark:text-white" />
+                  )}
+                </div>
+              ))}
             </div>
-            <button type="submit" disabled={loading}
-              className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
-              {loading ? 'A iniciar...' : '⚔ Começar a jogar'}
+          </div>
+        )}
+
+        {step === 'skills' && system && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Perícias</h1>
+            {/* TODO US-27: trocar texto livre por lista fechada do SystemConfig + orçamento. */}
+            <p className="text-stone-500 dark:text-stone-400 text-sm">Escreve 3 perícias do teu personagem.</p>
+            <div className="space-y-3">
+              {skills.map((sk, i) => (
+                <input key={i} placeholder={`Perícia ${i + 1}`} aria-label={`Perícia ${i + 1}`}
+                  value={sk}
+                  onChange={e => setSkills(p => p.map((v, j) => j === i ? e.target.value : v))}
+                  className={inputClass} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 'review' && system && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Revisão</h1>
+            <dl className="space-y-2 bg-white/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded p-4 text-sm">
+              {[
+                ['Nome', charData.name],
+                ['Género', charData.gender],
+                ['Raça', charData.race],
+                ['Classe', charData.class],
+                ['Nível', '1'],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between">
+                  <dt className="text-stone-500 dark:text-stone-400">{k}</dt>
+                  <dd className="text-stone-900 dark:text-white font-medium">{v}</dd>
+                </div>
+              ))}
+              <div className="flex justify-between">
+                <dt className="text-stone-500 dark:text-stone-400">Atributos</dt>
+                <dd className="text-stone-900 dark:text-white font-medium text-right">
+                  {attributes.map(a => `${a.label} ${attrs[a.key] ?? a.default}`).join(' · ')}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-stone-500 dark:text-stone-400">Perícias</dt>
+                <dd className="text-stone-900 dark:text-white font-medium text-right">{skills.join(' · ')}</dd>
+              </div>
+            </dl>
+          </div>
+        )}
+
+        {/* Voltar / Próximo / Confirmar */}
+        {step !== 'system' && (
+          <div className="flex gap-3 mt-6">
+            <button type="button" onClick={back}
+              className="flex-1 border border-stone-400 dark:border-stone-600 text-stone-600 dark:text-stone-300 rounded py-2 font-semibold hover:border-stone-600 dark:hover:border-stone-400">
+              ← Voltar
             </button>
-          </form>
+            {step === 'review' ? (
+              <button type="button" onClick={handleConfirm} disabled={loading || !userId}
+                className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
+                {loading ? 'A criar...' : 'Confirmar personagem'}
+              </button>
+            ) : (
+              <button type="button" onClick={next} disabled={!canAdvance(step)}
+                className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
+                Próximo →
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

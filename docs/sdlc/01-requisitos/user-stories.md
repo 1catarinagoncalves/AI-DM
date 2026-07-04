@@ -30,6 +30,8 @@ Como jogador, quero criar o personagem num assistente com etapas (Sistema → Ra
 > - Atributos por **point-buy**: mostra "pontos restantes" e bloqueia confirmar se o orçamento estourar/sobrar.
 > - Tela de **Revisão** resume tudo (nome, raça, classe, nível, atributos, perícias) antes de **Confirmar personagem**, que persiste via API.
 > - O mesmo assistente é reusado pela ramificação "criar novo personagem" do fluxo 2a (a partir da etapa de Sistema).
+>
+> Detalhamento completo em [`US-26-criacao-personagem-em-etapas.md`](./US-26-criacao-personagem-em-etapas.md).
 
 **US-27** — Perícias na criação de personagem  
 Como jogador, quero escolher perícias durante a criação (dentro do orçamento do sistema), para que o personagem tenha competências que o mestre leve em conta na narração.  

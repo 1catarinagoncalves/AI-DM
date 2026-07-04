@@ -17,6 +17,8 @@ export const SystemConfigSchema = z.object({
   attributes: z.array(SystemAttributeSchema).min(1),
   startingKits: z.record(z.string(), z.array(StartingKitItemSchema))
     .refine(kits => 'default' in kits, { message: 'startingKits precisa de uma chave "default"' }),
+  // Orçamento de point-buy da etapa de Atributos (US-26). Ausente → inputs livres min/max.
+  pointBuy: z.object({ budget: z.number().int().positive() }).optional(),
 })
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>

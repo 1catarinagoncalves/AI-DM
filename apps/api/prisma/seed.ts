@@ -3,13 +3,14 @@ import type { SystemConfig } from '@ai-dm/shared'
 
 const prisma = new PrismaClient()
 
+// Faixa 8–15 e default 8: point-buy 5e (US-26). Cada atributo parte de 8 e gasta do budget.
 const dnd5eAttributes: SystemConfig['attributes'] = [
-  { key: 'strength', label: 'Força', min: 3, max: 20, default: 10 },
-  { key: 'dexterity', label: 'Destreza', min: 3, max: 20, default: 10 },
-  { key: 'constitution', label: 'Constituição', min: 3, max: 20, default: 10 },
-  { key: 'intelligence', label: 'Inteligência', min: 3, max: 20, default: 10 },
-  { key: 'wisdom', label: 'Sabedoria', min: 3, max: 20, default: 10 },
-  { key: 'charisma', label: 'Carisma', min: 3, max: 20, default: 10 },
+  { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
+  { key: 'dexterity', label: 'Destreza', min: 8, max: 15, default: 8 },
+  { key: 'constitution', label: 'Constituição', min: 8, max: 15, default: 8 },
+  { key: 'intelligence', label: 'Inteligência', min: 8, max: 15, default: 8 },
+  { key: 'wisdom', label: 'Sabedoria', min: 8, max: 15, default: 8 },
+  { key: 'charisma', label: 'Carisma', min: 8, max: 15, default: 8 },
 ]
 
 // Transportada de starting-inventory.ts (era a constante KITS hardcoded).
@@ -92,16 +93,13 @@ const dnd5eKits: SystemConfig['startingKits'] = {
 }
 
 const freeConfig: SystemConfig = {
-  attributes: [{ key: 'sorte', label: 'Sorte', min: 1, max: 20, default: 10 }],
-  startingKits: {
-    default: [
-      { name: 'Mochila', qty: 1 },
-      { name: 'Cantil', qty: 1 },
-    ],
-  },
+  // Mesmos atributos, point-buy e kits por classe do D&D 5e.
+  attributes: dnd5eAttributes,
+  startingKits: dnd5eKits,
+  pointBuy: { budget: 27 },
 }
 
-const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, startingKits: dnd5eKits }
+const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, startingKits: dnd5eKits, pointBuy: { budget: 27 } }
 
 async function main() {
   // Sistema "Free" — o AI DM narra livremente, sem seguir regras de um sistema oficial.
