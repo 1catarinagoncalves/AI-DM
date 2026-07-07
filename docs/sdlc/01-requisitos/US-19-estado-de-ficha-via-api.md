@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma (o `CharacterState` já persiste hp/inventário)
 **Criada em:** 2026-06-30
 

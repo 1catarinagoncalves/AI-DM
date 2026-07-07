@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Pronta para desenvolvimento
+**Status:** ✅ Implementada
 **Depende de:** [US-26](./US-26-criacao-personagem-em-etapas.md) (personagem confirmado antes da aventura), [US-22](./US-22-fusao-campanha-aventura.md) (aventura como entidade única) e [US-23](./US-23-dm-ciente-da-ficha.md) (DM recebe ficha completa).
 **Criada em:** 2026-07-04
 

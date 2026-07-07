@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Pronta para desenvolvimento
+**Status:** ✅ Implementada
 **Depende de:** [US-20](./US-20-catalogo-de-sistemas-via-api.md) (catálogo de sistemas via API — reusado na etapa de Sistema) e [US-01](#) (criação de personagem já existe). A etapa de **Perícias** é preenchida por [US-27](./user-stories.md); esta story entrega o *slot* dela, não o conteúdo. Navegação de/para o assistente vem de [US-25](./US-25-boas-vindas-adaptativa.md); a etapa de **aventura** foi separada para [US-28](./user-stories.md).
 **Criada em:** 2026-07-03
 

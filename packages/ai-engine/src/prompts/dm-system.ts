@@ -1,4 +1,5 @@
 import type { SceneState } from '@ai-dm/shared'
+import { abilityModifier, formatModifier } from '@ai-dm/shared'
 import { formatSceneState } from '../scene'
 
 /**
@@ -34,7 +35,7 @@ export function buildDmSystemPrompt(params: {
   const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels } = params
 
   const attributesLine = Object.entries(sheet.attributes)
-    .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value}`)
+    .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value} (${formatModifier(abilityModifier(value))})`)
     .join(', ')
   const sheetSection = `## Character sheet (read-only — source of truth, managed by the Game Server)
 This is the authoritative current state of the character. Trust it and narrate coherently with it — a low HP or an active condition MUST be reflected in tone and stakes. You KNOW this, but you NEVER print stats in the narration and only change it via tools.

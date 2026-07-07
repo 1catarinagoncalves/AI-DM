@@ -2,7 +2,7 @@
 
 **Épico:** Free
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** US-01 (Atributos do personagem)
 **Criada em:** 2026-07-07
 
@@ -37,8 +37,9 @@ Derivar o modificador de cada atributo a partir do valor bruto pela regra de D&D
 ### Dentro do escopo
 
 - Função de cálculo do modificador a partir do valor bruto (regra 5e).
-- Exibição do modificador ao lado de cada atributo na página de chat, formatado com sinal (`+2`, `0`, `-1`).
+- Exibição do modificador **em destaque** com o valor bruto pequeno abaixo, no estilo das fichas oficiais (modificador grande com sinal; valor bruto secundário embaixo).
 - **Vale igualmente para o sistema D&D e para o sistema Free** — mesma fórmula, mesma exibição, sem ramo de código por sistema.
+- O modificador entra no contexto que o DM Agent recebe (ver US-23), para o mestre pedir rolagens com o bônus correto.
 
 ### Fora do escopo
 
@@ -68,8 +69,9 @@ Referência completa: [modificadores atributos.md](modificadores%20atributos.md)
 ## Critérios de aceite
 
 - [ ] Existe uma função que recebe um valor de atributo e retorna o modificador pela fórmula `floor((valor - 10) / 2)`.
-- [ ] Na página de chat com o mestre, cada atributo mostra o modificador ao lado do valor bruto, com sinal explícito (ex.: `Destreza 8 (-1)`, `Constituição 10 (0)`).
+- [ ] Na página de chat com o mestre, cada atributo mostra o modificador em destaque, com sinal explícito, e o valor bruto pequeno abaixo (ex.: `-1` grande sobre `8` pequeno para Destreza; `0` sobre `10` para Constituição).
 - [ ] O cálculo e a exibição são idênticos nos dois sistemas — um personagem D&D e um personagem Free com o mesmo valor bruto mostram o mesmo modificador.
+- [ ] O contexto entregue ao DM Agent inclui o modificador de cada atributo, não só o valor bruto.
 - [ ] O modificador **não** é gravado no banco — é derivado do valor bruto na exibição, então mudar o valor bruto muda o modificador sem migração.
 - [ ] **Eval / teste de regressão:** casos de fronteira passam — `valor=1 → -5`, `8 → -1`, `10 → 0`, `11 → 0`, `15 → +2`, `20 → +5`. Um valor ímpar (15) e o par seguinte (14) retornam o mesmo modificador (+2).
 
@@ -80,14 +82,13 @@ Referência completa: [modificadores atributos.md](modificadores%20atributos.md)
 - Cálculo é uma linha: `Math.floor((score - 10) / 2)`. Colocar em `packages/shared` para o web, a API e o ai-engine reusarem o mesmo helper — evita três implementações divergentes.
 - Formatação do sinal: `mod >= 0 ? \`+${mod}\` : \`${mod}\`` (o `-` já vem no número negativo; `0` mostra como `0`, não `+0`).
 - Reaproveitar o componente que a US-01 criou para exibir os atributos abaixo do HP — só acrescentar o modificador ao lado de cada linha.
-- Vale considerar injetar o modificador no contexto que o DM Agent recebe (US-23 — DM ciente da ficha), para o mestre pedir rolagens com o bônus correto. Confirmar se entra aqui ou vira story separada.
+- Injetar o modificador no contexto que o DM Agent recebe (US-23 — DM ciente da ficha), para o mestre pedir rolagens com o bônus correto. O mesmo helper de `packages/shared` alimenta tanto a exibição quanto o contexto do agente.
 
 ---
 
 ## Questões em aberto
 
-1. O modificador deve aparecer também no contexto do DM Agent nesta story, ou só na interface do jogador?
-2. Formato visual do modificador — `14 (+2)` ao lado, ou modificador em destaque com o valor bruto pequeno abaixo (como fichas oficiais)?
+Nenhuma — escopo fechado.
 
 ---
 

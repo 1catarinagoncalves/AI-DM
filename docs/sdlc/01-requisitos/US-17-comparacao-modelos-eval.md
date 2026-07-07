@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** Suite de evals existente (`evals/` + `pnpm eval`, vitest) — já implementada
 **Criada em:** 2026-06-30
 

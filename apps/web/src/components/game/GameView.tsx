@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { abilityModifier, formatModifier } from '@ai-dm/shared'
 import { loadSession, saveSession } from '@/lib/session'
 import { api } from '@/lib/api'
 
@@ -226,7 +227,10 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                 <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">
                   {ATTR_LABELS[key] ?? key.slice(0, 3).toUpperCase()}
                 </span>
-                <span className="text-sm font-bold text-stone-800 dark:text-stone-100">{value}</span>
+                <span className="text-lg font-bold text-stone-800 dark:text-stone-100 leading-tight">
+                  {formatModifier(abilityModifier(value))}
+                </span>
+                <span className="text-xs text-stone-500 dark:text-stone-400">{value}</span>
               </div>
             ))}
           </div>

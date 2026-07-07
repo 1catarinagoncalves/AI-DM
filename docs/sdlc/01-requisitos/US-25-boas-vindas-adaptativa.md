@@ -2,7 +2,7 @@
 
 **Épico:** 4 — Onboarding e navegação
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Pronta para desenvolvimento
+**Status:** ✅ Implementada
 **Depende de:** nenhuma **hard**. O `userId` já é criado (`api.createUser`) e guardado no `localStorage` hoje, então esta story é buildável sem login. A US-24 só é necessária para o caso *cross-device* (ver critério marcado com ⤷US-24). O endpoint de listagem de personagens é **entregue por esta própria story**.
 **Criada em:** 2026-07-03
 

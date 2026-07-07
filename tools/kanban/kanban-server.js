@@ -5,6 +5,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { execFile } = require('child_process');
 
 const PORT = 5051;
 const HOST = '127.0.0.1';
@@ -48,16 +49,38 @@ function listarStories() {
   return fs.readdirSync(REQ_DIR)
     .filter((f) => /^US-.*\.md$/.test(f) && f !== 'US-TEMPLATE.md')
     .map((f) => parseStory(f, fs.readFileSync(path.join(REQ_DIR, f), 'utf8')))
-    .sort((a, b) => a.codigo.localeCompare(b.codigo, undefined, { numeric: true }));
+    .sort((a, b) => b.codigo.localeCompare(a.codigo, undefined, { numeric: true }));
+}
+
+// Acha o nome do .md cuja story tem esse codigo, ou null.
+function acharArquivo(codigo) {
+  return fs.readdirSync(REQ_DIR)
+    .filter((f) => /^US-.*\.md$/.test(f) && f !== 'US-TEMPLATE.md')
+    .find((f) => parseStory(f, fs.readFileSync(path.join(REQ_DIR, f), 'utf8')).codigo === codigo) || null;
+}
+
+// Abre o .md da story no app padrão do SO. Lança { code, msg } em erro tratável.
+function abrirArquivo(codigo) {
+  const arquivo = acharArquivo(codigo);
+  if (!arquivo) throw { code: 404, msg: `story não encontrada: ${codigo}` };
+
+  // Resolve e confirma que fica dentro de REQ_DIR (defesa contra path traversal).
+  const full = path.resolve(REQ_DIR, arquivo);
+  if (full !== path.join(REQ_DIR, arquivo) || !full.startsWith(REQ_DIR + path.sep)) {
+    throw { code: 400, msg: `caminho inválido: ${arquivo}` };
+  }
+
+  // execFile (não shell) com o caminho como argumento — sem interpolação, sem injeção.
+  if (process.platform === 'win32') execFile('cmd', ['/c', 'start', '', full]);
+  else if (process.platform === 'darwin') execFile('open', [full]);
+  else execFile('xdg-open', [full]);
 }
 
 // Reescreve só a linha **Status:** do .md da story. Devolve a story atualizada
 // ou lança { code, msg } em erro tratável.
 function gravarStatus(codigo, coluna) {
   if (!CANONICO[coluna]) throw { code: 400, msg: `coluna inválida: ${coluna}` };
-  const arquivo = fs.readdirSync(REQ_DIR)
-    .filter((f) => /^US-.*\.md$/.test(f) && f !== 'US-TEMPLATE.md')
-    .find((f) => parseStory(f, fs.readFileSync(path.join(REQ_DIR, f), 'utf8')).codigo === codigo);
+  const arquivo = acharArquivo(codigo);
   if (!arquivo) throw { code: 404, msg: `story não encontrada: ${codigo}` };
 
   const full = path.join(REQ_DIR, arquivo);
@@ -83,6 +106,16 @@ const server = http.createServer((req, res) => {
 
     if (req.method === 'GET' && req.url === '/stories') {
       return json(res, 200, listarStories());
+    }
+
+    const open = req.method === 'GET' && req.url.match(/^\/open\/(US-[0-9]+[a-z]?)$/i);
+    if (open) {
+      try {
+        abrirArquivo(open[1]);
+        return json(res, 200, { ok: true });
+      } catch (e) {
+        return json(res, e.code || 500, { erro: e.msg || String(e) });
+      }
     }
 
     const patch = req.method === 'PATCH' && req.url.match(/^\/stories\/(US-[0-9]+[a-z]?)$/i);
