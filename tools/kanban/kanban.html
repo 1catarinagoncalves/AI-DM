@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kanban — User Stories</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel2: #1e222b; --border: #2a2f3a;
+    --text: #e6e9ef; --muted: #9aa4b2; --accent: #6ea8fe;
+    --backlog: #7a828e; --todo: #6ea8fe; --doing: #f0b429; --done: #3fb950;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f5f6f8; --panel: #ffffff; --panel2: #f0f2f5; --border: #dde1e7;
+      --text: #1b1f27; --muted: #5b6572; --accent: #2f6feb;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 5; }
+  header h1 { font-size: 20px; margin: 0; font-weight: 700; }
+  header .spacer { flex: 1; }
+  button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  #status { color: var(--muted); font-size: 13px; }
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 18px 20px; align-items: start; }
+  @media (max-width: 800px) { .board { grid-template-columns: 1fr; } }
+  .col { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; min-height: 120px; display: flex; flex-direction: column; }
+  .col-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); font-weight: 600; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .col[data-col="backlog"] .dot { background: var(--backlog); }
+  .col[data-col="todo"] .dot { background: var(--todo); }
+  .col[data-col="doing"] .dot { background: var(--doing); }
+  .col[data-col="done"] .dot { background: var(--done); }
+  .count { margin-left: auto; color: var(--muted); font-weight: 500; background: var(--panel2); border-radius: 999px; padding: 1px 9px; font-size: 12px; }
+  .cards { padding: 10px; display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 60px; }
+  .cards.drop { outline: 2px dashed var(--accent); outline-offset: -6px; border-radius: 10px; }
+  .card { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .card:active { cursor: grabbing; }
+  .card.dragging { opacity: .4; }
+  .card .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .card .code { font-weight: 700; color: var(--accent); font-size: 12px; letter-spacing: .04em; }
+  .card .nav { display: flex; gap: 4px; }
+  .card .mv { padding: 1px 7px; font-size: 12px; line-height: 1.4; border-radius: 6px; background: var(--panel); }
+  .card .mv:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .card .mv:disabled { opacity: .3; cursor: default; }
+  .card .title { margin: 4px 0; font-size: 16px; font-weight: 600; line-height: 1.3; }
+  .card .meta { color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
+  .empty { color: var(--muted); text-align: center; padding: 28px 8px; font-size: 12px; }
+  .banner { margin: 18px 20px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 Kanban — User Stories</h1>
+  <span id="status"></span>
+  <span class="spacer"></span>
+  <button id="reload">↻ Recarregar</button>
+</header>
+<div id="app"></div>
+
+<script>
+const COLS = [
+  { id: 'backlog', nome: 'Backlog' },
+  { id: 'todo', nome: 'A fazer' },
+  { id: 'doing', nome: 'Em progresso' },
+  { id: 'done', nome: 'Feito' },
+];
+const app = document.getElementById('app');
+const statusEl = document.getElementById('status');
+let stories = [];
+
+async function carregar() {
+  statusEl.textContent = 'carregando…';
+  try {
+    const r = await fetch('/stories');
+    if (!r.ok) throw new Error(r.status);
+    stories = await r.json();
+    render();
+    statusEl.textContent = stories.length + ' stories';
+  } catch (e) {
+    app.innerHTML = '<div class="banner">Falha ao ler as stories. O servidor (kanban-server.js) está rodando? ' + e + '</div>';
+    statusEl.textContent = '';
+  }
+}
+
+function render() {
+  const board = document.createElement('div');
+  board.className = 'board';
+  for (const col of COLS) {
+    const itens = stories.filter((s) => s.coluna === col.id);
+    const el = document.createElement('div');
+    el.className = 'col';
+    el.dataset.col = col.id;
+    el.innerHTML =
+      '<div class="col-head"><span class="dot"></span>' + col.nome +
+      '<span class="count">' + itens.length + '</span></div>';
+    const cards = document.createElement('div');
+    cards.className = 'cards';
+    cards.dataset.col = col.id;
+    if (!itens.length) cards.innerHTML = '<div class="empty">vazio</div>';
+    for (const s of itens) cards.appendChild(cardEl(s));
+    wireDrop(cards);
+    el.appendChild(cards);
+    board.appendChild(el);
+  }
+  app.replaceChildren(board);
+}
+
+function cardEl(s) {
+  const idx = COLS.findIndex((c) => c.id === s.coluna);
+  const c = document.createElement('div');
+  c.className = 'card';
+  c.draggable = true;
+  c.dataset.codigo = s.codigo;
+  c.innerHTML =
+    '<div class="row">' +
+      '<span class="code">' + esc(s.codigo) + '</span>' +
+      '<span class="nav">' +
+        '<button class="mv" data-dir="-1"' + (idx <= 0 ? ' disabled' : '') + ' title="mover p/ ' + (COLS[idx-1]?.nome||'') + '">◀</button>' +
+        '<button class="mv" data-dir="1"' + (idx >= COLS.length-1 ? ' disabled' : '') + ' title="mover p/ ' + (COLS[idx+1]?.nome||'') + '">▶</button>' +
+      '</span>' +
+    '</div>' +
+    '<div class="title">' + esc(s.titulo) + '</div>' +
+    '<div class="meta"><span>' + esc(s.epico || '—') + '</span><span>' + esc(s.arquivo) + '</span></div>';
+  c.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/plain', s.codigo);
+    e.dataTransfer.effectAllowed = 'move';
+    c.classList.add('dragging');
+  });
+  c.addEventListener('dragend', () => c.classList.remove('dragging'));
+  c.querySelectorAll('.mv').forEach((b) => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const alvo = COLS[idx + Number(b.dataset.dir)];
+    if (alvo) mover(s.codigo, alvo.id);
+  }));
+  return c;
+}
+
+function wireDrop(cards) {
+  cards.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; cards.classList.add('drop'); });
+  cards.addEventListener('dragleave', () => cards.classList.remove('drop'));
+  cards.addEventListener('drop', (e) => {
+    e.preventDefault();
+    cards.classList.remove('drop');
+    mover(e.dataTransfer.getData('text/plain'), cards.dataset.col);
+  });
+}
+
+// Move a story pra uma coluna: otimista no DOM + PATCH no servidor, rollback em falha.
+async function mover(codigo, coluna) {
+  const story = stories.find((s) => s.codigo === codigo);
+  if (!story || story.coluna === coluna) return;
+
+  const anterior = story.coluna;
+  story.coluna = coluna;
+  render();
+  try {
+    const r = await fetch('/stories/' + encodeURIComponent(codigo), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coluna }),
+    });
+    if (!r.ok) throw new Error((await r.json()).erro || r.status);
+    Object.assign(story, await r.json());
+    render();
+    statusEl.textContent = codigo + ' → ' + coluna;
+  } catch (err) {
+    story.coluna = anterior;
+    render();
+    statusEl.textContent = 'erro ao gravar ' + codigo + ': ' + err;
+  }
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+document.getElementById('reload').addEventListener('click', carregar);
+carregar();
+</script>
+</body>
+</html>

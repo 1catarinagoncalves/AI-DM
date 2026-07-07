@@ -2,7 +2,7 @@
 
 **Épico:** 4 — Onboarding e navegação
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Pronta para desenvolvimento
+**Status:** ✅ Implementada
 **Depende de:** [US-25](./US-25-boas-vindas-adaptativa.md) (hub que lista os personagens e é onde a ação de deletar aparece). O endpoint `DELETE` é entregue por esta própria story.
 **Criada em:** 2026-07-03
 
