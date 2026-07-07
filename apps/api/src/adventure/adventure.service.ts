@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema } from '@ai-dm/shared'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { SystemConfigSchema, type InitialAdventureHook } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
-import { getStartingInventory } from '../character/starting-inventory'
+import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 
 export interface CreateAdventureDto {
-  title: string
+  initialHookId: string
 }
 
 @Injectable()
@@ -17,6 +17,36 @@ export class AdventureService {
    * numa única chamada, ver US-22). `systemId`/`creatorId` vêm do próprio
    * personagem, então a invariante "mesmo sistema" vale por construção.
    */
+  /**
+   * Aventura inicial resolvida para o personagem (US-28), com placeholders já
+   * aplicados. Alimenta a etapa "Aventura inicial" da UI antes de iniciar.
+   */
+  async getInitialAdventure(characterId: string): Promise<InitialAdventureHook> {
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+      include: { system: true },
+    })
+    if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
+
+    const config = SystemConfigSchema.parse(character.system.config)
+    const hook = resolveInitialHook(config, character.class)
+    if (!hook) throw new BadRequestException('O sistema deste personagem não tem aventuras iniciais configuradas')
+
+    return this.resolveHook(hook, character.name, character.class)
+  }
+
+  private resolveHook(hook: InitialAdventureHook, name: string, charClass: string): InitialAdventureHook {
+    const vars = { characterName: name, characterClass: charClass }
+    return {
+      ...hook,
+      title: resolveHookTemplate(hook.title, vars),
+      pitch: resolveHookTemplate(hook.pitch, vars),
+      primaryQuestTitle: resolveHookTemplate(hook.primaryQuestTitle, vars),
+      primaryQuestDescription: resolveHookTemplate(hook.primaryQuestDescription, vars),
+      openingNarration: resolveHookTemplate(hook.openingNarration, vars),
+    }
+  }
+
   async createForCharacter(characterId: string, dto: CreateAdventureDto) {
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },
@@ -25,6 +55,16 @@ export class AdventureService {
     if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
 
     const config = SystemConfigSchema.parse(character.system.config)
+
+    // A classe é a fonte de verdade do gancho: resolvemos server-side e só usamos
+    // o initialHookId do cliente para validar que ele não escolheu outro (US-28).
+    const rawHook = resolveInitialHook(config, character.class)
+    if (!rawHook) throw new BadRequestException('O sistema deste personagem não tem aventuras iniciais configuradas')
+    if (dto.initialHookId !== rawHook.id) {
+      throw new BadRequestException(`Gancho inicial "${dto.initialHookId}" não é válido para a classe ${character.class}`)
+    }
+    const hook = this.resolveHook(rawHook, character.name, character.class)
+
     const attrs = character.baseAttributes as Record<string, number>
     const conMod = Math.floor(((attrs['constitution'] ?? 10) - 10) / 2)
     const maxHp = 10 + conMod
@@ -39,7 +79,7 @@ export class AdventureService {
       })
 
       const adventure = await tx.adventure.create({
-        data: { systemId: character.systemId, creatorId: character.userId, title: dto.title, order },
+        data: { systemId: character.systemId, creatorId: character.userId, title: hook.title, order },
       })
 
       await tx.adventureParticipant.create({
@@ -54,6 +94,27 @@ export class AdventureService {
           maxHp,
           attributes: character.baseAttributes as object,
           inventory: getStartingInventory(config, character.class) as unknown as object,
+        },
+      })
+
+      // Quest principal derivada do gancho (US-28): dá objetivo ao DM (ver AiService).
+      await tx.quest.create({
+        data: {
+          adventureId: adventure.id,
+          title: hook.primaryQuestTitle,
+          description: hook.primaryQuestDescription,
+          isPrimary: true,
+        },
+      })
+
+      // Primeira narração persistida: aparece como mensagem do Mestre (getTurns)
+      // e entra na janela de contexto do DM (historyLogs, summarized: false).
+      await tx.eventLog.create({
+        data: {
+          adventureId: adventure.id,
+          characterId,
+          type: 'NARRATION',
+          payload: { text: hook.openingNarration },
         },
       })
 

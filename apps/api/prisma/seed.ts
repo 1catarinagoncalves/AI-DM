@@ -92,14 +92,126 @@ const dnd5eKits: SystemConfig['startingKits'] = {
   ],
 }
 
+// Catálogo de aventuras iniciais por classe (US-28). classKey casa por normalização
+// (acento/caixa) com Character.class; `default` cobre classes desconhecidas/custom.
+const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
+  hooks: [
+    {
+      id: 'barbaro-furia-antiga', classKey: 'Bárbaro', title: 'O Chamado da Fúria Antiga',
+      pitch: 'Um sinal ancestral desperta e exige que {characterName} prove o que sua fúria significa.',
+      primaryQuestTitle: 'Descobrir a origem do chamado ancestral',
+      primaryQuestDescription: 'Seguir o sinal do clã e decidir se a fúria de {characterName} é maldição ou proteção.',
+      openingNarration: 'O chão treme baixo, como um coração antigo. Uma marca do teu clã arde na tua pele e algo além das colinas responde ao teu nome, {characterName}.',
+      tags: ['fúria', 'ancestral', 'origem'],
+    },
+    {
+      id: 'bardo-cancao-proibida', classKey: 'Bardo', title: 'A Canção Que Ninguém Devia Ouvir',
+      pitch: 'Uma apresentação de {characterName} revela uma verdade escondida.',
+      primaryQuestTitle: 'Desvendar o segredo por trás da canção',
+      primaryQuestDescription: 'Descobrir a verdade que a canção revelou antes que fama e perigo cobrem seu preço.',
+      openingNarration: 'A última nota ainda flutua no ar quando percebes o silêncio errado da plateia. Alguém ouviu o que não devia — e agora olha para ti, {characterName}.',
+      tags: ['segredo', 'música', 'perigo'],
+    },
+    {
+      id: 'clerigo-reliquia-sem-voz', classKey: 'Clérigo', title: 'A Relíquia Sem Voz',
+      pitch: 'Um símbolo sagrado cala-se ou chama por {characterName}.',
+      primaryQuestTitle: 'Investigar o silêncio da relíquia',
+      primaryQuestDescription: 'Descobrir por que a relíquia perdeu a voz e o que ela pede de {characterName}.',
+      openingNarration: 'A prece de sempre volta oca. O símbolo sagrado nas tuas mãos esfria e, pela primeira vez, não responde. No fundo do silêncio, algo espera por ti, {characterName}.',
+      tags: ['fé', 'mistério', 'sagrado'],
+    },
+    {
+      id: 'druida-raiz-envenenada', classKey: 'Druida', title: 'A Raiz Envenenada',
+      pitch: 'Um desequilíbrio na natureza reconhece {characterName} como mediador.',
+      primaryQuestTitle: 'Estancar a corrupção na natureza',
+      primaryQuestDescription: 'Encontrar a origem da corrupção e restaurar o equilíbrio antes que se espalhe.',
+      openingNarration: 'As folhas escurecem por dentro, veias negras subindo do solo. A floresta vira-se para ti como quem pede socorro, {characterName}, e chama-te pelo teu nome.',
+      tags: ['natureza', 'corrupção', 'equilíbrio'],
+    },
+    {
+      id: 'guerreiro-contrato-que-sangra', classKey: 'Guerreiro', title: 'O Contrato Que Sangra',
+      pitch: 'Um trabalho simples testa a honra e a técnica de {characterName}.',
+      primaryQuestTitle: 'Cumprir o contrato e desmascarar o inimigo',
+      primaryQuestDescription: 'Levar o contrato até ao fim quando o verdadeiro inimigo se revela — sem trair a própria honra.',
+      openingNarration: 'O pagamento era bom demais para a tarefa. Agora, com o aço já na mão, percebes que quem te contratou omitiu quem realmente esperava por ti, {characterName}.',
+      tags: ['honra', 'contrato', 'combate'],
+    },
+    {
+      id: 'monge-ultimo-selo', classKey: 'Monge', title: 'O Último Selo do Mosteiro',
+      pitch: 'Um juramento do treinamento de {characterName} retorna para cobrar disciplina.',
+      primaryQuestTitle: 'Honrar o último selo do mosteiro',
+      primaryQuestDescription: 'Enfrentar o que o treinamento deixou por resolver e provar o propósito de {characterName}.',
+      openingNarration: 'Uma respiração, e o mundo aquieta. Mas o sino do mosteiro toca fora de hora — o selo que juraste guardar foi rompido, {characterName}, e o teu nome está no que resta dele.',
+      tags: ['disciplina', 'juramento', 'propósito'],
+    },
+    {
+      id: 'paladino-primeira-quebra', classKey: 'Paladino', title: 'A Primeira Quebra do Juramento',
+      pitch: 'Uma injustiça força {characterName} a agir antes de estar pronto.',
+      primaryQuestTitle: 'Reparar a injustiça sem quebrar o juramento',
+      primaryQuestDescription: 'Agir contra a injustiça diante de ti mantendo intacta a convicção que te define.',
+      openingNarration: 'A cena diante de ti não espera pela tua certeza. A injustiça acontece agora, e o teu juramento pesa como nunca antes, {characterName}.',
+      tags: ['juramento', 'justiça', 'convicção'],
+    },
+    {
+      id: 'patrulheiro-rastros-fora-do-mapa', classKey: 'Patrulheiro', title: 'Rastros Fora do Mapa',
+      pitch: 'Uma trilha impossível revela uma ameaça que só {characterName} consegue seguir.',
+      primaryQuestTitle: 'Seguir os rastros fora do mapa',
+      primaryQuestDescription: 'Rastrear a ameaça que atravessa território conhecido antes que ela chegue às pessoas.',
+      openingNarration: 'As pegadas não deviam existir — atravessam o riacho sem molhar a margem. Só os teus olhos as veem, {characterName}, e elas seguem para onde nenhum mapa alcança.',
+      tags: ['rastro', 'território', 'ameaça'],
+    },
+    {
+      id: 'ladino-divida-da-sombra', classKey: 'Ladino', title: 'A Dívida da Sombra',
+      pitch: 'Um favor antigo cobra o seu preço de {characterName}.',
+      primaryQuestTitle: 'Saldar a dívida da sombra',
+      primaryQuestDescription: 'Decidir em quem confiar enquanto um segredo antigo cobra o que {characterName} deve.',
+      openingNarration: 'Um bilhete sem assinatura aparece no teu bolso — letra que reconheces de um passado que preferias esquecer. A dívida venceu, {characterName}, e alguém veio receber.',
+      tags: ['dívida', 'confiança', 'segredo'],
+    },
+    {
+      id: 'feiticeiro-sangue-desperta', classKey: 'Feiticeiro', title: 'O Sangue Desperta',
+      pitch: 'O poder inato de {characterName} reage a um fenômeno perigoso.',
+      primaryQuestTitle: 'Entender o que despertou no teu sangue',
+      primaryQuestDescription: 'Investigar o fenômeno que acordou teu poder antes que interessados demais te alcancem.',
+      openingNarration: 'Sem que o chamasses, o poder acordou nas tuas veias e o ar crepitou à tua volta. Olhares atentos viraram-se na tua direção, {characterName} — cedo demais.',
+      tags: ['sangue', 'poder', 'origem'],
+    },
+    {
+      id: 'bruxo-preco-do-pacto', classKey: 'Bruxo', title: 'O Preço do Pacto',
+      pitch: 'O patrono de {characterName} cobra a primeira consequência concreta.',
+      primaryQuestTitle: 'Pagar a primeira cobrança do pacto',
+      primaryQuestDescription: 'Cumprir o que o patrono exige sem entender ainda todas as regras do pacto.',
+      openingNarration: 'A marca do pacto aquece contra a tua pele, e uma voz que não é tua sussurra uma única palavra: agora. O preço venceu, {characterName}, e o teu patrono não explica.',
+      tags: ['pacto', 'patrono', 'consequência'],
+    },
+    {
+      id: 'mago-arquivo-que-sussurra', classKey: 'Mago', title: 'O Arquivo Que Sussurra',
+      pitch: 'Um conhecimento proibido reconhece {characterName}.',
+      primaryQuestTitle: 'Descobrir por que o arquivo conhece o teu nome',
+      primaryQuestDescription: 'Investigar a origem do grimório e impedir que o seu segredo caia em mãos perigosas.',
+      openingNarration: 'A vela da escrivaninha curva-se sozinha quando te aproximas. Na lombada do grimório, letras novas surgem: o teu nome, {characterName}.',
+      tags: ['mistério', 'conhecimento', 'origem'],
+    },
+    {
+      id: 'default-primeiro-sinal', classKey: 'default', title: 'O Primeiro Sinal de {characterClass}',
+      pitch: 'Algo no mundo reconhece a vocação de {characterName}.',
+      primaryQuestTitle: 'Descobrir por que a tua vocação foi reconhecida',
+      primaryQuestDescription: 'Investigar o chamado inicial sem presumir regras específicas da tua classe.',
+      openingNarration: 'Antes que a estrada decida o teu rumo, alguém pronuncia a tua vocação como se fosse uma chave: {characterClass}. E olha para ti, {characterName}, à espera do que farás com ela.',
+      tags: ['origem', 'chamado'],
+    },
+  ],
+}
+
 const freeConfig: SystemConfig = {
   // Mesmos atributos, point-buy e kits por classe do D&D 5e.
   attributes: dnd5eAttributes,
   startingKits: dnd5eKits,
   pointBuy: { budget: 27 },
+  initialAdventures: dnd5eInitialAdventures,
 }
 
-const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, startingKits: dnd5eKits, pointBuy: { budget: 27 } }
+const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, startingKits: dnd5eKits, pointBuy: { budget: 27 }, initialAdventures: dnd5eInitialAdventures }
 
 async function main() {
   // Sistema "Free" — o AI DM narra livremente, sem seguir regras de um sistema oficial.

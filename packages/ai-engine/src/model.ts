@@ -1,26 +1,21 @@
-import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+import { createGroq } from '@ai-sdk/groq'
+import type { LanguageModelV1 } from 'ai'
 
-type OpenAICompatModel = ReturnType<ReturnType<typeof createOpenAICompatible>>
-
-// NVIDIA NIM — API OpenAI-compatible (https://integrate.api.nvidia.com/v1).
-const nvidia = createOpenAICompatible({
-  name: 'nvidia',
-  baseURL: 'https://integrate.api.nvidia.com/v1',
-  apiKey: process.env['NVIDIA_API_KEY'],
+const groq = createGroq({
+  apiKey: process.env['GROQ_API_KEY'],
 })
 
-// Narração: gpt-oss-120b como primário (TTFT ~1.2s vs ~5s do nemotron 120B, que
-// estourava o timeout de 90s da NVIDIA); nemotron 120B fica como fallback.
-export const primaryModel: OpenAICompatModel = nvidia('openai/gpt-oss-120b')
-export const fallbackModel: OpenAICompatModel = nvidia('nvidia/nemotron-3-super-120b-a12b')
+// Narração: llama-3.3-70b-versatile como primário (Groq).
+export const primaryModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')
+// Fallback: gpt-oss-120b via Groq (conforme solicitado).
+export const fallbackModel: LanguageModelV1 = groq('gpt-oss-120b')
 
 // Modelos de narração em ordem de prioridade. O serviço tenta o primeiro e,
 // se ele falhar ANTES de emitir texto, cai para o próximo.
-export const narrationModels: OpenAICompatModel[] = [primaryModel, fallbackModel]
+export const narrationModels: LanguageModelV1[] = [primaryModel, fallbackModel]
 
 // Compat: modelo principal isolado.
-export const defaultModel: OpenAICompatModel = primaryModel
+export const defaultModel: LanguageModelV1 = primaryModel
 
-// Sumarização de memória: tarefa simples; usa o mesmo provedor primário
-// (falha aqui é tolerada e só adia a sumarização para o próximo turno).
-export const summaryModel: OpenAICompatModel = nvidia('nvidia/nemotron-3-super-120b-a12b')
+// Sumarização de memória: tarefa simples; usa o modelo mais rápido e barato.
+export const summaryModel: LanguageModelV1 = groq('llama-3.1-8b-instant')

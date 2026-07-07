@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { SystemConfig } from '@ai-dm/shared'
+import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { loadSession, saveSession } from '@/lib/session'
 
@@ -50,6 +50,12 @@ export function SetupWizard() {
   const [charData, setCharData] = useState({ name: '', gender: '', race: '', class: '' })
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   const [skills, setSkills] = useState<string[]>(['', '', ''])
+
+  // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
+  const [charId, setCharId] = useState('')
+  const [hook, setHook] = useState<InitialAdventureHook | null>(null)
+  const [hookError, setHookError] = useState(false)
+  const [starting, setStarting] = useState(false)
 
   useEffect(() => {
     const session = loadSession()
@@ -110,10 +116,27 @@ export function SetupWizard() {
     setLoading(true); setError('')
     try {
       const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs })
+      // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
       saveSession({ userId, userName: charData.name, characterId: char.id, characterName: charData.name, adventureId: '' })
-      router.push('/')
+      setCharId(char.id)
+      loadHook(char.id)
     } catch { setError('Erro ao criar personagem. Tenta novamente.') }
     finally { setLoading(false) }
+  }
+
+  function loadHook(id: string) {
+    setHookError(false)
+    api.getInitialAdventure(id).then(setHook).catch(() => setHookError(true))
+  }
+
+  async function startAdventure() {
+    if (!hook) return
+    setStarting(true); setError('')
+    try {
+      const adv = await api.createAdventure(charId, hook.id)
+      saveSession({ userId, userName: charData.name, characterId: charId, characterName: charData.name, adventureId: adv.id })
+      router.push(`/play/${adv.id}?characterId=${charId}`)
+    } catch { setError('Erro ao iniciar a aventura. Tenta novamente.'); setStarting(false) }
   }
 
   function setAttr(key: string, delta: number, min: number, max: number) {
@@ -134,6 +157,43 @@ export function SetupWizard() {
   const selectClass = 'w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white'
 
   const idx = steps.indexOf(step)
+
+  // US-28: etapa "Aventura inicial" — personagem já criado, escolhemos o gancho da classe.
+  if (charId) {
+    return (
+      <div className="min-h-screen bg-amber-50 dark:bg-stone-950 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <p className="text-xs uppercase tracking-wide text-stone-400 dark:text-stone-600">Aventura inicial</p>
+          {error && <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 border border-red-300 dark:border-red-800 rounded p-3">{error}</p>}
+
+          {hookError ? (
+            <div className="space-y-4">
+              <p className="text-stone-600 dark:text-stone-300 text-sm">Não foi possível carregar a aventura inicial de <span className="font-semibold">{charData.name}</span>.</p>
+              <button type="button" onClick={() => loadHook(charId)}
+                className="w-full bg-amber-600 hover:bg-amber-500 text-white rounded py-2 font-semibold">
+                Tentar de novo
+              </button>
+            </div>
+          ) : !hook ? (
+            <p className="text-stone-500 dark:text-stone-400 text-sm animate-pulse">A preparar a tua aventura…</p>
+          ) : (
+            <div className="space-y-4">
+              <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">{hook.title}</h1>
+              <p className="text-stone-500 dark:text-stone-400 text-sm">A primeira aventura de {charData.name}, {charData.class}.</p>
+              <div className="bg-white/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded p-4 space-y-3">
+                <p className="text-stone-700 dark:text-stone-300 text-sm">{hook.pitch}</p>
+                <p className="text-stone-800 dark:text-stone-100 text-sm italic leading-relaxed whitespace-pre-wrap">{hook.openingNarration}</p>
+              </div>
+              <button type="button" onClick={startAdventure} disabled={starting}
+                className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
+                {starting ? 'A iniciar...' : 'Iniciar aventura'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-amber-50 dark:bg-stone-950 flex items-center justify-center p-4">

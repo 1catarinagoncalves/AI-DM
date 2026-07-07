@@ -86,7 +86,9 @@ export class AiService {
 
     const systemName = adventure.system.name
     const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
-    const mainQuest = quests.find((q) => q.isPrimary)?.title ?? null
+    // Título + descrição da quest primária para o DM saber o objetivo (US-28).
+    const primary = quests.find((q) => q.isPrimary)
+    const mainQuest = primary ? `${primary.title}\n${primary.description}` : null
     const activeQuests = quests.filter((q) => !q.isPrimary)
 
     // Ficha que o mestre precisa conhecer (US-23). Prefere o estado (evolui com

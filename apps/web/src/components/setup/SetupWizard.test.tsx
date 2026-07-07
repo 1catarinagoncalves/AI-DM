@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 
-const { listSystems, createCharacter, createUser } = vi.hoisted(() => ({
+const { listSystems, createCharacter, createUser, getInitialAdventure, createAdventure } = vi.hoisted(() => ({
   listSystems: vi.fn(),
   createCharacter: vi.fn(),
   createUser: vi.fn(),
+  getInitialAdventure: vi.fn(),
+  createAdventure: vi.fn(),
 }))
-vi.mock('@/lib/api', () => ({ api: { listSystems, createCharacter, createUser } }))
+vi.mock('@/lib/api', () => ({ api: { listSystems, createCharacter, createUser, getInitialAdventure, createAdventure } }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 vi.mock('@/lib/session', () => ({
   loadSession: () => ({ userId: 'u1' }),
@@ -40,6 +42,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   beforeEach(() => {
     listSystems.mockReset()
     createCharacter.mockReset()
+    getInitialAdventure.mockReset()
+    createAdventure.mockReset()
+    getInitialAdventure.mockResolvedValue({ id: 'hook-1', title: 'Aventura', pitch: 'p', openingNarration: 'n' })
   })
   afterEach(() => cleanup())
 
@@ -106,5 +111,28 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledTimes(1)
+  })
+
+  // US-28: depois de Confirmar, o jogador vê a etapa "Aventura inicial" e a inicia.
+  it('mostra a aventura inicial da classe e inicia-a ao confirmar', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    ;[1, 2, 3].forEach(n => fireEvent.change(screen.getByLabelText(`Perícia ${n}`), { target: { value: `P${n}` } }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+
+    // Etapa Aventura inicial aparece com o gancho resolvido pela API.
+    const start = await screen.findByRole('button', { name: /Iniciar aventura/ })
+    expect(getInitialAdventure).toHaveBeenCalledWith('char-1')
+    expect(screen.getByRole('heading', { name: 'Aventura' })).toBeTruthy()
+
+    fireEvent.click(start)
+    expect(createAdventure).toHaveBeenCalledWith('char-1', 'hook-1')
   })
 })

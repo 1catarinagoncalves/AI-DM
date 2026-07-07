@@ -1,4 +1,4 @@
-import type { InventoryItem, SystemConfig } from '@ai-dm/shared'
+import type { InitialAdventureHook, InventoryItem, SystemConfig } from '@ai-dm/shared'
 
 /** Lowercase + strip diacritics for fuzzy class-name matching only. */
 function normalize(s: string): string {
@@ -42,4 +42,27 @@ export function getStartingInventory(config: SystemConfig, charClass: string): I
   }
   // SystemConfigSchema garante a chave `default`; ver types/system.ts em @ai-dm/shared.
   return kits.default as InventoryItem[]
+}
+
+/**
+ * Escolhe o gancho de aventura inicial pela classe do personagem (US-28).
+ * Match tolerante a acento/caixa contra `classKey`; sem match seguro cai no
+ * hook `default`. Devolve null só quando o sistema não traz catálogo algum.
+ */
+export function resolveInitialHook(config: SystemConfig, charClass: string): InitialAdventureHook | null {
+  const hooks = config.initialAdventures?.hooks
+  if (!hooks || hooks.length === 0) return null
+  const cn = normalize(charClass)
+  const match = hooks.find((h) => h.classKey !== 'default' && normalize(h.classKey) === cn)
+  return match ?? hooks.find((h) => h.classKey === 'default') ?? null
+}
+
+/** Resolve placeholders do hook antes de persistir. Suporta {characterName} e {characterClass}. */
+export function resolveHookTemplate(
+  text: string,
+  vars: { characterName: string; characterClass: string },
+): string {
+  return text
+    .replace(/\{characterName\}/g, vars.characterName)
+    .replace(/\{characterClass\}/g, vars.characterClass)
 }

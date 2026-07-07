@@ -1,4 +1,4 @@
-import type { SystemConfig } from '@ai-dm/shared'
+import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
@@ -35,8 +35,11 @@ export const api = {
   listSystems: () =>
     get<{ id: string; name: string; sourceType: string; config: SystemConfig | null }[]>('/systems'),
 
-  createAdventure: (characterId: string, title: string) =>
-    post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, { title }),
+  getInitialAdventure: (characterId: string) =>
+    get<InitialAdventureHook>(`/characters/${characterId}/adventures/initial`),
+
+  createAdventure: (characterId: string, initialHookId: string) =>
+    post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, { initialHookId }),
 
   listCharacters: (userId: string) =>
     get<{ id: string; name: string; race: string; class: string; level: number; currentAdventure: { id: string; title: string } | null }[]>(`/characters/user/${userId}`),

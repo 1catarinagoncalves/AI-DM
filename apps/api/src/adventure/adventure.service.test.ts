@@ -6,6 +6,22 @@ import type { PrismaService } from '../prisma.service'
 const config: SystemConfig = {
   attributes: [{ key: 'constitution', label: 'Con', min: 1, max: 20, default: 10 }],
   startingKits: { guerreiro: [{ name: 'Espada longa', qty: 1 }], default: [{ name: 'Adaga', qty: 1 }] },
+  initialAdventures: {
+    hooks: [
+      {
+        id: 'mago-arquivo', classKey: 'Mago', title: 'O Arquivo Que Sussurra',
+        pitch: 'Um grimório reconhece {characterName}.', primaryQuestTitle: 'Descobrir o arquivo',
+        primaryQuestDescription: 'Investigar o grimório.', openingNarration: 'A vela curva-se, {characterName}.',
+        tags: [],
+      },
+      {
+        id: 'default-sinal', classKey: 'default', title: 'O Primeiro Sinal de {characterClass}',
+        pitch: 'Algo reconhece {characterName}.', primaryQuestTitle: 'Descobrir o chamado',
+        primaryQuestDescription: 'Investigar o chamado de {characterName}.',
+        openingNarration: 'Alguém pronuncia a tua classe: {characterClass}.', tags: [],
+      },
+    ],
+  },
 }
 
 interface Recorded {
@@ -13,6 +29,8 @@ interface Recorded {
   adventureUpdateMany?: Record<string, unknown>
   participantCreate?: Record<string, unknown>
   characterStateCreate?: Record<string, unknown>
+  questCreate?: Record<string, unknown>
+  eventLogCreate?: Record<string, unknown>
 }
 
 // Test double mínimo: só os métodos que AdventureService.createForCharacter chama,
@@ -43,6 +61,18 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
         return data
       },
     },
+    quest: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        recorded.questCreate = data
+        return { id: 'quest-1', ...data }
+      },
+    },
+    eventLog: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        recorded.eventLogCreate = data
+        return { id: 'evt-1', ...data }
+      },
+    },
   }
 
   const prisma = {
@@ -54,35 +84,70 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
 }
 
 describe('AdventureService.createForCharacter', () => {
-  it('cria a aventura com systemId/creatorId do personagem, participante e estado inicial', async () => {
+  it('classe conhecida: usa o gancho da classe para título, quest primária e narração', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', class: 'Guerreiro',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
       baseAttributes: { constitution: 14 },
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma)
 
-    const adventure = await service.createForCharacter('char-1', { title: 'A Torre Negra' })
+    const adventure = await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
 
-    expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: 'A Torre Negra', order: 1 })
+    expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: 'O Arquivo Que Sussurra', order: 1 })
     expect(recorded.participantCreate).toEqual({ adventureId: 'adv-1', characterId: 'char-1' })
     expect(recorded.characterStateCreate).toMatchObject({
       characterId: 'char-1', adventureId: 'adv-1', hp: 12, maxHp: 12,
-      inventory: [{ name: 'Espada longa', qty: 1 }],
+      inventory: [{ name: 'Adaga', qty: 1 }], // 'Mago' não casa 'guerreiro' → default
     })
+    expect(recorded.questCreate).toMatchObject({
+      adventureId: 'adv-1', title: 'Descobrir o arquivo', description: 'Investigar o grimório.', isPrimary: true,
+    })
+    // Placeholder {characterName} resolvido antes de persistir.
+    expect(recorded.eventLogCreate).toMatchObject({
+      adventureId: 'adv-1', characterId: 'char-1', type: 'NARRATION',
+      payload: { text: 'A vela curva-se, Elara.' },
+    })
+  })
+
+  it('classe desconhecida: cai no gancho default com a classe no texto, sem erro', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Nyx', class: 'Cartógrafa Estelar',
+      baseAttributes: { constitution: 10 },
+      system: { config },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma)
+
+    const adventure = await service.createForCharacter('char-1', { initialHookId: 'default-sinal' })
+
+    expect(adventure).toMatchObject({ title: 'O Primeiro Sinal de Cartógrafa Estelar' })
+    expect(recorded.eventLogCreate).toMatchObject({
+      payload: { text: 'Alguém pronuncia a tua classe: Cartógrafa Estelar.' },
+    })
+  })
+
+  it('rejeita um initialHookId que não corresponde à classe do personagem', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      baseAttributes: { constitution: 10 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const service = new AdventureService(prisma)
+    await expect(service.createForCharacter('char-1', { initialHookId: 'default-sinal' })).rejects.toThrow()
   })
 
   it('numera order pela contagem de aventuras anteriores do personagem', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', class: 'Mago',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
       baseAttributes: { constitution: 10 },
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character, 2)
     const service = new AdventureService(prisma)
 
-    await service.createForCharacter('char-1', { title: 'Segunda aventura' })
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
 
     expect(recorded.adventureCreate).toMatchObject({ order: 3 })
   })
@@ -90,7 +155,22 @@ describe('AdventureService.createForCharacter', () => {
   it('rejeita quando o personagem não existe', async () => {
     const { prisma } = fakePrisma(null)
     const service = new AdventureService(prisma)
-    await expect(service.createForCharacter('missing', { title: 'X' })).rejects.toThrow()
+    await expect(service.createForCharacter('missing', { initialHookId: 'mago-arquivo' })).rejects.toThrow()
+  })
+})
+
+describe('AdventureService.getInitialAdventure', () => {
+  it('resolve o gancho da classe com placeholders aplicados', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      baseAttributes: { constitution: 10 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const service = new AdventureService(prisma)
+
+    const hook = await service.getInitialAdventure('char-1')
+
+    expect(hook).toMatchObject({ id: 'mago-arquivo', title: 'O Arquivo Que Sussurra', openingNarration: 'A vela curva-se, Elara.' })
   })
 })
 
