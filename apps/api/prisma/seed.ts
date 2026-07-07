@@ -3,14 +3,14 @@ import type { SystemConfig } from '@ai-dm/shared'
 
 const prisma = new PrismaClient()
 
-// Faixa 8–15 e default 8: point-buy 5e (US-26). Cada atributo parte de 8 e gasta do budget.
+// Faixa 10–18, default 10: point-buy 5e (US-26). Valor inicial grátis (começa 27/27), gasta subindo.
 const dnd5eAttributes: SystemConfig['attributes'] = [
-  { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
-  { key: 'dexterity', label: 'Destreza', min: 8, max: 15, default: 8 },
-  { key: 'constitution', label: 'Constituição', min: 8, max: 15, default: 8 },
-  { key: 'intelligence', label: 'Inteligência', min: 8, max: 15, default: 8 },
-  { key: 'wisdom', label: 'Sabedoria', min: 8, max: 15, default: 8 },
-  { key: 'charisma', label: 'Carisma', min: 8, max: 15, default: 8 },
+  { key: 'strength', label: 'Força', min: 10, max: 18, default: 10 },
+  { key: 'dexterity', label: 'Destreza', min: 10, max: 18, default: 10 },
+  { key: 'constitution', label: 'Constituição', min: 10, max: 18, default: 10 },
+  { key: 'intelligence', label: 'Inteligência', min: 10, max: 18, default: 10 },
+  { key: 'wisdom', label: 'Sabedoria', min: 10, max: 18, default: 10 },
+  { key: 'charisma', label: 'Carisma', min: 10, max: 18, default: 10 },
 ]
 
 // Transportada de starting-inventory.ts (era a constante KITS hardcoded).

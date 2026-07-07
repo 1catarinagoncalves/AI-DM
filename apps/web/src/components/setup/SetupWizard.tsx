@@ -21,7 +21,7 @@ const RACES = ['Anão', 'Meio-Orc', 'Elfo', 'Halfling', 'Humano', 'Dragonborn', 
 const CLASSES = ['Bárbaro', 'Bardo', 'Clérigo', 'Druida', 'Guerreiro', 'Monge', 'Paladino', 'Patrulheiro', 'Ladino', 'Feiticeiro', 'Bruxo', 'Mago'] as const
 
 // Custo acumulado por valor (point-buy 5e). Não é linear: 13→14 e 14→15 custam 2 cada.
-const POINT_COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }
+const POINT_COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9, 16: 11, 17: 13, 18: 15 }
 
 type SystemOption = { id: string; name: string; sourceType: string; config: SystemConfig | null }
 
@@ -73,7 +73,8 @@ export function SetupWizard() {
 
   const attributes = system?.config?.attributes ?? []
   const budget = system?.config?.pointBuy?.budget
-  const spent = attributes.reduce((s, a) => s + (POINT_COST[attrs[a.key] ?? a.default] ?? 0), 0)
+  // Custo é relativo ao default: o valor inicial de cada atributo é grátis (começa 27/27).
+  const spent = attributes.reduce((s, a) => s + ((POINT_COST[attrs[a.key] ?? a.default] ?? 0) - (POINT_COST[a.default] ?? 0)), 0)
   const remaining = budget !== undefined ? budget - spent : 0
 
   function handleSelectSystem(s: SystemOption) {

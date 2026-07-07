@@ -5,10 +5,10 @@ const groq = createGroq({
   apiKey: process.env['GROQ_API_KEY'],
 })
 
-// Narração: llama-3.3-70b-versatile como primário (Groq).
-export const primaryModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')
-// Fallback: gpt-oss-120b via Groq (conforme solicitado).
-export const fallbackModel: LanguageModelV1 = groq('gpt-oss-120b')
+// Narração: gpt-oss-120b como primário (Groq).
+export const primaryModel: LanguageModelV1 = groq('gpt-oss-120b')
+// Fallback: llama-3.3-70b-versatile via Groq.
+export const fallbackModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')
 
 // Modelos de narração em ordem de prioridade. O serviço tenta o primeiro e,
 // se ele falhar ANTES de emitir texto, cai para o próximo.

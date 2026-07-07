@@ -36,7 +36,7 @@ export class AiService {
 
   /**
    * Cria o stream de narração para um turno. `attempt` seleciona o modelo na
-   * lista de prioridade (0 = NVIDIA, 1 = OpenRouter fallback). O controller
+   * lista de prioridade (0 = gpt-oss-120b, 1 = llama-3.3-70b fallback), todos via Groq. O controller
    * tenta a próxima tentativa quando o modelo falha antes de emitir texto.
    *
    * A ação do jogador NÃO é persistida aqui — é gravada no `onFinish`, junto
