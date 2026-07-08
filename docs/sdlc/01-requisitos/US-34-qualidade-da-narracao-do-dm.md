@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (primeira narração da aventura), [US-23](./US-23-dm-ciente-da-ficha.md) (DM recebe ficha completa) e [US-11b](./US-11b-estado-de-cena-estruturado.md) (estado de cena estruturado).
 **Criada em:** 2026-07-07
 
@@ -172,7 +172,7 @@ POST /characters/:characterId/adventures  { initialHookId }
 1. ~~**Estado de cena na abertura.**~~ **Resolvido:** como o `CharacterState` nasce na mesma transação, a abertura gerada não popula o `sceneState` estruturado (a cena vive só na prosa até o 1º turno), abrindo uma janela de inconsistência no primeiro turno. Encaminhado para a [US-35](./US-35-cena-estruturada-na-abertura.md), que extrai `local/ambiente/período/presentes` da abertura e já popula o `sceneState`.
 2. ~~**Custo/latência na criação.**~~ **Resolvido:** a chamada de LLM extra no fluxo de "iniciar aventura" é **aceitável** no MVP. Roda fora da transação e tem fallback rápido ao template estático. Um indicador de carregamento na UI é desejável, mas opcional, e não bloqueia esta US.
 3. ~~**Modelo dedicado para a abertura.**~~ **Resolvido:** a abertura usa o **mesmo modelo primário de narração** dos turnos seguintes (`narrationModels[0]`), sem modelo dedicado. Mantém a voz consistente entre abertura e jogo, e simplifica o código; se a primeira impressão pedir mais no futuro, vira story própria.
-4. **Eval de qualidade.** Medir "qualidade cinematográfica" de forma automatizada (rubrica: sentidos, concretude, voz de NPC, gancho) é candidato a story de evals dedicada.
+4. ~~**Eval de qualidade.**~~ **Resolvido:** encaminhado para a [US-36](./US-36-eval-de-qualidade-da-narracao.md), que mede a qualidade da narração por rubrica (LLM-as-judge) como rede de segurança contra regressão.
 
 ---
 

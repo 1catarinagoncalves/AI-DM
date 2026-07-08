@@ -6,10 +6,12 @@ import {
   narrationModels,
   summaryModel,
   buildDmSystemPrompt,
+  buildOpeningInstruction,
   buildSummaryInput,
   mergeSceneState,
   formatSceneState,
   SUMMARY_SYSTEM_PROMPT,
+  type DmCharacterSheet,
   type SummaryTurn,
 } from '@ai-dm/ai-engine'
 import { DiceService } from '../game/dice.service'
@@ -326,6 +328,61 @@ export class AiService {
     })
 
     return { result, hasFallback }
+  }
+
+  /**
+   * Primeira narração da aventura gerada pelo MESMO DM (US-34): reusa
+   * `buildDmSystemPrompt` (com a seção de ofício) e a fagulha do gancho da classe
+   * como semente. Roda fora da transação de criação, SEM tools (não há ação, dados
+   * nem CharacterState estruturado ainda). Nunca lança: qualquer falha devolve
+   * `null` para o chamador cair no `openingNarration` estático (fallback).
+   */
+  async generateOpeningNarration(params: {
+    systemName: string
+    characterName: string
+    characterGender: string
+    characterClass: string
+    characterRace: string
+    mainQuest?: string | null
+    inventory: string[]
+    sheet: DmCharacterSheet
+    hookSeed: string
+    attributeLabels?: Record<string, string>
+  }): Promise<string | null> {
+    try {
+      const system = buildDmSystemPrompt({
+        systemName: params.systemName,
+        characterName: params.characterName,
+        characterGender: params.characterGender,
+        characterClass: params.characterClass,
+        characterRace: params.characterRace,
+        mainQuest: params.mainQuest ?? null,
+        activeQuests: [],
+        memorySummary: null,
+        inventory: params.inventory,
+        sceneState: null,
+        sheet: params.sheet,
+        attributeLabels: params.attributeLabels,
+      })
+      const prompt = buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed })
+      // Percorre a MESMA escada de modelos dos turnos (narrationModels): o primário
+      // pode estar indisponível para a conta (ex.: gpt-oss-120b sem acesso na Groq)
+      // e é justamente esse fallback que mantém a narração dos turnos viva. Sem a
+      // escada aqui, a abertura caía direto no template estático.
+      for (const model of narrationModels) {
+        try {
+          const { text } = await generateText({ model, system, prompt })
+          const trimmed = text.trim()
+          if (trimmed.length > 0) return trimmed
+        } catch (err) {
+          console.error(`[AiService] Abertura falhou no modelo ${model.modelId ?? 'unknown'}, tentando próximo:`, err)
+        }
+      }
+      return null
+    } catch (err) {
+      console.error('[AiService] Falha ao gerar abertura por IA, usando fallback estático:', err)
+      return null
+    }
   }
 
   /**

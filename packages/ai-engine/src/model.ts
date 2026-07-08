@@ -5,8 +5,10 @@ const groq = createGroq({
   apiKey: process.env['GROQ_API_KEY'],
 })
 
-// Narração: gpt-oss-120b como primário (Groq).
-export const primaryModel: LanguageModelV1 = groq('gpt-oss-120b')
+// Narração: gpt-oss-120b como primário (Groq). O id na Groq leva o prefixo do
+// provider de origem — `openai/gpt-oss-120b`; sem ele a API responde "model does
+// not exist or you do not have access".
+export const primaryModel: LanguageModelV1 = groq('openai/gpt-oss-120b')
 // Fallback: llama-3.3-70b-versatile via Groq.
 export const fallbackModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')
 

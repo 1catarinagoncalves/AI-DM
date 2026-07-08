@@ -8,5 +8,6 @@ import { PrismaService } from '../prisma.service'
   imports: [GameModule],
   controllers: [AiController],
   providers: [AiService, PrismaService],
+  exports: [AiService],
 })
 export class AiModule {}

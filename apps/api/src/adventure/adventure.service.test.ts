@@ -2,6 +2,13 @@ import { describe, it, expect } from 'vitest'
 import type { SystemConfig } from '@ai-dm/shared'
 import { AdventureService } from './adventure.service'
 import type { PrismaService } from '../prisma.service'
+import type { AiService } from '../ai/ai.service'
+
+// Fake do AiService: por padrão devolve null (força o fallback estático da US-28,
+// preservando as asserções de texto abaixo). `opening` != null exercita o caminho IA.
+function fakeAi(opening: string | null = null): AiService {
+  return { generateOpeningNarration: async () => opening } as unknown as AiService
+}
 
 const config: SystemConfig = {
   attributes: [{ key: 'constitution', label: 'Con', min: 1, max: 20, default: 10 }],
@@ -91,7 +98,7 @@ describe('AdventureService.createForCharacter', () => {
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character)
-    const service = new AdventureService(prisma)
+    const service = new AdventureService(prisma, fakeAi())
 
     const adventure = await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
 
@@ -111,6 +118,24 @@ describe('AdventureService.createForCharacter', () => {
     })
   })
 
+  it('caminho IA: quando a geração devolve texto, a abertura persiste esse texto, não o template estático', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      baseAttributes: { constitution: 14 },
+      system: { config },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const gerado = 'A chuva fina cai sobre Elara enquanto o grimório desperta.'
+    const service = new AdventureService(prisma, fakeAi(gerado))
+
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    expect(recorded.eventLogCreate).toMatchObject({
+      type: 'NARRATION',
+      payload: { text: gerado },
+    })
+  })
+
   it('classe desconhecida: cai no gancho default com a classe no texto, sem erro', async () => {
     const character = {
       id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Nyx', class: 'Cartógrafa Estelar',
@@ -118,7 +143,7 @@ describe('AdventureService.createForCharacter', () => {
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character)
-    const service = new AdventureService(prisma)
+    const service = new AdventureService(prisma, fakeAi())
 
     const adventure = await service.createForCharacter('char-1', { initialHookId: 'default-sinal' })
 
@@ -134,7 +159,7 @@ describe('AdventureService.createForCharacter', () => {
       baseAttributes: { constitution: 10 }, system: { config },
     }
     const { prisma } = fakePrisma(character)
-    const service = new AdventureService(prisma)
+    const service = new AdventureService(prisma, fakeAi())
     await expect(service.createForCharacter('char-1', { initialHookId: 'default-sinal' })).rejects.toThrow()
   })
 
@@ -145,7 +170,7 @@ describe('AdventureService.createForCharacter', () => {
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character, 2)
-    const service = new AdventureService(prisma)
+    const service = new AdventureService(prisma, fakeAi())
 
     await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
 
@@ -154,7 +179,7 @@ describe('AdventureService.createForCharacter', () => {
 
   it('rejeita quando o personagem não existe', async () => {
     const { prisma } = fakePrisma(null)
-    const service = new AdventureService(prisma)
+    const service = new AdventureService(prisma, fakeAi())
     await expect(service.createForCharacter('missing', { initialHookId: 'mago-arquivo' })).rejects.toThrow()
   })
 })
@@ -166,7 +191,7 @@ describe('AdventureService.getInitialAdventure', () => {
       baseAttributes: { constitution: 10 }, system: { config },
     }
     const { prisma } = fakePrisma(character)
-    const service = new AdventureService(prisma)
+    const service = new AdventureService(prisma, fakeAi())
 
     const hook = await service.getInitialAdventure('char-1')
 
@@ -188,7 +213,7 @@ describe('AdventureService.getTurns', () => {
         findMany: async (args: Record<string, unknown>) => { captured = args; return logs },
       },
     } as unknown as PrismaService
-    const service = new AdventureService(prisma)
+    const service = new AdventureService(prisma, fakeAi())
 
     const turns = await service.getTurns('char-1', 'adv-1')
 

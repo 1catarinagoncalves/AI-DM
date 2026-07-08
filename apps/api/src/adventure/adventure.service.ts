@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { SystemConfigSchema, type InitialAdventureHook } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
+import { AiService } from '../ai/ai.service'
 import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 
 export interface CreateAdventureDto {
@@ -9,7 +10,10 @@ export interface CreateAdventureDto {
 
 @Injectable()
 export class AdventureService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ai: AiService,
+  ) {}
 
   /**
    * Cria a aventura do personagem, liga-o como participante e gera o
@@ -69,6 +73,27 @@ export class AdventureService {
     const conMod = Math.floor(((attrs['constitution'] ?? 10) - 10) / 2)
     const maxHp = 10 + conMod
 
+    // Inventário inicial calculado uma vez: alimenta o CharacterState e o system
+    // prompt da geração de abertura (o DM precisa saber o que a personagem carrega).
+    const startingInventory = getStartingInventory(config, character.class)
+
+    // Abertura gerada pelo MESMO DM (US-34), FORA da transação (LLM é lento e não
+    // deve segurar locks). Falha/vazio → cai no openingNarration estático do gancho.
+    const labelPairs = (config.attributes ?? []).map((a) => [a.key, a.label] as const)
+    const generatedOpening = await this.ai.generateOpeningNarration({
+      systemName: character.system.name,
+      characterName: character.name,
+      characterGender: character.gender,
+      characterClass: character.class,
+      characterRace: character.race,
+      mainQuest: `${hook.primaryQuestTitle}\n${hook.primaryQuestDescription}`,
+      inventory: startingInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
+      sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [] },
+      hookSeed: hook.openingNarration,
+      attributeLabels: Object.fromEntries(labelPairs),
+    })
+    const openingText = generatedOpening ?? hook.openingNarration
+
     return this.prisma.$transaction(async (tx) => {
       const order = (await tx.adventureParticipant.count({ where: { characterId } })) + 1
 
@@ -93,7 +118,7 @@ export class AdventureService {
           hp: maxHp,
           maxHp,
           attributes: character.baseAttributes as object,
-          inventory: getStartingInventory(config, character.class) as unknown as object,
+          inventory: startingInventory as unknown as object,
         },
       })
 
@@ -114,7 +139,7 @@ export class AdventureService {
           adventureId: adventure.id,
           characterId,
           type: 'NARRATION',
-          payload: { text: hook.openingNarration },
+          payload: { text: openingText },
         },
       })
 
