@@ -13,6 +13,32 @@ const dnd5eAttributes: SystemConfig['attributes'] = [
   { key: 'charisma', label: 'Carisma', min: 10, max: 18, default: 10 },
 ]
 
+// As 18 perícias 5e (US-27), cada uma ancorada num atributo. Iguais no Free e no D&D.
+// Constituição não ancora nenhuma. Fonte: https://www.wargamer.com/dnd/skills
+const dnd5eSkills: SystemConfig['skills'] = [
+  { key: 'athletics', label: 'Atletismo', ability: 'strength' },
+  { key: 'acrobatics', label: 'Acrobacia', ability: 'dexterity' },
+  { key: 'sleight_of_hand', label: 'Prestidigitação', ability: 'dexterity' },
+  { key: 'stealth', label: 'Furtividade', ability: 'dexterity' },
+  { key: 'arcana', label: 'Arcanismo', ability: 'intelligence' },
+  { key: 'history', label: 'História', ability: 'intelligence' },
+  { key: 'investigation', label: 'Investigação', ability: 'intelligence' },
+  { key: 'nature', label: 'Natureza', ability: 'intelligence' },
+  { key: 'religion', label: 'Religião', ability: 'intelligence' },
+  { key: 'animal_handling', label: 'Adestrar Animais', ability: 'wisdom' },
+  { key: 'insight', label: 'Intuição', ability: 'wisdom' },
+  { key: 'medicine', label: 'Medicina', ability: 'wisdom' },
+  { key: 'perception', label: 'Percepção', ability: 'wisdom' },
+  { key: 'survival', label: 'Sobrevivência', ability: 'wisdom' },
+  { key: 'deception', label: 'Enganação', ability: 'charisma' },
+  { key: 'intimidation', label: 'Intimidação', ability: 'charisma' },
+  { key: 'performance', label: 'Atuação', ability: 'charisma' },
+  { key: 'persuasion', label: 'Persuasão', ability: 'charisma' },
+]
+
+// Nível 1: escolhe 2 proficientes, cada uma soma +2 ao modificador do atributo.
+const dnd5eProficiency: SystemConfig['proficiency'] = { choices: 2, bonus: 2 }
+
 // Transportada de starting-inventory.ts (era a constante KITS hardcoded).
 const dnd5eKits: SystemConfig['startingKits'] = {
   guerreiro: [
@@ -204,14 +230,16 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
 }
 
 const freeConfig: SystemConfig = {
-  // Mesmos atributos, point-buy e kits por classe do D&D 5e.
+  // Mesmos atributos, perícias, point-buy e kits por classe do D&D 5e.
   attributes: dnd5eAttributes,
+  skills: dnd5eSkills,
+  proficiency: dnd5eProficiency,
   startingKits: dnd5eKits,
   pointBuy: { budget: 27 },
   initialAdventures: dnd5eInitialAdventures,
 }
 
-const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, startingKits: dnd5eKits, pointBuy: { budget: 27 }, initialAdventures: dnd5eInitialAdventures }
+const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, skills: dnd5eSkills, proficiency: dnd5eProficiency, startingKits: dnd5eKits, pointBuy: { budget: 27 }, initialAdventures: dnd5eInitialAdventures }
 
 async function main() {
   // Sistema "Free" — o AI DM narra livremente, sem seguir regras de um sistema oficial.

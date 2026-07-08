@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, type SystemConfig } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 
 export interface CreateCharacterDto {
@@ -10,6 +10,9 @@ export interface CreateCharacterDto {
   race: string
   class: string
   attributes: Record<string, number>
+  // US-27: keys de perícia proficientes escolhidas na criação. Opcional para
+  // sistemas sem perícias no config.
+  skills?: string[]
 }
 
 @Injectable()
@@ -25,6 +28,7 @@ export class CharacterService {
 
     const config = SystemConfigSchema.parse(system.config)
     const baseAttributes = buildCharacterAttributesSchema(config.attributes).parse(dto.attributes)
+    const skills = this.validateSkills(config, dto.skills ?? [])
 
     return this.prisma.character.create({
       data: {
@@ -36,8 +40,37 @@ export class CharacterService {
         class: dto.class,
         level: 1,
         baseAttributes,
+        skills,
       },
     })
+  }
+
+  /**
+   * Valida as perícias proficientes contra o config (US-27): cada key precisa
+   * existir em config.skills e a quantidade precisa bater com proficiency.choices.
+   * Sistema sem perícias no config → nenhuma proficiência aceita.
+   */
+  private validateSkills(config: SystemConfig, chosen: string[]): string[] {
+    const catalog = config.skills ?? []
+    const choices = config.proficiency?.choices ?? 0
+
+    if (catalog.length === 0 || choices === 0) {
+      if (chosen.length > 0) {
+        throw new BadRequestException('Este sistema não tem perícias proficientes a escolher.')
+      }
+      return []
+    }
+
+    const unique = [...new Set(chosen)]
+    if (unique.length !== choices) {
+      throw new BadRequestException(`Escolha exatamente ${choices} perícia(s) proficiente(s).`)
+    }
+    const valid = new Set(catalog.map((s) => s.key))
+    const invalid = unique.filter((k) => !valid.has(k))
+    if (invalid.length > 0) {
+      throw new BadRequestException(`Perícia(s) inválida(s): ${invalid.join(', ')}`)
+    }
+    return unique
   }
 
   /**
@@ -116,6 +149,8 @@ export class CharacterService {
       where: { id },
       include: {
         states: { orderBy: { updatedAt: 'desc' }, take: 1 },
+        // US-27: o front deriva os modificadores das perícias do config do sistema.
+        system: true,
       },
     })
     if (!character) throw new NotFoundException(`Personagem ${id} não encontrado`)

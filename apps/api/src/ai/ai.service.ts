@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { streamText, generateText, tool, type CoreMessage } from 'ai'
-import type { InventoryItem, SceneState } from '@ai-dm/shared'
+import type { InventoryItem, SceneState, SystemConfig } from '@ai-dm/shared'
+import { buildSkillSheet } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -93,19 +94,27 @@ export class AiService {
     const mainQuest = primary ? `${primary.title}\n${primary.description}` : null
     const activeQuests = quests.filter((q) => !q.isPrimary)
 
+    // Rótulos e perícias vêm de System.config (US-21/US-27, já validado na criação);
+    // ausente → o builder usa a chave crua / sem perícias. ponytail: leitura defensiva sem re-validar.
+    const config = adventure.system.config as Partial<SystemConfig> | null
+    const attributeLabels = Object.fromEntries((config?.attributes ?? []).map((a) => [a.key, a.label]))
+
     // Ficha que o mestre precisa conhecer (US-23). Prefere o estado (evolui com
     // level-up) e cai em baseAttributes quando o estado ainda não existe.
+    const attributes = (characterState?.attributes ?? character.baseAttributes ?? {}) as Record<string, number>
+    // Todas as perícias com modificador (US-27): o mestre decide qualquer teste, não só as proficientes.
+    const skills = config?.skills
+      ? buildSkillSheet(config.skills, attributes, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
+        .map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
+      : undefined
     const sheet = {
       level: character.level,
       hp: characterState?.hp ?? 0,
       maxHp: characterState?.maxHp ?? 0,
-      attributes: (characterState?.attributes ?? character.baseAttributes ?? {}) as Record<string, number>,
+      attributes,
       conditions: (characterState?.conditions ?? []) as string[],
+      skills,
     }
-    // Rótulos vêm de System.config (US-21, já validado na criação do personagem);
-    // ausente → o builder usa a chave crua. ponytail: leitura defensiva sem re-validar.
-    const config = adventure.system.config as { attributes?: { key: string; label: string }[] } | null
-    const attributeLabels = Object.fromEntries((config?.attributes ?? []).map((a) => [a.key, a.label]))
 
     const systemPrompt = buildDmSystemPrompt({
       systemName,

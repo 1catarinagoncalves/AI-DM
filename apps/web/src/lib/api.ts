@@ -30,6 +30,7 @@ export const api = {
   createCharacter: (data: {
     userId: string; systemId: string; name: string; gender: string; race: string; class: string
     attributes: Record<string, number>
+    skills?: string[]
   }) => post<{ id: string; name: string }>('/characters', data),
 
   listSystems: () =>

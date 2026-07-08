@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { abilityModifier, formatModifier } from './ability'
+import { abilityModifier, formatModifier, skillModifier } from './ability'
 
 describe('abilityModifier', () => {
   it('cobre os casos de fronteira da tabela 5e', () => {
@@ -21,5 +21,18 @@ describe('formatModifier', () => {
     expect(formatModifier(2)).toBe('+2')
     expect(formatModifier(0)).toBe('0')
     expect(formatModifier(-1)).toBe('-1')
+  })
+})
+
+describe('skillModifier', () => {
+  it('não-proficiente = só o modificador do atributo', () => {
+    expect(skillModifier(16, false, 2)).toBe(3) // Des 16 → +3
+    expect(skillModifier(13, false, 2)).toBe(1) // ímpar → +1
+  })
+
+  it('proficiente soma o bônus de proficiência', () => {
+    expect(skillModifier(16, true, 2)).toBe(5) // +3 +2
+    expect(skillModifier(13, true, 2)).toBe(3) // +1 +2
+    expect(skillModifier(8, true, 2)).toBe(1)  // -1 +2
   })
 })

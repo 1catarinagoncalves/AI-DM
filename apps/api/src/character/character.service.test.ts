@@ -132,4 +132,40 @@ describe('CharacterService.create', () => {
       attributes: { cool: 8 },
     })).rejects.toThrow()
   })
+
+  // US-27: perícias proficientes validadas contra config.skills + proficiency.choices.
+  const configWithSkills: SystemConfig = {
+    ...config,
+    skills: [
+      { key: 'athletics', label: 'Atletismo', ability: 'cool' },
+      { key: 'stealth', label: 'Furtividade', ability: 'hard' },
+      { key: 'perception', label: 'Percepção', ability: 'hard' },
+    ],
+    proficiency: { choices: 2, bonus: 2 },
+  }
+
+  it('persiste exatamente as perícias proficientes escolhidas', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics', 'perception'],
+    })
+    expect(char.skills).toEqual(['athletics', 'perception'])
+  })
+
+  it('rejeita número errado de perícias', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkills))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics'],
+    })).rejects.toThrow('exatamente 2')
+  })
+
+  it('rejeita perícia fora do catálogo', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkills))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics', 'flying'],
+    })).rejects.toThrow('inválida')
+  })
 })

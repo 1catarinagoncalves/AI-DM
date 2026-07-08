@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, type InitialAdventureHook } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, type InitialAdventureHook } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { AiService } from '../ai/ai.service'
 import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
@@ -80,6 +80,11 @@ export class AdventureService {
     // Abertura gerada pelo MESMO DM (US-34), FORA da transação (LLM é lento e não
     // deve segurar locks). Falha/vazio → cai no openingNarration estático do gancho.
     const labelPairs = (config.attributes ?? []).map((a) => [a.key, a.label] as const)
+    // Perícias com modificador para a abertura (US-27): o DM já conhece as competências desde a 1ª cena.
+    const skills = config.skills
+      ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
+        .map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
+      : undefined
     const generatedOpening = await this.ai.generateOpeningNarration({
       systemName: character.system.name,
       characterName: character.name,
@@ -88,7 +93,7 @@ export class AdventureService {
       characterRace: character.race,
       mainQuest: `${hook.primaryQuestTitle}\n${hook.primaryQuestDescription}`,
       inventory: startingInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
-      sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [] },
+      sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
       hookSeed: hook.openingNarration,
       attributeLabels: Object.fromEntries(labelPairs),
     })

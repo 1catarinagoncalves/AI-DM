@@ -13,6 +13,14 @@ const StartingKitItemSchema = z.object({
   qty: z.number().int().min(1),
 })
 
+// Perícia do sistema (US-27). `ability` referencia a `key` de um atributo do
+// próprio config; o modificador da perícia deriva desse atributo + proficiência.
+export const SystemSkillSchema = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+  ability: z.string().min(1),
+})
+
 // Gancho de aventura inicial por classe (US-28). Textos podem conter placeholders
 // {characterName} e {characterClass}, resolvidos no backend antes de persistir.
 export const InitialAdventureHookSchema = z.object({
@@ -33,6 +41,14 @@ export const SystemConfigSchema = z.object({
     .refine(kits => 'default' in kits, { message: 'startingKits precisa de uma chave "default"' }),
   // Orçamento de point-buy da etapa de Atributos (US-26). Ausente → inputs livres min/max.
   pointBuy: z.object({ budget: z.number().int().positive() }).optional(),
+  // Perícias do sistema (US-27). Ausente → etapa de Perícias inativa. Quando presente,
+  // `proficiency.choices` proficiências são escolhidas na criação, cada uma somando
+  // `proficiency.bonus` ao modificador do atributo-âncora.
+  skills: z.array(SystemSkillSchema).optional(),
+  proficiency: z.object({
+    choices: z.number().int().min(0),
+    bonus: z.number().int(),
+  }).optional(),
   // Catálogo de aventuras iniciais (US-28). Opcional para não invalidar configs legados;
   // quando presente, precisa de um hook classKey 'default' obrigatório.
   initialAdventures: z.object({
@@ -44,6 +60,7 @@ export const SystemConfigSchema = z.object({
 })
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
+export type SystemSkill = z.infer<typeof SystemSkillSchema>
 export type InitialAdventureHook = z.infer<typeof InitialAdventureHookSchema>
 export type SystemConfig = z.infer<typeof SystemConfigSchema>
 

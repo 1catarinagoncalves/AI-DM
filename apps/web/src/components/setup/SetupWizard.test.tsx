@@ -23,6 +23,17 @@ const configWithBudget = (budget: number) => ({
   pointBuy: { budget },
 })
 
+// US-27: config com perícias e orçamento de 2 proficiências.
+const configWithSkills = (budget: number) => ({
+  ...configWithBudget(budget),
+  skills: [
+    { key: 'athletics', label: 'Atletismo', ability: 'strength' },
+    { key: 'stealth', label: 'Furtividade', ability: 'strength' },
+    { key: 'perception', label: 'Percepção', ability: 'strength' },
+  ],
+  proficiency: { choices: 2, bonus: 2 },
+})
+
 describe('SetupWizard — catálogo de sistemas via API (US-20)', () => {
   beforeEach(() => listSystems.mockReset())
   afterEach(() => cleanup())
@@ -100,10 +111,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc) // fecha orçamento
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-
-    const skillInputs = [1, 2, 3].map(n => screen.getByLabelText(`Perícia ${n}`))
-    skillInputs.forEach((el, i) => fireEvent.change(el, { target: { value: `Perícia${i}` } }))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // sem perícias no config → livre → revisão
 
     const review = screen.getByRole('heading', { name: 'Revisão' })
     expect(review).toBeTruthy()
@@ -111,6 +119,29 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledTimes(1)
+  })
+
+  // US-27: perícias como lista fechada — exatamente 2 proficientes liberam e são persistidas.
+  it('bloqueia Próximo até 2 perícias e persiste as keys escolhidas', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithSkills(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true) // 0 marcadas
+
+    fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' }))
+    expect(nextBtn().disabled).toBe(true) // 1 marcada
+    fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' }))
+    expect(nextBtn().disabled).toBe(false) // 2 marcadas → libera
+
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ skills: ['athletics', 'perception'] }))
   })
 
   // US-28: depois de Confirmar, o jogador vê a etapa "Aventura inicial" e a inicia.
@@ -123,7 +154,6 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    ;[1, 2, 3].forEach(n => fireEvent.change(screen.getByLabelText(`Perícia ${n}`), { target: { value: `P${n}` } }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
 

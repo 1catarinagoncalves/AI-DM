@@ -13,6 +13,8 @@ const CreateCharacterSchema = z.object({
   class: z.string().min(1).max(40),
   // Atributos dinâmicos: validados contra System.config.attributes no service, não aqui.
   attributes: z.record(z.string(), z.number()),
+  // Perícias proficientes (US-27): keys validadas contra System.config.skills no service.
+  skills: z.array(z.string()).optional(),
 })
 
 @ApiTags('Personagens')
@@ -30,6 +32,7 @@ export class CharacterController {
       race: 'Anão',
       class: 'Guerreiro',
       attributes: { Força: 16, Destreza: 12, Constituição: 15, Inteligência: 10, Sabedoria: 13, Carisma: 8 },
+      skills: ['athletics', 'perception'],
     }),
   })
   @Post()

@@ -49,7 +49,8 @@ export function SetupWizard() {
 
   const [charData, setCharData] = useState({ name: '', gender: '', race: '', class: '' })
   const [attrs, setAttrs] = useState<Record<string, number>>({})
-  const [skills, setSkills] = useState<string[]>(['', '', ''])
+  // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
+  const [skills, setSkills] = useState<string[]>([])
 
   // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
   const [charId, setCharId] = useState('')
@@ -73,6 +74,10 @@ export function SetupWizard() {
 
   const attributes = system?.config?.attributes ?? []
   const budget = system?.config?.pointBuy?.budget
+  // US-27: catálogo de perícias e nº de proficiências a escolher, vindos do config.
+  const skillCatalog = system?.config?.skills ?? []
+  const skillChoices = system?.config?.proficiency?.choices ?? 0
+  const attrLabel = Object.fromEntries(attributes.map(a => [a.key, a.label]))
   // Custo é relativo ao default: o valor inicial de cada atributo é grátis (começa 27/27).
   const spent = attributes.reduce((s, a) => s + ((POINT_COST[attrs[a.key] ?? a.default] ?? 0) - (POINT_COST[a.default] ?? 0)), 0)
   const remaining = budget !== undefined ? budget - spent : 0
@@ -92,7 +97,8 @@ export function SetupWizard() {
           && (RACES as readonly string[]).includes(charData.race)
           && (CLASSES as readonly string[]).includes(charData.class)
       case 'attributes': return budget === undefined || remaining === 0
-      case 'skills': return skills.every(sk => sk.trim() !== '')
+      // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`.
+      case 'skills': return skillChoices === 0 || skills.length === skillChoices
       case 'review': return true
     }
   }
@@ -116,7 +122,7 @@ export function SetupWizard() {
     if (!system) return
     setLoading(true); setError('')
     try {
-      const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs })
+      const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs, skills })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
       saveSession({ userId, userName: charData.name, characterId: char.id, characterName: charData.name, adventureId: '' })
       setCharId(char.id)
@@ -138,6 +144,15 @@ export function SetupWizard() {
       saveSession({ userId, userName: charData.name, characterId: charId, characterName: charData.name, adventureId: adv.id })
       router.push(`/play/${adv.id}?characterId=${charId}`)
     } catch { setError('Erro ao iniciar a aventura. Tenta novamente.'); setStarting(false) }
+  }
+
+  // US-27: marca/desmarca proficiência; bloqueia marcar além do orçamento.
+  function toggleSkill(key: string) {
+    setSkills(p => {
+      if (p.includes(key)) return p.filter(k => k !== key)
+      if (p.length >= skillChoices) return p
+      return [...p, key]
+    })
   }
 
   function setAttr(key: string, delta: number, min: number, max: number) {
@@ -306,15 +321,24 @@ export function SetupWizard() {
         {step === 'skills' && system && (
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Perícias</h1>
-            {/* TODO US-27: trocar texto livre por lista fechada do SystemConfig + orçamento. */}
-            <p className="text-stone-500 dark:text-stone-400 text-sm">Escreve 3 perícias do teu personagem.</p>
-            <div className="space-y-3">
-              {skills.map((sk, i) => (
-                <input key={i} placeholder={`Perícia ${i + 1}`} aria-label={`Perícia ${i + 1}`}
-                  value={sk}
-                  onChange={e => setSkills(p => p.map((v, j) => j === i ? e.target.value : v))}
-                  className={inputClass} />
-              ))}
+            <p className="text-stone-500 dark:text-stone-400 text-sm">
+              Escolhe <span className="font-semibold">{skillChoices}</span> perícias proficientes (+{system.config?.proficiency?.bonus ?? 2} cada).
+              Selecionadas: <span className={`font-semibold ${skills.length === skillChoices ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{skills.length}</span>/{skillChoices}
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {skillCatalog.map(sk => {
+                const on = skills.includes(sk.key)
+                const full = !on && skills.length >= skillChoices
+                return (
+                  <button key={sk.key} type="button" onClick={() => toggleSkill(sk.key)}
+                    disabled={full}
+                    aria-pressed={on}
+                    className={`text-left rounded px-3 py-2 border text-sm disabled:opacity-40 disabled:cursor-not-allowed ${on ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 hover:border-amber-500'}`}>
+                    <span className="block font-medium text-stone-900 dark:text-white">{sk.label}</span>
+                    <span className="block text-xs text-stone-500 dark:text-stone-400">{attrLabel[sk.ability] ?? sk.ability}</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
@@ -343,7 +367,11 @@ export function SetupWizard() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-stone-500 dark:text-stone-400">Perícias</dt>
-                <dd className="text-stone-900 dark:text-white font-medium text-right">{skills.join(' · ')}</dd>
+                <dd className="text-stone-900 dark:text-white font-medium text-right">
+                  {skills.length > 0
+                    ? skills.map(k => skillCatalog.find(s => s.key === k)?.label ?? k).join(' · ')
+                    : '—'}
+                </dd>
               </div>
             </dl>
           </div>

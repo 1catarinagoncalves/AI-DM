@@ -15,6 +15,8 @@ export interface DmCharacterSheet {
   maxHp: number
   attributes: Record<string, number>
   conditions: string[]
+  /** Perícias com modificador já computado (US-27). Ausente → sistema sem perícias. */
+  skills?: { label: string; modifier: number; proficient: boolean }[]
 }
 
 export function buildDmSystemPrompt(params: {
@@ -37,12 +39,18 @@ export function buildDmSystemPrompt(params: {
   const attributesLine = Object.entries(sheet.attributes)
     .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value} (${formatModifier(abilityModifier(value))})`)
     .join(', ')
+  // Todas as perícias numa linha, com o modificador já formatado; `*` marca as
+  // proficientes (US-27). O mestre precisa da tabela completa para decidir o
+  // resultado de QUALQUER teste, não só das proficientes.
+  const skillsLine = (sheet.skills ?? [])
+    .map((s) => `${s.label} ${formatModifier(s.modifier)}${s.proficient ? '*' : ''}`)
+    .join(', ')
   const sheetSection = `## Character sheet (read-only — source of truth, managed by the Game Server)
 This is the authoritative current state of the character. Trust it and narrate coherently with it — a low HP or an active condition MUST be reflected in tone and stakes. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
 - Level: ${sheet.level}
 - HP: ${sheet.hp}/${sheet.maxHp}
 - Conditions: ${sheet.conditions.length > 0 ? sheet.conditions.join(', ') : 'none'}
-- Attributes: ${attributesLine || 'none'}`
+- Attributes: ${attributesLine || 'none'}${skillsLine ? `\n- Skills (modifier; * = proficient): ${skillsLine}` : ''}`
 
   const sceneText = formatSceneState(sceneState)
   const sceneSection = sceneText

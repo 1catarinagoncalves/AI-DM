@@ -31,6 +31,8 @@ interface Props {
   attributes?: Record<string, number>
   inventory?: InventoryItem[]
   conditions?: string[]
+  // US-27: todas as perícias com modificador já computado.
+  skills?: { key: string; label: string; modifier: number; proficient: boolean }[]
 }
 
 function historyKey(adventureId: string) {
@@ -50,7 +52,7 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(messages))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -234,6 +236,22 @@ export function GameView({ adventureId, characterId, characterName, characterCla
               </div>
             ))}
           </div>
+          </div>
+        )}
+
+        {skills && skills.length > 0 && (
+          <div className="md:w-full">
+            <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Perícias</p>
+            <ul className="space-y-1 max-h-56 overflow-y-auto pr-1">
+              {skills.map(sk => (
+                <li key={sk.key} className="text-xs flex justify-between gap-2">
+                  <span className={sk.proficient ? 'text-amber-700 dark:text-amber-300 font-medium' : 'text-stone-700 dark:text-stone-300'}>
+                    {sk.proficient && <span aria-label="proficiente" title="Proficiente">● </span>}{sk.label}
+                  </span>
+                  <span className="text-stone-500 dark:text-stone-400 shrink-0 tabular-nums">{formatModifier(sk.modifier)}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
