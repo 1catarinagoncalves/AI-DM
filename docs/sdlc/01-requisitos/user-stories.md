@@ -88,6 +88,12 @@ Como jogador, quero que nenhum resultado de rolagem inventado pelo LLM apareça 
 > Rede de segurança determinística sobre a narração: `stripFabricatedRolls` remove da prosa qualquer resultado numérico de teste (o breakdown legítimo vem do evento `DICE`/painel — [US-09](#)). O `rollDice` do Game Server ([`dice.service.ts`](../../../apps/api/src/game/dice.service.ts)) segue como única autoridade de rolagem. Endurece o gate "desafio real vs. trivial" já esboçado no prompt do DM.
 > Detalhamento completo em [`US-29-saneamento-de-rolagens-ficticias.md`](./US-29-saneamento-de-rolagens-ficticias.md).
 
+**US-38** — Rolagens ancoradas na ficha  
+Como jogador, quero que cada rolagem use o modificador real da minha ficha (a perícia/atributo testado) e que uma ação gere um único teste, para não ver um `+6` que nenhuma perícia dá nem duas rolagens para a mesma coisa.  
+
+> O `rollDice` deixa de aceitar modificador livre do LLM: o modelo diz a `key` da perícia/atributo testado e o Game Server resolve o modificador via `buildSkillSheet` ([US-27](./US-27-pericias-do-personagem.md)). Guarda de dedupe coalesce testes repetidos da mesma perícia no turno. Complementa [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (número certo, uma vez).
+> Detalhamento completo em [`US-38-rolagens-ancoradas-na-ficha.md`](./US-38-rolagens-ancoradas-na-ficha.md).
+
 **US-23** — DM ciente da ficha completa (injeção dirigida por dados)  
 Como jogador, quero que o mestre tenha ciência de tudo na minha ficha (atributos, HP, nível, condições e o que for adicionado no futuro), sem precisar reescrever o prompt a cada campo novo.
 

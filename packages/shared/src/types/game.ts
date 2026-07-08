@@ -5,6 +5,15 @@ export interface DiceResult {
   total: number
 }
 
+/** US-29: turno de rolagem exibido no chat (bloco antes da narração). */
+export interface RollTurn extends DiceResult {
+  role: 'roll'
+  label: string
+}
+
+/** Uma linha do histórico de jogo servido/renderizado (US-18 + US-29). */
+export type ChatTurn = { role: 'user' | 'dm'; content: string } | RollTurn
+
 export interface EventLogEntry {
   id: string
   adventureId: string

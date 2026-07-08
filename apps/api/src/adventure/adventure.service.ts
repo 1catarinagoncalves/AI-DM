@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, buildSkillSheet, type InitialAdventureHook } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { AiService } from '../ai/ai.service'
 import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
@@ -153,21 +153,29 @@ export class AdventureService {
   }
 
   /**
-   * Histórico visível ao jogador (US-18): turnos ACTION/NARRATION em ordem
-   * cronológica, mapeados para o formato do chat. Inclui os já `summarized` —
-   * a condensação da memória não deve apagar a conversa da tela.
+   * Histórico visível ao jogador (US-18): turnos ACTION/NARRATION/DICE_ROLL em
+   * ordem cronológica, mapeados para o formato do chat. Inclui os já
+   * `summarized` — a condensação da memória não deve apagar a conversa da tela.
    */
-  async getTurns(characterId: string, adventureId: string): Promise<{ role: 'user' | 'dm'; content: string }[]> {
+  async getTurns(characterId: string, adventureId: string): Promise<ChatTurn[]> {
     const logs = await this.prisma.eventLog.findMany({
-      where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION'] } },
+      where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION', 'DICE_ROLL'] } },
       orderBy: { createdAt: 'asc' },
     })
 
     return logs
-      .map((log) => ({
-        role: (log.type === 'NARRATION' ? 'dm' : 'user') as 'user' | 'dm',
-        content: (log.payload as { text?: string }).text ?? '',
-      }))
-      .filter((m) => m.content.trim().length > 0)
+      .map((log): ChatTurn => {
+        if (log.type === 'DICE_ROLL') {
+          // US-29: bloco de rolagem, na ordem cronológica (antes da narração do
+          // turno). O número vem do payload do Game Server, nunca da prosa.
+          const p = log.payload as { formula: string; reason: string; rolls: number[]; modifier: number; total: number }
+          return { role: 'roll', label: p.reason, formula: p.formula, rolls: p.rolls, modifier: p.modifier, total: p.total }
+        }
+        // US-29: sanea narrações no replay — linhas persistidas antes do saneador
+        // no persist ainda podem conter número inventado.
+        const content = stripFabricatedRolls((log.payload as { text?: string }).text ?? '').clean
+        return { role: log.type === 'NARRATION' ? 'dm' : 'user', content }
+      })
+      .filter((m) => m.role === 'roll' || m.content.trim().length > 0)
   }
 }

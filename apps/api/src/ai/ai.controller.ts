@@ -77,6 +77,17 @@ export class AiController {
               res.write('I:' + JSON.stringify(p.result.inventory) + '\n')
             } else if (p.toolName === 'updateCharacterHp' && typeof p.result?.hp === 'number') {
               res.write('H:' + JSON.stringify({ hp: p.result.hp, maxHp: p.result.maxHp }) + '\n')
+            } else if (p.toolName === 'rollDice' && typeof p.result?.total === 'number') {
+              // US-29: bloco de rolagem REAL, emitido antes dos tokens de narração
+              // do step (a rollDice resolve antes do texto). O jogador vê o número
+              // do sistema primeiro; a prosa só o interpreta.
+              res.write('D:' + JSON.stringify({
+                label: p.result.reason,
+                formula: p.result.formula,
+                rolls: p.result.rolls,
+                modifier: p.result.modifier,
+                total: p.result.total,
+              }) + '\n')
             }
           } else if (part.type === 'text-delta') {
             if (curStepText === '' && COMPLETE_NARRATION.test(prevStepText)) {

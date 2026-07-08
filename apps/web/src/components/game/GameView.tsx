@@ -1,14 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { abilityModifier, formatModifier } from '@ai-dm/shared'
+import { abilityModifier, formatModifier, stripFabricatedRolls, formatDiceBreakdown } from '@ai-dm/shared'
+import type { ChatTurn, RollTurn } from '@ai-dm/shared'
 import { loadSession, saveSession } from '@/lib/session'
 import { api } from '@/lib/api'
 
-interface Message {
-  role: 'user' | 'dm'
-  content: string
-}
+// US-29: um turno é ação do jogador, narração do Mestre OU um bloco de rolagem.
+type Message = ChatTurn
 
 const ATTR_LABELS: Record<string, string> = {
   strength: 'FOR', dexterity: 'DES', constitution: 'CON',
@@ -96,6 +95,9 @@ export function GameView({ adventureId, characterId, characterName, characterCla
     setStreaming(true)
 
     let dmText = ''
+    // US-29: rolagens reais do turno, na ordem em que chegam (sempre antes da
+    // narração — a rollDice resolve antes do texto).
+    const rollTurns: RollTurn[] = []
     const withDmPlaceholder: Message[] = [...withUser, { role: 'dm', content: '' }]
     setMessages(withDmPlaceholder)
 
@@ -133,6 +135,21 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           } catch { /* ignore malformed */ }
           return
         }
+        if (line.startsWith('D:')) {
+          // US-29: bloco de rolagem real — inserido ANTES da bolha de narração
+          // em construção (a rollDice resolve antes do texto).
+          try {
+            const r = JSON.parse(line.slice(2))
+            const roll: RollTurn = { role: 'roll', label: r.label ?? '', formula: r.formula, rolls: r.rolls, modifier: r.modifier, total: r.total }
+            rollTurns.push(roll)
+            setMessages(prev => {
+              const next = [...prev]
+              next.splice(next.length - 1, 0, roll) // antes do placeholder do Mestre
+              return next
+            })
+          } catch { /* ignore malformed */ }
+          return
+        }
         if (!line.startsWith('0:"')) return
         const token = line.slice(3, -1)
           .replace(/\\n/g, '\n')
@@ -164,7 +181,12 @@ export function GameView({ adventureId, characterId, characterName, characterCla
       // Processa qualquer linha completa remanescente no buffer.
       if (buffer.length > 0) handleLine(buffer)
 
-      const finalMessages: Message[] = [...withUser, { role: 'dm', content: dmText }]
+      // US-29: sanea a narração final (remove qualquer resultado de rolagem que
+      // o modelo tenha escrito na prosa apesar do prompt). O número real está
+      // no bloco de rolagem acima; a prosa só o interpreta.
+      const cleanDm = stripFabricatedRolls(dmText).clean
+      const finalMessages: Message[] = [...withUser, ...rollTurns, { role: 'dm', content: cleanDm }]
+      setMessages(finalMessages)
       saveHistory(adventureId, finalMessages)
 
     } catch {
@@ -286,25 +308,40 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             </div>
           )}
 
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {msg.role === 'dm' && (
-                <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900 border border-amber-500 dark:border-amber-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0 text-sm text-amber-700 dark:text-amber-300">
-                  ✦
+          {messages.map((msg, i) => {
+            // US-29: bloco de rolagem REAL do sistema — mostrado antes da
+            // narração. Número vindo do Game Server, nunca da prosa.
+            if (msg.role === 'roll') {
+              return (
+                <div key={i} className="flex justify-center">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-amber-400 dark:border-amber-600 bg-amber-100 dark:bg-amber-950 px-3 py-1.5 text-xs">
+                    <span aria-hidden>🎲</span>
+                    {msg.label && <span className="font-semibold text-amber-800 dark:text-amber-200">{msg.label}</span>}
+                    <span className="font-mono tabular-nums text-stone-800 dark:text-stone-100">{formatDiceBreakdown(msg)}</span>
+                  </div>
                 </div>
-              )}
-              <div className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-                msg.role === 'user'
-                  ? 'bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-white rounded-br-sm'
-                  : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 rounded-bl-sm'
-              }`}>
-                {msg.content}
-                {streaming && i === messages.length - 1 && msg.role === 'dm' && (
-                  <span className="inline-block w-2 h-4 bg-amber-500 dark:bg-amber-400 ml-1 animate-pulse align-text-bottom" />
+              )
+            }
+            return (
+              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {msg.role === 'dm' && (
+                  <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900 border border-amber-500 dark:border-amber-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0 text-sm text-amber-700 dark:text-amber-300">
+                    ✦
+                  </div>
                 )}
+                <div className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                  msg.role === 'user'
+                    ? 'bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-white rounded-br-sm'
+                    : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 rounded-bl-sm'
+                }`}>
+                  {msg.content}
+                  {streaming && i === messages.length - 1 && msg.role === 'dm' && (
+                    <span className="inline-block w-2 h-4 bg-amber-500 dark:bg-amber-400 ml-1 animate-pulse align-text-bottom" />
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
           <div ref={bottomRef} />
         </div>
 

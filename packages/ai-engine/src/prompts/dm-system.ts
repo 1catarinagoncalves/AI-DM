@@ -125,6 +125,8 @@ ${summarySection}${rulesSection}
 
 ## Critical rules you must always follow
 - NEVER generate, invent, or assume random numbers or dice results yourself. Any chance-based outcome MUST come from a real \`rollDice\` call. It is FORBIDDEN to write a result such as "Com um total de 20 no teste de Percepção..." (or "with a total of X on the check...") unless that EXACT number was returned to you by \`rollDice\` in THIS turn.
+- NEVER print a dice number in the prose AT ALL — not even a real one. The system displays the roll (formula + result) in a dedicated block BEFORE your narration. Your prose must interpret the outcome QUALITATIVELY only (high = success, low = failure/complication): "your blade finds the gap", not "you rolled a 17". A sanitizer will DELETE any check result number you write, so writing one only breaks your own sentence.
+- If the PLAYER explicitly asks to roll ("quero rolar 1d20", "rolo Percepção"), you STILL route it through \`rollDice\` — never narrate a number yourself. The player's requested roll is a real system roll like any other.
 - NEVER modify character state in your narration. Use \`updateCharacterHp\` and other tools.
 - INVENTORY: whenever the character acquires an item (receives, picks up, buys) or loses one (uses, gives away, drops, destroys), call \`updateInventory\` BEFORE narrating the result. Pass ONLY the items that CHANGED this turn — positive delta to add, negative delta to remove. NEVER re-send items the character already carries (see "Current inventory" above); doing so duplicates them. If nothing was gained or lost this turn, do NOT call the tool at all. If the tool returns an error (inventory full), narrate that the character cannot carry more items.
 - Respond in the same language the player wrote in.
@@ -135,7 +137,7 @@ ${summarySection}${rulesSection}
 
 Each player action produces EXACTLY ONE narration. Follow this order strictly, every turn:
 
-1. FIRST, resolve mechanics. Roll ONLY when the player's CHOSEN action genuinely has an uncertain outcome (e.g. they attack, sneak, pick a lock, search on purpose). Do NOT spontaneously inject ability checks — especially Perception — that the player never triggered. Most narration (moving, talking, describing, reacting) needs NO roll at all; in that case call no tool and just narrate. When a roll IS warranted, call \`rollDice\`, WAIT for the result, and do not write narrative prose yet — not even a draft.
+1. FIRST, resolve mechanics. Roll ONLY when the player's CHOSEN action is a REAL challenge to the character with a genuinely uncertain outcome (e.g. they attack, sneak, pick a lock, search on purpose). TRIVIAL actions NEVER roll: walking to the tavern, opening an unlocked door, talking, describing, looking around, reading a letter — just narrate. Do NOT spontaneously inject ability checks — especially Perception — that the player never triggered (WRONG: "roll to walk across the square"). Most narration needs NO roll at all; in that case call no tool and just narrate. When a roll IS warranted, call \`rollDice\`, WAIT for the result, and do not write narrative prose yet — not even a draft.
 2. THEN write a SINGLE narration that already incorporates the resolved results, followed by the choice options.
 3. STOP. Your turn is over. NEVER restate, rewrite, expand, "redo", or narrate the same scene a second time. One action → one roll (if needed) → one scene → one set of options.
 

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { streamText, generateText, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig } from '@ai-dm/shared'
-import { buildSkillSheet } from '@ai-dm/shared'
+import { buildSkillSheet, stripFabricatedRolls } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -150,7 +150,9 @@ export class AiService {
               payload: { formula, reason, rolls: result.rolls, modifier: result.modifier, total: result.total },
             },
           })
-          return result
+          // Devolve a `reason` junto para o controller rotular o bloco de rolagem
+          // no stream (US-29 frame `D:`).
+          return { ...result, reason }
         },
       }),
 
@@ -320,7 +322,14 @@ export class AiService {
           if (COMPLETE_NARRATION.test(shown)) shown = ''
           shown += t
         }
-        const finalText = (shown || text).trim()
+        // US-29: rede de segurança — remove da narração qualquer resultado de
+        // rolagem inventado pelo modelo ANTES de persistir. O número real vive
+        // só no bloco de rolagem (evento DICE_ROLL), nunca na prosa. Assim o
+        // histórico e o resumo (US-18) nunca realimentam a alucinação.
+        const { clean: finalText, removed } = stripFabricatedRolls((shown || text).trim())
+        if (removed.length > 0) {
+          console.warn(`[AiService] saneador removeu ${removed.length} rolagem(ns) fictícia(s) da narração:`, removed)
+        }
         // Só registra o turno (ação + narração) quando ele de fato produziu
         // narração. Uma tentativa que falhou antes de emitir texto não grava
         // nada, evitando duplicar a ação quando o fallback assume.

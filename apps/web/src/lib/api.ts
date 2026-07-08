@@ -1,4 +1,4 @@
-import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
+import type { InitialAdventureHook, SystemConfig, ChatTurn } from '@ai-dm/shared'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
@@ -51,5 +51,5 @@ export const api = {
   deleteCharacter: (id: string) => del(`/characters/${id}`),
 
   getTurns: (characterId: string, adventureId: string) =>
-    get<{ role: 'user' | 'dm'; content: string }[]>(`/characters/${characterId}/adventures/${adventureId}/turns`),
+    get<ChatTurn[]>(`/characters/${characterId}/adventures/${adventureId}/turns`),
 }

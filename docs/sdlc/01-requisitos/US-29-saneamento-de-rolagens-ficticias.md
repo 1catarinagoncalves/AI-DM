@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-09](#) (rolagem transparente — a `rollDice` do Game Server é a ÚNICA fonte legítima de resultado; esta story protege esse contrato) · [US-34](./US-34-qualidade-da-narracao-do-dm.md) (o prompt do DM já proíbe inventar números — `dm-system.ts:81,127,138`; esta story adiciona a rede de segurança que garante quando o modelo desobedece)
 **Alimenta:** [US-18](./US-18-historico-servido-pela-api.md) (o histórico persistido não realimenta rolagens inventadas nos turnos seguintes) · [US-23](./US-23-dm-ciente-da-ficha.md) (a ficha injetada continua sendo a única mecânica; a prosa não vira fonte paralela)
 **Criada em:** 2026-07-08
@@ -113,27 +113,27 @@ Regra de corte: **remover a frase** (do início até o `.`/`!`/`?`/quebra de lin
 
 > **Falsos positivos:** números que não são rolagem (HP, "3 goblins", "duas moedas", ano, hora) **não** casam — os padrões exigem vocabulário de rolagem/teste perto do número. Casos de fronteira ("levou 8 de dano") ficam **de fora** do escopo desta story: dano é resultado de mecânica já resolvida por tool, não uma rolagem narrada; só filtramos o vocabulário de *rolagem/teste*. Cada padrão nasce com um caso no teste.
 
-**Onde vive (fonte única):** `packages/shared/src/narration/strip-rolls.ts`, exportado pelo índice do pacote. Servidor (`ai.service.ts`) e cliente (`GameView.tsx`) chamam **a mesma** função — um saneador, dois pontos de chamada.
+**Onde vive (fonte única):** `packages/shared/src/narration.ts`, exportado pelo índice do pacote. Servidor (`ai.service.ts`) e cliente (`GameView.tsx`) chamam **a mesma** função — um saneador, dois pontos de chamada.
 
 ---
 
 ## Critérios de aceite
 
-- [ ] Uma rolagem real (`rollDice`) aparece como um **bloco de rolagem distinto ANTES** da narração do mestre daquele turno, com rótulo (`reason`) e breakdown (`1d20+5: [14] +5 = 19` — mesmo dado de US-09). (`GameView.tsx` + frame `D:` em `ai.service.ts`)
-- [ ] O número no bloco é **exatamente** o `total`/`rolls` do evento `DICE` do Game Server — não um valor da prosa. (o bloco lê o `DiceResult`, não o texto)
-- [ ] Após reload, o bloco de rolagem persiste e reaparece na posição certa (antes da narração daquele turno). (`getTurns` inclui eventos `DICE` — US-18)
-- [ ] Existe `stripFabricatedRolls(text)` puro em `packages/shared`, sem dependência de runtime, exportado pelo índice do pacote. (`packages/shared/src/narration/strip-rolls.ts`)
-- [ ] Dada a prosa `"Com um total de 20 no teste de Percepção, você nota a sombra."`, a saída **não** contém `20`, nem `total`, nem `teste de Percepção`, mas preserva a frase seguinte se houver. (teste unitário PT-BR)
-- [ ] Idem para EN: `"You roll a 17 on your Stealth check and slip past."` → removido. (teste unitário EN)
-- [ ] Um breakdown na prosa (`"1d20+5: [14] +5 = 19"`) é removido do texto exibido — o breakdown legítimo vem do evento `DICE`/painel (US-09), nunca da narração.
-- [ ] Números que **não** são rolagem sobrevivem: `"Três goblins bloqueiam a ponte; você tem 8 de HP."` passa **intacto**. (teste de falso-positivo)
-- [ ] O saneador roda no servidor **antes** de persistir a `NARRATION` e de alimentar o resumo: um turno em que o modelo vazou um resultado grava no `EventLog` o texto **já limpo**. (`ai.service.ts` `onFinish` + teste)
-- [ ] O saneador roda no cliente sobre o buffer renderizado: um vazamento no stream não permanece na tela após a linha fechar. (`GameView.tsx`)
-- [ ] Quando o saneador remove algo, há um log/contador de vazamento (para US-17). (verificável no console/telemetria)
-- [ ] O prompt do DM deixa explícito que **só** ações de desfecho incerto escolhidas pelo jogador disparam `rollDice`; trivialidades (andar, falar, inspecionar item carregado) **não** rolam. (`dm-system.ts`)
-- [ ] Quando o jogador **pede** uma rolagem ("quero rolar 1d20"), o mestre chama `rollDice` e o número exibido é o do evento `DICE` do Game Server — não um valor narrado à parte. O prompt instrui isso explicitamente. (`dm-system.ts` + eval de comportamento)
-- [ ] **Eval / teste de regressão (saneador):** tabela de casos `(prosa com resultado inventado) → (prosa sem número de teste)` passa, incluindo PT-BR, EN e o caso de falso-positivo. (`evals/cases/us-29-rolagens.ts`)
-- [ ] **Eval / teste de regressão (gate):** um cenário-isca em que o jogador apenas atravessa a praça (ação trivial) não produz, na saída final saneada, nenhum resultado de rolagem. (`evals/cases/us-29-rolagens.ts`)
+- [x] Uma rolagem real (`rollDice`) aparece como um **bloco de rolagem distinto ANTES** da narração do mestre daquele turno, com rótulo (`reason`) e breakdown (`1d20+5: [14] +5 = 19` — mesmo dado de US-09). Frame `D:` emitido no `tool-result` do `rollDice`, renderizado antes da bolha do Mestre. (`ai.controller.ts` + `GameView.tsx`)
+- [x] O número no bloco é **exatamente** o `total`/`rolls` do evento `DICE_ROLL` do Game Server — não um valor da prosa. O bloco lê o `DiceResult` (`formatDiceBreakdown`), nunca o texto. (`GameView.tsx`)
+- [x] Após reload, o bloco de rolagem persiste e reaparece na posição certa (antes da narração daquele turno). `getTurns` inclui os eventos `DICE_ROLL` na ordem cronológica. (`adventure.service.ts` — US-18)
+- [x] Existe `stripFabricatedRolls(text)` puro em `packages/shared`, sem dependência de runtime, exportado pelo índice do pacote. (`packages/shared/src/narration.ts`)
+- [x] Dada a prosa `"Com um total de 20 no teste de Percepção, você nota a sombra."`, a saída **não** contém `20`, nem `total`, nem `teste de Percepção`, mas preserva a frase seguinte. (`narration.test.ts`)
+- [x] Idem para EN: `"You roll a 17 on your Stealth check and slip past."` → removido. (`narration.test.ts`)
+- [x] Um breakdown na prosa (`"1d20+5: [14] +5 = 19"`) é removido do texto exibido — o breakdown legítimo vem do evento `DICE_ROLL`/bloco (US-09), nunca da narração. (`narration.test.ts`)
+- [x] Números que **não** são rolagem sobrevivem: `"Três goblins bloqueiam a ponte; você tem 8 de HP."` passa **intacto**. (`narration.test.ts` — falso-positivo)
+- [x] O saneador roda no servidor **antes** de persistir a `NARRATION` e de alimentar o resumo: um turno em que o modelo vazou um resultado grava no `EventLog` o texto **já limpo**. (`ai.service.ts` `onFinish`)
+- [x] O saneador roda no cliente: a narração final exibida/gravada passa por `stripFabricatedRolls` (granularidade de frase, na conclusão do stream). `getTurns` também sanea narrações antigas no replay. (`GameView.tsx` + `adventure.service.ts`)
+- [x] Quando o saneador remove algo, há `console.warn` com a lista removida (para US-17). (`ai.service.ts`)
+- [x] O prompt do DM deixa explícito que **só** ações de desfecho incerto escolhidas pelo jogador disparam `rollDice`; trivialidades (andar, falar, inspecionar item carregado) **não** rolam — com exemplo WRONG. (`dm-system.ts`)
+- [x] Quando o jogador **pede** uma rolagem ("quero rolar 1d20"), o prompt instrui a rotear por `rollDice`, e a prosa nunca cita número (narração qualitativa). (`dm-system.ts`)
+- [x] **Eval / teste de regressão (saneador):** tabela de casos `(prosa com resultado inventado) → (prosa sem número de teste)` passa, incluindo PT-BR, EN e o falso-positivo. (`evals/cases/us-29-rolagens.ts`)
+- [x] **Eval / teste de regressão (gate):** o prompt afirma determinísticamente as regras "trivial não rola", "número qualitativo" e "pedido do jogador via `rollDice`". A obediência do modelo em si depende do LLM e não roda no eval determinístico (como em US-27). (`evals/cases/us-29-rolagens.ts`)
 
 ---
 
@@ -165,7 +165,8 @@ Regra de corte: **remover a frase** (do início até o `.`/`!`/`?`/quebra de lin
 
 ## Referências no código
 
-- `packages/shared/src/narration/strip-rolls.ts` — **novo**: `stripFabricatedRolls` (função pura + teste ao lado).
+- `packages/shared/src/narration.ts` — **novo**: `stripFabricatedRolls` + `formatDiceBreakdown` (puros + `narration.test.ts` ao lado). `types/game.ts` — `RollTurn`/`ChatTurn`.
+- `apps/api/src/ai/ai.controller.ts` — loop do `fullStream`; emite o frame `D:` no `tool-result` do `rollDice` (espelho de `I:`/`H:`).
 - `apps/api/src/ai/ai.service.ts` — `onFinish` (`:308-336`); aplicar o saneador em `finalText` antes de persistir a `NARRATION` e de `summarizeOldTurns`. Também o binding de `rollDice` (`:136-158`) e o evento `DICE` (`:145`) — fonte legítima que a story protege.
 - `apps/web/src/components/game/GameView.tsx` — `handleLine` (`:113-147`, ramos `I:`/`H:`); adicionar ramo `D:` e o tipo de mensagem `roll` + render do bloco; aplicar o saneador no buffer de narração. `loadHistory`/`getTurns` (`:68-72`) devem trazer os eventos `DICE`.
 - `apps/api/src/adventure/adventure.service.ts` (ou onde vive `getTurns`) — mapa de `EventLog`; incluir `DICE` na sequência de turnos servida (hoje só `NARRATION`/`ACTION`).
