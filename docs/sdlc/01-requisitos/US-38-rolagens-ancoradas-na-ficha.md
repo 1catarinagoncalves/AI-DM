@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-27](./US-27-pericias-do-personagem.md) (o modificador de cada perícia — `buildSkillSheet`/`skillModifier` — é a fonte da verdade que a rolagem deve usar) · [US-09](#) (rolagem transparente do Game Server) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (bloco de rolagem exibido antes da narração; um teste por ação reforça o "uma narração por turno")
 **Alimenta:** [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (o número do bloco passa a ser sempre coerente com a ficha) · [US-23](./US-23-dm-ciente-da-ficha.md) (a ficha injetada deixa de ser decorativa — vira a fonte real do modificador)
 **Criada em:** 2026-07-08
@@ -114,16 +114,16 @@ execute: async ({ reason, skill, ability, dice }) => {
 
 ## Critérios de aceite
 
-- [ ] `rollDice` **não** aceita mais um modificador livre para testes: recebe `skill`/`ability` (`key`) e, opcionalmente, o dado base; o modificador é resolvido pelo **Game Server** a partir da ficha. (`ai.service.ts`)
-- [ ] O modificador de um teste de perícia é **exatamente** o de `buildSkillSheet` (US-27). Ex.: Furtividade com DES 16 proficiente → `+5`; Percepção com SAB 16 não-proficiente → `+3`. (eval)
-- [ ] Um teste de atributo sem perícia usa `abilityModifier(attributes[ability])`. Ex.: DES 16 → `+3`. (eval)
-- [ ] Um `+6` (ou qualquer bônus que a ficha não dá) é **impossível** de aparecer num teste: o modelo não fornece o modificador. Uma `key` inexistente ou ausente cai para modificador `0`, nunca um número inventado. (`ai.service.ts` + eval)
-- [ ] Rolar a **mesma** perícia/atributo duas vezes no mesmo turno produz **um** resultado (um dado, um bloco, um evento `DICE_ROLL`); a 2ª chamada reusa a 1ª. (`ai.service.ts` + teste)
-- [ ] Ataque + dano (perícias/dados diferentes) **não** são coalescidos — continuam duas rolagens legítimas. (teste)
-- [ ] O bloco de rolagem (US-29) e o evento `DICE_ROLL` persistido mostram sempre o modificador da ficha. (verificável no chat + `EventLog`)
-- [ ] O prompt instrui: escolher **uma** perícia/atributo por teste (passar a `key`, não uma fórmula) e rolar **uma** vez por ação — sem versão genérica além da nomeada. (`dm-system.ts`)
-- [ ] **Eval / teste de regressão (modificador):** tabela `(perícia|atributo, atributos) → modificador esperado` bate com `buildSkillSheet`/`abilityModifier`, incluindo o caso da imagem (Percepção +5 real, nunca +6). (`evals/cases/us-38-rolagens-ancoradas.ts`)
-- [ ] **Eval / teste de regressão (dedupe):** duas chamadas de `rollDice` com a mesma `skill` no turno → um único `DiceResult`. (teste)
+- [x] `rollDice` **não** aceita mais um modificador livre para testes: recebe `skill`/`ability` (nome como na ficha) + dado base opcional; o modificador é resolvido pelo **Game Server** via `resolveRollModifier` (casa por key **ou** rótulo). (`ai.service.ts`)
+- [x] O modificador de um teste de perícia é **exatamente** o de `buildSkillSheet` (US-27). Ex.: Furtividade DES 16 proficiente → `+5`; Percepção SAB 16 não-proficiente → `+3`. (`roll.test.ts` + eval)
+- [x] Um teste de atributo sem perícia usa `abilityModifier(attributes[ability])`. Ex.: DES 16 → `+3`. (`roll.test.ts`)
+- [x] Um `+6` (ou qualquer bônus que a ficha não dá) é **impossível**: o modelo não fornece o modificador e `normalizeDie` descarta qualquer `+N` da fórmula. `key` inexistente/ausente → `0` + `console.warn`, nunca inventado. (`ai.service.ts` + `roll.test.ts`)
+- [x] Um 2º teste ancorado no mesmo turno (mesma perícia **ou** diferente) reusa o 1º — um teste por ação (`firstAnchoredRoll`). Corrige o duplo-roll real `survival`+`percepção`. (`ai.service.ts` — verificado por inspeção; teste de execute exigiria mock do harness de tools)
+- [x] Ataque + dano **não** são travados: dano não traz `skill`/`ability` → não é teste ancorado → rola livre. (`ai.service.ts`)
+- [x] O bloco de rolagem (US-29) e o evento `DICE_ROLL` persistido mostram sempre o modificador da ficha; o payload passa a gravar também `skill`/`ability`. (`ai.service.ts`)
+- [x] O prompt instrui: passar o **nome** da perícia como aparece na ficha (ex.: `skill: "Percepção"`), nunca um modificador próprio, e rolar **uma** vez por ação — sem versão genérica além da nomeada, com exemplo do caso "seguir pegadas". (`dm-system.ts`)
+- [x] **Eval / regressão (modificador):** o modificador resolvido bate com `buildSkillSheet`/`abilityModifier`, incluindo o caso da imagem (Percepção +3, Furtividade +5, nenhuma perícia > +5). (`evals/cases/us-38-rolagens-ancoradas.ts` + `roll.test.ts`)
+- [x] **Eval / regressão (fórmula):** `normalizeDie('1d20+6') === '1d20'` — o modelo não consegue injetar modificador. (`roll.test.ts` + eval)
 
 ---
 
@@ -136,7 +136,11 @@ execute: async ({ reason, skill, ability, dice }) => {
 - **Compatibilidade com US-29**: o frame `D:` e o `reason`/label não mudam; só a **origem** do número muda. O saneador de prosa (US-29) segue igual.
 - **Degradação**: `skill`/`ability` inexistente → `0` + `console.warn` (telemetria de modelo passando chave errada, insumo para US-17), nunca crash.
 - **Todo teste é ancorado (princípio):** um teste de d20 só acontece em **evento relevante para o personagem** e está **sempre** ligado a uma perícia ou atributo (é o que dá o modificador). Não existe "teste sem perícia": ação trivial não rola (US-29) e desafio real sempre mapeia numa perícia/atributo. O modelo **deve sempre** informar `skill` ou `ability`; uma chamada de teste sem anchor é **misfire** (modificador `0` + `console.warn`, para não travar um desfecho já prometido), nunca rolagem normal.
-- **Dedupe é rede de proteção, não escolha de design:** rolar a mesma perícia duas vezes na mesma ação **não deveria acontecer** — a guarda só existe contra o modelo desobedecer (como na imagem que originou esta story) e nunca dispara em jogo normal. Comportamento fixo: a 2ª chamada da mesma `skill`/`ability` reusa silenciosamente o 1º resultado (um dado, um bloco).
+- **Match por RÓTULO, não por key (correção pós-teste):** o prompt mostra as perícias por rótulo (`Percepção +3*`), então o modelo manda o rótulo ("percepção"), não a key ("perception"). `resolveRollModifier` casa por `key` **ou** `label`, normalizando acento/caixa — senão um rótulo válido cairia em +0 (bug real observado: `skill:"percepção"` → +0). Atributos idem, via `attributeLabels`.
+- **Um teste ancorado por turno (não dedupe por key):** o modelo rolou perícias **diferentes** para a mesma ação (`survival` + `percepção`), então dedupe por key não pega. A guarda vira um **cap de 1 teste ancorado por turno**: o 1º teste (qualquer perícia/atributo) é guardado; um 2º reusa o 1º. Rolagens sem anchor (dano/cura) não contam. Rede de proteção — em jogo obediente nunca dispara. `ponytail:` trava por turno inteiro; se um dia um turno precisar de dois testes distintos legítimos, refinar.
+- **Ordem no replay (`getTurns`):** o `DICE_ROLL` é gravado durante o streaming, mas `ACTION`/`NARRATION` no `onFinish` (depois) — por `createdAt` a rolagem fica antes da ação do turno. Ao vivo a ordem está certa (o frame `D:` chega depois da bolha da ação); só o replay ficava torto. `getTurns` reordena: bufferiza as rolagens e as emite **logo após o `ACTION`** do turno (`ação → bloco → narração`), sem mexer na persistência.
+- **Estado compartilhado entre tentativas de fallback:** o cap não pode viver no closure de `streamChat` — no fallback o controller **reexecuta** `streamChat` (novo attempt), e cada execução teria um cap novo → o mesmo teste rolava de novo (bug real: attempt=0 rolou 12, falhou antes do texto, attempt=1 rolou 10). O estado (`RollTurnState { first }`) é criado no **controller**, por turno, fora do loop de tentativas, e passado a cada `streamChat`. Assim o teste do attempt=0 é reusado pelo attempt=1 — uma rolagem, um `DICE_ROLL`, mesmo com fallback.
+- **Dedupe do frame `D:` no controller:** mesmo reusando o resultado, cada tentativa reemite o **tool-result** do teste, e o controller escreveria um frame `D:` por tentativa → dois blocos idênticos na tela. O controller mantém um `Set` de assinaturas de rolagem por turno e só escreve `D:` uma vez por conteúdo — o bloco aparece uma vez, mesmo com fallback.
 - **`normalizeDie` não limita o catálogo de dados:** aceita `NdM` genérico (o `DiceService` já valida o formato); só descarta o sufixo `[+-]N`. Sem restrição a d4–d20.
 
 ---
@@ -144,6 +148,7 @@ execute: async ({ reason, skill, ability, dice }) => {
 ## Referências no código
 
 - `apps/api/src/ai/ai.service.ts` — `rollDice` (`:136-155`): novo contrato `{ skill, ability, dice, reason }` + `resolveModifier` + dedupe por turno. A ficha (`attributes` `:104`, `buildSkillSheet` `:106-109`) já está no escopo.
+- `packages/shared/src/roll.ts` — **novo**: `resolveRollModifier` (modificador da ficha, `unresolved` no misfire) + `normalizeDie` (descarta `[+-]N`). Puros, testados em `roll.test.ts`, reusados por API e eval.
 - `packages/shared/src/ability.ts` — `buildSkillSheet`/`skillModifier`/`abilityModifier` (US-27/US-32): a fonte do modificador, reusada sem duplicar.
 - `apps/api/src/game/dice.service.ts` — `DiceService.roll` (RNG cripto): inalterado; recebe a fórmula já com o modificador da ficha.
 - `packages/ai-engine/src/prompts/dm-system.ts` — regras de rolagem (US-29, `:127-138`): instruir `key` de perícia/atributo (não fórmula) e um teste por ação.

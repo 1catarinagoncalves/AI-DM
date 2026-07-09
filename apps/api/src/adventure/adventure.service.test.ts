@@ -226,4 +226,27 @@ describe('AdventureService.getTurns', () => {
       { role: 'dm', content: 'Três figuras...' },
     ])
   })
+
+  it('US-38: reordena o DICE_ROLL (gravado no streaming, antes do ACTION do onFinish) para logo após a ação', async () => {
+    // Ordem crua por createdAt: rolagem ANTES da ação do mesmo turno.
+    const logs = [
+      { type: 'NARRATION', payload: { text: 'Abertura.' }, summarized: false },
+      { type: 'DICE_ROLL', payload: { formula: '1d20+5', reason: 'Percepção', rolls: [7], modifier: 5, total: 12 }, summarized: false },
+      { type: 'ACTION', payload: { text: 'Examino o riacho.' }, summarized: false },
+      { type: 'NARRATION', payload: { text: 'Marcas sutis nas pedras.' }, summarized: false },
+    ]
+    const prisma = {
+      eventLog: { findMany: async () => logs },
+    } as unknown as PrismaService
+    const service = new AdventureService(prisma, fakeAi())
+
+    const turns = await service.getTurns('char-1', 'adv-1')
+
+    expect(turns).toEqual([
+      { role: 'dm', content: 'Abertura.' },
+      { role: 'user', content: 'Examino o riacho.' },
+      { role: 'roll', label: 'Percepção', formula: '1d20+5', rolls: [7], modifier: 5, total: 12 },
+      { role: 'dm', content: 'Marcas sutis nas pedras.' },
+    ])
+  })
 })

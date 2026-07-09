@@ -2,7 +2,7 @@ import { Controller, Post, Body, Res, HttpCode } from '@nestjs/common'
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Response } from 'express'
 import { z } from 'zod'
-import { AiService } from './ai.service'
+import { AiService, type RollTurnState } from './ai.service'
 import { zodBody } from '../openapi'
 
 const ChatBodySchema = z.object({
@@ -55,10 +55,23 @@ export class AiController {
     // — aí apenas sinalizamos o erro.
     let emittedAnyText = false
 
+    // US-38: estado do teste do turno, COMPARTILHADO entre as tentativas. No
+    // fallback o streamChat é reexecutado; sem isto o mesmo teste rolava de novo
+    // (duas rolagens iguais). O 1º teste ancorado é reusado pelas tentativas
+    // seguintes — um teste por ação, mesmo com fallback.
+    const rollState: RollTurnState = { first: null }
+
+    // US-38: cada tentativa reexecuta o stream e reemite o tool-result do MESMO
+    // teste (o servidor reusa o resultado, mas o controller ainda veria o
+    // tool-result). Dedupe os frames `D:` por assinatura de conteúdo para o
+    // bloco aparecer UMA vez, mesmo com fallback.
+    const emittedRolls = new Set<string>()
+
     for (let attempt = 0; ; attempt++) {
       const { result, hasFallback } = await this.aiService.streamChat(
         { adventureId, characterId, message },
         attempt,
+        rollState,
       )
 
       let prevStepText = ''
@@ -81,13 +94,21 @@ export class AiController {
               // US-29: bloco de rolagem REAL, emitido antes dos tokens de narração
               // do step (a rollDice resolve antes do texto). O jogador vê o número
               // do sistema primeiro; a prosa só o interpreta.
-              res.write('D:' + JSON.stringify({
+              const roll = {
                 label: p.result.reason,
+                skill: p.result.skill, // US-38: perícia/atributo usado
                 formula: p.result.formula,
                 rolls: p.result.rolls,
                 modifier: p.result.modifier,
                 total: p.result.total,
-              }) + '\n')
+              }
+              // US-38: dedupe entre tentativas — o mesmo teste reusado no fallback
+              // não gera um 2º bloco idêntico.
+              const sig = JSON.stringify(roll)
+              if (!emittedRolls.has(sig)) {
+                emittedRolls.add(sig)
+                res.write('D:' + JSON.stringify(roll) + '\n')
+              }
             }
           } else if (part.type === 'text-delta') {
             if (curStepText === '' && COMPLETE_NARRATION.test(prevStepText)) {

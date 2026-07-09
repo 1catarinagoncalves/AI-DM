@@ -9,6 +9,8 @@ export interface DiceResult {
 export interface RollTurn extends DiceResult {
   role: 'roll'
   label: string
+  /** US-38: rótulo canônico da perícia/atributo usado (ex.: "Percepção"). Ausente = rolagem sem perícia. */
+  skill?: string
 }
 
 /** Uma linha do histórico de jogo servido/renderizado (US-18 + US-29). */

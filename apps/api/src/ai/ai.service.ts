@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { streamText, generateText, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig } from '@ai-dm/shared'
-import { buildSkillSheet, stripFabricatedRolls } from '@ai-dm/shared'
+import { buildSkillSheet, stripFabricatedRolls, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -23,6 +23,11 @@ export interface ChatInput {
   characterId: string
   message: string
 }
+
+/** US-38: o teste ancorado do turno, guardado FORA de `streamChat` para
+ * sobreviver às tentativas de fallback (cada attempt reexecuta `streamChat`). */
+interface AnchoredRoll { formula: string; rolls: number[]; modifier: number; total: number; reason: string }
+export interface RollTurnState { first: AnchoredRoll | null }
 
 // Acima de SUMMARIZE_THRESHOLD turnos não-resumidos, fundimos os mais antigos
 // no resumo, mantendo apenas KEEP_RECENT turnos verbatim na janela. Cada turno
@@ -46,7 +51,7 @@ export class AiService {
    * com a narração, apenas quando o turno produz texto. Assim uma tentativa de
    * fallback não duplica a ação no histórico nem reconstrói a janela errada.
    */
-  async streamChat(input: ChatInput, attempt = 0) {
+  async streamChat(input: ChatInput, attempt = 0, rollState?: RollTurnState) {
     const { adventureId, characterId, message } = input
 
     // Carrega contexto do banco
@@ -103,10 +108,12 @@ export class AiService {
     // level-up) e cai em baseAttributes quando o estado ainda não existe.
     const attributes = (characterState?.attributes ?? character.baseAttributes ?? {}) as Record<string, number>
     // Todas as perícias com modificador (US-27): o mestre decide qualquer teste, não só as proficientes.
-    const skills = config?.skills
+    // Guarda a versão COM `key` (US-38: a rolagem resolve o modificador por key);
+    // a versão sem `key` alimenta o prompt/ficha.
+    const resolvedSkills = config?.skills
       ? buildSkillSheet(config.skills, attributes, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
-        .map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
       : undefined
+    const skills = resolvedSkills?.map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
     const sheet = {
       level: character.level,
       hp: characterState?.hp ?? 0,
@@ -131,28 +138,61 @@ export class AiService {
       attributeLabels,
     })
 
+    // US-38: um teste ancorado por turno. "Uma ação → um teste": o modelo às
+    // vezes rola duas perícias diferentes para a mesma coisa (ex.: Sobrevivência
+    // + Percepção para rastrear). Guardamos o 1º teste ancorado do turno; um 2º
+    // (qualquer perícia/atributo) reusa o 1º. Rolagens SEM anchor (dano, cura)
+    // não são testes e não entram nessa trava.
+    // COMPARTILHADO entre tentativas: no fallback o controller reexecuta
+    // streamChat; sem o estado compartilhado o mesmo teste rolava de novo (duas
+    // rolagens iguais). O caller passa `rollState`; sem ele, escopo local.
+    // ponytail: trava por turno inteiro; se um dia um turno precisar de dois
+    // testes distintos legítimos, trocar por regra mais fina.
+    const rolls: RollTurnState = rollState ?? { first: null }
+
     // Monta as tools — cada tool chama o Game Server (this.dice, this.prisma)
     const tools = {
       rollDice: tool({
         description:
-          'Roll dice using standard RPG notation. ALWAYS call this BEFORE narrating any chance-based outcome, and WAIT for the result. Never state a dice result you did not get from this tool.',
+          'Roll a d20 check. Say WHAT is being tested via `skill` (or `ability`) key — the system supplies the modifier from the character sheet. NEVER pass a modifier of your own. Roll ONE check per action. ALWAYS call this BEFORE narrating a chance-based outcome and WAIT for the result.',
         parameters: z.object({
-          formula: z.string().describe('e.g. "1d20+5" or "2d6+3"'),
-          reason: z.string().describe('Why this roll is happening'),
+          reason: z.string().describe('Short label for the roll block, e.g. "Percepção para seguir as pegadas"'),
+          skill: z.string().optional().describe('Name of the tested skill exactly as shown in the character sheet (e.g. "Percepção"). System supplies the modifier — do NOT add one.'),
+          ability: z.string().optional().describe('Name of the tested attribute when no skill applies (e.g. "Destreza"). System supplies the modifier.'),
+          dice: z.string().optional().describe('Base die only, default "1d20". Any +N here is IGNORED — the modifier comes from the sheet.'),
         }),
-        execute: async ({ formula, reason }: { formula: string; reason: string }) => {
+        execute: async ({ reason, skill, ability, dice }: { reason: string; skill?: string; ability?: string; dice?: string }) => {
+          const isAnchored = !!(skill || ability)
+          // US-38: um teste por ação — 2º teste ancorado no turno (inclusive numa
+          // tentativa de fallback) reusa o 1º.
+          if (isAnchored && rolls.first) {
+            console.warn(`[AiService] rollDice: teste repetido no mesmo turno (skill=${skill} ability=${ability}) — reusando o 1º (um teste por ação)`)
+            return rolls.first
+          }
+
+          // US-38: o modificador vem SEMPRE da ficha, nunca do modelo. Casa por
+          // key OU rótulo (o modelo vê perícias por rótulo no prompt). `label` =
+          // rótulo canônico da perícia/atributo, exibido no bloco.
+          const { modifier, unresolved, label: skillLabel } = resolveRollModifier({ skill, ability, skills: resolvedSkills, attributes, attributeLabels })
+          if (unresolved) {
+            console.warn(`[AiService] rollDice sem perícia/atributo resolvível (skill=${skill} ability=${ability}) → +0. reason="${reason}"`)
+          }
+          const base = normalizeDie(dice)
+          const formula = `${base}${modifier >= 0 ? '+' : ''}${modifier}`
           const result = this.dice.roll(formula)
           await this.prisma.eventLog.create({
             data: {
               adventureId,
               characterId,
               type: 'DICE_ROLL',
-              payload: { formula, reason, rolls: result.rolls, modifier: result.modifier, total: result.total },
+              payload: { formula, reason, skill, ability, skillLabel, rolls: result.rolls, modifier: result.modifier, total: result.total },
             },
           })
-          // Devolve a `reason` junto para o controller rotular o bloco de rolagem
-          // no stream (US-29 frame `D:`).
-          return { ...result, reason }
+          // Devolve `reason` (rótulo do bloco) e `skillLabel` (perícia usada) para
+          // o controller montar o frame `D:` (US-29/US-38).
+          const out = { ...result, reason, skill: skillLabel }
+          if (isAnchored) rolls.first = out
+          return out
         },
       }),
 

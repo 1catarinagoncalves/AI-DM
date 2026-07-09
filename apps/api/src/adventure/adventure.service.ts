@@ -163,13 +163,12 @@ export class AdventureService {
       orderBy: { createdAt: 'asc' },
     })
 
-    return logs
+    const turns = logs
       .map((log): ChatTurn => {
         if (log.type === 'DICE_ROLL') {
-          // US-29: bloco de rolagem, na ordem cronológica (antes da narração do
-          // turno). O número vem do payload do Game Server, nunca da prosa.
-          const p = log.payload as { formula: string; reason: string; rolls: number[]; modifier: number; total: number }
-          return { role: 'roll', label: p.reason, formula: p.formula, rolls: p.rolls, modifier: p.modifier, total: p.total }
+          // US-29: bloco de rolagem. O número vem do payload do Game Server, nunca da prosa.
+          const p = log.payload as { formula: string; reason: string; skillLabel?: string; rolls: number[]; modifier: number; total: number }
+          return { role: 'roll', label: p.reason, skill: p.skillLabel, formula: p.formula, rolls: p.rolls, modifier: p.modifier, total: p.total }
         }
         // US-29: sanea narrações no replay — linhas persistidas antes do saneador
         // no persist ainda podem conter número inventado.
@@ -177,5 +176,24 @@ export class AdventureService {
         return { role: log.type === 'NARRATION' ? 'dm' : 'user', content }
       })
       .filter((m) => m.role === 'roll' || m.content.trim().length > 0)
+
+    // US-38: o evento DICE_ROLL é gravado DURANTE o streaming, mas ACTION/NARRATION
+    // no onFinish (depois) — então por createdAt a rolagem vem ANTES da ação do
+    // turno. Ao vivo a ordem está certa (ação → bloco → narração); só o replay
+    // fica torto. Reordenamos: cada rolagem sai LOGO APÓS a ação a que pertence.
+    // Padrão de um turno na timeline: [rolls..., ACTION, NARRATION].
+    const ordered: ChatTurn[] = []
+    let pendingRolls: ChatTurn[] = []
+    for (const turn of turns) {
+      if (turn.role === 'roll') { pendingRolls.push(turn); continue }
+      if (turn.role === 'user') {
+        ordered.push(turn, ...pendingRolls) // ação, depois as rolagens dela
+      } else {
+        ordered.push(...pendingRolls, turn) // narração após eventuais rolagens órfãs
+      }
+      pendingRolls = []
+    }
+    ordered.push(...pendingRolls) // rolagens sem ação seguinte (turno que falhou)
+    return ordered
   }
 }

@@ -316,6 +316,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                 <div key={i} className="flex justify-center">
                   <div className="inline-flex items-center gap-2 rounded-full border border-amber-400 dark:border-amber-600 bg-amber-100 dark:bg-amber-950 px-3 py-1.5 text-xs">
                     <span aria-hidden>🎲</span>
+                    {msg.skill && <span className="rounded-full bg-amber-200 dark:bg-amber-800 px-2 py-0.5 font-semibold text-amber-900 dark:text-amber-100">{msg.skill}</span>}
                     {msg.label && <span className="font-semibold text-amber-800 dark:text-amber-200">{msg.label}</span>}
                     <span className="font-mono tabular-nums text-stone-800 dark:text-stone-100">{formatDiceBreakdown(msg)}</span>
                   </div>

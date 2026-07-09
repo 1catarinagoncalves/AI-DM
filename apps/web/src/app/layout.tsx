@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className="bg-amber-50 dark:bg-stone-950 text-stone-900 dark:text-white antialiased">
+      <body suppressHydrationWarning className="bg-amber-50 dark:bg-stone-950 text-stone-900 dark:text-white antialiased">
         {/* Applies saved theme before React hydrates — prevents white flash */}
         <script
           dangerouslySetInnerHTML={{
