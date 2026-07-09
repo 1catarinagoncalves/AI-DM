@@ -13,6 +13,8 @@ export interface CreateCharacterDto {
   // US-27: keys de perícia proficientes escolhidas na criação. Opcional para
   // sistemas sem perícias no config.
   skills?: string[]
+  // US-39: background narrativo (texto livre). Normalizado antes de persistir.
+  background?: { story?: string; ideals?: string[]; bonds?: string[]; flaws?: string[] }
 }
 
 @Injectable()
@@ -41,8 +43,26 @@ export class CharacterService {
         level: 1,
         baseAttributes,
         skills,
+        background: this.normalizeBackground(dto.background),
       },
     })
+  }
+
+  /**
+   * US-39: normaliza o background para persistir — trima a prosa, filtra strings
+   * vazias das listas e descarta campos vazios. Sem nada preenchido → `{}` (o
+   * builder não renderiza seção). Texto livre (US-39 §1); sem catálogo.
+   */
+  private normalizeBackground(bg?: CreateCharacterDto['background']): Record<string, string | string[]> {
+    if (!bg) return {}
+    const out: Record<string, string | string[]> = {}
+    const story = bg.story?.trim()
+    if (story) out['story'] = story
+    for (const key of ['ideals', 'bonds', 'flaws'] as const) {
+      const arr = (bg[key] ?? []).map((s) => s.trim()).filter(Boolean)
+      if (arr.length > 0) out[key] = arr
+    }
+    return out
   }
 
   /**

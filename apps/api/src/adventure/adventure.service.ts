@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { SystemConfigSchema, buildSkillSheet, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { AiService } from '../ai/ai.service'
+import type { CharacterBackground } from '@ai-dm/ai-engine'
 import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 
 export interface CreateAdventureDto {
@@ -96,6 +97,7 @@ export class AdventureService {
       sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
       hookSeed: hook.openingNarration,
       attributeLabels: Object.fromEntries(labelPairs),
+      background: (character.background ?? {}) as unknown as CharacterBackground,
     })
     const openingText = generatedOpening ?? hook.openingNarration
 

@@ -31,6 +31,7 @@ export const api = {
     userId: string; systemId: string; name: string; gender: string; race: string; class: string
     attributes: Record<string, number>
     skills?: string[]
+    background?: { story?: string; ideals?: string[]; bonds?: string[]; flaws?: string[] }
   }) => post<{ id: string; name: string }>('/characters', data),
 
   listSystems: () =>

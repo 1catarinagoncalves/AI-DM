@@ -15,6 +15,14 @@ const CreateCharacterSchema = z.object({
   attributes: z.record(z.string(), z.number()),
   // Perícias proficientes (US-27): keys validadas contra System.config.skills no service.
   skills: z.array(z.string()).optional(),
+  // Background narrativo (US-39): texto livre, normalizado no service. Limites de
+  // tamanho são guarda de trust boundary (input do cliente).
+  background: z.object({
+    story: z.string().max(2000).optional(),
+    ideals: z.array(z.string().max(500)).max(20).optional(),
+    bonds: z.array(z.string().max(500)).max(20).optional(),
+    flaws: z.array(z.string().max(500)).max(20).optional(),
+  }).optional(),
 })
 
 @ApiTags('Personagens')

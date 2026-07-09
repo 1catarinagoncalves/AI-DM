@@ -25,7 +25,7 @@ Start-Sleep -Seconds 3
 Write-Host "       Base de dados pronta." -ForegroundColor Green
 
 # 3. Carregar variaveis de ambiente
-Write-Host "  [3/3] A iniciar API e frontend..." -ForegroundColor Cyan
+Write-Host "  [3/4] A carregar configuracao..." -ForegroundColor Cyan
 $env:DATABASE_URL = 'postgresql://aidm:aidm_dev@localhost:5432/ai_dm'
 $env:REDIS_URL = 'redis://localhost:6379'
 $env:JWT_SECRET = 'ai_dm_dev_secret_troque_em_producao'
@@ -43,6 +43,12 @@ foreach ($line in Get-Content "$projectDir\.env") {
         $env:NVIDIA_API_KEY = $Matches[1] -replace '["]', ''
     }
 }
+
+# 4. Compilar pacotes partilhados (shared, ai-engine). A API le o dist deles;
+# sem isto um arranque apos mudar esses pacotes corre com o dist velho.
+Write-Host "  [4/4] A compilar pacotes partilhados..." -ForegroundColor Cyan
+pnpm --filter "./packages/*" build 2>&1 | Out-Null
+Write-Host "       Pacotes compilados." -ForegroundColor Green
 
 Write-Host ""
 Write-Host "  O browser vai abrir automaticamente quando estiver pronto." -ForegroundColor Gray

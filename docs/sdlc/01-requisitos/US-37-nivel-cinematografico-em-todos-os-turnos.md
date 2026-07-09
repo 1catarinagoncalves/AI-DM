@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-34](./US-34-qualidade-da-narracao-do-dm.md) (barra de ofício + abertura gerada pela IA) e [US-11b](./US-11b-estado-de-cena-estruturado.md) (estado de cena estruturado). Medida por [US-36](./US-36-eval-de-qualidade-da-narracao.md) (eval de qualidade).
 **Criada em:** 2026-07-07
 

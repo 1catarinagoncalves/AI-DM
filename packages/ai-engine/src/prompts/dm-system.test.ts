@@ -59,3 +59,52 @@ describe('buildDmSystemPrompt — ficha (US-23)', () => {
     expect(typeof p).toBe('string')
   })
 })
+
+describe('buildDmSystemPrompt — background narrativo (US-39)', () => {
+  const background = {
+    story: 'Nobre menor que perdeu a família para um culto demoníaco',
+    ideals: ['Justiça acima de tudo', 'A Luz protege os inocentes'],
+    bonds: ['Jurou vingança contra o culto que matou sua família'],
+    flaws: ['Código de honra rígido: não mente, não abandona inocentes'],
+  }
+
+  it('inclui story, ideais, vínculos e fraquezas quando presentes', () => {
+    const p = build({ background })
+    expect(p).toMatch(/Nobre menor que perdeu a família/)
+    expect(p).toMatch(/Justiça acima de tudo/)
+    expect(p).toMatch(/Jurou vingança contra o culto/)
+    expect(p).toMatch(/Código de honra rígido/)
+  })
+
+  it('junta as listas (ideais/vínculos/fraquezas) numa linha', () => {
+    const p = build({ background })
+    expect(p).toMatch(/Justiça acima de tudo; A Luz protege os inocentes/)
+  })
+
+  it('marca a seção como read-only / roleplay guidance e instrui o USO de cada eixo', () => {
+    const p = build({ background })
+    expect(p.toLowerCase()).toMatch(/character identity \(read-only/)
+    // a redação default (US-39 §3): condicional + papel de cada traço
+    expect(p.toLowerCase()).toMatch(/flaw|fraqueza/)
+    expect(p.toLowerCase()).toMatch(/when the scene|quando a cena/)
+  })
+
+  it('sem background → não gera a seção nem quebra', () => {
+    const p = build()
+    expect(p).not.toMatch(/Character identity/i)
+    expect(typeof p).toBe('string')
+  })
+
+  it('background vazio ({}) ou campos vazios → sem seção, sem crash', () => {
+    expect(build({ background: {} })).not.toMatch(/Character identity/i)
+    const p = build({ background: { story: '', ideals: [], flaws: ['   '] } })
+    expect(p).not.toMatch(/Character identity/i)
+  })
+
+  it('renderiza só os campos preenchidos (vínculo ausente não vira linha vazia)', () => {
+    const p = build({ background: { story: 'Um andarilho solitário' } })
+    expect(p).toMatch(/Character identity/i)
+    expect(p).toMatch(/Um andarilho solitário/)
+    expect(p).not.toMatch(/Vínculos:/)
+  })
+})

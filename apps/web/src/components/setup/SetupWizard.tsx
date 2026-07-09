@@ -6,13 +6,14 @@ import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { loadSession, saveSession } from '@/lib/session'
 
-type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'review'
-const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'review']
+type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'background' | 'review'
+const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'background', 'review']
 const STEP_LABEL: Record<Step, string> = {
   system: 'Sistema',
   'race-class': 'Raça/Classe',
   attributes: 'Atributos',
   skills: 'Perícias',
+  background: 'Background',
   review: 'Revisão',
 }
 
@@ -51,6 +52,8 @@ export function SetupWizard() {
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
+  // US-39: background narrativo. Textareas em string; ideais/vínculos/fraquezas = um por linha.
+  const [bg, setBg] = useState({ story: '', ideals: '', bonds: '', flaws: '' })
 
   // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
   const [charId, setCharId] = useState('')
@@ -99,6 +102,7 @@ export function SetupWizard() {
       case 'attributes': return budget === undefined || remaining === 0
       // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`.
       case 'skills': return skillChoices === 0 || skills.length === skillChoices
+      case 'background': return true // opcional (US-39): pode seguir em branco
       case 'review': return true
     }
   }
@@ -122,7 +126,10 @@ export function SetupWizard() {
     if (!system) return
     setLoading(true); setError('')
     try {
-      const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs, skills })
+      // US-39: uma linha por item em ideais/vínculos/fraquezas; vazios descartados (o backend também normaliza).
+      const lines = (s: string) => s.split('\n').map(t => t.trim()).filter(Boolean)
+      const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws) }
+      const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs, skills, background })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
       saveSession({ userId, userName: charData.name, characterId: char.id, characterName: charData.name, adventureId: '' })
       setCharId(char.id)
@@ -343,6 +350,25 @@ export function SetupWizard() {
           </div>
         )}
 
+        {step === 'background' && system && (
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Background</h1>
+            <p className="text-stone-500 dark:text-stone-400 text-sm">
+              Quem é {charData.name || 'o personagem'}? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.
+            </p>
+            <div className="space-y-3">
+              <textarea aria-label="História (background)" rows={3} placeholder="História de vida (ex.: nobre menor que perdeu a família para um culto demoníaco…)"
+                value={bg.story} onChange={e => setBg(p => ({ ...p, story: e.target.value }))} className={inputClass} />
+              <textarea aria-label="Ideais" rows={2} placeholder="Ideais — um por linha (ex.: Justiça acima de tudo)"
+                value={bg.ideals} onChange={e => setBg(p => ({ ...p, ideals: e.target.value }))} className={inputClass} />
+              <textarea aria-label="Vínculos" rows={2} placeholder="Vínculos — um por linha (ex.: Jurou vingança contra o culto que matou sua família)"
+                value={bg.bonds} onChange={e => setBg(p => ({ ...p, bonds: e.target.value }))} className={inputClass} />
+              <textarea aria-label="Fraquezas" rows={2} placeholder="Fraquezas — uma por linha (ex.: Código de honra rígido: não mente, não abandona inocentes)"
+                value={bg.flaws} onChange={e => setBg(p => ({ ...p, flaws: e.target.value }))} className={inputClass} />
+            </div>
+          </div>
+        )}
+
         {step === 'review' && system && (
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Revisão</h1>
@@ -371,6 +397,12 @@ export function SetupWizard() {
                   {skills.length > 0
                     ? skills.map(k => skillCatalog.find(s => s.key === k)?.label ?? k).join(' · ')
                     : '—'}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-stone-500 dark:text-stone-400">Background</dt>
+                <dd className="text-stone-900 dark:text-white font-medium text-right">
+                  {[bg.story, bg.ideals, bg.bonds, bg.flaws].some(s => s.trim()) ? 'Preenchido' : '—'}
                 </dd>
               </div>
             </dl>

@@ -111,7 +111,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc) // fecha orçamento
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // sem perícias no config → livre → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // sem perícias no config → livre → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // background opcional → revisão
 
     const review = screen.getByRole('heading', { name: 'Revisão' })
     expect(review).toBeTruthy()
@@ -139,9 +140,31 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' }))
     expect(nextBtn().disabled).toBe(false) // 2 marcadas → libera
 
-    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ skills: ['athletics', 'perception'] }))
+  })
+
+  // US-39: a etapa de background captura texto livre e envia na criação.
+  it('captura o background e envia na criação, trimando e descartando vazios', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.change(screen.getByLabelText('História (background)'), { target: { value: 'Nobre caída' } })
+    fireEvent.change(screen.getByLabelText('Fraquezas'), { target: { value: 'Não mente\n  ' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      background: { story: 'Nobre caída', ideals: [], bonds: [], flaws: ['Não mente'] },
+    }))
   })
 
   // US-28: depois de Confirmar, o jogador vê a etapa "Aventura inicial" e a inicia.
@@ -154,6 +177,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
 

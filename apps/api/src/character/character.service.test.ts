@@ -168,4 +168,24 @@ describe('CharacterService.create', () => {
       attributes: { cool: 5, hard: 5 }, skills: ['athletics', 'flying'],
     })).rejects.toThrow('inválida')
   })
+
+  // US-39: background normalizado — trima a prosa, filtra strings vazias, descarta campos vazios.
+  it('normaliza e persiste o background', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      background: { story: '  Nobre caída  ', ideals: ['Justiça', '  '], bonds: [], flaws: ['Não mente'] },
+    })
+    expect(char.background).toEqual({ story: 'Nobre caída', ideals: ['Justiça'], flaws: ['Não mente'] })
+  })
+
+  it('sem background → persiste {}', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.background).toEqual({})
+  })
 })

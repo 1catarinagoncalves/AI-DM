@@ -29,6 +29,7 @@ model Character {
   level          Int                    @default(1)
   baseAttributes Json
   skills         Json                   @default("[]") // US-27: keys de perícia proficientes (string[])
+  background     Json                   @default("{}") // US-39: {story?, ideals?, bonds?, flaws?}
   states         CharacterState[]
   participations AdventureParticipant[]
   eventLogs      EventLog[]

@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-34](./US-34-qualidade-da-narracao-do-dm.md) (primeira narração gerada por IA), [US-11b](./US-11b-estado-de-cena-estruturado.md) (estado de cena estruturado) e [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (criação da aventura).
 **Criada em:** 2026-07-07
 

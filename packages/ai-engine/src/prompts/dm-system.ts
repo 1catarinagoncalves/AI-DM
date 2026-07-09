@@ -19,6 +19,27 @@ export interface DmCharacterSheet {
   skills?: { label: string; modifier: number; proficient: boolean }[]
 }
 
+/**
+ * Background narrativo do personagem (US-39): dados de CRIAÇÃO (não de estado),
+ * campos padrão de D&D 5e (`story` = a prosa de história de vida + Personality:
+ * Ideals/Bonds/Flaws). O mestre CONHECE e honra, mas nunca recita na prosa.
+ * Render dirigido por `BACKGROUND_LABELS` — campo novo = interface + uma linha no
+ * map, sem tocar na lógica de render.
+ */
+export interface CharacterBackground {
+  story?: string
+  ideals?: string[]
+  bonds?: string[]
+  flaws?: string[]
+}
+
+const BACKGROUND_LABELS: Record<keyof CharacterBackground, string> = {
+  story: 'Background',
+  ideals: 'Ideais',
+  bonds: 'Vínculos',
+  flaws: 'Fraquezas',
+}
+
 export function buildDmSystemPrompt(params: {
   systemName: string
   characterName: string
@@ -33,8 +54,10 @@ export function buildDmSystemPrompt(params: {
   sheet: DmCharacterSheet
   /** Rótulo por chave de atributo, de System.config (US-21). Ausente → chave crua. */
   attributeLabels?: Record<string, string>
+  /** Background narrativo (US-39): história, ideais, vínculos, fraquezas. Ausente/vazio → nenhuma seção. */
+  background?: CharacterBackground
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels, background } = params
 
   const attributesLine = Object.entries(sheet.attributes)
     .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value} (${formatModifier(abilityModifier(value))})`)
@@ -51,6 +74,26 @@ This is the authoritative current state of the character. Trust it and narrate c
 - HP: ${sheet.hp}/${sheet.maxHp}
 - Conditions: ${sheet.conditions.length > 0 ? sheet.conditions.join(', ') : 'none'}
 - Attributes: ${attributesLine || 'none'}${skillsLine ? `\n- Skills (modifier; * = proficient): ${skillsLine}` : ''}`
+
+  // Background narrativo (US-39): itera o label-map (config-like), junta listas,
+  // pula campos vazios; sem nenhum campo preenchido a seção inteira some.
+  const backgroundLines = (Object.keys(BACKGROUND_LABELS) as (keyof CharacterBackground)[])
+    .map((key) => {
+      const value = background?.[key]
+      const text = Array.isArray(value) ? value.map((v) => v.trim()).filter(Boolean).join('; ') : (value ?? '').trim()
+      return text ? `- ${BACKGROUND_LABELS[key]}: ${text}` : ''
+    })
+    .filter(Boolean)
+    .join('\n')
+  // Redação default de equilíbrio (US-39 §3): condicional, cor-não-mandato,
+  // ancorada no papel de cada traço. Calibração fina é a US-43.
+  const backgroundSection = backgroundLines
+    ? `## Character identity (read-only — roleplay guidance; honor it, NEVER print verbatim)
+These traits define WHO the character is. Let them color the character's choices and the tension WHEN the scene calls for it — a flaw creates dilemma, an ideal guides a decision, a bond is what's at stake. Do NOT force them where the scene doesn't ask. You KNOW these, but you NEVER list them in the narration.
+${backgroundLines}
+
+`
+    : ''
 
   const sceneText = formatSceneState(sceneState)
   const sceneSection = sceneText
@@ -111,7 +154,7 @@ Every narration you write — including the very first scene of the adventure �
 
 ${sheetSection}
 
-## Main quest
+${backgroundSection}## Main quest
 ${mainQuest ? mainQuest : '- No main quest set yet.'}
 
 ## Active quests (secondary)
@@ -140,6 +183,8 @@ ${summarySection}${rulesSection}
 Each player action produces EXACTLY ONE narration. Follow this order strictly, every turn:
 
 1. FIRST, resolve mechanics. Roll ONLY when the player's CHOSEN action is a REAL challenge to the character with a genuinely uncertain outcome (e.g. they attack, sneak, pick a lock, search on purpose). TRIVIAL actions NEVER roll: walking to the tavern, opening an unlocked door, talking, describing, looking around, reading a letter — just narrate. Do NOT spontaneously inject ability checks — especially Perception — that the player never triggered (WRONG: "roll to walk across the square"). Most narration needs NO roll at all; in that case call no tool and just narrate. When a roll IS warranted, call \`rollDice\`, WAIT for the result, and do not write narrative prose yet — not even a draft.
+   Do NOT roll to CONTINUE or FOLLOW something already established: following tracks the character has ALREADY spotted, walking a trail already found, resuming an action that already succeeded — these are not new challenges, they just happen (WRONG: the character already saw the tracks last scene, and now you roll a check "to follow the tracks"). Only roll if the action introduces a NEW uncertainty (the trail splits and might be lost, an ambush might be hidden, the lock is new).
+   Perception and Investigation checks reveal what is HIDDEN or hard to notice — NOT what is already in plain sight. If the thing is right there in the scene (a figure kneeling in the clearing ahead, an altar in the open, an NPC in front of the character), approaching and looking at it needs NO roll: the character simply sees it — just narrate what is plainly there (WRONG: rolling "Investigate the hooded figure" when the figure is right in front of them). Only roll Perception/Investigation when the character searches for something NOT apparent: a concealed door, a hidden trap, a clue deliberately obscured, a detail that would escape a casual glance.
 2. THEN write a SINGLE narration that already incorporates the resolved results, followed by the choice options.
 3. STOP. Your turn is over. NEVER restate, rewrite, expand, "redo", or narrate the same scene a second time. One action → one roll (if needed) → one scene → one set of options.
 
