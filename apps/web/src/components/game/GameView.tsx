@@ -19,6 +19,15 @@ interface InventoryItem {
   qty: number
 }
 
+// US-45: mesma forma do CharacterBackground de @ai-dm/ai-engine (web não depende
+// desse pacote), tipada estruturalmente aqui — não redefinir a forma noutro lugar.
+interface CharacterBackground {
+  story?: string
+  ideals?: string[]
+  bonds?: string[]
+  flaws?: string[]
+}
+
 interface Props {
   adventureId: string
   characterId: string
@@ -32,7 +41,17 @@ interface Props {
   conditions?: string[]
   // US-27: todas as perícias com modificador já computado.
   skills?: { key: string; label: string; modifier: number; proficient: boolean }[]
+  // US-45: background do personagem, mostrado numa aba própria da ficha.
+  background?: CharacterBackground
 }
+
+// US-45: abas da ficha. Lista (não botões hard-coded) para novas abas
+// (divindade/features/magias — US-40/41/42) entrarem só acrescentando um item.
+type SheetTabId = 'ficha' | 'background'
+const SHEET_TABS: { id: SheetTabId; label: string }[] = [
+  { id: 'ficha', label: 'Ficha' },
+  { id: 'background', label: 'Background' },
+]
 
 function historyKey(adventureId: string) {
   return `ai-dm-history-${adventureId}`
@@ -51,8 +70,52 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(messages))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills }: Props) {
+// US-45: painel da aba Background. Read-only. Cada eixo só vira bloco se tiver
+// conteúdo; se nenhum tiver, mostra o empty state (a aba nunca some — só o conteúdo).
+function BackgroundPanel({ background }: { background?: CharacterBackground }) {
+  const story = background?.story?.trim()
+  const lists: { label: string; items: string[] }[] = [
+    { label: 'Ideais', items: background?.ideals ?? [] },
+    { label: 'Vínculos', items: background?.bonds ?? [] },
+    { label: 'Fraquezas', items: background?.flaws ?? [] },
+  ]
+  const hasAny = Boolean(story) || lists.some(l => l.items.length > 0)
+
+  if (!hasAny) {
+    return (
+      <p className="text-sm text-stone-400 dark:text-stone-500">
+        Este personagem ainda não tem história.
+      </p>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {story && (
+        <div>
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">História</p>
+          <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-wrap leading-relaxed">{story}</p>
+        </div>
+      )}
+      {lists.map(({ label, items }) => items.length > 0 && (
+        <div key={label}>
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">{label}</p>
+          <ul className="space-y-1 list-disc list-inside">
+            {items.map((it, i) => (
+              <li key={i} className="text-sm text-stone-700 dark:text-stone-300">{it}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
+  // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
+  // então trocar de aba não remonta nada nem perde estado de jogo.
+  const [tab, setTab] = useState<SheetTabId>('ficha')
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [currentHp, setCurrentHp] = useState(hp)
@@ -229,70 +292,132 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           </div>
         </div>
 
-        {conditions && conditions.length > 0 && (
-          <div className="md:w-full">
-            <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Condições</p>
-            <div className="flex flex-wrap gap-1">
-              {conditions.map((c, i) => (
-                <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">
-                  {c}
-                </span>
-              ))}
+        {/* US-45: barra de abas da ficha — renderizada de SHEET_TABS (não hard-coded). */}
+        <div
+          role="tablist"
+          aria-label="Ficha do personagem"
+          className="md:w-full flex gap-1 border-b border-stone-300 dark:border-stone-700 shrink-0"
+          onKeyDown={e => {
+            if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+            e.preventDefault()
+            const idx = SHEET_TABS.findIndex(t => t.id === tab)
+            const delta = e.key === 'ArrowRight' ? 1 : -1
+            const next = SHEET_TABS[(idx + delta + SHEET_TABS.length) % SHEET_TABS.length]
+            if (!next) return
+            setTab(next.id)
+            document.getElementById(`sheet-tab-${next.id}`)?.focus()
+          }}
+        >
+          {SHEET_TABS.map(t => {
+            const active = t.id === tab
+            return (
+              <button
+                key={t.id}
+                id={`sheet-tab-${t.id}`}
+                role="tab"
+                type="button"
+                aria-selected={active}
+                aria-controls={`sheet-panel-${t.id}`}
+                tabIndex={active ? 0 : -1}
+                onClick={() => setTab(t.id)}
+                className={`min-h-[44px] px-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+                  active
+                    ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                    : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                }`}
+              >
+                {t.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Aba "Ficha": mecânica (condições, atributos, perícias, inventário). */}
+        {tab === 'ficha' && (
+          <div
+            id="sheet-panel-ficha"
+            role="tabpanel"
+            aria-labelledby="sheet-tab-ficha"
+            className="md:w-full flex flex-col gap-4 items-start"
+          >
+            {conditions && conditions.length > 0 && (
+              <div className="md:w-full">
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Condições</p>
+                <div className="flex flex-wrap gap-1">
+                  {conditions.map((c, i) => (
+                    <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {attributes && Object.keys(attributes).length > 0 && (
+              <div className="md:w-full">
+              <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Atributos</p>
+              <div className="grid grid-cols-3 gap-x-2 gap-y-2">
+                {Object.entries(attributes).map(([key, value]) => (
+                  <div key={key} className="flex flex-col items-center bg-stone-200 dark:bg-stone-800 rounded px-1 py-1">
+                    <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">
+                      {ATTR_LABELS[key] ?? key.slice(0, 3).toUpperCase()}
+                    </span>
+                    <span className="text-lg font-bold text-stone-800 dark:text-stone-100 leading-tight">
+                      {formatModifier(abilityModifier(value))}
+                    </span>
+                    <span className="text-xs text-stone-500 dark:text-stone-400">{value}</span>
+                  </div>
+                ))}
+              </div>
+              </div>
+            )}
+
+            {skills && skills.length > 0 && (
+              <div className="md:w-full">
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Perícias</p>
+                <ul className="space-y-1 max-h-56 overflow-y-auto pr-1">
+                  {skills.map(sk => (
+                    <li key={sk.key} className="text-xs flex justify-between gap-2">
+                      <span className={sk.proficient ? 'text-amber-700 dark:text-amber-300 font-medium' : 'text-stone-700 dark:text-stone-300'}>
+                        {sk.proficient && <span aria-label="proficiente" title="Proficiente">● </span>}{sk.label}
+                      </span>
+                      <span className="text-stone-500 dark:text-stone-400 shrink-0 tabular-nums">{formatModifier(sk.modifier)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="md:w-full">
+              <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">
+                Inventário ({inventory.length})
+              </p>
+              {inventory.length === 0
+                ? <p className="text-xs text-stone-400 dark:text-stone-500">Nenhum item</p>
+                : <ul className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                    {inventory.map((item, i) => (
+                      <li key={i} className="text-xs text-stone-700 dark:text-stone-300 flex justify-between gap-1">
+                        <span>{item.name}</span>
+                        {item.qty > 1 && <span className="text-stone-400 dark:text-stone-500 shrink-0">({item.qty})</span>}
+                      </li>
+                    ))}
+                  </ul>
+              }
             </div>
           </div>
         )}
 
-        {attributes && Object.keys(attributes).length > 0 && (
-          <div className="md:w-full">
-          <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Atributos</p>
-          <div className="grid grid-cols-3 gap-x-2 gap-y-2">
-            {Object.entries(attributes).map(([key, value]) => (
-              <div key={key} className="flex flex-col items-center bg-stone-200 dark:bg-stone-800 rounded px-1 py-1">
-                <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">
-                  {ATTR_LABELS[key] ?? key.slice(0, 3).toUpperCase()}
-                </span>
-                <span className="text-lg font-bold text-stone-800 dark:text-stone-100 leading-tight">
-                  {formatModifier(abilityModifier(value))}
-                </span>
-                <span className="text-xs text-stone-500 dark:text-stone-400">{value}</span>
-              </div>
-            ))}
-          </div>
+        {/* US-45: aba "Background" — narrativa, read-only. Sempre presente; empty state quando vazia. */}
+        {tab === 'background' && (
+          <div
+            id="sheet-panel-background"
+            role="tabpanel"
+            aria-labelledby="sheet-tab-background"
+            className="md:w-full"
+          >
+            <BackgroundPanel background={background} />
           </div>
         )}
-
-        {skills && skills.length > 0 && (
-          <div className="md:w-full">
-            <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Perícias</p>
-            <ul className="space-y-1 max-h-56 overflow-y-auto pr-1">
-              {skills.map(sk => (
-                <li key={sk.key} className="text-xs flex justify-between gap-2">
-                  <span className={sk.proficient ? 'text-amber-700 dark:text-amber-300 font-medium' : 'text-stone-700 dark:text-stone-300'}>
-                    {sk.proficient && <span aria-label="proficiente" title="Proficiente">● </span>}{sk.label}
-                  </span>
-                  <span className="text-stone-500 dark:text-stone-400 shrink-0 tabular-nums">{formatModifier(sk.modifier)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="md:w-full">
-          <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">
-            Inventário ({inventory.length})
-          </p>
-          {inventory.length === 0
-            ? <p className="text-xs text-stone-400 dark:text-stone-500">Nenhum item</p>
-            : <ul className="space-y-1 max-h-48 overflow-y-auto pr-1">
-                {inventory.map((item, i) => (
-                  <li key={i} className="text-xs text-stone-700 dark:text-stone-300 flex justify-between gap-1">
-                    <span>{item.name}</span>
-                    {item.qty > 1 && <span className="text-stone-400 dark:text-stone-500 shrink-0">({item.qty})</span>}
-                  </li>
-                ))}
-              </ul>
-          }
-        </div>
       </aside>
 
       {/* Área de jogo */}

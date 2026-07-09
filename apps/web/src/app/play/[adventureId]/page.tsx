@@ -47,6 +47,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       inventory={state?.inventory ?? []}
       conditions={state?.conditions ?? []}
       skills={skills}
+      background={character.background}
     />
   )
 }

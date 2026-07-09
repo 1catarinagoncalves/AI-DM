@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-23](./US-23-dm-ciente-da-ficha.md) (injeção de ficha dirigida por dados — o mecanismo) · [US-26](./US-26-criacao-personagem-em-etapas.md) (fluxo de criação que captura os campos)
 **Bloqueia:** [US-17](./US-17-comparacao-modelos-eval.md) slice 2 (o bake-off precisa de contexto de identidade em paridade com a aventura de referência, senão mede input pobre)
 **Criada em:** 2026-07-09
