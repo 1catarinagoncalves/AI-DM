@@ -9,10 +9,10 @@ type HubCharacter = Awaited<ReturnType<typeof api.listCharacters>>[number]
 
 const emptyState = (
   <div className="text-center max-w-lg">
-    <p className="text-5xl mb-4">⚔</p>
+    <p className="text-5xl mb-4" aria-hidden="true">⚔</p>
     <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">Olá, Aventureiro</h1>
-    <p className="text-stone-500 dark:text-stone-400 text-lg mb-2">Você ainda não tem nenhum personagem.</p>
-    <p className="text-stone-400 dark:text-stone-500 mb-8">Crie seu primeiro personagem para começar a jogar.</p>
+    <p className="text-stone-600 dark:text-stone-400 text-lg mb-2">Você ainda não tem nenhum personagem.</p>
+    <p className="text-stone-600 dark:text-stone-400 mb-8">Crie seu primeiro personagem para começar a jogar.</p>
     <Link
       href="/setup"
       className="inline-block bg-amber-600 hover:bg-amber-500 text-white font-semibold px-8 py-3 rounded-lg text-lg transition-colors"
@@ -75,9 +75,9 @@ export function HomeHero() {
   if (error) {
     return (
       <div className="text-center max-w-lg">
-        <p className="text-5xl mb-4">⚔</p>
+        <p className="text-5xl mb-4" aria-hidden="true">⚔</p>
         <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
-        <p className="text-stone-500 dark:text-stone-400 mb-8">Não foi possível carregar seus personagens.</p>
+        <p className="text-stone-600 dark:text-stone-400 mb-8">Não foi possível carregar seus personagens.</p>
         <button
           onClick={() => fetchCharacters(userId)}
           className="inline-block bg-amber-600 hover:bg-amber-500 text-white font-semibold px-8 py-3 rounded-lg text-lg transition-colors"
@@ -89,7 +89,7 @@ export function HomeHero() {
   }
 
   if (characters === null) {
-    return <p className="text-stone-400 dark:text-stone-500 animate-pulse">Carregando seus personagens…</p>
+    return <p className="text-stone-600 dark:text-stone-400 animate-pulse">Carregando seus personagens…</p>
   }
 
   if (characters.length === 0) return emptyState
@@ -99,19 +99,19 @@ export function HomeHero() {
 
   return (
     <div className="text-center max-w-lg">
-      <p className="text-5xl mb-4">⚔</p>
+      <p className="text-5xl mb-4" aria-hidden="true">⚔</p>
       <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
-      <p className="text-stone-500 dark:text-stone-400 mb-6">
+      <p className="text-stone-600 dark:text-stone-400 mb-6">
         Bem-vindo de volta, <span className="text-stone-900 dark:text-white font-semibold">{userName}</span>.
       </p>
 
       <div className="border border-stone-200 dark:border-stone-800 rounded-lg p-4 mb-8 bg-white/50 dark:bg-stone-900/50">
         <p className="text-stone-900 dark:text-white font-semibold text-lg">{hero.name}</p>
-        <p className="text-stone-400 dark:text-stone-500 text-sm">
+        <p className="text-stone-600 dark:text-stone-400 text-sm">
           {hero.race} · {hero.class} · Nv.{hero.level}
         </p>
         {adventure && (
-          <p className="text-stone-500 dark:text-stone-400 text-sm mt-2">
+          <p className="text-stone-600 dark:text-stone-400 text-sm mt-2">
             Aventura: <span className="text-stone-700 dark:text-stone-300">{adventure.title}</span>
           </p>
         )}
@@ -126,20 +126,20 @@ export function HomeHero() {
             Continuar jogando
           </Link>
         ) : (
-          <span className="inline-block bg-stone-300 dark:bg-stone-700 text-stone-500 dark:text-stone-400 font-semibold px-8 py-3 rounded-lg text-lg cursor-not-allowed">
+          <span className="inline-block bg-stone-300 dark:bg-stone-700 text-stone-600 dark:text-stone-400 font-semibold px-8 py-3 rounded-lg text-lg cursor-not-allowed">
             Nenhuma aventura em andamento
           </span>
         )}
         <Link
           href="/setup"
-          className="inline-block border border-stone-400 dark:border-stone-600 hover:border-stone-600 dark:hover:border-stone-400 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold px-8 py-2 rounded-lg transition-colors text-sm"
+          className="inline-block border border-stone-400 dark:border-stone-600 hover:border-stone-600 dark:hover:border-stone-400 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold px-8 py-2 rounded-lg transition-colors text-sm"
         >
           Criar novo personagem
         </Link>
 
         <button
           onClick={() => handleDelete(hero)}
-          className="text-red-500/70 hover:text-red-600 dark:hover:text-red-400 text-sm transition-colors"
+          className="min-h-[44px] text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm transition-colors"
         >
           Deletar {hero.name}
         </button>
@@ -152,7 +152,7 @@ export function HomeHero() {
           <div>
             <button
               onClick={() => setShowAll((v) => !v)}
-              className="text-stone-400 dark:text-stone-600 hover:text-stone-600 dark:hover:text-stone-400 text-xs transition-colors"
+              className="min-h-[44px] px-2 text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 text-xs transition-colors"
             >
               Ver todos os personagens
             </button>
@@ -165,7 +165,7 @@ export function HomeHero() {
                       className={`flex-1 text-sm px-3 py-2 rounded-lg transition-colors ${
                         i === focus
                           ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                          : 'text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
+                          : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
                       }`}
                     >
                       {c.name} · {c.race} · {c.class} · Nv.{c.level}
@@ -173,9 +173,9 @@ export function HomeHero() {
                     <button
                       onClick={() => handleDelete(c)}
                       aria-label={`Deletar ${c.name}`}
-                      className="px-2 py-2 text-stone-400 hover:text-red-600 dark:hover:text-red-400 text-sm transition-colors"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-600 dark:text-stone-400 hover:text-red-600 dark:hover:text-red-400 text-sm transition-colors"
                     >
-                      ✕
+                      <span aria-hidden="true">✕</span>
                     </button>
                   </li>
                 ))}

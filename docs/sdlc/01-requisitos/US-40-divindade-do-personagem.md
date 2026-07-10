@@ -2,9 +2,9 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-23](./US-23-dm-ciente-da-ficha.md) (injeção dirigida por dados) · [US-26](./US-26-criacao-personagem-em-etapas.md) (captura na criação)
-**Relacionado:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (identidade narrativa — mesma seção do prompt; divindade é o campo específico de classes divinas)
+**Relacionado:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (identidade narrativa — mesma seção do prompt; divindade é o campo específico de classes divinas) · [US-45](./US-45-background-na-ficha-da-interface.md) (aba "Background" na ficha da interface, onde a divindade aparece para o jogador)
 **Bloqueia:** [US-17](./US-17-comparacao-modelos-eval.md) slice 2 (paridade de contexto com a referência, cuja paladina é definida por Solariel)
 **Criada em:** 2026-07-09
 
@@ -39,14 +39,15 @@ Um campo **opcional** de divindade/patrono no personagem, injetado no system pro
 ### Dentro do escopo
 
 - Campo **opcional** de divindade no `Character`: nome + descrição/portfólio curto (ex.: domínios, o que a fé representa).
-- Captura na criação ([US-26](./US-26-criacao-personagem-em-etapas.md)), sugerida para classes divinas, pulável para as demais.
+- Captura no **wizard de criação** ([US-26](./US-26-criacao-personagem-em-etapas.md)), junto aos demais campos de background, como **texto livre** e **opcional para todas as classes** (não sugerido/escondido por classe). Rótulo do campo: **"Divindade/Patrono"**.
 - Injeção no prompt (linha na seção de identidade) só quando presente, com instrução ao mestre de usar a fé como cor (invocações/presságios/tom), coerente com os ideais/fraquezas da US-39.
+- **Divindade visível na ficha (interface):** renderizada na **aba "Background"** da ficha (padrão de abas da [US-45](./US-45-background-na-ficha-da-interface.md)), como bloco próprio, read-only, ao lado de história/ideais/vínculos/fraquezas. Presente → mostra nome + portfólio (ex.: "Solariel, o Senhor da Luz Eterna — justiça, cura e combate ao mal"). Ausente → o bloco **não aparece** (é campo opcional de classes divinas, não um 5º eixo fixo como os quatro da [US-47](./US-47-background-eixos-sempre-visiveis.md)); sem bloco fantasma nem crash.
 
 ### Fora do escopo
 
 - **Mecânica de fé:** enfraquecer poderes ao violar votos, canalizar divindade, spell slots divinos — narração só; mecânica de oath/domínio é story futura.
 - **Catálogo de divindades como dado** (`System.config`, à la [US-20](./US-20-catalogo-de-sistemas-via-api.md)/[US-21](./US-21-sistemas-como-dado.md)) — por ora texto livre; um panteão catalogado é extensão futura.
-- **Patronos não-divinos** (bruxo/warlock, juramentos seculares) — cabem no mesmo campo depois, mas o foco aqui é fé divina.
+- **Mecânica de patrono não-divino** (pacto de bruxo/warlock, juramentos seculares) — o rótulo "Divindade/Patrono" já **acomoda o texto** desses casos (texto livre), mas qualquer *mecânica* própria de pacto/juramento é story futura; aqui é só cor narrativa.
 - Vincular rigidamente o campo à classe (bloquear divindade para não-clérigos) — deixar opcional para todos; um ladino devoto é válido.
 
 ---
@@ -81,7 +82,9 @@ Render no prompt (dentro da seção de identidade):
 - [ ] O prompt inclui a linha de divindade **só quando presente**; personagem sem divindade não gera linha nem crash.
 - [ ] O prompt instrui o mestre a usar a fé como cor narrativa (invocações, presságios, tom), coerente com ideais/fraquezas da US-39.
 - [ ] A divindade é renderizada pela **mesma iteração** da seção de identidade — não é um `if` novo dedicado no builder.
-- [ ] **Eval / regressão:** personagem com `deity` produz um prompt contendo o nome da divindade na seção de identidade; personagem sem `deity` produz a seção sem linha de divindade (`evals/cases/us-40-*.ts`).
+- [ ] **Interface:** a **aba "Background"** da ficha ([GameView.tsx](../../apps/web/src/components/game/GameView.tsx)) mostra a divindade (nome + portfólio) **quando presente**, read-only; personagem sem `deity` **não** gera bloco de divindade na aba (sem bloco fantasma nem crash).
+- [ ] **Eval / regressão (prompt):** personagem com `deity` produz um prompt contendo o nome da divindade na seção de identidade; personagem sem `deity` produz a seção sem linha de divindade (`evals/cases/us-40-*.ts`).
+- [ ] **Eval / regressão (interface):** renderizar `GameView` com `deity` e ver o nome da divindade na aba **Background**; sem `deity`, a aba não mostra bloco de divindade (`GameView.test.tsx` ou equivalente).
 
 ---
 
@@ -93,11 +96,14 @@ Render no prompt (dentro da seção de identidade):
 
 ---
 
+## Decisões
+
+- **Texto livre (não catálogo).** `deity` é **texto livre** agora — YAGNI. Catálogo via `System.config` (consistência entre personagens do mesmo mundo) fica para quando houver um mundo compartilhado.
+- **Opcional para todas as classes, sempre visível no wizard.** O campo aparece **para todo personagem** no wizard de criação, junto aos demais campos de background — não é sugerido/escondido por classe. Um ladino devoto é válido; um guerreiro ateu deixa em branco. Rótulo: **"Divindade/Patrono"** (o "Patrono" já acomoda bruxo/juramentos seculares sem nova story).
+
 ## Questões em aberto
 
-1. **Texto livre vs panteão catalogado:** `deity` como texto livre agora (simples) ou catálogo via `System.config` (consistência entre personagens do mesmo mundo)? Sugestão: livre agora — YAGNI; catalogar quando houver um mundo compartilhado.
-2. **Sugerir por classe na criação:** oferecer divindade automaticamente para paladino/clérigo e esconder para as outras, ou sempre opcional e visível? Resolver no fluxo da [US-26](./US-26-criacao-personagem-em-etapas.md).
-3. **Fronteira com a mecânica de oath:** quando existir consequência de violar votos, ela lê a `deity` + `flaws` — mas isso é story futura; aqui a divindade é puramente narrativa.
+1. **Fronteira com a mecânica de oath:** quando existir consequência de violar votos, ela lê a `deity` + `flaws` — mas isso é story futura; aqui a divindade é puramente narrativa.
 
 ---
 
@@ -105,6 +111,7 @@ Render no prompt (dentro da seção de identidade):
 
 - `packages/ai-engine/src/prompts/dm-system.ts` — seção de identidade (criada na US-39) que ganha a linha de divindade.
 - `apps/api/src/ai/ai.service.ts` — monta `identity` a partir do `Character`.
+- `apps/web/src/components/game/GameView.tsx` — `BackgroundPanel` (aba "Background" da US-45/US-47) onde a divindade é renderizada para o jogador.
 - `apps/api/prisma/schema.prisma` — `Character.identity` (JSON) onde mora `deity`.
 - `docs/sdlc/referencia/aventura-seraphine.md` — Solariel como exemplo do papel narrativo da divindade.
 - `docs/sdlc/01-requisitos/US-39-identidade-narrativa-background-ideais.md` — story-mãe da seção de identidade.

@@ -1,2 +1,51 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @import "tailwindcss";
+
+/* US-46: foco de teclado visível e consistente (WCAG 2.4.7).
+   :focus-visible só dispara em teclado/foco programático — clique de mouse não desenha o anel.
+   outline (não box-shadow) garante contraste próprio mesmo sobre fundos tintados. */
+:focus-visible {
+  outline: 2px solid var(--focus, #d97706);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* US-46: skip link — fora da tela por padrão (mas focável), desliza para dentro ao
+   receber foco de teclado. Classe própria em vez de sr-only + focus: do Tailwind,
+   cuja cascata deixava o link preso em 1px. */
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 60;
+  transform: translateY(-150%);
+  border-radius: 0.5rem;
+  background-color: #d97706;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: #fff;
+  transition: transform 0.15s ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* O <main> alvo do skip link recebe foco programático (tabindex=-1); não é tabável,
+   então não precisa de anel — evita o contorno na página inteira ao pular o conteúdo. */
+main:focus-visible {
+  outline: none;
+}
+
+/* US-46: respeitar prefers-reduced-motion (WCAG 2.3.3 / 2.2.2).
+   Neutraliza animações contínuas (animate-pulse do loading e do cursor de streaming)
+   e transições para quem pede menos movimento. Padrão consagrado. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -2,7 +2,7 @@
 
 **Épico:** 4 — Onboarding e navegação
 **Fase:** 2 — Qualidade da interface
-**Status:** 🗂️ Backlog
+**Status:** ✅ Implementada
 **Relacionado:** [US-25](./US-25-boas-vindas-adaptativa.md) (hub) · [US-26](./US-26-criacao-personagem-em-etapas.md) (wizard de criação) · [US-45](./US-45-background-na-ficha-da-interface.md) (abas na ficha — já entrega abas acessíveis, este é o padrão a espalhar)
 **Criada em:** 2026-07-09
 
@@ -68,16 +68,16 @@ Um passe de **remediação de acessibilidade** nas três superfícies, com **WCA
 
 ## Critérios de aceite
 
-- [ ] **Teclado:** todo interativo (links, botões, inputs, abas, trilha do wizard) é alcançável e operável só por teclado, com **foco visível** claro (anel de contraste ≥3:1, ≥2px) — nenhum `outline: none` sem substituto equivalente.
-- [ ] **Contraste:** nenhum texto visível fica abaixo de **4.5:1** (normal) ou **3:1** (grande) contra o próprio fundo, em **modo claro e escuro** — inclui labels, texto secundário, placeholders e rótulos de etapa.
-- [ ] **Narração:** ao chegar texto do mestre em streaming, um leitor de tela **anuncia** o conteúdo novo (região `aria-live`); erros são anunciados como alerta.
-- [ ] **Nomes:** o botão de tema tem nome acessível ("Mudar para modo claro/noturno"); emojis puramente decorativos não são lidos.
-- [ ] **Estrutura:** hub e wizard têm landmark `<main>`; existe um **skip link** "Pular para o conteúdo" como primeiro foco tabável.
-- [ ] **Movimento:** com `prefers-reduced-motion: reduce`, animações contínuas (pulses, cursor de streaming) **param**; nada essencial depende de movimento.
-- [ ] **Formulários:** cada campo do wizard tem **rótulo visível persistente**; nenhum campo usa placeholder como único rótulo.
-- [ ] **Tema:** sem escolha salva, o tema inicial respeita `prefers-color-scheme`.
-- [ ] **Alvo:** interativos têm alvo de toque ≥24×24px.
-- [ ] **Eval / regressão:** um teste automatizado de acessibilidade (ex.: `vitest` + `axe-core`/`jest-axe`) roda sobre `HomeHero`, `SetupWizard` e `GameView` e **não acusa violações** de regras AA de cor, nome, rótulo e ARIA; um teste dirige a `GameView` por teclado até enviar uma ação.
+- [x] **Teclado:** todo interativo (links, botões, inputs, abas, trilha do wizard) é alcançável e operável só por teclado, com **foco visível** claro (anel de contraste ≥3:1, ≥2px) — nenhum `outline: none` sem substituto equivalente.
+- [x] **Contraste:** nenhum texto visível fica abaixo de **4.5:1** (normal) ou **3:1** (grande) contra o próprio fundo, em **modo claro e escuro** — inclui labels, texto secundário, placeholders e rótulos de etapa.
+- [x] **Narração:** ao chegar texto do mestre em streaming, um leitor de tela **anuncia** o conteúdo novo (região `aria-live`); erros são anunciados como alerta.
+- [x] **Nomes:** o botão de tema tem nome acessível ("Mudar para modo claro/noturno"); emojis puramente decorativos não são lidos.
+- [x] **Estrutura:** hub e wizard têm landmark `<main>`; existe um **skip link** "Pular para o conteúdo" como primeiro foco tabável.
+- [x] **Movimento:** com `prefers-reduced-motion: reduce`, animações contínuas (pulses, cursor de streaming) **param**; nada essencial depende de movimento.
+- [x] **Formulários:** cada campo do wizard tem **rótulo visível persistente**; nenhum campo usa placeholder como único rótulo.
+- [x] **Tema:** sem escolha salva, o tema inicial respeita `prefers-color-scheme`.
+- [x] **Alvo:** interativos têm alvo de toque ≥24×24px.
+- [x] **Eval / regressão:** um teste automatizado de acessibilidade (ex.: `vitest` + `axe-core`/`jest-axe`) roda sobre `HomeHero`, `SetupWizard` e `GameView` e **não acusa violações** de regras AA de cor, nome, rótulo e ARIA; um teste dirige a `GameView` por teclado até enviar uma ação.
 
 ---
 

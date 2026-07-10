@@ -83,7 +83,7 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
 
   if (!hasAny) {
     return (
-      <p className="text-sm text-stone-400 dark:text-stone-500">
+      <p className="text-sm text-stone-600 dark:text-stone-400">
         Este personagem ainda não tem história.
       </p>
     )
@@ -93,13 +93,13 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
     <div className="flex flex-col gap-4">
       {story && (
         <div>
-          <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">História</p>
+          <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">História</p>
           <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-wrap leading-relaxed">{story}</p>
         </div>
       )}
       {lists.map(({ label, items }) => items.length > 0 && (
         <div key={label}>
-          <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">{label}</p>
+          <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">{label}</p>
           <ul className="space-y-1 list-disc list-inside">
             {items.map((it, i) => (
               <li key={i} className="text-sm text-stone-700 dark:text-stone-300">{it}</li>
@@ -279,13 +279,14 @@ export function GameView({ adventureId, characterId, characterName, characterCla
       <aside className="md:w-64 bg-stone-100 dark:bg-stone-900 border-b md:border-b-0 md:border-r border-stone-300 dark:border-stone-800 p-4 flex md:flex-col gap-4 items-start overflow-x-auto md:overflow-x-visible">
         <div>
           <p className="text-amber-600 dark:text-amber-400 font-bold text-lg">{characterName}</p>
-          <p className="text-stone-500 dark:text-stone-400 text-sm">{characterRace} · {characterClass}</p>
+          <p className="text-stone-600 dark:text-stone-400 text-sm">{characterRace} · {characterClass}</p>
         </div>
 
         <div className="md:w-full">
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-stone-500 dark:text-stone-400">HP</span>
-            <span className={hpPercent > 30 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>{currentHp}/{maxHp}</span>
+            <span className="text-stone-600 dark:text-stone-400">HP</span>
+            {/* US-46: mudança de HP anunciada de forma discreta (aria-live polite). */}
+            <span aria-live="polite" className={hpPercent > 30 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>{currentHp}/{maxHp}</span>
           </div>
           <div className="h-2 bg-stone-300 dark:bg-stone-700 rounded-full overflow-hidden">
             <div className={`h-full ${hpColor} rounded-full transition-all`} style={{ width: `${hpPercent}%` }} />
@@ -323,7 +324,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                 className={`min-h-[44px] px-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
                   active
                     ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-                    : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                    : 'border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
                 }`}
               >
                 {t.label}
@@ -342,7 +343,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           >
             {conditions && conditions.length > 0 && (
               <div className="md:w-full">
-                <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Condições</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Condições</p>
                 <div className="flex flex-wrap gap-1">
                   {conditions.map((c, i) => (
                     <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">
@@ -355,17 +356,17 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
             {attributes && Object.keys(attributes).length > 0 && (
               <div className="md:w-full">
-              <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Atributos</p>
+              <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Atributos</p>
               <div className="grid grid-cols-3 gap-x-2 gap-y-2">
                 {Object.entries(attributes).map(([key, value]) => (
                   <div key={key} className="flex flex-col items-center bg-stone-200 dark:bg-stone-800 rounded px-1 py-1">
-                    <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">
+                    <span className="text-xs text-stone-600 dark:text-stone-400 font-medium">
                       {ATTR_LABELS[key] ?? key.slice(0, 3).toUpperCase()}
                     </span>
                     <span className="text-lg font-bold text-stone-800 dark:text-stone-100 leading-tight">
                       {formatModifier(abilityModifier(value))}
                     </span>
-                    <span className="text-xs text-stone-500 dark:text-stone-400">{value}</span>
+                    <span className="text-xs text-stone-600 dark:text-stone-400">{value}</span>
                   </div>
                 ))}
               </div>
@@ -374,14 +375,14 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
             {skills && skills.length > 0 && (
               <div className="md:w-full">
-                <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Perícias</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Perícias</p>
                 <ul className="space-y-1 max-h-56 overflow-y-auto pr-1">
                   {skills.map(sk => (
                     <li key={sk.key} className="text-xs flex justify-between gap-2">
                       <span className={sk.proficient ? 'text-amber-700 dark:text-amber-300 font-medium' : 'text-stone-700 dark:text-stone-300'}>
                         {sk.proficient && <span aria-label="proficiente" title="Proficiente">● </span>}{sk.label}
                       </span>
-                      <span className="text-stone-500 dark:text-stone-400 shrink-0 tabular-nums">{formatModifier(sk.modifier)}</span>
+                      <span className="text-stone-600 dark:text-stone-400 shrink-0 tabular-nums">{formatModifier(sk.modifier)}</span>
                     </li>
                   ))}
                 </ul>
@@ -389,16 +390,16 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             )}
 
             <div className="md:w-full">
-              <p className="text-xs text-stone-500 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">
+              <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">
                 Inventário ({inventory.length})
               </p>
               {inventory.length === 0
-                ? <p className="text-xs text-stone-400 dark:text-stone-500">Nenhum item</p>
+                ? <p className="text-xs text-stone-600 dark:text-stone-400">Nenhum item</p>
                 : <ul className="space-y-1 max-h-48 overflow-y-auto pr-1">
                     {inventory.map((item, i) => (
                       <li key={i} className="text-xs text-stone-700 dark:text-stone-300 flex justify-between gap-1">
                         <span>{item.name}</span>
-                        {item.qty > 1 && <span className="text-stone-400 dark:text-stone-500 shrink-0">({item.qty})</span>}
+                        {item.qty > 1 && <span className="text-stone-600 dark:text-stone-400 shrink-0">({item.qty})</span>}
                       </li>
                     ))}
                   </ul>
@@ -420,14 +421,21 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         )}
       </aside>
 
-      {/* Área de jogo */}
-      <main className="flex-1 flex flex-col">
+      {/* Área de jogo. <div> (não <main>): o landmark <main> vive no layout — um por página. */}
+      <div className="flex-1 flex flex-col">
 
-        {/* Histórico de mensagens */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+        {/* US-46: histórico é uma região viva — leitor de tela anuncia a narração que chega. */}
+        <div
+          role="log"
+          aria-live="polite"
+          aria-atomic="false"
+          aria-label="Narração do Mestre"
+          className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0"
+          style={{ maxHeight: 'calc(100vh - 120px)' }}
+        >
           {messages.length === 0 && (
-            <div className="text-center text-stone-400 dark:text-stone-500 pt-16">
-              <p className="text-4xl mb-4">⚔</p>
+            <div className="text-center text-stone-600 dark:text-stone-400 pt-16">
+              <p className="text-4xl mb-4" aria-hidden="true">⚔</p>
               <p className="text-lg">A tua aventura começa aqui.</p>
               <p className="text-sm mt-1">Diz ao Mestre o que queres fazer.</p>
             </div>
@@ -451,7 +459,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             return (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'dm' && (
-                  <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900 border border-amber-500 dark:border-amber-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0 text-sm text-amber-700 dark:text-amber-300">
+                  <div aria-hidden="true" className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900 border border-amber-500 dark:border-amber-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0 text-sm text-amber-700 dark:text-amber-300">
                     ✦
                   </div>
                 )}
@@ -462,7 +470,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                 }`}>
                   {msg.content}
                   {streaming && i === messages.length - 1 && msg.role === 'dm' && (
-                    <span className="inline-block w-2 h-4 bg-amber-500 dark:bg-amber-400 ml-1 animate-pulse align-text-bottom" />
+                    <span aria-hidden="true" className="inline-block w-2 h-4 bg-amber-500 dark:bg-amber-400 ml-1 animate-pulse align-text-bottom" />
                   )}
                 </div>
               </div>
@@ -480,18 +488,20 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="O que fazes? (Enter para enviar, Shift+Enter para nova linha)"
+            aria-label="A tua ação"
             disabled={streaming}
-            className="flex-1 bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg px-3 py-2 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 resize-none disabled:opacity-50 focus:outline-none focus:border-amber-500 dark:focus:border-amber-600"
+            className="flex-1 bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg px-3 py-2 text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-stone-400 resize-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:border-amber-500"
           />
           <button
             type="submit"
             disabled={streaming || !input.trim()}
+            aria-label="Enviar ação"
             className="bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-semibold transition-colors"
           >
-            {streaming ? '...' : '➤'}
+            <span aria-hidden="true">{streaming ? '...' : '➤'}</span>
           </button>
         </form>
-      </main>
+      </div>
     </div>
   )
 }

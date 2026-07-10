@@ -157,8 +157,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
 
-    fireEvent.change(screen.getByLabelText('História (background)'), { target: { value: 'Nobre caída' } })
-    fireEvent.change(screen.getByLabelText('Fraquezas'), { target: { value: 'Não mente\n  ' } })
+    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
+    fireEvent.change(screen.getByLabelText(/Fraquezas/), { target: { value: 'Não mente\n  ' } })
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))

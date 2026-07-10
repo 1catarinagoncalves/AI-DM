@@ -176,8 +176,10 @@ export function SetupWizard() {
     })
   }
 
-  const inputClass = 'w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500'
+  const inputClass = 'w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-stone-400'
   const selectClass = 'w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white'
+  // US-46: rótulo visível persistente (não some ao digitar; contraste AA).
+  const labelClass = 'block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1'
 
   const idx = steps.indexOf(step)
 
@@ -186,7 +188,7 @@ export function SetupWizard() {
     return (
       <div className="min-h-screen bg-amber-50 dark:bg-stone-950 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
-          <p className="text-xs uppercase tracking-wide text-stone-400 dark:text-stone-600">Aventura inicial</p>
+          <p className="text-xs uppercase tracking-wide text-stone-600 dark:text-stone-400">Aventura inicial</p>
           {error && <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 border border-red-300 dark:border-red-800 rounded p-3">{error}</p>}
 
           {hookError ? (
@@ -198,11 +200,11 @@ export function SetupWizard() {
               </button>
             </div>
           ) : !hook ? (
-            <p className="text-stone-500 dark:text-stone-400 text-sm animate-pulse">A preparar a tua aventura…</p>
+            <p className="text-stone-600 dark:text-stone-400 text-sm animate-pulse">A preparar a tua aventura…</p>
           ) : (
             <div className="space-y-4">
               <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">{hook.title}</h1>
-              <p className="text-stone-500 dark:text-stone-400 text-sm">A primeira aventura de {charData.name}, {charData.class}.</p>
+              <p className="text-stone-600 dark:text-stone-400 text-sm">A primeira aventura de {charData.name}, {charData.class}.</p>
               <div className="bg-white/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded p-4 space-y-3">
                 <p className="text-stone-700 dark:text-stone-300 text-sm">{hook.pitch}</p>
                 <p className="text-stone-800 dark:text-stone-100 text-sm italic leading-relaxed whitespace-pre-wrap">{hook.openingNarration}</p>
@@ -236,7 +238,7 @@ export function SetupWizard() {
                 className="flex-1 flex flex-col gap-1 text-left disabled:cursor-default"
               >
                 <span className={`h-1 rounded-full ${state === 'atual' ? 'bg-amber-500' : state === 'concluída' ? 'bg-amber-700' : 'bg-stone-300 dark:bg-stone-700'}`} />
-                <span className={`text-[10px] ${state === 'pendente' ? 'text-stone-400 dark:text-stone-600' : 'text-stone-600 dark:text-stone-300'}`}>{STEP_LABEL[s]}</span>
+                <span className={`text-[10px] ${state === 'pendente' ? 'text-stone-600 dark:text-stone-400' : 'text-stone-600 dark:text-stone-300'}`}>{STEP_LABEL[s]}</span>
               </button>
             )
           })}
@@ -252,12 +254,12 @@ export function SetupWizard() {
                 <button key={s.id} type="button" onClick={() => handleSelectSystem(s)}
                   className={`w-full text-left bg-white dark:bg-stone-800 border rounded px-4 py-3 hover:border-amber-500 ${system?.id === s.id ? 'border-amber-500' : 'border-stone-300 dark:border-stone-600'}`}>
                   <p className="font-semibold text-stone-900 dark:text-white">{s.name}</p>
-                  <p className="text-sm text-stone-500 dark:text-stone-400">{SOURCE_TYPE_HINT[s.sourceType] ?? s.sourceType}</p>
+                  <p className="text-sm text-stone-600 dark:text-stone-400">{SOURCE_TYPE_HINT[s.sourceType] ?? s.sourceType}</p>
                 </button>
               ))}
               {systemsError
                 ? <p className="text-red-600 dark:text-red-400 text-sm">Não foi possível carregar os sistemas. Recarrega a página.</p>
-                : systems.length === 0 && <p className="text-stone-500 dark:text-stone-400 text-sm">A carregar sistemas...</p>}
+                : systems.length === 0 && <p className="text-stone-600 dark:text-stone-400 text-sm">A carregar sistemas...</p>}
             </div>
           </div>
         )}
@@ -265,27 +267,40 @@ export function SetupWizard() {
         {step === 'race-class' && system && (
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Raça e Classe</h1>
-            <p className="text-stone-500 dark:text-stone-400 text-sm">Sistema: {system.name}</p>
+            <p className="text-stone-600 dark:text-stone-400 text-sm">Sistema: {system.name}</p>
             <div className="space-y-3">
-              <input required placeholder="Nome do personagem" aria-label="Nome do personagem"
-                value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
-                className={inputClass} />
-              <select aria-label="Género" value={charData.gender}
-                onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))} className={selectClass}>
-                <option value="">Género…</option>
-                {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
+              {/* US-46: rótulo visível persistente acima de cada campo — placeholder deixa de ser o único rótulo. */}
+              <div>
+                <label htmlFor="char-name" className={labelClass}>Nome do personagem</label>
+                <input id="char-name" required placeholder="Ex.: Lyra Silvermoon"
+                  value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
+                  className={inputClass} />
+              </div>
+              <div>
+                <label htmlFor="char-gender" className={labelClass}>Género</label>
+                <select id="char-gender" value={charData.gender}
+                  onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))} className={selectClass}>
+                  <option value="">Selecionar…</option>
+                  {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
-                <select aria-label="Raça" value={charData.race}
-                  onChange={e => setCharData(p => ({ ...p, race: e.target.value }))} className={selectClass}>
-                  <option value="">Raça…</option>
-                  {RACES.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-                <select aria-label="Classe" value={charData.class}
-                  onChange={e => setCharData(p => ({ ...p, class: e.target.value }))} className={selectClass}>
-                  <option value="">Classe…</option>
-                  {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <div>
+                  <label htmlFor="char-race" className={labelClass}>Raça</label>
+                  <select id="char-race" value={charData.race}
+                    onChange={e => setCharData(p => ({ ...p, race: e.target.value }))} className={selectClass}>
+                    <option value="">Selecionar…</option>
+                    {RACES.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="char-class" className={labelClass}>Classe</label>
+                  <select id="char-class" value={charData.class}
+                    onChange={e => setCharData(p => ({ ...p, class: e.target.value }))} className={selectClass}>
+                    <option value="">Selecionar…</option>
+                    {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -295,7 +310,7 @@ export function SetupWizard() {
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Atributos</h1>
             {budget !== undefined && (
-              <p className="text-sm text-stone-500 dark:text-stone-400">
+              <p className="text-sm text-stone-600 dark:text-stone-400">
                 Pontos restantes: <span className={`font-semibold ${remaining === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{remaining}</span> / {budget}
               </p>
             )}
@@ -328,7 +343,7 @@ export function SetupWizard() {
         {step === 'skills' && system && (
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Perícias</h1>
-            <p className="text-stone-500 dark:text-stone-400 text-sm">
+            <p className="text-stone-600 dark:text-stone-400 text-sm">
               Escolhe <span className="font-semibold">{skillChoices}</span> perícias proficientes (+{system.config?.proficiency?.bonus ?? 2} cada).
               Selecionadas: <span className={`font-semibold ${skills.length === skillChoices ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{skills.length}</span>/{skillChoices}
             </p>
@@ -342,7 +357,7 @@ export function SetupWizard() {
                     aria-pressed={on}
                     className={`text-left rounded px-3 py-2 border text-sm disabled:opacity-40 disabled:cursor-not-allowed ${on ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 hover:border-amber-500'}`}>
                     <span className="block font-medium text-stone-900 dark:text-white">{sk.label}</span>
-                    <span className="block text-xs text-stone-500 dark:text-stone-400">{attrLabel[sk.ability] ?? sk.ability}</span>
+                    <span className="block text-xs text-stone-600 dark:text-stone-400">{attrLabel[sk.ability] ?? sk.ability}</span>
                   </button>
                 )
               })}
@@ -353,18 +368,31 @@ export function SetupWizard() {
         {step === 'background' && system && (
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Background</h1>
-            <p className="text-stone-500 dark:text-stone-400 text-sm">
+            <p className="text-stone-600 dark:text-stone-400 text-sm">
               Quem é {charData.name || 'o personagem'}? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.
             </p>
             <div className="space-y-3">
-              <textarea aria-label="História (background)" rows={3} placeholder="História de vida (ex.: nobre menor que perdeu a família para um culto demoníaco…)"
-                value={bg.story} onChange={e => setBg(p => ({ ...p, story: e.target.value }))} className={inputClass} />
-              <textarea aria-label="Ideais" rows={2} placeholder="Ideais — um por linha (ex.: Justiça acima de tudo)"
-                value={bg.ideals} onChange={e => setBg(p => ({ ...p, ideals: e.target.value }))} className={inputClass} />
-              <textarea aria-label="Vínculos" rows={2} placeholder="Vínculos — um por linha (ex.: Jurou vingança contra o culto que matou sua família)"
-                value={bg.bonds} onChange={e => setBg(p => ({ ...p, bonds: e.target.value }))} className={inputClass} />
-              <textarea aria-label="Fraquezas" rows={2} placeholder="Fraquezas — uma por linha (ex.: Código de honra rígido: não mente, não abandona inocentes)"
-                value={bg.flaws} onChange={e => setBg(p => ({ ...p, flaws: e.target.value }))} className={inputClass} />
+              {/* US-46: cada textarea com rótulo visível persistente; placeholder vira só exemplo. */}
+              <div>
+                <label htmlFor="bg-story" className={labelClass}>História</label>
+                <textarea id="bg-story" rows={3} placeholder="Ex.: nobre menor que perdeu a família para um culto demoníaco…"
+                  value={bg.story} onChange={e => setBg(p => ({ ...p, story: e.target.value }))} className={inputClass} />
+              </div>
+              <div>
+                <label htmlFor="bg-ideals" className={labelClass}>Ideais <span className="font-normal text-stone-600 dark:text-stone-400">— um por linha</span></label>
+                <textarea id="bg-ideals" rows={2} placeholder="Ex.: Justiça acima de tudo"
+                  value={bg.ideals} onChange={e => setBg(p => ({ ...p, ideals: e.target.value }))} className={inputClass} />
+              </div>
+              <div>
+                <label htmlFor="bg-bonds" className={labelClass}>Vínculos <span className="font-normal text-stone-600 dark:text-stone-400">— um por linha</span></label>
+                <textarea id="bg-bonds" rows={2} placeholder="Ex.: Jurou vingança contra o culto que matou sua família"
+                  value={bg.bonds} onChange={e => setBg(p => ({ ...p, bonds: e.target.value }))} className={inputClass} />
+              </div>
+              <div>
+                <label htmlFor="bg-flaws" className={labelClass}>Fraquezas <span className="font-normal text-stone-600 dark:text-stone-400">— uma por linha</span></label>
+                <textarea id="bg-flaws" rows={2} placeholder="Ex.: Código de honra rígido: não mente, não abandona inocentes"
+                  value={bg.flaws} onChange={e => setBg(p => ({ ...p, flaws: e.target.value }))} className={inputClass} />
+              </div>
             </div>
           </div>
         )}
@@ -381,18 +409,18 @@ export function SetupWizard() {
                 ['Nível', '1'],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between">
-                  <dt className="text-stone-500 dark:text-stone-400">{k}</dt>
+                  <dt className="text-stone-600 dark:text-stone-400">{k}</dt>
                   <dd className="text-stone-900 dark:text-white font-medium">{v}</dd>
                 </div>
               ))}
               <div className="flex justify-between">
-                <dt className="text-stone-500 dark:text-stone-400">Atributos</dt>
+                <dt className="text-stone-600 dark:text-stone-400">Atributos</dt>
                 <dd className="text-stone-900 dark:text-white font-medium text-right">
                   {attributes.map(a => `${a.label} ${attrs[a.key] ?? a.default}`).join(' · ')}
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-stone-500 dark:text-stone-400">Perícias</dt>
+                <dt className="text-stone-600 dark:text-stone-400">Perícias</dt>
                 <dd className="text-stone-900 dark:text-white font-medium text-right">
                   {skills.length > 0
                     ? skills.map(k => skillCatalog.find(s => s.key === k)?.label ?? k).join(' · ')
@@ -400,7 +428,7 @@ export function SetupWizard() {
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-stone-500 dark:text-stone-400">Background</dt>
+                <dt className="text-stone-600 dark:text-stone-400">Background</dt>
                 <dd className="text-stone-900 dark:text-white font-medium text-right">
                   {[bg.story, bg.ideals, bg.bonds, bg.flaws].some(s => s.trim()) ? 'Preenchido' : '—'}
                 </dd>
