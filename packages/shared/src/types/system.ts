@@ -21,6 +21,14 @@ export const SystemSkillSchema = z.object({
   ability: z.string().min(1),
 })
 
+// Feature de classe (US-41): o que o personagem SABE FAZER de especial (Sentido
+// Divino, Fúria, Ataque Furtivo…). Awareness apenas — sem usos/custo/mecânica.
+// NÃO é atributo (`ability`) nem perícia (`skill`): é uma terceira coisa.
+export const SystemClassFeatureSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+})
+
 // Gancho de aventura inicial por classe (US-28). Textos podem conter placeholders
 // {characterName} e {characterClass}, resolvidos no backend antes de persistir.
 export const InitialAdventureHookSchema = z.object({
@@ -49,6 +57,10 @@ export const SystemConfigSchema = z.object({
     choices: z.number().int().min(0),
     bonus: z.number().int(),
   }).optional(),
+  // Features de classe de nível 1 (US-41), por chave de classe (mesmo esquema de
+  // `startingKits`: chave canônica normalizada + fallback opcional). Materializadas
+  // no Character.features na criação. Ausente → personagem sem features (sem crash).
+  classFeatures: z.record(z.string(), z.array(SystemClassFeatureSchema)).optional(),
   // Catálogo de aventuras iniciais (US-28). Opcional para não invalidar configs legados;
   // quando presente, precisa de um hook classKey 'default' obrigatório.
   initialAdventures: z.object({
@@ -61,6 +73,7 @@ export const SystemConfigSchema = z.object({
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
 export type SystemSkill = z.infer<typeof SystemSkillSchema>
+export type SystemClassFeature = z.infer<typeof SystemClassFeatureSchema>
 export type InitialAdventureHook = z.infer<typeof InitialAdventureHookSchema>
 export type SystemConfig = z.infer<typeof SystemConfigSchema>
 

@@ -180,6 +180,48 @@ describe('CharacterService.create', () => {
     expect(char.background).toEqual({ story: 'Nobre caída', ideals: ['Justiça'], flaws: ['Não mente'] })
   })
 
+  // US-41: features de classe materializadas do kit na criação (mesmo caminho do inventário).
+  const configWithFeatures: SystemConfig = {
+    ...config,
+    classFeatures: {
+      paladino: [
+        { name: 'Sentido Divino', description: 'Sente o mal por perto.' },
+        { name: 'Impor as Mãos', description: 'Cura ao toque.' },
+      ],
+      default: [],
+    },
+  }
+
+  it('materializa as features de nível 1 da classe (match tolerante a acento/caixa)', async () => {
+    const service = new CharacterService(fakePrisma(configWithFeatures))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'Paladina',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.features).toEqual([
+      { name: 'Sentido Divino', description: 'Sente o mal por perto.' },
+      { name: 'Impor as Mãos', description: 'Cura ao toque.' },
+    ])
+  })
+
+  it('classe sem kit de features → [] (sem crash)', async () => {
+    const service = new CharacterService(fakePrisma(configWithFeatures))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'ClasseCustom',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.features).toEqual([])
+  })
+
+  it('sistema sem classFeatures no config → features [] (sem crash)', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'Paladina',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.features).toEqual([])
+  })
+
   it('sem background → persiste {}', async () => {
     const service = new CharacterService(fakePrisma(config))
     const char = await service.create({

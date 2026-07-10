@@ -10,22 +10,22 @@ Write-Host ""
 # 1. Docker Desktop
 $docker = Get-Process "Docker Desktop" -ErrorAction SilentlyContinue
 if (-not $docker) {
-    Write-Host "  [1/3] A abrir Docker Desktop..." -ForegroundColor Cyan
+    Write-Host "  [1/5] A abrir Docker Desktop..." -ForegroundColor Cyan
     Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"
     Write-Host "       Aguarda 30 segundos para o Docker arrancar..." -ForegroundColor Gray
     Start-Sleep -Seconds 30
 } else {
-    Write-Host "  [1/3] Docker Desktop ja esta a correr." -ForegroundColor Green
+    Write-Host "  [1/5] Docker Desktop ja esta a correr." -ForegroundColor Green
 }
 
 # 2. Base de dados
-Write-Host "  [2/3] A iniciar base de dados..." -ForegroundColor Cyan
+Write-Host "  [2/5] A iniciar base de dados..." -ForegroundColor Cyan
 docker compose up -d 2>&1 | Out-Null
 Start-Sleep -Seconds 3
 Write-Host "       Base de dados pronta." -ForegroundColor Green
 
 # 3. Carregar variaveis de ambiente
-Write-Host "  [3/4] A carregar configuracao..." -ForegroundColor Cyan
+Write-Host "  [3/5] A carregar configuracao..." -ForegroundColor Cyan
 $env:DATABASE_URL = 'postgresql://aidm:aidm_dev@localhost:5432/ai_dm'
 $env:REDIS_URL = 'redis://localhost:6379'
 $env:JWT_SECRET = 'ai_dm_dev_secret_troque_em_producao'
@@ -46,9 +46,17 @@ foreach ($line in Get-Content "$projectDir\.env") {
 
 # 4. Compilar pacotes partilhados (shared, ai-engine). A API le o dist deles;
 # sem isto um arranque apos mudar esses pacotes corre com o dist velho.
-Write-Host "  [4/4] A compilar pacotes partilhados..." -ForegroundColor Cyan
+Write-Host "  [4/5] A compilar pacotes partilhados..." -ForegroundColor Cyan
 pnpm --filter "./packages/*" build 2>&1 | Out-Null
 Write-Host "       Pacotes compilados." -ForegroundColor Green
+
+# 5. Aplicar migracoes pendentes e recarregar o seed do sistema/regras.
+# migrate deploy = nao-interativo (so aplica migracoes pendentes; nunca gera nem
+# pede nome). O seed usa upsert, logo e idempotente: seguro correr a cada arranque.
+Write-Host "  [5/5] A preparar base de dados (migracoes + seed)..." -ForegroundColor Cyan
+pnpm --filter api db:migrate:deploy
+pnpm --filter api db:seed
+Write-Host "       Base de dados atualizada." -ForegroundColor Green
 
 Write-Host ""
 Write-Host "  O browser vai abrir automaticamente quando estiver pronto." -ForegroundColor Gray

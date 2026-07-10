@@ -14,6 +14,7 @@ import {
   SUMMARY_SYSTEM_PROMPT,
   type DmCharacterSheet,
   type CharacterBackground,
+  type ClassFeature,
   type SummaryTurn,
 } from '@ai-dm/ai-engine'
 import { DiceService } from '../game/dice.service'
@@ -138,6 +139,8 @@ export class AiService {
       sheet,
       attributeLabels,
       background: (character.background ?? {}) as unknown as CharacterBackground,
+      // US-41: features de classe materializadas no personagem (awareness read-only).
+      features: (character.features ?? []) as unknown as ClassFeature[],
     })
 
     // US-38: um teste ancorado por turno. "Uma ação → um teste": o modelo às
@@ -409,6 +412,7 @@ export class AiService {
     hookSeed: string
     attributeLabels?: Record<string, string>
     background?: CharacterBackground
+    features?: ClassFeature[]
   }): Promise<string | null> {
     try {
       const system = buildDmSystemPrompt({
@@ -425,6 +429,7 @@ export class AiService {
         sheet: params.sheet,
         attributeLabels: params.attributeLabels,
         background: params.background,
+        features: params.features,
       })
       const prompt = buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed })
       // Percorre a MESMA escada de modelos dos turnos (narrationModels): o primário

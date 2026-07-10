@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { SystemConfigSchema, buildSkillSheet, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { AiService } from '../ai/ai.service'
-import type { CharacterBackground } from '@ai-dm/ai-engine'
+import type { CharacterBackground, ClassFeature } from '@ai-dm/ai-engine'
 import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 
 export interface CreateAdventureDto {
@@ -98,6 +98,8 @@ export class AdventureService {
       hookSeed: hook.openingNarration,
       attributeLabels: Object.fromEntries(labelPairs),
       background: (character.background ?? {}) as unknown as CharacterBackground,
+      // US-41: features de classe materializadas no personagem (o DM já as conhece na 1ª cena).
+      features: (character.features ?? []) as unknown as ClassFeature[],
     })
     const openingText = generatedOpening ?? hook.openingNarration
 

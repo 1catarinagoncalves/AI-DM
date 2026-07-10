@@ -19,6 +19,13 @@ interface InventoryItem {
   qty: number
 }
 
+// US-41: feature de classe (awareness read-only). Mesma forma do SystemClassFeature
+// de @ai-dm/shared, tipada estruturalmente aqui (web não depende desse pacote).
+interface ClassFeature {
+  name: string
+  description: string
+}
+
 // US-45: mesma forma do CharacterBackground de @ai-dm/ai-engine (web não depende
 // desse pacote), tipada estruturalmente aqui — não redefinir a forma noutro lugar.
 interface CharacterBackground {
@@ -45,13 +52,16 @@ interface Props {
   skills?: { key: string; label: string; modifier: number; proficient: boolean }[]
   // US-45: background do personagem, mostrado numa aba própria da ficha.
   background?: CharacterBackground
+  // US-41: features de classe (nível 1), mostradas na aba "Features".
+  features?: ClassFeature[]
 }
 
 // US-45: abas da ficha. Lista (não botões hard-coded) para novas abas
 // (divindade/features/magias — US-40/41/42) entrarem só acrescentando um item.
-type SheetTabId = 'ficha' | 'background'
+type SheetTabId = 'ficha' | 'background' | 'features'
 const SHEET_TABS: { id: SheetTabId; label: string }[] = [
   { id: 'ficha', label: 'Ficha' },
+  { id: 'features', label: 'Features' },
   { id: 'background', label: 'Background' },
 ]
 
@@ -123,7 +133,35 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
   )
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background }: Props) {
+// US-41: painel da aba Features. Read-only, awareness — nome + descrição curta.
+// Sem features (classe sem kit) mostra empty state; a aba nunca some (igual ao
+// painel de Background). Não resolve mecânica: é só o que o personagem PODE fazer.
+function FeaturesPanel({ features }: { features?: ClassFeature[] }) {
+  const list = (features ?? []).filter(f => f?.name?.trim())
+
+  if (list.length === 0) {
+    return (
+      <p className="text-sm text-stone-600 dark:text-stone-400">
+        Esta classe ainda não tem features registadas.
+      </p>
+    )
+  }
+
+  return (
+    <ul className="flex flex-col gap-3">
+      {list.map((f, i) => (
+        <li key={i}>
+          <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">{f.name}</p>
+          {f.description?.trim() && (
+            <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{f.description}</p>
+          )}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background, features }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
   // então trocar de aba não remonta nada nem perde estado de jogo.
@@ -417,6 +455,18 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                   </ul>
               }
             </div>
+          </div>
+        )}
+
+        {/* US-41: aba "Features" — features de classe, read-only. Sempre presente; empty state quando vazia. */}
+        {tab === 'features' && (
+          <div
+            id="sheet-panel-features"
+            role="tabpanel"
+            aria-labelledby="sheet-tab-features"
+            className="md:w-full"
+          >
+            <FeaturesPanel features={features} />
           </div>
         )}
 

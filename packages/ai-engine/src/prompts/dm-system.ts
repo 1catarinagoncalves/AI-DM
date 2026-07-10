@@ -36,6 +36,18 @@ export interface CharacterBackground {
   deity?: { name: string; portfolio?: string }
 }
 
+/**
+ * Feature de classe de nível 1 (US-41): o que o personagem SABE FAZER de especial
+ * (Sentido Divino, Fúria, Ataque Furtivo…). Awareness apenas — o mestre OFERECE e
+ * NARRA; usos/custo/efeito são outra camada (tool/mecânica). Mesma forma do
+ * `SystemClassFeature` de @ai-dm/shared, tipada estruturalmente aqui (o ai-engine
+ * não redefine a forma noutro pacote). NÃO é atributo nem perícia — terceira coisa.
+ */
+export interface ClassFeature {
+  name: string
+  description: string
+}
+
 const BACKGROUND_LABELS: Record<keyof CharacterBackground, string> = {
   story: 'Background',
   ideals: 'Ideais',
@@ -77,8 +89,10 @@ export function buildDmSystemPrompt(params: {
   attributeLabels?: Record<string, string>
   /** Background narrativo (US-39): história, ideais, vínculos, fraquezas. Ausente/vazio → nenhuma seção. */
   background?: CharacterBackground
+  /** Features de classe de nível 1 (US-41): awareness read-only. Ausente/vazio → nenhuma seção. */
+  features?: ClassFeature[]
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels, background } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels, background, features } = params
 
   const attributesLine = Object.entries(sheet.attributes)
     .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value} (${formatModifier(abilityModifier(value))})`)
@@ -111,6 +125,26 @@ This is the authoritative current state of the character. Trust it and narrate c
     ? `## Character identity (read-only — roleplay guidance; honor it, NEVER print verbatim)
 These traits define WHO the character is. Let them color the character's choices and the tension WHEN the scene calls for it — a flaw creates dilemma, an ideal guides a decision, a bond is what's at stake. If a Divindade (deity/patron) is present, let the character's FAITH color invocations, omens, sacred tone and moral code — coherent with their ideals and flaws. Do NOT force them where the scene doesn't ask. You KNOW these, but you NEVER list them in the narration.
 ${backgroundLines}
+
+`
+    : ''
+
+  // Features de classe (US-41): lista read-only iterada (padrão dirigido por dados
+  // da US-23 — feature nova entra só no dado, sem tocar no builder). Vazia → a seção
+  // inteira some. O mestre OFERECE/NARRA; nunca resolve custo/efeito aqui.
+  const featureLines = (features ?? [])
+    .map((f) => {
+      const name = f.name?.trim()
+      const desc = f.description?.trim()
+      if (!name) return ''
+      return desc ? `- ${name}: ${desc}` : `- ${name}`
+    })
+    .filter(Boolean)
+    .join('\n')
+  const featuresSection = featureLines
+    ? `## Class features (read-only — what the character can DO; offer and narrate these, NEVER resolve their cost/effect here)
+These are the character's class powers. Offer them as options and narrate them vividly when the fiction calls — a paladin FEELS nearby evil, a barbarian's fury changes the tone of a fight. You KNOW them, but you do NOT resolve uses-per-rest, charges, healing/damage numbers or cooldowns here (that is mechanics/tools). Never print this list verbatim in the narration.
+${featureLines}
 
 `
     : ''
@@ -174,7 +208,7 @@ Every narration you write — including the very first scene of the adventure �
 
 ${sheetSection}
 
-${backgroundSection}## Main quest
+${backgroundSection}${featuresSection}## Main quest
 ${mainQuest ? mainQuest : '- No main quest set yet.'}
 
 ## Active quests (secondary)

@@ -1,4 +1,4 @@
-import type { InitialAdventureHook, InventoryItem, SystemConfig } from '@ai-dm/shared'
+import type { InitialAdventureHook, InventoryItem, SystemClassFeature, SystemConfig } from '@ai-dm/shared'
 
 /** Lowercase + strip diacritics for fuzzy class-name matching only. */
 function normalize(s: string): string {
@@ -30,6 +30,8 @@ const CLASS_SYNONYMS: [string, string][] = [
   ['bard', 'bardo'],
   ['feiticer', 'feiticeiro'],
   ['brux', 'feiticeiro'],
+  ['monge', 'monge'],
+  ['mong', 'monge'],
   ['mag', 'mago'],
 ]
 
@@ -42,6 +44,23 @@ export function getStartingInventory(config: SystemConfig, charClass: string): I
   }
   // SystemConfigSchema garante a chave `default`; ver types/system.ts em @ai-dm/shared.
   return kits.default as InventoryItem[]
+}
+
+/**
+ * Features de classe de nível 1 do kit (US-41). Mesmo match tolerante do
+ * inventário (`CLASS_SYNONYMS`), keyed pela chave canônica da classe. Classe sem
+ * entrada cai no `default` do config; sem `classFeatures` no config → []. Nunca
+ * inventa feature: personagem sem kit fica com lista vazia (sem crash, sem seção).
+ */
+export function getClassFeatures(config: SystemConfig, charClass: string): SystemClassFeature[] {
+  const map = config.classFeatures
+  if (!map) return []
+  const cn = normalize(charClass)
+  for (const [keyword, key] of CLASS_SYNONYMS) {
+    const feats = map[key]
+    if (cn.includes(keyword) && feats) return feats
+  }
+  return map.default ?? []
 }
 
 /**

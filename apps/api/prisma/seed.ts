@@ -229,17 +229,65 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
   ],
 }
 
+// Features de classe de NÍVEL 1 (US-41), D&D 5e SRD. Awareness read-only: o mestre
+// oferece/narra; usos/custo/efeito são outra camada. Keyed pela chave canônica de
+// classe (mesmo match tolerante do inventário, ver getClassFeatures). Exclui
+// Conjuração/magias (US-42) e proficiências/perícias (US-27). Classes cuja única
+// feature de nível 1 depende de subclasse (Clérigo→domínio, Feiticeiro→origem,
+// Bruxo→patrono) ficam de fora por ora (YAGNI, sem escolha de subclasse na Fase 1):
+// caem no default [] e o personagem fica sem features (sem crash, sem seção).
+const dnd5eClassFeatures: SystemConfig['classFeatures'] = {
+  barbaro: [
+    { name: 'Fúria', description: 'Entra em fúria, ganhando ímpeto e resistência no combate.' },
+    { name: 'Defesa sem Armadura', description: 'Protege-se sem armadura usando o próprio vigor.' },
+  ],
+  bardo: [
+    { name: 'Inspiração de Bardo', description: 'Inspira um aliado, dando-lhe um impulso extra numa ação.' },
+  ],
+  guerreiro: [
+    { name: 'Estilo de Luta', description: 'Domina uma técnica marcial que o torna mais eficaz.' },
+    { name: 'Retomar o Fôlego', description: 'Recupera vigor no meio da batalha por um instante.' },
+  ],
+  monge: [
+    { name: 'Defesa sem Armadura', description: 'Protege-se sem armadura pela sua serenidade e treino.' },
+    { name: 'Artes Marciais', description: 'Luta desarmado com golpes rápidos e precisos.' },
+  ],
+  paladino: [
+    { name: 'Sentido Divino', description: 'Sente presenças de bem/mal e mortos-vivos por perto.' },
+    { name: 'Impor as Mãos', description: 'Cura ferimentos tocando o alvo com energia divina.' },
+  ],
+  // Ranger/Patrulheiro colapsa em 'arqueiro' (mesmo match do inventário).
+  arqueiro: [
+    { name: 'Inimigo Favorito', description: 'Conhece a fundo um tipo de criatura e como caçá-la.' },
+    { name: 'Explorador Nato', description: 'Move-se e sobrevive com maestria no seu terreno.' },
+  ],
+  ladino: [
+    { name: 'Especialização', description: 'É excepcionalmente bom em certas perícias.' },
+    { name: 'Ataque Furtivo', description: 'Golpe extra devastador quando pega o alvo desprevenido.' },
+    { name: 'Gíria de Ladrão', description: 'Comunica-se em código secreto do submundo.' },
+  ],
+  druida: [
+    { name: 'Druídico', description: 'Conhece a língua secreta dos druidas e as suas mensagens ocultas.' },
+  ],
+  mago: [
+    { name: 'Recuperação Arcana', description: 'Recupera parte da energia mágica ao descansar brevemente.' },
+  ],
+  // Clérigo, Feiticeiro e Bruxo: única feature de nível 1 depende de subclasse → sem entrada (caem no default []).
+  default: [],
+}
+
 const freeConfig: SystemConfig = {
   // Mesmos atributos, perícias, point-buy e kits por classe do D&D 5e.
   attributes: dnd5eAttributes,
   skills: dnd5eSkills,
   proficiency: dnd5eProficiency,
   startingKits: dnd5eKits,
+  classFeatures: dnd5eClassFeatures,
   pointBuy: { budget: 27 },
   initialAdventures: dnd5eInitialAdventures,
 }
 
-const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, skills: dnd5eSkills, proficiency: dnd5eProficiency, startingKits: dnd5eKits, pointBuy: { budget: 27 }, initialAdventures: dnd5eInitialAdventures }
+const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, skills: dnd5eSkills, proficiency: dnd5eProficiency, startingKits: dnd5eKits, classFeatures: dnd5eClassFeatures, pointBuy: { budget: 27 }, initialAdventures: dnd5eInitialAdventures }
 
 async function main() {
   // Sistema "Free" — o AI DM narra livremente, sem seguir regras de um sistema oficial.

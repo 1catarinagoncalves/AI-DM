@@ -26,7 +26,7 @@ A "Cura divina" da paladina de referência ([aventura-seraphine.md](../referenci
 
 ### Por que a solução atual não basta
 
-A [US-41](./US-41-features-traits-de-classe.md) cobre **features & traits** (poderes de classe passivos/por-descanso). Magias são um sistema à parte no 5e — lista de magias, níveis, preparação, componentes, slots. Meter magia no campo de features perderia a semântica e empurraria a US para o motor de spellcasting inteiro. Separar mantém cada uma no seu tamanho.
+A [US-41](./US-41-features-traits-de-classe.md) cobre **features ** (poderes de classe passivos/por-descanso). Magias são um sistema à parte no 5e — lista de magias, níveis, preparação, componentes, slots. Meter magia no campo de features perderia a semântica e empurraria a US para o motor de spellcasting inteiro. Separar mantém cada uma no seu tamanho.
 
 ### A proposta
 
@@ -105,5 +105,5 @@ Render no prompt:
 - `packages/ai-engine/src/prompts/dm-system.ts` — `buildDmSystemPrompt`, seção read-only dirigida por dados.
 - `apps/api/prisma/schema.prisma` — `Character` (onde entra `spells`).
 - `apps/api/prisma/seed.ts` — kit por sistema/classe, base para o kit de magias.
-- `docs/sdlc/01-requisitos/US-41-features-traits-de-classe.md` — sistema irmão (features/traits).
+- `docs/sdlc/01-requisitos/US-41-features-traits-de-classe.md` — sistema irmão (features).
 - `docs/sdlc/referencia/aventura-seraphine.md` — "Cura divina" da Seraphine (na verdade magias).

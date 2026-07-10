@@ -100,6 +100,39 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.queryByText('Divindade/Patrono')).toBeNull()
   })
 
+  // US-41: aba Features lista as features de classe (nome + descrição), read-only.
+  it('mostra a aba Features e lista as features de classe ao clicar', async () => {
+    render(
+      <GameView
+        {...baseProps}
+        features={[
+          { name: 'Sentido Divino', description: 'Sente o mal por perto.' },
+          { name: 'Impor as Mãos', description: 'Cura ao toque.' },
+        ]}
+      />,
+    )
+
+    // A aba existe e a padrão (Ficha) não mostra features ainda.
+    expect(await screen.findByRole('tab', { name: 'Features' })).toBeTruthy()
+    expect(screen.queryByText('Sentido Divino')).toBeNull()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Features' }))
+
+    expect(await screen.findByText('Sentido Divino')).toBeTruthy()
+    expect(screen.getByText('Sente o mal por perto.')).toBeTruthy()
+    expect(screen.getByText('Impor as Mãos')).toBeTruthy()
+    // Trocou de aba: a mecânica saiu de vista.
+    expect(screen.queryByText('Atributos')).toBeNull()
+  })
+
+  it('com features vazias a aba Features continua presente e mostra o empty state', async () => {
+    render(<GameView {...baseProps} features={[]} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Features' }))
+
+    expect(screen.getByText('Esta classe ainda não tem features registadas.')).toBeTruthy()
+  })
+
   it('HP fica fixo acima das abas e continua visível na aba Background', async () => {
     render(<GameView {...baseProps} background={{ story: 'História.' }} />)
 
