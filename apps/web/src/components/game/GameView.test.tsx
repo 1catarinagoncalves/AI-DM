@@ -76,6 +76,30 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.queryByText('Fraquezas')).toBeNull()
   })
 
+  // US-40: divindade aparece na aba Background quando presente.
+  it('mostra a divindade (nome + portfólio) na aba Background quando presente', async () => {
+    render(
+      <GameView
+        {...baseProps}
+        background={{ story: 'História.', deity: { name: 'Auril', portfolio: 'goddess of winter' } }}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.getByText('Divindade/Patrono')).toBeTruthy()
+    expect(screen.getByText('Auril — goddess of winter')).toBeTruthy()
+  })
+
+  // US-40: sem deity, nenhum bloco de divindade.
+  it('sem deity, a aba Background não mostra bloco de divindade', async () => {
+    render(<GameView {...baseProps} background={{ story: 'História.' }} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.queryByText('Divindade/Patrono')).toBeNull()
+  })
+
   it('HP fica fixo acima das abas e continua visível na aba Background', async () => {
     render(<GameView {...baseProps} background={{ story: 'História.' }} />)
 

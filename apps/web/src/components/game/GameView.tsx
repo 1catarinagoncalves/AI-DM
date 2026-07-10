@@ -26,6 +26,8 @@ interface CharacterBackground {
   ideals?: string[]
   bonds?: string[]
   flaws?: string[]
+  // US-40: divindade/patrono opcional (nome + portfólio).
+  deity?: { name: string; portfolio?: string }
 }
 
 interface Props {
@@ -79,7 +81,11 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
     { label: 'Vínculos', items: background?.bonds ?? [] },
     { label: 'Fraquezas', items: background?.flaws ?? [] },
   ]
-  const hasAny = Boolean(story) || lists.some(l => l.items.length > 0)
+  // US-40: divindade só vira bloco se tiver nome; "Nome — portfólio" (ou só o nome).
+  const deityName = background?.deity?.name?.trim()
+  const deityPortfolio = background?.deity?.portfolio?.trim()
+  const deityText = deityName ? (deityPortfolio ? `${deityName} — ${deityPortfolio}` : deityName) : ''
+  const hasAny = Boolean(story) || Boolean(deityText) || lists.some(l => l.items.length > 0)
 
   if (!hasAny) {
     return (
@@ -95,6 +101,12 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
         <div>
           <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">História</p>
           <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-wrap leading-relaxed">{story}</p>
+        </div>
+      )}
+      {deityText && (
+        <div>
+          <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Divindade/Patrono</p>
+          <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{deityText}</p>
         </div>
       )}
       {lists.map(({ label, items }) => items.length > 0 && (

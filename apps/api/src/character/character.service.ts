@@ -1,21 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { SystemConfigSchema, buildCharacterAttributesSchema, type SystemConfig } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
-
-export interface CreateCharacterDto {
-  userId: string
-  systemId: string
-  name: string
-  gender: string
-  race: string
-  class: string
-  attributes: Record<string, number>
-  // US-27: keys de perícia proficientes escolhidas na criação. Opcional para
-  // sistemas sem perícias no config.
-  skills?: string[]
-  // US-39: background narrativo (texto livre). Normalizado antes de persistir.
-  background?: { story?: string; ideals?: string[]; bonds?: string[]; flaws?: string[] }
-}
+// DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
+// Reexporta para quem importava o tipo daqui.
+export type { CreateCharacterDto } from './character.schema'
+import type { CreateCharacterDto } from './character.schema'
 
 @Injectable()
 export class CharacterService {
@@ -53,14 +42,20 @@ export class CharacterService {
    * vazias das listas e descarta campos vazios. Sem nada preenchido → `{}` (o
    * builder não renderiza seção). Texto livre (US-39 §1); sem catálogo.
    */
-  private normalizeBackground(bg?: CreateCharacterDto['background']): Record<string, string | string[]> {
+  private normalizeBackground(bg?: CreateCharacterDto['background']): Record<string, string | string[] | { name: string; portfolio?: string }> {
     if (!bg) return {}
-    const out: Record<string, string | string[]> = {}
+    const out: Record<string, string | string[] | { name: string; portfolio?: string }> = {}
     const story = bg.story?.trim()
     if (story) out['story'] = story
     for (const key of ['ideals', 'bonds', 'flaws'] as const) {
       const arr = (bg[key] ?? []).map((s) => s.trim()).filter(Boolean)
       if (arr.length > 0) out[key] = arr
+    }
+    // US-40: divindade só entra se tiver nome; portfolio é opcional. Sem nome → descartada.
+    const name = bg.deity?.name?.trim()
+    if (name) {
+      const portfolio = bg.deity?.portfolio?.trim()
+      out['deity'] = portfolio ? { name, portfolio } : { name }
     }
     return out
   }

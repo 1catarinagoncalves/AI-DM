@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-23](./US-23-dm-ciente-da-ficha.md) (injeção dirigida por dados) · [US-26](./US-26-criacao-personagem-em-etapas.md) (captura na criação)
 **Relacionado:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (identidade narrativa — mesma seção do prompt; divindade é o campo específico de classes divinas) · [US-45](./US-45-background-na-ficha-da-interface.md) (aba "Background" na ficha da interface, onde a divindade aparece para o jogador)
 **Bloqueia:** [US-17](./US-17-comparacao-modelos-eval.md) slice 2 (paridade de contexto com a referência, cuja paladina é definida por Solariel)
@@ -60,31 +60,49 @@ Extensão do `identity` da [US-39](./US-39-identidade-narrativa-background-ideai
 interface CharacterIdentity {
   // ... campos da US-39 ...
   deity?: {
-    name: string        // "Solariel, o Senhor da Luz Eterna"
-    portfolio?: string  // "justiça, cura e combate ao mal"
+    name: string        // "Auril" — parte antes da primeira vírgula
+    portfolio?: string  // "goddess of winter" — parte depois da primeira vírgula (trim)
   }
 }
 ```
+
+**Origem do dado (parsing no wizard):** o campo único **"Divindade/Patrono"** é texto livre; ao salvar, faz-se split na **primeira vírgula**:
+
+- Antes da vírgula → `name` (trim).
+- Depois da primeira vírgula → `portfolio` (trim). Vírgulas seguintes ficam dentro do `portfolio` (só a **primeira** separa).
+- **Sem vírgula** → tudo vira `name`; `portfolio` fica `undefined`.
+- Campo vazio → `deity` fica `undefined` (nenhum objeto).
+
+Exemplos:
+
+| Texto digitado | `name` | `portfolio` |
+|---|---|---|
+| `Auril, goddess of winter` | `Auril` | `goddess of winter` |
+| `Solariel, o Senhor da Luz Eterna, justiça e cura` | `Solariel` | `o Senhor da Luz Eterna, justiça e cura` |
+| `Tymora` | `Tymora` | `undefined` |
 
 **Persistência:** chave `deity` dentro do JSON `identity` em `Character`. Renderizada pela mesma iteração da US-39 (ausente → some).
 
 Render no prompt (dentro da seção de identidade):
 
 ```
-- Divindade: Solariel, o Senhor da Luz Eterna (justiça, cura e combate ao mal).
+- Divindade: Auril (goddess of winter).
 ```
+
+Sem `portfolio` (só `name`), render sem parênteses: `- Divindade: Tymora.`
 
 ---
 
 ## Critérios de aceite
 
-- [ ] `Character.identity` aceita `deity` opcional (`name` + `portfolio`), preenchível na criação.
-- [ ] O prompt inclui a linha de divindade **só quando presente**; personagem sem divindade não gera linha nem crash.
-- [ ] O prompt instrui o mestre a usar a fé como cor narrativa (invocações, presságios, tom), coerente com ideais/fraquezas da US-39.
-- [ ] A divindade é renderizada pela **mesma iteração** da seção de identidade — não é um `if` novo dedicado no builder.
-- [ ] **Interface:** a **aba "Background"** da ficha ([GameView.tsx](../../apps/web/src/components/game/GameView.tsx)) mostra a divindade (nome + portfólio) **quando presente**, read-only; personagem sem `deity` **não** gera bloco de divindade na aba (sem bloco fantasma nem crash).
-- [ ] **Eval / regressão (prompt):** personagem com `deity` produz um prompt contendo o nome da divindade na seção de identidade; personagem sem `deity` produz a seção sem linha de divindade (`evals/cases/us-40-*.ts`).
-- [ ] **Eval / regressão (interface):** renderizar `GameView` com `deity` e ver o nome da divindade na aba **Background**; sem `deity`, a aba não mostra bloco de divindade (`GameView.test.tsx` ou equivalente).
+- [x] `Character.identity` aceita `deity` opcional (`name` + `portfolio`), preenchível na criação.
+- [x] O campo único **"Divindade/Patrono"** do wizard é parseado por **split na primeira vírgula**: `name` = antes, `portfolio` = depois (trim); sem vírgula → só `name`; vazio → `deity` `undefined`. Ex.: `Auril, goddess of winter` gera `name: "Auril"`, `portfolio: "goddess of winter"`.
+- [x] O prompt inclui a linha de divindade **só quando presente**; personagem sem divindade não gera linha nem crash.
+- [x] O prompt instrui o mestre a usar a fé como cor narrativa (invocações, presságios, tom), coerente com ideais/fraquezas da US-39.
+- [x] A divindade é renderizada pela **mesma iteração** da seção de identidade — não é um `if` novo dedicado no builder.
+- [x] **Interface:** a **aba "Background"** da ficha ([GameView.tsx](../../apps/web/src/components/game/GameView.tsx)) mostra a divindade (nome + portfólio) **quando presente**, read-only; personagem sem `deity` **não** gera bloco de divindade na aba (sem bloco fantasma nem crash).
+- [x] **Eval / regressão (prompt):** personagem com `deity` produz um prompt contendo o nome da divindade na seção de identidade; personagem sem `deity` produz a seção sem linha de divindade (`evals/cases/us-40-*.ts`).
+- [x] **Eval / regressão (interface):** renderizar `GameView` com `deity` e ver o nome da divindade na aba **Background**; sem `deity`, a aba não mostra bloco de divindade (`GameView.test.tsx` ou equivalente).
 
 ---
 

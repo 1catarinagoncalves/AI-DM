@@ -188,4 +188,30 @@ describe('CharacterService.create', () => {
     })
     expect(char.background).toEqual({})
   })
+
+  // US-40: divindade normalizada — nome + portfolio trimados; sem nome, descartada.
+  it('normaliza e persiste a divindade (nome + portfolio)', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      background: { deity: { name: '  Auril  ', portfolio: '  goddess of winter  ' } },
+    })
+    expect(char.background).toEqual({ deity: { name: 'Auril', portfolio: 'goddess of winter' } })
+  })
+
+  it('divindade sem portfolio → só o nome; sem nome → descartada', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const onlyName = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, background: { deity: { name: 'Tymora' } },
+    })
+    expect(onlyName.background).toEqual({ deity: { name: 'Tymora' } })
+
+    const noName = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, background: { deity: { name: '  ', portfolio: 'x' } },
+    })
+    expect(noName.background).toEqual({})
+  })
 })

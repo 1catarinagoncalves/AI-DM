@@ -167,6 +167,80 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     }))
   })
 
+  // US-40: campo "Divindade/Patrono" é parseado na 1ª vírgula → {name, portfolio}.
+  it('captura a divindade e a envia parseada (nome antes da vírgula, portfolio depois)', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Auril, goddess of winter' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      background: expect.objectContaining({ deity: { name: 'Auril', portfolio: 'goddess of winter' } }),
+    }))
+  })
+
+  // US-40: sem vírgula → só o nome; portfolio ausente.
+  it('sem vírgula, a divindade vira só nome (portfolio undefined)', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Tymora' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      background: expect.objectContaining({ deity: { name: 'Tymora' } }),
+    }))
+  })
+
+  // US-40: campo vazio → deity undefined (sem objeto).
+  it('divindade em branco → deity undefined', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      background: expect.objectContaining({ deity: undefined }),
+    }))
+  })
+
+  // US-40: com só a divindade preenchida, a revisão mostra o nome dela.
+  it('mostra o nome da divindade na revisão quando só ela é preenchida', async () => {
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Solariel, Deus da justiça e da cura' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    expect(screen.getByRole('heading', { name: 'Revisão' })).toBeTruthy()
+    expect(screen.getByText('Solariel')).toBeTruthy()
+  })
+
   // US-28: depois de Confirmar, o jogador vê a etapa "Aventura inicial" e a inicia.
   it('mostra a aventura inicial da classe e inicia-a ao confirmar', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })

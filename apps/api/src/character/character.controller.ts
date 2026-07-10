@@ -1,29 +1,8 @@
 import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common'
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { z } from 'zod'
 import { CharacterService } from './character.service'
+import { CreateCharacterSchema } from './character.schema'
 import { zodBody } from '../openapi'
-
-const CreateCharacterSchema = z.object({
-  userId: z.string().min(1),
-  systemId: z.string().min(1),
-  name: z.string().min(1).max(60),
-  gender: z.string().min(1).max(40),
-  race: z.string().min(1).max(40),
-  class: z.string().min(1).max(40),
-  // Atributos dinâmicos: validados contra System.config.attributes no service, não aqui.
-  attributes: z.record(z.string(), z.number()),
-  // Perícias proficientes (US-27): keys validadas contra System.config.skills no service.
-  skills: z.array(z.string()).optional(),
-  // Background narrativo (US-39): texto livre, normalizado no service. Limites de
-  // tamanho são guarda de trust boundary (input do cliente).
-  background: z.object({
-    story: z.string().max(2000).optional(),
-    ideals: z.array(z.string().max(500)).max(20).optional(),
-    bonds: z.array(z.string().max(500)).max(20).optional(),
-    flaws: z.array(z.string().max(500)).max(20).optional(),
-  }).optional(),
-})
 
 @ApiTags('Personagens')
 @Controller('characters')

@@ -36,6 +36,20 @@ function randomGuestId() {
   return `guest_${Math.random().toString(36).slice(2, 10)}@aidm.local`
 }
 
+// US-40: campo único "Divindade/Patrono" → {name, portfolio}. Split na PRIMEIRA
+// vírgula: antes = name, depois (trim) = portfolio. Sem vírgula → só name.
+// Vazio → undefined (sem objeto). Vírgulas seguintes ficam dentro do portfolio.
+function parseDeity(raw: string): { name: string; portfolio?: string } | undefined {
+  const text = raw.trim()
+  if (!text) return undefined
+  const comma = text.indexOf(',')
+  if (comma === -1) return { name: text }
+  const name = text.slice(0, comma).trim()
+  if (!name) return undefined
+  const portfolio = text.slice(comma + 1).trim()
+  return portfolio ? { name, portfolio } : { name }
+}
+
 export function SetupWizard() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('system')
@@ -53,7 +67,8 @@ export function SetupWizard() {
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
   // US-39: background narrativo. Textareas em string; ideais/vínculos/fraquezas = um por linha.
-  const [bg, setBg] = useState({ story: '', ideals: '', bonds: '', flaws: '' })
+  // US-40: `deity` é um campo único de texto livre ("Divindade/Patrono"), parseado na 1ª vírgula.
+  const [bg, setBg] = useState({ story: '', ideals: '', bonds: '', flaws: '', deity: '' })
 
   // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
   const [charId, setCharId] = useState('')
@@ -128,7 +143,7 @@ export function SetupWizard() {
     try {
       // US-39: uma linha por item em ideais/vínculos/fraquezas; vazios descartados (o backend também normaliza).
       const lines = (s: string) => s.split('\n').map(t => t.trim()).filter(Boolean)
-      const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws) }
+      const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
       const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs, skills, background })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
       saveSession({ userId, userName: charData.name, characterId: char.id, characterName: charData.name, adventureId: '' })
@@ -393,6 +408,13 @@ export function SetupWizard() {
                 <textarea id="bg-flaws" rows={2} placeholder="Ex.: Código de honra rígido: não mente, não abandona inocentes"
                   value={bg.flaws} onChange={e => setBg(p => ({ ...p, flaws: e.target.value }))} className={inputClass} />
               </div>
+              {/* US-40: divindade/patrono — campo único, opcional para todas as classes.
+                  Nome antes da vírgula, portfólio depois (parseado ao confirmar). */}
+              <div>
+                <label htmlFor="bg-deity" className={labelClass}>Divindade/Patrono <span className="font-normal text-stone-600 dark:text-stone-400">— nome, e o que representa</span></label>
+                <input id="bg-deity" placeholder="Ex.: Auril, deusa do inverno"
+                  value={bg.deity} onChange={e => setBg(p => ({ ...p, deity: e.target.value }))} className={inputClass} />
+              </div>
             </div>
           </div>
         )}
@@ -430,9 +452,18 @@ export function SetupWizard() {
               <div className="flex justify-between">
                 <dt className="text-stone-600 dark:text-stone-400">Background</dt>
                 <dd className="text-stone-900 dark:text-white font-medium text-right">
-                  {[bg.story, bg.ideals, bg.bonds, bg.flaws].some(s => s.trim()) ? 'Preenchido' : '—'}
+                  {[bg.story, bg.ideals, bg.bonds, bg.flaws, bg.deity].some(s => s.trim()) ? 'Preenchido' : '—'}
                 </dd>
               </div>
+              {/* US-40: mostra o nome da divindade na revisão quando preenchida. */}
+              {parseDeity(bg.deity) && (
+                <div className="flex justify-between">
+                  <dt className="text-stone-600 dark:text-stone-400">Divindade/Patrono</dt>
+                  <dd className="text-stone-900 dark:text-white font-medium text-right">
+                    {parseDeity(bg.deity)!.name}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
         )}

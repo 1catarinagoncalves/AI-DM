@@ -31,6 +31,9 @@ export interface CharacterBackground {
   ideals?: string[]
   bonds?: string[]
   flaws?: string[]
+  /** US-40: divindade/patrono (opcional, texto livre). `name` = antes da 1ª vírgula
+   * no wizard; `portfolio` = o que vem depois. Ausente → nenhuma linha de divindade. */
+  deity?: { name: string; portfolio?: string }
 }
 
 const BACKGROUND_LABELS: Record<keyof CharacterBackground, string> = {
@@ -38,6 +41,24 @@ const BACKGROUND_LABELS: Record<keyof CharacterBackground, string> = {
   ideals: 'Ideais',
   bonds: 'Vínculos',
   flaws: 'Fraquezas',
+  deity: 'Divindade',
+}
+
+/**
+ * Texto de UMA linha para um campo do background, seja qual for a forma:
+ * prosa (`story`), lista (`ideals`/`bonds`/`flaws`) ou o objeto `deity` (US-40).
+ * Assim a divindade entra na MESMA iteração da seção de identidade — não num
+ * `if` novo dedicado. Campo vazio → string vazia (a iteração descarta).
+ */
+function backgroundFieldText(value: CharacterBackground[keyof CharacterBackground]): string {
+  if (value == null) return ''
+  if (Array.isArray(value)) return value.map((v) => v.trim()).filter(Boolean).join('; ')
+  if (typeof value === 'string') return value.trim()
+  // deity: "Nome (portfolio)" ou só "Nome" quando não há portfolio.
+  const name = value.name?.trim()
+  if (!name) return ''
+  const portfolio = value.portfolio?.trim()
+  return portfolio ? `${name} (${portfolio})` : name
 }
 
 export function buildDmSystemPrompt(params: {
@@ -79,8 +100,7 @@ This is the authoritative current state of the character. Trust it and narrate c
   // pula campos vazios; sem nenhum campo preenchido a seção inteira some.
   const backgroundLines = (Object.keys(BACKGROUND_LABELS) as (keyof CharacterBackground)[])
     .map((key) => {
-      const value = background?.[key]
-      const text = Array.isArray(value) ? value.map((v) => v.trim()).filter(Boolean).join('; ') : (value ?? '').trim()
+      const text = backgroundFieldText(background?.[key])
       return text ? `- ${BACKGROUND_LABELS[key]}: ${text}` : ''
     })
     .filter(Boolean)
@@ -89,7 +109,7 @@ This is the authoritative current state of the character. Trust it and narrate c
   // ancorada no papel de cada traço. Calibração fina é a US-43.
   const backgroundSection = backgroundLines
     ? `## Character identity (read-only — roleplay guidance; honor it, NEVER print verbatim)
-These traits define WHO the character is. Let them color the character's choices and the tension WHEN the scene calls for it — a flaw creates dilemma, an ideal guides a decision, a bond is what's at stake. Do NOT force them where the scene doesn't ask. You KNOW these, but you NEVER list them in the narration.
+These traits define WHO the character is. Let them color the character's choices and the tension WHEN the scene calls for it — a flaw creates dilemma, an ideal guides a decision, a bond is what's at stake. If a Divindade (deity/patron) is present, let the character's FAITH color invocations, omens, sacred tone and moral code — coherent with their ideals and flaws. Do NOT force them where the scene doesn't ask. You KNOW these, but you NEVER list them in the narration.
 ${backgroundLines}
 
 `
