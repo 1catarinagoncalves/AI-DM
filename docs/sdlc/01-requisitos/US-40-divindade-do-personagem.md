@@ -41,7 +41,7 @@ Um campo **opcional** de divindade/patrono no personagem, injetado no system pro
 - Campo **opcional** de divindade no `Character`: nome + descrição/portfólio curto (ex.: domínios, o que a fé representa).
 - Captura no **wizard de criação** ([US-26](./US-26-criacao-personagem-em-etapas.md)), junto aos demais campos de background, como **texto livre** e **opcional para todas as classes** (não sugerido/escondido por classe). Rótulo do campo: **"Divindade/Patrono"**.
 - Injeção no prompt (linha na seção de identidade) só quando presente, com instrução ao mestre de usar a fé como cor (invocações/presságios/tom), coerente com os ideais/fraquezas da US-39.
-- **Divindade visível na ficha (interface):** renderizada na **aba "Background"** da ficha (padrão de abas da [US-45](./US-45-background-na-ficha-da-interface.md)), como bloco próprio, read-only, ao lado de história/ideais/vínculos/fraquezas. Presente → mostra nome + portfólio (ex.: "Solariel, o Senhor da Luz Eterna — justiça, cura e combate ao mal"). Ausente → o bloco **não aparece** (é campo opcional de classes divinas, não um 5º eixo fixo como os quatro da [US-47](./US-47-background-eixos-sempre-visiveis.md)); sem bloco fantasma nem crash.
+- **Divindade visível na ficha (interface):** renderizada na **aba "Background"** da ficha (padrão de abas da [US-45](./US-45-background-na-ficha-da-interface.md)), como bloco próprio, read-only, ao lado de história/ideais/vínculos/fraquezas. Presente → mostra nome + portfólio (ex.: "Solariel, o Senhor da Luz Eterna — justiça, cura e combate ao mal"). Ausente → o bloco **não aparece** (é campo opcional de classes divinas, não um eixo fixo do background); sem bloco fantasma nem crash.
 
 ### Fora do escopo
 
@@ -129,7 +129,7 @@ Sem `portfolio` (só `name`), render sem parênteses: `- Divindade: Tymora.`
 
 - `packages/ai-engine/src/prompts/dm-system.ts` — seção de identidade (criada na US-39) que ganha a linha de divindade.
 - `apps/api/src/ai/ai.service.ts` — monta `identity` a partir do `Character`.
-- `apps/web/src/components/game/GameView.tsx` — `BackgroundPanel` (aba "Background" da US-45/US-47) onde a divindade é renderizada para o jogador.
+- `apps/web/src/components/game/GameView.tsx` — `BackgroundPanel` (aba "Background" da US-45) onde a divindade é renderizada para o jogador.
 - `apps/api/prisma/schema.prisma` — `Character.identity` (JSON) onde mora `deity`.
 - `docs/sdlc/referencia/aventura-seraphine.md` — Solariel como exemplo do papel narrativo da divindade.
 - `docs/sdlc/01-requisitos/US-39-identidade-narrativa-background-ideais.md` — story-mãe da seção de identidade.

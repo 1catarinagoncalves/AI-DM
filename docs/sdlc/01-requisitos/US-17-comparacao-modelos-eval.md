@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** Suite de evals existente (`evals/` + `pnpm eval`, vitest) — já implementada
 **Bloqueado (slice 2) por:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (background/ideais/vínculos/fraquezas) + [US-40](./US-40-divindade-do-personagem.md) (divindade) + [US-41](./US-41-features-traits-de-classe.md) (features & traits de classe — o cenário de Combate É uma feature) — sem esses campos, a fixture carrega contexto mais pobre que a referência e mede input empobrecido, não o modelo. **Paridade (não bloqueio duro):** [US-42](./US-42-magias-conhecidas.md) (magias) melhora fidelidade mas os cenários escolhidos giram em features. Slice 1 (dump) não bloqueia; o juiz (slice 2), sim.
 **Criada em:** 2026-06-30
@@ -196,18 +196,24 @@ Provider dos candidatos: NVIDIA `https://integrate.api.nvidia.com/v1` (endpoints
 ## Progresso de implementação
 
 - **Slice 1 (feito):** `packages/ai-engine/src/narrative-bakeoff.test.ts` — roda os candidatos contra o turno de abertura e despeja narração + TTFT + tokens. Sem juiz. Provider NVIDIA religado em `model.ts` (`nvidiaModel`).
-- **Slice 2 (próximo):** juiz `gemini-2.5-flash` (Google, grátis) + rubrica Zod (`generateObject`), matriz modelo × dimensão, custo estimado; roteamento de provider por prefixo (inclui o controle Groq); cases "NPC consistente" e "não rola dados sozinho".
+- **Slice 2 — guardrails (feito):** `packages/ai-engine/src/guardrails.ts` (+ `guardrails.test.ts`, 13 casos, offline/CI) — detectores determinísticos `checkNoSelfRoll` (não rola dados sozinho), `detectLanguageDrift` (deriva de PT-BR) e `detectReasoningLeak` (`<think>`/voz de assistente/bullet meta). Ligados no `narrative-bakeoff.test.ts`: cenário `combat` ("ataco o goblin") + stub `rollDice` para observar a chamada via `toolCalls`; verdict impresso por turno e na tabela resumo.
+- **Slice 2 — juiz (feito):** `packages/ai-engine/src/rubric.ts` (+ `rubric.test.ts`, 10 casos puros offline/CI) — rubrica de 6 dimensões, schema Zod, juiz `judgeTurn` via `generateObject`, agregação `aggregateReps` (média/spread), `estimateCost` (const de preços) e `renderReportMarkdown`. `judgeModel` em `model.ts` (`@ai-sdk/google@1.2.22` pinado no provider 1.1.3) com roteador por prefixo: `openai:<id>`/`openrouter:<id>` (openai-compatible, sem dep nova) senão Google. `resolveModel` roteia candidatos (`groq:` → incumbente). 5 cenários (abertura, diálogo, combate, dilema, coerência "NPC mentiu") com exemplares "nota 5" da referência.
+- **Slice 2 — execução (feito, 2026-07-10):** matriz gerada, artefato em [`evals/reports/2026-07-10.md`](../../../evals/reports/2026-07-10.md). Achados da 1ª execução real:
+  - **Slugs corrigidos** — os ids antigos eram fantasia (`mistral-large-3-475b` = 404; `llama-3.3-70b`/`qwen3-next` penduravam). Trio validado no catálogo real (`GET /v1/models`): `mistralai/mistral-large-3-675b-instruct-2512`, `mistralai/mistral-small-4-119b-2603`, `z-ai/glm-5.2`.
+  - **Runner standalone `run-bakeoff.mjs`** é o entry de execução pesada, NÃO o vitest: o par `streamText`+vitest pendurava (o `await result.usage` trava quando o stream aborta) e o teto de 600s/1200s estourava. O runner usa `generateText` (resolve inteiro), série + pacing + `maxRetries` moderado, e sobrevive ao rate-limit do preview.
+  - **Escolha do juiz importa (questão 2, empírico):** `gpt-4o-mini` **satura** (tudo ~5.0, spread ±0.17 — inútil pra decidir); `gemini-flash-latest`/`gemini-3.5-flash` **discriminam** (notas 3–5, spread ±0.5). Default do juiz corrigido para `gemini-flash-latest` (`gemini-2.5-flash` foi descontinuado p/ novos users; `*-pro` têm quota-zero no free tier desta chave).
+- **Falta:** (1) **matriz limpa decision-grade** — a rodada com juiz que discrimina (gemini-flash) ficou parcial porque o free tier (NVIDIA preview per-model + Gemini flash) esgotou após muitas iterações no mesmo dia; rodar 1× com quota fresca, espaçado, para os 3 candidatos completos. (2) spot-check manual do juiz (questão 2). (3) paridade de input (US-39/40/41): fixture hoje magra de propósito; enriquecer com background/divindade/features da Seraphine. (4) controle Groq (`groq:openai/gpt-oss-120b`) na matriz.
 
 ## Critérios de aceite
 
 - [x] A suite aceita uma **lista de modelos** por env `MODELS=a,b,c` e roda o mesmo cenário contra cada um numa execução (sem `MODELS`, usa a rodada 1). _(slice 1)_
-- [ ] Existe o **LLM-judge com rubrica multi-eixo**, com saída estruturada (JSON/Zod), pontuando cada dimensão 1–5 com justificativa, ancorado nos turnos exemplares da aventura de referência.
-- [ ] Existe o guardrail **determinístico** "não rola dados sozinho" (verifica que `rollDice` foi chamada, não a prosa).
-- [ ] Existe o case de **coerência** ("NPC consistente"), pontuado pela dimensão Coerência da rubrica.
-- [ ] A execução produz um **relatório comparativo** legível: linha por modelo, coluna por dimensão (média 1–5) + coluna de custo/latência estimados; N repetições por caso reportando a média. _(slice 1: tabela TTFT/tokens/chars; dimensões da rubrica no slice 2)_
-- [ ] A estrutura do relatório é **determinística** (mesma tabela sempre); só os números variam pelo não-determinismo do LLM.
+- [x] Existe o **LLM-judge com rubrica multi-eixo**, com saída estruturada (JSON/Zod), pontuando cada dimensão 1–5 com justificativa, ancorado nos turnos exemplares da aventura de referência. _(slice 2: `rubric.ts` `judgeTurn` + `rubricSchema`; exemplares 1–4 da referência como few-shot)_
+- [x] Existe o guardrail **determinístico** "não rola dados sozinho" (verifica que `rollDice` foi chamada, não a prosa). _(slice 2: `checkNoSelfRoll` + `guardrails.test.ts`; também deriva de idioma e vazamento de reasoning)_
+- [x] Existe o case de **coerência** ("NPC consistente"), pontuado pela dimensão Coerência da rubrica. _(slice 2: cenário `coerencia` com `COHERENCE_SYSTEM` — Garrick mentiu no histórico; `EX_COHERENCE` como âncora)_
+- [x] A execução produz um **relatório comparativo** legível: linha por modelo, coluna por dimensão (média 1–5) + coluna de custo/latência estimados; N repetições por caso reportando a média. _(slice 2: `renderReportMarkdown` + `console.table` de TTFT/tokens/reps; grava `evals/reports/<data>.md`)_
+- [x] A estrutura do relatório é **determinística** (mesma tabela sempre); só os números variam pelo não-determinismo do LLM. _(slice 2: teste "estrutura estável: mesma entrada → mesma saída" em `rubric.test.ts`)_
 - [x] O bake-off é gated por `BAKEOFF` (padrão `bench-ttft`) → `pnpm eval`/`pnpm test`/CI não são afetados.
-- [ ] **Regressão:** `BAKEOFF=1 MODELS=<a>,<b> ...` produz a tabela com uma linha por modelo, a rubrica pontuada e o caso "não rola dados sozinho" avaliado. _(slice 1 já produz a tabela TTFT/tokens; rubrica pendente no slice 2)_
+- [x] **Regressão:** a execução produz a tabela com uma linha por modelo, a rubrica pontuada e o caso "não rola dados sozinho" avaliado. _(2026-07-10: matriz completa em `evals/reports/2026-07-10.md` via `run-bakeoff.mjs`; guardrails aplicados por turno. Falta só a matriz decision-grade com juiz que discrimina + todos os candidatos numa rodada de quota fresca.)_
 
 ---
 
@@ -231,7 +237,7 @@ Provider dos candidatos: NVIDIA `https://integrate.api.nvidia.com/v1` (endpoints
 
 ## Questões em aberto
 
-1. **Modelo-juiz:** default fechado em **`gemini-2.5-flash`** (Google, grátis, externo aos candidatos NVIDIA/Groq → sem self-preference). `gemini-2.5-pro` para calibrar, `gpt-5-mini` como fallback pago. Fica **trocável** por env/const. Só o default está decidido; o teto de qualidade do juiz continua aberto — se o Flash pontuar raso contra o eyeball, subir pro Pro num subconjunto.
+1. **Modelo-juiz:** ~~default `gemini-2.5-flash`~~ **atualizado (2026-07-10, empírico):** `gemini-2.5-flash` foi **descontinuado** para novos users e os `*-pro` (2.5/3-pro) têm **quota-zero** no free tier desta chave. Default agora **`gemini-flash-latest`** (alias vivo). Confirmado que o juiz **discrimina** (notas 3–5, spread ±0.5); o fallback OpenAI testado foi **`gpt-4o-mini`** (`gpt-5-mini` exige verificação de org), que **satura** (tudo ~5.0) → serve de exemplo negativo, não como juiz. Trocável por env `JUDGE_MODEL` (`openai:`/`openrouter:`/Google por prefixo).
 2. **Validar o próprio juiz:** **decidido: spot-check manual leve no slice 2, NÃO US futura.** O juiz é a fundação — se estiver descalibrado, toda a tabela é lixo, então validar é barato e obrigatório. Versão preguiçosa: pontuar à mão **~5–8 turnos** (a rubrica e a referência já existem) e comparar com o juiz. Critério de confiança: mesmo **ranking** dos modelos + concordância **±1** na maioria das dimensões. Se divergir, subir pro `gemini-2.5-pro` e re-checar. Sem Cohen's kappa nem formalismo — é gate de sanidade, não paper.
 3. **Quantas repetições** por caso — **decidido: 3 default + bump adaptativo pra 5 só nos finalistas próximos.** Redução de ruído é sublinear (erro-padrão ∝ 1/√N: 3→5 aperta só ~23%), mas o custo é linear (+67% de gerações E de chamadas de juiz → mais risco de throttle no free tier do Gemini). Então 3 no primeiro pente (elimina perdedores óbvios) e 5 (ou mais) só quando dois candidatos empatam dentro do ruído. **Reportar sempre o spread** (min–max ou desvio) junto da média: um modelo de alta variância se denuncia mesmo com 3 reps e sinaliza que ELE precisa de mais, não todos.
 4. **Pesos das dimensões:** **decidido: todas iguais (1.0) por ora.** Ponderar antes de ver dado é premature optimization — não dá pra saber qual eixo pesa até olhar a matriz. Pesos ficam numa const trivial de mudar; só se o relatório mostrar uma dimensão redundante ou puro ruído é que se ajusta. Começar honesto: média simples dos 6 eixos.
