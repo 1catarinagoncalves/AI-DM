@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { abilityModifier, formatModifier, stripFabricatedRolls, formatDiceBreakdown } from '@ai-dm/shared'
-import type { ChatTurn, RollTurn } from '@ai-dm/shared'
+import { abilityModifier, formatModifier, stripFabricatedRolls, formatDiceBreakdown, spellLevelLabel } from '@ai-dm/shared'
+import type { ChatTurn, RollTurn, SystemSpell } from '@ai-dm/shared'
 import { loadSession, saveSession } from '@/lib/session'
 import { api } from '@/lib/api'
 
@@ -54,6 +54,9 @@ interface Props {
   background?: CharacterBackground
   // US-41: features de classe (nível 1), mostradas na aba "Features".
   features?: ClassFeature[]
+  // US-50: magias conhecidas (US-42), mostradas numa secção da MESMA aba "Features"
+  // — mesma pergunta do jogador ("o que sei fazer de especial?"), não uma aba nova.
+  spells?: SystemSpell[]
 }
 
 // US-45: abas da ficha. Lista (não botões hard-coded) para novas abas
@@ -133,35 +136,72 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
   )
 }
 
-// US-41: painel da aba Features. Read-only, awareness — nome + descrição curta.
-// Sem features (classe sem kit) mostra empty state; a aba nunca some (igual ao
-// painel de Background). Não resolve mecânica: é só o que o personagem PODE fazer.
-function FeaturesPanel({ features }: { features?: ClassFeature[] }) {
-  const list = (features ?? []).filter(f => f?.name?.trim())
+// US-41/US-50: painel da aba Features. Read-only, awareness — nome + descrição curta.
+// Duas secções: features de classe e magias conhecidas (US-42). Cada secção só existe
+// se a sua lista tiver itens (sem título órfão); se NENHUMA tiver, mostra o empty state
+// e a aba na mesma não some (igual ao painel de Background). Não resolve mecânica:
+// é só o que o personagem PODE fazer. Sem slots/preparação — não existem no modelo.
+function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells?: SystemSpell[] }) {
+  const featureList = (features ?? []).filter(f => f?.name?.trim())
+  // Ordem estável por nível e depois nome (os 20 truques do mago não podem sair
+  // arbitrários). Cópia — a prop não é mutada.
+  const spellList = [...(spells ?? [])]
+    .filter(s => s?.name?.trim())
+    .sort((a, b) => (a.level ?? 0) - (b.level ?? 0) || a.name.localeCompare(b.name))
 
-  if (list.length === 0) {
+  if (featureList.length === 0 && spellList.length === 0) {
     return (
       <p className="text-sm text-stone-600 dark:text-stone-400">
-        Esta classe ainda não tem features registadas.
+        Esta classe ainda não tem features nem magias registadas.
       </p>
     )
   }
 
   return (
-    <ul className="flex flex-col gap-3">
-      {list.map((f, i) => (
-        <li key={i}>
-          <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">{f.name}</p>
-          {f.description?.trim() && (
-            <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{f.description}</p>
-          )}
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-4">
+      {featureList.length > 0 && (
+        <section>
+          <h3 className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Features</h3>
+          <ul className="flex flex-col gap-3">
+            {featureList.map((f, i) => (
+              <li key={i}>
+                <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">{f.name}</p>
+                {f.description?.trim() && (
+                  <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{f.description}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {spellList.length > 0 && (
+        <section>
+          <h3 className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Magias</h3>
+          <ul className="flex flex-col gap-3">
+            {spellList.map((s, i) => {
+              // Rótulo vindo de @ai-dm/shared — a MESMA regra que o prompt do mestre usa
+              // (US-42), para a ficha e o prompt nunca divergirem ("truque" vs "nível 0").
+              const label = spellLevelLabel(s.level)
+              return (
+                <li key={i}>
+                  <p data-testid="spell-name" className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                    {label ? `${s.name} (${label})` : s.name}
+                  </p>
+                  {s.description?.trim() && (
+                    <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{s.description}</p>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+    </div>
   )
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background, features }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background, features, spells }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
   // então trocar de aba não remonta nada nem perde estado de jogo.
@@ -458,7 +498,8 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           </div>
         )}
 
-        {/* US-41: aba "Features" — features de classe, read-only. Sempre presente; empty state quando vazia. */}
+        {/* US-41/US-50: aba "Features" — features de classe + magias conhecidas, read-only.
+            Sempre presente; empty state só quando não há nem features nem magias. */}
         {tab === 'features' && (
           <div
             id="sheet-panel-features"
@@ -466,7 +507,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             aria-labelledby="sheet-tab-features"
             className="md:w-full"
           >
-            <FeaturesPanel features={features} />
+            <FeaturesPanel features={features} spells={spells} />
           </div>
         )}
 

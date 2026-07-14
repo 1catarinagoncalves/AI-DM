@@ -49,6 +49,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       skills={skills}
       background={character.background}
       features={character.features}
+      spells={character.spells}
     />
   )
 }

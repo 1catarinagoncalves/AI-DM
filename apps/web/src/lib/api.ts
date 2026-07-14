@@ -47,7 +47,7 @@ export const api = {
     get<{ id: string; name: string; race: string; class: string; level: number; currentAdventure: { id: string; title: string } | null }[]>(`/characters/user/${userId}`),
 
   getCharacter: (id: string) =>
-    get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; features: { name: string; description: string }[]; states: { hp: number; maxHp: number; inventory: { name: string; qty: number }[] }[] }>(`/characters/${id}`),
+    get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; features: { name: string; description: string }[]; spells: { name: string; level?: number; description?: string }[]; states: { hp: number; maxHp: number; inventory: { name: string; qty: number }[] }[] }>(`/characters/${id}`),
 
   deleteCharacter: (id: string) => del(`/characters/${id}`),
 

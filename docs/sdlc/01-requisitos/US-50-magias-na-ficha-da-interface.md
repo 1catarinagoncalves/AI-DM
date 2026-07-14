@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-42](./US-42-magias-conhecidas.md) (campo `Character.spells` persistido — já entregue) · [US-45](./US-45-background-na-ficha-da-interface.md) (padrão de abas da ficha) · [US-41](./US-41-features-traits-de-classe.md) (a aba "Features" e o `FeaturesPanel` onde esta US entra)
 **Relacionado:** [US-23](./US-23-dm-ciente-da-ficha.md) (o mestre já conhece as magias; esta US é sobre o JOGADOR as ver) · [US-19](./US-19-estado-de-ficha-via-api.md) (ficha servida pela API)
 **Criada em:** 2026-07-14

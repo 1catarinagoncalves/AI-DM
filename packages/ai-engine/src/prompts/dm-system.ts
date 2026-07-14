@@ -1,5 +1,5 @@
 import type { SceneState } from '@ai-dm/shared'
-import { abilityModifier, formatModifier } from '@ai-dm/shared'
+import { abilityModifier, formatModifier, spellLevelLabel } from '@ai-dm/shared'
 import { formatSceneState } from '../scene'
 
 /**
@@ -59,12 +59,6 @@ export interface KnownSpell {
   name: string
   level?: number
   description?: string
-}
-
-/** Rótulo de nível para a seção de magias (US-42): 0 → "truque", ≥1 → "nível N", ausente → sem rótulo. */
-function spellLevelLabel(level?: number): string {
-  if (level == null) return ''
-  return level === 0 ? 'truque' : `nível ${level}`
 }
 
 /**

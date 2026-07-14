@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-23](./US-23-dm-ciente-da-ficha.md) (injeção dirigida por dados) · fonte do kit de classe ([US-28](./US-28-aventura-inicial-baseada-na-classe.md) / [US-21](./US-21-sistemas-como-dado.md))
 **Relacionado:** [US-41](./US-41-features-traits-de-classe.md) (features & traits — sistema irmão, mesma seção de awareness)
 **Parcialmente bloqueia:** [US-17](./US-17-comparacao-modelos-eval.md) slice 2 — melhora a **paridade** de contexto (a "Cura divina" da referência são magias), mas os cenários escolhidos do bake-off giram em features, não em cura; então é dependência de **fidelidade**, não bloqueio duro.

@@ -125,12 +125,75 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.queryByText('Atributos')).toBeNull()
   })
 
-  it('com features vazias a aba Features continua presente e mostra o empty state', async () => {
-    render(<GameView {...baseProps} features={[]} />)
+  it('sem features e sem magias a aba Features continua presente e mostra o empty state', async () => {
+    render(<GameView {...baseProps} features={[]} spells={[]} />)
 
     fireEvent.click(await screen.findByRole('tab', { name: 'Features' }))
 
-    expect(screen.getByText('Esta classe ainda não tem features registadas.')).toBeTruthy()
+    expect(screen.getByText('Esta classe ainda não tem features nem magias registadas.')).toBeTruthy()
+    // Nenhum título órfão.
+    expect(screen.queryByRole('heading', { name: 'Magias' })).toBeNull()
+  })
+
+  // US-50: as magias conhecidas (Character.spells, já servido pela API) aparecem
+  // numa secção da aba Features — o jogador vê o que pode conjurar.
+  it('mostra as magias conhecidas (nome, nível e descrição) na aba Features', async () => {
+    render(
+      <GameView
+        {...baseProps}
+        features={[{ name: 'Conjuração', description: 'Lança magias.' }]}
+        spells={[
+          { name: 'Curar Ferimentos', level: 1, description: 'Cura HP ao toque.' },
+          { name: 'Chama Sagrada', level: 0, description: 'Fogo radiante desce sobre o alvo.' },
+        ]}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Features' }))
+
+    // Secções com headings reais (US-46), não <p> a fingir de título.
+    expect(screen.getByRole('heading', { name: 'Features' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Magias' })).toBeTruthy()
+
+    expect(screen.getByText('Chama Sagrada (truque)')).toBeTruthy()
+    expect(screen.getByText('Fogo radiante desce sobre o alvo.')).toBeTruthy()
+    expect(screen.getByText('Curar Ferimentos (nível 1)')).toBeTruthy()
+    // A feature de classe continua lá, acima.
+    expect(screen.getByText('Conjuração')).toBeTruthy()
+  })
+
+  it('ordena as magias por nível e depois por nome (truques primeiro)', async () => {
+    render(
+      <GameView
+        {...baseProps}
+        spells={[
+          { name: 'Curar Ferimentos', level: 1 },
+          { name: 'Orientação', level: 0 },
+          { name: 'Chama Sagrada', level: 0 },
+        ]}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Features' }))
+
+    const names = screen.getAllByTestId('spell-name').map(el => el.textContent)
+    expect(names).toEqual(['Chama Sagrada (truque)', 'Orientação (truque)', 'Curar Ferimentos (nível 1)'])
+  })
+
+  it('não-conjurador (spells: []) não mostra a secção Magias, mas mostra as features', async () => {
+    render(
+      <GameView
+        {...baseProps}
+        features={[{ name: 'Estilo de Combate', description: 'Bónus com armas.' }]}
+        spells={[]}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Features' }))
+
+    expect(await screen.findByText('Estilo de Combate')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Magias' })).toBeNull()
+    expect(screen.queryByText('Esta classe ainda não tem features nem magias registadas.')).toBeNull()
   })
 
   it('HP fica fixo acima das abas e continua visível na aba Background', async () => {
