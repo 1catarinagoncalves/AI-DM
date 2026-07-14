@@ -8,6 +8,7 @@ import {
   summaryModel,
   buildDmSystemPrompt,
   buildOpeningInstruction,
+  resolveKnownSpell,
   buildSummaryInput,
   mergeSceneState,
   formatSceneState,
@@ -15,6 +16,7 @@ import {
   type DmCharacterSheet,
   type CharacterBackground,
   type ClassFeature,
+  type KnownSpell,
   type SummaryTurn,
 } from '@ai-dm/ai-engine'
 import { DiceService } from '../game/dice.service'
@@ -141,6 +143,8 @@ export class AiService {
       background: (character.background ?? {}) as unknown as CharacterBackground,
       // US-41: features de classe materializadas no personagem (awareness read-only).
       features: (character.features ?? []) as unknown as ClassFeature[],
+      // US-42: magias conhecidas — SÓ os nomes vão ao prompt; a descrição vem via getSpell.
+      spells: ((character.spells ?? []) as unknown as KnownSpell[]).map((s) => ({ name: s.name, level: s.level })),
     })
 
     // US-38: um teste ancorado por turno. "Uma ação → um teste": o modelo às
@@ -337,6 +341,21 @@ export class AiService {
           return next
         },
       }),
+
+      // US-42: descrição da magia sob demanda. Awareness apenas — NÃO resolve slot,
+      // dano, cura ou preparação. Fonte de verdade = Character.spells (materializado
+      // do kit da classe na criação). Match tolerante a acento/caixa. Magia fora da
+      // lista → { known: false } e o mestre NÃO inventa o efeito.
+      getSpell: tool({
+        description:
+          'Look up a spell the character knows to get its effect BEFORE narrating a casting. Pass the spell NAME exactly as shown in the "Known spells" list. Returns { known, level, description }. If it returns known:false, the character does NOT know that spell — do NOT invent its effect. This is awareness only: it does NOT spend slots, roll damage/healing, or track preparation.',
+        parameters: z.object({
+          name: z.string().describe('Spell name as shown in the "Known spells" list, e.g. "Chama Sagrada".'),
+        }),
+        execute: async ({ name }: { name: string }) => {
+          return resolveKnownSpell((character.spells ?? []) as unknown as KnownSpell[], name)
+        },
+      }),
     }
 
     const model = narrationModels[Math.min(attempt, narrationModels.length - 1)]!
@@ -413,6 +432,7 @@ export class AiService {
     attributeLabels?: Record<string, string>
     background?: CharacterBackground
     features?: ClassFeature[]
+    spells?: KnownSpell[]
   }): Promise<string | null> {
     try {
       const system = buildDmSystemPrompt({
@@ -430,6 +450,7 @@ export class AiService {
         attributeLabels: params.attributeLabels,
         background: params.background,
         features: params.features,
+        spells: params.spells,
       })
       const prompt = buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed })
       // Percorre a MESMA escada de modelos dos turnos (narrationModels): o primário

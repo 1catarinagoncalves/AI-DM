@@ -29,6 +29,16 @@ export const SystemClassFeatureSchema = z.object({
   description: z.string().min(1),
 })
 
+// Magia conhecida (US-42): truque/magia que o personagem SABE conjurar — awareness
+// apenas. `name` (+ `level`) vai ao prompt para o mestre OFERECER; `description` volta
+// sob demanda via tool getSpell. `level: 0` = truque. Sem slots/preparação/componentes
+// (motor de spellcasting fica fora). Sistema irmão do SystemClassFeature.
+export const SystemSpellSchema = z.object({
+  name: z.string().min(1),
+  level: z.number().int().min(0).optional(),
+  description: z.string().min(1).optional(),
+})
+
 // Gancho de aventura inicial por classe (US-28). Textos podem conter placeholders
 // {characterName} e {characterClass}, resolvidos no backend antes de persistir.
 export const InitialAdventureHookSchema = z.object({
@@ -61,6 +71,10 @@ export const SystemConfigSchema = z.object({
   // `startingKits`: chave canônica normalizada + fallback opcional). Materializadas
   // no Character.features na criação. Ausente → personagem sem features (sem crash).
   classFeatures: z.record(z.string(), z.array(SystemClassFeatureSchema)).optional(),
+  // Magias conhecidas por classe (US-42), mesmo esquema de `classFeatures`: chave
+  // canônica de classe + fallback opcional. Materializadas em Character.spells na
+  // criação. Ausente → personagem sem magias (sem seção, sem crash).
+  classSpells: z.record(z.string(), z.array(SystemSpellSchema)).optional(),
   // Catálogo de aventuras iniciais (US-28). Opcional para não invalidar configs legados;
   // quando presente, precisa de um hook classKey 'default' obrigatório.
   initialAdventures: z.object({
@@ -74,6 +88,7 @@ export const SystemConfigSchema = z.object({
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
 export type SystemSkill = z.infer<typeof SystemSkillSchema>
 export type SystemClassFeature = z.infer<typeof SystemClassFeatureSchema>
+export type SystemSpell = z.infer<typeof SystemSpellSchema>
 export type InitialAdventureHook = z.infer<typeof InitialAdventureHookSchema>
 export type SystemConfig = z.infer<typeof SystemConfigSchema>
 

@@ -1,4 +1,4 @@
-import type { InitialAdventureHook, InventoryItem, SystemClassFeature, SystemConfig } from '@ai-dm/shared'
+import type { InitialAdventureHook, InventoryItem, SystemClassFeature, SystemConfig, SystemSpell } from '@ai-dm/shared'
 
 /** Lowercase + strip diacritics for fuzzy class-name matching only. */
 function normalize(s: string): string {
@@ -8,18 +8,20 @@ function normalize(s: string): string {
     .replace(/\p{M}/gu, '')
 }
 
-// Cada par: [palavra-chave normalizada, chave canônica em config.startingKits]. Inclui variantes e
-// arquétipos próximos (ex.: Patrulheiro/Caçador → arqueiro). Ordem importa: chaves mais específicas
-// antes das amplas (ex.: 'paladin' antes de 'ladin'). Vocabulário específico de classes estilo D&D;
-// sistemas com outra nomenclatura simplesmente caem no `default` do próprio config.
+// Cada par: [palavra-chave normalizada, chave canônica em config.startingKits/classFeatures/classSpells].
+// Inclui variantes e arquétipos próximos (ex.: Arqueiro/Caçador/Ranger → patrulheiro). Ordem importa:
+// chaves mais específicas antes das amplas (ex.: 'paladin' antes de 'ladin'). Vocabulário específico de
+// classes estilo D&D; sistemas com outra nomenclatura simplesmente caem no `default` do próprio config.
+// US-42: `brux`→bruxo e `patrulhei`/`ranger`/`cacador`→patrulheiro são chaves PRÓPRIAS (listas de magias
+// distintas); antes colapsavam em feiticeiro/arqueiro. O seed renomeou os kits/features junto (ver seed.ts).
 const CLASS_SYNONYMS: [string, string][] = [
   ['paladin', 'paladino'],
   ['guerreir', 'guerreiro'],
   ['lutador', 'guerreiro'],
-  ['arqueir', 'arqueiro'],
-  ['patrulhei', 'arqueiro'],
-  ['cacador', 'arqueiro'],
-  ['ranger', 'arqueiro'],
+  ['arqueir', 'patrulheiro'],
+  ['patrulhei', 'patrulheiro'],
+  ['cacador', 'patrulheiro'],
+  ['ranger', 'patrulheiro'],
   ['ladin', 'ladino'],
   ['ladr', 'ladino'],
   ['assassin', 'ladino'],
@@ -28,8 +30,10 @@ const CLASS_SYNONYMS: [string, string][] = [
   ['barbar', 'barbaro'],
   ['druid', 'druida'],
   ['bard', 'bardo'],
-  ['feiticer', 'feiticeiro'],
-  ['brux', 'feiticeiro'],
+  // 'feitic' (não 'feiticer'): "feiticeiro" = f-e-i-t-i-c-e-i-r-o NÃO contém "feiticer"
+  // (o 'i' de -eiro quebra o match). Bug latente pré-US-42: Feiticeiro caía no default.
+  ['feitic', 'feiticeiro'],
+  ['brux', 'bruxo'],
   ['monge', 'monge'],
   ['mong', 'monge'],
   ['mag', 'mago'],
@@ -59,6 +63,23 @@ export function getClassFeatures(config: SystemConfig, charClass: string): Syste
   for (const [keyword, key] of CLASS_SYNONYMS) {
     const feats = map[key]
     if (cn.includes(keyword) && feats) return feats
+  }
+  return map.default ?? []
+}
+
+/**
+ * Magias conhecidas do kit da classe (US-42). Espelha `getClassFeatures`: mesmo
+ * match tolerante (`CLASS_SYNONYMS`), keyed pela chave canônica; classe sem entrada
+ * cai no `default`; sem `classSpells` no config → []. Não-conjurador (ou classe sem
+ * truques) → lista vazia, sem crash e sem seção de magias no prompt.
+ */
+export function getClassSpells(config: SystemConfig, charClass: string): SystemSpell[] {
+  const map = config.classSpells
+  if (!map) return []
+  const cn = normalize(charClass)
+  for (const [keyword, key] of CLASS_SYNONYMS) {
+    const spells = map[key]
+    if (cn.includes(keyword) && spells) return spells
   }
   return map.default ?? []
 }

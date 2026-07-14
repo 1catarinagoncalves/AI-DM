@@ -55,7 +55,9 @@ const dnd5eKits: SystemConfig['startingKits'] = {
     { name: 'Poção de mana', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  arqueiro: [
+  // US-42: renomeado de 'arqueiro' → 'patrulheiro' (chave canônica do Ranger no projeto,
+  // ver CLASS_SYNONYMS/initialAdventures). O match tolerante ainda cobre "arqueiro".
+  patrulheiro: [
     { name: 'Arco longo', qty: 1 },
     { name: 'Aljava (20 flechas)', qty: 1 },
     { name: 'Adaga', qty: 1 },
@@ -107,6 +109,15 @@ const dnd5eKits: SystemConfig['startingKits'] = {
     { name: 'Foco arcano (cristal)', qty: 1 },
     { name: 'Vestes ornamentadas', qty: 1 },
     { name: 'Poção de mana', qty: 1 },
+    { name: 'Cantil', qty: 1 },
+  ],
+  // US-42: `bruxo` deixou de colapsar em `feiticeiro` (CLASS_SYNONYMS) e precisa de kit próprio,
+  // senão cairia no `default` e regrediria o inventário inicial (US-28).
+  bruxo: [
+    { name: 'Adaga', qty: 2 },
+    { name: 'Foco arcano (talismã do pacto)', qty: 1 },
+    { name: 'Grimório de invocações', qty: 1 },
+    { name: 'Armadura de couro', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
   // Fallback: aventureiro genérico para classes fora da tabela. Nunca devolvemos inventário vazio.
@@ -256,8 +267,9 @@ const dnd5eClassFeatures: SystemConfig['classFeatures'] = {
     { name: 'Sentido Divino', description: 'Sente presenças de bem/mal e mortos-vivos por perto.' },
     { name: 'Impor as Mãos', description: 'Cura ferimentos tocando o alvo com energia divina.' },
   ],
-  // Ranger/Patrulheiro colapsa em 'arqueiro' (mesmo match do inventário).
-  arqueiro: [
+  // US-42: renomeado 'arqueiro' → 'patrulheiro' junto do kit (CLASS_SYNONYMS deixou de
+  // colapsar Ranger→arqueiro). Sem a renomeação, o Patrulheiro perderia estas features.
+  patrulheiro: [
     { name: 'Inimigo Favorito', description: 'Conhece a fundo um tipo de criatura e como caçá-la.' },
     { name: 'Explorador Nato', description: 'Move-se e sobrevive com maestria no seu terreno.' },
   ],
@@ -276,6 +288,78 @@ const dnd5eClassFeatures: SystemConfig['classFeatures'] = {
   default: [],
 }
 
+// Magias conhecidas por classe (US-42). Awareness read-only: o nome vai ao prompt (o
+// mestre OFERECE), a descrição volta sob demanda pela tool getSpell. Sem slots/preparação.
+// Recorte: TODOS os truques (nível 0) da lista da classe; Paladino/Patrulheiro (sem
+// truques) recebem 2 magias de nível 1 fixas (exceção). Não-conjuradores → default [].
+//
+// Seleção (quais truques por classe): wiki 2024 — dnd2024.wikidot.com/spell:all (aba Cantrip).
+// Título EN + descrição: D&D Beyond Basic Rules 2014, destilada numa linha em PT-BR.
+// `†` = ausente nas Basic Rules 2014 (título/descrição do wiki 2024, a verificar antes de congelar).
+// Feiticeiro e Bruxo têm listas DISTINTAS (não colapsam mais — ver CLASS_SYNONYMS).
+// Códigos: mag=Mago clr=Clérigo dru=Druida brd=Bardo sor=Feiticeiro wlk=Bruxo.
+const CANTRIP_CATALOG: { name: string; classes: string[]; description: string }[] = [
+  { name: 'Amizade', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'por um instante influencia alguém com mais facilidade (que depois nota o encanto).' }, // †
+  { name: 'Ataque Certeiro', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'guia o próximo golpe, tornando-o mais preciso.' },
+  { name: 'Bordão Druídico', classes: ['druida'], description: 'imbui um bordão com a força da natureza, tornando-o arma mágica.' },
+  { name: 'Borrifo Venenoso', classes: ['mago', 'druida', 'feiticeiro', 'bruxo'], description: 'um sopro de gás tóxico atinge um alvo próximo.' },
+  { name: 'Chama Sagrada', classes: ['clerigo'], description: 'luz sagrada desce sobre o alvo, ignorando cobertura.' },
+  { name: 'Chicote de Espinhos', classes: ['druida'], description: 'um chicote de espinhos fere e puxa o alvo para perto.' }, // †
+  { name: 'Consertar', classes: ['mago', 'clerigo', 'druida', 'bardo', 'feiticeiro'], description: 'repara uma pequena quebra ou rasgo num objeto.' },
+  { name: 'Dobre dos Mortos', classes: ['mago', 'clerigo', 'bruxo'], description: 'um dobre fúnebre soa e fere a mente ou a carne do alvo.' }, // †
+  { name: 'Elementalismo', classes: ['mago', 'druida', 'feiticeiro'], description: 'manipula um punhado dos elementos: faísca, brisa, respingo, poeira.' }, // †
+  { name: 'Estabilizar', classes: ['clerigo', 'druida'], description: 'um toque estabiliza uma criatura caída a 0 de vida.' },
+  { name: 'Estilhaço Mental', classes: ['mago', 'feiticeiro', 'bruxo'], description: 'lasca psíquica fere a mente e atrapalha o próximo salvamento do alvo.' }, // †
+  { name: 'Estrondo', classes: ['mago', 'druida', 'bardo', 'feiticeiro', 'bruxo'], description: 'uma onda de trovão explode ao redor, atingindo todos por perto.' }, // †
+  { name: 'Explosão Feiticeira', classes: ['feiticeiro'], description: 'um estouro de energia mágica bruta atinge um alvo.' }, // †
+  { name: 'Fagulha Estelar', classes: ['druida', 'bardo'], description: 'um lampejo de luz estelar fere e destaca o alvo.' }, // †
+  { name: 'Guarda de Lâmina', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'energia defensiva reduz por um instante o dano de golpes físicos.' }, // †
+  { name: 'Ilusão Menor', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'cria um som ou uma pequena imagem ilusória.' },
+  { name: 'Jato de Ácido', classes: ['mago', 'feiticeiro'], description: 'arremessa uma bolha de ácido que corrói um ou dois alvos próximos.' },
+  { name: 'Luz', classes: ['mago', 'clerigo', 'bardo', 'feiticeiro'], description: 'faz um objeto brilhar como uma tocha.' },
+  { name: 'Luzes Dançantes', classes: ['mago', 'bardo', 'feiticeiro'], description: 'cria pequenas luzes flutuantes que controla à distância.' },
+  { name: 'Mensagem', classes: ['mago', 'druida', 'bardo', 'feiticeiro'], description: 'sussurra uma mensagem que só o alvo distante ouve, e ele pode responder.' },
+  { name: 'Mão Mágica', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'mão espectral flutuante manipula objetos leves à distância.' },
+  { name: 'Orientação', classes: ['clerigo', 'druida'], description: 'um toque divino dá um impulso extra ao próximo teste do aliado.' },
+  { name: 'Palavra Radiante', classes: ['clerigo'], description: 'uma palavra sagrada faz luz ofuscante ferir os inimigos ao redor.' }, // †
+  { name: 'Prestidigitação', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'pequenos truques mágicos: limpar, sujar, aromatizar, faíscas inofensivas.' },
+  { name: 'Produzir Chama', classes: ['druida'], description: 'uma chama na palma ilumina ou é arremessada num alvo.' },
+  { name: 'Raio de Fogo', classes: ['mago', 'feiticeiro'], description: 'lança um dardo de fogo que incendeia alvo ou objeto.' },
+  { name: 'Raio de Gelo', classes: ['mago', 'feiticeiro'], description: 'um feixe gélido fere e reduz a velocidade do alvo.' },
+  { name: 'Rajada Mística', classes: ['bruxo'], description: 'feixe de energia crepitante dispara contra um alvo.' },
+  { name: 'Resistência', classes: ['clerigo', 'druida'], description: 'um toque divino dá um impulso extra ao próximo salvamento do aliado.' },
+  { name: 'Taumaturgia', classes: ['clerigo'], description: 'manifesta um pequeno prodígio divino: voz trovejante, chamas trêmulas, portas que batem.' },
+  { name: 'Toque Chocante', classes: ['mago', 'feiticeiro'], description: 'descarga elétrica salta da mão e impede a reação do alvo.' },
+  { name: 'Toque Gélido', classes: ['mago', 'feiticeiro', 'bruxo'], description: 'mão esquelética fantasmagórica queima o alvo e o impede de se curar.' },
+  { name: 'Truque Druídico', classes: ['druida'], description: 'pequenos sinais da natureza: prever o tempo, abrir uma flor, acender uma chama.' },
+  { name: 'Zombaria Cruel', classes: ['bardo'], description: 'insultos encantados ferem a mente e atrapalham o alvo.' },
+]
+
+// Classes conjuradoras COM truques: a lista materializa-se filtrando o catálogo por classe.
+const CANTRIP_CLASSES = ['mago', 'clerigo', 'druida', 'bardo', 'feiticeiro', 'bruxo'] as const
+
+const dnd5eClassSpells: SystemConfig['classSpells'] = {
+  ...Object.fromEntries(
+    CANTRIP_CLASSES.map((cls) => [
+      cls,
+      CANTRIP_CATALOG
+        .filter((s) => s.classes.includes(cls))
+        .map((s) => ({ name: s.name, level: 0, description: s.description })),
+    ]),
+  ),
+  // Exceção (US-42): Paladino e Patrulheiro não têm truques → 2 magias de nível 1 fixas.
+  paladino: [
+    { name: 'Curar Ferimentos', level: 1, description: 'restaura vitalidade a uma criatura pelo toque.' },
+    { name: 'Abençoar', level: 1, description: 'até três aliados ganham um impulso em ataques e salvamentos.' },
+  ],
+  patrulheiro: [
+    { name: 'Marca do Caçador', level: 1, description: 'marca uma presa, somando dano a cada golpe e facilitando rastreá-la.' }, // †
+    { name: 'Curar Ferimentos', level: 1, description: 'restaura vitalidade a uma criatura pelo toque.' },
+  ],
+  // Não-conjuradores (guerreiro, bárbaro, monge, ladino) e classes custom → sem magias.
+  default: [],
+}
+
 const freeConfig: SystemConfig = {
   // Mesmos atributos, perícias, point-buy e kits por classe do D&D 5e.
   attributes: dnd5eAttributes,
@@ -283,11 +367,12 @@ const freeConfig: SystemConfig = {
   proficiency: dnd5eProficiency,
   startingKits: dnd5eKits,
   classFeatures: dnd5eClassFeatures,
+  classSpells: dnd5eClassSpells,
   pointBuy: { budget: 27 },
   initialAdventures: dnd5eInitialAdventures,
 }
 
-const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, skills: dnd5eSkills, proficiency: dnd5eProficiency, startingKits: dnd5eKits, classFeatures: dnd5eClassFeatures, pointBuy: { budget: 27 }, initialAdventures: dnd5eInitialAdventures }
+const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, skills: dnd5eSkills, proficiency: dnd5eProficiency, startingKits: dnd5eKits, classFeatures: dnd5eClassFeatures, classSpells: dnd5eClassSpells, pointBuy: { budget: 27 }, initialAdventures: dnd5eInitialAdventures }
 
 async function main() {
   // Sistema "Free" — o AI DM narra livremente, sem seguir regras de um sistema oficial.

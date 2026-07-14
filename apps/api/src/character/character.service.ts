@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { SystemConfigSchema, buildCharacterAttributesSchema, type SystemConfig } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
-import { getClassFeatures } from './starting-inventory'
+import { getClassFeatures, getClassSpells } from './starting-inventory'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
 // Reexporta para quem importava o tipo daqui.
 export type { CreateCharacterDto } from './character.schema'
@@ -24,6 +24,9 @@ export class CharacterService {
     // US-41: features de classe de nível 1, derivadas do kit da classe (mesmo caminho
     // do inventário inicial). Classe sem kit de features → [] (sem crash, sem seção).
     const features = getClassFeatures(config, dto.class)
+    // US-42: magias conhecidas (truques + exceção nível 1 de paladino/patrulheiro),
+    // do mesmo kit da classe. Não-conjurador → [] (sem seção, sem crash).
+    const spells = getClassSpells(config, dto.class)
 
     return this.prisma.character.create({
       data: {
@@ -37,6 +40,7 @@ export class CharacterService {
         baseAttributes,
         skills,
         features,
+        spells,
         background: this.normalizeBackground(dto.background),
       },
     })

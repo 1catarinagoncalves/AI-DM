@@ -48,6 +48,40 @@ export interface ClassFeature {
   description: string
 }
 
+/**
+ * Magia conhecida (US-42): truque/magia que o personagem SABE conjurar. No prompt
+ * entra SÓ o nome (+ nível): o mestre vê a lista e OFERECE conjurações; a descrição
+ * do efeito vem sob demanda pela tool `getSpell` quando o jogador conjura. `level: 0`
+ * = truque. Mesma forma do `SystemSpell` de @ai-dm/shared, tipada estruturalmente
+ * aqui (o ai-engine não redefine a forma noutro pacote). Sistema irmão de ClassFeature.
+ */
+export interface KnownSpell {
+  name: string
+  level?: number
+  description?: string
+}
+
+/** Rótulo de nível para a seção de magias (US-42): 0 → "truque", ≥1 → "nível N", ausente → sem rótulo. */
+function spellLevelLabel(level?: number): string {
+  if (level == null) return ''
+  return level === 0 ? 'truque' : `nível ${level}`
+}
+
+/**
+ * Resolve uma magia conhecida por nome (US-42) — a lógica da tool `getSpell`, pura e
+ * testável. Match tolerante a acento/caixa contra a lista `spells` (fonte de verdade).
+ * Fora da lista → `{ known: false }`: o mestre NÃO inventa o efeito. Awareness apenas.
+ */
+export function resolveKnownSpell(
+  spells: KnownSpell[],
+  name: string,
+): { known: false } | { known: true; level?: number; description?: string } {
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
+  const match = spells.find((s) => norm(s.name ?? '') === norm(name))
+  if (!match) return { known: false }
+  return { known: true, level: match.level, description: match.description }
+}
+
 const BACKGROUND_LABELS: Record<keyof CharacterBackground, string> = {
   story: 'Background',
   ideals: 'Ideais',
@@ -91,8 +125,10 @@ export function buildDmSystemPrompt(params: {
   background?: CharacterBackground
   /** Features de classe de nível 1 (US-41): awareness read-only. Ausente/vazio → nenhuma seção. */
   features?: ClassFeature[]
+  /** Magias conhecidas (US-42): SÓ os nomes vão ao prompt; a descrição vem via tool getSpell. Ausente/vazio → nenhuma seção. */
+  spells?: KnownSpell[]
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels, background, features } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels, background, features, spells } = params
 
   const attributesLine = Object.entries(sheet.attributes)
     .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value} (${formatModifier(abilityModifier(value))})`)
@@ -145,6 +181,26 @@ ${backgroundLines}
     ? `## Class features (read-only — what the character can DO; offer and narrate these, NEVER resolve their cost/effect here)
 These are the character's class powers. Offer them as options and narrate them vividly when the fiction calls — a paladin FEELS nearby evil, a barbarian's fury changes the tone of a fight. You KNOW them, but you do NOT resolve uses-per-rest, charges, healing/damage numbers or cooldowns here (that is mechanics/tools). Never print this list verbatim in the narration.
 ${featureLines}
+
+`
+    : ''
+
+  // Magias conhecidas (US-42): SÓ os nomes (+ nível), dirigido por dados (padrão
+  // US-23 — magia nova entra só no dado). A descrição do efeito NÃO vai aqui: o
+  // mestre chama a tool `getSpell` antes de narrar a conjuração. Vazia → seção some.
+  const spellLines = (spells ?? [])
+    .map((s) => {
+      const name = s.name?.trim()
+      if (!name) return ''
+      const label = spellLevelLabel(s.level)
+      return label ? `- ${name} (${label})` : `- ${name}`
+    })
+    .filter(Boolean)
+    .join('\n')
+  const spellsSection = spellLines
+    ? `## Known spells (read-only — offer these by name; call getSpell for the effect before narrating a casting)
+These are the spells the character KNOWS. Offer them by name when the fiction invites it — a cleric can call on Chama Sagrada, a warlock on Rajada Mística. This list has NAMES ONLY: before you narrate the EFFECT of a casting, call \`getSpell(name)\` to get its description, and narrate from what it returns. If getSpell returns \`known: false\`, the character does NOT know that spell — do NOT invent its effect. You do NOT track spell slots, preparation, components or concentration here (that is mechanics/tools). Never print this list verbatim in the narration.
+${spellLines}
 
 `
     : ''
@@ -208,7 +264,7 @@ Every narration you write — including the very first scene of the adventure �
 
 ${sheetSection}
 
-${backgroundSection}${featuresSection}## Main quest
+${backgroundSection}${featuresSection}${spellsSection}## Main quest
 ${mainQuest ? mainQuest : '- No main quest set yet.'}
 
 ## Active quests (secondary)

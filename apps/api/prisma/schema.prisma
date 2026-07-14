@@ -30,6 +30,7 @@ model Character {
   baseAttributes Json
   skills         Json                   @default("[]") // US-27: keys de perícia proficientes (string[])
   features       Json                   @default("[]") // US-41: features de classe de nível 1 ({name, description}[])
+  spells         Json                   @default("[]") // US-42: magias conhecidas ({name, level?, description?}[])
   background     Json                   @default("{}") // US-39/US-40: {story?, ideals?, bonds?, flaws?, deity?:{name,portfolio?}}
   states         CharacterState[]
   participations AdventureParticipant[]
