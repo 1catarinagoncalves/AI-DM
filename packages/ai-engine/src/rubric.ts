@@ -77,6 +77,8 @@ export interface ModelAggregate {
   media: number
   spread: number
   custo: number
+  /** nº de casos (cenário × rep) efetivamente julgados que entraram na média */
+  n: number
 }
 
 /** MÉDIA ponderada das 6 dimensões de um único score (pesos iguais → média simples). */
@@ -114,7 +116,7 @@ export function aggregateReps(reps: RubricScore[], model = '', custo = 0): Model
   })
   const spread = mediasPorRep.length ? Math.max(...mediasPorRep) - Math.min(...mediasPorRep) : 0
 
-  return { model, perDim, media, spread, custo }
+  return { model, perDim, media, spread, custo, n: reps.length }
 }
 
 // ─── Juiz LLM ────────────────────────────────────────────────────────────────
@@ -183,6 +185,70 @@ export async function judgeTurn(params: {
   return { score: object, judgeTokens: usage.completionTokens ?? 0 }
 }
 
+// ─── Juiz em BATELADA (1 chamada pontua N narrações do mesmo cenário) ─────────
+// Corta as chamadas ao juiz de (modelos × cenários × reps) para (cenários × reps).
+// Bônus: julgar lado a lado discrimina melhor (comparação direta). Narrações são
+// rotuladas A/B/C anônimas (sem id do modelo) → sem brand bias; o runner remapeia.
+
+/** Item de rubrica + rótulo (A/B/C) da narração dentro da batelada. */
+const batchItemSchema = rubricSchema.extend({ id: z.string().describe('rótulo da narração: A, B, C...') })
+export const batchSchema = z.object({ avaliacoes: z.array(batchItemSchema) })
+
+function buildBatchPrompt(params: {
+  scenarioContext: string
+  playerAction: string
+  exemplar: Exemplar
+  items: { label: string; narration: string }[]
+}): string {
+  const blocks = params.items
+    .map((it) => `### Narração ${it.label}\n"""\n${it.narration}\n"""`)
+    .join('\n\n')
+  return `## Dimensões da rubrica
+${DIMENSIONS.map((d) => `- ${d.label}: ${d.pergunta}`).join('\n')}
+
+## Âncora de "nota 5" (referência de padrão, NÃO copiar)
+Ação do jogador: ${params.exemplar.playerAction}
+Resposta do mestre (nota 5):
+"""
+${params.exemplar.dmResponse}
+"""
+
+## Narrações a julgar — MESMA ação do jogador, mestres diferentes
+Contexto do cenário: ${params.scenarioContext}
+Ação do jogador: ${params.playerAction}
+
+${blocks}
+
+Pontue CADA narração de 1 a 5 em cada dimensão, com justificativa curta. No campo \`id\` devolva a LETRA da narração (A, B, C...). A ordem é irrelevante — não favoreça por posição.`
+}
+
+/**
+ * Pontua VÁRIAS narrações do mesmo cenário numa única chamada ao juiz. `items`
+ * traz {label, narration} com labels anônimos (A/B/C) — o chamador remapeia
+ * label→modelo. Devolve um array de scores com `id` = label.
+ */
+export async function judgeBatch(params: {
+  judge: LanguageModelV1
+  scenarioContext: string
+  playerAction: string
+  exemplar: Exemplar
+  items: { label: string; narration: string }[]
+  /** corta a chamada (inclui retries) — evita pendurar no backoff se o juiz estiver sobrecarregado */
+  abortSignal?: AbortSignal
+  /** tentativas em erro transitório (429/"high demand"); default 2 */
+  maxRetries?: number
+}): Promise<{ scores: (RubricScore & { id: string })[]; judgeTokens: number }> {
+  const { object, usage } = await generateObject({
+    model: params.judge,
+    schema: batchSchema,
+    system: JUDGE_SYSTEM,
+    prompt: buildBatchPrompt(params),
+    abortSignal: params.abortSignal,
+    maxRetries: params.maxRetries ?? 2,
+  })
+  return { scores: object.avaliacoes, judgeTokens: usage.completionTokens ?? 0 }
+}
+
 // ─── Relatório markdown (decisão 6 da US: gravado em evals/reports/<data>.md) ──
 
 export interface ReportMeta {
@@ -205,13 +271,19 @@ function fmt(n: number): string {
  */
 export function renderReportMarkdown(rows: ModelAggregate[], meta: ReportMeta): string {
   const sorted = [...rows].sort((a, b) => b.media - a.media)
-  const header = `| modelo | ${DIMENSIONS.map((d) => d.label).join(' | ')} | MÉDIA | spread | custo |`
-  const sep = `|${'---|'.repeat(DIMENSIONS.length + 4)}`
+  // Baseline de completude = maior nº de casos entre os modelos. Quem tem menos
+  // teve turnos perdidos (gen/juiz falhou) → MÉDIA sobre denominador menor, não
+  // comparável 1:1. Marca com `*` e explica no rodapé.
+  const maxN = Math.max(...sorted.map((r) => r.n), 0)
+  const hasPartial = sorted.some((r) => r.n < maxN)
+  const header = `| modelo | ${DIMENSIONS.map((d) => d.label).join(' | ')} | MÉDIA | spread | casos | custo |`
+  const sep = `|${'---|'.repeat(DIMENSIONS.length + 5)}`
   const body = sorted
     .map((r) => {
       const dims = DIMENSIONS.map((d) => fmt(r.perDim[d.key])).join(' | ')
       const custo = r.custo === 0 ? 'grátis' : `$${r.custo.toFixed(4)}`
-      return `| ${r.model} | ${dims} | **${fmt(r.media)}** | ±${fmt(r.spread)} | ${custo} |`
+      const partial = r.n < maxN ? '*' : ''
+      return `| ${r.model}${partial} | ${dims} | **${fmt(r.media)}** | ±${fmt(r.spread)} | ${r.n}${partial} | ${custo} |`
     })
     .join('\n')
 
@@ -219,8 +291,12 @@ export function renderReportMarkdown(rows: ModelAggregate[], meta: ReportMeta): 
   const winnerLine = winner
     ? `Vencedor por MÉDIA: **${winner.model}** (${fmt(winner.media)})${
         meta.incumbent ? ` vs incumbente ${meta.incumbent}` : ''
-      }.`
+      }.${winner.n < maxN ? ` ⚠️ vencedor com média PARCIAL (${winner.n}/${maxN} casos) — não confiável.` : ''}`
     : 'Sem candidatos.'
+
+  const partialNote = hasPartial
+    ? `\n\n> \\* média parcial: menos casos que o máximo (${maxN}) — turnos perdidos. Comparação de MÉDIA não é 1:1; rode de novo para completar.`
+    : ''
 
   return `# Bake-off narrativo — ${meta.date}
 
@@ -229,6 +305,6 @@ ${sep}
 ${body}
 
 Guardrails: ${meta.guardrailSummary}
-${winnerLine}
+${winnerLine}${partialNote}
 `
 }

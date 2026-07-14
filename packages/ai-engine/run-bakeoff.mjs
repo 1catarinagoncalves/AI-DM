@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
-  buildDmSystemPrompt, resolveModel, judgeModel, judgeTurn,
+  buildDmSystemPrompt, resolveModel, judgeModel, judgeBatch,
   checkNoSelfRoll, detectLanguageDrift, detectReasoningLeak,
   aggregateReps, estimateCost, renderReportMarkdown,
 } from './dist/index.js'
@@ -20,7 +20,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 const REPS = Math.max(1, Number(process.env.JUDGE_REPS ?? 1))
 const REQ_TIMEOUT_MS = 60_000
-const PACE_MS = 3000 // respiro entre chamadas p/ não disparar 429
+const PACE_MS = Number(process.env.PACE_MS ?? 3000) // respiro entre chamadas p/ não disparar 429 (env-configurável)
 const GEN_RETRIES = 2 // 429 transitório do endpoint preview: tolera com backoff (série, sem storm)
 
 const DEFAULT_MODELS = [
@@ -75,17 +75,26 @@ function guardrailFails(narration, calledRollDice, checkSelfRoll) {
   return fails
 }
 
+const race = (p, ms = REQ_TIMEOUT_MS + 5000) => Promise.race([p, sleep(ms).then(() => { throw new Error('hard-timeout') })])
+const JUDGE_TIMEOUT_MS = 90_000 // juiz sobrecarregado ("high demand") não pendura o run
+
 async function genTurn(model, scenario) {
-  // Tool só no combate: é o único cenário que exige rollDice. Passar a tool em
-  // todo cenário quebra modelos sem suporte a tool-use ("No endpoints found that
-  // support tool use") — a maioria dos cenários é narração pura, sem tool.
-  const toolOpts = scenario.checkSelfRoll ? { tools: { rollDice: rollDiceStub }, maxSteps: 4 } : {}
-  const p = generateText({
+  const base = {
     model: resolveModel(model), system: scenario.system, prompt: scenario.action,
-    ...toolOpts, maxRetries: GEN_RETRIES,
-    abortSignal: AbortSignal.timeout(REQ_TIMEOUT_MS),
-  })
-  const res = await Promise.race([p, sleep(REQ_TIMEOUT_MS + 5000).then(() => { throw new Error('hard-timeout') })])
+    maxRetries: GEN_RETRIES, abortSignal: AbortSignal.timeout(REQ_TIMEOUT_MS),
+  }
+  // Oferece a tool SEMPRE (auto): modelos reasoning (gpt-oss) chamam tool mesmo
+  // sem uma disponível e o provider rejeita ("Tool choice is none, but model
+  // called a tool"); oferecê-la evita isso. Modelos SEM suporte a tool-use
+  // (alguns free do OpenRouter) explodem ao receber a tool → refaz sem ela.
+  let res
+  try {
+    res = await race(generateText({ ...base, tools: { rollDice: rollDiceStub }, maxSteps: 4 }))
+  } catch (e) {
+    if (/support tool use|does not support tools|no endpoints/i.test(String(e.message))) {
+      res = await race(generateText(base))
+    } else throw e
+  }
   const called = (res.toolCalls ?? []).some((c) => c.toolName === 'rollDice')
   return { narration: res.text ?? '', tokens: res.usage?.completionTokens ?? 0, called }
 }
@@ -95,10 +104,19 @@ const accum = new Map(models.map((m) => [m, { scores: [], tokens: 0, fails: 0 }]
 
 log(`início · modelos=${models.length} · cenários=${SCENARIOS.length} · reps=${REPS} · juiz=${process.env.JUDGE_MODEL ?? 'gemini-2.5-flash'}`)
 
-for (const model of models) {
-  const acc = accum.get(model)
-  for (const s of SCENARIOS) {
-    for (let rep = 0; rep < REPS; rep++) {
+// Loop: cenário → rep → modelo. Gera TODOS os modelos de um (cenário, rep) —
+// intercalado, então o RPM per-model tem ~(nº modelos × pace + gerações) de
+// respiro — e só então faz UMA chamada ao juiz que pontua todas as narrações
+// juntas. Corta as chamadas ao juiz para (cenários × reps). Julgar lado a lado
+// discrimina melhor; rótulos A/B/C anônimos + ordem embaralhada evitam brand/
+// position bias — o mapa label→modelo remapeia depois.
+const media = (sc) => (sc.imersao.nota + sc.sensorial.nota + sc.agencia.nota + sc.vozNpc.nota + sc.ritmo.nota + sc.coerencia.nota) / 6
+
+for (const s of SCENARIOS) {
+  for (let rep = 0; rep < REPS; rep++) {
+    const batch = [] // { model, narration }
+    for (const model of models) {
+      const acc = accum.get(model)
       const start = performance.now()
       let turn
       try {
@@ -114,16 +132,32 @@ for (const model of models) {
         log(`⛔ ${model}/${s.id} r${rep} — guardrail: ${fails.join(',')} (${Math.round(performance.now() - start)}ms, ${turn.narration.length}c)`)
         await sleep(PACE_MS); continue
       }
-      try {
-        const { score } = await judgeTurn({ judge, scenarioContext: s.context, playerAction: s.action, narration: turn.narration, exemplar: s.ex })
-        acc.scores.push(score)
-        const avg = (score.imersao.nota + score.sensorial.nota + score.agencia.nota + score.vozNpc.nota + score.ritmo.nota + score.coerencia.nota) / 6
-        log(`✓ ${model}/${s.id} r${rep} — ${Math.round(performance.now() - start)}ms, ${turn.narration.length}c, média=${avg.toFixed(1)}`)
-      } catch (e) {
-        log(`✗ juiz ${model}/${s.id} r${rep} — ${e.name}: ${String(e.message).slice(0, 90)}`)
-      }
+      log(`· gerado ${model}/${s.id} r${rep} — ${Math.round(performance.now() - start)}ms, ${turn.narration.length}c`)
+      batch.push({ model, narration: turn.narration })
       await sleep(PACE_MS)
     }
+    if (!batch.length) continue
+
+    // embaralha e rotula A/B/C (anti position/brand bias), depois 1 chamada ao juiz
+    const shuffled = [...batch].sort(() => Math.random() - 0.5)
+    const items = shuffled.map((b, i) => ({ label: String.fromCharCode(65 + i), narration: b.narration }))
+    const byLabel = new Map(shuffled.map((b, i) => [String.fromCharCode(65 + i), b.model]))
+    log(`⚖ juiz-batch ${s.id} r${rep} — 1 chamada p/ ${items.length} narração(ões)`)
+    try {
+      const { scores } = await race(
+        judgeBatch({ judge, scenarioContext: s.context, playerAction: s.action, exemplar: s.ex, items, abortSignal: AbortSignal.timeout(JUDGE_TIMEOUT_MS), maxRetries: 1 }),
+        JUDGE_TIMEOUT_MS + 5000,
+      )
+      for (const sc of scores) {
+        const model = byLabel.get(sc.id)
+        if (!model) { log(`  ⚠ juiz devolveu id desconhecido "${sc.id}"`); continue }
+        accum.get(model).scores.push(sc)
+        log(`✓ juiz ${model}/${s.id} r${rep} — média=${media(sc).toFixed(1)}`)
+      }
+    } catch (e) {
+      log(`✗ juiz-batch ${s.id} r${rep} — ${e.name}: ${String(e.message).slice(0, 90)}`)
+    }
+    await sleep(PACE_MS)
   }
 }
 

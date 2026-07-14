@@ -36,7 +36,7 @@ const openrouterJudge = createOpenAICompatible({
  * Default gemini-2.5-flash (grátis). Ex.: JUDGE_MODEL=openai:gpt-5-mini.
  */
 export const judgeModel = (): LanguageModelV1 => {
-  const id = process.env['JUDGE_MODEL'] ?? 'gemini-flash-latest'
+  const id = process.env['JUDGE_MODEL'] ?? 'gemini-3-flash-preview'
   if (id.startsWith('openai:')) return openaiJudge(id.slice('openai:'.length))
   if (id.startsWith('openrouter:')) return openrouterJudge(id.slice('openrouter:'.length))
   return google(id)

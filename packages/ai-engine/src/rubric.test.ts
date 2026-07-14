@@ -68,16 +68,24 @@ describe('estimateCost — tokens × preço da tabela', () => {
 
 describe('renderReportMarkdown — tabela determinística', () => {
   const rows = [
-    { model: 'mistralai/mistral-large-3-475b-instruct', perDim: dims(4.7), media: 4.55, spread: 0.3, custo: 0 },
-    { model: 'meta/llama-3.3-70b-instruct', perDim: dims(3.8), media: 3.87, spread: 0.4, custo: 0 },
+    { model: 'mistralai/mistral-large-3-475b-instruct', perDim: dims(4.7), media: 4.55, spread: 0.3, custo: 0, n: 5 },
+    { model: 'meta/llama-3.3-70b-instruct', perDim: dims(3.8), media: 3.87, spread: 0.4, custo: 0, n: 4 },
   ]
 
-  it('tem um cabeçalho por dimensão + MÉDIA/spread/custo', () => {
+  it('tem um cabeçalho por dimensão + MÉDIA/spread/casos/custo', () => {
     const md = renderReportMarkdown(rows, { date: '2026-07-10', guardrailSummary: 'idioma OK', incumbent: null })
     for (const d of DIMENSIONS) expect(md).toContain(d.label)
     expect(md).toMatch(/MÉDIA/)
     expect(md).toMatch(/spread/)
+    expect(md).toMatch(/casos/)
     expect(md).toMatch(/custo/)
+  })
+
+  it('mostra o nº de casos julgados por modelo e marca média parcial', () => {
+    const md = renderReportMarkdown(rows, { date: '2026-07-10', guardrailSummary: 'idioma OK', incumbent: null })
+    // llama tem n=4 < max(5) → casos marcado com * e rodapé de parcial
+    expect(md).toMatch(/meta\/llama-3\.3-70b-instruct\* \|.*\| 4\* \|/)
+    expect(md).toMatch(/média parcial/)
   })
 
   it('tem uma linha por modelo', () => {
