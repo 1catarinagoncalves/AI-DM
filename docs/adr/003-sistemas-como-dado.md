@@ -3,7 +3,7 @@
 **Status:** Aceito (D1 e D2 implementadas)
 **Data:** 2026-07-01
 **Decisores:** Time de Produto e Engenharia
-**Relacionado:** [ADR 001 — Arquitetura](./001-arquitetura.md) · [US-21](../sdlc/01-requisitos/US-21-sistemas-como-dado.md)
+**Relacionado:** [ADR 001 — Arquitetura](./001-arquitetura.md) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (outro eixo do mesmo `config`) · [US-21](../sdlc/01-requisitos/US-21-sistemas-como-dado.md)
 
 ---
 
@@ -50,6 +50,8 @@ Forma do `config` (detalhe e alternativas em [US-21](../sdlc/01-requisitos/US-21
   }
 }
 ```
+
+> Exemplo **ilustrativo** de 2026-07-01 (dois campos). O `config` cresceu desde então — `skills`, `classFeatures`, `classSpells`, `pointBuy`, `initialAdventures` (US-27/41/42/26/28). A **forma corrente e autoritativa** vive em [system.ts](../../packages/shared/src/types/system.ts) (`SystemConfigSchema`). A decisão abaixo não muda; só o número de campos.
 
 **Todo sistema tem classe.** Sistema sem classes formais define uma classe padrão única; o resolver de kit cai em `default` quando não casa. Nada de caso especial no código.
 

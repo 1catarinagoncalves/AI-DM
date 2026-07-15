@@ -25,7 +25,7 @@ node --env-file=..\..\.env run-bakeoff.mjs          # trio NVIDIA default
 | env | efeito | default |
 |---|---|---|
 | `MODELS` | lista CSV de candidatos; prefixo roteia o provider | trio NVIDIA |
-| `JUDGE_MODEL` | juiz; `openai:<id>` / `openrouter:<id>` / senão Google | `gemini-flash-latest` |
+| `JUDGE_MODEL` | juiz; `openai:<id>` / `openrouter:<id>` / senão Google | `gemini-3.1-flash-lite` |
 | `JUDGE_REPS` | repetições por caso (desempate de líderes) | 1 |
 | `RUN_LABEL` | tag no nome do arquivo | auto (`nvidia`/`groq`/`openrouter`/`mixed`) |
 

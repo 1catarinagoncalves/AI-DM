@@ -101,7 +101,8 @@ Forma de um caso:
 
 1. **Quantos casos?** Começar com 3 (condição, magia de área, ação) e crescer só quando uma regressão real escapar — a suite não deve virar catálogo do SRD. Sugestão: 3 no MVP.
 2. **Modelo sob teste:** rodar o eval só no modelo primário (Groq `gpt-oss-120b`, memória do provider) ou em todos os candidatos? Sugestão: primário no gate de regressão; comparação entre modelos fica na [US-17](./US-17-comparacao-modelos-eval.md).
-3. **Spells 5.1 no eval:** como as magias vêm de `2014`/5.1 (ressalva da [US-47](./US-47-ingestao-srd-como-dado.md)), a rubrica da magia de área deve ancorar no texto **5.1** até haver spells 2024 — registrar isso no caso para não confundir com o PDF 5.2.1.
+3. ~~**Spells 5.1 no eval.**~~ **Resolvida (2026-07-14).** A US-47 trocou a fonte para **Open5e**, que traz as magias 2024 nativas — não há mais stopgap de SRD 5.1. Toda rubrica ancora no **SRD 5.2 (2024)**, uma edição só, sem ressalva a registrar no caso.
+4. **Regra em EN, narração em PT:** o corpus do `getRule` provavelmente fica em inglês ([US-48](./US-48-getrule-corpus-de-regras.md), questão 3) enquanto o mestre narra em português. O eval é o lugar certo para medir se isso degrada: a rubrica deve avaliar a **narração em PT** (saída), não o idioma do trecho consultado (insumo) — e um caso deve pegar justamente o risco de o mestre vazar termo em inglês na mesa.
 
 ---
 

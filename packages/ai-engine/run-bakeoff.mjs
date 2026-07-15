@@ -101,8 +101,9 @@ async function genTurn(model, scenario) {
 
 const judge = judgeModel()
 const accum = new Map(models.map((m) => [m, { scores: [], tokens: 0, fails: 0 }]))
+const guardrailHits = [] // { model, scenario, rep, reasons: [...] } — quais casos caíram e por quê
 
-log(`início · modelos=${models.length} · cenários=${SCENARIOS.length} · reps=${REPS} · juiz=${process.env.JUDGE_MODEL ?? 'gemini-2.5-flash'}`)
+log(`início · modelos=${models.length} · cenários=${SCENARIOS.length} · reps=${REPS} · juiz=${process.env.JUDGE_MODEL ?? 'gemini-3.1-flash-lite'}`)
 
 // Loop: cenário → rep → modelo. Gera TODOS os modelos de um (cenário, rep) —
 // intercalado, então o RPM per-model tem ~(nº modelos × pace + gerações) de
@@ -129,6 +130,7 @@ for (const s of SCENARIOS) {
       acc.tokens += turn.tokens
       if (fails.length) {
         acc.fails++
+        guardrailHits.push({ model, scenario: s.id, rep, reasons: fails })
         log(`⛔ ${model}/${s.id} r${rep} — guardrail: ${fails.join(',')} (${Math.round(performance.now() - start)}ms, ${turn.narration.length}c)`)
         await sleep(PACE_MS); continue
       }
@@ -165,10 +167,14 @@ const rows = models
   .map((m) => { const a = accum.get(m); return a.scores.length ? aggregateReps(a.scores, m, estimateCost(m, a.tokens)) : null })
   .filter(Boolean)
 
-const totalFails = [...accum.values()].reduce((s, a) => s + a.fails, 0)
-const guardrailSummary = totalFails === 0
+// Motivos legíveis p/ o relatório (a chave do detector vira frase).
+const REASON_LABEL = { idioma: 'deriva de idioma (respondeu fora do PT-BR)', 'reasoning-leak': 'vazou raciocínio/quebrou 4ª parede', rollDice: 'inventou rolagem sem chamar rollDice' }
+const guardrailSummary = guardrailHits.length === 0
   ? `idioma OK · reasoning-leak: nenhum · rollDice: OK (${REPS} reps × ${SCENARIOS.length} cenários)`
-  : `${totalFails} turno(s) cortado(s) por guardrail`
+  : `${guardrailHits.length} turno(s) cortado(s):\n` +
+    guardrailHits
+      .map((h) => `- **${h.model}** · cenário \`${h.scenario}\` (rep ${h.rep}): ${h.reasons.map((r) => REASON_LABEL[r] ?? r).join('; ')}`)
+      .join('\n')
 const incumbent = models.find((m) => m.startsWith('groq:')) ?? null
 const now = new Date()
 const pad = (n) => String(n).padStart(2, '0')

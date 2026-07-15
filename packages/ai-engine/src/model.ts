@@ -33,10 +33,10 @@ const openrouterJudge = createOpenAICompatible({
 /**
  * Modelo-juiz do bake-off. Trocável por env JUDGE_MODEL, roteado por prefixo:
  * `openai:<id>` → OpenAI, `openrouter:<id>` → OpenRouter, senão Google (Gemini).
- * Default gemini-2.5-flash (grátis). Ex.: JUDGE_MODEL=openai:gpt-5-mini.
+ * Default gemini-3.1-flash-lite (grátis). Ex.: JUDGE_MODEL=openai:gpt-5-mini.
  */
 export const judgeModel = (): LanguageModelV1 => {
-  const id = process.env['JUDGE_MODEL'] ?? 'gemini-3-flash-preview'
+  const id = process.env['JUDGE_MODEL'] ?? 'gemini-3.1-flash-lite'
   if (id.startsWith('openai:')) return openaiJudge(id.slice('openai:'.length))
   if (id.startsWith('openrouter:')) return openrouterJudge(id.slice('openrouter:'.length))
   return google(id)

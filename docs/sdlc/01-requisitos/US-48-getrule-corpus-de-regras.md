@@ -38,7 +38,10 @@ O `config` da [US-21](./US-21-sistemas-como-dado.md)/[US-47](./US-47-ingestao-sr
 
 ### Dentro do escopo
 
-- **Corpus** `srd-5e.rules.json` (ou tabela leve por sistema), gerado pelo `ingest` da [US-47](./US-47-ingestao-srd-como-dado.md) a partir de: **Conditions** (2024), **combat/ações** (2024), **Spells** (de `2014`/5.1 — ver ressalva da US-47). Chave normalizada + categoria.
+- **Corpus** `srd-5e.rules.json` (ou tabela leve por sistema), gerado pelo `ingest` da [US-47](./US-47-ingestao-srd-como-dado.md) a partir do **SRD 5.2 (2024) via Open5e**: `ConditionDescription`, `Rule`/`RuleSet` (combate/ações) e `Spell` — **todos 2024**, mesma fonte e mesma edição. Chave normalizada + categoria.
+  - A US-47 (rev. 2026-07-14) trocou a fonte para Open5e, que tem as 339 magias 2024 nativas. **O stopgap de puxar magias do SRD 5.1 (`2014/`) não existe mais** — o corpus é 5.2 puro, sem mistura de edição.
+  - **O corpus é 100% Open5e (CC-BY-4.0).** A US-47 é CC-BY puro; a fonte OGL (`5e-bits/5e-database`) aparece só na [US-51](./US-51-kits-iniciais-do-srd.md), e **só** para `startingKits` — kit não é regra consultável. Nada de material OGL entra no `srd-5e.rules.json`; se algum dia entrar, o corpus herda a OGL junto.
+  - Aqui, ao contrário do `config`, o alvo **é** o texto de record longo: `getRule` devolve regra, não resumo de prompt. Traduzir o corpus para PT é decisão à parte (ver Questões em aberto).
 - **Tool `getRule`** em `packages/ai-engine/src/tools/get-rule.ts`, registrada em `tools/index.ts` (descomentar) e exposta no loop de tools do agente.
   - Input: `{ query: string, category?: 'condition' | 'spell' | 'combat' | 'class' }`.
   - Resolução: normaliza `query` → match por nome (exato + fuzzy) no corpus do **sistema ativo** → devolve 1–3 trechos **curtos** (não o capítulo inteiro).
@@ -107,7 +110,7 @@ getRule({ query: "enfeitiçado", category?: "condition" })
 
 1. **Match por nome vs. embeddings:** começar por nome+fuzzy (barato, determinístico). Só migrar para busca vetorial se a [US-49](./US-49-eval-fidelidade-de-regra.md) mostrar consultas legítimas que não casam por nome (ex.: "quanto tempo dura estar caído" → "Caído/Prone"). Decisão adiada até haver evidência.
 2. **Onde mora o corpus:** artefato `.json` no pacote `ai-engine` (carregado em memória) vs. tabela `SystemRule` no Prisma (consultável por query). Sugestão: **artefato em memória** no MVP (corpus é pequeno, lido inteiro na inicialização do agente); tabela só se o corpus crescer além do razoável ou precisar de query por sistema em runtime.
-3. **Idioma do trecho:** devolver PT (merge da US-47) e cair em EN? Sim — mesma regra de merge da ingestão; a tool não traduz.
+3. **Idioma do trecho — reaberta (2026-07-14).** A resposta antiga ("devolve PT pelo merge da US-47") **não se sustenta**: o overlay pt-BR da US-47 cobre só nomes e descrições curtas do `config` (18 perícias, features e magias de nível 1). O corpus do `getRule` é o **texto de record inteiro** — centenas de condições, ações e as 339 magias. Nenhuma fonte traz isso em PT, e o overlay não escala para esse volume à mão. Opções: (a) corpus em EN e o mestre traduz na narração (o LLM já narra em PT — o trecho é insumo, não saída); (b) traduzir o corpus por LLM uma vez, no `ingest`, e versionar o resultado; (c) só os nomes/chaves em PT, corpo em EN. Sugestão: **(a)** no MVP — o trecho alimenta o raciocínio do mestre, não vai literal para a tela; medir na [US-49](./US-49-eval-fidelidade-de-regra.md) se regra em EN degrada a narração em PT antes de pagar por (b).
 
 ---
 

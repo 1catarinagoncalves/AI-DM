@@ -1,6 +1,6 @@
 # ADR 001 — Arquitetura do AI Dungeon Master
 
-**Status:** Proposto  
+**Status:** Aceito (arquitetura implementada)  
 **Data:** 2026-06-27  
 **Decisores:** Time de Produto e Engenharia
 

@@ -74,9 +74,17 @@ O AI DM atualiza o inventário via mecanismo interno — metadados brutos (ex.: 
 
 ### Equipamentos iniciais por classe
 
-O `CharacterService` deve usar a tabela abaixo ao criar o personagem. Para classes não listadas, usar bom senso baseado no arquétipo mais próximo.
+> ⚠️ **Superada pela [US-51](./US-51-kits-iniciais-do-srd.md) (2026-07-14). A tabela abaixo é histórica.**
+>
+> Ela definiu os kits do MVP e foi transcrita para `config.startingKits` no [seed.ts](../../../apps/api/prisma/seed.ts) pela [US-21](./US-21-sistemas-como-dado.md). Mas **estes kits nunca foram SRD** — são flavor autoral, e alguns itens não existem em D&D 5e ("Poção de mana", "Pele de urso (armadura)").
+>
+> A [US-51](./US-51-kits-iniciais-do-srd.md) passa a **derivar os kits do SRD 2024** (dataset `5e-bits/5e-database`, `starting_equipment_options`, opção *a*), traduzidos por overlay pt-BR. O mago deixa de ter Poção de mana e passa a ter 2 adagas, bordão, robe, grimório e mochila de erudito. (Kit é story própria porque a fonte é OGL 1.0a — a [US-47](./US-47-ingestao-srd-como-dado.md), que deriva o resto do `config`, é CC-BY puro e não toca em kit.)
+>
+> **O que continua valendo desta US:** o *mecanismo* — kit resolvido por classe na criação, com fallback tolerante para classe desconhecida (hoje `getStartingInventory` + `CLASS_SYNONYMS` + chave `default`). O que muda é só o **conteúdo** da tabela, e ele deixa de morar aqui: a fonte passa a ser o dataset.
+>
+> **Personagens já criados não mudam** — o inventário é materializado no `Character` na criação.
 
-| Classe        | Equipamentos iniciais                                                          |
+| Classe (histórico) | Equipamentos iniciais (MVP, substituídos pela US-51)                          |
 | ------------- | ------------------------------------------------------------------------------ |
 | Guerreiro(a)  | Espada longa, Escudo, Armadura de couro, Mochila, Cantil                       |
 | Mago(a)       | Cajado arcano, Grimório, Vestes de mago, Poção de mana, Cantil                 |
