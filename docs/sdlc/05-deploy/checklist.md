@@ -6,7 +6,7 @@
 
 ## Antes de abrir PR
 
-- [ ] `pnpm lint` passa sem erros
+- [ ] `pnpm typecheck` passa sem erros
 - [ ] `pnpm test` passa (100% dos testes unitários e integração)
 - [ ] `pnpm eval` passa acima do threshold de qualidade
 - [ ] Migration Prisma incluída se o schema foi alterado
@@ -16,7 +16,7 @@
 ## Antes de merge para main
 
 - [ ] Revisão humana aprovada (obrigatório para PRs que tocam `packages/ai-engine`)
-- [ ] CI verde (GitHub Actions: lint + test + eval)
+- [ ] CI verde (GitHub Actions: typecheck + test + eval)
 - [ ] Sem segredos commitados (checado pelo hook de pre-commit)
 
 ## Deploy para staging
@@ -44,7 +44,7 @@ Os seguintes hooks rodam automaticamente no pipeline e bloqueiam se falharem:
 | Hook | Trigger | Ação |
 |------|---------|------|
 | `pre-commit` | Antes de cada commit | Bloqueia se encontrar segredos (API keys, senhas) |
-| `pre-push` | Antes de push para main | Roda `pnpm lint` + `pnpm test` |
+| `pre-push` | Antes de push para main | Roda `pnpm typecheck` + `pnpm test` |
 | CI eval | PR aberto/atualizado | Roda `pnpm eval --ci`; bloqueia se abaixo do threshold |
 | Migration safety | PR com mudança em `prisma/schema.prisma` | Verifica se migration foi incluída |
 

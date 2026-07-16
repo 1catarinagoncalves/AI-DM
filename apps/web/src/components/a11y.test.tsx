@@ -33,7 +33,7 @@ const { listCharacters, getTurns, listSystems, createUser } = vi.hoisted(() => (
 vi.mock('@/lib/api', () => ({ api: { listCharacters, getTurns, listSystems, createUser } }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 vi.mock('@/lib/session', () => ({
-  loadSession: () => ({ userId: 'u1', userName: 'Lyra' }),
+  loadSession: () => ({ userId: 'u1' }),
   saveSession: vi.fn(),
 }))
 

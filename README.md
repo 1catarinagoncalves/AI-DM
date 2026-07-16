@@ -17,7 +17,7 @@ alteração de estado passa por uma tool.
 - **Backend** (`apps/api`) — NestJS, Prisma sobre PostgreSQL (+ pgvector), Redis, BullMQ, Socket.IO
 - **AI Engine** (`packages/ai-engine`) — Vercel AI SDK; provedores Groq e OpenRouter
 - **Shared** (`packages/shared`) — tipos TypeScript do contrato client-server
-- **Monorepo** — pnpm workspaces, TypeScript 5.x strict, ESLint + Prettier
+- **Monorepo** — pnpm workspaces, TypeScript 5.x strict
 
 ## Estrutura
 
@@ -52,7 +52,7 @@ Nunca commite segredos — tudo via env.
 | `pnpm build` | Build de produção (packages → apps) |
 | `pnpm test` | Testes unitários e de integração |
 | `pnpm eval` | Suite de evals do DM Agent |
-| `pnpm lint` | ESLint + Prettier |
+| `pnpm typecheck` | `tsc --noEmit` nos pacotes que declaram o script (hoje: `api`) |
 | `pnpm db:migrate` / `db:studio` / `db:seed` | Prisma |
 
 ## Tools do DM Agent

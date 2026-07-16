@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
-import { loadSession } from '@/lib/session'
+import { loadSession, saveSession } from '@/lib/session'
 
 type HubCharacter = Awaited<ReturnType<typeof api.listCharacters>>[number]
 
@@ -23,9 +23,8 @@ const emptyState = (
 )
 
 export function HomeHero() {
-  // userId/userName do localStorage são só atalho — o branch vazio/preenchido vem da API.
+  // userId do localStorage é só atalho — o branch vazio/preenchido vem da API.
   const [userId, setUserId] = useState<string | null>(null)
-  const [userName, setUserName] = useState('Aventureiro')
   const [characters, setCharacters] = useState<HubCharacter[] | null>(null)
   const [focus, setFocus] = useState(0)
   const [showAll, setShowAll] = useState(false)
@@ -53,13 +52,19 @@ export function HomeHero() {
         setCharacters(next)
         // Re-foca: se o em foco foi apagado, cai no topo (último jogado); senão segue nele.
         setFocus(focusedId === c.id ? 0 : Math.max(0, next.findIndex((x) => x.id === focusedId)))
+        // A sessão guarda onde a pessoa estava jogando. Se era este personagem, não
+        // está mais em lugar nenhum: zera os campos em vez de deixar id morto apontado.
+        // userId fica — é a identidade do dono da lista, não do personagem.
+        const session = loadSession()
+        if (session?.characterId === c.id) {
+          saveSession({ userId: session.userId, characterId: '', characterName: '', adventureId: '' })
+        }
       })
       .catch(() => setDeleteError(true))
   }
 
   useEffect(() => {
     const session = loadSession()
-    if (session?.userName) setUserName(session.userName)
     if (session?.userId) {
       setUserId(session.userId)
       fetchCharacters(session.userId)
@@ -102,7 +107,7 @@ export function HomeHero() {
       <p className="text-5xl mb-4" aria-hidden="true">⚔</p>
       <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
       <p className="text-stone-600 dark:text-stone-400 mb-6">
-        Bem-vindo de volta, <span className="text-stone-900 dark:text-white font-semibold">{userName}</span>.
+        Bem-vindo de volta, <span className="text-stone-900 dark:text-white font-semibold">Aventureiro</span>.
       </p>
 
       <div className="border border-stone-200 dark:border-stone-800 rounded-lg p-4 mb-8 bg-white/50 dark:bg-stone-900/50">

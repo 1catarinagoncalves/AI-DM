@@ -43,7 +43,7 @@ Roadmap incremental (fase atual: MVP single-player):
 ### Geral
 - Linguagem: TypeScript 5.x, strict mode
 - Gerenciador de pacotes: pnpm (workspace monorepo)
-- Linting: ESLint + Prettier (configuração na raiz)
+- Análise estática: `pnpm typecheck` (`tsc --noEmit`). **Não há ESLint nem Prettier no projeto** — os scripts existiam desde o scaffold mas nunca tiveram dependência nem config, e foram removidos. Adotar um linter é story própria.
 - Commits: Conventional Commits (`feat:`, `fix:`, `chore:`, etc.)
 
 ### Frontend (`apps/web`)

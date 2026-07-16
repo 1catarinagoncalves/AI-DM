@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player (habilitador de manutenção; sem valor de release)
-**Status:** ✅ Concluída (2026-07-16)
+**Status:** ✅ Implementada
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (o `ingest`, o `CLASS_MAP` e o overlay `pt-BR.json` são a superfície principal desta story)
 **Relacionado:** [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — registra as chaves PT como dívida; **esta story deve vir ANTES da fase "Ficha" do ADR**, ver "Sequenciamento") · [US-41](./US-41-features-traits-de-classe.md) / [US-42](./US-42-magias-conhecidas.md) (donas do `classFeatures`/`classSpells`) · [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (`initialAdventures.hooks[].classKey`) · [US-52](./US-52-traducao-automatica-do-srd.md) (indexa rascunhos pela mesma chave composta)
 **Criada em:** 2026-07-16

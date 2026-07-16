@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "pnpm --parallel --filter api --filter web dev",
     "build": "pnpm --filter './packages/*' build && pnpm --filter './apps/*' build",
-    "lint": "pnpm --recursive lint",
+    "typecheck": "pnpm --recursive typecheck",
     "test": "pnpm --recursive test",
     "eval": "pnpm --filter ai-engine eval",
     "db:migrate": "dotenv -e .env -- pnpm --filter api db:migrate",

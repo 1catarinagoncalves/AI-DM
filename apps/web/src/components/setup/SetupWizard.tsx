@@ -84,7 +84,7 @@ export function SetupWizard() {
       const email = randomGuestId()
       api.createUser(email, 'Jogador').then(user => {
         setUserId(user.id)
-        saveSession({ userId: user.id, userName: 'Jogador', characterId: '', characterName: '', adventureId: '' })
+        saveSession({ userId: user.id, characterId: '', characterName: '', adventureId: '' })
       })
     }
     api.listSystems().then(setSystems).catch(() => setSystemsError(true))
@@ -146,7 +146,7 @@ export function SetupWizard() {
       const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
       const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs, skills, background })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
-      saveSession({ userId, userName: charData.name, characterId: char.id, characterName: charData.name, adventureId: '' })
+      saveSession({ userId, characterId: char.id, characterName: charData.name, adventureId: '' })
       setCharId(char.id)
       loadHook(char.id)
     } catch { setError('Erro ao criar personagem. Tenta novamente.') }
@@ -163,7 +163,7 @@ export function SetupWizard() {
     setStarting(true); setError('')
     try {
       const adv = await api.createAdventure(charId, hook.id)
-      saveSession({ userId, userName: charData.name, characterId: charId, characterName: charData.name, adventureId: adv.id })
+      saveSession({ userId, characterId: charId, characterName: charData.name, adventureId: adv.id })
       router.push(`/play/${adv.id}?characterId=${charId}`)
     } catch { setError('Erro ao iniciar a aventura. Tenta novamente.'); setStarting(false) }
   }

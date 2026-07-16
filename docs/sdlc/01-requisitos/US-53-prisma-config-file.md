@@ -141,6 +141,8 @@ Medido com um arquivo-sonda na raiz de `apps/api` e `tsc --listEmittedFiles`:
 
 **Ressalva sobre o retorno:** `apps/api` não tem script de typecheck (`lint` é `eslint src`, `test` é vitest). O ganho fica no editor — pega `defineConfig` mal digitado na hora, mas não é rede de CI.
 
+> **Resolvido em 2026-07-16, depois desta story.** Ao investigar o `lint` descobriu-se que ele nunca funcionou: os scripts vieram do commit de scaffold sem nunca ter dependência nem config de ESLint, e foram removidos. No lugar entrou `apps/api` → `typecheck` (`tsc --noEmit -p tsconfig.json`), com passthrough recursivo em `pnpm typecheck` na raiz. Como o `include` do `tsconfig.json` já cobre `prisma.config.ts` (ver Decidido acima), o `defineConfig` mal digitado **agora é rede de CI**: verificado trocando `migrations` por `migration`, que falha com `TS2561 ... Did you mean to write 'migrations'?` e exit code 2.
+
 ### Decidido — `db:migrate:deploy` fica como está
 
 Cogitou-se embrulhar `apps/api` → `db:migrate:deploy` em `dotenv-cli`, já que o config file desliga o auto-load do `.env` (ver armadilha nº 1). **Não.** O `migrate deploy` é comando de produção, e o [checklist de deploy](../05-deploy/checklist.md) já define de onde vem a credencial dele: *"Migration aplicada em staging: `pnpm db:migrate` com `DATABASE_URL` de staging"* — variável do ambiente, não `.env` de repositório. Embrulhar ensinaria o hábito errado.

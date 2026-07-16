@@ -2,7 +2,6 @@
 
 export interface GameSession {
   userId: string
-  userName: string
   characterId: string
   characterName: string
   adventureId: string

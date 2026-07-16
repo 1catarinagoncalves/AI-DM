@@ -1,9 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '../src/generated/prisma/client'
 import type { SystemConfig } from '@ai-dm/shared'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env['DATABASE_URL'] }),
+})
 
 // === Sistema Free — SNAPSHOT CONGELADO (US-47) ===================================================
 // Antes, o Free REFERENCIAVA as mesmas constantes do D&D. Com o ingest passando a substituir os 4
