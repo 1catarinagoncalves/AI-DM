@@ -78,6 +78,15 @@ describe('guardrail — vazamento de reasoning / voz de assistente', () => {
     expect(detectReasoningLeak('Claro! Vou narrar a chegada para você.').leak).toBe(true)
   })
 
+  it('pega canal Harmony cru do gpt-oss', () => {
+    // O gpt-oss narra em canais (analysis/final). Quando o provider não os
+    // parseia, o raciocínio chega colado à prosa pelo marcador `assistantfinal`.
+    const vazado =
+      'Need to interpret qualitatively: total 11 is moderate. Proceed with final answer.assistantfinalA lâmina reluz no chão úmido.'
+    expect(detectReasoningLeak(vazado).leak).toBe(true)
+    expect(detectReasoningLeak('<|channel|>analysis<|message|>preciso descrever a chuva').leak).toBe(true)
+  })
+
   it('pega abertura com bullet de meta-comentário', () => {
     expect(detectReasoningLeak('- Cena: chegada à vila\n- Clima: chuva\nVocê chega.').leak).toBe(true)
   })

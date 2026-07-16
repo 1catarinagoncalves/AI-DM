@@ -50,6 +50,51 @@ export function stripFabricatedRolls(text: string): { clean: string; removed: st
 }
 
 /**
+ * Rede de segurança determinística nº 2: canais de raciocínio na prosa.
+ *
+ * Modelos de raciocínio (gpt-oss, qwen, deepseek) separam o pensamento da
+ * resposta por canais. Quem parseia os canais é o PROVIDER, não o modelo — e um
+ * provider mal configurado entrega tudo no `content`. Aqui só reconhecemos os
+ * marcadores ESTRUTURAIS: são inequívocos, e o corte é cirúrgico. Estilo de
+ * narração (voz de assistente, meta-abertura) NÃO é problema deste saneador —
+ * quem julga isso é o guardrail do bake-off, que reprova o candidato inteiro.
+ */
+
+// Fronteira analysis→final. Greedy à esquerda: agarra a ÚLTIMA fronteira, então
+// só a resposta final sobrevive mesmo com vários ciclos de raciocínio.
+// Duas formas: tokens crus, e a degradada (tokens já removidos, marcador colado
+// à primeira letra da narração — "…final answer.assistantfinalA lâmina reluz").
+const HARMONY_BOUNDARY = /^[\s\S]*(?:<\|channel\|>final<\|message\|>|\bassistantfinal)/i
+// Bloco de raciocínio fechado; e a variante truncada (stream cortado no meio do
+// pensamento) — daí até o fim é raciocínio, não há narração a salvar.
+const THINK_BLOCK = /<think>[\s\S]*?<\/think>|<think>[\s\S]*$/gi
+// Tokens especiais restantes de canais que não são a fronteira final.
+const HARMONY_TOKEN = /<\|[^|]*\|>/g
+
+export function stripReasoningLeak(text: string): { clean: string; removed: string[] } {
+  const removed: string[] = []
+  let clean = text.replace(HARMONY_BOUNDARY, (match) => {
+    removed.push(match.trim())
+    return ''
+  })
+  clean = clean.replace(THINK_BLOCK, (match) => {
+    removed.push(match.trim())
+    return ''
+  })
+  clean = clean.replace(HARMONY_TOKEN, (match) => {
+    removed.push(match.trim())
+    return ''
+  })
+  if (removed.length === 0) return { clean: text, removed }
+  clean = clean
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return { clean, removed }
+}
+
+/**
  * Breakdown de uma rolagem para o bloco de rolagem (US-09/US-29), ex.:
  * `1d20+5: [14] +5 = 19`. Lê o DiceResult do Game Server — nunca a prosa.
  */

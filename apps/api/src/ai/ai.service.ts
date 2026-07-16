@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { streamText, generateText, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig } from '@ai-dm/shared'
-import { buildSkillSheet, stripFabricatedRolls, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
+import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
+  NARRATION_PROVIDER_OPTIONS,
   summaryModel,
   buildDmSystemPrompt,
   buildOpeningInstruction,
@@ -368,6 +369,7 @@ export class AiService {
       system: systemPrompt,
       messages,
       tools,
+      providerOptions: NARRATION_PROVIDER_OPTIONS,
       maxSteps: 5, // permite até 5 tool calls por turno
       // Persiste a narração do mestre ao final, mantendo a continuidade da cena,
       // e condensa turnos antigos no resumo quando a janela cresce demais.
@@ -386,11 +388,26 @@ export class AiService {
           if (COMPLETE_NARRATION.test(shown)) shown = ''
           shown += t
         }
+        // Rede de segurança — remove o raciocínio que o provider tenha deixado
+        // vazar para a prosa (canais Harmony do gpt-oss, bloco <think>) ANTES de
+        // persistir. O jogador já viu o texto do stream: o que se protege aqui é
+        // o HISTÓRICO, que volta como contexto nos próximos turnos e é fundido no
+        // resumo (US-18) — sem isto o vazamento se realimenta. A prevenção real é
+        // o NARRATION_PROVIDER_OPTIONS; isto é a segunda linha de defesa, para o
+        // dia em que um provider novo (ou um bump do SDK) volte a entregar os
+        // canais no content.
+        const { clean: withoutReasoning, removed: leaked } = stripReasoningLeak((shown || text).trim())
+        if (leaked.length > 0) {
+          console.warn(
+            `[AiService] saneador removeu raciocínio vazado da narração (${leaked.length} trecho(s)):`,
+            leaked.map((l) => l.slice(0, 120)),
+          )
+        }
         // US-29: rede de segurança — remove da narração qualquer resultado de
         // rolagem inventado pelo modelo ANTES de persistir. O número real vive
         // só no bloco de rolagem (evento DICE_ROLL), nunca na prosa. Assim o
         // histórico e o resumo (US-18) nunca realimentam a alucinação.
-        const { clean: finalText, removed } = stripFabricatedRolls((shown || text).trim())
+        const { clean: finalText, removed } = stripFabricatedRolls(withoutReasoning)
         if (removed.length > 0) {
           console.warn(`[AiService] saneador removeu ${removed.length} rolagem(ns) fictícia(s) da narração:`, removed)
         }
@@ -459,7 +476,7 @@ export class AiService {
       // escada aqui, a abertura caía direto no template estático.
       for (const model of narrationModels) {
         try {
-          const { text } = await generateText({ model, system, prompt })
+          const { text } = await generateText({ model, system, prompt, providerOptions: NARRATION_PROVIDER_OPTIONS })
           const trimmed = text.trim()
           if (trimmed.length > 0) return trimmed
         } catch (err) {

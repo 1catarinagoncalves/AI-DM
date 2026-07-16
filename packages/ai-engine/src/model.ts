@@ -82,6 +82,26 @@ export const fallbackModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')
 // se ele falhar ANTES de emitir texto, cai para o próximo.
 export const narrationModels: LanguageModelV1[] = [primaryModel, fallbackModel]
 
+/**
+ * Opções de provider da narração — passar em TODA chamada que usa
+ * `narrationModels`. O `openai/gpt-oss-120b` é um modelo de raciocínio: separa o
+ * pensamento (canal `analysis`) da resposta (canal `final`). Sem `exclude`, o
+ * OpenRouter devolve o raciocínio no campo `reasoning`, que o
+ * @ai-sdk/openai-compatible@0.2.16 hoje ignora — ele só lê `reasoning_content`.
+ * Ou seja, a prosa fica limpa POR ACIDENTE: basta o provider passar a mapear
+ * `reasoning` para o texto e o raciocínio vaza para a narração do mestre.
+ * `exclude: true` corta na origem, sem depender desse detalhe do SDK.
+ *
+ * A chave `openrouter` casa com o `name` do createOpenAICompatible; o fallback
+ * Groq ignora o bloco (lê a chave `groq`), então serve os dois modelos da escada.
+ *
+ * ponytail: o raciocínio ainda é gerado e cobrado, só não volta. Se o custo/TTFT
+ * pesar, o próximo passo é `reasoning: { effort: 'low' }`.
+ */
+export const NARRATION_PROVIDER_OPTIONS = {
+  openrouter: { reasoning: { exclude: true } },
+} as const
+
 // Compat: modelo principal isolado.
 export const defaultModel: LanguageModelV1 = primaryModel
 

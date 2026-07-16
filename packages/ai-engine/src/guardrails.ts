@@ -1,3 +1,5 @@
+import { stripReasoningLeak } from '@ai-dm/shared'
+
 // Guardrails determinísticos do bake-off narrativo (US-17, slice 2).
 //
 // São o filtro barato ANTES do juiz LLM: cortam um candidato por 0 token de juiz
@@ -83,8 +85,8 @@ export function detectLanguageDrift(narration: string): { drift: boolean; ptScor
 // ─── Guardrail 3: vazamento de reasoning / voz de assistente ──────────────────
 
 const LEAK_PATTERNS: RegExp[] = [
-  // tags de raciocínio que vazam do canal de reasoning para a prosa
-  /<\/?think>/i,
+  // tag de raciocínio sem saneador correspondente (o <think> é coberto pelo
+  // stripReasoningLeak, abaixo).
   /<\/?reasoning>/i,
   // voz de assistente (EN)
   /\bas an? (?:ai|language model|assistant)\b/i,
@@ -96,12 +98,24 @@ const LEAK_PATTERNS: RegExp[] = [
 ]
 
 /**
- * A prosa contém vazamento de reasoning ou voz de assistente? Cobre tags
- * `<think>`, auto-referência ("As an AI"), moldura de meta-abertura ("Aqui está
- * a cena:", "Claro! Vou narrar...") e abertura em bullet de meta-comentário.
- * NÃO confunde diálogo com travessão (—) com bullet: bullet é hífen/asterisco.
+ * A prosa contém vazamento de reasoning ou voz de assistente? Cobre o vazamento
+ * estrutural (canais Harmony do gpt-oss, bloco `<think>`), auto-referência ("As
+ * an AI"), moldura de meta-abertura ("Aqui está a cena:", "Claro! Vou narrar...")
+ * e abertura em bullet de meta-comentário. NÃO confunde diálogo com travessão (—)
+ * com bullet: bullet é hífen/asterisco.
+ *
+ * Escopo: BAKE-OFF, não produção. Os padrões estilísticos são gate de qualidade
+ * (reprovam o candidato inteiro) e dariam falso-positivo como porteiro de
+ * persistência — a narração do mestre termina em bullets. Em produção, o
+ * `onFinish` usa o stripReasoningLeak, que corta só o estrutural.
  */
 export function detectReasoningLeak(narration: string): { leak: boolean; match: string } {
+  // Vazamento ESTRUTURAL (canais Harmony, bloco <think>): reusa o saneador de
+  // produção, para que "o que é marcador de canal" tenha uma definição só. Aqui
+  // basta saber que havia algo a cortar — no bake-off isso reprova o candidato.
+  const { removed } = stripReasoningLeak(narration)
+  if (removed.length > 0) return { leak: true, match: removed[0]!.trim().slice(0, 60) }
+
   for (const re of LEAK_PATTERNS) {
     const m = narration.match(re)
     if (m) return { leak: true, match: m[0].trim() }
