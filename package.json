@@ -9,7 +9,9 @@
     "eval": "pnpm --filter ai-engine eval",
     "db:migrate": "dotenv -e .env -- pnpm --filter api db:migrate",
     "db:studio": "dotenv -e .env -- pnpm --filter api db:studio",
-    "db:seed": "dotenv -e .env -- pnpm --filter api db:seed"
+    "db:seed": "dotenv -e .env -- pnpm --filter api db:seed",
+    "srd:sync": "node scripts/srd/sync.mjs",
+    "srd:ingest": "pnpm --filter @ai-dm/shared build && node scripts/srd/ingest.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

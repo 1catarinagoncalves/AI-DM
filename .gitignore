@@ -6,3 +6,6 @@ dist/
 build/
 *.tsbuildinfo
 .turbo/
+
+# US-47: dataset SRD cru baixado pelo sync (só o artefato srd-5e.config.json entra no repo)
+scripts/srd/_data/

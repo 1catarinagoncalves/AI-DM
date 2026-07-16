@@ -3,7 +3,7 @@
 **Status:** Aceito (D1 e D2 implementadas)
 **Data:** 2026-07-01
 **Decisores:** Time de Produto e Engenharia
-**Relacionado:** [ADR 001 — Arquitetura](./001-arquitetura.md) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (outro eixo do mesmo `config`) · [US-21](../sdlc/01-requisitos/US-21-sistemas-como-dado.md)
+**Relacionado:** [ADR 001 — Arquitetura](./001-arquitetura.md) · [ADR 004 — Origem do dado de sistema](./004-origem-do-dado-de-sistema.md) (de onde vem o dado que popula este `config`) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (outro eixo do mesmo `config`) · [US-21](../sdlc/01-requisitos/US-21-sistemas-como-dado.md)
 
 ---
 

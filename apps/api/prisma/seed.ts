@@ -1,10 +1,16 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { PrismaClient } from '@prisma/client'
 import type { SystemConfig } from '@ai-dm/shared'
 
 const prisma = new PrismaClient()
 
+// === Sistema Free — SNAPSHOT CONGELADO (US-47) ===================================================
+// Antes, o Free REFERENCIAVA as mesmas constantes do D&D. Com o ingest passando a substituir os 4
+// campos SRD-derivados no D&D, o Free ganha LITERAIS PRÓPRIAS (free*) desses campos para não herdar
+// o SRD sem ninguém pedir. Os dois sistemas viram dados independentes de propósito. Ver US-47.
 // Faixa 10–18, default 10: point-buy 5e (US-26). Valor inicial grátis (começa 27/27), gasta subindo.
-const dnd5eAttributes: SystemConfig['attributes'] = [
+const freeAttributes: SystemConfig['attributes'] = [
   { key: 'strength', label: 'Força', min: 10, max: 18, default: 10 },
   { key: 'dexterity', label: 'Destreza', min: 10, max: 18, default: 10 },
   { key: 'constitution', label: 'Constituição', min: 10, max: 18, default: 10 },
@@ -13,9 +19,9 @@ const dnd5eAttributes: SystemConfig['attributes'] = [
   { key: 'charisma', label: 'Carisma', min: 10, max: 18, default: 10 },
 ]
 
-// As 18 perícias 5e (US-27), cada uma ancorada num atributo. Iguais no Free e no D&D.
-// Constituição não ancora nenhuma. Fonte: https://www.wargamer.com/dnd/skills
-const dnd5eSkills: SystemConfig['skills'] = [
+// As 18 perícias 5e (US-27), cada uma ancorada num atributo. Snapshot do Free (o D&D agora vem do
+// artefato). Constituição não ancora nenhuma. Fonte: https://www.wargamer.com/dnd/skills
+const freeSkills: SystemConfig['skills'] = [
   { key: 'athletics', label: 'Atletismo', ability: 'strength' },
   { key: 'acrobatics', label: 'Acrobacia', ability: 'dexterity' },
   { key: 'sleight_of_hand', label: 'Prestidigitação', ability: 'dexterity' },
@@ -247,7 +253,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
 // feature de nível 1 depende de subclasse (Clérigo→domínio, Feiticeiro→origem,
 // Bruxo→patrono) ficam de fora por ora (YAGNI, sem escolha de subclasse na Fase 1):
 // caem no default [] e o personagem fica sem features (sem crash, sem seção).
-const dnd5eClassFeatures: SystemConfig['classFeatures'] = {
+const freeClassFeatures: SystemConfig['classFeatures'] = {
   barbaro: [
     { name: 'Fúria', description: 'Entra em fúria, ganhando ímpeto e resistência no combate.' },
     { name: 'Defesa sem Armadura', description: 'Protege-se sem armadura usando o próprio vigor.' },
@@ -338,7 +344,7 @@ const CANTRIP_CATALOG: { name: string; classes: string[]; description: string }[
 // Classes conjuradoras COM truques: a lista materializa-se filtrando o catálogo por classe.
 const CANTRIP_CLASSES = ['mago', 'clerigo', 'druida', 'bardo', 'feiticeiro', 'bruxo'] as const
 
-const dnd5eClassSpells: SystemConfig['classSpells'] = {
+const freeClassSpells: SystemConfig['classSpells'] = {
   ...Object.fromEntries(
     CANTRIP_CLASSES.map((cls) => [
       cls,
@@ -360,26 +366,43 @@ const dnd5eClassSpells: SystemConfig['classSpells'] = {
   default: [],
 }
 
+// Free: literais próprias (congeladas). NÃO referencia mais nada que o ingest substitui no D&D.
 const freeConfig: SystemConfig = {
-  // Mesmos atributos, perícias, point-buy e kits por classe do D&D 5e.
-  attributes: dnd5eAttributes,
-  skills: dnd5eSkills,
+  attributes: freeAttributes,
+  skills: freeSkills,
   proficiency: dnd5eProficiency,
   startingKits: dnd5eKits,
-  classFeatures: dnd5eClassFeatures,
-  classSpells: dnd5eClassSpells,
+  classFeatures: freeClassFeatures,
+  classSpells: freeClassSpells,
   pointBuy: { budget: 27 },
   initialAdventures: dnd5eInitialAdventures,
 }
 
-const dnd5eConfig: SystemConfig = { attributes: dnd5eAttributes, skills: dnd5eSkills, proficiency: dnd5eProficiency, startingKits: dnd5eKits, classFeatures: dnd5eClassFeatures, classSpells: dnd5eClassSpells, pointBuy: { budget: 27 }, initialAdventures: dnd5eInitialAdventures }
+// D&D 5e SRD: os 4 campos SRD-derivados vêm do artefato (US-47); kits/point-buy/proficiência/
+// aventuras são decisão de produto e seguem no seed. startingKits fica manual até a US-51.
+//
+// Lido em runtime (fs), NÃO por `import` de JSON: o artefato mora em scripts/srd/, fora de
+// apps/api. Um import o traria para o programa do tsc, o rootDir inferido viraria a raiz do repo
+// e o emit sairia em dist/apps/api/src/main.js — quebrando `nest start` (que roda dist/main).
+const srd = JSON.parse(
+  readFileSync(join(__dirname, '../../../scripts/srd/srd-5e.config.json'), 'utf8'),
+) as Pick<SystemConfig, 'attributes' | 'skills' | 'classFeatures' | 'classSpells'>
+const dnd5eConfig: SystemConfig = {
+  ...srd,
+  proficiency: dnd5eProficiency,
+  startingKits: dnd5eKits,
+  pointBuy: { budget: 27 },
+  initialAdventures: dnd5eInitialAdventures,
+}
 
 async function main() {
   // Sistema "Free" — o AI DM narra livremente, sem seguir regras de um sistema oficial.
   // Ideal para quem quer jogar uma aventura sem se preocupar com mecânicas.
   await prisma.system.upsert({
     where: { id: 'system-free' },
-    update: { config: freeConfig },
+    // update inclui version/name: re-seed num row existente também sincroniza esses campos
+    // (senão um bump de version só valeria numa base nova). Ver US-47.
+    update: { name: 'Free', version: '1.0', config: freeConfig },
     create: {
       id: 'system-free',
       name: 'Free',
@@ -392,11 +415,11 @@ async function main() {
   // Sistema D&D 5e SRD — regras abertas do Dungeons & Dragons 5ª edição.
   await prisma.system.upsert({
     where: { id: 'system-dnd5e' },
-    update: { config: dnd5eConfig },
+    update: { name: 'D&D 5e SRD', version: '5.2', config: dnd5eConfig },
     create: {
       id: 'system-dnd5e',
       name: 'D&D 5e SRD',
-      version: '5.1',
+      version: '5.2',
       sourceType: 'SRD',
       config: dnd5eConfig,
     },

@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-21](./US-21-sistemas-como-dado.md) (`System.config` + Zod em `packages/shared`) · [US-27](./US-27-pericias-do-personagem.md) (perícias no config) · [US-41](./US-41-features-traits-de-classe.md) (features de classe no config) · [US-42](./US-42-magias-conhecidas.md) (magias no config)
 **Relacionado:** [US-48](./US-48-getrule-corpus-de-regras.md) (o mesmo dataset alimenta o corpus do `getRule`) · [US-51](./US-51-kits-iniciais-do-srd.md) (kits iniciais — extraídos para fonte/licença próprias) · [US-52](./US-52-traducao-automatica-do-srd.md) (tradução automática do conteúdo novo — extraída desta story) · [ADR 003](../../adr/003-sistemas-como-dado.md) (o `config` como dado — **destino**; segue valendo inteiro) · [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — o overlay pt-BR é **um locale**, não "o idioma")
 **Gera ADR:** **ADR 004** — origem do dado de sistema (a criar; ver [Decisão de arquitetura](#decisão-de-arquitetura-criar-o-adr-004-não-emendar-o-003))

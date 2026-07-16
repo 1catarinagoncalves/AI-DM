@@ -1,0 +1,209 @@
+// US-47 — ingest: mapeia o dataset SRD (scripts/srd/_data, do sync) → subset do SystemConfig,
+// aplica o overlay pt-BR (locale/pt-BR.json), valida e grava o artefato srd-5e.config.json.
+//
+// Deriva 4 campos (attributes, skills, classFeatures, classSpells). Os demais campos do
+// SystemConfig (startingKits, pointBuy, proficiency, initialAdventures) NÃO são regra de SRD
+// numa fonte CC — ficam no seed.ts (decisão de produto). Ver US-47 "Fora do escopo".
+//
+// Uso: node scripts/srd/ingest.mjs [--strict]
+//   --strict: falha o build se QUALQUER chave cair no fallback EN (rede de segurança, não caminho normal).
+//
+// Requer o pacote shared buildado (dist): pnpm --filter @ai-dm/shared build
+import { readFile, writeFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+// ponytail: import relativo ao dist do @ai-dm/shared (o root node_modules não simlinka o
+// workspace). Precisa do shared buildado. Uma troca de resolução vira uma linha aqui.
+import { SystemConfigSchema } from '../../packages/shared/dist/index.js'
+
+const HERE = dirname(fileURLToPath(import.meta.url))
+const DATA = join(HERE, '_data')
+const STRICT = process.argv.includes('--strict')
+
+// Mapa explícito das 12 classes do SRD → chave canônica do config. NÃO reusa o CLASS_SYNONYMS
+// de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte o slug do dataset.
+const CLASS_MAP = {
+  'srd-2024_barbarian': 'barbaro',
+  'srd-2024_bard': 'bardo',
+  'srd-2024_cleric': 'clerigo',
+  'srd-2024_druid': 'druida',
+  'srd-2024_fighter': 'guerreiro',
+  'srd-2024_monk': 'monge',
+  'srd-2024_paladin': 'paladino',
+  'srd-2024_ranger': 'patrulheiro',
+  'srd-2024_rogue': 'ladino',
+  'srd-2024_sorcerer': 'feiticeiro',
+  'srd-2024_warlock': 'bruxo',
+  'srd-2024_wizard': 'mago',
+}
+
+// Atributo abreviado (dataset) → chave canônica. Ordem fixa = ordem do config (idempotência).
+const ABILITY_MAP = { str: 'strength', dex: 'dexterity', con: 'constitution', int: 'intelligence', wis: 'wisdom', cha: 'charisma' }
+const ATTR_ORDER = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
+
+// Faixa/point-buy 5e: decisão de PRODUTO (não SRD). Fica aqui só para montar o campo attributes;
+// o orçamento (pointBuy.budget) segue no seed. Ver US-47 "Fora do escopo".
+const ATTR_RANGE = { min: 10, max: 18, default: 10 }
+
+const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
+
+// Relatórios: chave do overlay que traduz algo inexistente no dataset (órfã) vs. chave do
+// dataset sem PT no overlay (cai no fallback EN). Dois problemas distintos, dois relatórios.
+const fallbacks = [] // { domain, key }
+const orphans = [] // { domain, key }
+const usedOverlay = { attributes: new Set(), skills: new Set(), features: new Set(), spells: new Set() }
+
+async function load(name) {
+  return JSON.parse(await readFile(join(DATA, name), 'utf8'))
+}
+
+// Resolve texto do overlay; registra fallback quando ausente/vazio. `enName`/`enDesc` = base EN do dataset.
+function resolve(domain, key, overlayEntry, enName, enDesc) {
+  const name = overlayEntry?.name?.trim()
+  const description = overlayEntry?.description?.trim()
+  if (name || description) usedOverlay[domain].add(key)
+  const missing = !name || (enDesc !== undefined && !description)
+  if (missing) fallbacks.push({ domain, key })
+  return {
+    name: name || enName,
+    ...(enDesc !== undefined ? { description: description || enDesc } : {}),
+  }
+}
+
+async function main() {
+  const overlay = JSON.parse(await readFile(join(HERE, 'locale', 'pt-BR.json'), 'utf8'))
+  const [abilities, skillsRaw, classes, features, featureItems, spells] = await Promise.all([
+    load('AbilityDescription.json'),
+    load('Skill.json'),
+    load('CharacterClass.json'),
+    load('ClassFeature.json'),
+    load('ClassFeatureItem.json'),
+    load('Spell.json'),
+  ])
+
+  // --- attributes (6): dataset dá as chaves; label vem do overlay; min/max/default do produto ---
+  const abilityKeys = new Set(abilities.map((a) => a.fields.describes))
+  for (const canon of ATTR_ORDER) {
+    const abbr = Object.keys(ABILITY_MAP).find((k) => ABILITY_MAP[k] === canon)
+    if (!abilityKeys.has(abbr)) throw new Error(`Atributo ausente no dataset: ${abbr}`)
+  }
+  const attributes = ATTR_ORDER.map((canon) => ({
+    key: canon,
+    label: resolve('attributes', canon, { name: overlay.attributes?.[canon] }, canon).name,
+    ...ATTR_RANGE,
+  }))
+
+  // --- skills (18): doc `core` (traz `ability`); descarta a5e-ag_ (defensivo, AC) ---
+  const skills = skillsRaw
+    .filter((s) => !String(s.pk).startsWith('a5e-ag_') && !String(s.fields.describes).startsWith('a5e-ag_'))
+    .map((s) => {
+      const key = String(s.pk).replace(/-/g, '_') // sleight-of-hand → sleight_of_hand
+      const ability = ABILITY_MAP[s.fields.ability]
+      if (!ability) throw new Error(`Perícia ${s.pk}: ability desconhecida "${s.fields.ability}"`)
+      const label = resolve('skills', key, { name: overlay.skills?.[key] }, s.fields.name).name
+      return { key, label, ability }
+    })
+    .sort((a, b) => a.key.localeCompare(b.key))
+
+  // --- classFeatures: nível 1, só classe base, sem ruído de tabela nem motor de conjuração ---
+  const baseClasses = classes.filter((c) => c.fields.subclass_of === null)
+  for (const c of baseClasses) {
+    if (!CLASS_MAP[c.pk]) throw new Error(`Classe base sem entrada no CLASS_MAP: ${c.pk}`)
+  }
+  const lvl1 = new Set(featureItems.filter((i) => i.fields.level === 1).map((i) => i.fields.parent))
+  const isNoise = (f) => norm(f.fields.desc) === '[Column data]' // linhas de coluna de tabela
+  const isSpellEngine = (f) => /_(spellcasting|pact-magic)$/.test(f.pk) // conjuração é a US-42 (classSpells)
+
+  const classFeatures = { default: [] }
+  for (const f of features) {
+    const canon = CLASS_MAP[f.fields.parent]
+    if (!canon || !lvl1.has(f.pk) || isNoise(f) || isSpellEngine(f)) continue
+    const slug = String(f.pk).slice(String(f.fields.parent).length + 1) // srd-2024_paladin_lay-on-hands → lay-on-hands
+    const featKey = `${canon}_${slug}`
+    const entry = resolve('features', featKey, overlay.features?.[featKey], f.fields.name, norm(f.fields.desc))
+    ;(classFeatures[canon] ??= []).push({ _slug: slug, ...entry })
+  }
+  for (const k of Object.keys(classFeatures)) {
+    classFeatures[k] = classFeatures[k]
+      .sort((a, b) => a._slug.localeCompare(b._slug))
+      .map(({ _slug, ...e }) => e)
+  }
+
+  // --- classSpells: nível <= 1 (truques + todas as de 1º), ligadas por classes[] ---
+  const classSpells = { default: [] }
+  for (const s of spells) {
+    if (s.fields.level > 1) continue
+    const slug = String(s.pk).replace(/^srd-2024_/, '')
+    const entry = resolve('spells', slug, overlay.spells?.[slug], s.fields.name, norm(s.fields.desc))
+    const row = { _slug: slug, name: entry.name, level: s.fields.level, description: entry.description }
+    for (const cls of s.fields.classes || []) {
+      const canon = CLASS_MAP[cls]
+      if (!canon) throw new Error(`Magia ${s.pk}: classe "${cls}" sem entrada no CLASS_MAP`)
+      ;(classSpells[canon] ??= []).push(row)
+    }
+  }
+  for (const k of Object.keys(classSpells)) {
+    classSpells[k] = classSpells[k]
+      .sort((a, b) => a.level - b.level || a._slug.localeCompare(b._slug))
+      .map(({ _slug, ...e }) => e)
+  }
+
+  // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
+  for (const domain of ['features', 'spells']) {
+    for (const key of Object.keys(overlay[domain] || {})) {
+      if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
+    }
+  }
+
+  // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
+  // Stub dos campos que o ingest não deriva (o schema os exige; o valor real vive no seed).
+  const stub = { startingKits: { default: [{ name: '—', qty: 1 }] }, pointBuy: { budget: 27 } }
+  SystemConfigSchema.parse({ attributes, skills, classFeatures, classSpells, ...stub })
+
+  // --- grava artefato (chaves ordenadas → idempotente byte-a-byte) ---
+  const artifact = { attributes, skills, classFeatures, classSpells }
+  await writeFile(join(HERE, 'srd-5e.config.json'), stableStringify(artifact) + '\n')
+
+  report()
+  if (STRICT && fallbacks.length) {
+    console.error(`\n--strict: ${fallbacks.length} chave(s) só-EN. Build barrado.`)
+    process.exit(1)
+  }
+}
+
+// Serializa com chaves ordenadas recursivamente (arrays preservam a ordem já definida).
+function stableStringify(value, indent = 0) {
+  const pad = '  '.repeat(indent)
+  const pad1 = '  '.repeat(indent + 1)
+  if (Array.isArray(value)) {
+    if (value.length === 0) return '[]'
+    return '[\n' + value.map((v) => pad1 + stableStringify(v, indent + 1)).join(',\n') + '\n' + pad + ']'
+  }
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value).sort()
+    if (keys.length === 0) return '{}'
+    return '{\n' + keys.map((k) => pad1 + JSON.stringify(k) + ': ' + stableStringify(value[k], indent + 1)).join(',\n') + '\n' + pad + '}'
+  }
+  return JSON.stringify(value)
+}
+
+function report() {
+  console.log('ingest OK → scripts/srd/srd-5e.config.json')
+  console.log(`  attributes: 6 · skills: 18`)
+  if (orphans.length) {
+    console.log(`\n  ÓRFÃOS (${orphans.length}) — PT curado sem chave no SRD 5.2 (decidir: sumiu, mudou de nome, ou não é SRD):`)
+    for (const o of orphans) console.log(`    ${o.domain}: ${o.key}`)
+  }
+  if (fallbacks.length) {
+    console.log(`\n  FALLBACK EN (${fallbacks.length}) — conteúdo do 5.2 sem PT no overlay (tradução = US-52):`)
+    const byDomain = {}
+    for (const f of fallbacks) (byDomain[f.domain] ??= []).push(f.key)
+    for (const d of Object.keys(byDomain)) console.log(`    ${d} (${byDomain[d].length}): ${byDomain[d].join(', ')}`)
+  }
+  if (!orphans.length && !fallbacks.length) console.log('  Sem órfãos e sem fallback EN — overlay cobre tudo.')
+}
+
+main().catch((e) => {
+  console.error('ingest falhou:', e.message)
+  process.exit(1)
+})
