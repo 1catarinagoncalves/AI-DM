@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import type { SystemConfig } from '@ai-dm/shared'
-import { getStartingInventory, getClassSpells } from './starting-inventory'
+import { getStartingInventory, getClassSpells, resolveInitialHook } from './starting-inventory'
 
 const dnd5eConfig: SystemConfig = {
   attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
   startingKits: {
-    guerreiro: [{ name: 'Espada longa', qty: 1 }, { name: 'Escudo', qty: 1 }],
-    mago: [{ name: 'Grimório', qty: 1 }],
-    paladino: [{ name: 'Espada longa', qty: 1 }, { name: 'Escudo', qty: 1 }, { name: 'Símbolo sagrado', qty: 1 }],
-    patrulheiro: [{ name: 'Arco longo', qty: 1 }],
+    fighter: [{ name: 'Espada longa', qty: 1 }, { name: 'Escudo', qty: 1 }],
+    wizard: [{ name: 'Grimório', qty: 1 }],
+    paladin: [{ name: 'Espada longa', qty: 1 }, { name: 'Escudo', qty: 1 }, { name: 'Símbolo sagrado', qty: 1 }],
+    ranger: [{ name: 'Arco longo', qty: 1 }],
     default: [{ name: 'Adaga', qty: 1 }],
   },
 }
@@ -24,7 +24,7 @@ describe('getStartingInventory', () => {
     expect(getStartingInventory(dnd5eConfig, 'Paladina').some(i => i.name === 'Escudo')).toBe(true)
   })
 
-  it('mapeia arquétipos próximos (Patrulheira/Caçador/Ranger → patrulheiro)', () => {
+  it('mapeia arquétipos próximos (Patrulheira/Caçador/Ranger → ranger)', () => {
     for (const c of ['Patrulheira', 'Caçador', 'Ranger', 'Arqueiro']) {
       expect(getStartingInventory(dnd5eConfig, c).some(i => i.name === 'Arco longo')).toBe(true)
     }
@@ -49,11 +49,11 @@ describe('getClassSpells (US-42)', () => {
     attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
     startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
     classSpells: {
-      clerigo: [{ name: 'Chama Sagrada', level: 0, description: 'luz sagrada.' }],
-      feiticeiro: [{ name: 'Raio de Fogo', level: 0, description: 'dardo de fogo.' }],
-      bruxo: [{ name: 'Rajada Mística', level: 0, description: 'feixe crepitante.' }],
-      paladino: [{ name: 'Curar Ferimentos', level: 1, description: 'cura pelo toque.' }],
-      patrulheiro: [{ name: 'Marca do Caçador', level: 1, description: 'marca a presa.' }],
+      cleric: [{ name: 'Chama Sagrada', level: 0, description: 'luz sagrada.' }],
+      sorcerer: [{ name: 'Raio de Fogo', level: 0, description: 'dardo de fogo.' }],
+      warlock: [{ name: 'Rajada Mística', level: 0, description: 'feixe crepitante.' }],
+      paladin: [{ name: 'Curar Ferimentos', level: 1, description: 'cura pelo toque.' }],
+      ranger: [{ name: 'Marca do Caçador', level: 1, description: 'marca a presa.' }],
       default: [],
     },
   }
@@ -80,5 +80,36 @@ describe('getClassSpells (US-42)', () => {
   it('sem classSpells no config → lista vazia (sem crash)', () => {
     const noSpells: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
     expect(getClassSpells(noSpells, 'Clériga')).toEqual([])
+  })
+})
+
+// US-54: `classKey` é a chave canônica EN, mas Character.class continua sendo texto livre em PT.
+// Sem o match por CLASS_SYNONYMS, todo personagem PT cairia no gancho `default` em silêncio.
+describe('resolveInitialHook (US-28/US-54)', () => {
+  const hook = (id: string, classKey: string) => ({
+    id, classKey, title: id, pitch: '', primaryQuestTitle: '', primaryQuestDescription: '',
+    openingNarration: '', tags: [],
+  })
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    initialAdventures: {
+      hooks: [hook('paladino-primeira-quebra', 'paladin'), hook('bruxo-preco-do-pacto', 'warlock'), hook('default-primeiro-sinal', 'default')],
+    },
+  }
+
+  it('classe digitada em PT resolve o gancho de classKey EN', () => {
+    expect(resolveInitialHook(config, 'Paladina')?.id).toBe('paladino-primeira-quebra')
+    expect(resolveInitialHook(config, 'Bruxo')?.id).toBe('bruxo-preco-do-pacto')
+  })
+
+  it('classe sem gancho próprio cai no default', () => {
+    expect(resolveInitialHook(config, 'Cartógrafa Estelar')?.id).toBe('default-primeiro-sinal')
+    expect(resolveInitialHook(config, 'Mago')?.id).toBe('default-primeiro-sinal')
+  })
+
+  it('sistema sem catálogo → null (sem crash)', () => {
+    const noHooks: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
+    expect(resolveInitialHook(noHooks, 'Paladina')).toBeNull()
   })
 })

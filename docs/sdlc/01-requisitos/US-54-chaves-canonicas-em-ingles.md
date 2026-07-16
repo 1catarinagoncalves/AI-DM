@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player (habilitador de manutenção; sem valor de release)
-**Status:** 🚧 Em progresso
+**Status:** ✅ Concluída (2026-07-16)
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (o `ingest`, o `CLASS_MAP` e o overlay `pt-BR.json` são a superfície principal desta story)
 **Relacionado:** [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — registra as chaves PT como dívida; **esta story deve vir ANTES da fase "Ficha" do ADR**, ver "Sequenciamento") · [US-41](./US-41-features-traits-de-classe.md) / [US-42](./US-42-magias-conhecidas.md) (donas do `classFeatures`/`classSpells`) · [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (`initialAdventures.hooks[].classKey`) · [US-52](./US-52-traducao-automatica-do-srd.md) (indexa rascunhos pela mesma chave composta)
 **Criada em:** 2026-07-16
@@ -88,14 +88,14 @@ As 12 chaves canônicas (`barbaro→barbarian`, `bardo→bard`, `clerigo→cleri
 
 ## Critérios de aceite
 
-- [ ] As 12 chaves canônicas de classe são EN em `config` (`startingKits`, `classFeatures`, `classSpells`, `initialAdventures.hooks[].classKey`), no `seed.ts` e no `CLASS_MAP`.
-- [ ] As chaves compostas do overlay `pt-BR.json` são EN (`paladin_lay-on-hands`); **os valores PT ficam idênticos** — o diff do arquivo é só de chave.
-- [ ] **Zero órfão, zero fallback novo:** `node scripts/srd/ingest.mjs --strict` passa e o relatório de órfãos sai vazio. (É o verificador mecânico: chave do overlay renomeada sem o par no `CLASS_MAP` vira órfã na hora.)
-- [ ] **Criação de personagem em PT intacta:** digitar "Bruxo", "Patrulheiro", "Feiticeiro" resolve para `warlock`/`ranger`/`sorcerer` — o `CLASS_SYNONYMS` segue aceitando entrada PT.
-- [ ] **`CLASS_SYNONYMS` comentado:** um comentário no topo do mapa registra que a coluna esquerda é matcher de entrada livre (multilíngue, PT incluso) e a direita é a chave canônica EN — e que pares como `['ranger', 'ranger']` são coincidência, não duplicação a limpar.
-- [ ] **Nada muda na tela:** a ficha e a narração seguem exibindo "Impor as Mãos"/"Fúria" em PT; o seletor de classe da UI segue em PT. O jogador não percebe a story.
-- [ ] **Eval / teste de regressão:** `pnpm test` e `pnpm eval` verdes. O caso que falha se a story for feita pela metade: um personagem **Paladino** criado pela API tem `features` não-vazia (chave renomeada no overlay mas não no `CLASS_MAP` → `classFeatures.paladin` inexistente → cai no `default` → ficha vazia, silenciosamente).
-- [ ] `srd-5e.config.json` regenerado e commitado; o diff é **só renomeação de chave** (nenhum texto de `name`/`description` muda).
+- [x] As 12 chaves canônicas de classe são EN em `config` (`startingKits`, `classFeatures`, `classSpells`, `initialAdventures.hooks[].classKey`), no `seed.ts` e no `CLASS_MAP`.
+- [x] As chaves compostas do overlay `pt-BR.json` são EN (`paladin_lay-on-hands`); **os valores PT ficam idênticos** — o diff do arquivo é só de chave.
+- [x] **Zero órfão, zero fallback novo:** o relatório do `ingest` sai idêntico ao de antes — os mesmos 9 órfãos propositais (agora com prefixo EN) e os mesmos 64 fallbacks. **Ressalva:** `--strict` continua barrando, como já barrava antes desta story — os 64 fallbacks EN são dívida herdada da US-47 e são a US-52. O critério original ("`--strict` passa, órfãos vazios") era inatingível hoje; o que vale como verificação mecânica é *nenhum órfão/fallback NOVO*.
+- [x] **Criação de personagem em PT intacta:** digitar "Bruxo", "Patrulheiro", "Feiticeiro" resolve para `warlock`/`ranger`/`sorcerer` — o `CLASS_SYNONYMS` segue aceitando entrada PT.
+- [x] **`CLASS_SYNONYMS` comentado:** um comentário no topo do mapa registra que a coluna esquerda é matcher de entrada livre (multilíngue, PT incluso) e a direita é a chave canônica EN — e que pares como `['ranger', 'ranger']` são coincidência, não duplicação a limpar.
+- [x] **Nada muda na tela:** a ficha e a narração seguem exibindo "Impor as Mãos"/"Fúria" em PT; o seletor de classe da UI segue em PT. O jogador não percebe a story.
+- [x] **Eval / teste de regressão:** `pnpm test` (49 na API, todas as suites verdes) e `pnpm eval` (49) verdes. O caso do Paladino com `features` não-vazia está em `character.service.test.ts`; a armadilha análoga em `initialAdventures` ganhou teste próprio (ver Notas).
+- [x] `srd-5e.config.json` regenerado; verificado que o artefato novo é **rename puro** do anterior (aplicar o mapa de renomeação ao JSON antigo dá o novo byte-a-byte; nenhum `name`/`description` mudou).
 
 ---
 
@@ -105,7 +105,9 @@ As 12 chaves canônicas (`barbaro→barbarian`, `bardo→bard`, `clerigo→cleri
 - **Ordem sugerida:** `CLASS_MAP` → overlay → `seed.ts` → `CLASS_SYNONYMS` (só a coluna direita) → testes/evals → regenerar o artefato. Rodar `ingest --strict` no fim; órfão significa chave esquecida.
 - **Decidido: o `CLASS_MAP` continua explícito.** Com chaves EN ele vira quase identidade (`pk.replace(/^srd-2024_/, '')`) e é tentador apagar as 12 linhas. Não apagar: o mapa **falha alto** quando o dataset traz uma classe base desconhecida ([ingest.mjs:111](../../../scripts/srd/ingest.mjs:111)) e é o único lugar onde uma divergência futura entre o slug do Open5e e o nosso ID se corrige em uma linha. Derivar do slug troca 12 linhas de código por uma classe sumindo em silêncio num bump. A rigidez é a feature.
 - **Decidido: `['ranger', 'ranger']` no `CLASS_SYNONYMS` fica, com comentário.** Depois do rename, `ranger` é palavra-chave (coluna esquerda, matcher da entrada do jogador) **e** chave canônica (coluna direita). A linha lê como redundância e convida a "limpeza" que quebra o match de quem digita "Ranger". O comentário tem de dizer que as colunas são coisas diferentes e a igualdade é coincidência.
-- **O banco não é tocado.** Nenhuma coluna guarda chave de classe hoje (`Character.class` é texto livre). Sem migração Prisma, sem migração de dados.
+- **O banco não é tocado.** Nenhuma coluna guarda chave de classe hoje (`Character.class` é texto livre). Sem migração Prisma, sem migração de dados. **Mas o `System.config` semeado guarda as chaves** — um banco já semeado precisa de re-seed para os kits/features/hooks voltarem a casar.
+- **Achado na implementação: `resolveInitialHook` não usava o `CLASS_SYNONYMS`.** Ao contrário dos outros três resolvers, ele casava `normalize(h.classKey) === normalize(charClass)` — ou seja, `classKey` era chave canônica **e** label PT comparada por igualdade com o texto do jogador. Renomear `classKey: 'Paladino'` → `'paladin'` sem tocar nessa função mandaria **todo** personagem PT para o gancho `default`, em silêncio — a mesma classe de bug que o critério de aceite previu para `classFeatures`, mas em `initialAdventures`. A função passou a usar o mesmo match tolerante dos demais; `starting-inventory.test.ts` ganhou um `describe('resolveInitialHook')` que falha com o matcher antigo (verificado: `'Paladina'` → `default-primeiro-sinal`).
+  - Efeito colateral aceito: "Paladina"/"Clériga" (flexão de gênero) **antes** caíam no gancho `default` porque a igualdade exata falhava; agora casam o gancho da classe. É a tolerância que inventário e features já tinham — o comportamento de hoje era o acidente.
 
 ---
 

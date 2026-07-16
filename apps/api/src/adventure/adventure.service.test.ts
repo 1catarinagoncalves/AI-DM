@@ -12,11 +12,11 @@ function fakeAi(opening: string | null = null): AiService {
 
 const config: SystemConfig = {
   attributes: [{ key: 'constitution', label: 'Con', min: 1, max: 20, default: 10 }],
-  startingKits: { guerreiro: [{ name: 'Espada longa', qty: 1 }], default: [{ name: 'Adaga', qty: 1 }] },
+  startingKits: { fighter: [{ name: 'Espada longa', qty: 1 }], default: [{ name: 'Adaga', qty: 1 }] },
   initialAdventures: {
     hooks: [
       {
-        id: 'mago-arquivo', classKey: 'Mago', title: 'O Arquivo Que Sussurra',
+        id: 'mago-arquivo', classKey: 'wizard', title: 'O Arquivo Que Sussurra',
         pitch: 'Um grimório reconhece {characterName}.', primaryQuestTitle: 'Descobrir o arquivo',
         primaryQuestDescription: 'Investigar o grimório.', openingNarration: 'A vela curva-se, {characterName}.',
         tags: [],
@@ -106,7 +106,7 @@ describe('AdventureService.createForCharacter', () => {
     expect(recorded.participantCreate).toEqual({ adventureId: 'adv-1', characterId: 'char-1' })
     expect(recorded.characterStateCreate).toMatchObject({
       characterId: 'char-1', adventureId: 'adv-1', hp: 12, maxHp: 12,
-      inventory: [{ name: 'Adaga', qty: 1 }], // 'Mago' não casa 'guerreiro' → default
+      inventory: [{ name: 'Adaga', qty: 1 }], // 'Mago'→wizard, e o config só tem kit 'fighter' → default
     })
     expect(recorded.questCreate).toMatchObject({
       adventureId: 'adv-1', title: 'Descobrir o arquivo', description: 'Investigar o grimório.', isPrimary: true,

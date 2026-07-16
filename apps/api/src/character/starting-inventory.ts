@@ -8,35 +8,47 @@ function normalize(s: string): string {
     .replace(/\p{M}/gu, '')
 }
 
-// Cada par: [palavra-chave normalizada, chave canônica em config.startingKits/classFeatures/classSpells].
-// Inclui variantes e arquétipos próximos (ex.: Arqueiro/Caçador/Ranger → patrulheiro). Ordem importa:
-// chaves mais específicas antes das amplas (ex.: 'paladin' antes de 'ladin'). Vocabulário específico de
-// classes estilo D&D; sistemas com outra nomenclatura simplesmente caem no `default` do próprio config.
-// US-42: `brux`→bruxo e `patrulhei`/`ranger`/`cacador`→patrulheiro são chaves PRÓPRIAS (listas de magias
+// Cada par: [palavra-chave normalizada, chave canônica em config.startingKits/classFeatures/
+// classSpells/initialAdventures.hooks[].classKey].
+//
+// AS DUAS COLUNAS SÃO COISAS DIFERENTES — não unifique, não "limpe":
+//   • ESQUERDA = matcher da entrada LIVRE do jogador (Character.class é texto que ele digita).
+//     É deliberadamente multilíngue e inclui variantes/arquétipos próximos: 'ranger', 'cacador'
+//     e 'arqueir' casam o mesmo Ranger que 'patrulhei'. Continua aceitando PT: quem digita
+//     "Bruxo" TEM de achar a chave `warlock`. Tirar as palavras PT quebra a criação em PT-BR.
+//   • DIREITA = chave canônica do config, em inglês desde a US-54 (a base nativa dos dados é EN,
+//     ver ADR 005). Não é exibida ao jogador; a UI segue em PT (SetupWizard).
+// Logo, pares como ['ranger', 'ranger'] e ['bard', 'bard'] são COINCIDÊNCIA entre uma palavra que
+// o jogador pode digitar e um identificador — não duplicação a remover.
+//
+// Ordem importa: chaves mais específicas antes das amplas (ex.: 'paladin' antes de 'ladin').
+// Vocabulário específico de classes estilo D&D; sistemas com outra nomenclatura simplesmente caem
+// no `default` do próprio config.
+// US-42: `brux`→warlock e `patrulhei`/`ranger`/`cacador`→ranger são chaves PRÓPRIAS (listas de magias
 // distintas); antes colapsavam em feiticeiro/arqueiro. O seed renomeou os kits/features junto (ver seed.ts).
 const CLASS_SYNONYMS: [string, string][] = [
-  ['paladin', 'paladino'],
-  ['guerreir', 'guerreiro'],
-  ['lutador', 'guerreiro'],
-  ['arqueir', 'patrulheiro'],
-  ['patrulhei', 'patrulheiro'],
-  ['cacador', 'patrulheiro'],
-  ['ranger', 'patrulheiro'],
-  ['ladin', 'ladino'],
-  ['ladr', 'ladino'],
-  ['assassin', 'ladino'],
-  ['cleri', 'clerigo'],
-  ['sacerdot', 'clerigo'],
-  ['barbar', 'barbaro'],
-  ['druid', 'druida'],
-  ['bard', 'bardo'],
+  ['paladin', 'paladin'],
+  ['guerreir', 'fighter'],
+  ['lutador', 'fighter'],
+  ['arqueir', 'ranger'],
+  ['patrulhei', 'ranger'],
+  ['cacador', 'ranger'],
+  ['ranger', 'ranger'],
+  ['ladin', 'rogue'],
+  ['ladr', 'rogue'],
+  ['assassin', 'rogue'],
+  ['cleri', 'cleric'],
+  ['sacerdot', 'cleric'],
+  ['barbar', 'barbarian'],
+  ['druid', 'druid'],
+  ['bard', 'bard'],
   // 'feitic' (não 'feiticer'): "feiticeiro" = f-e-i-t-i-c-e-i-r-o NÃO contém "feiticer"
   // (o 'i' de -eiro quebra o match). Bug latente pré-US-42: Feiticeiro caía no default.
-  ['feitic', 'feiticeiro'],
-  ['brux', 'bruxo'],
-  ['monge', 'monge'],
-  ['mong', 'monge'],
-  ['mag', 'mago'],
+  ['feitic', 'sorcerer'],
+  ['brux', 'warlock'],
+  ['monge', 'monk'],
+  ['mong', 'monk'],
+  ['mag', 'wizard'],
 ]
 
 export function getStartingInventory(config: SystemConfig, charClass: string): InventoryItem[] {
@@ -85,16 +97,22 @@ export function getClassSpells(config: SystemConfig, charClass: string): SystemS
 }
 
 /**
- * Escolhe o gancho de aventura inicial pela classe do personagem (US-28).
- * Match tolerante a acento/caixa contra `classKey`; sem match seguro cai no
- * hook `default`. Devolve null só quando o sistema não traz catálogo algum.
+ * Escolhe o gancho de aventura inicial pela classe do personagem (US-28). Mesmo match
+ * tolerante do inventário/features (`CLASS_SYNONYMS`), agora que `classKey` é a chave
+ * canônica EN e não mais o nome PT exibido (US-54): comparar `classKey` direto com o
+ * texto do jogador mandaria todo personagem PT para o `default`. Classe sem gancho
+ * próprio cai no hook `default`. Devolve null só quando o sistema não traz catálogo algum.
  */
 export function resolveInitialHook(config: SystemConfig, charClass: string): InitialAdventureHook | null {
   const hooks = config.initialAdventures?.hooks
   if (!hooks || hooks.length === 0) return null
   const cn = normalize(charClass)
-  const match = hooks.find((h) => h.classKey !== 'default' && normalize(h.classKey) === cn)
-  return match ?? hooks.find((h) => h.classKey === 'default') ?? null
+  for (const [keyword, key] of CLASS_SYNONYMS) {
+    if (!cn.includes(keyword)) continue
+    const hook = hooks.find((h) => h.classKey === key)
+    if (hook) return hook
+  }
+  return hooks.find((h) => h.classKey === 'default') ?? null
 }
 
 /** Resolve placeholders do hook antes de persistir. Suporta {characterName} e {characterClass}. */

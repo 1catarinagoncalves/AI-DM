@@ -139,7 +139,7 @@ As USs concretas serão abertas ao planejar o epic; este ADR fixa a **forma**.
 - **Texto autoral não acompanha** — `background` e nome do personagem escritos em PT continuam PT numa ficha EN. Assumido: traduzi-los seria reescrever o que o jogador escreveu.
 - **i18n da UI é trabalho novo real** — extrair strings PT da UI web e montar o framework é o grosso do epic; não há atalho de dado nem de LLM.
 - **Ganchos de aventura ([US-28](../sdlc/01-requisitos/US-28-aventura-inicial-baseada-na-classe.md)) são autorais em PT** — precisam de versão EN (escrita ou via US-52).
-- **Chaves canônicas de classe são PT** (`paladino`, `feiticeiro` no `config`/`CLASS_MAP`). Funcionam como ID e não vazam para a UI, mas são dívida numa base "EN nativa". Endereçadas pela [US-54](../sdlc/01-requisitos/US-54-chaves-canonicas-em-ingles.md), que **deve vir antes da fase "Ficha"**: enquanto a ficha guarda texto, o rename não toca dado de usuário; depois, viraria uma segunda migração das mesmas linhas.
+- ~~**Chaves canônicas de classe são PT**~~ — **saldada pela [US-54](../sdlc/01-requisitos/US-54-chaves-canonicas-em-ingles.md)** (2026-07-16), antes da fase "Ficha" como a ordem exigia: o rename para `paladin`/`wizard` pegou só `config`/overlay/seed, sem tocar dado de usuário. A fase "Ficha" já nasce escrevendo chave EN.
 - **Migração do `User`** — `User.locale` com default `'pt-BR'` para as linhas existentes (nenhum usuário atual muda de comportamento).
 
 ---

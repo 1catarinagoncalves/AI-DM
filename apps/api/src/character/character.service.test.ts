@@ -184,7 +184,7 @@ describe('CharacterService.create', () => {
   const configWithFeatures: SystemConfig = {
     ...config,
     classFeatures: {
-      paladino: [
+      paladin: [
         { name: 'Sentido Divino', description: 'Sente o mal por perto.' },
         { name: 'Impor as Mãos', description: 'Cura ao toque.' },
       ],

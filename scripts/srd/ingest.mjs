@@ -22,19 +22,24 @@ const STRICT = process.argv.includes('--strict')
 
 // Mapa explícito das 12 classes do SRD → chave canônica do config. NÃO reusa o CLASS_SYNONYMS
 // de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte o slug do dataset.
+//
+// US-54: a chave canônica é EN (a base nativa dos dados é EN, ver ADR 005). O mapa virou quase
+// identidade, mas continua explícito de propósito: é ele que FALHA ALTO quando o dataset traz uma
+// classe base desconhecida (ver `Classe base sem entrada no CLASS_MAP` abaixo). Derivar do slug
+// (`pk.replace(/^srd-2024_/, '')`) troca estas 12 linhas por uma classe sumindo em silêncio num bump.
 const CLASS_MAP = {
-  'srd-2024_barbarian': 'barbaro',
-  'srd-2024_bard': 'bardo',
-  'srd-2024_cleric': 'clerigo',
-  'srd-2024_druid': 'druida',
-  'srd-2024_fighter': 'guerreiro',
-  'srd-2024_monk': 'monge',
-  'srd-2024_paladin': 'paladino',
-  'srd-2024_ranger': 'patrulheiro',
-  'srd-2024_rogue': 'ladino',
-  'srd-2024_sorcerer': 'feiticeiro',
-  'srd-2024_warlock': 'bruxo',
-  'srd-2024_wizard': 'mago',
+  'srd-2024_barbarian': 'barbarian',
+  'srd-2024_bard': 'bard',
+  'srd-2024_cleric': 'cleric',
+  'srd-2024_druid': 'druid',
+  'srd-2024_fighter': 'fighter',
+  'srd-2024_monk': 'monk',
+  'srd-2024_paladin': 'paladin',
+  'srd-2024_ranger': 'ranger',
+  'srd-2024_rogue': 'rogue',
+  'srd-2024_sorcerer': 'sorcerer',
+  'srd-2024_warlock': 'warlock',
+  'srd-2024_wizard': 'wizard',
 }
 
 // Atributo abreviado (dataset) → chave canônica. Ordem fixa = ordem do config (idempotência).

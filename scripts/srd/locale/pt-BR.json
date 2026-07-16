@@ -1,5 +1,5 @@
 {
-  "_comment": "Overlay pt-BR curado (US-47). Semeado do apps/api/prisma/seed.ts, religado por chave canônica. Chaves de feature: <classe canônica>_<slug EN estável> (sem prefixo srd-2024_). Chaves de spell: slug EN estável. Órfãos propositais (conteúdo curado sem chave no SRD 5.2) ficam aqui para o ingest RELATAR, não some em silêncio: features paladino_divine-sense / patrulheiro_natural-explorer; spells friends, thorn-whip, toll-the-dead, mind-sliver, thunderclap, blade-ward, word-of-radiance. Lacunas de conteúdo novo do 5.2 (Weapon Mastery, Ritual Adept, magias de nível 1) caem no fallback EN e são relatadas — tradução é a US-52.",
+  "_comment": "Overlay pt-BR curado (US-47). Semeado do apps/api/prisma/seed.ts, religado por chave canônica. Chaves de feature: <classe canônica EN, US-54>_<slug EN estável> (sem prefixo srd-2024_). Chaves de spell: slug EN estável. Órfãos propositais (conteúdo curado sem chave no SRD 5.2) ficam aqui para o ingest RELATAR, não some em silêncio: features paladin_divine-sense / ranger_natural-explorer; spells friends, thorn-whip, toll-the-dead, mind-sliver, thunderclap, blade-ward, word-of-radiance. Lacunas de conteúdo novo do 5.2 (Weapon Mastery, Ritual Adept, magias de nível 1) caem no fallback EN e são relatadas — tradução é a US-52.",
   "attributes": {
     "strength": "Força",
     "dexterity": "Destreza",
@@ -29,22 +29,22 @@
     "persuasion": "Persuasão"
   },
   "features": {
-    "barbaro_rage": { "name": "Fúria", "description": "Entra em fúria, ganhando ímpeto e resistência no combate." },
-    "barbaro_unarmored-defense": { "name": "Defesa sem Armadura", "description": "Protege-se sem armadura usando o próprio vigor." },
-    "bardo_bardic-inspiration": { "name": "Inspiração de Bardo", "description": "Inspira um aliado, dando-lhe um impulso extra numa ação." },
-    "guerreiro_fighting-style": { "name": "Estilo de Luta", "description": "Domina uma técnica marcial que o torna mais eficaz." },
-    "guerreiro_second-wind": { "name": "Retomar o Fôlego", "description": "Recupera vigor no meio da batalha por um instante." },
-    "monge_unarmored-defense": { "name": "Defesa sem Armadura", "description": "Protege-se sem armadura pela sua serenidade e treino." },
-    "monge_martial-arts": { "name": "Artes Marciais", "description": "Luta desarmado com golpes rápidos e precisos." },
-    "paladino_lay-on-hands": { "name": "Impor as Mãos", "description": "Cura ferimentos tocando o alvo com energia divina." },
-    "paladino_divine-sense": { "name": "Sentido Divino", "description": "Sente presenças de bem/mal e mortos-vivos por perto." },
-    "patrulheiro_favored-enemy": { "name": "Inimigo Favorito", "description": "Conhece a fundo um tipo de criatura e como caçá-la." },
-    "patrulheiro_natural-explorer": { "name": "Explorador Nato", "description": "Move-se e sobrevive com maestria no seu terreno." },
-    "ladino_expertise": { "name": "Especialização", "description": "É excepcionalmente bom em certas perícias." },
-    "ladino_sneak-attack": { "name": "Ataque Furtivo", "description": "Golpe extra devastador quando pega o alvo desprevenido." },
-    "ladino_thieves-cant": { "name": "Gíria de Ladrão", "description": "Comunica-se em código secreto do submundo." },
-    "druida_druidic": { "name": "Druídico", "description": "Conhece a língua secreta dos druidas e as suas mensagens ocultas." },
-    "mago_arcane-recovery": { "name": "Recuperação Arcana", "description": "Recupera parte da energia mágica ao descansar brevemente." }
+    "barbarian_rage": { "name": "Fúria", "description": "Entra em fúria, ganhando ímpeto e resistência no combate." },
+    "barbarian_unarmored-defense": { "name": "Defesa sem Armadura", "description": "Protege-se sem armadura usando o próprio vigor." },
+    "bard_bardic-inspiration": { "name": "Inspiração de Bardo", "description": "Inspira um aliado, dando-lhe um impulso extra numa ação." },
+    "fighter_fighting-style": { "name": "Estilo de Luta", "description": "Domina uma técnica marcial que o torna mais eficaz." },
+    "fighter_second-wind": { "name": "Retomar o Fôlego", "description": "Recupera vigor no meio da batalha por um instante." },
+    "monk_unarmored-defense": { "name": "Defesa sem Armadura", "description": "Protege-se sem armadura pela sua serenidade e treino." },
+    "monk_martial-arts": { "name": "Artes Marciais", "description": "Luta desarmado com golpes rápidos e precisos." },
+    "paladin_lay-on-hands": { "name": "Impor as Mãos", "description": "Cura ferimentos tocando o alvo com energia divina." },
+    "paladin_divine-sense": { "name": "Sentido Divino", "description": "Sente presenças de bem/mal e mortos-vivos por perto." },
+    "ranger_favored-enemy": { "name": "Inimigo Favorito", "description": "Conhece a fundo um tipo de criatura e como caçá-la." },
+    "ranger_natural-explorer": { "name": "Explorador Nato", "description": "Move-se e sobrevive com maestria no seu terreno." },
+    "rogue_expertise": { "name": "Especialização", "description": "É excepcionalmente bom em certas perícias." },
+    "rogue_sneak-attack": { "name": "Ataque Furtivo", "description": "Golpe extra devastador quando pega o alvo desprevenido." },
+    "rogue_thieves-cant": { "name": "Gíria de Ladrão", "description": "Comunica-se em código secreto do submundo." },
+    "druid_druidic": { "name": "Druídico", "description": "Conhece a língua secreta dos druidas e as suas mensagens ocultas." },
+    "wizard_arcane-recovery": { "name": "Recuperação Arcana", "description": "Recupera parte da energia mágica ao descansar brevemente." }
   },
   "spells": {
     "true-strike": { "name": "Ataque Certeiro", "description": "guia o próximo golpe, tornando-o mais preciso." },

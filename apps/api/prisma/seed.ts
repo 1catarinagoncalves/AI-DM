@@ -47,70 +47,70 @@ const dnd5eProficiency: SystemConfig['proficiency'] = { choices: 2, bonus: 2 }
 
 // Transportada de starting-inventory.ts (era a constante KITS hardcoded).
 const dnd5eKits: SystemConfig['startingKits'] = {
-  guerreiro: [
+  fighter: [
     { name: 'Espada longa', qty: 1 },
     { name: 'Escudo', qty: 1 },
     { name: 'Armadura de couro', qty: 1 },
     { name: 'Mochila', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  mago: [
+  wizard: [
     { name: 'Cajado arcano', qty: 1 },
     { name: 'Grimório', qty: 1 },
     { name: 'Vestes de mago', qty: 1 },
     { name: 'Poção de mana', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  // US-42: renomeado de 'arqueiro' → 'patrulheiro' (chave canônica do Ranger no projeto,
-  // ver CLASS_SYNONYMS/initialAdventures). O match tolerante ainda cobre "arqueiro".
-  patrulheiro: [
+  // US-42: chave própria do Ranger (antes colapsava em 'arqueiro'); US-54: canônica em EN.
+  // O match tolerante (CLASS_SYNONYMS) ainda cobre "arqueiro"/"caçador"/"patrulheiro".
+  ranger: [
     { name: 'Arco longo', qty: 1 },
     { name: 'Aljava (20 flechas)', qty: 1 },
     { name: 'Adaga', qty: 1 },
     { name: 'Armadura de couro leve', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  ladino: [
+  rogue: [
     { name: 'Adaga', qty: 2 },
     { name: 'Ferramentas de ladrão', qty: 1 },
     { name: 'Armadura de couro', qty: 1 },
     { name: 'Corda', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  clerigo: [
+  cleric: [
     { name: 'Martelo', qty: 1 },
     { name: 'Símbolo sagrado', qty: 1 },
     { name: 'Armadura de malha', qty: 1 },
     { name: 'Kit de primeiros socorros', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  paladino: [
+  paladin: [
     { name: 'Espada longa', qty: 1 },
     { name: 'Escudo', qty: 1 },
     { name: 'Armadura de malha', qty: 1 },
     { name: 'Símbolo sagrado', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  barbaro: [
+  barbarian: [
     { name: 'Machado grande', qty: 1 },
     { name: 'Pele de urso (armadura)', qty: 1 },
     { name: 'Adaga', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  druida: [
+  druid: [
     { name: 'Cajado de carvalho', qty: 1 },
     { name: 'Símbolo druídico', qty: 1 },
     { name: 'Túnica de couro', qty: 1 },
     { name: 'Kit de ervas', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  bardo: [
+  bard: [
     { name: 'Espada curta', qty: 1 },
     { name: 'Instrumento musical', qty: 1 },
     { name: 'Armadura de couro', qty: 1 },
     { name: 'Cantil', qty: 1 },
   ],
-  feiticeiro: [
+  sorcerer: [
     { name: 'Cajado', qty: 1 },
     { name: 'Foco arcano (cristal)', qty: 1 },
     { name: 'Vestes ornamentadas', qty: 1 },
@@ -119,7 +119,7 @@ const dnd5eKits: SystemConfig['startingKits'] = {
   ],
   // US-42: `bruxo` deixou de colapsar em `feiticeiro` (CLASS_SYNONYMS) e precisa de kit próprio,
   // senão cairia no `default` e regrediria o inventário inicial (US-28).
-  bruxo: [
+  warlock: [
     { name: 'Adaga', qty: 2 },
     { name: 'Foco arcano (talismã do pacto)', qty: 1 },
     { name: 'Grimório de invocações', qty: 1 },
@@ -135,12 +135,14 @@ const dnd5eKits: SystemConfig['startingKits'] = {
   ],
 }
 
-// Catálogo de aventuras iniciais por classe (US-28). classKey casa por normalização
-// (acento/caixa) com Character.class; `default` cobre classes desconhecidas/custom.
+// Catálogo de aventuras iniciais por classe (US-28). classKey é a chave canônica da classe
+// (EN desde a US-54), resolvida a partir do texto livre de Character.class pelo mesmo match
+// tolerante do inventário (CLASS_SYNONYMS, ver resolveInitialHook); `default` cobre classes
+// desconhecidas/custom. Os `id` seguem em PT: são identificadores de gancho, não de classe.
 const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
   hooks: [
     {
-      id: 'barbaro-furia-antiga', classKey: 'Bárbaro', title: 'O Chamado da Fúria Antiga',
+      id: 'barbaro-furia-antiga', classKey: 'barbarian', title: 'O Chamado da Fúria Antiga',
       pitch: 'Um sinal ancestral desperta e exige que {characterName} prove o que sua fúria significa.',
       primaryQuestTitle: 'Descobrir a origem do chamado ancestral',
       primaryQuestDescription: 'Seguir o sinal do clã e decidir se a fúria de {characterName} é maldição ou proteção.',
@@ -148,7 +150,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['fúria', 'ancestral', 'origem'],
     },
     {
-      id: 'bardo-cancao-proibida', classKey: 'Bardo', title: 'A Canção Que Ninguém Devia Ouvir',
+      id: 'bardo-cancao-proibida', classKey: 'bard', title: 'A Canção Que Ninguém Devia Ouvir',
       pitch: 'Uma apresentação de {characterName} revela uma verdade escondida.',
       primaryQuestTitle: 'Desvendar o segredo por trás da canção',
       primaryQuestDescription: 'Descobrir a verdade que a canção revelou antes que fama e perigo cobrem seu preço.',
@@ -156,7 +158,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['segredo', 'música', 'perigo'],
     },
     {
-      id: 'clerigo-reliquia-sem-voz', classKey: 'Clérigo', title: 'A Relíquia Sem Voz',
+      id: 'clerigo-reliquia-sem-voz', classKey: 'cleric', title: 'A Relíquia Sem Voz',
       pitch: 'Um símbolo sagrado cala-se ou chama por {characterName}.',
       primaryQuestTitle: 'Investigar o silêncio da relíquia',
       primaryQuestDescription: 'Descobrir por que a relíquia perdeu a voz e o que ela pede de {characterName}.',
@@ -164,7 +166,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['fé', 'mistério', 'sagrado'],
     },
     {
-      id: 'druida-raiz-envenenada', classKey: 'Druida', title: 'A Raiz Envenenada',
+      id: 'druida-raiz-envenenada', classKey: 'druid', title: 'A Raiz Envenenada',
       pitch: 'Um desequilíbrio na natureza reconhece {characterName} como mediador.',
       primaryQuestTitle: 'Estancar a corrupção na natureza',
       primaryQuestDescription: 'Encontrar a origem da corrupção e restaurar o equilíbrio antes que se espalhe.',
@@ -172,7 +174,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['natureza', 'corrupção', 'equilíbrio'],
     },
     {
-      id: 'guerreiro-contrato-que-sangra', classKey: 'Guerreiro', title: 'O Contrato Que Sangra',
+      id: 'guerreiro-contrato-que-sangra', classKey: 'fighter', title: 'O Contrato Que Sangra',
       pitch: 'Um trabalho simples testa a honra e a técnica de {characterName}.',
       primaryQuestTitle: 'Cumprir o contrato e desmascarar o inimigo',
       primaryQuestDescription: 'Levar o contrato até ao fim quando o verdadeiro inimigo se revela — sem trair a própria honra.',
@@ -180,7 +182,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['honra', 'contrato', 'combate'],
     },
     {
-      id: 'monge-ultimo-selo', classKey: 'Monge', title: 'O Último Selo do Mosteiro',
+      id: 'monge-ultimo-selo', classKey: 'monk', title: 'O Último Selo do Mosteiro',
       pitch: 'Um juramento do treinamento de {characterName} retorna para cobrar disciplina.',
       primaryQuestTitle: 'Honrar o último selo do mosteiro',
       primaryQuestDescription: 'Enfrentar o que o treinamento deixou por resolver e provar o propósito de {characterName}.',
@@ -188,7 +190,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['disciplina', 'juramento', 'propósito'],
     },
     {
-      id: 'paladino-primeira-quebra', classKey: 'Paladino', title: 'A Primeira Quebra do Juramento',
+      id: 'paladino-primeira-quebra', classKey: 'paladin', title: 'A Primeira Quebra do Juramento',
       pitch: 'Uma injustiça força {characterName} a agir antes de estar pronto.',
       primaryQuestTitle: 'Reparar a injustiça sem quebrar o juramento',
       primaryQuestDescription: 'Agir contra a injustiça diante de ti mantendo intacta a convicção que te define.',
@@ -196,7 +198,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['juramento', 'justiça', 'convicção'],
     },
     {
-      id: 'patrulheiro-rastros-fora-do-mapa', classKey: 'Patrulheiro', title: 'Rastros Fora do Mapa',
+      id: 'patrulheiro-rastros-fora-do-mapa', classKey: 'ranger', title: 'Rastros Fora do Mapa',
       pitch: 'Uma trilha impossível revela uma ameaça que só {characterName} consegue seguir.',
       primaryQuestTitle: 'Seguir os rastros fora do mapa',
       primaryQuestDescription: 'Rastrear a ameaça que atravessa território conhecido antes que ela chegue às pessoas.',
@@ -204,7 +206,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['rastro', 'território', 'ameaça'],
     },
     {
-      id: 'ladino-divida-da-sombra', classKey: 'Ladino', title: 'A Dívida da Sombra',
+      id: 'ladino-divida-da-sombra', classKey: 'rogue', title: 'A Dívida da Sombra',
       pitch: 'Um favor antigo cobra o seu preço de {characterName}.',
       primaryQuestTitle: 'Saldar a dívida da sombra',
       primaryQuestDescription: 'Decidir em quem confiar enquanto um segredo antigo cobra o que {characterName} deve.',
@@ -212,7 +214,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['dívida', 'confiança', 'segredo'],
     },
     {
-      id: 'feiticeiro-sangue-desperta', classKey: 'Feiticeiro', title: 'O Sangue Desperta',
+      id: 'feiticeiro-sangue-desperta', classKey: 'sorcerer', title: 'O Sangue Desperta',
       pitch: 'O poder inato de {characterName} reage a um fenômeno perigoso.',
       primaryQuestTitle: 'Entender o que despertou no teu sangue',
       primaryQuestDescription: 'Investigar o fenômeno que acordou teu poder antes que interessados demais te alcancem.',
@@ -220,7 +222,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['sangue', 'poder', 'origem'],
     },
     {
-      id: 'bruxo-preco-do-pacto', classKey: 'Bruxo', title: 'O Preço do Pacto',
+      id: 'bruxo-preco-do-pacto', classKey: 'warlock', title: 'O Preço do Pacto',
       pitch: 'O patrono de {characterName} cobra a primeira consequência concreta.',
       primaryQuestTitle: 'Pagar a primeira cobrança do pacto',
       primaryQuestDescription: 'Cumprir o que o patrono exige sem entender ainda todas as regras do pacto.',
@@ -228,7 +230,7 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
       tags: ['pacto', 'patrono', 'consequência'],
     },
     {
-      id: 'mago-arquivo-que-sussurra', classKey: 'Mago', title: 'O Arquivo Que Sussurra',
+      id: 'mago-arquivo-que-sussurra', classKey: 'wizard', title: 'O Arquivo Que Sussurra',
       pitch: 'Um conhecimento proibido reconhece {characterName}.',
       primaryQuestTitle: 'Descobrir por que o arquivo conhece o teu nome',
       primaryQuestDescription: 'Investigar a origem do grimório e impedir que o seu segredo caia em mãos perigosas.',
@@ -254,40 +256,40 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
 // Bruxo→patrono) ficam de fora por ora (YAGNI, sem escolha de subclasse na Fase 1):
 // caem no default [] e o personagem fica sem features (sem crash, sem seção).
 const freeClassFeatures: SystemConfig['classFeatures'] = {
-  barbaro: [
+  barbarian: [
     { name: 'Fúria', description: 'Entra em fúria, ganhando ímpeto e resistência no combate.' },
     { name: 'Defesa sem Armadura', description: 'Protege-se sem armadura usando o próprio vigor.' },
   ],
-  bardo: [
+  bard: [
     { name: 'Inspiração de Bardo', description: 'Inspira um aliado, dando-lhe um impulso extra numa ação.' },
   ],
-  guerreiro: [
+  fighter: [
     { name: 'Estilo de Luta', description: 'Domina uma técnica marcial que o torna mais eficaz.' },
     { name: 'Retomar o Fôlego', description: 'Recupera vigor no meio da batalha por um instante.' },
   ],
-  monge: [
+  monk: [
     { name: 'Defesa sem Armadura', description: 'Protege-se sem armadura pela sua serenidade e treino.' },
     { name: 'Artes Marciais', description: 'Luta desarmado com golpes rápidos e precisos.' },
   ],
-  paladino: [
+  paladin: [
     { name: 'Sentido Divino', description: 'Sente presenças de bem/mal e mortos-vivos por perto.' },
     { name: 'Impor as Mãos', description: 'Cura ferimentos tocando o alvo com energia divina.' },
   ],
-  // US-42: renomeado 'arqueiro' → 'patrulheiro' junto do kit (CLASS_SYNONYMS deixou de
-  // colapsar Ranger→arqueiro). Sem a renomeação, o Patrulheiro perderia estas features.
-  patrulheiro: [
+  // US-42: chave própria do Ranger, junto do kit (CLASS_SYNONYMS deixou de colapsar
+  // Ranger→arqueiro). Sem ela, o Patrulheiro perderia estas features no `default`.
+  ranger: [
     { name: 'Inimigo Favorito', description: 'Conhece a fundo um tipo de criatura e como caçá-la.' },
     { name: 'Explorador Nato', description: 'Move-se e sobrevive com maestria no seu terreno.' },
   ],
-  ladino: [
+  rogue: [
     { name: 'Especialização', description: 'É excepcionalmente bom em certas perícias.' },
     { name: 'Ataque Furtivo', description: 'Golpe extra devastador quando pega o alvo desprevenido.' },
     { name: 'Gíria de Ladrão', description: 'Comunica-se em código secreto do submundo.' },
   ],
-  druida: [
+  druid: [
     { name: 'Druídico', description: 'Conhece a língua secreta dos druidas e as suas mensagens ocultas.' },
   ],
-  mago: [
+  wizard: [
     { name: 'Recuperação Arcana', description: 'Recupera parte da energia mágica ao descansar brevemente.' },
   ],
   // Clérigo, Feiticeiro e Bruxo: única feature de nível 1 depende de subclasse → sem entrada (caem no default []).
@@ -303,46 +305,46 @@ const freeClassFeatures: SystemConfig['classFeatures'] = {
 // Título EN + descrição: D&D Beyond Basic Rules 2014, destilada numa linha em PT-BR.
 // `†` = ausente nas Basic Rules 2014 (título/descrição do wiki 2024, a verificar antes de congelar).
 // Feiticeiro e Bruxo têm listas DISTINTAS (não colapsam mais — ver CLASS_SYNONYMS).
-// Códigos: mag=Mago clr=Clérigo dru=Druida brd=Bardo sor=Feiticeiro wlk=Bruxo.
+// `classes[]` usa a chave canônica de classe (EN desde a US-54), não o nome exibido.
 const CANTRIP_CATALOG: { name: string; classes: string[]; description: string }[] = [
-  { name: 'Amizade', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'por um instante influencia alguém com mais facilidade (que depois nota o encanto).' }, // †
-  { name: 'Ataque Certeiro', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'guia o próximo golpe, tornando-o mais preciso.' },
-  { name: 'Bordão Druídico', classes: ['druida'], description: 'imbui um bordão com a força da natureza, tornando-o arma mágica.' },
-  { name: 'Borrifo Venenoso', classes: ['mago', 'druida', 'feiticeiro', 'bruxo'], description: 'um sopro de gás tóxico atinge um alvo próximo.' },
-  { name: 'Chama Sagrada', classes: ['clerigo'], description: 'luz sagrada desce sobre o alvo, ignorando cobertura.' },
-  { name: 'Chicote de Espinhos', classes: ['druida'], description: 'um chicote de espinhos fere e puxa o alvo para perto.' }, // †
-  { name: 'Consertar', classes: ['mago', 'clerigo', 'druida', 'bardo', 'feiticeiro'], description: 'repara uma pequena quebra ou rasgo num objeto.' },
-  { name: 'Dobre dos Mortos', classes: ['mago', 'clerigo', 'bruxo'], description: 'um dobre fúnebre soa e fere a mente ou a carne do alvo.' }, // †
-  { name: 'Elementalismo', classes: ['mago', 'druida', 'feiticeiro'], description: 'manipula um punhado dos elementos: faísca, brisa, respingo, poeira.' }, // †
-  { name: 'Estabilizar', classes: ['clerigo', 'druida'], description: 'um toque estabiliza uma criatura caída a 0 de vida.' },
-  { name: 'Estilhaço Mental', classes: ['mago', 'feiticeiro', 'bruxo'], description: 'lasca psíquica fere a mente e atrapalha o próximo salvamento do alvo.' }, // †
-  { name: 'Estrondo', classes: ['mago', 'druida', 'bardo', 'feiticeiro', 'bruxo'], description: 'uma onda de trovão explode ao redor, atingindo todos por perto.' }, // †
-  { name: 'Explosão Feiticeira', classes: ['feiticeiro'], description: 'um estouro de energia mágica bruta atinge um alvo.' }, // †
-  { name: 'Fagulha Estelar', classes: ['druida', 'bardo'], description: 'um lampejo de luz estelar fere e destaca o alvo.' }, // †
-  { name: 'Guarda de Lâmina', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'energia defensiva reduz por um instante o dano de golpes físicos.' }, // †
-  { name: 'Ilusão Menor', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'cria um som ou uma pequena imagem ilusória.' },
-  { name: 'Jato de Ácido', classes: ['mago', 'feiticeiro'], description: 'arremessa uma bolha de ácido que corrói um ou dois alvos próximos.' },
-  { name: 'Luz', classes: ['mago', 'clerigo', 'bardo', 'feiticeiro'], description: 'faz um objeto brilhar como uma tocha.' },
-  { name: 'Luzes Dançantes', classes: ['mago', 'bardo', 'feiticeiro'], description: 'cria pequenas luzes flutuantes que controla à distância.' },
-  { name: 'Mensagem', classes: ['mago', 'druida', 'bardo', 'feiticeiro'], description: 'sussurra uma mensagem que só o alvo distante ouve, e ele pode responder.' },
-  { name: 'Mão Mágica', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'mão espectral flutuante manipula objetos leves à distância.' },
-  { name: 'Orientação', classes: ['clerigo', 'druida'], description: 'um toque divino dá um impulso extra ao próximo teste do aliado.' },
-  { name: 'Palavra Radiante', classes: ['clerigo'], description: 'uma palavra sagrada faz luz ofuscante ferir os inimigos ao redor.' }, // †
-  { name: 'Prestidigitação', classes: ['mago', 'bardo', 'feiticeiro', 'bruxo'], description: 'pequenos truques mágicos: limpar, sujar, aromatizar, faíscas inofensivas.' },
-  { name: 'Produzir Chama', classes: ['druida'], description: 'uma chama na palma ilumina ou é arremessada num alvo.' },
-  { name: 'Raio de Fogo', classes: ['mago', 'feiticeiro'], description: 'lança um dardo de fogo que incendeia alvo ou objeto.' },
-  { name: 'Raio de Gelo', classes: ['mago', 'feiticeiro'], description: 'um feixe gélido fere e reduz a velocidade do alvo.' },
-  { name: 'Rajada Mística', classes: ['bruxo'], description: 'feixe de energia crepitante dispara contra um alvo.' },
-  { name: 'Resistência', classes: ['clerigo', 'druida'], description: 'um toque divino dá um impulso extra ao próximo salvamento do aliado.' },
-  { name: 'Taumaturgia', classes: ['clerigo'], description: 'manifesta um pequeno prodígio divino: voz trovejante, chamas trêmulas, portas que batem.' },
-  { name: 'Toque Chocante', classes: ['mago', 'feiticeiro'], description: 'descarga elétrica salta da mão e impede a reação do alvo.' },
-  { name: 'Toque Gélido', classes: ['mago', 'feiticeiro', 'bruxo'], description: 'mão esquelética fantasmagórica queima o alvo e o impede de se curar.' },
-  { name: 'Truque Druídico', classes: ['druida'], description: 'pequenos sinais da natureza: prever o tempo, abrir uma flor, acender uma chama.' },
-  { name: 'Zombaria Cruel', classes: ['bardo'], description: 'insultos encantados ferem a mente e atrapalham o alvo.' },
+  { name: 'Amizade', classes: ['wizard', 'bard', 'sorcerer', 'warlock'], description: 'por um instante influencia alguém com mais facilidade (que depois nota o encanto).' }, // †
+  { name: 'Ataque Certeiro', classes: ['wizard', 'bard', 'sorcerer', 'warlock'], description: 'guia o próximo golpe, tornando-o mais preciso.' },
+  { name: 'Bordão Druídico', classes: ['druid'], description: 'imbui um bordão com a força da natureza, tornando-o arma mágica.' },
+  { name: 'Borrifo Venenoso', classes: ['wizard', 'druid', 'sorcerer', 'warlock'], description: 'um sopro de gás tóxico atinge um alvo próximo.' },
+  { name: 'Chama Sagrada', classes: ['cleric'], description: 'luz sagrada desce sobre o alvo, ignorando cobertura.' },
+  { name: 'Chicote de Espinhos', classes: ['druid'], description: 'um chicote de espinhos fere e puxa o alvo para perto.' }, // †
+  { name: 'Consertar', classes: ['wizard', 'cleric', 'druid', 'bard', 'sorcerer'], description: 'repara uma pequena quebra ou rasgo num objeto.' },
+  { name: 'Dobre dos Mortos', classes: ['wizard', 'cleric', 'warlock'], description: 'um dobre fúnebre soa e fere a mente ou a carne do alvo.' }, // †
+  { name: 'Elementalismo', classes: ['wizard', 'druid', 'sorcerer'], description: 'manipula um punhado dos elementos: faísca, brisa, respingo, poeira.' }, // †
+  { name: 'Estabilizar', classes: ['cleric', 'druid'], description: 'um toque estabiliza uma criatura caída a 0 de vida.' },
+  { name: 'Estilhaço Mental', classes: ['wizard', 'sorcerer', 'warlock'], description: 'lasca psíquica fere a mente e atrapalha o próximo salvamento do alvo.' }, // †
+  { name: 'Estrondo', classes: ['wizard', 'druid', 'bard', 'sorcerer', 'warlock'], description: 'uma onda de trovão explode ao redor, atingindo todos por perto.' }, // †
+  { name: 'Explosão Feiticeira', classes: ['sorcerer'], description: 'um estouro de energia mágica bruta atinge um alvo.' }, // †
+  { name: 'Fagulha Estelar', classes: ['druid', 'bard'], description: 'um lampejo de luz estelar fere e destaca o alvo.' }, // †
+  { name: 'Guarda de Lâmina', classes: ['wizard', 'bard', 'sorcerer', 'warlock'], description: 'energia defensiva reduz por um instante o dano de golpes físicos.' }, // †
+  { name: 'Ilusão Menor', classes: ['wizard', 'bard', 'sorcerer', 'warlock'], description: 'cria um som ou uma pequena imagem ilusória.' },
+  { name: 'Jato de Ácido', classes: ['wizard', 'sorcerer'], description: 'arremessa uma bolha de ácido que corrói um ou dois alvos próximos.' },
+  { name: 'Luz', classes: ['wizard', 'cleric', 'bard', 'sorcerer'], description: 'faz um objeto brilhar como uma tocha.' },
+  { name: 'Luzes Dançantes', classes: ['wizard', 'bard', 'sorcerer'], description: 'cria pequenas luzes flutuantes que controla à distância.' },
+  { name: 'Mensagem', classes: ['wizard', 'druid', 'bard', 'sorcerer'], description: 'sussurra uma mensagem que só o alvo distante ouve, e ele pode responder.' },
+  { name: 'Mão Mágica', classes: ['wizard', 'bard', 'sorcerer', 'warlock'], description: 'mão espectral flutuante manipula objetos leves à distância.' },
+  { name: 'Orientação', classes: ['cleric', 'druid'], description: 'um toque divino dá um impulso extra ao próximo teste do aliado.' },
+  { name: 'Palavra Radiante', classes: ['cleric'], description: 'uma palavra sagrada faz luz ofuscante ferir os inimigos ao redor.' }, // †
+  { name: 'Prestidigitação', classes: ['wizard', 'bard', 'sorcerer', 'warlock'], description: 'pequenos truques mágicos: limpar, sujar, aromatizar, faíscas inofensivas.' },
+  { name: 'Produzir Chama', classes: ['druid'], description: 'uma chama na palma ilumina ou é arremessada num alvo.' },
+  { name: 'Raio de Fogo', classes: ['wizard', 'sorcerer'], description: 'lança um dardo de fogo que incendeia alvo ou objeto.' },
+  { name: 'Raio de Gelo', classes: ['wizard', 'sorcerer'], description: 'um feixe gélido fere e reduz a velocidade do alvo.' },
+  { name: 'Rajada Mística', classes: ['warlock'], description: 'feixe de energia crepitante dispara contra um alvo.' },
+  { name: 'Resistência', classes: ['cleric', 'druid'], description: 'um toque divino dá um impulso extra ao próximo salvamento do aliado.' },
+  { name: 'Taumaturgia', classes: ['cleric'], description: 'manifesta um pequeno prodígio divino: voz trovejante, chamas trêmulas, portas que batem.' },
+  { name: 'Toque Chocante', classes: ['wizard', 'sorcerer'], description: 'descarga elétrica salta da mão e impede a reação do alvo.' },
+  { name: 'Toque Gélido', classes: ['wizard', 'sorcerer', 'warlock'], description: 'mão esquelética fantasmagórica queima o alvo e o impede de se curar.' },
+  { name: 'Truque Druídico', classes: ['druid'], description: 'pequenos sinais da natureza: prever o tempo, abrir uma flor, acender uma chama.' },
+  { name: 'Zombaria Cruel', classes: ['bard'], description: 'insultos encantados ferem a mente e atrapalham o alvo.' },
 ]
 
 // Classes conjuradoras COM truques: a lista materializa-se filtrando o catálogo por classe.
-const CANTRIP_CLASSES = ['mago', 'clerigo', 'druida', 'bardo', 'feiticeiro', 'bruxo'] as const
+const CANTRIP_CLASSES = ['wizard', 'cleric', 'druid', 'bard', 'sorcerer', 'warlock'] as const
 
 const freeClassSpells: SystemConfig['classSpells'] = {
   ...Object.fromEntries(
@@ -354,11 +356,11 @@ const freeClassSpells: SystemConfig['classSpells'] = {
     ]),
   ),
   // Exceção (US-42): Paladino e Patrulheiro não têm truques → 2 magias de nível 1 fixas.
-  paladino: [
+  paladin: [
     { name: 'Curar Ferimentos', level: 1, description: 'restaura vitalidade a uma criatura pelo toque.' },
     { name: 'Abençoar', level: 1, description: 'até três aliados ganham um impulso em ataques e salvamentos.' },
   ],
-  patrulheiro: [
+  ranger: [
     { name: 'Marca do Caçador', level: 1, description: 'marca uma presa, somando dano a cada golpe e facilitando rastreá-la.' }, // †
     { name: 'Curar Ferimentos', level: 1, description: 'restaura vitalidade a uma criatura pelo toque.' },
   ],

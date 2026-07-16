@@ -13,7 +13,7 @@ describe('SystemConfigSchema', () => {
   it('rejeita startingKits sem chave default', () => {
     const config = {
       attributes: [{ key: 'cool', label: 'Cool', min: 1, max: 10, default: 5 }],
-      startingKits: { guerreiro: [{ name: 'Espada', qty: 1 }] },
+      startingKits: { fighter: [{ name: 'Espada', qty: 1 }] },
     }
     expect(() => SystemConfigSchema.parse(config)).toThrow()
   })
