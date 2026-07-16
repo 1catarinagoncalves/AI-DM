@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (o mesmo pipeline de ingestão gera o corpus) · [US-21](./US-21-sistemas-como-dado.md) (sistema como dado; corpus por sistema)
 **Relacionado:** [US-42](./US-42-magias-conhecidas.md) (magias que o mestre consulta) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md)/[US-38](./US-38-rolagens-ancoradas-na-ficha.md) (dados são do `rollDice`, não do `getRule`) · [US-49](./US-49-eval-fidelidade-de-regra.md) (eval)
 **Criada em:** 2026-07-11

@@ -48,7 +48,7 @@ export class AiService {
 
   /**
    * Cria o stream de narração para um turno. `attempt` seleciona o modelo na
-   * lista de prioridade (0 = gpt-oss-120b, 1 = llama-3.3-70b fallback), todos via Groq. O controller
+   * lista de prioridade (0 = gpt-oss-120b via OpenRouter, 1 = llama-3.3-70b via Groq). O controller
    * tenta a próxima tentativa quando o modelo falha antes de emitir texto.
    *
    * A ação do jogador NÃO é persistida aqui — é gravada no `onFinish`, junto
@@ -454,7 +454,7 @@ export class AiService {
       })
       const prompt = buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed })
       // Percorre a MESMA escada de modelos dos turnos (narrationModels): o primário
-      // pode estar indisponível para a conta (ex.: gpt-oss-120b sem acesso na Groq)
+      // pode estar indisponível para a conta (ex.: gpt-oss-120b sem acesso no OpenRouter)
       // e é justamente esse fallback que mantém a narração dos turnos viva. Sem a
       // escada aqui, a abertura caía direto no template estático.
       for (const model of narrationModels) {

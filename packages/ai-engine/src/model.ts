@@ -16,15 +16,15 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env['GEMINI_API_KEY'],
 })
 
-// Providers alternativos de juiz (fallback quando o free tier do Gemini acaba).
-// OpenAI e OpenRouter são OpenAI-compatible → reaproveitam o mesmo encanamento,
-// sem dependência nova.
+// OpenAI e OpenRouter são OpenAI-compatible: reaproveitam o mesmo encanamento,
+// sem dependência nova. Servem de juiz alternativo (fallback quando o free tier
+// do Gemini acaba) e, no caso do OpenRouter, de provider da narração de produção.
 const openaiJudge = createOpenAICompatible({
   name: 'openai',
   baseURL: 'https://api.openai.com/v1',
   apiKey: process.env['OPENAI_API_KEY'],
 })
-const openrouterJudge = createOpenAICompatible({
+const openrouter = createOpenAICompatible({
   name: 'openrouter',
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env['OPENROUTER_API_KEY'],
@@ -38,7 +38,7 @@ const openrouterJudge = createOpenAICompatible({
 export const judgeModel = (): LanguageModelV1 => {
   const id = process.env['JUDGE_MODEL'] ?? 'gemini-3.1-flash-lite'
   if (id.startsWith('openai:')) return openaiJudge(id.slice('openai:'.length))
-  if (id.startsWith('openrouter:')) return openrouterJudge(id.slice('openrouter:'.length))
+  if (id.startsWith('openrouter:')) return openrouter(id.slice('openrouter:'.length))
   return google(id)
 }
 
@@ -65,16 +65,17 @@ export const resolveModel = (id: string): LanguageModelV1 =>
   id.startsWith('groq:')
     ? groq(id.slice('groq:'.length))
     : id.startsWith('openrouter:')
-      ? openrouterJudge(id.slice('openrouter:'.length))
+      ? openrouter(id.slice('openrouter:'.length))
       : id.startsWith('openai:')
         ? openaiJudge(id.slice('openai:'.length))
         : nvidia(id)
 
-// Narração: gpt-oss-120b como primário (Groq). O id na Groq leva o prefixo do
+// Narração: gpt-oss-120b como primário, via OpenRouter. O slug leva o prefixo do
 // provider de origem — `openai/gpt-oss-120b`; sem ele a API responde "model does
 // not exist or you do not have access".
-export const primaryModel: LanguageModelV1 = groq('openai/gpt-oss-120b')
-// Fallback: llama-3.3-70b-versatile via Groq.
+export const primaryModel: LanguageModelV1 = openrouter('openai/gpt-oss-120b')
+// Fallback: llama-3.3-70b-versatile via Groq (outro provider → sobrevive a
+// outage do OpenRouter).
 export const fallbackModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')
 
 // Modelos de narração em ordem de prioridade. O serviço tenta o primeiro e,

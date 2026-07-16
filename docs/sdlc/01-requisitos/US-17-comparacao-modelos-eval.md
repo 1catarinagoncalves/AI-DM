@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** Suite de evals existente (`evals/` + `pnpm eval`, vitest) — já implementada
 **Bloqueado (slice 2) por:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (background/ideais/vínculos/fraquezas) + [US-40](./US-40-divindade-do-personagem.md) (divindade) + [US-41](./US-41-features-traits-de-classe.md) (features & traits de classe — o cenário de Combate É uma feature) — sem esses campos, a fixture carrega contexto mais pobre que a referência e mede input empobrecido, não o modelo. **Paridade (não bloqueio duro):** [US-42](./US-42-magias-conhecidas.md) (magias) melhora fidelidade mas os cenários escolhidos giram em features. Slice 1 (dump) não bloqueia; o juiz (slice 2), sim.
 **Criada em:** 2026-06-30
