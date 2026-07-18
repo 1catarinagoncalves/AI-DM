@@ -54,19 +54,46 @@ export const rubricSchema = z.object(
 export type RubricScore = z.infer<typeof rubricSchema>
 
 // ─── Tabela de preços (decisão 5 da US: const hardcoded, não JSON) ────────────
-// $/1M tokens de saída. Candidatos NVIDIA = endpoint preview grátis (0). Juiz
-// Gemini free = 0. O único pago em jogo é o fallback gpt-5-mini. Modelo ausente
-// do mapa custa 0 (nunca inventa preço). Groq entra como controle (id `groq:`).
+// $/1M tokens, ENTRADA e SAÍDA separadas. Contar só a saída subestima o custo e
+// distorce o ranking: o system prompt do DM (ficha + quests + inventário) reenvia
+// alguns milhares de tokens por turno, então a entrada pesa ~40% da conta mesmo
+// sendo mais barata por token. Candidatos NVIDIA = endpoint preview grátis (0);
+// juiz Gemini free = 0; `:free` do OpenRouter paga em RPM, não em dólar. Modelo
+// ausente do mapa custa 0 (nunca inventa preço). Conferido na api/v1/models do
+// OpenRouter em 2026-07-16.
 
-export const PRICES: Record<string, number> = {
-  'gpt-5-mini': 2.0,
-  'groq:openai/gpt-oss-120b': 0.75,
+export interface Price {
+  /** $/1M tokens de entrada (prompt) */
+  in: number
+  /** $/1M tokens de saída (completion; inclui reasoning tokens quando houver) */
+  out: number
 }
 
-/** Custo estimado (US$) = tokens/1e6 × preço da tabela. Desconhecido → 0. */
-export function estimateCost(model: string, tokens: number): number {
-  const price = PRICES[model] ?? 0
-  return (tokens / 1_000_000) * price
+export const PRICES: Record<string, Price> = {
+  'gpt-5-mini': { in: 0.25, out: 2.0 },
+  'groq:openai/gpt-oss-120b': { in: 0.15, out: 0.75 },
+  'openrouter:z-ai/glm-4.7-flash': { in: 0.061, out: 0.4 },
+  'openrouter:nex-agi/nex-n2-mini': { in: 0.025, out: 0.1 },
+  'openrouter:stepfun/step-3.5-flash': { in: 0.1, out: 0.3 },
+  'openrouter:xiaomi/mimo-v2.5': { in: 0.14, out: 0.28 },
+  'openrouter:nvidia/nemotron-3-super-120b-a12b': { in: 0.21, out: 0.455 }, // variante paga; o `:free` custa 0 e cai no default
+  'openrouter:openai/gpt-oss-120b': { in: 0.037, out: 0.17 }, // base: mesmo modelo da produção, servido pelo OpenRouter
+}
+
+/** Tokens consumidos por um modelo numa rodada, separados por direção. */
+export interface TokenUsage {
+  prompt: number
+  completion: number
+}
+
+/**
+ * Custo EFETIVO estimado (US$) = entrada×preço_in + saída×preço_out, ambos por
+ * 1M tokens. Modelo fora da tabela → 0 (nunca inventa preço).
+ */
+export function estimateCost(model: string, tokens: TokenUsage): number {
+  const price = PRICES[model]
+  if (!price) return 0
+  return (tokens.prompt / 1_000_000) * price.in + (tokens.completion / 1_000_000) * price.out
 }
 
 // ─── Agregação das repetições ────────────────────────────────────────────────

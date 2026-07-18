@@ -16,6 +16,7 @@ import {
   type Exemplar,
   type RubricScore,
   type ModelAggregate,
+  type TokenUsage,
 } from './rubric'
 
 // Bake-off narrativo (US-17) — SLICE 2 completo. Roda os candidatos contra os
@@ -204,7 +205,7 @@ interface TurnResult {
   scenario: string
   narration: string
   ttftMs: number | null
-  tokens: number | null
+  tokens: TokenUsage | null
   calledRollDice: boolean
   error?: string
 }
@@ -234,7 +235,10 @@ async function runTurn(modelId: string, scenario: Scenario): Promise<TurnResult>
     const usage = await result.usage
     const toolCalls = await result.toolCalls
     const calledRollDice = toolCalls.some((c) => c.toolName === 'rollDice')
-    return { model: modelId, scenario: scenario.id, narration, ttftMs, tokens: usage.completionTokens ?? null, calledRollDice }
+    return {
+      model: modelId, scenario: scenario.id, narration, ttftMs, calledRollDice,
+      tokens: { prompt: usage.promptTokens ?? 0, completion: usage.completionTokens ?? 0 },
+    }
   } catch (e) {
     return { model: modelId, scenario: scenario.id, narration, ttftMs, tokens: null, calledRollDice: false, error: (e as Error).message }
   }
@@ -254,7 +258,7 @@ function evaluateGuardrails(r: TurnResult, checkSelfRoll: boolean): string[] {
 /** Acumulado por modelo ao longo de todos os cenários × repetições. */
 interface ModelAccum {
   scores: RubricScore[]
-  candidateTokens: number
+  candidateTokens: TokenUsage
   guardrailFails: number
   reps: number
   ttftSamples: number[]
@@ -270,7 +274,7 @@ describe('bake-off narrativo (US-17, slice 2: guardrails + juiz)', () => {
       const judge = judgeModel()
 
       const accum = new Map<string, ModelAccum>(
-        models.map((m) => [m, { scores: [], candidateTokens: 0, guardrailFails: 0, reps: 0, ttftSamples: [] }]),
+        models.map((m) => [m, { scores: [], candidateTokens: { prompt: 0, completion: 0 }, guardrailFails: 0, reps: 0, ttftSamples: [] }]),
       )
 
       // TUDO em série (modelos × cenários × reps): o endpoint preview do NVIDIA
@@ -285,7 +289,8 @@ describe('bake-off narrativo (US-17, slice 2: guardrails + juiz)', () => {
               acc.reps++
               const turn = await runTurn(model, scenario)
               if (turn.ttftMs !== null) acc.ttftSamples.push(turn.ttftMs)
-              acc.candidateTokens += turn.tokens ?? 0
+              acc.candidateTokens.prompt += turn.tokens?.prompt ?? 0
+              acc.candidateTokens.completion += turn.tokens?.completion ?? 0
 
               // Dump da 1ª rep de cada cenário (eyeball da prosa).
               if (rep === 0) {
@@ -351,7 +356,8 @@ describe('bake-off narrativo (US-17, slice 2: guardrails + juiz)', () => {
           'TTFT médio': a.ttftSamples.length
             ? `${Math.round(a.ttftSamples.reduce((s, x) => s + x, 0) / a.ttftSamples.length)} ms`
             : 'falhou',
-          'tokens (cand.)': a.candidateTokens,
+          'tok-in (cand.)': a.candidateTokens.prompt,
+          'tok-out (cand.)': a.candidateTokens.completion,
         })),
       )
 

@@ -70,21 +70,26 @@ export const resolveModel = (id: string): LanguageModelV1 =>
         ? openaiJudge(id.slice('openai:'.length))
         : nvidia(id)
 
-// Narração: gpt-oss-120b como primário, via OpenRouter. O slug leva o prefixo do
-// provider de origem — `openai/gpt-oss-120b`; sem ele a API responde "model does
-// not exist or you do not have access".
-export const primaryModel: LanguageModelV1 = openrouter('openai/gpt-oss-120b')
-// Fallback: llama-3.3-70b-versatile via Groq (outro provider → sobrevive a
-// outage do OpenRouter).
-export const fallbackModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')
+// Narração: deepseek-v4-flash (DeepSeek) como primário, via OpenRouter. O id é o
+// slug do openrouter.ai. Se emitir raciocínio, o `exclude` em
+// NARRATION_PROVIDER_OPTIONS corta antes de vazar na prosa.
+export const primaryModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-flash')
+// Fallback: deepseek-v4-pro via OpenRouter. Mesma família do primário (tool
+// calling + raciocínio ok), modelo maior para o dia em que o flash falhar.
+// Nota: primário e fallback no MESMO provider — um outage do OpenRouter derruba
+// os dois (o antigo fallback Groq cobria esse caso).
+export const fallbackModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-pro')
+// 3º nível: llama-3.3-70b via Groq. OUTRO provider → sobrevive a um outage do
+// OpenRouter, que derrubaria os dois deepseek de uma vez.
+export const groqFallbackModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')
 
 // Modelos de narração em ordem de prioridade. O serviço tenta o primeiro e,
 // se ele falhar ANTES de emitir texto, cai para o próximo.
-export const narrationModels: LanguageModelV1[] = [primaryModel, fallbackModel]
+export const narrationModels: LanguageModelV1[] = [primaryModel, fallbackModel, groqFallbackModel]
 
 /**
  * Opções de provider da narração — passar em TODA chamada que usa
- * `narrationModels`. O `openai/gpt-oss-120b` é um modelo de raciocínio: separa o
+ * `narrationModels`. O primário é um modelo de raciocínio: separa o
  * pensamento (canal `analysis`) da resposta (canal `final`). Sem `exclude`, o
  * OpenRouter devolve o raciocínio no campo `reasoning`, que o
  * @ai-sdk/openai-compatible@0.2.16 hoje ignora — ele só lê `reasoning_content`.
@@ -99,6 +104,10 @@ export const narrationModels: LanguageModelV1[] = [primaryModel, fallbackModel]
  * pesar, o próximo passo é `reasoning: { effort: 'low' }`.
  */
 export const NARRATION_PROVIDER_OPTIONS = {
+  // exclude: raciocínio gerado mas NÃO retornado (não vaza na prosa). SEM cortar
+  // effort: um `effort:'low'` fez o modelo raciocinar de menos e desrespeitar as
+  // regras do prompt (rolagens/magias inventadas). Raciocínio cheio = mais aderência;
+  // o teto de corte fica por conta do maxTokens (4000) no streamText.
   openrouter: { reasoning: { exclude: true } },
 } as const
 

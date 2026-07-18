@@ -48,21 +48,27 @@ describe('aggregateReps — média por dimensão, MÉDIA geral, spread', () => {
   })
 })
 
-describe('estimateCost — tokens × preço da tabela', () => {
+describe('estimateCost — custo efetivo (entrada + saída)', () => {
   it('candidato grátis (NVIDIA) custa 0 independentemente dos tokens', () => {
-    expect(estimateCost('mistralai/mistral-large-3-475b-instruct', 10_000)).toBe(0)
+    expect(estimateCost('mistralai/mistral-large-3-475b-instruct', { prompt: 50_000, completion: 10_000 })).toBe(0)
   })
 
-  it('modelo pago custa tokens/1e6 × preço', () => {
-    // gpt-5-mini a $2.00/1M → 500k tokens = $1.00 (usa o preço real da const)
-    const preco = 2.0
-    const custo = estimateCost('gpt-5-mini', 500_000)
-    // tolera o preço real da tabela; valida a fórmula com o preço declarado no teste
-    expect(custo).toBeCloseTo((500_000 / 1_000_000) * preco, 5)
+  it('soma entrada × preço_in + saída × preço_out', () => {
+    // gpt-5-mini: $0.25/1M in, $2.00/1M out → 1M in + 500k out = 0.25 + 1.00 = $1.25
+    const custo = estimateCost('gpt-5-mini', { prompt: 1_000_000, completion: 500_000 })
+    expect(custo).toBeCloseTo(0.25 + 1.0, 5)
+  })
+
+  it('entrada entra na conta — não é só a saída que custa', () => {
+    // mesmo output, só muda o input: o custo TEM que subir (regressão do bug em
+    // que a coluna `custo` ignorava o prompt e subestimava ~40% da conta)
+    const semInput = estimateCost('gpt-5-mini', { prompt: 0, completion: 500_000 })
+    const comInput = estimateCost('gpt-5-mini', { prompt: 1_000_000, completion: 500_000 })
+    expect(comInput).toBeGreaterThan(semInput)
   })
 
   it('modelo desconhecido cai em 0 (sem inventar preço)', () => {
-    expect(estimateCost('modelo/que-nao-existe', 1_000_000)).toBe(0)
+    expect(estimateCost('modelo/que-nao-existe', { prompt: 1_000_000, completion: 1_000_000 })).toBe(0)
   })
 })
 

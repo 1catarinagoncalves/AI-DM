@@ -96,14 +96,26 @@ async function genTurn(model, scenario) {
     } else throw e
   }
   const called = (res.toolCalls ?? []).some((c) => c.toolName === 'rollDice')
-  return { narration: res.text ?? '', tokens: res.usage?.completionTokens ?? 0, called }
+  return {
+    narration: res.text ?? '',
+    // entrada e saída separadas: o custo efetivo precisa das duas (o system prompt
+    // do DM reenvia milhares de tokens por turno)
+    promptTokens: res.usage?.promptTokens ?? 0,
+    completionTokens: res.usage?.completionTokens ?? 0,
+    called,
+  }
 }
 
 const judge = judgeModel()
-const accum = new Map(models.map((m) => [m, { scores: [], tokens: 0, fails: 0 }]))
+const accum = new Map(models.map((m) => [m, { scores: [], tokens: { prompt: 0, completion: 0 }, fails: 0 }]))
 const guardrailHits = [] // { model, scenario, rep, reasons: [...] } — quais casos caíram e por quê
+let judgeTokensTotal = 0 // custo do juiz: igual p/ todos, não muda o ranking, mas conta no total da rodada
 
-log(`início · modelos=${models.length} · cenários=${SCENARIOS.length} · reps=${REPS} · juiz=${process.env.JUDGE_MODEL ?? 'gemini-3.1-flash-lite'}`)
+// Diz de ONDE vieram os modelos. Cair no default calado já custou uma rodada
+// inteira: o .bat teve o `set MODELS` engolido por um bug de parse e o runner
+// rodou a matriz errada sem avisar.
+log(`início · modelos=${models.length} (${MODELS.length ? 'env MODELS' : '⚠ DEFAULT_MODELS — env MODELS vazia!'}) · cenários=${SCENARIOS.length} · reps=${REPS} · juiz=${process.env.JUDGE_MODEL ?? 'gemini-3.1-flash-lite'}`)
+for (const m of models) log(`  · ${m}`)
 
 // Loop: cenário → rep → modelo. Gera TODOS os modelos de um (cenário, rep) —
 // intercalado, então o RPM per-model tem ~(nº modelos × pace + gerações) de
@@ -127,7 +139,9 @@ for (const s of SCENARIOS) {
         await sleep(PACE_MS); continue
       }
       const fails = guardrailFails(turn.narration, turn.called, s.checkSelfRoll)
-      acc.tokens += turn.tokens
+      // conta ANTES do guardrail: turno cortado foi gerado e, portanto, cobrado
+      acc.tokens.prompt += turn.promptTokens
+      acc.tokens.completion += turn.completionTokens
       if (fails.length) {
         acc.fails++
         guardrailHits.push({ model, scenario: s.id, rep, reasons: fails })
@@ -146,10 +160,11 @@ for (const s of SCENARIOS) {
     const byLabel = new Map(shuffled.map((b, i) => [String.fromCharCode(65 + i), b.model]))
     log(`⚖ juiz-batch ${s.id} r${rep} — 1 chamada p/ ${items.length} narração(ões)`)
     try {
-      const { scores } = await race(
+      const { scores, judgeTokens } = await race(
         judgeBatch({ judge, scenarioContext: s.context, playerAction: s.action, exemplar: s.ex, items, abortSignal: AbortSignal.timeout(JUDGE_TIMEOUT_MS), maxRetries: 1 }),
         JUDGE_TIMEOUT_MS + 5000,
       )
+      judgeTokensTotal += judgeTokens
       for (const sc of scores) {
         const model = byLabel.get(sc.id)
         if (!model) { log(`  ⚠ juiz devolveu id desconhecido "${sc.id}"`); continue }
@@ -183,7 +198,12 @@ const stamp = `${date}_${pad(now.getHours())}${pad(now.getMinutes())}` // p/ nom
 const md = renderReportMarkdown(rows, { date, guardrailSummary, incumbent })
 
 console.log('\n' + md)
-console.table([...accum.entries()].map(([m, a]) => ({ modelo: m, julgados: a.scores.length, 'guardrail-fail': a.fails, tokens: a.tokens })))
+console.table([...accum.entries()].map(([m, a]) => ({
+  modelo: m, julgados: a.scores.length, 'guardrail-fail': a.fails,
+  'tok-in': a.tokens.prompt, 'tok-out': a.tokens.completion,
+  custo: estimateCost(m, a.tokens) === 0 ? 'grátis' : '$' + estimateCost(m, a.tokens).toFixed(4),
+})))
+log(`juiz: ${judgeTokensTotal} tokens de saída (grátis no free tier do Gemini)`)
 
 // Tag por provider no nome do arquivo p/ não sobrescrever runs de providers
 // diferentes (NVIDIA vs OpenRouter). Override manual via RUN_LABEL.

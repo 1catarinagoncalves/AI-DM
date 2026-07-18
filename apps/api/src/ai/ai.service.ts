@@ -49,8 +49,8 @@ export class AiService {
 
   /**
    * Cria o stream de narração para um turno. `attempt` seleciona o modelo na
-   * lista de prioridade (0 = gpt-oss-120b via OpenRouter, 1 = llama-3.3-70b via Groq). O controller
-   * tenta a próxima tentativa quando o modelo falha antes de emitir texto.
+   * lista de prioridade (0 = deepseek-v4-flash, 1 = deepseek-v4-pro via OpenRouter,
+   * 2 = llama-3.3-70b via Groq). O controller tenta a próxima quando o modelo falha antes de emitir texto.
    *
    * A ação do jogador NÃO é persistida aqui — é gravada no `onFinish`, junto
    * com a narração, apenas quando o turno produz texto. Assim uma tentativa de
@@ -371,9 +371,19 @@ export class AiService {
       tools,
       providerOptions: NARRATION_PROVIDER_OPTIONS,
       maxSteps: 5, // permite até 5 tool calls por turno
+      // Teto explícito de saída. Sem isto vale o default do provider — e como o
+      // raciocínio oculto do deepseek (reasoning.exclude) CONTA no orçamento mas
+      // não volta, a narração era cortada no meio da frase (finishReason=length).
+      // 4000 comporta o raciocínio cheio (sem effort cap, pra manter aderência ao
+      // prompt) + narração + opções com folga.
+      maxTokens: 4000,
       // Persiste a narração do mestre ao final, mantendo a continuidade da cena,
       // e condensa turnos antigos no resumo quando a janela cresce demais.
-      onFinish: async ({ text, steps }) => {
+      onFinish: async ({ text, steps, finishReason, usage }) => {
+        // DIAGNÓSTICO corte de narração: 'length' = estourou maxTokens (raciocínio
+        // oculto do deepseek conta no orçamento); 'stop' com prosa incompleta =
+        // provider dropou upstream; 'error' = ver logs acima.
+        console.log(`[AiService] onFinish finishReason=${finishReason} tokens=${JSON.stringify(usage)} steps=${steps.length}`)
         // Em turnos multi-step, `text` concatena a narração de TODOS os steps.
         // Reconstruímos exatamente o que foi mostrado ao jogador (mesma lógica
         // do controller): descartamos um step anterior só quando ele já era uma
