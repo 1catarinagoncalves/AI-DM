@@ -22,6 +22,18 @@ const ROLL_CUES = [
   String.raw`\b(?:teste|test|check)\b[^.!?\n]{0,40}?${NUM}`, // "teste de Percepção ... 20"
   String.raw`\d+d\d+(?:[+-]\d+)?\s*[:=]`, // breakdown na prosa: "1d20+5:" ou "2d6 ="
   String.raw`(?:resultado|result)\s*[:=]?\s*${NUM}`, // "resultado: 8", "result 8"
+  // ANÚNCIO do teste SEM número: o mestre não pode narrar que VAI testar/rolar —
+  // a mecânica é invisível (o bloco de rolagem já mostra tudo). Ex.: "Vou testar
+  // sua Furtividade...", "faça um teste de Percepção", "let me roll for Stealth".
+  // ponytail: "testar/rolar" tem sentido físico raro ("rolar morro abaixo"); o
+  // gatilho exige verbo de anúncio (vou/deixe/preciso) OU um substantivo de dado,
+  // o que descarta a esmagadora maioria dos usos físicos. Se aparecer falso
+  // positivo, prender ao contexto de perícia é o próximo passo.
+  String.raw`(?:vou|irei|vamos|deixa(?:-me| eu)?|deixe(?:-me)?|preciso)\b[^.!?\n]{0,20}?\b(?:testar|rolar)\b`, // "vou testar", "deixe-me rolar"
+  String.raw`\b(?:faça|faz|role|rola|tire|tira|rolar|rolando)\b[^.!?\n]{0,15}?\b(?:teste|rolagem|dado|dados|perícia|d\d+)\b`, // "faça um teste", "role os dados"
+  String.raw`\b(?:let'?s|let\s+me|i'?ll|i\s+will|we'?ll)\b[^.!?\n]{0,15}?\broll\b`, // "let me roll", "I'll roll"
+  String.raw`\broll\s+(?:for|a|an|your)\b`, // "roll for Stealth", "roll a check"
+  String.raw`\bmake\s+(?:a|an|your)\b[^.!?\n]{0,20}?\bcheck\b`, // "make a Perception check"
 ]
 
 // A frase INTEIRA que contém uma pista é removida (do início da sentença até o

@@ -546,6 +546,7 @@ export class AiService {
         model: summaryModel,
         system: SUMMARY_SYSTEM_PROMPT,
         prompt: buildSummaryInput(adventure?.memorySummary, turns, sceneLine),
+        providerOptions: NARRATION_PROVIDER_OPTIONS,
       })
 
       if (updatedSummary.trim().length === 0) return

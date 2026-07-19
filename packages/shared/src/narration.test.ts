@@ -81,6 +81,32 @@ describe('US-29 — stripFabricatedRolls', () => {
     expect(clean).toContain('Ela acerta.')
   })
 
+  it('corta ANÚNCIO do teste sem número (US-… vazamento de mecânica)', () => {
+    const { clean, removed } = stripFabricatedRolls(
+      'Vou testar sua Furtividade para ver se você se reposiciona sem ser vista. Você desliza rente à rocha.',
+    )
+    expect(clean).not.toMatch(/testar|Furtividade/i)
+    expect(clean).toContain('Você desliza rente à rocha.')
+    expect(removed).toHaveLength(1)
+  })
+
+  it('corta imperativo "faça um teste" e "role os dados"', () => {
+    expect(stripFabricatedRolls('Faça um teste de Percepção. A sombra se move.').clean).toBe('A sombra se move.')
+    expect(stripFabricatedRolls('Role os dados. A porta range.').clean).toBe('A porta range.')
+  })
+
+  it('corta anúncio em EN ("let me roll", "make a check")', () => {
+    expect(stripFabricatedRolls('Let me roll for your Stealth. You slip past.').clean).toBe('You slip past.')
+    expect(stripFabricatedRolls('Make a Perception check. The shadow moves.').clean).toBe('The shadow moves.')
+  })
+
+  it('NÃO corta "rolar" físico nem "verificar" (falso-positivo do anúncio)', () => {
+    const fisico = 'Você rola morro abaixo entre as pedras soltas.'
+    expect(stripFabricatedRolls(fisico).clean).toBe(fisico)
+    const check = 'Deixe-me ver o mapa: a estrada segue para o norte.'
+    expect(stripFabricatedRolls(check).clean).toBe(check)
+  })
+
   it('preserva números que NÃO são rolagem (falso-positivo)', () => {
     const input = 'Três goblins bloqueiam a ponte; você tem 8 de HP.'
     expect(stripFabricatedRolls(input).clean).toBe(input)

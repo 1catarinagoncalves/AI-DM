@@ -109,6 +109,18 @@ Como desenvolvedora, quero rodar a mesma bateria de cenários de coerência cont
 
 > Detalhamento completo em [`US-17-comparacao-modelos-eval.md`](./US-17-comparacao-modelos-eval.md).
 
+**US-55** — Prompt caching do DM (system prompt estruturado por volatilidade)
+Como operador do AI DM, quero que o system prompt do mestre seja estruturado para maximizar o prompt caching do provider e reduzir tokens redundantes, para que cada turno cobre uma fração do input em vez de reenviar a parede de regras a preço cheio.
+
+> **Fase A:** reordena `buildDmSystemPrompt` por volatilidade (estático → constante por personagem → volátil no fim do system), tira `sceneSection` do meio das regras, deduplica a regra em-dash e mede o cache-hit. Cacheia a parede de regras. Cache é prefix-only e automático no DeepSeek/OpenRouter — o ganho vem da ORDEM. Depende de [US-23](./US-23-dm-ciente-da-ficha.md)/[US-11b](./US-11b-estado-de-cena-estruturado.md)/[US-18](./US-18-historico-servido-pela-api.md).
+> Detalhamento completo em [`US-55-prompt-caching-do-dm.md`](./US-55-prompt-caching-do-dm.md).
+
+**US-56** — Estado do turno na mensagem (Fase B: cachear também o histórico) *(condicional à medição da US-55)*
+Como operador do AI DM, quero que o estado volátil do turno seja injetado na última mensagem em vez do fim do system prompt, para que o system e o histórico da conversa também sejam cacheados.
+
+> Move a camada volátil (HP/cena/quests/inventário/resumo) para o início da última mensagem, deixando `system + histórico` como prefixo estável e cacheável. Depende de [US-55](./US-55-prompt-caching-do-dm.md) e só se justifica se a medição dela mostrar o histórico como input pesado.
+> Detalhamento completo em [`US-56-estado-do-turno-na-mensagem.md`](./US-56-estado-do-turno-na-mensagem.md).
+
 ---
 
 ### Épico 4: Onboarding e navegação
