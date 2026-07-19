@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada) — **condicional à medição da US-55**
+**Status:** 🚧 Em progresso
 **Depende de:** [US-55](./US-55-prompt-caching-do-dm.md) (Fase A: system reordenado por volatilidade e medição de cache-hit; esta US só se justifica se aquele número indicar ganho real ao cachear o histórico) · [US-18](#) (janela de histórico verbatim) · [US-11b](./US-11b-estado-de-cena-estruturado.md) (estado de cena) · [US-23](./US-23-dm-ciente-da-ficha.md) (ficha)
 **Criada em:** 2026-07-19
 
@@ -92,8 +92,10 @@ Assim `system` (camadas 1+2, invariante por aventura) + todo o `history` (append
 
 ## Questões em aberto
 
-1. O provider (DeepSeek via OpenRouter) cacheia de forma estável tokens de **mensagem** (não só do system)? O cache é sobre a sequência inteira `system + messages`, então em teoria sim — confirmar com a medição desta US antes de concluir ganho.
-2. Vale um caminho intermediário — estado volátil numa mensagem `system` adicional posicionada **após** o histórico, em vez de dentro da mensagem `user`? Mantém o enquadramento de "instrução de sistema" e ainda deixa o histórico à frente. Avaliar no spike se o SDK/roles permitem e se cacheia igual.
+1. **[RESOLVIDA — sim, com ressalva de roteamento] O provider (DeepSeek via OpenRouter) cacheia de forma estável tokens de mensagem (não só do system)?** O cache do DeepSeek é prefix caching automático sobre a sequência **inteira** de tokens — não há fronteira por role, então o `history` (user/assistant) cacheia igual à parede de regras do system. A premissa da US está correta. **Porém "estável" não depende do role, e sim do roteamento:** o cache do DeepSeek é por-endpoint/upstream, e o OpenRouter pode servir `deepseek/*` por múltiplos upstreams — uma requisição roteada para outro backend dá cache miss mesmo com prefixo idêntico. **Ação antes de concluir ganho:** pinar o provider routing na chamada (`provider.order` + `allow_fallbacks:false` no corpo do OpenRouter, via `NARRATION_PROVIDER_OPTIONS`) ou confirmar que já é single-upstream; só então a medição do `DM_CACHE_SPIKE` (`ai.service.ts:393`) mede cache real e não ruído de roteamento. Sem o pin, o cache-hit oscila turno a turno sem relação com o prefixo.
+2. **[RESOLVIDA — descartada como otimização de cache; rebaixada a plano B de framing] Vale um caminho intermediário — estado volátil numa mensagem `system` adicional posicionada após o histórico?** Não como ganho de cache: o cache quebra no **primeiro byte volátil, seja qual for o role**. Nos dois desenhos a ordem é `system(1+2) + history + [ESTADO] + user(ação)`; o `[ESTADO]` sendo `role:system` ou dentro do `role:user` produz **exatamente o mesmo prefixo cacheável** (system base + history). Zero ganho de cache. O único eixo que a Q2 toca é obediência (enquadramento de "instrução de sistema"), e ela carrega custo: system message no meio do array é fora da convenção OpenAI-compatible (system no topo) — o pin `@ai-sdk/openai-compatible@0.2.16` tolera, mas um bump de SDK/provider pode reordenar ou fundir em `user`; e como a ação tem de ser a última mensagem, vira **dois** system messages com um interior (o padrão mais frágil). **Decisão:** implementar só a proposta principal (estado no `user`) + cabeçalho forte de fonte-de-verdade (`dm-system.ts:137,205`). Guardar a variante system-message como **plano B**, acionado **apenas se** o eval de aderência (critério de aceite 6) regredir — como mitigação de obediência, nunca de custo. Q2 não entra no caminho crítico.
+
+> **Nota transversal:** ambas as questões só fecham **depois** do número da Fase A (`DM_CACHE_SPIKE`). O gate de decisão (Notas de implementação) e a Q1 são a mesma medição. Sequência: (1) pinar provider, (2) ler baseline da US-55, (3) só então implementar a Fase B.
 
 ---
 

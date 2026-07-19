@@ -108,3 +108,53 @@ describe('buildDmSystemPrompt — background narrativo (US-39)', () => {
     expect(p).not.toMatch(/Vínculos:/)
   })
 })
+
+describe('buildDmSystemPrompt — ordenação por volatilidade / prompt caching (US-55)', () => {
+  const scene = {
+    local: 'Praça da vila ao anoitecer',
+    ambiente: 'externo' as const,
+    periodo: 'anoitecer',
+    presentes: ['prefeito'],
+    objetos_em_cena: [],
+    atualizadoEm: '',
+  }
+
+  it('emite todo o estático + constante ANTES de qualquer campo volátil', () => {
+    const p = build({ mainQuest: 'Salvar a vila', inventory: ['Espada'], sceneState: scene })
+    // Últimos marcadores da camada 1 (estático) + camada 2 (constante por personagem).
+    const staticConstant = ['## Critical rules', '## ⚠️ STARTING EQUIPMENT', "## The player's character", '- Attributes:']
+    // Primeiros marcadores da camada 3 (volátil, muda por turno).
+    const volatile = ['## Estado atual', '- HP:', '## Cena atual', '## Main quest', '## Current inventory']
+    const lastStaticConstant = Math.max(...staticConstant.map((m) => p.indexOf(m)))
+    const firstVolatile = Math.min(...volatile.filter((m) => p.includes(m)).map((m) => p.indexOf(m)))
+    expect(lastStaticConstant).toBeGreaterThan(-1)
+    expect(firstVolatile).toBeGreaterThan(lastStaticConstant)
+  })
+
+  it('quebra da ficha: HP/condições (volátil) vêm DEPOIS de level/atributos (constante)', () => {
+    const p = build()
+    expect(p.indexOf('- Level:')).toBeLessThan(p.indexOf('- Attributes:'))
+    expect(p.indexOf('- Attributes:')).toBeLessThan(p.indexOf('- HP:'))
+    expect(p.indexOf('- HP:')).toBeLessThan(p.indexOf('- Conditions:'))
+  })
+
+  it('sceneSection saiu do meio da parede: o bloco "## Cena atual" fica depois da regra SPATIAL', () => {
+    const p = build({ sceneState: scene })
+    expect(p.indexOf('## Cena atual')).toBeGreaterThan(p.indexOf('SPATIAL & SCENE CONTINUITY'))
+  })
+
+  it('a regra em-dash/opções aparece UMA vez (sem a duplicata "ABSOLUTE RULE")', () => {
+    const p = build()
+    expect(p).not.toMatch(/ABSOLUTE RULE/)
+    expect(p.split('Choice Options').length - 1).toBe(1)
+  })
+
+  it('não perde regras semânticas na reordenação (rolagens, gênero, craft, continuidade)', () => {
+    const p = build()
+    expect(p).toMatch(/rollDice/)
+    expect(p).toMatch(/Gender Agreement/)
+    expect(p).toMatch(/Narrative craft/)
+    expect(p).toMatch(/SPATIAL & SCENE CONTINUITY/)
+    expect(p).toMatch(/TURN RESOLUTION ORDER/)
+  })
+})

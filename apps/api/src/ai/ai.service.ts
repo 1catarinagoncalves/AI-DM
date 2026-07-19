@@ -379,11 +379,25 @@ export class AiService {
       maxTokens: 4000,
       // Persiste a narração do mestre ao final, mantendo a continuidade da cena,
       // e condensa turnos antigos no resumo quando a janela cresce demais.
-      onFinish: async ({ text, steps, finishReason, usage }) => {
+      onFinish: async ({ text, steps, finishReason, usage, providerMetadata, response }) => {
         // DIAGNÓSTICO corte de narração: 'length' = estourou maxTokens (raciocínio
         // oculto do deepseek conta no orçamento); 'stop' com prosa incompleta =
         // provider dropou upstream; 'error' = ver logs acima.
         console.log(`[AiService] onFinish finishReason=${finishReason} tokens=${JSON.stringify(usage)} steps=${steps.length}`)
+        // US-55 spike de cache: o pin @ai-sdk/openai-compatible@0.2.16 não
+        // normaliza cached tokens no `usage` (só promptTokens/completionTokens); o
+        // OpenRouter/DeepSeek reporta em prompt_tokens_details.cached_tokens +
+        // cache_discount no corpo bruto, que sai em providerMetadata/response.body.
+        // Gate por env pra logar SÓ quando estamos medindo — sem ruído em prod.
+        // ponytail: dump completo atrás de flag; remover a flag quando a Q1 fechar.
+        if (process.env.DM_CACHE_SPIKE) {
+          console.log(
+            '[AiService][cache-spike] providerMetadata=',
+            JSON.stringify(providerMetadata),
+            'response.body=',
+            JSON.stringify((response as { body?: unknown }).body),
+          )
+        }
         // Em turnos multi-step, `text` concatena a narração de TODOS os steps.
         // Reconstruímos exatamente o que foi mostrado ao jogador (mesma lógica
         // do controller): descartamos um step anterior só quando ele já era uma

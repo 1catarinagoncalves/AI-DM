@@ -208,6 +208,12 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   const [tab, setTab] = useState<SheetTabId>('ficha')
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
+  // Warm-up: no free tier o processo do api (Render) e a compute do Postgres (Neon)
+  // suspendem por ociosidade. O primeiro fetch do mount (getTurns) acorda os dois —
+  // reusamo-lo como aquecimento e travamos o input até resolver, para o cold start
+  // ser pago AQUI (com tempo à mostra) e não no primeiro turno do Mestre.
+  const [warming, setWarming] = useState(true)
+  const [warmSecs, setWarmSecs] = useState(0)
   const [currentHp, setCurrentHp] = useState(hp)
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory ?? [])
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -217,13 +223,24 @@ export function GameView({ adventureId, characterId, characterName, characterCla
     // Fonte de verdade: o servidor (US-18). O localStorage vira só um cache
     // otimista para evitar flash de tela vazia enquanto o fetch resolve.
     setMessages(loadHistory(adventureId))
+    setWarming(true)
     api.getTurns(characterId, adventureId)
       .then((turns) => {
         setMessages(turns)
         saveHistory(adventureId, turns)
       })
       .catch(() => { /* mantém o cache local em caso de falha */ })
+      .finally(() => setWarming(false))
   }, [adventureId, characterId])
+
+  // Conta os segundos de espera enquanto o servidor acorda. Só corre durante o
+  // warm-up; para assim que resolve.
+  useEffect(() => {
+    if (!warming) return
+    setWarmSecs(0)
+    const t = setInterval(() => setWarmSecs(s => s + 1), 1000)
+    return () => clearInterval(t)
+  }, [warming])
 
   useEffect(() => {
     const session = loadSession()
@@ -238,7 +255,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault()
-    if (!input.trim() || streaming) return
+    if (!input.trim() || streaming || warming) return
 
     const userMessage = input.trim()
     setInput('')
@@ -582,6 +599,19 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           <div ref={bottomRef} />
         </div>
 
+        {/* Warm-up: cold start do free tier pago aqui (com o tempo à mostra), não no
+            primeiro turno. Só aparece se demorar >1s — servidor já quente não pisca. */}
+        {warming && warmSecs >= 1 && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="px-4 py-2 text-xs text-amber-900 dark:text-amber-100 bg-amber-100 dark:bg-amber-950 border-t border-amber-300 dark:border-amber-800 flex items-center gap-2"
+          >
+            <span aria-hidden="true" className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            O Mestre está a despertar… {warmSecs}s
+          </div>
+        )}
+
         {/* Input */}
         <form onSubmit={sendMessage} className="p-4 border-t border-stone-200 dark:border-stone-800 flex gap-3 items-end">
           <textarea
@@ -590,14 +620,14 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="O que fazes? (Enter para enviar, Shift+Enter para nova linha)"
+            placeholder={warming ? 'O Mestre está a despertar…' : 'O que fazes? (Enter para enviar, Shift+Enter para nova linha)'}
             aria-label="A tua ação"
-            disabled={streaming}
+            disabled={streaming || warming}
             className="flex-1 bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg px-3 py-2 text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-stone-400 resize-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:border-amber-500"
           />
           <button
             type="submit"
-            disabled={streaming || !input.trim()}
+            disabled={streaming || warming || !input.trim()}
             aria-label="Enviar ação"
             className="bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-semibold transition-colors"
           >
