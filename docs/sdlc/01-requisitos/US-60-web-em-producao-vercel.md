@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (custo zero) — [ADR 006](../../adr/006-deploy-custo-zero.md)
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-59](./US-59-api-em-producao-render.md) (API pública + URL) · [ADR 006](../../adr/006-deploy-custo-zero.md) (D1: web na Vercel)
 **Criada em:** 2026-07-19
 
@@ -72,10 +72,12 @@ Subir o `apps/web` na Vercel (Hobby), com `NEXT_PUBLIC_API_URL` apontando para a
 
 ---
 
-## Questões em aberto
+## Decisões (resolvidas)
 
-1. A rota `/api/chat` roda em Edge ou Node runtime na Vercel? Edge tem streaming nativo, mas o comportamento de proxy de `ReadableStream` difere — validar qual mantém o SSE fluido no Hobby.
-2. Vale um health check leve na home que dispare o warm-up (US-57) antes ainda do jogo, ou o aquecimento na entrada da mesa basta? Provavelmente basta para o MVP.
+- **D1 — Node runtime, explícito, na rota `/api/chat`.** Declarar `export const runtime = 'nodejs'` e `export const dynamic = 'force-dynamic'` em [route.ts](../../apps/web/src/app/api/chat/route.ts). Motivos: (a) é o comportamento que já roda em `localhost`, menos surpresa dev↔prod; (b) o Node runtime do Next 15 faz stream de `upstream.body` (`ReadableStream`) sem bufferizar; (c) `force-dynamic` impede qualquer coleta estática que segure o corpo; (d) o Node serverless tem folga de tempo maior que o Edge no Hobby para **esperar o upstream (Render) acordar** do cold start. O inimigo do SSE é bufferização, não o runtime — passar `upstream.body` intacto preserva o fluxo. Validação: `curl -N` contra a rota pública; tokens pingando aos poucos = OK.
+- **D2 — Sem health check na home; warm-up nas telas anteriores ao turno.** Rejeitado o ping na home: acordaria o dyno cedo demais (Render redorme após ~15 min, o ganho evapora se o jogador demora) e gastaria compute Free à toa em cada visita/bot/refresh. O aquecimento fica na **entrada da mesa** (US-57) e, por ora, também na **criação e na seleção de personagem** ([US-61](./US-61-login-do-jogador.md)) — pontos que já tocam o banco e ficam logo antes do primeiro turno. Regra: aquecer o mais tarde possível **antes** da primeira ação real, não na porta de entrada.
+
+_Nenhuma questão em aberto remanescente._
 
 ---
 

@@ -58,12 +58,12 @@ Subir o `apps/api` como **Web Service no Render** (plano Free): build do monorep
 
 ## Critérios de aceite
 
-- [ ] A API está pública numa URL do Render (Web Service Free) e responde `GET /api/v1/systems` com os sistemas semeados (US-58).
-- [ ] O build compila `packages/*` + `prisma generate` + `nest build`; o start é `node dist/main` e escuta na `PORT` injetada.
-- [ ] O deploy roda `prisma migrate deploy` no release; um deploy com migração pendente aplica-a sem passo manual.
-- [ ] O CORS aceita **apenas** o domínio de `FRONTEND_URL`; requisição de outra origem é bloqueada.
-- [ ] `POST /api/v1/ai/chat` entrega a narração em **streaming SSE** (tokens chegam incrementalmente), sem corte por teto de execução.
-- [ ] As chaves de LLM de runtime existem só no serviço do Render; o repo não as contém.
+- [x] A API está pública numa URL do Render (Web Service Free) e responde `GET /api/v1/systems` com os sistemas semeados (US-58). — verificado 2026-07-20: `https://ai-dm-api.onrender.com/api/v1/systems` → HTTP 200, `system-dnd5e` (SRD 5.2).
+- [x] O build compila `packages/*` + `prisma generate` + `nest build`; o start é `node dist/main` e escuta na `PORT` injetada. — deploy `Deployed` no Render.
+- [x] O deploy roda `prisma migrate deploy` no release; um deploy com migração pendente aplica-a sem passo manual. — `/systems` devolve dados semeados ⇒ schema migrado + seed presentes na Neon.
+- [ ] O CORS aceita **apenas** o domínio de `FRONTEND_URL`; requisição de outra origem é bloqueada. — pendente (falta domínio real da US-60; hoje `FRONTEND_URL` provisório).
+- [ ] `POST /api/v1/ai/chat` entrega a narração em **streaming SSE** (tokens chegam incrementalmente), sem corte por teto de execução. — pendente de teste vivo.
+- [x] As chaves de LLM de runtime existem só no serviço do Render; o repo não as contém. — `sync: false` no `render.yaml`; preenchidas no dashboard.
 - [ ] **Regressão:** um turno completo (ação → rolagem → narração → HP/inventário) funciona ponta a ponta contra a Neon, com os mesmos frames SSE (`0:`/`D:`/`H:`/`I:`/`R`) que o cliente já consome.
 
 ---
