@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (custo zero) — [ADR 006](../../adr/006-deploy-custo-zero.md)
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [ADR 006](../../adr/006-deploy-custo-zero.md) (D3: Postgres na Neon) · [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline SRD que popula o banco) · [US-53](./US-53-prisma-config-file.md) (Prisma 7 / adapter pg)
 **Criada em:** 2026-07-19
 

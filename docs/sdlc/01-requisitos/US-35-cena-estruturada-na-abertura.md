@@ -126,6 +126,7 @@ No primeiro turno, `AiService.streamChat` já lê `characterState?.sceneState` e
 - [ ] No primeiro turno, o bloco de estado do turno (US-56, via `buildTurnStateBlock`/`formatSceneState`) já inclui a cena estruturada coerente com a abertura — sem mudança em `streamChat` nem em `buildTurnStateBlock`.
 - [ ] **(regressão — continuidade)** Criar aventura de `Paladino` cuja abertura se passa numa estrada ao anoitecer com um NPC presente; enviar a primeira ação; verificar que o DM não relocaliza o personagem para ambiente interno, não troca o período nem descarta o NPC introduzido.
 - [ ] **(regressão — fallback)** Com a extração mockada devolvendo `null`, a aventura é criada com `sceneState` nulo e nada quebra (comportamento US-34).
+- [ ] **(sinal empírico)** Baseline medido em 2026-07-20: `CharacterState` com `sceneState` não-nulo = **5/10**. Depois desta US, aventuras **novas** devem nascer com `sceneState` não-nulo (extração bem-sucedida) — o ratio de aventuras novas com cena tende a ~100%. Verificável pela mesma consulta (`count("sceneState") / count(*)` em `CharacterState`, filtrando por data de criação).
 
 ---
 

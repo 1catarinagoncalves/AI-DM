@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { SystemConfigSchema, buildSkillSheet, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { AiService } from '../ai/ai.service'
-import type { CharacterBackground, ClassFeature, KnownSpell } from '@ai-dm/ai-engine'
+import { mergeSceneState, type CharacterBackground, type ClassFeature, type KnownSpell } from '@ai-dm/ai-engine'
 import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 
 export interface CreateAdventureDto {
@@ -105,6 +105,16 @@ export class AdventureService {
     })
     const openingText = generatedOpening ?? hook.openingNarration
 
+    // US-35: extrai a cena estruturada da abertura ANTES da transação (é LLM). Sem
+    // isto o `sceneState` nasce nulo e o turno 1 fica sem âncora de continuidade
+    // (a abertura roda sem tools, nunca chama `updateScene`). Falha/vazio → nulo,
+    // idêntico ao comportamento pré-US-35; nunca derruba a criação.
+    const scenePatch = await this.ai.extractOpeningScene(
+      openingText,
+      startingInventory.map((i) => i.name),
+    )
+    const sceneState = scenePatch ? mergeSceneState(null, scenePatch) : null
+
     return this.prisma.$transaction(async (tx) => {
       const order = (await tx.adventureParticipant.count({ where: { characterId } })) + 1
 
@@ -130,6 +140,8 @@ export class AdventureService {
           maxHp,
           attributes: character.baseAttributes as object,
           inventory: startingInventory as unknown as object,
+          // US-35: cena extraída da abertura. Nulo → coluna ausente (como antes).
+          ...(sceneState ? { sceneState: sceneState as unknown as object } : {}),
         },
       })
 

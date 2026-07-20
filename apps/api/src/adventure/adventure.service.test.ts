@@ -6,8 +6,15 @@ import type { AiService } from '../ai/ai.service'
 
 // Fake do AiService: por padrão devolve null (força o fallback estático da US-28,
 // preservando as asserções de texto abaixo). `opening` != null exercita o caminho IA.
-function fakeAi(opening: string | null = null): AiService {
-  return { generateOpeningNarration: async () => opening } as unknown as AiService
+// `scene` (US-35) default null → extração falha/vazia, sceneState nulo (fallback).
+function fakeAi(
+  opening: string | null = null,
+  scene: Record<string, unknown> | null = null,
+): AiService {
+  return {
+    generateOpeningNarration: async () => opening,
+    extractOpeningScene: async () => scene,
+  } as unknown as AiService
 }
 
 const config: SystemConfig = {
@@ -134,6 +141,45 @@ describe('AdventureService.createForCharacter', () => {
       type: 'NARRATION',
       payload: { text: gerado },
     })
+  })
+
+  it('US-35: extração devolve patch → CharacterState nasce com sceneState preenchido e coerente', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      baseAttributes: { constitution: 14 },
+      system: { config },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const patch = {
+      local: 'estrada de terra ao pé da colina', ambiente: 'externo', periodo: 'anoitecer',
+      presentes: ['velho ajoelhado'], objetos_em_cena: ['chuva fina', 'archote apagado'],
+    }
+    const service = new AdventureService(prisma, fakeAi('A chuva cai sobre a estrada.', patch))
+
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    const state = recorded.characterStateCreate as Record<string, unknown>
+    expect(state['sceneState']).toMatchObject({
+      local: 'estrada de terra ao pé da colina', ambiente: 'externo', periodo: 'anoitecer',
+      presentes: ['velho ajoelhado'], objetos_em_cena: ['chuva fina', 'archote apagado'],
+    })
+    // mergeSceneState carimba o timestamp — o snapshot é completo, não parcial.
+    expect((state['sceneState'] as Record<string, unknown>)['atualizadoEm']).toBeTruthy()
+  })
+
+  it('US-35: extração devolve null → CharacterState criado sem sceneState, sem erro (fallback US-34)', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      baseAttributes: { constitution: 14 },
+      system: { config },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi('A chuva cai sobre a estrada.', null))
+
+    const adventure = await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    expect(adventure).toMatchObject({ id: 'adv-1' })
+    expect(recorded.characterStateCreate).not.toHaveProperty('sceneState')
   })
 
   it('classe desconhecida: cai no gancho default com a classe no texto, sem erro', async () => {

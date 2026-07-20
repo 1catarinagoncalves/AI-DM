@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { streamText, generateText, tool, type CoreMessage } from 'ai'
+import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig } from '@ai-dm/shared'
 import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
 import { z } from 'zod'
@@ -15,6 +15,7 @@ import {
   mergeSceneState,
   formatSceneState,
   SUMMARY_SYSTEM_PROMPT,
+  type ScenePatch,
   type DmCharacterSheet,
   type CharacterBackground,
   type ClassFeature,
@@ -40,6 +41,18 @@ export interface RollTurnState { first: AnchoredRoll | null }
 // = 1 ACTION + 1 NARRATION = 2 eventos. ~15 turnos = ~30 eventos.
 const SUMMARIZE_THRESHOLD = 30
 const KEEP_RECENT = 12
+
+// US-35: schema da extração de cena da abertura. Espelha o `ScenePatch`
+// (`packages/ai-engine/src/scene.ts`) com o MESMO vocabulário do `updateScene`.
+// Objetivo é um snapshot COMPLETO — os 5 campos vêm sempre que a prosa permitir;
+// `ambiente`/`periodo` são os vetores de teletransporte/salto temporal que a US ataca.
+const OPENING_SCENE_SCHEMA = z.object({
+  local: z.string().describe('Lugar em linguagem natural, específico, e.g. "sacristia da igreja de Pedra do Norte"'),
+  ambiente: z.enum(['externo', 'interno']).describe('externo = aberto/ao relento, interno = coberto/fechado. Deduzir de abrigo, não do clima'),
+  periodo: z.string().describe('Período do dia em linguagem natural, e.g. manhã/tarde/entardecer/anoitecer/noite'),
+  presentes: z.array(z.string()).describe('Só NPCs/personagens na cena, e.g. ["padre Mateus"]. NUNCA a própria personagem-jogadora'),
+  objetos_em_cena: z.array(z.string()).describe('Objetos e elementos notáveis do ambiente, incl. atmosféricos. NUNCA itens carregados no inventário'),
+})
 
 @Injectable()
 export class AiService {
@@ -529,6 +542,42 @@ export class AiService {
       return null
     } catch (err) {
       console.error('[AiService] Falha ao gerar abertura por IA, usando fallback estático:', err)
+      return null
+    }
+  }
+
+  /**
+   * US-35: extrai o estado de cena ESTRUTURADO da narração de abertura (US-34),
+   * para que o `sceneState` inicial bata com a prosa já no turno 1 (a abertura roda
+   * sem tools, então nunca chama `updateScene`). Saída estruturada e validada via
+   * `generateObject` — nada de parsing de texto livre. Mesmo vocabulário do
+   * `updateScene` (`ambiente` ∈ {externo,interno}; arrays para presentes/objetos).
+   *
+   * Roda FORA da transação de criação (é LLM). Nunca lança: qualquer falha, saída
+   * vazia ou erro devolve `null` e a aventura nasce com `sceneState` nulo (fallback
+   * idêntico à US-34, sem bloquear a criação). `carriedInventory` entra como lista
+   * de exclusão — objetos de cena são distintos do que a personagem carrega (Q2).
+   */
+  async extractOpeningScene(openingText: string, carriedInventory: string[] = []): Promise<ScenePatch | null> {
+    const text = openingText.trim()
+    if (text.length === 0) return null
+    try {
+      const exclusion = carriedInventory.length > 0
+        ? `\n\nNÃO liste como objeto de cena o que a personagem CARREGA no inventário: ${carriedInventory.join(', ')}.`
+        : ''
+      const { object } = await generateObject({
+        model: summaryModel,
+        schema: OPENING_SCENE_SCHEMA,
+        system:
+          'Extraia o estado de cena atual desta narração de abertura de RPG. Use APENAS o que está no texto — não invente local, NPC nem objeto. `ambiente`: interno = coberto/abrigado, externo = aberto. `presentes`: só NPCs/personagens na cena (NUNCA a própria personagem-jogadora). `objetos_em_cena`: objetos e elementos notáveis do ambiente, incluindo atmosféricos (névoa, cheiro), NUNCA itens que a personagem carrega. Deixe um campo vazio só se o texto realmente não o revelar.',
+        prompt: `Narração de abertura:\n"""\n${text}\n"""${exclusion}`,
+        providerOptions: NARRATION_PROVIDER_OPTIONS,
+      })
+      // Snapshot vazio (prosa sem cena discernível) = tratamos como nulo: nada a ancorar.
+      const empty = !object.local.trim() && object.presentes.length === 0 && object.objetos_em_cena.length === 0
+      return empty ? null : object
+    } catch (err) {
+      console.error('[AiService] Falha ao extrair cena da abertura, sceneState fica nulo:', err)
       return null
     }
   }
