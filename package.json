@@ -1,6 +1,7 @@
 {
   "name": "ai-dm",
   "private": true,
+  "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "pnpm --parallel --filter api --filter web dev",
     "build": "pnpm --filter './packages/*' build && pnpm --filter './apps/*' build",

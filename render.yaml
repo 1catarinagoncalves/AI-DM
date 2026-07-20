@@ -1,0 +1,44 @@
+# Render — Web Service (Free) para apps/api (US-59, ADR 006 D2/D5).
+# Infra as code: painel do Render lê este arquivo via Blueprint.
+# Segredos NÃO ficam aqui (sync: false) — preenchidos no dashboard.
+services:
+  - type: web
+    name: ai-dm-api
+    runtime: node
+    plan: free
+    region: oregon           # mesma costa da Neon (us-east-2 → use ohio se preferir latência)
+    branch: main
+    autoDeploy: true         # cada push na main → deploy
+
+    # Build do monorepo pnpm:
+    #  1. corepack ativa o pnpm pinado (packageManager no package.json raiz)
+    #  2. install com lockfile congelado (reprodutível)
+    #  3. prisma generate ANTES do build — client vive em apps/api/src/generated/prisma
+    #     (gitignored, memória prisma-7-upgrade); sem gerar, nest build quebra
+    #  4. pnpm build da raiz encadeia packages/* → apps/*
+    #  5. migrate deploy (idempotente) — release step (Free não tem preDeployCommand)
+    buildCommand: >-
+      corepack enable &&
+      pnpm install --frozen-lockfile &&
+      pnpm --filter api exec prisma generate &&
+      pnpm build &&
+      pnpm --filter api exec prisma migrate deploy
+
+    # PORT é injetada pelo Render; main.ts lê process.env.PORT
+    startCommand: node apps/api/dist/main
+
+    # Health check bate no endpoint público semeado (US-58)
+    healthCheckPath: /api/v1/systems
+
+    envVars:
+      - key: NODE_VERSION
+        value: "22.23.0"       # casa com o node local
+      # --- Segredos: preencher no dashboard (sync: false = não versionado) ---
+      - key: DATABASE_URL       # Neon US-58, direct URL (não pooled)
+        sync: false
+      - key: FRONTEND_URL       # domínio Vercel US-60 (fecha CORS em main.ts:9)
+        sync: false
+      - key: OPENROUTER_API_KEY # narração primário + fallback (model.ts)
+        sync: false
+      - key: GROQ_API_KEY       # narração 3º nível (llama-3.3-70b)
+        sync: false

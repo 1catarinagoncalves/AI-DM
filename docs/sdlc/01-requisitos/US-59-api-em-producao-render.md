@@ -2,9 +2,11 @@
 
 **Épico:** Deploy e operação (custo zero) — [ADR 006](../../adr/006-deploy-custo-zero.md)
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-58](./US-58-banco-postgres-neon.md) (banco pronto + `DATABASE_URL`) · [ADR 006](../../adr/006-deploy-custo-zero.md) (D2: host de processo persistente; D5: `migrate deploy` no release)
 **Criada em:** 2026-07-19
+
+> **Progresso (2026-07-20):** infra as code pronta — [`render.yaml`](../../../render.yaml) na raiz (Blueprint) + `packageManager: pnpm@11.9.0` pinado no `package.json`. Build encadeia `install → prisma generate → pnpm build → migrate deploy`; start `node apps/api/dist/main`. `migrate deploy` vai no **buildCommand** (Free não tem Pre-Deploy Command); idempotente e enxerga a Neon pela internet — equivale ao release step do D5. Runtime de narração confirmado em [model.ts](../../../packages/ai-engine/src/model.ts): só `OPENROUTER_API_KEY` + `GROQ_API_KEY` (NVIDIA/GEMINI/OPENAI são eval, ficam fora). **Falta:** criar conta Render + primeiro deploy real + preencher os 4 segredos no dashboard; critérios de aceite abaixo só fecham após deploy no ar.
 
 ---
 

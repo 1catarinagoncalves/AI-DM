@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-34](./US-34-qualidade-da-narracao-do-dm.md) (primeira narração gerada por IA), [US-11b](./US-11b-estado-de-cena-estruturado.md) (estado de cena estruturado), [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (criação da aventura) e [US-56](./US-56-estado-do-turno-na-mensagem.md) (o `sceneState` migrou do system para o bloco de estado do turno).
 **Criada em:** 2026-07-07
 

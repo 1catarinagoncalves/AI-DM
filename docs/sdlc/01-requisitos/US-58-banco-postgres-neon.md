@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (custo zero) — [ADR 006](../../adr/006-deploy-custo-zero.md)
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [ADR 006](../../adr/006-deploy-custo-zero.md) (D3: Postgres na Neon) · [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline SRD que popula o banco) · [US-53](./US-53-prisma-config-file.md) (Prisma 7 / adapter pg)
 **Criada em:** 2026-07-19
 
@@ -54,11 +54,11 @@ Provisionar um projeto Postgres na Neon, aplicar as migrações e rodar o seed (
 
 ## Critérios de aceite
 
-- [ ] Existe um projeto Postgres na Neon (free tier) e uma `DATABASE_URL` (`sslmode=require`) guardada como segredo.
-- [ ] `prisma migrate deploy` aplica com sucesso todas as migrações do repo contra a Neon (schema completo).
-- [ ] Após o seed, o banco tem os sistemas Free **e** D&D 5e (SRD) com sua configuração de atributos/perícias.
-- [ ] A API local, apontada à `DATABASE_URL` da Neon, sobe e `GET /api/v1/systems` retorna os dois sistemas.
-- [ ] **Regressão:** criar um personagem contra a Neon persiste e é lido de volta (o adapter `pg` fala com o banco gerenciado sem mudança de código).
+- [x] Existe um projeto Postgres na Neon (free tier) e uma `DATABASE_URL` (`sslmode=require`) guardada como segredo.
+- [x] `prisma migrate deploy` aplica com sucesso todas as migrações do repo contra a Neon (schema completo).
+- [x] Após o seed, o banco tem os sistemas Free **e** D&D 5e (SRD) com sua configuração de atributos/perícias.
+- [x] A API local, apontada à `DATABASE_URL` da Neon, sobe e `GET /api/v1/systems` retorna os dois sistemas.
+- [x] **Regressão:** criar um personagem contra a Neon persiste e é lido de volta (o adapter `pg` fala com o banco gerenciado sem mudança de código).
 
 ---
 
@@ -73,7 +73,7 @@ Provisionar um projeto Postgres na Neon, aplicar as migrações e rodar o seed (
 
 ## Questões em aberto
 
-1. O seed do SRD roda da máquina do operador (contra a Neon) ou como job pontual na nuvem? Para o MVP, rodar local contra a string remota é o caminho mais curto.
+1. ~~O seed do SRD roda da máquina do operador (contra a Neon) ou como job pontual na nuvem?~~ **Resolvido:** rodou local contra a string remota (`migrate deploy` → `db:seed` → `srd:sync`/`ingest`) em 2026-07-20. Projeto `ai-dm` (project_id `purple-wave-53471231`, região `us-east-2`).
 
 ---
 
