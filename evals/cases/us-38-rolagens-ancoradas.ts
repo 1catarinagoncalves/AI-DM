@@ -38,8 +38,6 @@ describe('US-38 — prompt instrui nome da perícia e um teste por ação', () =
     characterGender: 'feminino',
     characterClass: 'patrulheira',
     characterRace: 'humana',
-    activeQuests: [],
-    inventory: [],
     sheet: { level: 1, hp: 10, maxHp: 10, attributes: { wisdom: 16 }, conditions: [] },
   })
 

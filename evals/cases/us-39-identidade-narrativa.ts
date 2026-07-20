@@ -14,8 +14,6 @@ describe('US-39 — identidade narrativa no prompt', () => {
     characterGender: 'feminino',
     characterClass: 'paladina',
     characterRace: 'humana',
-    activeQuests: [],
-    inventory: [],
     sheet: { level: 5, hp: 44, maxHp: 44, attributes: { charisma: 16 }, conditions: [] },
     background: {
       story: 'Nobre menor que perdeu a família para um culto demoníaco',
@@ -36,7 +34,7 @@ describe('US-39 — identidade narrativa no prompt', () => {
   it('personagem sem identidade não gera a seção', () => {
     const p = buildDmSystemPrompt({
       systemName: 'D&D 5e', characterName: 'Aria', characterGender: 'feminino',
-      characterClass: 'guerreiro', characterRace: 'humana', activeQuests: [], inventory: [],
+      characterClass: 'guerreiro', characterRace: 'humana',
       sheet: { level: 1, hp: 10, maxHp: 10, attributes: {}, conditions: [] },
     })
     expect(p).not.toMatch(/Character identity/i)

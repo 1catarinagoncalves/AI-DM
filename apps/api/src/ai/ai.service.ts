@@ -8,6 +8,7 @@ import {
   NARRATION_PROVIDER_OPTIONS,
   summaryModel,
   buildDmSystemPrompt,
+  buildTurnStateBlock,
   buildOpeningInstruction,
   resolveKnownSpell,
   buildSummaryInput,
@@ -95,8 +96,6 @@ export class AiService {
       })
       .filter((m) => m.content.trim().length > 0)
 
-    const messages: CoreMessage[] = [...history, { role: 'user', content: message }]
-
     const systemName = adventure.system.name
     const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
     // Título + descrição da quest primária para o DM saber o objetivo (US-28).
@@ -128,17 +127,16 @@ export class AiService {
       skills,
     }
 
+    // US-56: o system carrega SÓ as camadas 1+2 (estático + constante por personagem).
+    // O estado volátil (HP/condições, cena, quests, inventário, resumo) sai daqui e vai
+    // para o bloco de estado do turno, prefixado à mensagem — assim `system + history`
+    // vira prefixo estável e cacheável.
     const systemPrompt = buildDmSystemPrompt({
       systemName,
       characterName: character.name,
       characterGender: character.gender,
       characterClass: character.class,
       characterRace: character.race,
-      mainQuest,
-      activeQuests: activeQuests.map((q) => q.title),
-      memorySummary: adventure.memorySummary,
-      inventory: inventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
-      sceneState: (characterState?.sceneState ?? null) as SceneState | null,
       sheet,
       attributeLabels,
       background: (character.background ?? {}) as unknown as CharacterBackground,
@@ -147,6 +145,20 @@ export class AiService {
       // US-42: magias conhecidas — SÓ os nomes vão ao prompt; a descrição vem via getSpell.
       spells: ((character.spells ?? []) as unknown as KnownSpell[]).map((s) => ({ name: s.name, level: s.level })),
     })
+
+    // US-56: bloco de estado volátil do turno, prefixado à AÇÃO CRUA do jogador. A ação
+    // crua (`message`) permanece separada — é ela, não o conteúdo prefixado, que o
+    // `onFinish` persiste no EventLog (fronteira de persistência: mantém o history e o
+    // resumo limpos e o próprio prefixo do history estável turno a turno).
+    const turnState = buildTurnStateBlock({
+      sheet,
+      sceneState: (characterState?.sceneState ?? null) as SceneState | null,
+      mainQuest,
+      activeQuests: activeQuests.map((q) => q.title),
+      inventory: inventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
+      memorySummary: adventure.memorySummary,
+    })
+    const messages: CoreMessage[] = [...history, { role: 'user', content: `${turnState}\n\n${message}` }]
 
     // US-38: um teste ancorado por turno. "Uma ação → um teste": o modelo às
     // vezes rola duas perícias diferentes para a mesma coisa (ex.: Sobrevivência
@@ -482,18 +494,25 @@ export class AiService {
         characterGender: params.characterGender,
         characterClass: params.characterClass,
         characterRace: params.characterRace,
-        mainQuest: params.mainQuest ?? null,
-        activeQuests: [],
-        memorySummary: null,
-        inventory: params.inventory,
-        sceneState: null,
         sheet: params.sheet,
         attributeLabels: params.attributeLabels,
         background: params.background,
         features: params.features,
         spells: params.spells,
       })
-      const prompt = buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed })
+      // US-56: o estado volátil saiu do system. Na abertura não há cena/histórico/HP
+      // dinâmico, mas a main quest e o equipamento inicial ainda são contexto útil —
+      // então prefixamos o bloco de estado ao prompt de abertura (mesma convenção dos
+      // turnos: estado na mensagem, não no system).
+      const turnState = buildTurnStateBlock({
+        sheet: params.sheet,
+        sceneState: null,
+        mainQuest: params.mainQuest ?? null,
+        activeQuests: [],
+        inventory: params.inventory,
+        memorySummary: null,
+      })
+      const prompt = `${turnState}\n\n${buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed })}`
       // Percorre a MESMA escada de modelos dos turnos (narrationModels): o primário
       // pode estar indisponível para a conta (ex.: gpt-oss-120b sem acesso no OpenRouter)
       // e é justamente esse fallback que mantém a narração dos turnos viva. Sem a

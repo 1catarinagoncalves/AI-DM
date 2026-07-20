@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, artefato, overlay pt-BR, desacoplamento do Free) · [US-21](./US-21-sistemas-como-dado.md) (`config.startingKits` + `StartingKitItemSchema`)
 **Relacionado:** [US-02](./US-02-inventário%20personagem.md) (tabela de kits autorais, superada por esta story) · [US-38](./US-38-rolagens-ancoradas-na-ficha.md) (rolagens ancoradas no inventário) · [ADR 003](../../adr/003-sistemas-como-dado.md)
 **Gera ADR:** acrescenta a seção "segunda fonte / licença dupla" ao **ADR 004** (ou ADR 005 se a decisão de licença crescer — ver §Decisão de arquitetura)

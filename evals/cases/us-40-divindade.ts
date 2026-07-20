@@ -13,8 +13,6 @@ const base = {
   characterGender: 'feminino',
   characterClass: 'paladina',
   characterRace: 'humana',
-  activeQuests: [] as string[],
-  inventory: [] as string[],
   sheet: { level: 5, hp: 44, maxHp: 44, attributes: { charisma: 16 }, conditions: [] },
 }
 

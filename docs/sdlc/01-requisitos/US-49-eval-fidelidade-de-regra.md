@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-48](./US-48-getrule-corpus-de-regras.md) (tool `getRule` + corpus) · [US-47](./US-47-ingestao-srd-como-dado.md) (config populado)
 **Relacionado:** [US-17](./US-17-comparacao-modelos-eval.md) (juiz LLM + rubrica do bake-off) · [US-36](./US-36-eval-de-qualidade-da-narracao.md) (suite de eval da narração) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (saneamento de número na prosa)
 **Criada em:** 2026-07-11

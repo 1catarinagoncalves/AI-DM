@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildDmSystemPrompt, type DmCharacterSheet } from './dm-system'
+import { buildDmSystemPrompt, buildTurnStateBlock, type DmCharacterSheet } from './dm-system'
 
 const baseSheet: DmCharacterSheet = {
   level: 3,
@@ -16,19 +16,24 @@ function build(overrides: Partial<Parameters<typeof buildDmSystemPrompt>[0]> = {
     characterGender: 'feminino',
     characterClass: 'guerreiro',
     characterRace: 'humana',
-    activeQuests: [],
-    inventory: [],
     sheet: baseSheet,
     ...overrides,
   })
 }
 
-describe('buildDmSystemPrompt — ficha (US-23)', () => {
-  it('inclui nível, HP/HP máx, condições e atributos da ficha', () => {
+function buildState(overrides: Partial<Parameters<typeof buildTurnStateBlock>[0]> = {}) {
+  return buildTurnStateBlock({
+    sheet: baseSheet,
+    activeQuests: [],
+    inventory: [],
+    ...overrides,
+  })
+}
+
+describe('buildDmSystemPrompt — ficha constante (US-23 / camada 2)', () => {
+  it('inclui nível e atributos da ficha (constante por personagem)', () => {
     const p = build()
     expect(p).toMatch(/Level:\s*3/)
-    expect(p).toMatch(/HP:\s*8\/24/)
-    expect(p).toMatch(/envenenado/)
     expect(p).toMatch(/16/)
     expect(p).toMatch(/12/)
   })
@@ -52,10 +57,9 @@ describe('buildDmSystemPrompt — ficha (US-23)', () => {
     expect(noLabels).toMatch(/strength 16/)
   })
 
-  it('não quebra com condições/atributos vazios', () => {
+  it('não quebra com atributos vazios', () => {
     const p = build({ sheet: { level: 1, hp: 10, maxHp: 10, attributes: {}, conditions: [] } })
     expect(p).toMatch(/Level:\s*1/)
-    expect(p).toMatch(/HP:\s*10\/10/)
     expect(typeof p).toBe('string')
   })
 })
@@ -109,7 +113,7 @@ describe('buildDmSystemPrompt — background narrativo (US-39)', () => {
   })
 })
 
-describe('buildDmSystemPrompt — ordenação por volatilidade / prompt caching (US-55)', () => {
+describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas 1+2 só)', () => {
   const scene = {
     local: 'Praça da vila ao anoitecer',
     ambiente: 'externo' as const,
@@ -119,28 +123,35 @@ describe('buildDmSystemPrompt — ordenação por volatilidade / prompt caching 
     atualizadoEm: '',
   }
 
-  it('emite todo o estático + constante ANTES de qualquer campo volátil', () => {
-    const p = build({ mainQuest: 'Salvar a vila', inventory: ['Espada'], sceneState: scene })
-    // Últimos marcadores da camada 1 (estático) + camada 2 (constante por personagem).
-    const staticConstant = ['## Critical rules', '## ⚠️ STARTING EQUIPMENT', "## The player's character", '- Attributes:']
-    // Primeiros marcadores da camada 3 (volátil, muda por turno).
-    const volatile = ['## Estado atual', '- HP:', '## Cena atual', '## Main quest', '## Current inventory']
-    const lastStaticConstant = Math.max(...staticConstant.map((m) => p.indexOf(m)))
-    const firstVolatile = Math.min(...volatile.filter((m) => p.includes(m)).map((m) => p.indexOf(m)))
-    expect(lastStaticConstant).toBeGreaterThan(-1)
-    expect(firstVolatile).toBeGreaterThan(lastStaticConstant)
+  it('NÃO emite nenhum campo volátil (HP, condições, cena, quests, inventário, resumo)', () => {
+    const p = build()
+    // Camada 3 saiu inteira do system: nenhum cabeçalho de estado do turno aparece aqui.
+    expect(p).not.toMatch(/## Estado atual/)
+    expect(p).not.toMatch(/- HP:/)
+    expect(p).not.toMatch(/- Conditions:/)
+    expect(p).not.toMatch(/## Cena atual/)
+    expect(p).not.toMatch(/## Main quest/)
+    expect(p).not.toMatch(/## Active quests/)
+    expect(p).not.toMatch(/## Current inventory/)
+    expect(p).not.toMatch(/## A história até agora/)
+    // Mesmo passando dados voláteis herdados, nada vaza (a assinatura já nem os aceita,
+    // mas o valor do personagem — envenenado — não deve reaparecer via outra rota).
+    expect(p).not.toMatch(/envenenado/)
   })
 
-  it('quebra da ficha: HP/condições (volátil) vêm DEPOIS de level/atributos (constante)', () => {
+  it('mantém level/atributos (constante) no system', () => {
     const p = build()
     expect(p.indexOf('- Level:')).toBeLessThan(p.indexOf('- Attributes:'))
-    expect(p.indexOf('- Attributes:')).toBeLessThan(p.indexOf('- HP:'))
-    expect(p.indexOf('- HP:')).toBeLessThan(p.indexOf('- Conditions:'))
+    expect(p).toMatch(/Level:\s*3/)
   })
 
-  it('sceneSection saiu do meio da parede: o bloco "## Cena atual" fica depois da regra SPATIAL', () => {
-    const p = build({ sceneState: scene })
-    expect(p.indexOf('## Cena atual')).toBeGreaterThan(p.indexOf('SPATIAL & SCENE CONTINUITY'))
+  it('não perde regras semânticas (rolagens, gênero, craft, continuidade, ordem do turno)', () => {
+    const p = build()
+    expect(p).toMatch(/rollDice/)
+    expect(p).toMatch(/Gender Agreement/)
+    expect(p).toMatch(/Narrative craft/)
+    expect(p).toMatch(/SPATIAL & SCENE CONTINUITY/)
+    expect(p).toMatch(/TURN RESOLUTION ORDER/)
   })
 
   it('a regra em-dash/opções aparece UMA vez (sem a duplicata "ABSOLUTE RULE")', () => {
@@ -149,12 +160,72 @@ describe('buildDmSystemPrompt — ordenação por volatilidade / prompt caching 
     expect(p.split('Choice Options').length - 1).toBe(1)
   })
 
-  it('não perde regras semânticas na reordenação (rolagens, gênero, craft, continuidade)', () => {
+  // guard: a cena não volta ao system nem quando um caller antigo tentaria passá-la.
+  it('cena estruturada nunca aparece no system', () => {
     const p = build()
-    expect(p).toMatch(/rollDice/)
-    expect(p).toMatch(/Gender Agreement/)
-    expect(p).toMatch(/Narrative craft/)
-    expect(p).toMatch(/SPATIAL & SCENE CONTINUITY/)
-    expect(p).toMatch(/TURN RESOLUTION ORDER/)
+    expect(p).not.toContain(scene.local)
+  })
+})
+
+describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)', () => {
+  const scene = {
+    local: 'Praça da vila ao anoitecer',
+    ambiente: 'externo' as const,
+    periodo: 'anoitecer',
+    presentes: ['prefeito'],
+    objetos_em_cena: [],
+    atualizadoEm: '',
+  }
+
+  it('inclui HP/HP máx e condições da ficha', () => {
+    const s = buildState()
+    expect(s).toMatch(/## Estado atual/)
+    expect(s).toMatch(/HP:\s*8\/24/)
+    expect(s).toMatch(/envenenado/)
+  })
+
+  it('cabeçalho forte de fonte-de-verdade: declara-se ground truth do sistema, não fala do jogador, com precedência', () => {
+    const s = buildState()
+    // O risco principal da US: lido como fala do usuário, o estado precisa dobrar a
+    // linguagem de precedência para não perder força de instrução.
+    expect(s.toLowerCase()).toMatch(/source of truth|fonte de verdade/)
+    expect(s.toLowerCase()).toMatch(/not the player speaking/)
+    expect(s.toLowerCase()).toMatch(/precedence/)
+  })
+
+  it('inclui cena, main quest, active quests, inventário e resumo quando presentes', () => {
+    const s = buildState({
+      sceneState: scene,
+      mainQuest: 'Salvar a vila',
+      activeQuests: ['Encontrar o ferreiro'],
+      inventory: ['Espada', 'Poção (2)'],
+      memorySummary: 'A vila foi atacada por goblins na noite anterior.',
+    })
+    expect(s).toMatch(/## Cena atual/)
+    expect(s).toContain('Praça da vila ao anoitecer')
+    expect(s).toMatch(/## Main quest/)
+    expect(s).toContain('Salvar a vila')
+    expect(s).toMatch(/## Active quests/)
+    expect(s).toContain('Encontrar o ferreiro')
+    expect(s).toMatch(/## Current inventory/)
+    expect(s).toContain('Espada')
+    expect(s).toMatch(/## A história até agora/)
+    expect(s).toContain('atacada por goblins')
+  })
+
+  it('o resumo refere as mensagens recentes como estando ACIMA (history fica antes do bloco)', () => {
+    const s = buildState({ memorySummary: 'Algo aconteceu.' })
+    expect(s).toMatch(/before the recent messages above/)
+    expect(s).not.toMatch(/before the recent messages below/)
+  })
+
+  it('campos ausentes → sem cena/resumo, placeholders para quest/inventário, sem crash', () => {
+    const s = buildState()
+    expect(s).not.toMatch(/## Cena atual/)
+    expect(s).not.toMatch(/## A história até agora/)
+    expect(s).toMatch(/No main quest set yet/)
+    expect(s).toMatch(/No secondary quests yet/)
+    expect(s).toMatch(/- Empty\./)
+    expect(typeof s).toBe('string')
   })
 })

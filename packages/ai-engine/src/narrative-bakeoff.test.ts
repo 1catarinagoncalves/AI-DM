@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { DiceResult } from '@ai-dm/shared'
-import { buildDmSystemPrompt } from './prompts/dm-system'
+import { buildDmSystemPrompt, buildTurnStateBlock } from './prompts/dm-system'
 import { resolveModel, judgeModel } from './model'
 import { checkNoSelfRoll, detectLanguageDrift, detectReasoningLeak } from './guardrails'
 import {
@@ -68,14 +68,12 @@ const REPS = Math.max(1, Number(process.env['JUDGE_REPS'] ?? 3))
 // of truth" que a narração de produção lê. `background`/`features` entram magros
 // de propósito no slice 2 inicial; enriquecê-los para paridade total com a
 // produção (US-39/40/41) é o próximo passo.
-const BASE_SHEET = {
+const CHARACTER = {
   systemName: 'D&D 5e',
   characterName: 'Lady Seraphine Valthor',
   characterGender: 'feminino',
   characterClass: 'paladina',
   characterRace: 'humana',
-  activeQuests: ['Investigar o desaparecimento das crianças de Eldridge'],
-  inventory: ['Espada longa Luz da Manhã', 'Escudo do Sol Dourado', 'Armadura de placas'],
   sheet: {
     level: 5,
     hp: 44,
@@ -85,13 +83,25 @@ const BASE_SHEET = {
   },
 }
 
-const SYSTEM = buildDmSystemPrompt({ ...BASE_SHEET })
+const VOLATILE = {
+  activeQuests: ['Investigar o desaparecimento das crianças de Eldridge'],
+  inventory: ['Espada longa Luz da Manhã', 'Escudo do Sol Dourado', 'Armadura de placas'],
+}
+
+// US-56: o system carrega SÓ as camadas 1+2 (estático + constante). O estado
+// volátil (quests, inventário, resumo) vai no bloco de estado do turno, prefixado
+// à ação — exatamente como a produção monta `messages` agora. Sem isso o eval
+// mediria uma forma de prompt que não existe mais em produção.
+const SYSTEM = buildDmSystemPrompt(CHARACTER)
+const TURN_STATE = buildTurnStateBlock({ sheet: CHARACTER.sheet, ...VOLATILE })
 
 // Cenário de coerência: injeta um histórico onde o NPC Garrick MENTIU e a
 // jogadora hoje SABE disso. O turno bom mantém Garrick consistente com ter
-// mentido/escondido o padre — não inventa um Garrick inocente.
-const COHERENCE_SYSTEM = buildDmSystemPrompt({
-  ...BASE_SHEET,
+// mentido/escondido o padre — não inventa um Garrick inocente. O resumo agora
+// entra no bloco de estado do turno (camada 3), não no system.
+const COHERENCE_TURN_STATE = buildTurnStateBlock({
+  sheet: CHARACTER.sheet,
+  ...VOLATILE,
   memorySummary:
     'No início da investigação, o taverneiro Garrick jurou a Seraphine que NUNCA tinha visto o Padre Elias e que nada sabia. Turnos depois, provas revelaram que Garrick escondeu o padre ferido no porão da própria taverna, com medo dos cultistas — ou seja, ele MENTIU naquele primeiro encontro. Seraphine agora sabe disso.',
 })
@@ -136,7 +146,8 @@ interface Scenario {
   action: string
   scenarioContext: string
   exemplar: Exemplar
-  system: string
+  /** US-56: bloco de estado volátil prefixado à ação (o system é o mesmo SYSTEM p/ todos). */
+  turnState: string
   checkSelfRoll: boolean
 }
 
@@ -147,7 +158,7 @@ const SCENARIOS: Scenario[] = [
       'Chego à vila de Eldridge ao anoitecer, sob chuva fina, e desço do meu cavalo perto do portão entreaberto. Observo o ambiente.',
     scenarioContext: 'Turno de abertura: chegada à vila de Eldridge ao anoitecer, sob chuva.',
     exemplar: EX_OPENING,
-    system: SYSTEM,
+    turnState: TURN_STATE,
     checkSelfRoll: false,
   },
   {
@@ -156,7 +167,7 @@ const SCENARIOS: Scenario[] = [
       'Ajoelho perto do velho e pergunto, com calma: quantas crianças foram levadas? Como são essas criaturas? O que aconteceu com o padre?',
     scenarioContext: 'A jogadora interroga um aldeão aterrorizado sobre o desaparecimento das crianças e do padre.',
     exemplar: EX_DIALOGUE,
-    system: SYSTEM,
+    turnState: TURN_STATE,
     checkSelfRoll: false,
   },
   {
@@ -164,7 +175,7 @@ const SCENARIOS: Scenario[] = [
     action: 'Saco a espada e ataco o goblin à minha frente.',
     scenarioContext: 'Combate: a jogadora ataca um inimigo — a resolução exige uma rolagem de dado.',
     exemplar: EX_COMBAT,
-    system: SYSTEM,
+    turnState: TURN_STATE,
     checkSelfRoll: true,
   },
   {
@@ -173,7 +184,7 @@ const SCENARIOS: Scenario[] = [
       'Uso a visão divina de Solariel sobre os dois cultistas rendidos à minha frente para julgar se há arrependimento verdadeiro em cada um.',
     scenarioContext: 'Dilema moral: a jogadora usa visão divina para pesar o destino de dois cultistas rendidos.',
     exemplar: EX_DILEMMA,
-    system: SYSTEM,
+    turnState: TURN_STATE,
     checkSelfRoll: false,
   },
   {
@@ -182,7 +193,7 @@ const SCENARIOS: Scenario[] = [
       'Encaro Garrick e digo: "Eu sei que você escondeu o Padre Elias no seu porão. Você mentiu quando disse que nunca o tinha visto. Por quê?"',
     scenarioContext: 'Coerência: a jogadora confronta o taverneiro Garrick, que mentiu turnos atrás (histórico no contexto).',
     exemplar: EX_COHERENCE,
-    system: COHERENCE_SYSTEM,
+    turnState: COHERENCE_TURN_STATE,
     checkSelfRoll: false,
   },
 ]
@@ -217,8 +228,9 @@ async function runTurn(modelId: string, scenario: Scenario): Promise<TurnResult>
   try {
     const result = streamText({
       model: resolveModel(modelId),
-      system: scenario.system,
-      prompt: scenario.action,
+      system: SYSTEM,
+      // US-56: estado volátil prefixado à ação, como a produção monta a última mensagem.
+      prompt: `${scenario.turnState}\n\n${scenario.action}`,
       // tools + maxSteps: deixa o modelo chamar rollDice e depois narrar com o
       // resultado, num único turno. Sem isso o guardrail não observaria a chamada.
       tools: { rollDice: rollDiceStub },

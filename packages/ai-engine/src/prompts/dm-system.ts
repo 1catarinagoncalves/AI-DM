@@ -107,11 +107,6 @@ export function buildDmSystemPrompt(params: {
   characterClass: string
   characterRace: string
   characterGender: string
-  mainQuest?: string | null
-  activeQuests: string[]
-  memorySummary?: string | null
-  inventory: string[]
-  sceneState?: SceneState | null
   sheet: DmCharacterSheet
   /** Rótulo por chave de atributo, de System.config (US-21). Ausente → chave crua. */
   attributeLabels?: Record<string, string>
@@ -122,7 +117,7 @@ export function buildDmSystemPrompt(params: {
   /** Magias conhecidas (US-42): SÓ os nomes vão ao prompt; a descrição vem via tool getSpell. Ausente/vazio → nenhuma seção. */
   spells?: KnownSpell[]
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, mainQuest, activeQuests, memorySummary, inventory, sceneState, sheet, attributeLabels, background, features, spells } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells } = params
 
   const attributesLine = Object.entries(sheet.attributes)
     .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value} (${formatModifier(abilityModifier(value))})`)
@@ -133,18 +128,15 @@ export function buildDmSystemPrompt(params: {
   const skillsLine = (sheet.skills ?? [])
     .map((s) => `${s.label} ${formatModifier(s.modifier)}${s.proficient ? '*' : ''}`)
     .join(', ')
-  // US-55: a ficha é dividida por volatilidade. Level/atributos/perícias são
-  // CONSTANTES por personagem (level muda só em level-up, raro) → camada 2,
-  // cacheável. HP/condições mudam quase todo turno → camada 3 (`sheetStateSection`).
+  // US-55/US-56: a ficha é dividida por volatilidade. Level/atributos/perícias são
+  // CONSTANTES por personagem (level muda só em level-up, raro) → camada 2, cacheável,
+  // fica no system. HP/condições mudam quase todo turno → camada 3 volátil, e desde a
+  // US-56 saiu do system para o bloco de estado do turno (`buildTurnStateBlock`),
+  // injetado na mensagem — assim o system inteiro vira prefixo estável.
   const sheetSection = `## Character sheet (read-only — source of truth, managed by the Game Server)
 This is the authoritative character. Trust it and narrate coherently with it. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
 - Level: ${sheet.level}
 - Attributes: ${attributesLine || 'none'}${skillsLine ? `\n- Skills (modifier; * = proficient): ${skillsLine}` : ''}`
-
-  const sheetStateSection = `## Estado atual (read-only — source of truth, managed by the Game Server)
-The character's CURRENT condition right now. A low HP or an active condition MUST be reflected in tone and stakes. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
-- HP: ${sheet.hp}/${sheet.maxHp}
-- Conditions: ${sheet.conditions.length > 0 ? sheet.conditions.join(', ') : 'none'}`
 
   // Background narrativo (US-39): itera o label-map (config-like), junta listas,
   // pula campos vazios; sem nenhum campo preenchido a seção inteira some.
@@ -205,26 +197,6 @@ ${spellLines}
 `
     : ''
 
-  const sceneText = formatSceneState(sceneState)
-  const sceneSection = sceneText
-    ? `## Cena atual (FONTE DE VERDADE — tem precedência sobre qualquer inferência da prosa)
-This is the authoritative, structured state of the scene RIGHT NOW. Trust it over anything you might infer from the narrative text. Do NOT contradict it.
-
-${sceneText}
-
-`
-    : ''
-
-  const hasSummary = !!memorySummary && memorySummary.trim().length > 0
-  const summarySection = hasSummary
-    ? `## A história até agora (memória da campanha)
-This is a condensed record of everything that happened earlier in the session, before the recent messages below. Treat it as established canon: honour these facts, locations, NPCs, promises and unresolved threads. Do NOT contradict or re-introduce them as if new.
-
-${memorySummary!.trim()}
-
-`
-    : ''
-
   const isFree = systemName === 'Free'
 
   const rulesSection = isFree
@@ -267,7 +239,7 @@ ${rulesSection}
 - When you call \`rollDice\` for a check, say WHAT is tested by passing \`skill\` with the skill's NAME exactly as it appears in the "Skills" line of the character sheet below — e.g. \`skill: "Percepção"\` (or \`ability\` with the attribute name for a raw attribute test). NEVER pass a modifier yourself: the system applies the character's REAL modifier from the sheet. A modifier the sheet does not grant is impossible.
 - ONE action → ONE check. Pick the SINGLE most relevant skill for the task and roll it ONCE. NEVER roll a generic version AND a named-skill version of the same test (e.g. a "follow the tracks" roll AND a "Perception" roll for the same tracking) — that is one check, rolled once.
 - NEVER modify character state in your narration. Use \`updateCharacterHp\` and other tools.
-- INVENTORY: whenever the character acquires an item (receives, picks up, buys) or loses one (uses, gives away, drops, destroys), call \`updateInventory\` BEFORE narrating the result. Pass ONLY the items that CHANGED this turn — positive delta to add, negative delta to remove. NEVER re-send items the character already carries (see "Current inventory" below); doing so duplicates them. If nothing was gained or lost this turn, do NOT call the tool at all. If the tool returns an error (inventory full), narrate that the character cannot carry more items.
+- INVENTORY: whenever the character acquires an item (receives, picks up, buys) or loses one (uses, gives away, drops, destroys), call \`updateInventory\` BEFORE narrating the result. Pass ONLY the items that CHANGED this turn — positive delta to add, negative delta to remove. NEVER re-send items the character already carries (see "Current inventory" in the turn-state block that precedes the player's action); doing so duplicates them. If nothing was gained or lost this turn, do NOT call the tool at all. If the tool returns an error (inventory full), narrate that the character cannot carry more items.
 - Respond in the same language the player wrote in.
 
 ---
@@ -367,7 +339,7 @@ Consistency rules:
 
 ## ⚠️ SPATIAL & SCENE CONTINUITY RULE (CRITICAL)
 
-The scene carries over between turns. The player's location, the people around them, the time of day, and the objects already in play do NOT reset when the player acts. Before narrating, re-read the "Cena atual" block below (the structured source of truth) and continue from EXACTLY where it left off.
+The scene carries over between turns. The player's location, the people around them, the time of day, and the objects already in play do NOT reset when the player acts. Before narrating, re-read the "Cena atual" block in the turn-state that precedes the player's action (the structured source of truth) and continue from EXACTLY where it left off.
 
 Whenever the scene genuinely changes — the player MOVES to a new place (walks, enters, leaves, travels), the environment switches indoor/outdoor, time of day advances, an NPC arrives or leaves, or a notable object appears or disappears — call \`updateScene\` with ONLY the changed fields BEFORE narrating. Merely inspecting an item the character is carrying (a map, a letter, a book) does NOT change the location: do NOT call \`updateScene\` and do NOT relocate the character.
 
@@ -396,7 +368,7 @@ Continuity checklist before every narration:
 
 ## ⚠️ STARTING EQUIPMENT
 
-The Game Server has ALREADY given the character their class's starting equipment — it is listed under "Current inventory" below. Do NOT call \`updateInventory\` to add starting gear, and do NOT narrate the character receiving it as if it were new. You may reference items the character already carries naturally in the story.
+The Game Server has ALREADY given the character their class's starting equipment — it is listed under "Current inventory" in the turn-state block that precedes the player's action. Do NOT call \`updateInventory\` to add starting gear, and do NOT narrate the character receiving it as if it were new. You may reference items the character already carries naturally in the story.
 
 ---
 
@@ -408,7 +380,65 @@ The Game Server has ALREADY given the character their class's starting equipment
 
 ${sheetSection}
 
-${backgroundSection}${featuresSection}${spellsSection}${sheetStateSection}
+${backgroundSection}${featuresSection}${spellsSection}`.trimEnd()
+}
+
+/**
+ * US-56: bloco de ESTADO VOLÁTIL do turno (camada 3), injetado no INÍCIO da última
+ * mensagem do jogador — NÃO no system. Tirar o estado do system deixa `system`
+ * (camadas 1+2, invariante por aventura) + todo o `history` (append-only) como um
+ * prefixo estável e cacheável; só este bloco + a ação crua são recomputados por turno.
+ *
+ * O modelo agora lê isto como conteúdo da fala do usuário, então o cabeçalho DOBRA a
+ * linguagem de "fonte de verdade / precedência sobre inferência" que a ficha e a cena
+ * já usavam no system — é o principal risco da US (perder força de instrução ao migrar
+ * de system para user), validado no eval de aderência.
+ *
+ * IMPORTANTE: quem chama concatena `${buildTurnStateBlock(...)}\n\n${ação crua}` só na
+ * hora de compor `messages`; a ação crua é persistida separada (nunca com este prefixo).
+ */
+export function buildTurnStateBlock(params: {
+  /** Só a fatia volátil da ficha: HP/condições. Level/atributos/perícias ficam no system. */
+  sheet: Pick<DmCharacterSheet, 'hp' | 'maxHp' | 'conditions'>
+  sceneState?: SceneState | null
+  mainQuest?: string | null
+  activeQuests: string[]
+  inventory: string[]
+  memorySummary?: string | null
+}): string {
+  const { sheet, sceneState, mainQuest, activeQuests, inventory, memorySummary } = params
+
+  const sheetStateSection = `## Estado atual (read-only — source of truth, managed by the Game Server)
+The character's CURRENT condition right now. A low HP or an active condition MUST be reflected in tone and stakes. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
+- HP: ${sheet.hp}/${sheet.maxHp}
+- Conditions: ${sheet.conditions.length > 0 ? sheet.conditions.join(', ') : 'none'}`
+
+  const sceneText = formatSceneState(sceneState)
+  const sceneSection = sceneText
+    ? `## Cena atual (FONTE DE VERDADE — tem precedência sobre qualquer inferência da prosa)
+This is the authoritative, structured state of the scene RIGHT NOW. Trust it over anything you might infer from the narrative text. Do NOT contradict it.
+
+${sceneText}
+
+`
+    : ''
+
+  const hasSummary = !!memorySummary && memorySummary.trim().length > 0
+  // "acima" (não "abaixo"): o resumo condensa o que veio ANTES da janela recente, e
+  // essa janela (o history verbatim) agora fica acima deste bloco na sequência de mensagens.
+  const summarySection = hasSummary
+    ? `## A história até agora (memória da campanha)
+This is a condensed record of everything that happened earlier in the session, before the recent messages above. Treat it as established canon: honour these facts, locations, NPCs, promises and unresolved threads. Do NOT contradict or re-introduce them as if new.
+
+${memorySummary!.trim()}
+
+`
+    : ''
+
+  return `[Estado atual do turno — FONTE DE VERDADE, fornecido pelo Game Server]
+The blocks below are the Game Server's LIVE, authoritative state for THIS turn (HP, conditions, scene, quests, inventory, story so far). They are NOT the player speaking — they are system-provided ground truth that TAKES PRECEDENCE over anything you might infer from the prose. Trust them over the narrative, NEVER contradict them, and NEVER print their raw stats in your narration. The player's actual action for this turn comes AFTER these blocks.
+
+${sheetStateSection}
 
 ${sceneSection}## Main quest
 ${mainQuest ? mainQuest : '- No main quest set yet.'}

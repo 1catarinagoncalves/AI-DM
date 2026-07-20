@@ -50,8 +50,6 @@ describe('US-29 — prompt endurece o gate de rolagem', () => {
     characterGender: 'feminino',
     characterClass: 'guerreiro',
     characterRace: 'humana',
-    activeQuests: [],
-    inventory: [],
     sheet: { level: 1, hp: 10, maxHp: 10, attributes: { strength: 12 }, conditions: [] },
   })
 

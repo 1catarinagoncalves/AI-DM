@@ -24,8 +24,6 @@ describe('US-27 — perícias injetadas no prompt do DM', () => {
     characterGender: 'feminino',
     characterClass: 'guerreiro',
     characterRace: 'humana',
-    activeQuests: [],
-    inventory: [],
     sheet: { level: 1, hp: 10, maxHp: 10, attributes, conditions: [], skills },
   })
 

@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
-  buildDmSystemPrompt, resolveModel, judgeModel, judgeBatch,
+  buildDmSystemPrompt, buildTurnStateBlock, resolveModel, judgeModel, judgeBatch,
   checkNoSelfRoll, detectLanguageDrift, detectReasoningLeak,
   aggregateReps, estimateCost, renderReportMarkdown,
 } from './dist/index.js'
@@ -31,16 +31,21 @@ const DEFAULT_MODELS = [
 const MODELS = (process.env.MODELS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
 const models = MODELS.length ? MODELS : DEFAULT_MODELS
 
-const BASE = {
+const CHARACTER = {
   systemName: 'D&D 5e', characterName: 'Lady Seraphine Valthor', characterGender: 'feminino',
   characterClass: 'paladina', characterRace: 'humana',
-  activeQuests: ['Investigar o desaparecimento das crianças de Eldridge'],
-  inventory: ['Espada longa Luz da Manhã', 'Escudo do Sol Dourado', 'Armadura de placas'],
   sheet: { level: 5, hp: 44, maxHp: 44, attributes: { strength: 16, wisdom: 14, charisma: 16 }, conditions: [] },
 }
-const SYSTEM = buildDmSystemPrompt({ ...BASE })
-const COHERENCE_SYSTEM = buildDmSystemPrompt({
-  ...BASE,
+const VOLATILE = {
+  activeQuests: ['Investigar o desaparecimento das crianças de Eldridge'],
+  inventory: ['Espada longa Luz da Manhã', 'Escudo do Sol Dourado', 'Armadura de placas'],
+}
+// US-56: system só camadas 1+2; estado volátil no bloco do turno, prefixado à ação.
+const SYSTEM = buildDmSystemPrompt(CHARACTER)
+const TURN_STATE = buildTurnStateBlock({ sheet: CHARACTER.sheet, ...VOLATILE })
+const COHERENCE_TURN_STATE = buildTurnStateBlock({
+  sheet: CHARACTER.sheet,
+  ...VOLATILE,
   memorySummary:
     'No início da investigação, o taverneiro Garrick jurou a Seraphine que NUNCA tinha visto o Padre Elias e que nada sabia. Turnos depois, provas revelaram que Garrick escondeu o padre ferido no porão da própria taverna, com medo dos cultistas — ou seja, ele MENTIU naquele primeiro encontro. Seraphine agora sabe disso.',
 })
@@ -54,11 +59,11 @@ const EX = {
 }
 
 const SCENARIOS = [
-  { id: 'opening', action: 'Chego à vila de Eldridge ao anoitecer, sob chuva fina, e desço do meu cavalo perto do portão entreaberto. Observo o ambiente.', context: 'Turno de abertura: chegada a Eldridge ao anoitecer, sob chuva.', ex: EX.opening, system: SYSTEM, checkSelfRoll: false },
-  { id: 'dialogo', action: 'Ajoelho perto do velho e pergunto, com calma: quantas crianças foram levadas? Como são essas criaturas? O que aconteceu com o padre?', context: 'A jogadora interroga um aldeão aterrorizado.', ex: EX.dialogo, system: SYSTEM, checkSelfRoll: false },
-  { id: 'combat', action: 'Saco a espada e ataco o goblin à minha frente.', context: 'Combate: a jogadora ataca — a resolução exige rolagem.', ex: EX.combat, system: SYSTEM, checkSelfRoll: true },
-  { id: 'dilema', action: 'Uso a visão divina de Solariel sobre os dois cultistas rendidos à minha frente para julgar se há arrependimento verdadeiro em cada um.', context: 'Dilema moral: visão divina sobre dois cultistas rendidos.', ex: EX.dilema, system: SYSTEM, checkSelfRoll: false },
-  { id: 'coerencia', action: 'Encaro Garrick e digo: "Eu sei que você escondeu o Padre Elias no seu porão. Você mentiu quando disse que nunca o tinha visto. Por quê?"', context: 'Coerência: confronta Garrick, que mentiu turnos atrás (histórico no contexto).', ex: EX.coerencia, system: COHERENCE_SYSTEM, checkSelfRoll: false },
+  { id: 'opening', action: 'Chego à vila de Eldridge ao anoitecer, sob chuva fina, e desço do meu cavalo perto do portão entreaberto. Observo o ambiente.', context: 'Turno de abertura: chegada a Eldridge ao anoitecer, sob chuva.', ex: EX.opening, turnState: TURN_STATE, checkSelfRoll: false },
+  { id: 'dialogo', action: 'Ajoelho perto do velho e pergunto, com calma: quantas crianças foram levadas? Como são essas criaturas? O que aconteceu com o padre?', context: 'A jogadora interroga um aldeão aterrorizado.', ex: EX.dialogo, turnState: TURN_STATE, checkSelfRoll: false },
+  { id: 'combat', action: 'Saco a espada e ataco o goblin à minha frente.', context: 'Combate: a jogadora ataca — a resolução exige rolagem.', ex: EX.combat, turnState: TURN_STATE, checkSelfRoll: true },
+  { id: 'dilema', action: 'Uso a visão divina de Solariel sobre os dois cultistas rendidos à minha frente para julgar se há arrependimento verdadeiro em cada um.', context: 'Dilema moral: visão divina sobre dois cultistas rendidos.', ex: EX.dilema, turnState: TURN_STATE, checkSelfRoll: false },
+  { id: 'coerencia', action: 'Encaro Garrick e digo: "Eu sei que você escondeu o Padre Elias no seu porão. Você mentiu quando disse que nunca o tinha visto. Por quê?"', context: 'Coerência: confronta Garrick, que mentiu turnos atrás (histórico no contexto).', ex: EX.coerencia, turnState: COHERENCE_TURN_STATE, checkSelfRoll: false },
 ]
 
 const rollDiceStub = tool({
@@ -80,7 +85,8 @@ const JUDGE_TIMEOUT_MS = 90_000 // juiz sobrecarregado ("high demand") não pend
 
 async function genTurn(model, scenario) {
   const base = {
-    model: resolveModel(model), system: scenario.system, prompt: scenario.action,
+    // US-56: estado volátil prefixado à ação, como a produção monta a última mensagem.
+    model: resolveModel(model), system: SYSTEM, prompt: `${scenario.turnState}\n\n${scenario.action}`,
     maxRetries: GEN_RETRIES, abortSignal: AbortSignal.timeout(REQ_TIMEOUT_MS),
   }
   // Oferece a tool SEMPRE (auto): modelos reasoning (gpt-oss) chamam tool mesmo
