@@ -1,5 +1,25 @@
 import { describe, it, expect } from 'vitest'
-import { stripFabricatedRolls, stripReasoningLeak, formatDiceBreakdown } from './narration'
+import { stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, formatDiceBreakdown } from './narration'
+
+describe('stripWorldStateTags — tags de estado vazadas na prosa', () => {
+  it('remove o tag fechado com JSON aninhado, mantendo a prosa ao redor', () => {
+    const { clean, removed } = stripWorldStateTags(
+      'Você sobe a escada.\n\n[WORLD_STATE_UPDATE: {"scene": {"local": "farol", "presentes": ["Tomas"]}}]\n\n- 🌊 Seguir para a igreja.',
+    )
+    expect(clean).toBe('Você sobe a escada.\n\n- 🌊 Seguir para a igreja.')
+    expect(removed).toHaveLength(1)
+  })
+
+  it('corta o tag ainda ABERTO no fim (stream ao vivo, o "]" não chegou)', () => {
+    const { clean } = stripWorldStateTags('A chama dança no pedestal.\n\n[WORLD_STATE_UPDATE: {"scene": {"local": "far')
+    expect(clean).toBe('A chama dança no pedestal.')
+  })
+
+  it('NÃO toca em colchetes legítimos da prosa', () => {
+    const narracao = 'Você lê a nota [1] rabiscada à margem.\n\n- 🔍 Guardar a nota.'
+    expect(stripWorldStateTags(narracao).clean).toBe(narracao)
+  })
+})
 
 describe('stripReasoningLeak — canais de raciocínio na prosa', () => {
   it('corta o canal analysis do gpt-oss, colado pelo marcador degradado', () => {

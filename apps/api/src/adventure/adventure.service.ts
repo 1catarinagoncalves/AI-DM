@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { SystemConfigSchema, buildSkillSheet, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { AiService } from '../ai/ai.service'
@@ -26,6 +26,21 @@ export class AdventureService {
    * Aventura inicial resolvida para o personagem (US-28), com placeholders já
    * aplicados. Alimenta a etapa "Aventura inicial" da UI antes de iniciar.
    */
+  /**
+   * US-61: confirma que o personagem pertence ao utilizador autenticado antes de
+   * qualquer operação por `characterId`. Inexistente → 404; dono diferente → 403.
+   */
+  async assertCharacterOwner(characterId: string, userId: string): Promise<void> {
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+      select: { userId: true },
+    })
+    if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
+    if (character.userId !== userId) {
+      throw new ForbiddenException('Este personagem não pertence ao utilizador autenticado')
+    }
+  }
+
   async getInitialAdventure(characterId: string): Promise<InitialAdventureHook> {
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },

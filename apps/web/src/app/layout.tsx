@@ -2,13 +2,19 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Providers } from '@/components/Providers'
+import { AuthNav } from '@/components/AuthNav'
+import { auth } from '@/auth'
 
 export const metadata: Metadata = {
   title: 'AI Dungeon Master',
   description: 'Your AI-powered RPG narrator',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // US-61: sessão resolvida no servidor e passada ao SessionProvider — o token de
+  // API já existe no primeiro render do cliente (sem janela de 401 na entrada).
+  const session = await auth()
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body suppressHydrationWarning className="bg-amber-50 dark:bg-stone-950 text-stone-900 dark:text-white antialiased">
@@ -22,13 +28,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `(function(){var t=localStorage.getItem('ai-dm-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');})()`
           }}
         />
-        <ThemeProvider>
-          <ThemeToggle />
-          {/* US-46: um único landmark <main> por página; tabindex=-1 para receber foco do skip link. */}
-          <main id="conteudo" tabIndex={-1}>
-            {children}
-          </main>
-        </ThemeProvider>
+        <Providers session={session}>
+          <ThemeProvider>
+            <ThemeToggle />
+            {/* US-61: controlo de sessão (Sair) — só visível autenticado. */}
+            <AuthNav />
+            {/* US-46: um único landmark <main> por página; tabindex=-1 para receber foco do skip link. */}
+            <main id="conteudo" tabIndex={-1}>
+              {children}
+            </main>
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   )

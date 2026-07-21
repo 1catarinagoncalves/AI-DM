@@ -5,10 +5,11 @@ import { AdventureModule } from './adventure/adventure.module'
 import { CharacterModule } from './character/character.module'
 import { AiModule } from './ai/ai.module'
 import { UserModule } from './user/user.module'
+import { AuthModule } from './auth/auth.module'
 import { PrismaService } from './prisma.service'
 
 @Module({
-  imports: [GameModule, SystemModule, AdventureModule, CharacterModule, AiModule, UserModule],
+  imports: [GameModule, SystemModule, AdventureModule, CharacterModule, AiModule, UserModule, AuthModule],
   providers: [PrismaService],
   exports: [PrismaService],
 })

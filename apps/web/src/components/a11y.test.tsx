@@ -24,18 +24,13 @@ async function expectNoViolations(container: HTMLElement) {
 }
 
 // --- Mocks compartilhados dos módulos de dados/sessão ---
-const { listCharacters, getTurns, listSystems, createUser } = vi.hoisted(() => ({
+const { listCharacters, getTurns, listSystems } = vi.hoisted(() => ({
   listCharacters: vi.fn(),
   getTurns: vi.fn(),
   listSystems: vi.fn(),
-  createUser: vi.fn(),
 }))
-vi.mock('@/lib/api', () => ({ api: { listCharacters, getTurns, listSystems, createUser } }))
+vi.mock('@/lib/api', () => ({ api: { listCharacters, getTurns, listSystems } }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
-vi.mock('@/lib/session', () => ({
-  loadSession: () => ({ userId: 'u1' }),
-  saveSession: vi.fn(),
-}))
 
 import { HomeHero } from './HomeHero'
 import { GameView } from './game/GameView'
@@ -47,7 +42,6 @@ beforeEach(() => {
   ])
   getTurns.mockReset().mockResolvedValue([])
   listSystems.mockReset().mockResolvedValue([])
-  createUser.mockReset().mockResolvedValue({ id: 'u1' })
   // happy-dom não implementa scrollIntoView; a GameView chama no efeito de mensagens.
   Element.prototype.scrollIntoView = vi.fn()
 })

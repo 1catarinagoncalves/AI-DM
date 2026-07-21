@@ -1,5 +1,6 @@
 import { GameView } from '@/components/game/GameView'
 import { buildSkillSheet, type SystemConfig } from '@ai-dm/shared'
+import { apiAuthHeader } from '@/lib/server-auth'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
@@ -20,7 +21,11 @@ export default async function PlayPage({ params, searchParams }: Props) {
     )
   }
 
-  const res = await fetch(`${API}/api/v1/characters/${characterId}`, { cache: 'no-store' })
+  // US-61: chamada server-side autenticada — a API valida a posse da ficha.
+  const res = await fetch(`${API}/api/v1/characters/${characterId}`, {
+    cache: 'no-store',
+    headers: await apiAuthHeader(),
+  })
   const character = await res.json()
   const state = character.states?.[0]
 

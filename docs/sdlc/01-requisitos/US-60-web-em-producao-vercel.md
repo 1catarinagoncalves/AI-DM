@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (custo zero) — [ADR 006](../../adr/006-deploy-custo-zero.md)
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-59](./US-59-api-em-producao-render.md) (API pública + URL) · [ADR 006](../../adr/006-deploy-custo-zero.md) (D1: web na Vercel)
 **Criada em:** 2026-07-19
 
@@ -54,12 +54,12 @@ Subir o `apps/web` na Vercel (Hobby), com `NEXT_PUBLIC_API_URL` apontando para a
 
 ## Critérios de aceite
 
-- [ ] O `apps/web` está público numa URL da Vercel e carrega a home sem erro.
-- [ ] O build resolve `@ai-dm/shared` (workspace) — nenhuma falha de módulo não encontrado.
-- [ ] `NEXT_PUBLIC_API_URL` aponta para a API do Render; as chamadas de [api.ts](../../apps/web/src/lib/api.ts) atingem a API pública (não `localhost`).
-- [ ] Um turno completo funciona no site público: ação enviada, narração chega em **streaming** pelo proxy `/api/chat`, HP/inventário atualizam.
-- [ ] O CORS da API aceita o domínio da Vercel (par `FRONTEND_URL` ↔ `NEXT_PUBLIC_API_URL` fechado).
-- [ ] **Regressão:** o proxy SSE entrega os tokens incrementalmente (não em bloco no fim) — o efeito de "digitação" do Mestre aparece no site público.
+- [x] O `apps/web` está público numa URL da Vercel e carrega a home sem erro. — `https://ai-dm-web.vercel.app` (verificado 2026-07-21).
+- [x] O build resolve `@ai-dm/shared` (workspace) — nenhuma falha de módulo não encontrado. — `vercel.json` builda o pacote antes do `next build` (commit `18f8eb6`).
+- [x] `NEXT_PUBLIC_API_URL` aponta para a API do Render; as chamadas de [api.ts](../../apps/web/src/lib/api.ts) atingem a API pública (não `localhost`). — `https://ai-dm-api.onrender.com`; sistemas carregam no `/setup`.
+- [x] Um turno completo funciona no site público: ação enviada, narração chega em **streaming** pelo proxy `/api/chat`. — verificado 2026-07-21 contra `https://ai-dm-web.vercel.app/api/chat`.
+- [x] O CORS da API aceita o domínio da Vercel (par `FRONTEND_URL` ↔ `NEXT_PUBLIC_API_URL` fechado). — verificado: sistemas carregam cross-origin sem erro de CORS; par fechado.
+- [x] **Regressão:** o proxy SSE entrega os tokens incrementalmente (não em bloco no fim). — verificado 2026-07-21: frames `0:"…"` chegam ~150 ms cada pelo proxy (timestamps por linha). **Exigiu fix** — ver D3 abaixo.
 
 ---
 
@@ -74,7 +74,8 @@ Subir o `apps/web` na Vercel (Hobby), com `NEXT_PUBLIC_API_URL` apontando para a
 
 ## Decisões (resolvidas)
 
-- **D1 — Node runtime, explícito, na rota `/api/chat`.** Declarar `export const runtime = 'nodejs'` e `export const dynamic = 'force-dynamic'` em [route.ts](../../apps/web/src/app/api/chat/route.ts). Motivos: (a) é o comportamento que já roda em `localhost`, menos surpresa dev↔prod; (b) o Node runtime do Next 15 faz stream de `upstream.body` (`ReadableStream`) sem bufferizar; (c) `force-dynamic` impede qualquer coleta estática que segure o corpo; (d) o Node serverless tem folga de tempo maior que o Edge no Hobby para **esperar o upstream (Render) acordar** do cold start. O inimigo do SSE é bufferização, não o runtime — passar `upstream.body` intacto preserva o fluxo. Validação: `curl -N` contra a rota pública; tokens pingando aos poucos = OK.
+- **D1 — Node runtime, explícito, na rota `/api/chat`.** Declarar `export const runtime = 'nodejs'` e `export const dynamic = 'force-dynamic'` em [route.ts](../../apps/web/src/app/api/chat/route.ts). Motivos: (a) é o comportamento que já roda em `localhost`, menos surpresa dev↔prod; (b) o Node runtime do Next 15 faz stream de `upstream.body` (`ReadableStream`); (c) `force-dynamic` impede qualquer coleta estática que segure o corpo; (d) o Node serverless tem folga de tempo maior que o Edge no Hobby para **esperar o upstream (Render) acordar** do cold start. **Implementado + deployado** (commit `14784ac`, 2026-07-21).
+- **D3 — `maxDuration=60` + anti-buffer eram obrigatórios, não opcionais.** A primeira tentativa (só `runtime`/`dynamic`) **não bastou**: no ar, o proxy bufferizava e a função Hobby morria em ~19 s **sem enviar um byte** (`http_code=000`), exatamente a regressão que este documento previu. O fix que fez o SSE fluir: `export const maxDuration = 60` (Hobby corta em 10 s por padrão; a narração streama por dezenas de segundos), header `X-Accel-Buffering: no` (desliga buffer em proxies intermediários) e `Cache-Control: no-transform`, além de propagar `status: upstream.status`. Verificado ao vivo: tokens incrementais pelo proxy. **Lição:** streaming SSE na Vercel Hobby exige `maxDuration` explícito — o teto de 10 s mata qualquer narração longa antes de aparecer.
 - **D2 — Sem health check na home; warm-up nas telas anteriores ao turno.** Rejeitado o ping na home: acordaria o dyno cedo demais (Render redorme após ~15 min, o ganho evapora se o jogador demora) e gastaria compute Free à toa em cada visita/bot/refresh. O aquecimento fica na **entrada da mesa** (US-57) e, por ora, também na **criação e na seleção de personagem** ([US-61](./US-61-login-do-jogador.md)) — pontos que já tocam o banco e ficam logo antes do primeiro turno. Regra: aquecer o mais tarde possível **antes** da primeira ação real, não na porta de entrada.
 
 _Nenhuma questão em aberto remanescente._

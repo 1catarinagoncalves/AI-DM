@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
 import { api } from '@/lib/api'
-import { loadSession, saveSession } from '@/lib/session'
 
 type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'background' | 'review'
 const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'background', 'review']
@@ -32,10 +31,6 @@ const SOURCE_TYPE_HINT: Record<string, string> = {
   UPLOAD: 'Sistema customizado enviado por um usuário',
 }
 
-function randomGuestId() {
-  return `guest_${Math.random().toString(36).slice(2, 10)}@aidm.local`
-}
-
 // US-40: campo único "Divindade/Patrono" → {name, portfolio}. Split na PRIMEIRA
 // vírgula: antes = name, depois (trim) = portfolio. Sem vírgula → só name.
 // Vazio → undefined (sem objeto). Vírgulas seguintes ficam dentro do portfolio.
@@ -56,8 +51,6 @@ export function SetupWizard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const [userId, setUserId] = useState('')
-
   const [systems, setSystems] = useState<SystemOption[]>([])
   const [systemsError, setSystemsError] = useState(false)
   const [system, setSystem] = useState<SystemOption | null>(null)
@@ -77,16 +70,8 @@ export function SetupWizard() {
   const [starting, setStarting] = useState(false)
 
   useEffect(() => {
-    const session = loadSession()
-    if (session?.userId) {
-      setUserId(session.userId)
-    } else {
-      const email = randomGuestId()
-      api.createUser(email, 'Jogador').then(user => {
-        setUserId(user.id)
-        saveSession({ userId: user.id, characterId: '', characterName: '', adventureId: '' })
-      })
-    }
+    // US-61: a identidade vem do login (token); o wizard só carrega o catálogo.
+    // O toque cedo no banco (listSystems) segue servindo de warm-up (US-57).
     api.listSystems().then(setSystems).catch(() => setSystemsError(true))
   }, [])
 
@@ -144,9 +129,9 @@ export function SetupWizard() {
       // US-39: uma linha por item em ideais/vínculos/fraquezas; vazios descartados (o backend também normaliza).
       const lines = (s: string) => s.split('\n').map(t => t.trim()).filter(Boolean)
       const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
-      const char = await api.createCharacter({ userId, systemId: system.id, ...charData, attributes: attrs, skills, background })
+      // US-61: `userId` não vai no corpo — a API deriva o dono do token.
+      const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
-      saveSession({ userId, characterId: char.id, characterName: charData.name, adventureId: '' })
       setCharId(char.id)
       loadHook(char.id)
     } catch { setError('Erro ao criar personagem. Tenta novamente.') }
@@ -163,7 +148,6 @@ export function SetupWizard() {
     setStarting(true); setError('')
     try {
       const adv = await api.createAdventure(charId, hook.id)
-      saveSession({ userId, characterId: charId, characterName: charData.name, adventureId: adv.id })
       router.push(`/play/${adv.id}?characterId=${charId}`)
     } catch { setError('Erro ao iniciar a aventura. Tenta novamente.'); setStarting(false) }
   }
@@ -476,7 +460,7 @@ export function SetupWizard() {
               ← Voltar
             </button>
             {step === 'review' ? (
-              <button type="button" onClick={handleConfirm} disabled={loading || !userId}
+              <button type="button" onClick={handleConfirm} disabled={loading}
                 className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
                 {loading ? 'A criar...' : 'Confirmar personagem'}
               </button>

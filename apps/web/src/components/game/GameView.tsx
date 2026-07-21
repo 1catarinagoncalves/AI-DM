@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { abilityModifier, formatModifier, stripFabricatedRolls, formatDiceBreakdown, spellLevelLabel } from '@ai-dm/shared'
+import { abilityModifier, formatModifier, stripFabricatedRolls, stripWorldStateTags, formatDiceBreakdown, spellLevelLabel } from '@ai-dm/shared'
 import type { ChatTurn, RollTurn, SystemSpell } from '@ai-dm/shared'
-import { loadSession, saveSession } from '@/lib/session'
 import { api } from '@/lib/api'
 
 // US-29: um turno é ação do jogador, narração do Mestre OU um bloco de rolagem.
@@ -243,13 +242,6 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   }, [warming])
 
   useEffect(() => {
-    const session = loadSession()
-    if (session) {
-      saveSession({ ...session, adventureId, characterId, characterName })
-    }
-  }, [adventureId, characterId, characterName])
-
-  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
@@ -326,9 +318,14 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           .replace(/\\"/g, '"')
           .replace(/\\\\/g, '\\')
         dmText += token
+        // Rede de segurança no stream ao vivo: esconde qualquer tag de estado
+        // (`[WORLD_STATE_UPDATE:...]`) que o modelo cuspa na prosa apesar do prompt.
+        // Trata o tag ainda ABERTO (o `]` não chegou neste chunk), então nunca
+        // pisca na tela. `dmText` cru continua acumulando; só a bolha é saneada.
+        const shownDm = stripWorldStateTags(dmText).clean
         setMessages(prev => {
           const next = [...prev]
-          next[next.length - 1] = { role: 'dm', content: dmText }
+          next[next.length - 1] = { role: 'dm', content: shownDm }
           return next
         })
       }
@@ -354,7 +351,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
       // US-29: sanea a narração final (remove qualquer resultado de rolagem que
       // o modelo tenha escrito na prosa apesar do prompt). O número real está
       // no bloco de rolagem acima; a prosa só o interpreta.
-      const cleanDm = stripFabricatedRolls(dmText).clean
+      const cleanDm = stripWorldStateTags(stripFabricatedRolls(dmText).clean).clean
       const finalMessages: Message[] = [...withUser, ...rollTurns, { role: 'dm', content: cleanDm }]
       setMessages(finalMessages)
       saveHistory(adventureId, finalMessages)

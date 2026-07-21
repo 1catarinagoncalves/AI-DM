@@ -18,6 +18,8 @@ function fakeRes() {
 // Simula o fullStream do AI SDK a partir de uma lista de parts.
 function fakeAiService(parts: unknown[]): AiService {
   return {
+    // US-61: posse validada antes do stream; no teste o dono confere.
+    assertCharacterOwner: async () => {},
     streamChat: async () => ({
       result: { fullStream: (async function* () { for (const p of parts) yield p })() },
       hasFallback: false,
@@ -34,7 +36,7 @@ describe('AiController.chat — canal de estado da ficha (US-19)', () => {
     const controller = new AiController(fakeAiService(parts))
     const { res, writes } = fakeRes()
 
-    await controller.chat({ adventureId: 'a1', characterId: 'c1', message: 'ataco' }, res)
+    await controller.chat({ adventureId: 'a1', characterId: 'c1', message: 'ataco' }, res, { userId: 'u1' })
 
     // O HP mostrado ao cliente é exatamente o hp persistido retornado pela tool.
     expect(writes).toContain('H:' + JSON.stringify({ hp: 6, maxHp: 12 }) + '\n')

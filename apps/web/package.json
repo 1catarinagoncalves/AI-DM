@@ -12,7 +12,9 @@
     "@ai-dm/shared": "workspace:*",
     "@ai-sdk/react": "^1.2.12",
     "ai": "^4.3.16",
+    "jose": "^5.9.6",
     "next": "^15.3.3",
+    "next-auth": "5.0.0-beta.29",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tailwindcss": "^4.1.10"

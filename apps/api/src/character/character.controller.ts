@@ -1,18 +1,21 @@
-import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common'
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, ForbiddenException } from '@nestjs/common'
+import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { CharacterService } from './character.service'
 import { CreateCharacterSchema } from './character.schema'
 import { zodBody } from '../openapi'
+import { AuthGuard } from '../auth/auth.guard'
+import { CurrentUser, type AuthUser } from '../auth/current-user.decorator'
 
 @ApiTags('Personagens')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('characters')
 export class CharacterController {
   constructor(private readonly characterService: CharacterService) {}
 
-  @ApiOperation({ summary: 'Cria uma ficha de personagem para um utilizador num dado sistema. Os atributos são validados contra a config do sistema.' })
+  @ApiOperation({ summary: 'Cria uma ficha de personagem para o utilizador autenticado. O dono vem do token (US-61), não do corpo.' })
   @ApiBody({
     schema: zodBody(CreateCharacterSchema, {
-      userId: 'user_123',
       systemId: 'dnd5e',
       name: 'Thorin',
       gender: 'Masculino',
@@ -23,26 +26,42 @@ export class CharacterController {
     }),
   })
   @Post()
-  create(@Body() body: unknown) {
-    const dto = CreateCharacterSchema.parse(body)
+  create(@Body() body: unknown, @CurrentUser() user: AuthUser) {
+    // US-61: o `userId` é forçado a partir do token — qualquer `userId` no corpo é ignorado.
+    const dto = CreateCharacterSchema.parse({ ...(body as object), userId: this.requireUserId(user) })
     return this.characterService.create(dto)
   }
 
-  @ApiOperation({ summary: 'Lista todas as fichas de personagem de um utilizador.' })
-  @Get('user/:userId')
-  findByUser(@Param('userId') userId: string) {
-    return this.characterService.findAllByUser(userId)
+  @ApiOperation({ summary: 'Lista as fichas do utilizador autenticado (derivado do token).' })
+  @Get('mine')
+  findMine(@CurrentUser() user: AuthUser) {
+    return this.characterService.findAllByUser(this.requireUserId(user))
   }
 
-  @ApiOperation({ summary: 'Devolve o estado completo de uma ficha (atributos, HP, inventário) pelo seu id.' })
+  @ApiOperation({ summary: 'Devolve o estado completo de uma ficha do próprio utilizador. Ficha de outro dono → 403.' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.characterService.findOne(id)
+  async findOne(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    const character = await this.characterService.findOne(id)
+    this.assertOwner(character.userId, user)
+    return character
   }
 
-  @ApiOperation({ summary: 'Apaga a ficha, as aventuras dela e todos os dependentes numa transação. Id inexistente devolve 404.' })
+  @ApiOperation({ summary: 'Apaga a ficha (e dependentes) do próprio utilizador. Ficha de outro dono → 403.' })
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    const character = await this.characterService.findOne(id)
+    this.assertOwner(character.userId, user)
     return this.characterService.remove(id)
+  }
+
+  private requireUserId(user: AuthUser): string {
+    if (!user.userId) throw new ForbiddenException('Token sem identidade de utilizador')
+    return user.userId
+  }
+
+  private assertOwner(ownerId: string, user: AuthUser) {
+    if (this.requireUserId(user) !== ownerId) {
+      throw new ForbiddenException('Este personagem não pertence ao utilizador autenticado')
+    }
   }
 }

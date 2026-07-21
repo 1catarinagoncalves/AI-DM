@@ -3,7 +3,6 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 
 const { getTurns } = vi.hoisted(() => ({ getTurns: vi.fn() }))
 vi.mock('@/lib/api', () => ({ api: { getTurns } }))
-vi.mock('@/lib/session', () => ({ loadSession: () => null, saveSession: vi.fn() }))
 
 import { GameView } from './GameView'
 

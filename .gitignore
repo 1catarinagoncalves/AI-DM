@@ -12,3 +12,6 @@ scripts/srd/_data/
 
 # Prisma 7: client gerado pelo `prisma generate` (output obrigatório no generator)
 apps/api/src/generated/
+
+.vercel
+.env*

@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig } from '@ai-dm/shared'
-import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
+import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -70,6 +70,21 @@ export class AiService {
    * com a narração, apenas quando o turno produz texto. Assim uma tentativa de
    * fallback não duplica a ação no histórico nem reconstrói a janela errada.
    */
+  /**
+   * US-61: confirma que o personagem pertence ao utilizador autenticado antes de
+   * o Mestre agir sobre a ficha. Inexistente → 404; dono diferente → 403.
+   */
+  async assertCharacterOwner(characterId: string, userId: string): Promise<void> {
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+      select: { userId: true },
+    })
+    if (!character) throw new NotFoundException(`Character ${characterId} not found`)
+    if (character.userId !== userId) {
+      throw new ForbiddenException('Este personagem não pertence ao utilizador autenticado')
+    }
+  }
+
   async streamChat(input: ChatInput, attempt = 0, rollState?: RollTurnState) {
     const { adventureId, characterId, message } = input
 
@@ -456,9 +471,17 @@ export class AiService {
         // rolagem inventado pelo modelo ANTES de persistir. O número real vive
         // só no bloco de rolagem (evento DICE_ROLL), nunca na prosa. Assim o
         // histórico e o resumo (US-18) nunca realimentam a alucinação.
-        const { clean: finalText, removed } = stripFabricatedRolls(withoutReasoning)
+        const { clean: withoutRolls, removed } = stripFabricatedRolls(withoutReasoning)
         if (removed.length > 0) {
           console.warn(`[AiService] saneador removeu ${removed.length} rolagem(ns) fictícia(s) da narração:`, removed)
+        }
+        // Rede de segurança — remove tags de control-plane (`[WORLD_STATE_UPDATE:...]`)
+        // que o modelo tenha cravado na prosa apesar do prompt. É sink legado que
+        // nada lê; mudança de estado é só via tool. Sem isto o tag entra no
+        // histórico/resumo e realimenta o vazamento nos próximos turnos.
+        const { clean: finalText, removed: stateTags } = stripWorldStateTags(withoutRolls)
+        if (stateTags.length > 0) {
+          console.warn(`[AiService] saneador removeu ${stateTags.length} tag(s) de estado vazada(s) da narração:`, stateTags)
         }
         // Só registra o turno (ação + narração) quando ele de fato produziu
         // narração. Uma tentativa que falhou antes de emitir texto não grava

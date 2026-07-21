@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { apiAuthHeader } from '@/lib/server-auth'
 
 // US-60 (D1): Node runtime + sem coleta estática — garante streaming SSE do proxy
 // sem bufferizar e dá folga de tempo para o upstream (Render) acordar do cold start.
@@ -13,9 +14,10 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 export async function POST(req: NextRequest) {
   const { adventureId, characterId, message } = await req.json()
 
+  // US-61: propaga o token da sessão para a API (que deriva o dono e valida a posse).
   const upstream = await fetch(`${API}/api/v1/ai/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await apiAuthHeader()) },
     body: JSON.stringify({ adventureId, characterId, message }),
   })
 

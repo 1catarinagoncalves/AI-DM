@@ -2,10 +2,23 @@ import type { InitialAdventureHook, SystemConfig, ChatTurn } from '@ai-dm/shared
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
+// US-61: token HS256 emitido pelo Auth.js e injetado pela ponte de sessão
+// (AuthTokenBridge) antes de qualquer chamada. A API deriva o `userId` deste
+// token — o `userId` deixou de viajar no corpo. Chamadas no cliente anexam-no
+// como `Authorization: Bearer`.
+let authToken: string | undefined
+export function setAuthToken(token?: string) {
+  authToken = token
+}
+
+function authHeaders(base: Record<string, string> = {}): Record<string, string> {
+  return authToken ? { ...base, Authorization: `Bearer ${authToken}` } : base
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${BASE}/api/v1${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(await res.text())
@@ -13,22 +26,19 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}/api/v1${path}`)
+  const res = await fetch(`${BASE}/api/v1${path}`, { headers: authHeaders() })
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
 async function del(path: string): Promise<void> {
-  const res = await fetch(`${BASE}/api/v1${path}`, { method: 'DELETE' })
+  const res = await fetch(`${BASE}/api/v1${path}`, { method: 'DELETE', headers: authHeaders() })
   if (!res.ok) throw new Error(await res.text())
 }
 
 export const api = {
-  createUser: (email: string, name: string) =>
-    post<{ id: string; name: string }>('/users', { email, name }),
-
   createCharacter: (data: {
-    userId: string; systemId: string; name: string; gender: string; race: string; class: string
+    systemId: string; name: string; gender: string; race: string; class: string
     attributes: Record<string, number>
     skills?: string[]
     background?: { story?: string; ideals?: string[]; bonds?: string[]; flaws?: string[]; deity?: { name: string; portfolio?: string } }
@@ -43,8 +53,9 @@ export const api = {
   createAdventure: (characterId: string, initialHookId: string) =>
     post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, { initialHookId }),
 
-  listCharacters: (userId: string) =>
-    get<{ id: string; name: string; race: string; class: string; level: number; currentAdventure: { id: string; title: string } | null }[]>(`/characters/user/${userId}`),
+  // US-61: as fichas do próprio utilizador, derivadas do token (sem userId no caminho).
+  listCharacters: () =>
+    get<{ id: string; name: string; race: string; class: string; level: number; currentAdventure: { id: string; title: string } | null }[]>(`/characters/mine`),
 
   getCharacter: (id: string) =>
     get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; features: { name: string; description: string }[]; spells: { name: string; level?: number; description?: string }[]; states: { hp: number; maxHp: number; inventory: { name: string; qty: number }[] }[] }>(`/characters/${id}`),

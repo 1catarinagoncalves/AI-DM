@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
-import { loadSession, saveSession } from '@/lib/session'
 
 type HubCharacter = Awaited<ReturnType<typeof api.listCharacters>>[number]
 
@@ -23,19 +22,17 @@ const emptyState = (
 )
 
 export function HomeHero() {
-  // userId do localStorage é só atalho — o branch vazio/preenchido vem da API.
-  const [userId, setUserId] = useState<string | null>(null)
+  // US-61: a lista vem da conta autenticada (token) — sem userId no cliente.
   const [characters, setCharacters] = useState<HubCharacter[] | null>(null)
   const [focus, setFocus] = useState(0)
   const [showAll, setShowAll] = useState(false)
   const [error, setError] = useState(false)
   const [deleteError, setDeleteError] = useState(false)
-  const [ready, setReady] = useState(false)
 
-  function fetchCharacters(uid: string) {
+  function fetchCharacters() {
     setError(false)
     setCharacters(null)
-    api.listCharacters(uid)
+    api.listCharacters()
       .then((list) => { setCharacters(list); setFocus(0) })
       .catch(() => setError(true))
   }
@@ -52,30 +49,13 @@ export function HomeHero() {
         setCharacters(next)
         // Re-foca: se o em foco foi apagado, cai no topo (último jogado); senão segue nele.
         setFocus(focusedId === c.id ? 0 : Math.max(0, next.findIndex((x) => x.id === focusedId)))
-        // A sessão guarda onde a pessoa estava jogando. Se era este personagem, não
-        // está mais em lugar nenhum: zera os campos em vez de deixar id morto apontado.
-        // userId fica — é a identidade do dono da lista, não do personagem.
-        const session = loadSession()
-        if (session?.characterId === c.id) {
-          saveSession({ userId: session.userId, characterId: '', characterName: '', adventureId: '' })
-        }
       })
       .catch(() => setDeleteError(true))
   }
 
   useEffect(() => {
-    const session = loadSession()
-    if (session?.userId) {
-      setUserId(session.userId)
-      fetchCharacters(session.userId)
-    }
-    setReady(true)
+    fetchCharacters()
   }, [])
-
-  if (!ready) return null
-
-  // Sem userId (visitante novo, nunca criou usuário) → estado vazio direto.
-  if (!userId) return emptyState
 
   if (error) {
     return (
@@ -84,7 +64,7 @@ export function HomeHero() {
         <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
         <p className="text-stone-600 dark:text-stone-400 mb-8">Não foi possível carregar seus personagens.</p>
         <button
-          onClick={() => fetchCharacters(userId)}
+          onClick={() => fetchCharacters()}
           className="inline-block bg-amber-600 hover:bg-amber-500 text-white font-semibold px-8 py-3 rounded-lg text-lg transition-colors"
         >
           Tentar de novo

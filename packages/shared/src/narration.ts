@@ -62,6 +62,44 @@ export function stripFabricatedRolls(text: string): { clean: string; removed: st
 }
 
 /**
+ * Rede de segurança determinística nº 1b: tags de control-plane vazadas na prosa.
+ *
+ * Contrato: mudança de estado viaja por TOOL CALL (`updateScene`/`updateInventory`/
+ * `updateCharacterHp`), nunca pelo texto. O tag `[WORLD_STATE_UPDATE: {...}]` é um
+ * sink LEGADO que nenhum código lê — se o modelo o emite (a prompt já proíbe), ele
+ * não atualiza nada e vaza como texto quebrado pro jogador. Aqui ele é removido.
+ *
+ * Cobre duas formas: o tag FECHADO (`[WORLD_STATE_UPDATE: {...}]`) e o tag ABERTO
+ * no fim do texto — durante o stream ao vivo o `]` de fechamento ainda não chegou,
+ * então um `[WORLD_STATE_UPDATE:` pendente no fim também é cortado, para nunca piscar
+ * na tela. O terminador do tag fechado é `}` seguido de `]` (não um `]` qualquer):
+ * o payload é JSON e contém `]` de arrays (`["Tomas"]`), então um `*?` até o primeiro
+ * `]` pararia cedo. Escopo estreito de propósito: só este token literal, para não
+ * comer colchetes legítimos ("[1]", uma nota, um item entre colchetes na prosa).
+ */
+const WORLD_STATE_TAG_CLOSED = /\[WORLD_STATE_UPDATE:[\s\S]*?\}\s*\]/gi
+const WORLD_STATE_TAG_OPEN = /\[WORLD_STATE_UPDATE:[\s\S]*$/i
+
+export function stripWorldStateTags(text: string): { clean: string; removed: string[] } {
+  const removed: string[] = []
+  let clean = text.replace(WORLD_STATE_TAG_CLOSED, (m) => {
+    removed.push(m.trim())
+    return ''
+  })
+  clean = clean.replace(WORLD_STATE_TAG_OPEN, (m) => {
+    removed.push(m.trim())
+    return ''
+  })
+  if (removed.length === 0) return { clean: text, removed }
+  clean = clean
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return { clean, removed }
+}
+
+/**
  * Rede de segurança determinística nº 2: canais de raciocínio na prosa.
  *
  * Modelos de raciocínio (gpt-oss, qwen, deepseek) separam o pensamento da

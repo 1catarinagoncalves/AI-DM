@@ -1,19 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 
-const { listSystems, createCharacter, createUser, getInitialAdventure, createAdventure } = vi.hoisted(() => ({
+const { listSystems, createCharacter, getInitialAdventure, createAdventure } = vi.hoisted(() => ({
   listSystems: vi.fn(),
   createCharacter: vi.fn(),
-  createUser: vi.fn(),
   getInitialAdventure: vi.fn(),
   createAdventure: vi.fn(),
 }))
-vi.mock('@/lib/api', () => ({ api: { listSystems, createCharacter, createUser, getInitialAdventure, createAdventure } }))
+vi.mock('@/lib/api', () => ({ api: { listSystems, createCharacter, getInitialAdventure, createAdventure } }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
-vi.mock('@/lib/session', () => ({
-  loadSession: () => ({ userId: 'u1' }),
-  saveSession: vi.fn(),
-}))
 
 import { SetupWizard } from './SetupWizard'
 

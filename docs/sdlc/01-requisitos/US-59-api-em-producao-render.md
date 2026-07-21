@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (custo zero) — [ADR 006](../../adr/006-deploy-custo-zero.md)
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-58](./US-58-banco-postgres-neon.md) (banco pronto + `DATABASE_URL`) · [ADR 006](../../adr/006-deploy-custo-zero.md) (D2: host de processo persistente; D5: `migrate deploy` no release)
 **Criada em:** 2026-07-19
 
@@ -61,10 +61,10 @@ Subir o `apps/api` como **Web Service no Render** (plano Free): build do monorep
 - [x] A API está pública numa URL do Render (Web Service Free) e responde `GET /api/v1/systems` com os sistemas semeados (US-58). — verificado 2026-07-20: `https://ai-dm-api.onrender.com/api/v1/systems` → HTTP 200, `system-dnd5e` (SRD 5.2).
 - [x] O build compila `packages/*` + `prisma generate` + `nest build`; o start é `node dist/main` e escuta na `PORT` injetada. — deploy `Deployed` no Render.
 - [x] O deploy roda `prisma migrate deploy` no release; um deploy com migração pendente aplica-a sem passo manual. — `/systems` devolve dados semeados ⇒ schema migrado + seed presentes na Neon.
-- [ ] O CORS aceita **apenas** o domínio de `FRONTEND_URL`; requisição de outra origem é bloqueada. — pendente (falta domínio real da US-60; hoje `FRONTEND_URL` provisório).
-- [ ] `POST /api/v1/ai/chat` entrega a narração em **streaming SSE** (tokens chegam incrementalmente), sem corte por teto de execução. — pendente de teste vivo.
+- [x] O CORS aceita **apenas** o domínio de `FRONTEND_URL`; requisição de outra origem é bloqueada. — verificado 2026-07-21: preflight com `Origin: https://ai-dm-web.vercel.app` devolve `access-control-allow-origin` casado; com `Origin: https://evil.example.com` devolve o mesmo domínio permitido (≠ da origem) ⇒ browser bloqueia. `FRONTEND_URL` = domínio real da US-60.
+- [x] `POST /api/v1/ai/chat` entrega a narração em **streaming SSE** (tokens chegam incrementalmente), sem corte por teto de execução. — verificado 2026-07-21: frames `0:"…"` chegam a cada ~120 ms (timestamps por linha), 189 frames num turno completo.
 - [x] As chaves de LLM de runtime existem só no serviço do Render; o repo não as contém. — `sync: false` no `render.yaml`; preenchidas no dashboard.
-- [ ] **Regressão:** um turno completo (ação → rolagem → narração → HP/inventário) funciona ponta a ponta contra a Neon, com os mesmos frames SSE (`0:`/`D:`/`H:`/`I:`/`R`) que o cliente já consome.
+- [x] **Regressão:** um turno completo (ação → rolagem → narração → HP/inventário) funciona ponta a ponta contra a Neon. — verificado 2026-07-21: aventura de teste gravou na Neon `ACTION` + `NARRATION` + `DICE_ROLL` (EventLog), confirmando ação→rolagem→narração persistidos.
 
 ---
 

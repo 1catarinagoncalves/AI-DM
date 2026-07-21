@@ -1,9 +1,11 @@
-import { Controller, Post, Body, Res, HttpCode } from '@nestjs/common'
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Controller, Post, Body, Res, HttpCode, UseGuards, ForbiddenException } from '@nestjs/common'
+import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { Response } from 'express'
 import { z } from 'zod'
 import { AiService, type RollTurnState } from './ai.service'
 import { zodBody } from '../openapi'
+import { AuthGuard } from '../auth/auth.guard'
+import { CurrentUser, type AuthUser } from '../auth/current-user.decorator'
 
 const ChatBodySchema = z.object({
   adventureId: z.string().min(1),
@@ -12,6 +14,8 @@ const ChatBodySchema = z.object({
 })
 
 @ApiTags('Mestre (IA)')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('ai')
 export class AiController {
   constructor(private readonly aiService: AiService) {}
@@ -26,8 +30,13 @@ export class AiController {
   })
   @Post('chat')
   @HttpCode(200)
-  async chat(@Body() body: unknown, @Res() res: Response) {
+  async chat(@Body() body: unknown, @Res() res: Response, @CurrentUser() user: AuthUser) {
     const { adventureId, characterId, message } = ChatBodySchema.parse(body)
+
+    // US-61: valida a posse ANTES de abrir o SSE — 403 sai limpo (sem headers de
+    // stream). Enviar o characterId de outro dono não dá acesso à ficha alheia.
+    if (!user.userId) throw new ForbiddenException('Token sem identidade de utilizador')
+    await this.aiService.assertCharacterOwner(characterId, user.userId)
 
     res.setHeader('Content-Type', 'text/event-stream')
     res.setHeader('Cache-Control', 'no-cache')
