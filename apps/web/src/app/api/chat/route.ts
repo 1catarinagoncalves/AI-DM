@@ -12,13 +12,14 @@ export const maxDuration = 60
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
 export async function POST(req: NextRequest) {
-  const { adventureId, characterId, message } = await req.json()
+  const { adventureId, characterId, message, edit } = await req.json()
 
   // US-61: propaga o token da sessão para a API (que deriva o dono e valida a posse).
+  // US-67: `edit` sinaliza uma regeneração do último turno (edição da ação).
   const upstream = await fetch(`${API}/api/v1/ai/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...(await apiAuthHeader()) },
-    body: JSON.stringify({ adventureId, characterId, message }),
+    body: JSON.stringify({ adventureId, characterId, message, edit }),
   })
 
   return new Response(upstream.body, {

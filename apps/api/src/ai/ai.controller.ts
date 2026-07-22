@@ -3,6 +3,7 @@ import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { Response } from 'express'
 import { z } from 'zod'
 import { AiService, type RollTurnState } from './ai.service'
+import type { EventLog } from '../generated/prisma/client'
 import { zodBody } from '../openapi'
 import { AuthGuard } from '../auth/auth.guard'
 import { CurrentUser, type AuthUser } from '../auth/current-user.decorator'
@@ -11,6 +12,8 @@ const ChatBodySchema = z.object({
   adventureId: z.string().min(1),
   characterId: z.string().min(1),
   message: z.string().min(1).max(1000),
+  // US-67: turno de edição — limpa o rastro do último turno antes de re-executar.
+  edit: z.boolean().optional(),
 })
 
 @ApiTags('Mestre (IA)')
@@ -31,12 +34,21 @@ export class AiController {
   @Post('chat')
   @HttpCode(200)
   async chat(@Body() body: unknown, @Res() res: Response, @CurrentUser() user: AuthUser) {
-    const { adventureId, characterId, message } = ChatBodySchema.parse(body)
+    const { adventureId, characterId, message, edit } = ChatBodySchema.parse(body)
 
     // US-61: valida a posse ANTES de abrir o SSE — 403 sai limpo (sem headers de
     // stream). Enviar o characterId de outro dono não dá acesso à ficha alheia.
     if (!user.userId) throw new ForbiddenException('Token sem identidade de utilizador')
     await this.aiService.assertCharacterOwner(characterId, user.userId)
+
+    // US-67: numa edição, limpa o rastro do último turno ANTES dos headers SSE —
+    // um turno não editável (resumido / mutou estado) rejeita aqui com 400/403
+    // limpo, e a narração antiga não volta como contexto da regeneração. Guardamos
+    // os eventos para restaurar se a regeneração não produzir narração nenhuma.
+    let clearedTurn: EventLog[] = []
+    if (edit) {
+      clearedTurn = await this.aiService.clearLastTurnForEdit(adventureId, characterId)
+    }
 
     res.setHeader('Content-Type', 'text/event-stream')
     res.setHeader('Cache-Control', 'no-cache')
@@ -148,6 +160,14 @@ export class AiController {
         continue // tenta o próximo provedor
       }
       break
+    }
+
+    // US-67: se a regeneração da edição não produziu narração nenhuma (todos os
+    // modelos caíram), restaura o turno original — a aventura nunca fica com a ação
+    // apagada e sem resposta. O turno editável em si é decidido pelo servidor no
+    // getTurns (o cliente recarrega o histórico ao fim do turno).
+    if (edit && !emittedAnyText && clearedTurn.length > 0) {
+      await this.aiService.restoreClearedTurn(clearedTurn)
     }
 
     res.end()

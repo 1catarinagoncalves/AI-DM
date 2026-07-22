@@ -210,6 +210,9 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   // sempre visível (o `md:flex` ignora este estado).
   const [sheetOpen, setSheetOpen] = useState(false)
   const [input, setInput] = useState('')
+  // US-67: modo edição da última ação. Reusa o mesmo textarea e o mesmo fluxo de
+  // streaming — ao confirmar, chama /api/chat com `edit: true` (regenera o turno).
+  const [editing, setEditing] = useState(false)
   const [streaming, setStreaming] = useState(false)
   // Warm-up: no free tier o processo do api (Render) e a compute do Postgres (Neon)
   // suspendem por ociosidade. O primeiro fetch do mount (getTurns) acorda os dois —
@@ -249,6 +252,31 @@ export function GameView({ adventureId, characterId, characterName, characterCla
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // US-67: início da edição — devolve o texto da última ação ao textarea e entra
+  // em modo edição. Bloqueado enquanto o Mestre responde/acorda (igual ao enviar).
+  function startEdit() {
+    if (streaming || warming) return
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user')
+    if (!lastUser || lastUser.role !== 'user') return
+    setInput(lastUser.content)
+    setEditing(true)
+    textareaRef.current?.focus()
+  }
+
+  // US-67: cancela a edição sem tocar no histórico — esvazia o campo e sai do modo.
+  function cancelEdit() {
+    setEditing(false)
+    setInput('')
+    textareaRef.current?.focus()
+  }
+
+  // US-67: remove o último turno (ação + rolagens + narração) da lista local,
+  // espelhando o que o servidor apaga antes de regenerar.
+  function stripLastTurn(msgs: Message[]): Message[] {
+    const lastUserIdx = msgs.map((m) => m.role).lastIndexOf('user')
+    return lastUserIdx === -1 ? msgs : msgs.slice(0, lastUserIdx)
+  }
+
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault()
     if (!input.trim() || streaming || warming) return
@@ -256,7 +284,13 @@ export function GameView({ adventureId, characterId, characterName, characterCla
     const userMessage = input.trim()
     setInput('')
 
-    const withUser: Message[] = [...messages, { role: 'user', content: userMessage }]
+    // US-67: ao editar, a base é o histórico SEM o último turno (a regeneração
+    // substitui-o); num turno normal, a base é o histórico completo.
+    const isEdit = editing
+    setEditing(false)
+    const base = isEdit ? stripLastTurn(messages) : messages
+
+    const withUser: Message[] = [...base, { role: 'user', content: userMessage }]
     setMessages(withUser)
     setStreaming(true)
 
@@ -271,7 +305,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adventureId, characterId, message: userMessage }),
+        body: JSON.stringify({ adventureId, characterId, message: userMessage, edit: isEdit }),
       })
 
       const reader = res.body!.getReader()
@@ -356,9 +390,19 @@ export function GameView({ adventureId, characterId, characterName, characterCla
       // o modelo tenha escrito na prosa apesar do prompt). O número real está
       // no bloco de rolagem acima; a prosa só o interpreta.
       const cleanDm = stripWorldStateTags(stripFabricatedRolls(dmText).clean).clean
-      const finalMessages: Message[] = [...withUser, ...rollTurns, { role: 'dm', content: cleanDm }]
+      const finalMessages: Message[] = [...base, { role: 'user', content: userMessage }, ...rollTurns, { role: 'dm', content: cleanDm }]
       setMessages(finalMessages)
       saveHistory(adventureId, finalMessages)
+
+      // US-67: reconcilia com a fonte de verdade (US-18). Só o servidor sabe se o
+      // turno é editável (não-resumido e sem CHARACTER_UPDATE), então recarregamos
+      // o histórico autoritativo — é ele que liga o botão de editar da última ação.
+      // Falha aqui mantém a reconstrução local (sem editar, mas sem perder o turno).
+      try {
+        const authoritative = await api.getTurns(characterId, adventureId)
+        setMessages(authoritative)
+        saveHistory(adventureId, authoritative)
+      } catch { /* mantém a reconstrução local */ }
 
     } catch {
       const errorMessages: Message[] = [...withUser, { role: 'dm', content: 'Erro ao conectar com o Mestre. Tenta novamente.' }]
@@ -379,6 +423,10 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
   const hpPercent = Math.max(0, (currentHp / maxHp) * 100)
   const hpColor = hpPercent > 60 ? 'bg-green-500' : hpPercent > 30 ? 'bg-yellow-500' : 'bg-red-500'
+
+  // US-67: só a ÚLTIMA ação do jogador é editável — o índice ancora o botão de
+  // editar (e o esmaecimento do turno em edição) a essa bolha, nunca às anteriores.
+  const lastUserIndex = messages.map((m) => m.role).lastIndexOf('user')
 
   return (
     // US-66: altura travada em `h-dvh` (acompanha a URL bar móvel) + overflow-hidden;
@@ -601,12 +649,29 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                 </div>
               )
             }
+            // US-67: só a última ação do jogador expõe o botão de editar — e apenas
+            // quando o servidor a marcou editável (turno não-resumido e sem mutação de
+            // estado). Escondido durante streaming/warming e durante a própria edição.
+            const canEdit = msg.role === 'user' && i === lastUserIndex && msg.editable && !streaming && !warming && !editing
+            // Turno em edição (ação + rolagens + narração dele): esmaecido para dar contexto.
+            const dimmed = editing && lastUserIndex !== -1 && i >= lastUserIndex
             return (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} className={`group flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${dimmed ? 'opacity-50' : ''}`}>
                 {msg.role === 'dm' && (
                   <div aria-hidden="true" className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900 border border-amber-500 dark:border-amber-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0 text-sm text-amber-700 dark:text-amber-300">
                     ✦
                   </div>
+                )}
+                {canEdit && (
+                  // Sempre focável por teclado (US-46); visível no hover/foco da bolha.
+                  <button
+                    type="button"
+                    onClick={startEdit}
+                    aria-label="Editar a tua última ação"
+                    className="self-center mr-2 px-2 min-h-[44px] text-xs font-medium text-stone-500 hover:text-amber-600 dark:text-stone-400 dark:hover:text-amber-400 rounded opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  >
+                    ✎ Editar
+                  </button>
                 )}
                 <div className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                   msg.role === 'user'
@@ -645,18 +710,29 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={warming ? 'O Mestre está a despertar…' : 'O que fazes? (Enter para enviar, Shift+Enter para nova linha)'}
-            aria-label="A tua ação"
+            placeholder={warming ? 'O Mestre está a despertar…' : editing ? 'Corrige a tua ação e salva a edição…' : 'O que fazes? (Enter para enviar, Shift+Enter para nova linha)'}
+            aria-label={editing ? 'Editar a tua ação' : 'A tua ação'}
             disabled={streaming || warming}
             className="flex-1 bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg px-3 py-2 text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-stone-400 resize-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:border-amber-500"
           />
+          {/* US-67: em modo edição o Cancelar volta ao estado anterior sem tocar no histórico. */}
+          {editing && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              disabled={streaming || warming}
+              className="border border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-200 rounded-lg px-4 py-2 font-semibold transition-colors hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40"
+            >
+              Cancelar
+            </button>
+          )}
           <button
             type="submit"
             disabled={streaming || warming || !input.trim()}
-            aria-label="Enviar ação"
+            aria-label={editing ? 'Salvar edição' : 'Enviar ação'}
             className="bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-semibold transition-colors"
           >
-            <span aria-hidden="true">{streaming ? '...' : '➤'}</span>
+            {editing ? 'Salvar edição' : <span aria-hidden="true">{streaming ? '...' : '➤'}</span>}
           </button>
         </form>
       </div>

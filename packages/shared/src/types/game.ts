@@ -13,8 +13,11 @@ export interface RollTurn extends DiceResult {
   skill?: string
 }
 
-/** Uma linha do histórico de jogo servido/renderizado (US-18 + US-29). */
-export type ChatTurn = { role: 'user' | 'dm'; content: string } | RollTurn
+/** Uma linha do histórico de jogo servido/renderizado (US-18 + US-29).
+ * US-67: `editable` só é marcado na ÚLTIMA ação do jogador quando o turno pode ser
+ * reescrito (não-resumido, sem mutação de estado) — é o sinal que liga o botão de
+ * editar. Ausente/false nas demais linhas e em qualquer turno do Mestre. */
+export type ChatTurn = { role: 'user' | 'dm'; content: string; editable?: boolean } | RollTurn
 
 export interface EventLogEntry {
   id: string

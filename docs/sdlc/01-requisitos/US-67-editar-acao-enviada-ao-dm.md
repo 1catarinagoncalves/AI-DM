@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** US-18 (histórico servido pela API) — o turno precisa existir no `EventLog` para ser reescrito.
 **Criada em:** 2026-07-22
 
@@ -44,11 +44,18 @@ aquela ação e gerar uma nova** a partir do texto corrigido.
 
 ### A proposta
 
-Permitir editar **apenas a última ação não-resumida** da aventura. Ao confirmar a
-edição, o servidor descarta o turno atual (a `NARRATION` e os eventos de rolagem/
-estado que ele gerou) e re-executa o turno com o texto novo, transmitindo a nova
-narração em streaming — o mesmo caminho de um turno normal, só que sem duplicar a
-ação no histórico.
+Permitir editar **apenas a última ação não-resumida — e apenas quando esse turno
+não mudou o estado da personagem** (HP, inventário ou cena). Ao confirmar a
+edição, o servidor descarta o turno atual (a `NARRATION` e as rolagens que ele
+gerou) e re-executa o turno com o texto novo, transmitindo a nova narração em
+streaming — o mesmo caminho de um turno normal, só que sem duplicar a ação no
+histórico.
+
+Restringir a turnos sem mutação de estado **elimina o problema de reverter
+efeitos colaterais**: se o turno não alterou HP/inventário/cena, não há o que
+desfazer, e a re-execução roda por cima de um `CharacterState` idêntico ao que
+existia antes da ação editada. Turnos de "conversa" e exploração (a maioria) são
+editáveis; um turno que causou dano ou pegou um item não é.
 
 ---
 
@@ -56,8 +63,9 @@ ação no histórico.
 
 ### Dentro do escopo
 
-- Botão/gesto de **editar a última mensagem do jogador** no `GameView`, que
-  recoloca o texto no campo de entrada em modo edição.
+- Controle de **editar** na última bolha de ação do jogador no `GameView`, que
+  recoloca o texto no campo de entrada em modo edição, com "Salvar edição" e
+  "Cancelar" (ver *Fluxo de edição pelo jogador*).
 - Endpoint que **regenera o último turno**: recebe o texto editado, remove os
   eventos do turno atual e re-roda `streamChat` com a nova ação.
 - A nova narração chega em streaming e substitui a anterior na tela, sem criar um
@@ -73,12 +81,47 @@ ação no histórico.
 - **Editar turnos já resumidos** (`summarized: true`): o texto já foi fundido no
   `memorySummary` e o evento original não é mais a fonte de verdade. Se o último
   turno visível já caiu no resumo, a edição fica indisponível.
-- **Reverter efeitos colaterais das tools** (HP, inventário, cena) aplicados no
-  turno editado — ver Questões em aberto. O MVP aceita a re-execução por cima do
-  estado atual.
+- **Reverter efeitos colaterais das tools** (HP, inventário, cena). Em vez de
+  reverter, a US **bloqueia a edição** de qualquer turno que tenha mudado o estado
+  (gerou evento `CHARACTER_UPDATE`). Só turnos sem mutação são editáveis, então não
+  há efeito a desfazer.
 - Editar a **narração do Mestre** (isso é reescrita do conteúdo dele, não da ação
   do jogador).
 - Histórico de versões / "editado" com diff. Basta o texto final valer.
+
+---
+
+## Fluxo de edição pelo jogador (interface)
+
+Passo a passo do que o jogador faz e vê, na tela de jogo (`GameView`):
+
+1. **Afordância.** A **última bolha de ação do jogador** (a última mensagem com
+   `role: 'user'`, alinhada à direita) exibe um controle de **editar** — um botão
+   "✎ Editar" que aparece ao passar o mouse / focar a bolha (e é sempre visível/
+   focável por teclado, para acessibilidade — US-46). Só essa bolha tem o controle;
+   as ações anteriores, não.
+2. **Indisponível.** Se o último turno mudou o estado (`CHARACTER_UPDATE`) ou já
+   foi resumido (`summarized`), o controle **não aparece**. O jogador não vê a
+   opção de editar um turno que não pode ser editado (nada de botão que dá erro ao
+   clicar).
+3. **Entrar em edição.** Ao clicar em "Editar", o texto da ação volta para o campo
+   de entrada (o `textarea` existente), que entra em **modo edição**: o botão de
+   enviar passa a "Salvar edição" e um "Cancelar" aparece. A bolha original fica
+   marcada como "a editar" (esmaecida) para dar contexto.
+4. **Confirmar.** O jogador ajusta o texto e confirma (botão ou Enter). A bolha de
+   ação antiga, a **narração** que a seguia e as **rolagens** daquele turno somem
+   da tela; a bolha de ação reaparece com o texto novo e a nova narração é
+   **transmitida em streaming** logo abaixo, igual a um turno normal.
+5. **Cancelar.** Cancelar esvazia o `textarea`, sai do modo edição e devolve a tela
+   ao estado anterior, sem tocar no histórico.
+6. **Bloqueios.** Como em `sendMessage`, não é possível iniciar ou confirmar uma
+   edição enquanto o Mestre está a responder (`streaming`) ou a acordar
+   (`warming`).
+
+> A edição **não** é um segundo tipo de mensagem: é o mesmo campo de entrada e o
+> mesmo fluxo de streaming do turno normal, com a diferença de que, ao confirmar,
+> o cliente chama a rota de regeneração (que limpa o último turno) em vez da rota
+> de turno novo.
 
 ---
 
@@ -104,10 +147,16 @@ Regeneração do último turno (conceitual):
 
 ## Critérios de aceite
 
-- [ ] No `GameView`, a **última** mensagem do jogador tem uma ação de "editar" que
-      recarrega o texto no campo de entrada.
+- [ ] No `GameView`, a **última** bolha de ação do jogador tem um controle de
+      "editar" que recarrega o texto no campo de entrada em modo edição (com
+      "Salvar edição" e "Cancelar"); "Cancelar" volta ao estado anterior sem mudar
+      o histórico.
+- [ ] O controle de editar é alcançável por teclado, não só no hover (US-46).
 - [ ] Só a última ação **não-resumida** é editável; ações anteriores e turnos já
       `summarized` não expõem o botão de editar.
+- [ ] Um turno que **mudou o estado** (gerou `CHARACTER_UPDATE` — HP, inventário ou
+      cena) **não** é editável, mesmo sendo o último. A edição só aparece em turnos
+      sem mutação.
 - [ ] Ao confirmar a edição, a narração antiga **desaparece** e a nova é
       transmitida em streaming no lugar dela.
 - [ ] Depois de editar, o histórico tem **exatamente um** turno para aquela
@@ -116,6 +165,10 @@ Regeneração do último turno (conceitual):
       não o original.
 - [ ] Editar não permite escapar da posse de personagem: a autorização é a mesma
       do turno normal (US-61 — `assertCharacterOwner`).
+- [ ] Se a regeneração **falha** (todos os modelos caem, nenhuma narração nova é
+      produzida), o turno original **não é perdido**: ou o par antigo permanece
+      intacto, ou é restaurado. Nunca resta uma aventura com a ação apagada e sem
+      narração.
 - [ ] **Eval / teste de regressão:** dada uma aventura com N turnos, editar o
       último produz uma nova narração e o `EventLog` continua com N pares
       `ACTION`/`NARRATION` (não N+1), com o texto da ação atualizado.
@@ -129,8 +182,12 @@ Regeneração do último turno (conceitual):
   flag `edit: true` no payload atual) que, antes de chamar `streamChat`, apaga o
   rastro do último turno numa transação.
 - **Como achar o "rastro do último turno":** os eventos criados a partir do
-  `createdAt` da última `ACTION` não-resumida (inclusive as `DICE_ROLL`/
-  `CHARACTER_UPDATE` daquele turno). Cuidado com a ordem por `createdAt`.
+  `createdAt` da última `ACTION` não-resumida. Cuidado com a ordem por `createdAt`.
+- **Guarda de editabilidade:** se existe algum `CHARACTER_UPDATE` nesse rastro, o
+  turno mudou o estado → edição bloqueada (não expor botão; e o endpoint deve
+  rejeitar por segurança, não só a UI). Sem `CHARACTER_UPDATE`, o rastro é só
+  `NARRATION` + eventuais `DICE_ROLL`, todos seguros de apagar. Isso também
+  simplifica a limpeza: nunca há mutação de `CharacterState` para desfazer.
 - **Janela de contexto:** como a nova execução reconstrói `history` do `EventLog`
   (só não-resumidos), apagar o turno antigo ANTES de re-rodar garante que a
   narração antiga não entre como contexto da nova.
@@ -147,17 +204,28 @@ Regeneração do último turno (conceitual):
 
 ## Questões em aberto
 
-1. **Efeitos colaterais das tools.** O turno descartado pode ter mudado HP,
-   inventário ou cena via tool. Reverter exige um snapshot do `CharacterState`
-   antes do turno (não temos hoje). Opções: (a) MVP aceita o drift e re-roda por
-   cima do estado atual; (b) capturar snapshot pré-turno para restaurar; (c) só
-   permitir editar quando o último turno não disparou nenhuma tool de mutação.
-   Recomendação inicial: (a), documentando a limitação.
-2. **Reaproveitar a `ACTION` ou apagar+recriar?** Reusar mantém `createdAt` e
-   posição; apagar+recriar é mais simples de raciocinar. Decidir na implementação.
-3. **Janela para editar.** Só o turno imediatamente anterior, sempre? Ou qualquer
-   turno enquanto não-resumido (o que reabre a cadeia de coerência)? O escopo atual
-   trava no último; confirmar que basta para o MVP.
+1. ~~**Efeitos colaterais das tools.**~~ **Decidido:** só é editável o turno que
+   **não gerou `CHARACTER_UPDATE`**. Como o turno não mudou HP/inventário/cena, não
+   há efeito colateral a reverter — a re-execução parte do mesmo `CharacterState`.
+   Descartadas as alternativas de aceitar drift ou capturar snapshot pré-turno (mais
+   caras e sujeitas a incoerência). Rolagens (`DICE_ROLL`) não são mutação de estado
+   e não bloqueiam a edição — são apenas apagadas junto com o turno descartado.
+2. ~~**Reaproveitar a `ACTION` ou apagar+recriar?**~~ **Decidido: apagar+recriar.**
+   Apaga o par `ACTION`+`NARRATION` (e as `DICE_ROLL` do turno) e re-roda
+   `streamChat`, que no `onFinish` grava o par novo — o mesmo caminho do turno
+   normal, **sem tocar no hot path**. Reaproveitar a `ACTION` (manter a linha e só
+   trocar o `payload.text`) obrigaria o `onFinish` a se ramificar em modo edição
+   (não criar ACTION, só atualizar), acoplando a lógica de edição ao fluxo mais
+   crítico do app e criando um estado órfão se todos os modelos falharem
+   (`finalText` vazio → nada gravado, ACTION velha sem resposta). O custo de
+   apagar+recriar é um `createdAt` novo na ação editada — **inobservável em
+   single-player**, onde o turno editado é sempre o último da fila.
+3. ~~**Janela para editar.**~~ **Decidido:** só o turno **imediatamente anterior**,
+   sempre — nunca um turno arbitrário do meio do histórico, mesmo que não-resumido.
+   Editar um turno do meio reabriria a cadeia de coerência (as narrações seguintes
+   já reagiram a ele), o que é reescrita de campanha — fora do MVP. "Última ação
+   não-resumida" e "turno imediatamente anterior" são a mesma posição: o topo do
+   histórico vivo.
 
 ---
 

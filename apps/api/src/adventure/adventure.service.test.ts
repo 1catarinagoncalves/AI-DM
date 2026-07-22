@@ -268,8 +268,63 @@ describe('AdventureService.getTurns', () => {
     expect(turns).toEqual([
       { role: 'user', content: 'Abro a porta.' },
       { role: 'dm', content: 'A porta range.' },
-      { role: 'user', content: 'Entro.' },
+      // US-67: só a ÚLTIMA ação (não-resumida, sem mutação) é marcada editável.
+      { role: 'user', content: 'Entro.', editable: true },
       { role: 'dm', content: 'Três figuras...' },
+    ])
+  })
+
+  it('US-67: última ação sem mutação → marcada editável; a anterior não', async () => {
+    const logs = [
+      { type: 'ACTION', payload: { text: 'Olho em volta.' }, summarized: false },
+      { type: 'NARRATION', payload: { text: 'Uma taberna vazia.' }, summarized: false },
+      { type: 'ACTION', payload: { text: 'Sento-me.' }, summarized: false },
+      { type: 'NARRATION', payload: { text: 'A cadeira range.' }, summarized: false },
+    ]
+    const prisma = { eventLog: { findMany: async () => logs } } as unknown as PrismaService
+    const service = new AdventureService(prisma, fakeAi())
+
+    const turns = await service.getTurns('char-1', 'adv-1')
+
+    expect(turns[0]).toEqual({ role: 'user', content: 'Olho em volta.' }) // sem editable
+    expect(turns[2]).toEqual({ role: 'user', content: 'Sento-me.', editable: true })
+  })
+
+  it('US-67: último turno mutou o estado (CHARACTER_UPDATE) → não editável', async () => {
+    // O CHARACTER_UPDATE é gravado no stream, ANTES do ACTION (onFinish) — depois da
+    // narração anterior. Ele não é renderizado, só decide a editabilidade.
+    const logs = [
+      { type: 'NARRATION', payload: { text: 'O goblin ataca.' }, summarized: false },
+      { type: 'CHARACTER_UPDATE', payload: { field: 'hp', newHp: 4 }, summarized: false },
+      { type: 'ACTION', payload: { text: 'Aparo o golpe.' }, summarized: false },
+      { type: 'NARRATION', payload: { text: 'A lâmina raspa o teu braço.' }, summarized: false },
+    ]
+    const prisma = { eventLog: { findMany: async () => logs } } as unknown as PrismaService
+    const service = new AdventureService(prisma, fakeAi())
+
+    const turns = await service.getTurns('char-1', 'adv-1')
+
+    // CHARACTER_UPDATE não vira turno; a última ação NÃO leva o flag editable.
+    expect(turns).toEqual([
+      { role: 'dm', content: 'O goblin ataca.' },
+      { role: 'user', content: 'Aparo o golpe.' },
+      { role: 'dm', content: 'A lâmina raspa o teu braço.' },
+    ])
+  })
+
+  it('US-67: última ação já resumida → não editável', async () => {
+    const logs = [
+      { type: 'ACTION', payload: { text: 'Durmo.' }, summarized: true },
+      { type: 'NARRATION', payload: { text: 'Amanhece.' }, summarized: true },
+    ]
+    const prisma = { eventLog: { findMany: async () => logs } } as unknown as PrismaService
+    const service = new AdventureService(prisma, fakeAi())
+
+    const turns = await service.getTurns('char-1', 'adv-1')
+
+    expect(turns).toEqual([
+      { role: 'user', content: 'Durmo.' }, // sem editable
+      { role: 'dm', content: 'Amanhece.' },
     ])
   })
 
@@ -290,7 +345,7 @@ describe('AdventureService.getTurns', () => {
 
     expect(turns).toEqual([
       { role: 'dm', content: 'Abertura.' },
-      { role: 'user', content: 'Examino o riacho.' },
+      { role: 'user', content: 'Examino o riacho.', editable: true },
       { role: 'roll', label: 'Percepção', formula: '1d20+5', rolls: [7], modifier: 5, total: 12 },
       { role: 'dm', content: 'Marcas sutis nas pedras.' },
     ])

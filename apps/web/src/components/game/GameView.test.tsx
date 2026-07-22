@@ -204,3 +204,53 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.getByText('10/10')).toBeTruthy()
   })
 })
+
+describe('GameView — editar a última ação (US-67)', () => {
+  it('só a última ação editável expõe o botão; clicar entra em modo edição', async () => {
+    getTurns.mockResolvedValue([
+      { role: 'user', content: 'ataco o guarda' },
+      { role: 'dm', content: 'O guarda cai.' },
+      { role: 'user', content: 'abro a porta com a chava', editable: true },
+      { role: 'dm', content: 'A porta range.' },
+    ])
+    render(<GameView {...baseProps} />)
+
+    // Só um botão de editar — na última ação.
+    const editBtn = await screen.findByRole('button', { name: 'Editar a tua última ação' })
+    expect(screen.getAllByRole('button', { name: 'Editar a tua última ação' })).toHaveLength(1)
+
+    fireEvent.click(editBtn)
+
+    // Texto volta ao campo e o modo edição aparece (Salvar edição + Cancelar).
+    expect((screen.getByLabelText('Editar a tua ação') as HTMLTextAreaElement).value).toBe('abro a porta com a chava')
+    expect(screen.getByRole('button', { name: 'Salvar edição' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeTruthy()
+  })
+
+  it('turno sem editable (mutou estado / resumido) não expõe o botão de editar', async () => {
+    getTurns.mockResolvedValue([
+      { role: 'user', content: 'aparo o golpe' },
+      { role: 'dm', content: 'A lâmina raspa o teu braço.' },
+    ])
+    render(<GameView {...baseProps} />)
+
+    expect(await screen.findByText('A lâmina raspa o teu braço.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Editar a tua última ação' })).toBeNull()
+  })
+
+  it('Cancelar sai do modo edição e esvazia o campo sem mexer no histórico', async () => {
+    getTurns.mockResolvedValue([
+      { role: 'user', content: 'abro a porta com a chava', editable: true },
+      { role: 'dm', content: 'A porta range.' },
+    ])
+    render(<GameView {...baseProps} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar a tua última ação' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+
+    expect((screen.getByLabelText('A tua ação') as HTMLTextAreaElement).value).toBe('')
+    expect(screen.queryByRole('button', { name: 'Cancelar' })).toBeNull()
+    // Histórico intacto.
+    expect(screen.getByText('A porta range.')).toBeTruthy()
+  })
+})

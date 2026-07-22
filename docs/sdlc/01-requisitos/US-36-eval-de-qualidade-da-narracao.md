@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🗂️ Backlog
+**Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-34](./US-34-qualidade-da-narracao-do-dm.md) (barra de ofício + abertura gerada) e da suíte de evals existente (`evals/`, `pnpm eval`).
 **Criada em:** 2026-07-07
 

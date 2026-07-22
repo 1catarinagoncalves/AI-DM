@@ -1,4 +1,5 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig } from '@ai-dm/shared'
 import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
@@ -83,6 +84,73 @@ export class AiService {
     if (character.userId !== userId) {
       throw new ForbiddenException('Este personagem não pertence ao utilizador autenticado')
     }
+  }
+
+  /**
+   * US-67: apaga o rastro do último turno para a re-execução de uma edição e
+   * devolve os eventos apagados (para o controller os restaurar se a regeneração
+   * não produzir narração nenhuma — a aventura nunca fica com a ação sem resposta).
+   *
+   * Editável SÓ o último turno, não-resumido e SEM mutação de estado
+   * (`CHARACTER_UPDATE`). A UI já esconde o botão nesses casos, mas o endpoint
+   * rejeita por segurança. Deve rodar ANTES de `streamChat`: assim a narração
+   * antiga não volta como contexto (o history é reconstruído do EventLog).
+   */
+  async clearLastTurnForEdit(adventureId: string, characterId: string): Promise<EventLog[]> {
+    const lastAction = await this.prisma.eventLog.findFirst({
+      where: { adventureId, characterId, type: 'ACTION' },
+      orderBy: { createdAt: 'desc' },
+    })
+    if (!lastAction) throw new BadRequestException('Não há ação para editar')
+    if (lastAction.summarized) throw new BadRequestException('O último turno já foi resumido e não pode ser editado')
+
+    // Âncora = a narração imediatamente anterior à última ação (sempre existe: a
+    // abertura da aventura é uma NARRATION). O rastro do turno são os eventos
+    // criados DEPOIS dela — inclui as DICE_ROLL/CHARACTER_UPDATE gravadas durante o
+    // stream (createdAt < ACTION, que é gravada no onFinish) e a NARRATION final.
+    const prevNarration = await this.prisma.eventLog.findFirst({
+      where: { adventureId, characterId, type: 'NARRATION', createdAt: { lt: lastAction.createdAt } },
+      orderBy: { createdAt: 'desc' },
+    })
+    const trail = await this.prisma.eventLog.findMany({
+      where: {
+        adventureId,
+        characterId,
+        type: { in: ['ACTION', 'NARRATION', 'DICE_ROLL', 'CHARACTER_UPDATE'] },
+        // ponytail: sem narração anterior (impossível com a abertura) limitamos ao
+        // próprio evento — nunca à história toda, que apagaria a aventura inteira.
+        createdAt: prevNarration ? { gt: prevNarration.createdAt } : { gte: lastAction.createdAt },
+      },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    if (trail.some((e) => e.type === 'CHARACTER_UPDATE')) {
+      throw new ForbiddenException('Este turno alterou o estado da personagem e não pode ser editado')
+    }
+
+    await this.prisma.eventLog.deleteMany({ where: { id: { in: trail.map((e) => e.id) } } })
+    return trail
+  }
+
+  /**
+   * US-67: restaura o turno apagado por `clearLastTurnForEdit` quando a
+   * regeneração da edição falha por completo (nenhuma narração nova). Reinsere os
+   * eventos originais tal como estavam (id/createdAt preservados) — o histórico
+   * volta ao que era, sem a ação órfã.
+   */
+  async restoreClearedTurn(events: EventLog[]): Promise<void> {
+    if (events.length === 0) return
+    await this.prisma.eventLog.createMany({
+      data: events.map((e) => ({
+        id: e.id,
+        adventureId: e.adventureId,
+        characterId: e.characterId,
+        type: e.type,
+        payload: e.payload as object,
+        summarized: e.summarized,
+        createdAt: e.createdAt,
+      })),
+    })
   }
 
   async streamChat(input: ChatInput, attempt = 0, rollState?: RollTurnState) {

@@ -191,12 +191,15 @@ export class AdventureService {
    * `summarized` — a condensação da memória não deve apagar a conversa da tela.
    */
   async getTurns(characterId: string, adventureId: string): Promise<ChatTurn[]> {
+    // US-67: inclui CHARACTER_UPDATE (não renderizado) só para decidir a
+    // editabilidade do último turno — ele não é editável se mutou o estado.
     const logs = await this.prisma.eventLog.findMany({
-      where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION', 'DICE_ROLL'] } },
+      where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION', 'DICE_ROLL', 'CHARACTER_UPDATE'] } },
       orderBy: { createdAt: 'asc' },
     })
 
     const turns = logs
+      .filter((log) => log.type !== 'CHARACTER_UPDATE')
       .map((log): ChatTurn => {
         if (log.type === 'DICE_ROLL') {
           // US-29: bloco de rolagem. O número vem do payload do Game Server, nunca da prosa.
@@ -227,6 +230,25 @@ export class AdventureService {
       pendingRolls = []
     }
     ordered.push(...pendingRolls) // rolagens sem ação seguinte (turno que falhou)
+
+    // US-67: marca a ÚLTIMA ação do jogador como editável quando o turno pode ser
+    // reescrito: existe, não foi resumido e não mutou o estado (nenhum
+    // CHARACTER_UPDATE depois da narração anterior). Mesmo critério do guard do
+    // endpoint (clearLastTurnForEdit); a UI usa isto para exibir o botão de editar.
+    const lastActionIdx = logs.map((l) => l.type).lastIndexOf('ACTION')
+    if (lastActionIdx !== -1 && !logs[lastActionIdx]!.summarized) {
+      let prevNarrationIdx = -1
+      for (let i = lastActionIdx - 1; i >= 0; i--) {
+        if (logs[i]!.type === 'NARRATION') { prevNarrationIdx = i; break }
+      }
+      const mutated = logs.slice(prevNarrationIdx + 1).some((l) => l.type === 'CHARACTER_UPDATE')
+      if (!mutated) {
+        const lastUserIdx = ordered.map((t) => t.role).lastIndexOf('user')
+        const t = ordered[lastUserIdx]
+        if (t && t.role === 'user') ordered[lastUserIdx] = { ...t, editable: true }
+      }
+    }
+
     return ordered
   }
 }
