@@ -48,6 +48,18 @@ pnpm typecheck            # tsc --noEmit (não há lint: ver AGENTS.md)
   - `feat(ai-engine): add rollDice tool`
   - `fix(game): correct HP calculation on damage`
   - `chore(deps): update @ai-sdk/groq`
+- Antes de escrever "coloque em `.env`" numa spec/US, **verifique no código** como aquele env var é lido (`grep process.env`, checar ConfigModule/dotenv/wrapper). Não assuma auto-load.
+
+## Env em dev (IMPORTANTE)
+
+A API (`apps/api`) **não** tem `ConfigModule` nem `dotenv`: `nest start` não carrega
+`.env` sozinho. Em dev, os env vars vêm do **`.env` da RAIZ do repo**, carregado pelo
+wrapper `dotenv -e .env` no script `dev` (mesmo padrão dos scripts `db:*`).
+
+- **Secrets de runtime da API** (`DATABASE_URL`, `AUTH_SECRET`, etc.) vão no `.env` da raiz.
+- `apps/api/.env` **não é lido** — não use.
+- `apps/web/.env.local` é lido nativo pelo Next (frontend).
+- Os `.env` são gitignored e negados ao Claude Code — configuração de secrets é manual.
 
 ## Contexto de fase atual
 

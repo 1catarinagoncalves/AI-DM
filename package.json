@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@11.9.0",
   "scripts": {
-    "dev": "pnpm --parallel --filter api --filter web dev",
+    "dev": "dotenv -e .env -- pnpm --parallel --filter api --filter web dev",
     "build": "pnpm --filter './packages/*' build && pnpm --filter './apps/*' build",
     "typecheck": "pnpm --recursive typecheck",
     "test": "pnpm --recursive test",
