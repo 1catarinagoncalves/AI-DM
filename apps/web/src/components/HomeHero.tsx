@@ -8,8 +8,8 @@ type HubCharacter = Awaited<ReturnType<typeof api.listCharacters>>[number]
 
 const emptyState = (
   <div className="text-center max-w-lg">
-    <p className="text-5xl mb-4" aria-hidden="true">⚔</p>
-    <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">Olá, Aventureiro</h1>
+    <p className="text-4xl sm:text-5xl mb-4" aria-hidden="true">⚔</p>
+    <h1 className="text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">Olá, Aventureiro</h1>
     <p className="text-stone-600 dark:text-stone-400 text-lg mb-2">Você ainda não tem nenhum personagem.</p>
     <p className="text-stone-600 dark:text-stone-400 mb-8">Crie seu primeiro personagem para começar a jogar.</p>
     <Link
@@ -60,8 +60,8 @@ export function HomeHero() {
   if (error) {
     return (
       <div className="text-center max-w-lg">
-        <p className="text-5xl mb-4" aria-hidden="true">⚔</p>
-        <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
+        <p className="text-4xl sm:text-5xl mb-4" aria-hidden="true">⚔</p>
+        <h1 className="text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
         <p className="text-stone-600 dark:text-stone-400 mb-8">Não foi possível carregar seus personagens.</p>
         <button
           onClick={() => fetchCharacters()}
@@ -84,8 +84,8 @@ export function HomeHero() {
 
   return (
     <div className="text-center max-w-lg">
-      <p className="text-5xl mb-4" aria-hidden="true">⚔</p>
-      <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
+      <p className="text-4xl sm:text-5xl mb-4" aria-hidden="true">⚔</p>
+      <h1 className="text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
       <p className="text-stone-600 dark:text-stone-400 mb-6">
         Bem-vindo de volta, <span className="text-stone-900 dark:text-white font-semibold">Aventureiro</span>.
       </p>

@@ -2,7 +2,7 @@
 
 **Épico:** Contas e identidade — [ADR 006](../../adr/006-deploy-custo-zero.md) (custo zero) · [ADR 002](../../adr/002-memoria-de-sessao.md) (sessão)
 **Fase:** 2 — Multi-dispositivo / contas (fora do MVP single-player da Fase 1)
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-58](./US-58-banco-postgres-neon.md) (Postgres público) · [US-60](./US-60-web-em-producao-vercel.md) (web público na Vercel)
 **Habilita:** warm-up no submit do login (futuro); **por ora** o warm-up vive na criação e na seleção de personagem (ver [US-57](./US-57-warmup-do-servidor-na-entrada.md) e a discussão da US-60)
 **Criada em:** 2026-07-20

@@ -205,6 +205,10 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
   // então trocar de aba não remonta nada nem perde estado de jogo.
   const [tab, setTab] = useState<SheetTabId>('ficha')
+  // US-66: no mobile a ficha é um painel recolhível (D1), fechado por padrão — a
+  // narração é o conteúdo principal. A partir de `md:` volta a ser coluna lateral
+  // sempre visível (o `md:flex` ignora este estado).
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   // Warm-up: no free tier o processo do api (Render) e a compute do Postgres (Neon)
@@ -377,10 +381,32 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   const hpColor = hpPercent > 60 ? 'bg-green-500' : hpPercent > 30 ? 'bg-yellow-500' : 'bg-red-500'
 
   return (
-    <div className="min-h-screen bg-amber-50 dark:bg-stone-950 text-stone-900 dark:text-white flex flex-col md:flex-row">
+    // US-66: altura travada em `h-dvh` (acompanha a URL bar móvel) + overflow-hidden;
+    // a lista de mensagens rola por dentro (flex-1 min-h-0) e a caixa de ação fica
+    // sempre visível — sem o `calc(100vh - 120px)` que chutava o chrome de desktop.
+    <div className="h-dvh bg-amber-50 dark:bg-stone-950 text-stone-900 dark:text-white flex flex-col md:flex-row overflow-hidden">
 
-      {/* Ficha do personagem — sidebar */}
-      <aside className="md:w-64 bg-stone-100 dark:bg-stone-900 border-b md:border-b-0 md:border-r border-stone-300 dark:border-stone-800 p-4 flex md:flex-col gap-4 items-start overflow-x-auto md:overflow-x-visible">
+      {/* Ficha do personagem — sidebar no desktop; painel recolhível no mobile (US-66, D1). */}
+      <aside className="md:w-64 shrink-0 flex flex-col min-h-0 bg-stone-100 dark:bg-stone-900 border-b md:border-b-0 md:border-r border-stone-300 dark:border-stone-800">
+        {/* Toggle da ficha — só no mobile; no desktop a coluna está sempre aberta. */}
+        <button
+          type="button"
+          onClick={() => setSheetOpen(o => !o)}
+          aria-expanded={sheetOpen}
+          aria-controls="character-sheet"
+          className="md:hidden flex items-center justify-between gap-2 p-4 min-h-[44px] font-semibold text-amber-600 dark:text-amber-400"
+        >
+          <span>Ficha — {characterName}</span>
+          <span aria-hidden="true" className={`transition-transform ${sheetOpen ? 'rotate-180' : ''}`}>▾</span>
+        </button>
+
+        {/* Conteúdo da ficha: escondido por padrão no mobile (abre com o toggle),
+            sempre visível a partir de `md:`. `max-h-[70vh]` no mobile garante que a
+            narração nunca some quando a ficha abre. */}
+        <div
+          id="character-sheet"
+          className={`${sheetOpen ? 'flex' : 'hidden'} md:flex flex-col gap-4 p-4 pt-0 md:pt-4 overflow-y-auto min-h-0 max-h-[70vh] md:max-h-none`}
+        >
         <div>
           <p className="text-amber-600 dark:text-amber-400 font-bold text-lg">{characterName}</p>
           <p className="text-stone-600 dark:text-stone-400 text-sm">{characterRace} · {characterClass}</p>
@@ -536,19 +562,21 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             <BackgroundPanel background={background} />
           </div>
         )}
+        </div>
       </aside>
 
       {/* Área de jogo. <div> (não <main>): o landmark <main> vive no layout — um por página. */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
 
-        {/* US-46: histórico é uma região viva — leitor de tela anuncia a narração que chega. */}
+        {/* US-46: histórico é uma região viva — leitor de tela anuncia a narração que chega.
+            US-66: `flex-1 min-h-0` preenche o espaço disponível e rola por dentro — sem
+            o `calc(100vh - 120px)` fixo, robusto à URL bar móvel. */}
         <div
           role="log"
           aria-live="polite"
           aria-atomic="false"
           aria-label="Narração do Mestre"
           className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0"
-          style={{ maxHeight: 'calc(100vh - 120px)' }}
         >
           {messages.length === 0 && (
             <div className="text-center text-stone-600 dark:text-stone-400 pt-16">

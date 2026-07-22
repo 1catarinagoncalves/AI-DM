@@ -223,24 +223,32 @@ export function SetupWizard() {
     <div className="min-h-screen bg-amber-50 dark:bg-stone-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
-        {/* Trilha de progresso navegável: etapas concluídas são clicáveis. */}
-        <nav className="flex gap-2 mb-8" aria-label="Progresso">
-          {steps.map((s, i) => {
-            const state = s === step ? 'atual' : i < idx ? 'concluída' : 'pendente'
-            return (
-              <button
-                key={s} type="button"
-                onClick={() => goTo(s)}
-                disabled={state === 'pendente'}
-                aria-current={state === 'atual' ? 'step' : undefined}
-                data-state={state}
-                className="flex-1 flex flex-col gap-1 text-left disabled:cursor-default"
-              >
-                <span className={`h-1 rounded-full ${state === 'atual' ? 'bg-amber-500' : state === 'concluída' ? 'bg-amber-700' : 'bg-stone-300 dark:bg-stone-700'}`} />
-                <span className={`text-[10px] ${state === 'pendente' ? 'text-stone-600 dark:text-stone-400' : 'text-stone-600 dark:text-stone-300'}`}>{STEP_LABEL[s]}</span>
-              </button>
-            )
-          })}
+        {/* Trilha de progresso navegável: etapas concluídas são clicáveis.
+            US-66: no mobile as 7 barras ficam, mas os rótulos escondem (`hidden sm:block`)
+            e um rótulo único "Etapa X de N — Label" resume a etapa atual — sem espremer
+            rótulos de 10px lado a lado. A partir de `sm:` volta a trilha completa. */}
+        <nav className="mb-8" aria-label="Progresso">
+          <p className="sm:hidden text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+            Etapa {idx + 1} de {steps.length} — {STEP_LABEL[step]}
+          </p>
+          <div className="flex gap-2">
+            {steps.map((s, i) => {
+              const state = s === step ? 'atual' : i < idx ? 'concluída' : 'pendente'
+              return (
+                <button
+                  key={s} type="button"
+                  onClick={() => goTo(s)}
+                  disabled={state === 'pendente'}
+                  aria-current={state === 'atual' ? 'step' : undefined}
+                  data-state={state}
+                  className="flex-1 flex flex-col gap-1 text-left disabled:cursor-default"
+                >
+                  <span className={`h-1 rounded-full ${state === 'atual' ? 'bg-amber-500' : state === 'concluída' ? 'bg-amber-700' : 'bg-stone-300 dark:bg-stone-700'}`} />
+                  <span className={`hidden sm:block text-xs ${state === 'pendente' ? 'text-stone-600 dark:text-stone-400' : 'text-stone-600 dark:text-stone-300'}`}>{STEP_LABEL[s]}</span>
+                </button>
+              )
+            })}
+          </div>
         </nav>
 
         {error && <p className="text-red-600 dark:text-red-400 text-sm mb-4 bg-red-50 dark:bg-red-950 border border-red-300 dark:border-red-800 rounded p-3">{error}</p>}
@@ -283,7 +291,7 @@ export function SetupWizard() {
                   {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="char-race" className={labelClass}>Raça</label>
                   <select id="char-race" value={charData.race}
@@ -346,7 +354,7 @@ export function SetupWizard() {
               Escolhe <span className="font-semibold">{skillChoices}</span> perícias proficientes (+{system.config?.proficiency?.bonus ?? 2} cada).
               Selecionadas: <span className={`font-semibold ${skills.length === skillChoices ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{skills.length}</span>/{skillChoices}
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {skillCatalog.map(sk => {
                 const on = skills.includes(sk.key)
                 const full = !on && skills.length >= skillChoices

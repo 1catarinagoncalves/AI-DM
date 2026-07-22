@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -9,6 +9,13 @@ import { auth } from '@/auth'
 export const metadata: Metadata = {
   title: 'AI Dungeon Master',
   description: 'Your AI-powered RPG narrator',
+}
+
+// US-66: viewport explícito — não depender só do default do Next. Garante que o
+// mobile renderiza na largura do aparelho (sem zoom-out) e escala inicial 1.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

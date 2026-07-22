@@ -2,7 +2,7 @@
 
 **Épico:** Contas e identidade — [ADR 006](../../adr/006-deploy-custo-zero.md) (custo zero, "papel, não marca")
 **Fase:** 2 — Multi-dispositivo / contas
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-61](./US-61-login-do-jogador.md) (código do login já implementado) · [US-59](./US-59-api-em-producao-render.md) (API no Render) · [US-60](./US-60-web-em-producao-vercel.md) (web na Vercel) · [US-58](./US-58-banco-postgres-neon.md) (Postgres na Neon)
 **Criada em:** 2026-07-21
 
