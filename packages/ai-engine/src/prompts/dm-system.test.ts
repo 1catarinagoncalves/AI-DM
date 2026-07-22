@@ -154,6 +154,17 @@ describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas
     expect(p).toMatch(/TURN RESOLUTION ORDER/)
   })
 
+  it('inclui a subseção de onomástica (US-68): proíbe slop, ancora sonoridade, paleta aberta', () => {
+    const p = build()
+    expect(p).toMatch(/Onomastics/)
+    // nomes-slop citados como exemplo do que evitar
+    expect(p).toMatch(/Elara/)
+    expect(p).toMatch(/Kael/)
+    // paleta aberta + cobre pessoas/lugares/coisas
+    expect(p).toMatch(/OPEN PALETTE/)
+    expect(p).toMatch(/not just NPCs/)
+  })
+
   it('a regra em-dash/opções aparece UMA vez (sem a duplicata "ABSOLUTE RULE")', () => {
     const p = build()
     expect(p).not.toMatch(/ABSOLUTE RULE/)

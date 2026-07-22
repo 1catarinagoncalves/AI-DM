@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** US-18 (histórico servido pela API) — o turno precisa existir no `EventLog` para ser reescrito.
 **Criada em:** 2026-07-22
 
