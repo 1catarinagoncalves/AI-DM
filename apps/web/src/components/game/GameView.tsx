@@ -663,14 +663,16 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                   </div>
                 )}
                 {canEdit && (
-                  // Sempre focável por teclado (US-46); visível no hover/foco da bolha.
+                  // Chip de editar. No mobile (sem hover) fica SEMPRE visível; a partir
+                  // de `md:` esconde-se e só aparece no hover/foco da bolha. Focável por
+                  // teclado nos dois casos (US-46). Alvo de toque de 44px.
                   <button
                     type="button"
                     onClick={startEdit}
                     aria-label="Editar a tua última ação"
-                    className="self-center mr-2 px-2 min-h-[44px] text-xs font-medium text-stone-500 hover:text-amber-600 dark:text-stone-400 dark:hover:text-amber-400 rounded opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                    className="self-center mr-2 px-3 min-h-[44px] inline-flex items-center gap-1 text-xs font-semibold rounded-full border border-stone-300 dark:border-stone-600 text-stone-600 dark:text-stone-300 hover:text-amber-600 hover:border-amber-400 dark:hover:text-amber-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
                   >
-                    ✎ Editar
+                    <span aria-hidden="true">✎</span> Editar
                   </button>
                 )}
                 <div className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
@@ -702,38 +704,50 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           </div>
         )}
 
-        {/* Input */}
-        <form onSubmit={sendMessage} className="p-4 border-t border-stone-200 dark:border-stone-800 flex gap-3 items-end">
+        {/* US-67: barra de modo edição — deixa claro no mobile que se está a reescrever
+            uma ação (a bolha esmaecida pode estar fora do ecrã). */}
+        {editing && (
+          <div role="status" className="px-4 pt-3 flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+            <span aria-hidden="true">✎</span> A editar a tua última ação
+          </div>
+        )}
+
+        {/* Input. No mobile empilha (textarea em cima, botões numa linha abaixo) para o
+            campo ficar em largura total — em modo edição a caixa não fica espremida
+            entre os botões. A partir de `md:` volta à linha única. */}
+        <form onSubmit={sendMessage} className="p-4 flex flex-col md:flex-row gap-3 md:items-end border-t border-stone-200 dark:border-stone-800">
           <textarea
             ref={textareaRef}
-            rows={2}
+            rows={editing ? 4 : 2}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={warming ? 'O Mestre está a despertar…' : editing ? 'Corrige a tua ação e salva a edição…' : 'O que fazes? (Enter para enviar, Shift+Enter para nova linha)'}
             aria-label={editing ? 'Editar a tua ação' : 'A tua ação'}
             disabled={streaming || warming}
-            className="flex-1 bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg px-3 py-2 text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-stone-400 resize-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:border-amber-500"
+            className="flex-1 w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg px-3 py-2 text-base md:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-stone-400 resize-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:border-amber-500"
           />
-          {/* US-67: em modo edição o Cancelar volta ao estado anterior sem tocar no histórico. */}
-          {editing && (
+          {/* Botões: linha própria no mobile (alinhada à direita), inline no desktop. */}
+          <div className="flex gap-3 justify-end shrink-0">
+            {editing && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                disabled={streaming || warming}
+                className="min-h-[44px] border border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-200 rounded-lg px-4 py-2 font-semibold transition-colors hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40"
+              >
+                Cancelar
+              </button>
+            )}
             <button
-              type="button"
-              onClick={cancelEdit}
-              disabled={streaming || warming}
-              className="border border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-200 rounded-lg px-4 py-2 font-semibold transition-colors hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40"
+              type="submit"
+              disabled={streaming || warming || !input.trim()}
+              aria-label={editing ? 'Salvar edição' : 'Enviar ação'}
+              className="min-h-[44px] bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-semibold transition-colors"
             >
-              Cancelar
+              {editing ? 'Salvar edição' : <span aria-hidden="true">{streaming ? '...' : '➤'}</span>}
             </button>
-          )}
-          <button
-            type="submit"
-            disabled={streaming || warming || !input.trim()}
-            aria-label={editing ? 'Salvar edição' : 'Enviar ação'}
-            className="bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-semibold transition-colors"
-          >
-            {editing ? 'Salvar edição' : <span aria-hidden="true">{streaming ? '...' : '➤'}</span>}
-          </button>
+          </div>
         </form>
       </div>
     </div>
