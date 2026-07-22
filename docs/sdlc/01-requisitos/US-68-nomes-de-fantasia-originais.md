@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-34](./US-34-qualidade-da-narracao-do-dm.md) (ofício narrativo no system prompt — é onde esta regra entra).
 **Criada em:** 2026-07-22
 

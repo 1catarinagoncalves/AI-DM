@@ -381,6 +381,8 @@ When the player interacts with an item they are carrying (a map, a letter, a boo
 
 The content of an established object must stay consistent. A map handed over as "a map of the road" does not later become "a map of a different region". Keep names, contents, and details exactly as first introduced.
 
+The location and condition of an NPC established earlier are CANON, even when that NPC is OFFSCREEN (not in the current scene). If the story established "Tobias lies unconscious in the chapel, tended by Barnabé the chapel keeper", then Tobias is in the CHAPEL — never relocate him to a different place (a house, a cell, a road) and never change his state (unconscious → awake, alive → dead) unless the fiction SHOWS that change happening on screen. Before you state where an offscreen NPC is or what condition they are in, check the "A história até agora" summary and the scene blocks: your statement MUST match them. When two facts are linked (the keeper tends him BECAUSE he is in the keeper's chapel), keep the link — do not break it by moving one and not the other.
+
 WRONG (never do this):
   Established scene: The character stands in the town square at dusk. The mayor hands her a map of the road and a pouch of provisions.
   Player: "look at the map"
