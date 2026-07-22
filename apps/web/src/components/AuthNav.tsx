@@ -8,7 +8,9 @@ export function AuthNav() {
   const { data, status } = useSession()
   if (status !== 'authenticated') return null
   return (
-    <div className="fixed top-3 right-3 z-40 flex items-center gap-2 text-xs">
+    // US-66: à esquerda do ThemeToggle (fixo em right-4, 40px de largura) para os dois
+    // não se sobreporem no canto — right-16 abre a folga do botão de tema.
+    <div className="fixed top-4 right-16 z-40 flex items-center gap-2 text-xs">
       {data?.user?.email && (
         <span className="hidden sm:inline text-stone-600 dark:text-stone-400">{data.user.email}</span>
       )}

@@ -2,7 +2,7 @@
 
 **Épico:** 4 — Onboarding e navegação
 **Fase:** 2 — Qualidade da interface
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-46](./US-46-acessibilidade-wcag-aa.md) (passe de acessibilidade nas mesmas superfícies — padrão a espalhar) · [US-60](./US-60-web-em-producao-vercel.md) (o site já é público — é de celular que o jogador vai abrir)
 **Relacionado:** [Direção Visual Anti-Slop](../02-design/direcao-visual-anti-slop.md) (passe irmão — trata a *aparência*; esta US trata o *layout responsivo*; escopos separados de propósito)
 **Criada em:** 2026-07-22
