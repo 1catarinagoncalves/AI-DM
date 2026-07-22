@@ -67,6 +67,11 @@ model Adventure {
   order           Int
   status          AdventureStatus        @default(ACTIVE)
   memorySummary   String?
+  // Registro estruturado de entidades duráveis da campanha (NPCs, locais, objetos
+  // notáveis). Vive FORA do EventLog/resumo: nunca é comprimido nem apagado pela
+  // sumarização, então um callback a uma entidade de muitos turnos atrás (ex.: "a
+  // Vigia na sala secreta") sobrevive. Array de WorldEntity (@ai-dm/shared).
+  entities        Json?
   participants    AdventureParticipant[]
   characterStates CharacterState[]
   quests          Quest[]

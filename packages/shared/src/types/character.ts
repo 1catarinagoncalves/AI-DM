@@ -34,3 +34,21 @@ export interface SceneState {
   objetos_em_cena: string[]
   atualizadoEm: string
 }
+
+// Entidade durável da campanha: um NPC, local, objeto ou facção que o mundo trata
+// como canon permanente. Ao contrário da cena (só o AGORA) e do resumo (prosa
+// lossy, comprimível), este registro vive no Adventure e é reinjetado no prompt a
+// cada turno SEM nunca ser comprimido — assim um callback a uma entidade de muitos
+// turnos atrás (ex.: "a Vigia na sala secreta") não depende de sorte do compressor.
+// Chave lógica = `nome` (match tolerante a acento/caixa no merge).
+export interface WorldEntity {
+  nome: string
+  tipo?: 'npc' | 'local' | 'objeto' | 'faccao' | 'outro'
+  /** Onde a entidade está agora (para NPC/objeto móvel). Local em si não tem `local`. */
+  local?: string
+  /** Condição/relação corrente: "inconsciente", "acordado", "morto", "aliada", "hostil". */
+  estado?: string
+  /** Fato durável curto que o mestre não pode esquecer. */
+  nota?: string
+  atualizadoEm: string
+}

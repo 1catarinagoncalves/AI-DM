@@ -1,6 +1,7 @@
-import type { SceneState } from '@ai-dm/shared'
+import type { SceneState, WorldEntity } from '@ai-dm/shared'
 import { abilityModifier, formatModifier, spellLevelLabel } from '@ai-dm/shared'
 import { formatSceneState } from '../scene'
+import { formatEntities } from '../entities'
 
 /**
  * Estado da ficha que o mestre precisa CONHECER (US-23). Renderizado dirigido
@@ -314,6 +315,7 @@ CORRECT example:
 Your visible output is ONLY narrative prose and the options list. State changes travel through TOOL CALLS, never through the text.
 
 - To change state, CALL THE TOOL — \`updateScene\` (location / present NPCs / objects / time of day), \`updateInventory\` (items gained or lost), \`updateCharacterHp\` (damage or healing). The Game Server applies the change and renders it in the side panel. Tools are the ONLY channel for state.
+- DURABLE CANON — call \`recordEntity\` whenever you INTRODUCE or CHANGE a person, place, object or faction that the campaign will refer back to (a named NPC, a hidden room, a landmark, a quest-giver, a guardian). Pass \`nome\` plus whatever is known (\`tipo\`, \`local\`, \`estado\`, \`nota\`), and call it AGAIN with just the changed fields when the entity moves or its state changes (an NPC wakes, dies, becomes an ally; a place is discovered or destroyed). This ledger is your PERMANENT memory: unlike the scene (only the present moment) and the story summary (compressed prose that can drop things), the entity list is re-shown to you in full every turn under "Entidades do mundo". If the player calls back to something you established many turns ago, it lives there — recording it is what stops you from later forgetting it exists.
 - NEVER write status blocks, stat lines, or any control/data marker in the narration. In particular, NEVER emit a \`[WORLD_STATE_UPDATE: {...}]\` tag, a bracketed \`[...]\` control block, or raw JSON. That tag is a DEAD sink: NOTHING reads it, it updates NOTHING, and it leaks straight to the player as broken text. There is no such tag — use the tools.
 - If scene / inventory / HP changed but you did not call the matching tool, the change did NOT happen. Call the tool BEFORE narrating its result.
 
@@ -440,12 +442,14 @@ export function buildTurnStateBlock(params: {
   /** Só a fatia volátil da ficha: HP/condições. Level/atributos/perícias ficam no system. */
   sheet: Pick<DmCharacterSheet, 'hp' | 'maxHp' | 'conditions'>
   sceneState?: SceneState | null
+  /** Registro durável de entidades da campanha (NPCs, locais, objetos). Vazio → nenhuma seção. */
+  entities?: WorldEntity[] | null
   mainQuest?: string | null
   activeQuests: string[]
   inventory: string[]
   memorySummary?: string | null
 }): string {
-  const { sheet, sceneState, mainQuest, activeQuests, inventory, memorySummary } = params
+  const { sheet, sceneState, entities, mainQuest, activeQuests, inventory, memorySummary } = params
 
   const sheetStateSection = `## Estado atual (read-only — source of truth, managed by the Game Server)
 The character's CURRENT condition right now. A low HP or an active condition MUST be reflected in tone and stakes. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
@@ -458,6 +462,21 @@ The character's CURRENT condition right now. A low HP or an active condition MUS
 This is the authoritative, structured state of the scene RIGHT NOW. Trust it over anything you might infer from the narrative text. Do NOT contradict it.
 
 ${sceneText}
+
+`
+    : ''
+
+  // Registro de entidades (canon durável): NPCs, locais e objetos que persistem
+  // pela campanha inteira. Diferente da cena (só o AGORA) e do resumo (prosa lossy
+  // que o compressor pode APAGAR — foi assim que "a Vigia" sumiu), este bloco é
+  // reinjetado íntegro todo turno. É a memória de longo prazo contra a qual o mestre
+  // checa callbacks a coisas de muitos turnos atrás.
+  const entitiesText = formatEntities(entities)
+  const entitiesSection = entitiesText
+    ? `## Entidades do mundo (FONTE DE VERDADE — canon permanente da campanha; NUNCA esqueça nem negue)
+These are durable people, places and things the campaign has established. They EXIST — never tell the player they don't, never act confused about one that is listed here. When the player refers back to one (e.g. returning to a place or asking about an NPC seen many turns ago), TRUST this list even if the recent messages and the summary don't mention it. Keep each entity's location and state consistent with what is written here, and call \`recordEntity\` to update an entry whenever it changes.
+
+${entitiesText}
 
 `
     : ''
@@ -479,7 +498,7 @@ The blocks below are the Game Server's LIVE, authoritative state for THIS turn (
 
 ${sheetStateSection}
 
-${sceneSection}## Main quest
+${sceneSection}${entitiesSection}## Main quest
 ${mainQuest ? mainQuest : '- No main quest set yet.'}
 
 ## Active quests (secondary)

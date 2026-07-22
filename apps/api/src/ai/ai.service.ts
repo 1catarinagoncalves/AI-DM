@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
-import type { InventoryItem, SceneState, SystemConfig } from '@ai-dm/shared'
+import type { InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
 import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
@@ -15,6 +15,7 @@ import {
   buildSummaryInput,
   mergeSceneState,
   formatSceneState,
+  mergeEntities,
   SUMMARY_SYSTEM_PROMPT,
   type ScenePatch,
   type DmCharacterSheet,
@@ -249,6 +250,7 @@ export class AiService {
     const turnState = buildTurnStateBlock({
       sheet,
       sceneState: (characterState?.sceneState ?? null) as SceneState | null,
+      entities: (adventure.entities ?? null) as WorldEntity[] | null,
       mainQuest,
       activeQuests: activeQuests.map((q) => q.title),
       inventory: inventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
@@ -448,6 +450,49 @@ export class AiService {
           })
 
           return next
+        },
+      }),
+
+      // Registro durável de entidades da campanha (NPCs, locais, objetos). Vive no
+      // Adventure, FORA do EventLog/resumo — nunca é comprimido nem apagado pela
+      // sumarização, então um callback a uma entidade de muitos turnos atrás
+      // sobrevive (correção da amnésia que apagou "a Vigia" do resumo).
+      recordEntity: tool({
+        description:
+          'Record or update a DURABLE campaign entity (a named NPC, a place, a notable object, a faction) so it is never forgotten. Call this the moment you INTRODUCE such an entity, and again (with only the changed fields) whenever it moves or its state changes (an NPC wakes/dies/becomes an ally, a place is discovered/destroyed). Pass `nome` plus whatever is known: `tipo` (npc/local/objeto/faccao/outro), `local` (where it is now), `estado` (its current condition/relationship), `nota` (a short durable fact). Matching is by `nome` (accent/case tolerant); omitted fields keep their previous value. This ledger is re-shown to you in full every turn under "Entidades do mundo" — it is your permanent memory, unlike the scene (only the present) and the summary (lossy prose).',
+        parameters: z.object({
+          entidades: z
+            .array(
+              z.object({
+                nome: z.string().describe('Entity name, e.g. "Vigia", "sala secreta sob a capela", "Barnabé".'),
+                tipo: z.enum(['npc', 'local', 'objeto', 'faccao', 'outro']).optional(),
+                local: z.string().optional().describe('Where it is now (for a mobile NPC/object). A place itself needs no `local`.'),
+                estado: z.string().optional().describe('Current condition/relationship, e.g. "inconsciente", "acordado", "aliada", "hostil".'),
+                nota: z.string().optional().describe('A short durable fact the DM must not forget about this entity.'),
+              }),
+            )
+            .describe('One or more entities to insert or update this turn.'),
+        }),
+        execute: async ({ entidades }: { entidades: Omit<WorldEntity, 'atualizadoEm'>[] }) => {
+          // Re-lê do banco (não do closure) para acumular corretamente quando o
+          // modelo chama recordEntity mais de uma vez no mesmo turno.
+          const fresh = await this.prisma.adventure.findUnique({
+            where: { id: adventureId },
+            select: { entities: true },
+          })
+          const current = (fresh?.entities ?? null) as WorldEntity[] | null
+          const next = mergeEntities(current, entidades)
+
+          await this.prisma.adventure.update({
+            where: { id: adventureId },
+            data: { entities: next as unknown as object },
+          })
+
+          // ponytail: SEM eventLog CHARACTER_UPDATE aqui de propósito. A persistência
+          // é a coluna Adventure.entities. Logar CHARACTER_UPDATE marcaria o turno como
+          // mutação de estado e o guard da US-67 bloquearia a edição — e como quase todo
+          // turno apresenta um NPC, isso desativaria a edição de turnos de conversa.
+          return { entities: next }
         },
       }),
 
