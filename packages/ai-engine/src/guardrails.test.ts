@@ -4,6 +4,7 @@ import {
   checkNoSelfRoll,
   detectLanguageDrift,
   detectReasoningLeak,
+  detectCanonDenial,
 } from './guardrails'
 
 // Guardrails do bake-off narrativo (US-17, slice 2). Detectores DETERMINÍSTICOS
@@ -94,5 +95,39 @@ describe('guardrail — vazamento de reasoning / voz de assistente', () => {
   it('NÃO acusa narração limpa, incluindo diálogo com travessão', () => {
     expect(detectReasoningLeak('— Quem vem lá? — grita o velho da janela. A chuva cai fria.').leak).toBe(false)
     expect(detectReasoningLeak('A chuva fina batia no seu elmo. O portão rangia.').leak).toBe(false)
+  })
+})
+
+describe('detectCanonDenial (amnésia de entidade — bug da Vigia)', () => {
+  const CANON = ['Vigia', 'sala secreta', 'Tobias']
+
+  // Fixture REAL: a narração exata que disparou o bug — o mestre negou a Vigia e a
+  // sala secreta que estavam no canon. Travada como regressão: se algum dia o
+  // detector deixar de pegar isto, o teste quebra.
+  const TRANSCRIPT_BUG =
+    'Anetra... você hesita por um instante. Mas a sala secreta... o Vigia... você não faz ideia do que Elara ou Tobias estão falando.\n\n' +
+    '— Senhora Ulkas — diz o velho zelador com cuidado —, não há nenhuma sala secreta nesta capela. E nunca ouvi falar de nenhum "Vigia" em Willowdale.'
+
+  it('REPROVA a narração real do bug (nega entidade cadastrada)', () => {
+    expect(detectCanonDenial(TRANSCRIPT_BUG, CANON).denied).toBe(true)
+  })
+
+  it('APROVA a resposta correta (engaja com a entidade como real)', () => {
+    const bom =
+      'Você desce os degraus de volta à sala secreta. A Vigia ergue os olhos negros da bacia de água escura, imóvel, como se já esperasse por você.\n\n' +
+      '— Preciso saber do homem de rosto liso — você diz. A luz de Solariel pulsa no símbolo gravado no chão.'
+    expect(detectCanonDenial(bom, CANON).denied).toBe(false)
+  })
+
+  it('NÃO confunde um NPC que ignora um FATO com negar a entidade', () => {
+    // A Vigia (que EXISTE) apenas não sabe quem enviou a sombra — legítimo, não é amnésia.
+    const npcNaoSabe = 'A Vigia inclina a cabeça. Ela não faz ideia de quem enviou a criatura, mas sente o mesmo mal.'
+    expect(detectCanonDenial(npcNaoSabe, CANON).denied).toBe(false)
+  })
+
+  it('passa quando nenhuma entidade do ledger é mencionada (nada a negar)', () => {
+    // frase de negação PRESENTE, mas nenhuma entidade do ledger citada → sem canon a negar
+    expect(detectCanonDenial('Você nunca ouvi falar de tal lugar.', CANON).denied).toBe(false)
+    expect(detectCanonDenial('A chuva cai fria sobre a estrada.', []).denied).toBe(false)
   })
 })

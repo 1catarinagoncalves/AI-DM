@@ -6,7 +6,7 @@ import { resolve } from 'node:path'
 import type { DiceResult } from '@ai-dm/shared'
 import { buildDmSystemPrompt, buildTurnStateBlock } from './prompts/dm-system'
 import { resolveModel, judgeModel } from './model'
-import { checkNoSelfRoll, detectLanguageDrift, detectReasoningLeak } from './guardrails'
+import { checkNoSelfRoll, detectLanguageDrift, detectReasoningLeak, detectCanonDenial } from './guardrails'
 import {
   judgeTurn,
   aggregateReps,
@@ -106,6 +106,23 @@ const COHERENCE_TURN_STATE = buildTurnStateBlock({
     'No início da investigação, o taverneiro Garrick jurou a Seraphine que NUNCA tinha visto o Padre Elias e que nada sabia. Turnos depois, provas revelaram que Garrick escondeu o padre ferido no porão da própria taverna, com medo dos cultistas — ou seja, ele MENTIU naquele primeiro encontro. Seraphine agora sabe disso.',
 })
 
+// Cenário de AMNÉSIA (bug da Vigia): a entidade está no REGISTRO estruturado, mas
+// o resumo NÃO a menciona (simula o compressor que a apagou). O turno bom trata a
+// Vigia/sala secreta como reais (o ledger é fonte de verdade); o ruim finge que
+// não existem. O guardrail determinístico `detectCanonDenial` mede exatamente isso.
+const AMNESIA_ENTITIES = [
+  { nome: 'Vigia', tipo: 'npc' as const, local: 'sala secreta', estado: 'guardiã neutra; deu permissão a Seraphine', nota: 'vela sobre uma bacia de água escura que revela visões', atualizadoEm: '' },
+  { nome: 'sala secreta', tipo: 'local' as const, estado: 'descoberta', nota: 'câmara oculta com símbolo de Solariel no chão e a bacia da Vigia', atualizadoEm: '' },
+]
+const AMNESIA_TURN_STATE = buildTurnStateBlock({
+  sheet: CHARACTER.sheet,
+  ...VOLATILE,
+  entities: AMNESIA_ENTITIES,
+  // Resumo NÃO cita a Vigia/sala secreta de propósito: a única memória delas é o ledger.
+  memorySummary:
+    'Seraphine investigou o desaparecimento das crianças em Eldridge e purificou a igreja tomada por mortos-vivos. O Padre Elias, corrompido, foi derrotado. A vila começa a se recuperar.',
+})
+
 // ─── Exemplares "nota 5" (few-shot de calibração), da aventura de referência ──
 // docs/sdlc/referencia/aventura-seraphine.md — âncoras de padrão, não texto a copiar.
 
@@ -139,6 +156,12 @@ const EX_COHERENCE: Exemplar = {
     'Garrick empalidece e desvia o olhar — a mesma covardia trêmula de antes, agora encurralada. — A senhora... a senhora sabe. Ele engole em seco, as mãos apertando o pano do balcão. — Eu menti, sim. Que Solariel me perdoe. Quando disse que nunca vira o padre... ele estava lá embaixo, no porão, sangrando. Os homens de olhos roxos disseram que se eu contasse a alguém, levariam minha filha também. Eu tive medo, senhora. Ele ergue os olhos, súplica e vergonha misturadas. — O que a senhora vai fazer comigo?',
 }
 
+const EX_AMNESIA: Exemplar = {
+  playerAction: 'Volto à sala secreta e falo com a Vigia sobre o homem de rosto liso.',
+  dmResponse:
+    'Você desce de novo os degraus de pedra até a sala secreta. A luz da vela lambe o símbolo de Solariel gravado no chão, e a Vigia ergue os olhos negros da bacia de água escura — imóvel, como se já esperasse por você. — Preciso saber do homem de rosto liso — você diz, a voz ecoando na câmara. A superfície da água estremece ao som do nome, e a Vigia inclina a cabeça devagar, convidando você a tocá-la de novo. O que você faz, Lady Seraphine?',
+}
+
 // Cenários. Cada um tensiona eixos diferentes e traz seu exemplar-âncora. Os
 // guardrails de idioma/reasoning valem para todos; o de auto-rolagem só no combate.
 interface Scenario {
@@ -149,6 +172,8 @@ interface Scenario {
   /** US-56: bloco de estado volátil prefixado à ação (o system é o mesmo SYSTEM p/ todos). */
   turnState: string
   checkSelfRoll: boolean
+  /** Nomes de entidades do ledger que o turno NÃO pode negar (guardrail de amnésia). */
+  canonEntities?: string[]
 }
 
 const SCENARIOS: Scenario[] = [
@@ -195,6 +220,16 @@ const SCENARIOS: Scenario[] = [
     exemplar: EX_COHERENCE,
     turnState: COHERENCE_TURN_STATE,
     checkSelfRoll: false,
+  },
+  {
+    id: 'amnesia',
+    action: 'Volto à sala secreta e falo com a Vigia sobre o homem de rosto liso.',
+    scenarioContext:
+      'Amnésia de canon: a jogadora faz um callback à Vigia e à sala secreta, que estão no REGISTRO de entidades mas NÃO no resumo. O mestre deve tratá-las como reais, nunca negar que existem.',
+    exemplar: EX_AMNESIA,
+    turnState: AMNESIA_TURN_STATE,
+    checkSelfRoll: false,
+    canonEntities: ['Vigia', 'sala secreta'],
   },
 ]
 
@@ -257,12 +292,15 @@ async function runTurn(modelId: string, scenario: Scenario): Promise<TurnResult>
 }
 
 /** Roda os guardrails aplicáveis a um turno e devolve as falhas (vazio = passou). */
-function evaluateGuardrails(r: TurnResult, checkSelfRoll: boolean): string[] {
+function evaluateGuardrails(r: TurnResult, checkSelfRoll: boolean, canonEntities?: string[]): string[] {
   const fails: string[] = []
   if (detectLanguageDrift(r.narration).drift) fails.push('idioma')
   if (detectReasoningLeak(r.narration).leak) fails.push('reasoning-leak')
   if (checkSelfRoll && !checkNoSelfRoll({ calledRollDice: r.calledRollDice, narration: r.narration }).passed) {
     fails.push('rollDice')
+  }
+  if (canonEntities && detectCanonDenial(r.narration, canonEntities).denied) {
+    fails.push('canon-denial')
   }
   return fails
 }
@@ -311,7 +349,7 @@ describe('bake-off narrativo (US-17, slice 2: guardrails + juiz)', () => {
                 console.log(turn.narration || '(vazio)')
               }
 
-              const fails = evaluateGuardrails(turn, scenario.checkSelfRoll)
+              const fails = evaluateGuardrails(turn, scenario.checkSelfRoll, scenario.canonEntities)
               if (fails.length) {
                 acc.guardrailFails++
                 if (rep === 0) console.log(`⛔ guardrails: ${fails.join(' · ')} → não vai ao juiz`)

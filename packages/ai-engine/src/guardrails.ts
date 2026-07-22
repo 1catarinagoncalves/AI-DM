@@ -126,3 +126,46 @@ export function detectReasoningLeak(narration: string): { leak: boolean; match: 
   if (/^[-*]\s/.test(firstLine)) return { leak: true, match: firstLine }
   return { leak: false, match: '' }
 }
+
+// ─── Guardrail 4: negação de canon (amnésia de entidade) ─────────────────────
+
+// Frases de NEGAÇÃO-DE-EXISTÊNCIA / ignorância que caracterizam o bug da "Vigia":
+// o mestre trata como inexistente/desconhecida uma entidade que está no registro.
+// De propósito ESPECÍFICAS (existência/ter-ouvido-falar), não "não sei um fato":
+// "a Vigia não faz ideia de quem enviou" (NPC não sabe algo) NÃO deve reprovar;
+// "você não faz ideia do que falam" + "nunca ouvi falar de nenhum Vigia" DEVE.
+const DENIAL_PATTERNS: RegExp[] = [
+  /n[ãa]o faz ideia do que\b[^.]{0,40}\b(?:fal(?:a|am|ando)|diz(?:em)?)\b/i,
+  /nunca ouvi falar\b/i,
+  /n[ãa]o (?:h[áa]|existe|existiu)\b[^.]{0,20}\b(?:nenhum[ao]?|tal|essa|esse|aqui)\b/i,
+  /n[ãa]o conhe[çc]o\b[^.]{0,15}\bnenhum[ao]?\b/i,
+  /n[ãa]o me lembr[oa] de\b[^.]{0,15}\b(?:nenhum[ao]?|ter visto|ter ouvido)\b/i,
+]
+
+/**
+ * Amnésia de canon: o mestre NEGA ou finge ignorância de uma entidade que está no
+ * registro do mundo (o bug da "Vigia" — um NPC/local que existia foi apagado do
+ * resumo e o mestre o tratou como inexistente). Recebe a narração + os NOMES das
+ * entidades do ledger daquele estado. `denied = true` quando uma frase de
+ * negação-de-existência aparece E alguma entidade cadastrada é mencionada no texto
+ * (senão não há canon a negar). Heurística de frase, custo zero — mede o sintoma
+ * exato sem juiz LLM. Escopo: BAKE-OFF/regressão, não porteiro de produção (um NPC
+ * pode legitimamente negar um FATO em cena; aqui o cenário é controlado).
+ */
+export function detectCanonDenial(
+  narration: string,
+  entityNames: string[],
+): { denied: boolean; match: string } {
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
+  const hay = norm(narration)
+  const names = entityNames.map((n) => n.trim()).filter(Boolean)
+  // Nenhuma entidade do ledger sequer mencionada → não há canon a negar.
+  if (names.length === 0 || !names.some((n) => hay.includes(norm(n)))) {
+    return { denied: false, match: '' }
+  }
+  for (const re of DENIAL_PATTERNS) {
+    const m = narration.match(re)
+    if (m) return { denied: true, match: m[0].trim() }
+  }
+  return { denied: false, match: '' }
+}

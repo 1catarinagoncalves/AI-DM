@@ -413,7 +413,7 @@ export class AiService {
           local: z.string().optional().describe('Current location in natural language, e.g. "praça central de Willowdale"'),
           ambiente: z.enum(['externo', 'interno']).optional().describe('externo = open/outdoors, interno = enclosed/indoors'),
           periodo: z.string().optional().describe('Time of day, e.g. manhã/tarde/entardecer/noite'),
-          presentes: z.array(z.string()).optional().describe('FULL list of NPCs/characters present in the scene now. Carry each NPC\'s current status inline when it matters, e.g. "Tobias (acordado, lúcido)", "Barnabé, o zelador". This makes the scene block the source of truth for who is present AND in what state.'),
+          presentes: z.array(z.string()).optional().describe('FULL list of NPCs/characters present in the scene now (names only — an NPC\'s durable condition/status belongs in the entity ledger via recordEntity, not here).'),
           objetos_em_cena: z.array(z.string()).optional().describe('FULL list of notable objects visible/available in the scene now (distinct from carried inventory)'),
         }),
         execute: async (patch: {

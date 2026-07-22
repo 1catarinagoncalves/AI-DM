@@ -239,4 +239,19 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     expect(s).toMatch(/- Empty\./)
     expect(typeof s).toBe('string')
   })
+
+  it('injeta o bloco de Entidades do mundo como FONTE DE VERDADE quando há entidades', () => {
+    const s = buildState({
+      entities: [
+        { nome: 'Vigia', tipo: 'npc', local: 'sala secreta', estado: 'neutra', nota: 'guardiã da bacia', atualizadoEm: '' },
+      ],
+    })
+    expect(s).toMatch(/## Entidades do mundo/)
+    expect(s).toContain('Vigia')
+    expect(s).toContain('sala secreta')
+  })
+
+  it('sem entidades → nenhuma seção de Entidades', () => {
+    expect(buildState()).not.toMatch(/## Entidades do mundo/)
+  })
 })
