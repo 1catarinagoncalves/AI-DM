@@ -530,6 +530,12 @@ export class AiService {
       // 4000 comporta o raciocínio cheio (sem effort cap, pra manter aderência ao
       // prompt) + narração + opções com folga.
       maxTokens: 4000,
+      // Anti-loop degenerado (visto em prod: modelo travou repetindo "cra cra cra…"
+      // ao inventar o nome de uma erva, enchendo os 4000 tokens → finishReason=length).
+      // frequencyPenalty escala com a contagem do token → penaliza a repetição sem
+      // custo de coerência a valor baixo. openai-compatible@0.2.16 envia como
+      // `frequency_penalty`; OpenRouter/DeepSeek honram, o Groq ignora se não suportar.
+      frequencyPenalty: 0.3,
       // Persiste a narração do mestre ao final, mantendo a continuidade da cena,
       // e condensa turnos antigos no resumo quando a janela cresce demais.
       onFinish: async ({ text, steps, finishReason, usage, providerMetadata, response }) => {
