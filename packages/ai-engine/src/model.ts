@@ -108,7 +108,7 @@ export const NARRATION_PROVIDER_OPTIONS = {
   // effort: um `effort:'low'` fez o modelo raciocinar de menos e desrespeitar as
   // regras do prompt (rolagens/magias inventadas). Raciocínio cheio = mais aderência;
   // o teto de corte fica por conta do maxTokens (4000) no streamText.
-  openrouter: { reasoning: { exclude: true } },
+  openrouter: { reasoning: { effort: 'high', exclude: true } },
 } as const
 
 // Compat: modelo principal isolado.
