@@ -89,8 +89,31 @@ pnpm eval --ci               # modo CI (falha se score < threshold)
 | Ausência de alucinação de regras | 95% |
 | State persistido corretamente | 100% |
 | Testes unitários passando | 100% |
+| Qualidade da narração (US-36, LLM-as-judge) | MÉDIA ≥ 3.5 (escala 1–5) |
+| Piso por dimensão (US-70) | sensorial/tensão/concretude/língua pt-BR ≥ 3 |
+| Taxa de slop de onomástica (US-70) | report-only (aviso > 50% das reps; não reprova até a produção reduzir o slop) |
 
 PRs que reduzem qualquer métrica abaixo do threshold são bloqueados.
+
+A métrica de qualidade da narração (US-36) é medida por LLM-as-judge (juiz Gemini,
+externo à escada de narração) sobre a rubrica `DIMENSIONS` de
+`packages/ai-engine/src/rubric.ts` — espelho da barra de ofício
+(`NARRATIVE_CRAFT_SECTION` de `dm-system.ts`, US-34). O threshold vive em
+`QUALITY_THRESHOLD` no mesmo arquivo. O caso `evals/cases/us-36-qualidade-narracao.ts`
+é gated por `OPENROUTER_API_KEY` + `GEMINI_API_KEY`; o portão só vale no CI quando
+o job exporta as duas chaves.
+
+A US-70 deu **dente** ao gate: além da média, cada dimensão-chave tem um **piso**
+próprio (`DIMENSION_FLOORS`, `≥ 3`) — um eixo colapsado reprova mesmo com média alta;
+e o eval roda cada caso `JUDGE_REPS` (default 3) vezes e gateia sobre a **média das reps**
+(`aggregateReps`), não um tiro único. A decisão de aprovação vive em `gateQuality()`
+(pura, sem API), provada no `pnpm test` (`rubric.test.ts`). Um **anchor set** rotulado
+valida que o juiz rankeia narrações boas acima das ruins por margem (detecta deriva do juiz).
+
+O `slopRate` de onomástica é **report-only** por ora: a taxa-base do modelo (~40% nos
+casos com muitos nomes) cola no `SLOP_RATE_MAX`, então gatear a REPS=3 seria *flaky*
+(violaria a AC "não-flaky"). O slop é medido e avisado; vira gate quando a produção o
+reduzir (US irmã de enforcement, fora do escopo desta US).
 
 ---
 

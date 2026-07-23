@@ -154,12 +154,16 @@ describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas
     expect(p).toMatch(/TURN RESOLUTION ORDER/)
   })
 
-  it('inclui a subseção de onomástica (US-68): proíbe slop, ancora sonoridade, paleta aberta', () => {
+  it('inclui a subseção de onomástica (US-68/US-36): steering positivo, ancora sonoridade, paleta aberta', () => {
     const p = build()
     expect(p).toMatch(/Onomastics/)
-    // nomes-slop citados como exemplo do que evitar
-    expect(p).toMatch(/Elara/)
-    expect(p).toMatch(/Kael/)
+    // US-36: a barra NÃO nomeia mais os slop names (nomeá-los PRIMAVA o modelo a
+    // usá-los — "elefante rosa"). O enforcement da lista fechada é o guardrail
+    // determinístico detectSlopName; aqui o prompt só faz steering POSITIVO.
+    expect(p).not.toMatch(/Elara/)
+    expect(p).not.toMatch(/Kael/)
+    expect(p).toMatch(/invent every proper name from scratch/)
+    expect(p).toMatch(/generic default name/)
     // paleta aberta + cobre pessoas/lugares/coisas
     expect(p).toMatch(/OPEN PALETTE/)
     expect(p).toMatch(/not just NPCs/)

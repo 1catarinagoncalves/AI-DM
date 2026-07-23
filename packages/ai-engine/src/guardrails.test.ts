@@ -5,6 +5,7 @@ import {
   detectLanguageDrift,
   detectReasoningLeak,
   detectCanonDenial,
+  detectSlopName,
 } from './guardrails'
 
 // Guardrails do bake-off narrativo (US-17, slice 2). Detectores DETERMINÍSTICOS
@@ -129,5 +130,24 @@ describe('detectCanonDenial (amnésia de entidade — bug da Vigia)', () => {
     // frase de negação PRESENTE, mas nenhuma entidade do ledger citada → sem canon a negar
     expect(detectCanonDenial('Você nunca ouvi falar de tal lugar.', CANON).denied).toBe(false)
     expect(detectCanonDenial('A chuva cai fria sobre a estrada.', []).denied).toBe(false)
+  })
+})
+
+describe('detectSlopName — blocklist determinístico de onomástica (US-36)', () => {
+  it('pega os nomes de slop da lista fechada, insensível a caixa/acento', () => {
+    expect(detectSlopName('A pequena Elara sumiu na noite.').slop).toBe(true)
+    expect(detectSlopName('O padre KAEL ergueu o símbolo.').slop).toBe(true)
+    expect(detectSlopName('Zephyr soprou entre as árvores.').match).toBe('zephyr')
+  })
+
+  it('não confunde o nome do personagem-jogador (Seraphine) com o slop Seraphina', () => {
+    expect(detectSlopName('Lady Seraphine ergue a espada.').slop).toBe(false)
+    expect(detectSlopName('A feiticeira Seraphina lançou o feitiço.').slop).toBe(true)
+  })
+
+  it('whole-word: não acusa slop dentro de outra palavra', () => {
+    // "aria" dentro de "Mariana" não deve reprovar
+    expect(detectSlopName('Mariana caminhou pela praça.').slop).toBe(false)
+    expect(detectSlopName('Um nome original: Orphaion, o velho sábio.').slop).toBe(false)
   })
 })

@@ -16,6 +16,11 @@ import {
   mergeSceneState,
   formatSceneState,
   mergeEntities,
+  judgeModel,
+  judgeTurn,
+  meanOfScore,
+  formatScoreLines,
+  detectSlopName,
   SUMMARY_SYSTEM_PROMPT,
   type ScenePatch,
   type DmCharacterSheet,
@@ -612,6 +617,15 @@ export class AiService {
           await this.prisma.eventLog.create({
             data: { adventureId, characterId, type: 'NARRATION', payload: { text: finalText } },
           })
+          // US-36: observabilidade de slop names (onomástica). Detector determinístico,
+          // custo zero, NÃO regenera — só loga quando um nome clichê passa. Dá a
+          // métrica de prod pra decidir enforcement (regeneração) com dado depois.
+          const slop = detectSlopName(finalText)
+          if (slop.slop) console.warn(`[AiService][slop] nome clichê na narração: "${slop.match}" (observabilidade; não regenera)`)
+          // US-36: avaliação de qualidade AO VIVO em dev (async, fire-and-forget).
+          // NÃO dar await — o jogador já recebeu o stream; a nota chega ao log
+          // depois. Só roda atrás de DM_LIVE_EVAL (nunca em produção).
+          void this.liveEvalTurn(message, finalText)
         }
         await this.summarizeOldTurns(adventureId, characterId)
       },
@@ -721,6 +735,37 @@ export class AiService {
     } catch (err) {
       console.error('[AiService] Falha ao extrair cena da abertura, sceneState fica nulo:', err)
       return null
+    }
+  }
+
+  /**
+   * US-36 — avaliação de qualidade AO VIVO em dev (async, por turno). Pontua a
+   * narração REAL do turno com o MESMO juiz + rubrica dos eval cases, para ver a
+   * qualidade cair na hora, sem esperar o CI nem montar um caso.
+   *
+   * - Só roda atrás de `DM_LIVE_EVAL` (a API não auto-carrega `.env`; a flag vem
+   *   do `.env` da raiz / env do Windows). Em produção NÃO roda — nem carrega o juiz.
+   * - Observabilidade, não portão: nota baixa AVISA, não altera nem re-gera nada.
+   * - Falha isolada: erro/timeout/quota do juiz NUNCA derruba o turno — engole a
+   *   exceção e loga um aviso. O turno já foi entregue; o juiz é opcional.
+   * - Reuso total: `judgeModel()` + `judgeTurn` sem exemplar (turno real não tem
+   *   âncora) — zero lógica de pontuação nova.
+   */
+  private async liveEvalTurn(playerAction: string, narration: string): Promise<void> {
+    if (!process.env.DM_LIVE_EVAL) return
+    try {
+      const { score } = await judgeTurn({
+        judge: judgeModel(),
+        scenarioContext: 'Avaliação ao vivo de um turno real de jogo (dev).',
+        playerAction,
+        narration,
+      })
+      console.log(
+        `[AiService][live-eval] MÉDIA ${meanOfScore(score).toFixed(2)}/5\n${formatScoreLines(score)}`,
+      )
+    } catch (err) {
+      // Fire-and-forget: o turno já foi entregue. O juiz é opcional.
+      console.warn('[AiService][live-eval] juiz falhou (ignorado):', (err as Error).message)
     }
   }
 

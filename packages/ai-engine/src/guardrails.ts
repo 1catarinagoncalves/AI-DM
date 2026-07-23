@@ -127,6 +127,33 @@ export function detectReasoningLeak(narration: string): { leak: boolean; match: 
   return { leak: false, match: '' }
 }
 
+// ─── Guardrail 5: nome de slop (onomástica) ──────────────────────────────────
+
+// Lista FECHADA de nomes clichê de AI-fantasy que a barra de ofício (US-34) manda
+// EVITAR. Investigação da US-36: o modelo emite "Elara" mesmo com o prompt mandando
+// não usar — instrução negativa não segura contra prior forte, e o prompt PRIMAVA o
+// token ao nomeá-lo (por isso a barra deixou de listá-los: ver NARRATIVE_CRAFT_SECTION,
+// que agora só faz steering positivo). Lista fechada = regex determinístico, não
+// esperança no prompt — e este detector é agora a ÚNICA fonte da lista (o prompt não
+// a nomeia mais, de propósito). NÃO inclui "Seraphine" (personagem-jogador) — só "Seraphina".
+const SLOP_NAMES = ['elara', 'kael', 'lyra', 'aria', 'zephyr', 'seraphina', 'thorne'] as const
+const SLOP_RE = new RegExp(`\\b(${SLOP_NAMES.join('|')})\\b`, 'i')
+
+/**
+ * A prosa usa um nome de slop da lista fechada? Match whole-word,
+ * insensível a caixa/acento (normaliza a narração antes). Custo zero — enforce
+ * mecânico do blocklist que o prompt não consegue garantir sozinho.
+ *
+ * ponytail: lista fechada dos 7 nomes que o prompt cita. Se aparecer um clichê
+ * novo recorrente nos relatórios (ex.: "Aldric"), some à lista aqui — não é o
+ * juiz que decide isto, é uma regra dura.
+ */
+export function detectSlopName(narration: string): { slop: boolean; match: string } {
+  const norm = narration.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
+  const m = norm.match(SLOP_RE)
+  return m ? { slop: true, match: m[1]! } : { slop: false, match: '' }
+}
+
 // ─── Guardrail 4: negação de canon (amnésia de entidade) ─────────────────────
 
 // Frases de NEGAÇÃO-DE-EXISTÊNCIA / ignorância que caracterizam o bug da "Vigia":

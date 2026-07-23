@@ -4,6 +4,10 @@ import {
   WEIGHTS,
   aggregateReps,
   estimateCost,
+  gateQuality,
+  DIMENSION_FLOORS,
+  SLOP_RATE_MAX,
+  QUALITY_THRESHOLD,
   renderReportMarkdown,
   type RubricScore,
 } from './rubric'
@@ -27,8 +31,10 @@ describe('aggregateReps — média por dimensão, MÉDIA geral, spread', () => {
   })
 
   it('MÉDIA geral é a média ponderada das dimensões (pesos iguais → média simples)', () => {
-    // rep único, notas distintas por dimensão: 1..6 mapeadas nas 6 dims
-    const notas = [5, 4, 3, 5, 4, 3]
+    // rep único, notas distintas por dimensão (ciclo 5,4,3 sobre TODAS as dims —
+    // robusto ao nº de dimensões, que a US-36 estendeu de 6 para 11).
+    const ciclo = [5, 4, 3]
+    const notas = DIMENSIONS.map((_, i) => ciclo[i % ciclo.length]!)
     const rep = Object.fromEntries(
       DIMENSIONS.map((d, i) => [d.key, { nota: notas[i], justificativa: 'x' }]),
     ) as unknown as RubricScore
@@ -110,3 +116,51 @@ describe('renderReportMarkdown — tabela determinística', () => {
 function dims(v: number): Record<string, number> {
   return Object.fromEntries(DIMENSIONS.map((d) => [d.key, v]))
 }
+
+// ─── gateQuality — meta-teste PURO da lógica de gate (US-70) ──────────────────
+// O "detector do detector": prova, sem API e determinístico, que o piso por dimensão
+// reprova o que a MÉDIA sozinha deixava passar (Furo 1) e que o slop é gate por TAXA,
+// não por tiro único (Furo 2). É o critério de aceite que fecha o Furo 1 no `pnpm test`.
+
+describe('gateQuality — piso por dimensão + taxa de slop (US-70)', () => {
+  /** perDim uniforme no valor `v`, exceto os overrides. */
+  function perDim(v: number, over: Partial<Record<string, number>> = {}) {
+    return { ...(dims(v) as Record<(typeof DIMENSIONS)[number]['key'], number>), ...over }
+  }
+
+  it('FECHA O FURO 1: média alta com UMA dimensão abaixo do piso REPROVA', () => {
+    // média 4.6 (bem acima de 3.5) mas sensorial despencou a 2 — exatamente o que a
+    // média de 11 dimensões escondia. O piso tem que morder.
+    const r = gateQuality({ perDim: perDim(4.6, { sensorial: 2 }), media: 4.6 })
+    expect(r.passed).toBe(false)
+    expect(r.reasons.join(' ')).toMatch(/sensorial/)
+  })
+
+  it('aprova quando média ok E toda dimensão-chave ≥ piso', () => {
+    const r = gateQuality({ perDim: perDim(4), media: 4 })
+    expect(r.passed).toBe(true)
+    expect(r.reasons).toEqual([])
+  })
+
+  it('reprova por MÉDIA abaixo do threshold (gate herdado da US-36)', () => {
+    const r = gateQuality({ perDim: perDim(3), media: QUALITY_THRESHOLD - 0.1 })
+    expect(r.passed).toBe(false)
+    expect(r.reasons.join(' ')).toMatch(/MÉDIA/)
+  })
+
+  it('slop é REPORT-ONLY: gateQuality NÃO reprova por slop (calibração US-70)', () => {
+    // A taxa-base de slop cola no SLOP_RATE_MAX → gatear a REPS=3 seria flaky. Enquanto
+    // a produção não reduz o slop (US irmã), o gate ignora slop; o caso gated só AVISA.
+    // SLOP_RATE_MAX segue exportado como o limiar de aviso e o ponto-de-virada futuro.
+    expect(SLOP_RATE_MAX).toBeGreaterThan(0)
+    // média ok + pisos ok → passa, INDEPENDENTE de quanto slop houve (não é entrada do gate).
+    expect(gateQuality({ perDim: perDim(4), media: 4 }).passed).toBe(true)
+  })
+
+  it('só as dimensões-chave têm piso — uma dim SEM piso baixa não reprova sozinha', () => {
+    // 'imersao' não está em DIMENSION_FLOORS: cai a 1 mas, com média ok, não reprova.
+    expect(DIMENSION_FLOORS['imersao' as keyof typeof DIMENSION_FLOORS]).toBeUndefined()
+    const r = gateQuality({ perDim: perDim(4, { imersao: 1 }), media: 3.7 })
+    expect(r.passed).toBe(true)
+  })
+})

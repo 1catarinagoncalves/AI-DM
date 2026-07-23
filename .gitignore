@@ -15,3 +15,6 @@ apps/api/src/generated/
 
 .vercel
 .env*
+
+# US-36: relatórios de eval gerados por execução (narração + notas + metadados)
+evals/reports/

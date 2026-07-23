@@ -14,29 +14,133 @@ import { generateObject, type LanguageModelV1 } from 'ai'
 // juiz responde (doc US-17, tabela "Rubrica de qualidade narrativa").
 
 export interface Dimension {
-  key: 'imersao' | 'sensorial' | 'agencia' | 'vozNpc' | 'ritmo' | 'coerencia'
+  key:
+    | 'imersao'
+    | 'sensorial'
+    | 'agencia'
+    | 'vozNpc'
+    | 'ritmo'
+    | 'coerencia'
+    // US-36: eixos novos da barra de ofício atual (US-34), além dos 6 do bake-off.
+    | 'concretude'
+    | 'onomastica'
+    | 'identidade'
+    | 'tensao'
+    | 'linguaPt'
   label: string
   pergunta: string
 }
 
+// ESPELHA a barra de ofício de dm-system.ts (NARRATIVE_CRAFT_SECTION). Mudou lá?
+// Reveja estas dimensões aqui e atualize REVIEWED_CRAFT_HASH em rubric-drift.test.ts.
+// Os 6 primeiros eixos vêm do bake-off (US-17); os 5 finais são a barra da US-34
+// que a US-36 passou a medir (concretude/nomeação, onomástica, classe-como-lente,
+// tensão-antes-da-explicação, língua natural pt-BR).
 export const DIMENSIONS: readonly Dimension[] = [
   { key: 'imersao', label: 'Imersão', pergunta: 'Narra em 2ª pessoa, presente, sem quebrar a 4ª parede nem virar "assistente"?' },
-  { key: 'sensorial', label: 'Sensorial', pergunta: 'Ancora a cena em visão/som/cheiro/toque sem encher linguiça?' },
-  { key: 'agencia', label: 'Agência', pergunta: 'Fecha o turno oferecendo escolhas significativas (+ opção livre)?' },
-  { key: 'vozNpc', label: 'Voz NPC', pergunta: 'NPCs falam distinto, com intenção e emoção próprias?' },
-  { key: 'ritmo', label: 'Ritmo', pergunta: 'Avança a cena sem atropelar nem enrolar; tamanho adequado?' },
+  { key: 'sensorial', label: 'Sensorial', pergunta: 'Abre pelos sentidos (chuva, frio, luz), não pela exposição?' },
+  { key: 'agencia', label: 'Gancho/Opções', pergunta: 'Fecha chamando o personagem pelo nome e então apresenta escolhas significativas (+ opção livre)?' },
+  { key: 'vozNpc', label: 'Voz NPC', pergunta: 'NPCs têm voz, movimento, emoção e stakes — sobretudo os vulneráveis? (n/a se não há NPC)' },
+  { key: 'ritmo', label: 'Ritmo', pergunta: 'Mistura frases curtas e longas; 3–5 parágrafos curtos; imersivo sem ser prolixo?' },
   { key: 'coerencia', label: 'Coerência', pergunta: 'Respeita o estado da cena/ficha/histórico dado no contexto?' },
+  { key: 'concretude', label: 'Concretude', pergunta: 'Nomeia coisas específicas (a montaria, a espada, o símbolo sagrado, o NPC) em vez do genérico?' },
+  { key: 'onomastica', label: 'Onomástica', pergunta: 'Nomes próprios ORIGINAIS (sem clichês Elara/Kael/Lyra/Aria/Thorne), com registro cultural certo p/ raça/classe/ambiente, na frase em pt-BR natural? (n/a se não nomeia nada novo)' },
+  { key: 'identidade', label: 'Classe-lente', pergunta: 'Raça/classe/equipamento/habilidades afloram por ação e sensação, nunca como lista de stats (o paladino SENTE o mal, não vê um número)?' },
+  { key: 'tensao', label: 'Tensão', pergunta: 'Mostra a tensão (o silêncio errado de uma aldeia) antes de explicá-la?' },
+  { key: 'linguaPt', label: 'Língua pt-BR', pergunta: 'pt-BR fluente e contemporâneo — usa "você", evita "tu/vós" e construções lusitanas/traduzidas ("a fitar-te", "estás")? (n/a se o jogador narra em inglês)' },
 ] as const
 
-// Pesos por dimensão. Decisão 4 da US: todos iguais (1.0) por ora — ponderar
+// Pesos por dimensão. Decisão 4 da US-17: todos iguais (1.0) por ora — ponderar
 // antes de ver a matriz é premature optimization. Const trivial de mudar depois.
-export const WEIGHTS: Record<Dimension['key'], number> = {
-  imersao: 1,
-  sensorial: 1,
-  agencia: 1,
-  vozNpc: 1,
-  ritmo: 1,
-  coerencia: 1,
+// Chaveado por DIMENSIONS (dirigido por dados) — dimensão nova entra sem tocar aqui.
+export const WEIGHTS: Record<Dimension['key'], number> = Object.fromEntries(
+  DIMENSIONS.map((d) => [d.key, 1]),
+) as Record<Dimension['key'], number>
+
+/**
+ * Threshold mínimo de QUALIDADE da narração (US-36): MÉDIA das dimensões (1–5)
+ * abaixo disto reprova o eval no CI. Calibrado com a barra de ofício íntegra
+ * batendo ~4+; degradar o prompt (remover a seção de ofício) derruba a média
+ * abaixo de 3.5 (critério de aceite de "regressão real"). Const trivial de ajustar.
+ */
+export const QUALITY_THRESHOLD = 3.5
+
+/**
+ * Piso por dimensão (US-70). Além de `MÉDIA ≥ QUALITY_THRESHOLD`, cada dimensão-chave
+ * tem um mínimo PRÓPRIO: um eixo abaixo do piso reprova mesmo com média alta. Fecha
+ * o Furo 1 da US-70 — com 11 dimensões e um modelo base forte, uma queda cirúrgica
+ * (só sensorial, só tensão) some na média (degradar a barra de ofício ainda tirou
+ * média 4.45). Só as chaves que a barra dirige e a média dilui ganham piso; ausência
+ * da chave = sem piso próprio (só entra na média). Valor calibrado com o anchor set
+ * (proposta inicial 3), trivial de ajustar. Piso alto demais = flaky; baixo = não morde.
+ *
+ * ONOMÁSTICA saiu dos pisos (decisão de calibração após ver a matriz, US-70 decisão 2):
+ * o slop de nome é INTERMITENTE por amostra, então a nota de onomástica do juiz oscila
+ * (2 quando cai um "Elara", 5 quando não) — um piso por-dimensão reintroduz a flakiness
+ * que a US existe para matar. O slop já é gateado de forma ESTÁVEL por TAXA (SLOP_RATE_MAX
+ * sobre N reps, via detectSlopName), que é o mecanismo dedicado do Furo 2. Não duplicar.
+ */
+export const DIMENSION_FLOORS: Partial<Record<Dimension['key'], number>> = {
+  sensorial: 3,
+  tensao: 3,
+  concretude: 3,
+  linguaPt: 3,
+}
+
+/**
+ * Limiar de AVISO da taxa de slop sobre N reps (US-70). `detectSlopName` é determinístico
+ * por narração, mas a ENTRADA varia; medir a TAXA (`slopRate = fails/N`) sobre as reps
+ * suaviza a intermitência.
+ *
+ * REPORT-ONLY por ora (decisão de calibração, US-70): a taxa-base de slop do modelo
+ * (~40% nos casos com muitos nomes) fica COLADA neste limiar, então gatear a REPS=3
+ * seria FLAKY — o run cruzaria 0.5 conforme o azar das amostras — violando a AC
+ * "não-flaky". Enquanto a produção não reduz o slop (US irmã de enforcement no onFinish,
+ * FORA do escopo desta US), o eval só AVISA quando `slopRate > SLOP_RATE_MAX`; não reprova.
+ * Quando o base cair, virar isto num gate é uma linha (adicionar a `slopRate` de volta ao
+ * `gateQuality`) — o encanamento (contagem por rep, relatório) já está pronto.
+ */
+export const SLOP_RATE_MAX = 0.5
+
+/** Entrada da decisão de aprovação — a AGREGAÇÃO de N reps, nunca um tiro só. */
+export interface GateInput {
+  /** média por dimensão vinda do `aggregateReps` (não um score cru). */
+  perDim: Record<Dimension['key'], number>
+  /** MÉDIA geral agregada. */
+  media: number
+}
+
+export interface GateResult {
+  passed: boolean
+  /** motivos da reprovação (vazio quando passa) — nomeia dimensão + valor. */
+  reasons: string[]
+}
+
+/**
+ * Decisão de aprovação do eval de qualidade (US-70), PURA — sem API, determinística.
+ * É o "detector do detector": reprova quando
+ *  - `media < QUALITY_THRESHOLD` (US-36), OU
+ *  - alguma dimensão-chave `< DIMENSION_FLOORS[k]` (Furo 1: média alta escondia o eixo).
+ * Opera sobre `perDim`/`media` do `aggregateReps` — o caso gated a chama com dados reais;
+ * o `pnpm test` a chama com dados sintéticos (média 4.6 + sensorial:2 → reprova), provando
+ * de graça que o piso pega o que a média deixava passar.
+ *
+ * O slop NÃO entra no gate por ora (report-only — ver SLOP_RATE_MAX): a taxa-base cola no
+ * limiar e gatear a REPS=3 seria flaky. O caso gated mede e AVISA o slopRate; não reprova.
+ */
+export function gateQuality(input: GateInput): GateResult {
+  const reasons: string[] = []
+  if (input.media < QUALITY_THRESHOLD) {
+    reasons.push(`MÉDIA ${input.media.toFixed(2)} < ${QUALITY_THRESHOLD}`)
+  }
+  for (const key of Object.keys(DIMENSION_FLOORS) as Dimension['key'][]) {
+    const floor = DIMENSION_FLOORS[key]!
+    const v = input.perDim[key]
+    if (v != null && v < floor) {
+      reasons.push(`dimensão "${key}" ${v.toFixed(2)} < piso ${floor}`)
+    }
+  }
+  return { passed: reasons.length === 0, reasons }
 }
 
 // ─── Schema de saída do juiz (Zod) ───────────────────────────────────────────
@@ -146,6 +250,18 @@ export function aggregateReps(reps: RubricScore[], model = '', custo = 0): Model
   return { model, perDim, media, spread, custo, n: reps.length }
 }
 
+/** MÉDIA das dimensões de UM score (pesos iguais → média simples). Usada pelo
+ * threshold da US-36 e pelo log da avaliação ao vivo. */
+export function meanOfScore(score: RubricScore): number {
+  const dims = Object.fromEntries(DIMENSIONS.map((d) => [d.key, score[d.key].nota])) as Record<Dimension['key'], number>
+  return weightedMean(dims)
+}
+
+/** Linha compacta "Dim: nota — justificativa" por dimensão. Log da live-eval e relatório. */
+export function formatScoreLines(score: RubricScore): string {
+  return DIMENSIONS.map((d) => `- ${d.label}: ${score[d.key].nota}/5 — ${score[d.key].justificativa}`).join('\n')
+}
+
 // ─── Juiz LLM ────────────────────────────────────────────────────────────────
 
 /** Exemplar "nota 5" da referência, âncora de calibração para um cenário. */
@@ -158,8 +274,9 @@ const JUDGE_SYSTEM = `Você é um juiz imparcial de QUALIDADE NARRATIVA de um me
 Recebe a AÇÃO do jogador e a RESPOSTA do mestre, e pontua a resposta de 1 a 5 em cada dimensão da rubrica, com uma justificativa curta.
 
 Regras de julgamento:
-- Julgue APENAS a qualidade da NARRAÇÃO (imersão, sensorial, agência, voz de NPC, ritmo, coerência). NÃO julgue corretude mecânica (dados, ficha, inventário) — isso não é seu papel.
-- O EXEMPLAR fornecido é uma âncora do que vale "nota 5" nesta campanha. Use-o como referência de padrão, NÃO como texto a ser copiado; uma resposta diferente pode valer 5 se atingir a mesma qualidade.
+- Julgue APENAS a qualidade da NARRAÇÃO, conforme as DIMENSÕES DA RUBRICA fornecidas. NÃO julgue corretude mecânica (dados, ficha, inventário) — isso não é seu papel.
+- Se um EXEMPLAR for fornecido, ele é uma âncora do que vale "nota 5" nesta campanha. Use-o como referência de padrão, NÃO como texto a ser copiado; uma resposta diferente pode valer 5 se atingir a mesma qualidade.
+- Quando uma dimensão NÃO SE APLICA a este turno (ex.: "Voz NPC" sem NPC na cena; "Onomástica" sem nome próprio novo; "Língua pt-BR" quando o jogador narra em inglês), dê nota 5 e diga "n/a" na justificativa — NÃO penalize o que a cena não pediu.
 - Combata o VIÉS DE TAMANHO: resposta longa não é melhor. Premie concisão adequada; penalize enrolação.
 - Combata o VIÉS DE POSIÇÃO: a ordem em que os textos aparecem é irrelevante.
 - Nota 1 = falha grave na dimensão; 5 = exemplar. Seja criterioso: 5 é excelência, não "ok".`
@@ -168,19 +285,23 @@ function buildJudgePrompt(params: {
   scenarioContext: string
   playerAction: string
   narration: string
-  exemplar: Exemplar
+  /** Âncora "nota 5". Ausente (ex.: avaliação ao vivo por turno) → sem few-shot. */
+  exemplar?: Exemplar
 }): string {
-  return `## Dimensões da rubrica
-${DIMENSIONS.map((d) => `- ${d.label}: ${d.pergunta}`).join('\n')}
-
-## Âncora de "nota 5" (referência de padrão, NÃO copiar)
+  const anchor = params.exemplar
+    ? `## Âncora de "nota 5" (referência de padrão, NÃO copiar)
 Ação do jogador: ${params.exemplar.playerAction}
 Resposta do mestre (nota 5):
 """
 ${params.exemplar.dmResponse}
 """
 
-## Turno a julgar
+`
+    : ''
+  return `## Dimensões da rubrica
+${DIMENSIONS.map((d) => `- ${d.label}: ${d.pergunta}`).join('\n')}
+
+${anchor}## Turno a julgar
 Contexto do cenário: ${params.scenarioContext}
 Ação do jogador: ${params.playerAction}
 Resposta do mestre a ser pontuada:
@@ -201,7 +322,8 @@ export async function judgeTurn(params: {
   scenarioContext: string
   playerAction: string
   narration: string
-  exemplar: Exemplar
+  /** Âncora "nota 5". Opcional: a avaliação ao vivo (US-36) julga sem exemplar. */
+  exemplar?: Exemplar
 }): Promise<{ score: RubricScore; judgeTokens: number }> {
   const { object, usage } = await generateObject({
     model: params.judge,
@@ -334,4 +456,90 @@ ${body}
 Guardrails: ${meta.guardrailSummary}
 ${winnerLine}${partialNote}
 `
+}
+
+// ─── Relatório de QUALIDADE por caso (US-36) ─────────────────────────────────
+// Diferente do bake-off (matriz modelo × dim): aqui o eixo é o CASO. Grava, junto
+// da narração + notas + justificativas, os FATORES que podem explicar uma mudança
+// de nota entre duas execuções (git, modelo que serviu, sampling, finishReason,
+// tokens, juiz) — para comparar dois relatórios e saber O QUE mudou, não só QUE caiu.
+
+/** Fatores da run que podem explicar uma mudança de nota entre execuções (US-36). */
+export interface QualityRunMeta {
+  /** commit curto do git HEAD + branch (o sinal mais forte de "o que mudou"). */
+  gitHead: string
+  gitBranch: string
+  /** slug do modelo de narração que EFETIVAMENTE serviu + nível da escada (0=primário). */
+  narrationModel: string
+  ladderLevel: number
+  /** sampling da narração — mudar qualquer um mexe na prosa. */
+  maxTokens: number
+  frequencyPenalty: number
+  temperature?: number
+  /** slug do juiz que `judgeModel()` resolveu. */
+  judgeModel: string
+  timestamp: string
+}
+
+/** Uma narração avaliada + seu score + os metadados do turno que a gerou. */
+export interface QualityEntry {
+  caseId: string
+  locale: string
+  scenarioContext: string
+  playerAction: string
+  narration: string
+  score: RubricScore
+  media: number
+  finishReason: string
+  tokens: TokenUsage
+  /** slug do modelo que serviu ESTE turno (pode diferir se caiu ao fallback). */
+  modelServed: string
+  // ─── US-70: agregação de N reps (opcional — ausente = eval de 1 tiro) ───
+  /** amplitude da MÉDIA entre as reps (do aggregateReps) — denuncia alta variância. */
+  spread?: number
+  /** fração das reps com nome de slop (gate por taxa, não por tiro). */
+  slopRate?: number
+  /** motivos da reprovação do gate (piso/slop/média). Presente ⇒ o caso reprovou. */
+  gateReasons?: string[]
+}
+
+/** Render markdown do relatório de qualidade da US-36 (um bloco por caso + metadados). */
+export function renderQualityReport(entries: QualityEntry[], meta: QualityRunMeta): string {
+  const head = `# Eval de qualidade da narração (US-36) — ${meta.timestamp}
+
+- git: \`${meta.gitHead}\` (${meta.gitBranch})
+- narração: \`${meta.narrationModel}\` (nível ${meta.ladderLevel} da escada) · maxTokens ${meta.maxTokens} · frequencyPenalty ${meta.frequencyPenalty}${
+    meta.temperature != null ? ` · temperature ${meta.temperature}` : ' · temperature default do provider'
+  }
+- juiz: \`${meta.judgeModel}\`
+- threshold: MÉDIA ≥ ${QUALITY_THRESHOLD} · pisos ${Object.entries(DIMENSION_FLOORS)
+    .map(([k, v]) => `${k}≥${v}`)
+    .join(', ')} · slop report-only (aviso > ${SLOP_RATE_MAX})
+`
+  const blocks = entries
+    .map((e) => {
+      // US-70: reprova por MÉDIA OU por gate (piso/slop). gateReasons presente ⇒ ❌.
+      const failed = e.media < QUALITY_THRESHOLD || (e.gateReasons?.length ?? 0) > 0
+      const pass = failed ? '❌' : '✅'
+      const aggLine =
+        e.spread != null || e.slopRate != null
+          ? `\n- agregado: spread ±${fmt(e.spread ?? 0)} · slopRate ${((e.slopRate ?? 0) * 100).toFixed(0)}%${
+              e.gateReasons?.length ? ` · **reprovou:** ${e.gateReasons.join('; ')}` : ''
+            }`
+          : ''
+      return `## ${pass} ${e.caseId} — MÉDIA ${fmt(e.media)} (${e.locale})
+- modelo servido: \`${e.modelServed}\` · finishReason \`${e.finishReason}\` · tokens in/out ${e.tokens.prompt}/${e.tokens.completion}${aggLine}
+- ação: ${e.playerAction}
+
+### Notas
+${formatScoreLines(e.score)}
+
+### Narração avaliada
+"""
+${e.narration}
+"""
+`
+    })
+    .join('\n')
+  return `${head}\n${blocks}`
 }
