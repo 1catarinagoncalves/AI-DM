@@ -575,12 +575,22 @@ export class AiService {
       // 4000 comporta o raciocínio cheio (sem effort cap, pra manter aderência ao
       // prompt) + narração + opções com folga.
       maxTokens: 4000,
-      // Anti-loop degenerado (visto em prod: modelo travou repetindo "cra cra cra…"
-      // ao inventar o nome de uma erva, enchendo os 4000 tokens → finishReason=length).
-      // frequencyPenalty escala com a contagem do token → penaliza a repetição sem
-      // custo de coerência a valor baixo. openai-compatible@0.2.16 envia como
-      // `frequency_penalty`; OpenRouter/DeepSeek honram, o Groq ignora se não suportar.
-      frequencyPenalty: 0.3,
+      // Anti-loop degenerado (US-69). Penalidade de repetição — 1ª linha probabilística
+      // contra "cra cra cra…" em região OOD; a rede determinística do guard (controller)
+      // é a 2ª. openai-compatible@0.2.16 envia como `presence_penalty`; OpenRouter/DeepSeek
+      // honram, o Groq ignora se não suportar.
+      //
+      // presencePenalty, NÃO frequencyPenalty (troca 2026-07-24). Diagnóstico da
+      // reincidência do embaralhamento de whitespace (US-69, 2º modo): finishReason=stop,
+      // reasoningTokens=782 > prosa visível, providerMetadata SEM nome de backend (não
+      // dá pra confirmar "backend ruim"). `frequency_penalty` escala ∝ contagem do token,
+      // e o espaço é o mais contado — os 782 tokens de raciocínio oculto inflam essa
+      // contagem ANTES da prosa, então a penalidade suprime espaços na narração (palavras
+      // fundidas). `presence_penalty` é FIXA (não escala com o comprimento do raciocínio)
+      // → desencoraja o loop sem esmagar o whitespace. Se o embaralhamento reincidir
+      // MESMO sem frequency, a causa é upstream (backend) e aí sim entra o detector de
+      // whitespace no guard.
+      presencePenalty: 0.3,
       // Persiste a narração do mestre ao final, mantendo a continuidade da cena,
       // e condensa turnos antigos no resumo quando a janela cresce demais.
       onFinish: async ({ text, steps, finishReason, usage, providerMetadata, response }) => {

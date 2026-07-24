@@ -74,8 +74,8 @@ describe('AiController.chat — guard anti-degeneração (US-69)', () => {
     // A reescrita (mesmo modelo, 2ª chamada) chegou limpa ao cliente.
     expect(writes).toContain('0:' + JSON.stringify('A erva se chama valeriana-da-noite.') + '\n')
     // 1ª tentativa marcada como degenerada (onFinish NÃO persiste); a boa persiste.
-    expect(guards[0].degenerated).toBe(true)
-    expect(guards[1].degenerated).toBe(false)
+    expect(guards[0]!.degenerated).toBe(true)
+    expect(guards[1]!.degenerated).toBe(false)
   })
 
   it('degeneração persistente (todas as tentativas) → mensagem de erro limpa, nunca a parede', async () => {
