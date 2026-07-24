@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-11b](./US-11b-estado-de-cena-estruturado.md) (sceneState), [US-56](./US-56-estado-do-turno-na-mensagem.md) (estado do turno na mensagem), [registro de entidades](../../adr/002-memoria-de-sessao.md) (Adventure.entities).
 **Relacionada a:** [US-69](./US-69-guard-anti-degeneracao-narracao.md) (anti-degeneração — o detector de n-grama serve aqui também).
 **Criada em:** 2026-07-24

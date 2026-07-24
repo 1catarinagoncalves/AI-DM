@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { AiService } from './ai.service'
+import { AiService, scenePatchFromExtraction } from './ai.service'
+import { mergeSceneState } from '@ai-dm/ai-engine'
+import type { SceneState } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
 import type { EventLog } from '../generated/prisma/client'
@@ -107,5 +109,49 @@ describe('AiService.restoreClearedTurn (US-67)', () => {
     const { svc, created } = service([])
     await svc.restoreClearedTurn([])
     expect(created).toEqual([])
+  })
+})
+
+describe('scenePatchFromExtraction + reconcile (US-73)', () => {
+  // O sceneState CONGELADO do bug (erro narração 2): entrada do pântano, sem o semeador.
+  const stale: SceneState = {
+    local: 'estrada velha, entrada do Pântano de Ossos',
+    ambiente: 'externo',
+    periodo: 'manhã',
+    presentes: ['Anetra Ulkas'],
+    objetos_em_cena: ['névoa espessa', 'trilha desaparecendo na névoa'],
+    atualizadoEm: '2026-07-24T14:41:22Z',
+  }
+
+  it('viagem→chegada: reconcilia local, traz o NPC e remove a jogadora de presentes', () => {
+    // A extração REAL carregou a jogadora em presentes (herdada da cena poluída); o
+    // filtro determinístico por playerName tem de removê-la mesmo assim.
+    const extracted = {
+      local: 'clareira do Coração de Musgo',
+      ambiente: 'externo' as const,
+      periodo: 'manhã',
+      presentes: ['Anetra Ulkas', 'o homem de rosto liso'],
+      objetos_em_cena: ['árvore negra', 'raízes como veias', 'musgo esbranquiçado'],
+    }
+    const next = mergeSceneState(stale, scenePatchFromExtraction(extracted, 'Anetra Ulkas'))
+    expect(next.local).toBe('clareira do Coração de Musgo') // não mais a entrada
+    expect(next.presentes).toContain('o homem de rosto liso') // o semeador está presente
+    expect(next.presentes).not.toContain('Anetra Ulkas') // jogadora filtrada de presentes
+  })
+
+  it('turno só-diálogo (local vazio) NÃO teletransporta a personagem para lugar nenhum', () => {
+    const dialogueOnly = { local: '', ambiente: 'externo' as const, periodo: '', presentes: ['o homem de rosto liso'], objetos_em_cena: ['árvore negra'] }
+    const patch = scenePatchFromExtraction(dialogueOnly)
+    expect(patch.local).toBeUndefined() // local vazio não entra no patch
+    expect(patch.periodo).toBeUndefined()
+    const base: SceneState = { ...stale, local: 'clareira do Coração de Musgo' }
+    const next = mergeSceneState(base, patch)
+    expect(next.local).toBe('clareira do Coração de Musgo') // preservado
+  })
+
+  it('presentes/objetos substituem a lista inteira (NPC que saiu some)', () => {
+    const extracted = { local: 'clareira', ambiente: 'externo' as const, periodo: 'manhã', presentes: [], objetos_em_cena: [] }
+    const next = mergeSceneState(stale, scenePatchFromExtraction(extracted))
+    expect(next.presentes).toEqual([]) // ninguém além da personagem
   })
 })

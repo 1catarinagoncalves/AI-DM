@@ -61,6 +61,38 @@ const OPENING_SCENE_SCHEMA = z.object({
   objetos_em_cena: z.array(z.string()).describe('Objetos e elementos notáveis do ambiente, incl. atmosféricos. NUNCA itens carregados no inventário'),
 })
 
+type ExtractedScene = z.infer<typeof OPENING_SCENE_SCHEMA>
+
+const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
+
+/**
+ * US-73: monta o patch de cena a partir da extração estruturada, protegendo contra
+ * ZERAR campos escalares. Um turno só-diálogo devolve `local`/`periodo` vazios — nesse
+ * caso NÃO entram no patch, então `mergeSceneState` preserva o valor corrente (não
+ * teletransporta a personagem para "lugar nenhum"). `presentes`/`objetos_em_cena`
+ * substituem a lista inteira (mesma semântica do `updateScene`: quem apareceu entra,
+ * quem saiu sai). Puro e testável — fora do `reconcileScene`, que é LLM + DB.
+ *
+ * `presentes` NUNCA contém a própria personagem-jogadora: o prompt já pede isso, mas o
+ * modelo às vezes a carrega da cena atual (foi o que poluiu o `sceneState` do bug real),
+ * então filtramos `playerName` de forma determinística (match por primeiro nome,
+ * tolerante a acento/caixa) — auto-cura mesmo uma cena já poluída.
+ */
+export function scenePatchFromExtraction(object: ExtractedScene, playerName?: string): ScenePatch {
+  const first = playerName ? normName(playerName).split(/\s+/)[0] ?? '' : ''
+  const presentes = first
+    ? object.presentes.filter((p) => !normName(p).includes(first))
+    : object.presentes
+  const patch: ScenePatch = {
+    presentes,
+    objetos_em_cena: object.objetos_em_cena,
+  }
+  if (object.local.trim()) patch.local = object.local.trim()
+  if (object.ambiente) patch.ambiente = object.ambiente
+  if (object.periodo.trim()) patch.periodo = object.periodo.trim()
+  return patch
+}
+
 @Injectable()
 export class AiService {
   constructor(
@@ -626,6 +658,14 @@ export class AiService {
           // NÃO dar await — o jogador já recebeu o stream; a nota chega ao log
           // depois. Só roda atrás de DM_LIVE_EVAL (nunca em produção).
           void this.liveEvalTurn(message, finalText)
+          // US-73: rede de segurança contra o sceneState apodrecer. Se o modelo NÃO
+          // manteve a cena via `updateScene` neste turno (comum em turnos de
+          // viagem→chegada), reconcilia o sceneState com a narração em background —
+          // sem isso o `local` congela e o sinal de continuidade da US-71 passa a
+          // apontar para trás, alimentando o replay (bug de `erro narração 2`). Roda
+          // SÓ quando o modelo negligenciou a cena → custo zero nos turnos disciplinados.
+          const cenaTocada = steps.some((s) => (s.toolCalls ?? []).some((tc) => tc.toolName === 'updateScene'))
+          if (!cenaTocada) void this.reconcileScene(adventureId, characterId, finalText, character.name)
         }
         await this.summarizeOldTurns(adventureId, characterId)
       },
@@ -735,6 +775,51 @@ export class AiService {
     } catch (err) {
       console.error('[AiService] Falha ao extrair cena da abertura, sceneState fica nulo:', err)
       return null
+    }
+  }
+
+  /**
+   * US-73: reconciliador de cena em background. Chamado no `onFinish` SÓ quando o
+   * modelo NÃO chamou `updateScene` no turno — a rede de segurança contra o
+   * `sceneState` apodrecer em turnos de viagem→chegada (o modelo narra o deslocamento
+   * mas esquece de registrar; o snapshot congela e o sinal de continuidade da US-71
+   * passa a apontar para trás, alimentando o replay — `erro narração 2`).
+   *
+   * Reusa a extração estruturada da US-35 (`OPENING_SCENE_SCHEMA` + `summaryModel`),
+   * mas FUNDE com a cena corrente: dá a cena atual como base e pede o estado no FIM da
+   * narração; campos escalares vazios NÃO sobrescrevem (turno só-diálogo não zera o
+   * `local`). Persiste só a coluna `sceneState` — NÃO loga `CHARACTER_UPDATE` (mesmo
+   * motivo do `recordEntity`: um evento marcaria o turno como mutação e o guard da
+   * US-67 desativaria a edição de turnos de conversa). Fire-and-forget: nunca lança —
+   * o turno já foi entregue ao jogador.
+   */
+  private async reconcileScene(adventureId: string, characterId: string, narration: string, playerName: string): Promise<void> {
+    const text = narration.trim()
+    if (text.length === 0) return
+    try {
+      const state = await this.prisma.characterState.findUnique({
+        where: { characterId_adventureId: { characterId, adventureId } },
+        select: { sceneState: true },
+      })
+      const current = (state?.sceneState ?? null) as SceneState | null
+      const baseText = (current && formatSceneState(current)) || '(nenhuma cena registrada ainda)'
+      const { object } = await generateObject({
+        model: summaryModel,
+        schema: OPENING_SCENE_SCHEMA,
+        system:
+          'Você reconcilia o estado ESTRUTURADO da cena de um RPG com a narração mais recente. Dada a CENA ATUAL e a NARRAÇÃO, produza o estado da cena como está no FIM da narração. Use APENAS o que a narração e a cena atual revelam — não invente. Se a personagem SE MOVEU para um lugar novo na narração, `local` é o lugar NOVO (fim do trajeto), não o de partida. `presentes`: só NPCs/personagens presentes no FIM (inclua quem apareceu, remova quem saiu; NUNCA a própria personagem-jogadora). `objetos_em_cena`: elementos notáveis do ambiente no fim (incl. atmosféricos), NUNCA itens carregados. Se a narração NÃO muda um campo, repita o valor da cena atual. Deixe um campo vazio só se nem a cena atual nem a narração o revelarem.',
+        prompt: `CENA ATUAL:\n"""\n${baseText}\n"""\n\nNARRAÇÃO MAIS RECENTE:\n"""\n${text}\n"""`,
+        providerOptions: NARRATION_PROVIDER_OPTIONS,
+      })
+      const next = mergeSceneState(current, scenePatchFromExtraction(object, playerName))
+
+      await this.prisma.characterState.update({
+        where: { characterId_adventureId: { characterId, adventureId } },
+        data: { sceneState: next as unknown as object },
+      })
+      console.log(`[AiService][reconcile] cena sincronizada: local="${next.local}" presentes=[${next.presentes.join(', ')}]`)
+    } catch (err) {
+      console.error('[AiService] reconcileScene falhou (turno não afetado):', err)
     }
   }
 
