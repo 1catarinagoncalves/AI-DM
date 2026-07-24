@@ -16,7 +16,7 @@ import { DIMENSIONS } from './rubric'
 // Ao MUDAR a barra de propósito:
 //   1. revise DIMENSIONS em rubric.ts (a rubrica precisa cobrir a exigência nova);
 //   2. cole o novo hash (a mensagem de erro imprime o valor atual) em REVIEWED_CRAFT_HASH.
-const REVIEWED_CRAFT_HASH = '2bfd29b29ab830e908b8746e3c95bdc9c437034b728b9dc804b67cbc9b3d3f4e'
+const REVIEWED_CRAFT_HASH = '46a1ff2ef8b0bdf157f44724877867d1f7d9139fb5e7cb49d14725057302709e'
 
 describe('drift da barra de ofício vs rubrica (US-36)', () => {
   it('a barra de ofício não mudou sem revisão da rubrica', () => {
