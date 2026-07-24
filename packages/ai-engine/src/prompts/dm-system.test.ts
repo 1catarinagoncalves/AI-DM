@@ -150,7 +150,7 @@ describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas
     expect(p).toMatch(/rollDice/)
     expect(p).toMatch(/Gender Agreement/)
     expect(p).toMatch(/Narrative craft/)
-    expect(p).toMatch(/SPATIAL & SCENE CONTINUITY/)
+    expect(p).toMatch(/SCENE CONTINUITY & OPTIONS/)
     expect(p).toMatch(/TURN RESOLUTION ORDER/)
   })
 
@@ -257,5 +257,29 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
 
   it('sem entidades → nenhuma seção de Entidades', () => {
     expect(buildState()).not.toMatch(/## Entidades do mundo/)
+  })
+
+  // US-71: sinal de continuidade estrutural — emitido só quando há `local`, afirma que a
+  // personagem JÁ está lá e que a chegada já foi narrada (substitui a prosa "Arrival happens ONCE").
+  it('emite o sinal de continuidade com o local quando há cena com `local`', () => {
+    const s = buildState({ sceneState: scene })
+    expect(s).toContain('is ALREADY at «Praça da vila ao anoitecer»')
+    expect(s).toMatch(/arrival here were narrated on earlier turns/)
+    expect(s).toMatch(/Do NOT re-narrate the trip, the arrival, or the greeting/)
+  })
+
+  it('sem `local` na cena → nenhum sinal de continuidade', () => {
+    const s = buildState({ sceneState: { ...scene, local: '' } })
+    expect(s).not.toMatch(/is ALREADY at/)
+  })
+
+  // US-71 Q2: entidade que está em `presentes` não repete "— em {local}" (posição dela = cena).
+  it('suprime "em {local}" de NPC presente no bloco de Entidades', () => {
+    const s = buildState({
+      sceneState: { ...scene, presentes: ['Hélio'] },
+      entities: [{ nome: 'Hélio', tipo: 'npc', local: 'forja de Hélio', estado: 'ocupado', atualizadoEm: '' }],
+    })
+    expect(s).toContain('[NPC] Hélio — ocupado')
+    expect(s).not.toContain('em forja de Hélio')
   })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mergeSceneState, formatSceneState } from '@ai-dm/ai-engine'
+import { mergeSceneState, formatSceneState, overlapRatio, REPLAY_OVERLAP_THRESHOLD } from '@ai-dm/ai-engine'
 import type { SceneState } from '@ai-dm/shared'
 
 // Eval case: US-03 — estado de cena estruturado (continuidade espacial).
@@ -68,5 +68,44 @@ describe('US-03 — estado de cena estruturado', () => {
 
   it('formatSceneState vazio quando não há cena estabelecida', () => {
     expect(formatSceneState(null)).toBe('')
+  })
+})
+
+// US-71 — regressão determinística do bug de REPLAY DE TRANSIÇÃO (anexo `erro location.md`).
+// Turno 1: a personagem chega à forja e Hélio a saúda. Turno 2 só CONTINUA a conversa.
+// O comportamento ANTIGO re-narra a chegada inteira (mesma saudação) → sobreposição de
+// trigramas alta contra a narração do turno 1. O NOVO responde ali mesmo, sem replay →
+// sobreposição baixa. `overlapRatio` + `REPLAY_OVERLAP_THRESHOLD` separam os dois. Custo
+// zero, sem LLM (o A/B com modelo real vive em `packages/ai-engine/location-ab-bakeoff.mjs`).
+describe('US-71 — replay de transição (detector determinístico)', () => {
+  const narrTurno1 =
+    'Você se despede de Elara na capela e atravessa a rua de terra batida até a forja de Hélio. ' +
+    'O calor da fornalha bate no rosto assim que você cruza a porta. Hélio ergue os olhos da bigorna, ' +
+    'martelo suspenso no ar. — Anetra! Achei que a menina ia passar o dia na capela. Vai sair?'
+
+  // ANTIGO: re-narra a viagem e a chegada do turno 1 quase idêntica antes de continuar.
+  const narrTurno2_ANTIGO =
+    'Você se despede de Elara na capela e atravessa a rua de terra batida até a forja de Hélio. ' +
+    'O calor da fornalha bate no rosto assim que você cruza a porta. Hélio ergue os olhos da bigorna, ' +
+    'martelo suspenso no ar. — Anetra! Achei que a menina ia passar o dia na capela. Vai sair? ' +
+    '— Vou ao Pântano de Ossos — você diz. Ele baixa o martelo devagar.'
+
+  // NOVO: começa DENTRO da cena, sem rebobinar a chegada.
+  const narrTurno2_NOVO =
+    '— Vou ao Pântano de Ossos — você diz, e a palavra parece esfriar a fornalha. ' +
+    'Hélio pousa o martelo na bigorna e limpa as mãos no avental de couro, o rosto de repente sério. ' +
+    '— Aquele lugar engoliu gente melhor que você, menina. O que foi procurar lá?'
+
+  it('ANTIGO (replay) dispara acima do limiar; NOVO (continuação) fica abaixo', () => {
+    const antigo = overlapRatio(narrTurno2_ANTIGO, narrTurno1)
+    const novo = overlapRatio(narrTurno2_NOVO, narrTurno1)
+    expect(antigo).toBeGreaterThan(REPLAY_OVERLAP_THRESHOLD)
+    expect(novo).toBeLessThan(REPLAY_OVERLAP_THRESHOLD)
+    expect(antigo).toBeGreaterThan(novo)
+  })
+
+  it('overlapRatio é 0 quando a nova narração tem menos de um trigrama', () => {
+    expect(overlapRatio('Vai', narrTurno1)).toBe(0)
+    expect(overlapRatio('', narrTurno1)).toBe(0)
   })
 })

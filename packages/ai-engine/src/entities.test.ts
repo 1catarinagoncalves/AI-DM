@@ -58,4 +58,16 @@ describe('formatEntities', () => {
     ])
     expect(out).toBe('- [NPC] Vigia — em sala secreta; neutra; deu permissão')
   })
+
+  // US-71: NPC que está em `presentes` tem posição = sceneState.local; a linha
+  // "— em {local}" é redundante e é suprimida (match tolerante a acento/caixa).
+  // Estado/nota permanecem; a entidade continua listada.
+  it('suprime "em {local}" de entidade presente na cena, mantendo estado e nota', () => {
+    const helio: WorldEntity = { nome: 'Hélio', tipo: 'npc', local: 'forja de Hélio', estado: 'ocupado', nota: 'ferreiro da vila', atualizadoEm: '' }
+    expect(formatEntities([helio], ['HELIO'])).toBe('- [NPC] Hélio — ocupado; ferreiro da vila')
+    // fora de `presentes` → o local volta a aparecer
+    expect(formatEntities([helio], ['outro'])).toBe('- [NPC] Hélio — em forja de Hélio; ocupado; ferreiro da vila')
+    // sem estado/nota, presente → só o nome
+    expect(formatEntities([{ nome: 'Hélio', tipo: 'npc', local: 'forja', atualizadoEm: '' }], ['Hélio'])).toBe('- [NPC] Hélio')
+  })
 })

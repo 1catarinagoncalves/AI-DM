@@ -341,29 +341,13 @@ Strictly respect the "gender" field from the world-state JSON for ALL characters
 
 ---
 
-## ⚠️ NARRATIVE CONSISTENCY RULE (CRITICAL)
+## ⚠️ SCENE CONTINUITY & OPTIONS (CRITICAL — the scene is authoritative; it lives in the turn-state)
 
-Choice options MUST be strictly consistent with the last paragraph of your narration. NEVER reference characters, objects, or situations not yet established in the scene. Options reflect ONLY the current state; never presume the result of a future action.
+The "Cena atual" and "Entidades do mundo" blocks in the turn-state are the SOURCE OF TRUTH for where the character is, who is present, and each entity's location/state. Trust them over anything the prose might imply, never contradict them, and never revert a state already shown. When "Cena atual" says the character is at a location, they ARE there and the arrival was already narrated — continue from INSIDE the scene; never replay a journey, an arrival, or a greeting that already happened.
 
-WRONG: the woman is alone, waiting — an option "overhear her conversation with her companion" invents a companion who hasn't arrived.
-CORRECT: "listen discreetly to the woman", "approach and start a conversation", "leave the tavern".
-
----
-
-## ⚠️ SPATIAL & SCENE CONTINUITY RULE (CRITICAL)
-
-The scene carries over between turns — location, people, time of day, objects in play do NOT reset when the player acts. Before narrating, re-read the "Cena atual" block in the turn-state and continue EXACTLY from where it left off.
-
-When the scene genuinely changes — the player MOVES (walks, enters, leaves, travels), the environment switches indoor/outdoor, time advances, an NPC arrives/leaves, a notable object appears/disappears — call \`updateScene\` with ONLY the changed fields BEFORE narrating. Merely inspecting a carried item (map, letter, book) does NOT change location: no \`updateScene\`, no relocation — narrate the character handling it in their hands, right where they are.
-
-Arrival happens ONCE: once the character IS somewhere, begin INSIDE it. NEVER re-narrate a journey already completed, and never reset the scene or an NPC to replay a moment that already happened. Never invent furniture, rooms, or surroundings that contradict the location — outdoors there is NO table/chair/wall unless one was already described. Keep an established object consistent: "a map of the road" never becomes "a map of a different region".
-
-An NPC's or place's canonical LOCATION and STATE live in the "Entidades do mundo" block above — trust it, and \`recordEntity\` to update it on change. The ledger can't enforce two things itself: (1) the MOST RECENT on-screen state wins — never revert a change already shown, and when the "história até agora" summary disagrees with recent narration, recent narration wins; (2) never move an offscreen NPC with no scene showing the move.
-
-WRONG: character stands in the town square, holding "a map of the road"; on "look at the map" → "you look at the map unfolded on the table, showing the Dark Forest region" (no table in a square, and the map was of the road, not a forest).
-CORRECT: "you unroll the map of the road in your hands, there in the square; drawn by hand, it traces the route leaving the village toward the hills…".
-
-Before every narration check: WHERE is the character (stay there until they move), WHO is present (don't add/remove), WHAT objects were established (reuse faithfully), WHEN is it (keep time consistent).
+- Change the scene ONLY through tools: a real MOVE (walk/enter/leave/travel), an indoor↔outdoor switch, time advancing, an NPC arriving/leaving, or a notable object appearing → call \`updateScene\` with ONLY the changed fields BEFORE narrating. Merely inspecting a carried item (map, letter, book) does NOT move the character — no \`updateScene\`; narrate them handling it right where they are.
+- Never invent furniture, rooms, or surroundings that contradict the location; keep an established object consistent ("a map of the road" never becomes a map of another region).
+- Choice options MUST match the last paragraph of your narration — never reference a character or object not yet in the scene, and never presume the result of a future action.
 
 ---
 
@@ -417,11 +401,18 @@ The character's CURRENT condition right now. A low HP or an active condition MUS
 - Conditions: ${sheet.conditions.length > 0 ? sheet.conditions.join(', ') : 'none'}`
 
   const sceneText = formatSceneState(sceneState)
+  // US-71: sinal de continuidade ESTRUTURAL (não conselho em prosa). Emitido só quando
+  // há `local` — afirma que a personagem JÁ está lá e que a chegada/transição JÁ foi
+  // narrada, então o Mestre continua DE DENTRO da cena. Substitui as ~14 linhas da seção
+  // "SPATIAL & SCENE CONTINUITY" do system por dado do Game Server, mais duro e mais barato.
+  const continuityLine = sceneState?.local
+    ? `\nThe character is ALREADY at «${sceneState.local}». The journey and arrival here were narrated on earlier turns — begin INSIDE the scene and narrate ONLY what this new action adds. Do NOT re-narrate the trip, the arrival, or the greeting of anyone already present: that already happened. Location changes ONLY when the player makes a NEW move (walks/enters/leaves) — call \`updateScene\` first, then narrate the move.`
+    : ''
   const sceneSection = sceneText
     ? `## Cena atual (FONTE DE VERDADE — tem precedência sobre qualquer inferência da prosa)
 This is the authoritative, structured state of the scene RIGHT NOW. Trust it over anything you might infer from the narrative text. Do NOT contradict it.
 
-${sceneText}
+${sceneText}${continuityLine}
 
 `
     : ''
@@ -431,7 +422,7 @@ ${sceneText}
   // que o compressor pode APAGAR — foi assim que "a Vigia" sumiu), este bloco é
   // reinjetado íntegro todo turno. É a memória de longo prazo contra a qual o mestre
   // checa callbacks a coisas de muitos turnos atrás.
-  const entitiesText = formatEntities(entities)
+  const entitiesText = formatEntities(entities, sceneState?.presentes)
   const entitiesSection = entitiesText
     ? `## Entidades do mundo (FONTE DE VERDADE — canon permanente da campanha; NUNCA esqueça nem negue)
 These are durable people, places and things the campaign has established. They EXIST — never tell the player they don't, never act confused about one that is listed here. When the player refers back to one (e.g. returning to a place or asking about an NPC seen many turns ago), TRUST this list even if the recent messages and the summary don't mention it. Keep each entity's location and state consistent with what is written here, and call \`recordEntity\` to update an entry whenever it changes.

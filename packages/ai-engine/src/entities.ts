@@ -55,14 +55,24 @@ const TIPO_LABEL: Record<NonNullable<WorldEntity['tipo']>, string> = {
  * Bloco compacto de uma linha por entidade, para reinjeção no prompt. Vazio quando
  * não há entidade registrada — nada a injetar. Formato:
  *   - [NPC] Vigia — na sala secreta sob a capela; guardiã neutra; deu permissão a Anetra
+ *
+ * US-71: `local` de entidade é "última posição conhecida de quem está FORA de cena".
+ * Para uma entidade que está em `presentes` (na cena AGORA), a posição dela já é o
+ * `sceneState.local` — a linha "— em {local}" seria redundante e uma segunda fonte
+ * sobre "onde está quem", então é SUPRIMIDA. A entidade continua listada (canon
+ * durável); só o `em {local}` some enquanto ela está presente.
  */
-export function formatEntities(entities: WorldEntity[] | null | undefined): string {
+export function formatEntities(
+  entities: WorldEntity[] | null | undefined,
+  presentes?: string[] | null,
+): string {
   if (!entities || entities.length === 0) return ''
+  const emCena = new Set((presentes ?? []).map(norm))
   return entities
     .map((e) => {
       const tipo = e.tipo ? `[${TIPO_LABEL[e.tipo]}] ` : ''
       const detalhes = [
-        e.local ? `em ${e.local}` : '',
+        emCena.has(norm(e.nome)) ? '' : e.local ? `em ${e.local}` : '',
         e.estado ?? '',
         e.nota ?? '',
       ]
