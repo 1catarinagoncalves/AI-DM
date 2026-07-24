@@ -44,6 +44,59 @@ describe('AiController.chat — canal de estado da ficha (US-19)', () => {
   })
 })
 
+describe('AiController.chat — guard anti-degeneração (US-69)', () => {
+  it('"cra "×30 é cortada mid-stream (não chega inteira), turno descartado e reescrito no mesmo modelo', async () => {
+    const craParts = Array.from({ length: 30 }, () => ({ type: 'text-delta', textDelta: 'cra ' }))
+    const cleanParts = [{ type: 'text-delta', textDelta: 'A erva se chama valeriana-da-noite.' }]
+    let call = 0
+    const guards: { degenerated: boolean }[] = []
+    const svc = {
+      assertCharacterOwner: async () => {},
+      streamChat: async () => {
+        const turnGuard = { degenerated: false }
+        guards.push(turnGuard)
+        const parts = call++ === 0 ? craParts : cleanParts
+        return {
+          result: { fullStream: (async function* () { for (const p of parts) yield p })() },
+          hasFallback: false, // sem escada: prova o re-roll no MESMO modelo
+          turnGuard,
+        }
+      },
+    } as unknown as AiService
+    const controller = new AiController(svc)
+    const { res, writes } = fakeRes()
+
+    await controller.chat({ adventureId: 'a1', characterId: 'c1', message: 'como se chama a erva' }, res, { userId: 'u1' })
+
+    const craFrames = writes.filter(w => w === '0:' + JSON.stringify('cra ') + '\n')
+    expect(craFrames.length).toBeLessThan(30) // não chegou inteira ao cliente
+    expect(writes).toContain('X\n') // sentinel de descarte de turno enviado
+    // A reescrita (mesmo modelo, 2ª chamada) chegou limpa ao cliente.
+    expect(writes).toContain('0:' + JSON.stringify('A erva se chama valeriana-da-noite.') + '\n')
+    // 1ª tentativa marcada como degenerada (onFinish NÃO persiste); a boa persiste.
+    expect(guards[0].degenerated).toBe(true)
+    expect(guards[1].degenerated).toBe(false)
+  })
+
+  it('degeneração persistente (todas as tentativas) → mensagem de erro limpa, nunca a parede', async () => {
+    const craParts = () => Array.from({ length: 30 }, () => ({ type: 'text-delta', textDelta: 'cra ' }))
+    const svc = {
+      assertCharacterOwner: async () => {},
+      streamChat: async () => ({
+        result: { fullStream: (async function* () { for (const p of craParts()) yield p })() },
+        hasFallback: false, // último modelo → esgota re-rolls e cai no erro limpo
+        turnGuard: { degenerated: false },
+      }),
+    } as unknown as AiService
+    const controller = new AiController(svc)
+    const { res, writes } = fakeRes()
+
+    await controller.chat({ adventureId: 'a1', characterId: 'c1', message: 'como se chama a erva' }, res, { userId: 'u1' })
+
+    expect(writes).toContain('0:' + JSON.stringify('[O Mestre se perdeu nas palavras. Tenta de novo.]') + '\n')
+  })
+})
+
 describe('AiController.chat — edição do último turno (US-67)', () => {
   it('edição: limpa o rastro do último turno antes de streamar', async () => {
     let cleared = false

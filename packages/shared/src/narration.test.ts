@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, formatDiceBreakdown } from './narration'
+import { stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, formatDiceBreakdown, detectDegeneration } from './narration'
 
 describe('stripWorldStateTags — tags de estado vazadas na prosa', () => {
   it('remove o tag fechado com JSON aninhado, mantendo a prosa ao redor', () => {
@@ -135,6 +135,36 @@ describe('US-29 — stripFabricatedRolls', () => {
   it('preserva prosa sem número', () => {
     const input = 'A floresta cheira a musgo e chuva recente.'
     expect(stripFabricatedRolls(input).clean).toBe(input)
+  })
+})
+
+describe('US-69 — detectDegeneration', () => {
+  it('detecta o loop de token único com espaço ("cra " 30×)', () => {
+    expect(detectDegeneration('A erva se chama '.concat('cra '.repeat(30)))).toBe(true)
+  })
+
+  it('detecta o loop colado sem espaço ("cracra…")', () => {
+    expect(detectDegeneration('O nome soa como cra'.concat('cra'.repeat(20)))).toBe(true)
+  })
+
+  it('detecta o loop de n-grama (frase curta repetida)', () => {
+    expect(detectDegeneration('ela olha '.repeat(8))).toBe(true)
+  })
+
+  it('NÃO dispara em ênfase legítima (2-3× repetições)', () => {
+    expect(detectDegeneration('— Não, não, não! — ela grita, e corre, corre, CORRE pela ponte.')).toBe(false)
+  })
+
+  it('NÃO dispara em narração normal', () => {
+    expect(
+      detectDegeneration(
+        'A névoa desce sobre a clareira e o velho ergue a lanterna, os olhos fixos na sombra que se move entre as árvores.',
+      ),
+    ).toBe(false)
+  })
+
+  it('NÃO dispara em texto curto', () => {
+    expect(detectDegeneration('A porta range.')).toBe(false)
   })
 })
 

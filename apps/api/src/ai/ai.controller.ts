@@ -2,6 +2,7 @@ import { Controller, Post, Body, Res, HttpCode, UseGuards, ForbiddenException } 
 import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { Response } from 'express'
 import { z } from 'zod'
+import { detectDegeneration } from '@ai-dm/shared'
 import { AiService, type RollTurnState } from './ai.service'
 import type { EventLog } from '../generated/prisma/client'
 import { zodBody } from '../openapi'
@@ -88,16 +89,26 @@ export class AiController {
     // bloco aparecer UMA vez, mesmo com fallback.
     const emittedRolls = new Set<string>()
 
-    for (let attempt = 0; ; attempt++) {
-      const { result, hasFallback } = await this.aiService.streamChat(
+    // US-69: guard anti-degeneração. Ao detectar repetição patológica mid-stream,
+    // descartamos o parcial (sentinel `X` = descarte de TURNO no cliente) e
+    // RE-AMOSTRAMOS o MESMO modelo — loop é falha de amostragem, não do modelo estar
+    // quebrado; via OpenRouter a re-chamada ainda pode reroteiar o backend. Só
+    // descemos a escada (`modelIndex++`) como escalonamento após MAX re-rolls
+    // degenerados no mesmo modelo.
+    const MAX_SAME_MODEL_REROLLS = 2
+    let sameModelRerolls = 0
+
+    for (let modelIndex = 0; ; ) {
+      const { result, hasFallback, turnGuard } = await this.aiService.streamChat(
         { adventureId, characterId, message },
-        attempt,
+        modelIndex,
         rollState,
       )
 
       let prevStepText = ''
       let curStepText = ''
       let failedBeforeOutput = false
+      let degenerated = false
 
       try {
         for await (const part of result.fullStream) {
@@ -137,6 +148,14 @@ export class AiController {
               prevStepText = ''
             }
             curStepText += part.textDelta
+            // US-69: detecta o loop ANTES de escrever o delta que cruza o limiar —
+            // não emite mais um "cra". Marca o guard (o onFinish desta tentativa não
+            // persiste) e sai; o parcial é descartado abaixo.
+            if (detectDegeneration(curStepText)) {
+              turnGuard.degenerated = true
+              degenerated = true
+              break
+            }
             emittedAnyText = true
             res.write('0:' + JSON.stringify(part.textDelta) + '\n')
           } else if (part.type === 'error') {
@@ -156,8 +175,35 @@ export class AiController {
       }
 
       if (failedBeforeOutput) {
-        console.warn(`[AiController] modelo attempt=${attempt} falhou antes de emitir texto; caindo para fallback`)
+        console.warn(`[AiController] modelo attempt=${modelIndex} falhou antes de emitir texto; caindo para fallback`)
+        modelIndex++
         continue // tenta o próximo provedor
+      }
+
+      if (degenerated) {
+        // US-69: descarte de TURNO — o cliente apaga o parcial (rolagens + prosa) e
+        // espera a reescrita. Reseta o estado de emissão do turno: a reescrita reemite
+        // do zero (rolagens incluídas — o cliente as descartou).
+        res.write('X\n')
+        emittedAnyText = false
+        emittedRolls.clear()
+
+        if (sameModelRerolls < MAX_SAME_MODEL_REROLLS) {
+          sameModelRerolls++
+          console.warn(`[AiController] degeneração detectada (modelo attempt=${modelIndex}); re-amostrando o mesmo modelo (reroll ${sameModelRerolls}/${MAX_SAME_MODEL_REROLLS})`)
+          continue // MESMO modelIndex
+        }
+
+        // Escalona: re-rolls no mesmo modelo esgotados — desce a escada.
+        console.warn(`[AiController] degeneração persistente no modelo attempt=${modelIndex} após ${sameModelRerolls} re-rolls; escalando`)
+        sameModelRerolls = 0
+        if (hasFallback) {
+          modelIndex++
+          continue
+        }
+        // Último recurso: mensagem limpa, nunca a parede.
+        res.write('0:' + JSON.stringify('[O Mestre se perdeu nas palavras. Tenta de novo.]') + '\n')
+        break
       }
       break
     }

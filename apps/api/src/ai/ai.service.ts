@@ -553,6 +553,14 @@ export class AiService {
     const hasFallback = attempt < narrationModels.length - 1
     console.log(`[AiService] turno attempt=${attempt} modelo=${model.modelId ?? 'unknown'}`)
 
+    // US-69: sinal do guard anti-degeneração. O controller, ao detectar repetição
+    // patológica mid-stream, marca `degenerated = true` ANTES de descartar o stream —
+    // o `onFinish` (que ainda pode disparar quando o provider termina a geração
+    // cancelada) NÃO persiste nem sumariza o turno-lixo. Um objeto novo por tentativa:
+    // o retry cria o seu, então o `onFinish` desta tentativa vê o SEU flag (sem corrida
+    // com a tentativa boa que persiste). Mesmo padrão do `rollState`.
+    const turnGuard = { degenerated: false }
+
     // Retorna o stream — o controller vai encaminhar para o cliente
     const result = streamText({
       model,
@@ -580,6 +588,12 @@ export class AiService {
         // oculto do deepseek conta no orçamento); 'stop' com prosa incompleta =
         // provider dropou upstream; 'error' = ver logs acima.
         console.log(`[AiService] onFinish finishReason=${finishReason} tokens=${JSON.stringify(usage)} steps=${steps.length}`)
+        // US-69 PASSO 0: loga SEMPRE o provider upstream que o OpenRouter roteou +
+        // a contagem nativa de tokens (raciocínio incluso) — vive em providerMetadata.
+        // Na próxima ocorrência do embaralhamento de whitespace (2º modo) isto
+        // desambigua backend ruim (hipótese principal) de frequencyPenalty×raciocínio.
+        // Barato; o dump pesado de response.body continua atrás da flag abaixo.
+        console.log('[AiService] providerMetadata=', JSON.stringify(providerMetadata))
         // US-55 spike de cache: o pin @ai-sdk/openai-compatible@0.2.16 não
         // normaliza cached tokens no `usage` (só promptTokens/completionTokens); o
         // OpenRouter/DeepSeek reporta em prompt_tokens_details.cached_tokens +
@@ -639,6 +653,14 @@ export class AiService {
         if (stateTags.length > 0) {
           console.warn(`[AiService] saneador removeu ${stateTags.length} tag(s) de estado vazada(s) da narração:`, stateTags)
         }
+        // US-69: turno cortado pelo guard anti-degeneração (loop de repetição
+        // detectado mid-stream). O jogador já teve o parcial descartado no cliente e
+        // o turno vai ser reescrito — NÃO persistir o lixo nem sumarizar em cima dele.
+        // (Sai depois dos saneadores/log só para o diagnóstico continuar visível.)
+        if (turnGuard.degenerated) {
+          console.warn('[AiService] turno degenerado descartado pelo guard (US-69) — não persistido')
+          return
+        }
         // Só registra o turno (ação + narração) quando ele de fato produziu
         // narração. Uma tentativa que falhou antes de emitir texto não grava
         // nada, evitando duplicar a ação quando o fallback assume.
@@ -671,7 +693,7 @@ export class AiService {
       },
     })
 
-    return { result, hasFallback }
+    return { result, hasFallback, turnGuard }
   }
 
   /**

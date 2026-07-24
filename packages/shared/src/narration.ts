@@ -145,6 +145,56 @@ export function stripReasoningLeak(text: string): { clean: string; removed: stri
 }
 
 /**
+ * US-69: detector determinístico de degeneração por repetição, para rodar
+ * mid-stream — o guard corta o turno e re-amostra ANTES da parede chegar inteira
+ * ao jogador. Função PURA: o teste de regressão a exercita sem stream real (mesmo
+ * padrão dos saneadores acima).
+ *
+ * Alvo = o loop patológico da decodificação autorregressiva em região OOD (visto
+ * em prod ao inventar nomes originais — US-68). Dois formatos:
+ *  - token único repetido em sequência: "cra cra cra…" (com espaço) ou
+ *    "cracracra…" (colado);
+ *  - n-grama (bigrama/trigrama) repetido: "ela olha, ela olha…".
+ *
+ * Só olha a CAUDA (janela fixa) e ancora a contagem no FIM — onde um loop ao vivo
+ * se manifesta —, então o custo é ~zero por delta. Limiares altos de propósito: o
+ * falso-positivo descarta narração boa, então ênfase legítima ("não, não, não!",
+ * 2-3×) fica MUITO abaixo do gatilho. NÃO cobre o embaralhamento de whitespace
+ * (2º modo, `finishReason=stop`) — esse não tem repetição e a US o deixa fora até
+ * reincidir.
+ */
+const DEGEN_TAIL_CHARS = 240
+const DEGEN_SINGLE_TOKEN_RUN = 8 // N: "cra cra cra…" ≥ 8× seguidas
+const DEGEN_NGRAM_RUN = 5 // M: bigrama/trigrama repetido ≥ 5×
+const DEGEN_NGRAM_MAX = 3
+// Loop colado sem espaço ("cracracra…"): unidade ≤10 chars repetida ≥ 7× seguidas.
+// Lazy para evitar backtracking pesado; cauda limitada a 240 chars de qualquer forma.
+const DEGEN_GLUED = /(\S{1,10}?)\1{6,}/i
+
+function windowEq(tokens: string[], i: number, j: number, k: number): boolean {
+  for (let x = 0; x < k; x++) if (tokens[i + x] !== tokens[j + x]) return false
+  return true
+}
+
+export function detectDegeneration(text: string): boolean {
+  const tail = text.length > DEGEN_TAIL_CHARS ? text.slice(-DEGEN_TAIL_CHARS) : text
+  if (DEGEN_GLUED.test(tail)) return true
+  const tokens = tail.toLowerCase().split(/\s+/).filter(Boolean)
+  // Repetições consecutivas de um bloco de k tokens, ancoradas no FIM da cauda.
+  for (let k = 1; k <= DEGEN_NGRAM_MAX; k++) {
+    if (tokens.length < k * 2) break
+    let repeats = 1
+    let i = tokens.length - k
+    while (i - k >= 0 && windowEq(tokens, i, i - k, k)) {
+      repeats++
+      i -= k
+    }
+    if (repeats >= (k === 1 ? DEGEN_SINGLE_TOKEN_RUN : DEGEN_NGRAM_RUN)) return true
+  }
+  return false
+}
+
+/**
  * Breakdown de uma rolagem para o bloco de rolagem (US-09/US-29), ex.:
  * `1d20+5: [14] +5 = 19`. Lê o DiceResult do Game Server — nunca a prosa.
  */

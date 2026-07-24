@@ -324,6 +324,16 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           })
           return
         }
+        // US-69: descarte de TURNO — o guard do servidor detetou degeneração
+        // (loop "cra cra…") e vai reescrever. Apaga TUDO deste turno (rolagens +
+        // prosa parcial) e volta ao estado "ação do jogador + Mestre a pensar";
+        // a reescrita reemite os frames D:/0: do zero. Difere do `R` (só o step).
+        if (line === 'X') {
+          dmText = ''
+          rollTurns.length = 0
+          setMessages([...withUser, { role: 'dm', content: '' }])
+          return
+        }
         if (line.startsWith('I:')) {
           try { setInventory(JSON.parse(line.slice(2))) } catch { /* ignore malformed */ }
           return
