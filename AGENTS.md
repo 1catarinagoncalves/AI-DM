@@ -115,7 +115,7 @@ Roadmap incremental (fase atual: MVP single-player):
 
 - PRD completo: `docs/prd.md`
 - ADR de arquitetura: `docs/adr/001-arquitetura.md`
-- User stories: `docs/sdlc/01-requisitos/user-stories.md`
+- User stories: `docs/sdlc/01-requisitos/US-*.md` (um arquivo por story, fonte de verdade; quadro Kanban na US-31)
 - Critérios de aceite: `docs/sdlc/01-requisitos/criterios-de-aceite.md`
 - Modelo de dados: `docs/sdlc/02-design/modelo-de-dados.md`
 - Estratégia de testes: `docs/sdlc/04-testes/estrategia-de-testes.md`

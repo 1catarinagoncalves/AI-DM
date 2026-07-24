@@ -195,6 +195,23 @@ export function detectDegeneration(text: string): boolean {
 }
 
 /**
+ * US-74: contrato de fecho — toda narração completa TERMINA com a lista de opções
+ * (`- 🗡️ ...`, regra §4 do prompt). Detecta a PRESENÇA dessa lista. Ausência = turno
+ * truncado: o modelo parou num cliffhanger (`finishReason=stop`) sem emitir as opções,
+ * deixando o jogador sem saída — confirmado nos logs de prod (100% dos turnos param por
+ * `stop`, tokens/steps longe dos tetos, i.e. NÃO é `length` nem `tool-calls`).
+ *
+ * Puro/testável, mesmo padrão dos saneadores acima. É a MESMA regex que o controller e o
+ * serviço já usavam inline para dedupe de narração dupla — agora fonte única. Um bullet é
+ * uma linha começando por hífen + espaço (`- `); o travessão (`—`) do diálogo NÃO conta
+ * (é fala de personagem, não opção).
+ */
+const OPTIONS_LIST = /(^|\n)\s*-\s/
+export function hasOptionsList(text: string): boolean {
+  return OPTIONS_LIST.test(text)
+}
+
+/**
  * Breakdown de uma rolagem para o bloco de rolagem (US-09/US-29), ex.:
  * `1d20+5: [14] +5 = 19`. Lê o DiceResult do Game Server — nunca a prosa.
  */

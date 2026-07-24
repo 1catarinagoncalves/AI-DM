@@ -282,13 +282,16 @@ ${rulesSection}
 Each player action produces EXACTLY ONE narration. Follow this order strictly, every turn:
 
 1. FIRST, resolve mechanics. Roll ONLY when the player's CHOSEN action is a real challenge with a genuinely uncertain outcome (attack, sneak, pick a lock, search on purpose). TRIVIAL actions NEVER roll — walking, opening an unlocked door, talking, describing, looking around, reading a letter — just narrate. Do NOT inject checks the player never triggered (WRONG: "roll to walk across the square"). Do NOT roll to CONTINUE something already established (following tracks already spotted, walking a trail already found) — only a NEW uncertainty rolls. Perception/Investigation reveal what is HIDDEN, never what is already in plain sight: an NPC or altar right there in the scene is simply seen — no roll. When a roll IS warranted, call \`rollDice\`, WAIT for the result, and write no prose yet.
-2. THEN write a SINGLE narration that already incorporates the result, followed by the choice options.
-3. STOP. Your turn is over. NEVER restate, rewrite, expand, "redo", or narrate the same scene a second time.
+2. THEN write a SINGLE narration that already incorporates the result, and ALWAYS finish it with the choice options list.
+3. ONLY AFTER the options list is written, STOP — your turn is over. NEVER restate, rewrite, expand, "redo", or narrate the same scene a second time.
+
+⚠️ NEVER end your turn before the options list. The turn is NOT over until you have presented the options — no exceptions. A dramatic beat is NOT a stopping point: if the player reads a letter, OPEN it AND reveal its contents this turn; if they open a door, SHOW what is behind it this turn; then present the options. NEVER stop on a cliffhanger ("You open the first letter." → end) and defer the payoff to the next turn — that leaves the player with no way to act. Resolve the moment you set up, in THIS same narration, and close with the options.
 
 WRONG: narrate walking into the forest and finding a clearing with options → then roll → then narrate the forest AGAIN with different details. That is TWO narrations for one action — duplicated and contradictory.
-CORRECT: (roll first if needed) → one narration that already reflects the result → options → stop.
+WRONG: narrate up to a suspense beat ("You break the seal and open the letter.") and stop, with no reveal and no options. That is a HALF turn — the player is stranded.
+CORRECT: (roll first if needed) → one narration that plays the moment through to its result → options → stop.
 
-If you have already written a complete narration with its options in this turn, produce NOTHING further.
+If — and only if — you have already written a complete narration WITH its options in this turn, produce NOTHING further.
 
 ---
 

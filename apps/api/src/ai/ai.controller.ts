@@ -2,7 +2,7 @@ import { Controller, Post, Body, Res, HttpCode, UseGuards, ForbiddenException } 
 import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { Response } from 'express'
 import { z } from 'zod'
-import { detectDegeneration } from '@ai-dm/shared'
+import { detectDegeneration, hasOptionsList } from '@ai-dm/shared'
 import { AiService, type RollTurnState } from './ai.service'
 import type { EventLog } from '../generated/prisma/client'
 import { zodBody } from '../openapi'
@@ -68,8 +68,8 @@ export class AiController {
     // Distinguimos os casos pela lista de opções: toda narração completa
     // termina com opções (`- 🗡️ ...`). Só descartamos o texto do step anterior
     // (enviando um reset `R` ao cliente) quando ele JÁ era uma narração
-    // completa; preparação sem opções é preservada.
-    const COMPLETE_NARRATION = /(^|\n)\s*-\s/
+    // completa; preparação sem opções é preservada. `hasOptionsList` (US-74) é o
+    // mesmo predicado que o serviço usa no gate de persistência — fonte única.
 
     // Fallback de provedor: tenta o modelo primário (NVIDIA) e, se ele falhar
     // ANTES de emitir qualquer texto, cai para o próximo (OpenRouter) sem o
@@ -109,6 +109,10 @@ export class AiController {
       let curStepText = ''
       let failedBeforeOutput = false
       let degenerated = false
+      // US-74: o turno emitiu a lista de opções em ALGUM ponto? Latch por tentativa.
+      // Fim do turno sem ela = truncado (cliffhanger) → re-amostra. Latch (não checar só
+      // o último step) cobre o caso preparação+desfecho: as opções vêm no step do desfecho.
+      let turnHadOptions = false
 
       try {
         for await (const part of result.fullStream) {
@@ -143,7 +147,7 @@ export class AiController {
               }
             }
           } else if (part.type === 'text-delta') {
-            if (curStepText === '' && COMPLETE_NARRATION.test(prevStepText)) {
+            if (curStepText === '' && hasOptionsList(prevStepText)) {
               res.write('R\n')
               prevStepText = ''
             }
@@ -156,6 +160,9 @@ export class AiController {
               degenerated = true
               break
             }
+            // US-74: latch — assim que o step corrente exibe a lista de opções, o turno
+            // tem fecho. Sem isto ao fim = truncado.
+            if (!turnHadOptions && hasOptionsList(curStepText)) turnHadOptions = true
             emittedAnyText = true
             res.write('0:' + JSON.stringify(part.textDelta) + '\n')
           } else if (part.type === 'error') {
@@ -180,28 +187,39 @@ export class AiController {
         continue // tenta o próximo provedor
       }
 
-      if (degenerated) {
-        // US-69: descarte de TURNO — o cliente apaga o parcial (rolagens + prosa) e
-        // espera a reescrita. Reseta o estado de emissão do turno: a reescrita reemite
-        // do zero (rolagens incluídas — o cliente as descartou).
+      // US-74: turno truncado — o modelo emitiu prosa mas NUNCA a lista de opções
+      // (parou num cliffhanger, `finishReason=stop`). Mesmo predicado que o gate de
+      // persistência do serviço; ambos re-decidem sozinhos, sem depender da ordem
+      // onFinish×fim-do-loop. Mesmo tratamento do degenerado: descarta e re-amostra.
+      const incomplete = !degenerated && emittedAnyText && !turnHadOptions
+      // Marca o guard para o onFinish NÃO persistir o beco-sem-saída. Reforço: o serviço
+      // também computa o mesmo predicado sobre o finalText saneado (ordem onFinish×loop
+      // não é garantida) — quem decidir primeiro basta; ambos usam a mesma regra.
+      if (incomplete) turnGuard.incomplete = true
+
+      if (degenerated || incomplete) {
+        const reason = degenerated ? 'degeneração' : 'turno truncado (sem lista de opções)'
+        // Descarte de TURNO — o cliente apaga o parcial (rolagens + prosa) e espera a
+        // reescrita. Reseta o estado de emissão: a reescrita reemite do zero (rolagens
+        // incluídas — o cliente as descartou).
         res.write('X\n')
         emittedAnyText = false
         emittedRolls.clear()
 
         if (sameModelRerolls < MAX_SAME_MODEL_REROLLS) {
           sameModelRerolls++
-          console.warn(`[AiController] degeneração detectada (modelo attempt=${modelIndex}); re-amostrando o mesmo modelo (reroll ${sameModelRerolls}/${MAX_SAME_MODEL_REROLLS})`)
+          console.warn(`[AiController] ${reason} (modelo attempt=${modelIndex}); re-amostrando o mesmo modelo (reroll ${sameModelRerolls}/${MAX_SAME_MODEL_REROLLS})`)
           continue // MESMO modelIndex
         }
 
         // Escalona: re-rolls no mesmo modelo esgotados — desce a escada.
-        console.warn(`[AiController] degeneração persistente no modelo attempt=${modelIndex} após ${sameModelRerolls} re-rolls; escalando`)
+        console.warn(`[AiController] ${reason} persistente no modelo attempt=${modelIndex} após ${sameModelRerolls} re-rolls; escalando`)
         sameModelRerolls = 0
         if (hasFallback) {
           modelIndex++
           continue
         }
-        // Último recurso: mensagem limpa, nunca a parede.
+        // Último recurso: mensagem limpa, nunca a parede nem o beco-sem-saída.
         res.write('0:' + JSON.stringify('[O Mestre se perdeu nas palavras. Tenta de novo.]') + '\n')
         break
       }

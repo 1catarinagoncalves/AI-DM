@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, formatDiceBreakdown, detectDegeneration } from './narration'
+import { stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, formatDiceBreakdown, detectDegeneration, hasOptionsList } from './narration'
 
 describe('stripWorldStateTags — tags de estado vazadas na prosa', () => {
   it('remove o tag fechado com JSON aninhado, mantendo a prosa ao redor', () => {
@@ -165,6 +165,33 @@ describe('US-69 — detectDegeneration', () => {
 
   it('NÃO dispara em texto curto', () => {
     expect(detectDegeneration('A porta range.')).toBe(false)
+  })
+})
+
+describe('US-74 — hasOptionsList (contrato de fecho da narração)', () => {
+  it('detecta a lista de opções em bullets com emoji', () => {
+    const narracao =
+      'Você abre a porta.\n\n- 🗡️ Entrar na sala.\n- 💬 Chamar por alguém.'
+    expect(hasOptionsList(narracao)).toBe(true)
+  })
+
+  it('detecta bullet mesmo com indentação', () => {
+    expect(hasOptionsList('Fim da cena.\n  - 🚶 Seguir em frente.')).toBe(true)
+  })
+
+  it('NÃO conta o travessão do diálogo como opção (é fala, não bullet)', () => {
+    const soDialogo = 'Você entra na estalagem.\n\n— Volveu cedo — diz Marta.\n— Quer quarto?'
+    expect(hasOptionsList(soDialogo)).toBe(false)
+  })
+
+  it('turno truncado (cliffhanger sem opções) = false — o bug real', () => {
+    const truncado =
+      'Você sobe as escadas, senta na beira da cama e desata o cordão das cartas.\n\nVocê abre a primeira.'
+    expect(hasOptionsList(truncado)).toBe(false)
+  })
+
+  it('narração vazia = false', () => {
+    expect(hasOptionsList('')).toBe(false)
   })
 })
 

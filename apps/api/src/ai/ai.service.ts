@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
-import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie } from '@ai-dm/shared'
+import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -559,7 +559,10 @@ export class AiService {
     // cancelada) NÃO persiste nem sumariza o turno-lixo. Um objeto novo por tentativa:
     // o retry cria o seu, então o `onFinish` desta tentativa vê o SEU flag (sem corrida
     // com a tentativa boa que persiste). Mesmo padrão do `rollState`.
-    const turnGuard = { degenerated: false }
+    // US-74: `incomplete` marca o turno truncado (o modelo parou num cliffhanger sem
+    // emitir a lista de opções). Como o degenerado, gate de persistência: o onFinish NÃO
+    // grava o turno-sem-saída e o controller re-amostra. Objeto novo por tentativa.
+    const turnGuard = { degenerated: false, incomplete: false }
 
     // Retorna o stream — o controller vai encaminhar para o cliente
     const result = streamText({
@@ -669,6 +672,16 @@ export class AiService {
         // (Sai depois dos saneadores/log só para o diagnóstico continuar visível.)
         if (turnGuard.degenerated) {
           console.warn('[AiService] turno degenerado descartado pelo guard (US-69) — não persistido')
+          return
+        }
+        // US-74: turno truncado — narração sem a lista de opções obrigatória (o modelo
+        // parou num cliffhanger, `finishReason=stop`). Autoridade de PERSISTÊNCIA: não
+        // grava o beco-sem-saída nem sumariza em cima dele. O controller detecta o mesmo
+        // (predicado puro idêntico) e re-amostra. Só quando HÁ prosa — um turno vazio já
+        // cai no guard `finalText.length > 0` abaixo (fallback/erro antes de emitir texto).
+        if (turnGuard.incomplete || (finalText.length > 0 && !hasOptionsList(finalText))) {
+          console.warn('[AiService] turno truncado sem lista de opções (US-74) — não persistido; controller re-amostra')
+          turnGuard.incomplete = true
           return
         }
         // Só registra o turno (ação + narração) quando ele de fato produziu
