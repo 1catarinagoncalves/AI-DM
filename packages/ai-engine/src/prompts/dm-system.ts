@@ -429,6 +429,10 @@ ${sceneText}${continuityLine}
   const entitiesSection = entitiesText
     ? `## Entidades do mundo (FONTE DE VERDADE — canon permanente da campanha; NUNCA esqueça nem negue)
 These are durable people, places and things the campaign has established. They EXIST — never tell the player they don't, never act confused about one that is listed here. When the player refers back to one (e.g. returning to a place or asking about an NPC seen many turns ago), TRUST this list even if the recent messages and the summary don't mention it. Keep each entity's location and state consistent with what is written here, and call \`recordEntity\` to update an entry whenever it changes.
+KNOWLEDGE GATES (US-75) — this ledger is YOUR global view; the world does NOT share it. Police what leaks:
+- Provenance: an NPC in the scene may reference PUBLIC facts freely, but a fact marked \`(restrito — só quem viu)\` is known ONLY to the player and whoever witnessed it. NEVER put a restricted fact in the mouth of an NPC who did not witness it and to whom the player has not told it IN THIS conversation.
+- Hidden truths: an entity marked \`⚠ OCULTO\` is for YOUR consistency ONLY — a world-truth the player has NOT discovered yet. NEVER reveal it: do not name it, do not hint at it, in neither the narration nor the options — until the fiction makes the character discover it, then call \`recordEntity\` to mark it revealed (\`revelado: true\`).
+- Location continuity: when stating where a ledger entity is or lives, use its recorded \`local\`; NEVER invent a different place for an entity that already has a \`local\`.
 
 ${entitiesText}
 

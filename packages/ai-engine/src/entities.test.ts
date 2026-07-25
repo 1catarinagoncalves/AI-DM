@@ -44,6 +44,26 @@ describe('mergeEntities', () => {
     )
     expect(out.map((e) => e.nome)).toEqual(['Elara', 'Barnabé'])
   })
+
+  // US-75: os dois eixos são ORTOGONAIS e seguem a mesma semântica parcial dos
+  // demais campos — omitido preserva, presente sobrescreve (o mecanismo de promoção).
+  it('preserva sabido/revelado quando o patch os omite e sobrescreve quando os traz', () => {
+    const current: WorldEntity[] = [
+      { nome: 'Morvath', tipo: 'npc', local: 'arboreto', sabido: 'publico', revelado: false, atualizadoEm: '2020-01-01' },
+    ]
+    // patch só muda o estado — ambos os eixos DEVEM ficar
+    const kept = mergeEntities(current, [{ nome: 'Morvath', estado: 'ausente' }])
+    expect(kept[0]).toMatchObject({ sabido: 'publico', revelado: false, estado: 'ausente' })
+    // promoção: reveal ao jogador (revelado false→true) sem tocar em sabido
+    const revealed = mergeEntities(current, [{ nome: 'Morvath', revelado: true }])
+    expect(revealed[0]).toMatchObject({ sabido: 'publico', revelado: true })
+    // promoção independente: segredo que se espalha (privado→publico) sem tocar em revelado
+    const spread = mergeEntities(
+      [{ nome: 'capangas', sabido: 'privado', revelado: true, atualizadoEm: '2020-01-01' }],
+      [{ nome: 'capangas', sabido: 'publico' }],
+    )
+    expect(spread[0]).toMatchObject({ sabido: 'publico', revelado: true })
+  })
 })
 
 describe('formatEntities', () => {
@@ -69,5 +89,19 @@ describe('formatEntities', () => {
     expect(formatEntities([helio], ['outro'])).toBe('- [NPC] Hélio — em forja de Hélio; ocupado; ferreiro da vila')
     // sem estado/nota, presente → só o nome
     expect(formatEntities([{ nome: 'Hélio', tipo: 'npc', local: 'forja', atualizadoEm: '' }], ['Hélio'])).toBe('- [NPC] Hélio')
+  })
+
+  // US-75: caso comum (publico + revelado, ou ausentes) NÃO ganha marcador — sem ruído.
+  it('não marca o caso comum publico+revelado', () => {
+    expect(formatEntities([{ nome: 'Marta', tipo: 'npc', sabido: 'publico', revelado: true, atualizadoEm: '' }]))
+      .toBe('- [NPC] Marta')
+  })
+
+  // US-75: fato privado (Erro 2) e fato oculto (Erro 3) ganham marcadores distintos.
+  it('marca privado (restrito) e oculto (revelado:false)', () => {
+    expect(formatEntities([{ nome: 'capangas', tipo: 'outro', sabido: 'privado', nota: 'no moinho', atualizadoEm: '' }]))
+      .toBe('- [Entidade] capangas — (restrito — só quem viu); no moinho')
+    expect(formatEntities([{ nome: 'Morvath', tipo: 'npc', local: 'arboreto', revelado: false, atualizadoEm: '' }]))
+      .toBe('- [NPC] Morvath — ⚠ OCULTO — verdade do mundo, NÃO revele ao jogador ainda; em arboreto')
   })
 })

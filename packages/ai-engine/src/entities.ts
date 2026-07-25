@@ -35,6 +35,11 @@ export function mergeEntities(
         local: patch.local ?? existing.local,
         estado: patch.estado ?? existing.estado,
         nota: patch.nota ?? existing.nota,
+        // US-75: dois eixos de conhecimento, mesma semântica parcial (omitido preserva).
+        // Assim o Mestre PROMOVE re-registrando: revelado false→true (reveal ao jogador),
+        // privado→publico (segredo que se espalha).
+        sabido: patch.sabido ?? existing.sabido,
+        revelado: patch.revelado ?? existing.revelado,
         atualizadoEm: now,
       }
     }
@@ -71,7 +76,14 @@ export function formatEntities(
   return entities
     .map((e) => {
       const tipo = e.tipo ? `[${TIPO_LABEL[e.tipo]}] ` : ''
+      // US-75: marcadores dos dois eixos. Só aparecem no caso não-comum — `publico` +
+      // revelado (ou ausentes) renderiza como antes, sem ruído. `oculto` vem primeiro
+      // e em CAIXA porque é o gate mais forte (proibido vazar ao jogador).
+      const oculto = e.revelado === false ? '⚠ OCULTO — verdade do mundo, NÃO revele ao jogador ainda' : ''
+      const restrito = e.sabido === 'privado' ? '(restrito — só quem viu)' : ''
       const detalhes = [
+        oculto,
+        restrito,
         emCena.has(norm(e.nome)) ? '' : e.local ? `em ${e.local}` : '',
         e.estado ?? '',
         e.nota ?? '',

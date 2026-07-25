@@ -124,10 +124,16 @@ export class AdventureService {
     // isto o `sceneState` nasce nulo e o turno 1 fica sem âncora de continuidade
     // (a abertura roda sem tools, nunca chama `updateScene`). Falha/vazio → nulo,
     // idêntico ao comportamento pré-US-35; nunca derruba a criação.
-    const scenePatch = await this.ai.extractOpeningScene(
-      openingText,
-      startingInventory.map((i) => i.name),
-    )
+    // US-75: em paralelo, semeia o ledger de entidades da abertura (nenhuma extração
+    // depende da outra). Sem esta âncora estruturada, o Mestre pode contradizer depois
+    // o que a abertura estabeleceu (Erro 1). Falha/vazio → ledger vazio (pré-US-75).
+    const [scenePatch, seededEntities] = await Promise.all([
+      this.ai.extractOpeningScene(
+        openingText,
+        startingInventory.map((i) => i.name),
+      ),
+      this.ai.extractOpeningEntities(openingText, `${hook.primaryQuestTitle}\n${hook.primaryQuestDescription}`),
+    ])
     const sceneState = scenePatch ? mergeSceneState(null, scenePatch) : null
 
     return this.prisma.$transaction(async (tx) => {
@@ -140,7 +146,14 @@ export class AdventureService {
       })
 
       const adventure = await tx.adventure.create({
-        data: { systemId: character.systemId, creatorId: character.userId, title: hook.title, order },
+        // US-75: ledger semeado da abertura. Nulo → coluna ausente (default do Prisma).
+        data: {
+          systemId: character.systemId,
+          creatorId: character.userId,
+          title: hook.title,
+          order,
+          ...(seededEntities ? { entities: seededEntities as unknown as object } : {}),
+        },
       })
 
       await tx.adventureParticipant.create({

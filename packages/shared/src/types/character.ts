@@ -50,5 +50,20 @@ export interface WorldEntity {
   estado?: string
   /** Fato durável curto que o mestre não pode esquecer. */
   nota?: string
+  /**
+   * Eixo A — proveniência no mundo (US-75): quem, no mundo, pode saber disto.
+   * `publico` = conhecimento comum (qualquer NPC local pode referenciar).
+   * `privado` = só o jogador e quem testemunhou; um NPC só menciona se o
+   * jogador lhe contou em cena. Ausente ⇒ `publico` (retrocompat).
+   */
+  sabido?: 'publico' | 'privado'
+  /**
+   * Eixo B — descoberta do jogador (US-75): o personagem-jogador já sabe disto?
+   * `true` (default) = já descobriu; o Mestre narra livremente.
+   * `false` = verdade do mundo que o Mestre mantém só para não se contradizer,
+   * mas NÃO revela ao jogador até a ficção merecer (então re-registra `true`).
+   * Ausente ⇒ `true` (retrocompat).
+   */
+  revelado?: boolean
   atualizadoEm: string
 }

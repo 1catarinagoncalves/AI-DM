@@ -63,6 +63,23 @@ const OPENING_SCENE_SCHEMA = z.object({
 
 type ExtractedScene = z.infer<typeof OPENING_SCENE_SCHEMA>
 
+// US-75: schema da SEMEADURA do ledger na abertura. Espelha `WorldEntity` (sem
+// `atualizadoEm`), mas SEM os eixos de conhecimento — toda entidade da abertura é
+// pública e já vivida pelo jogador, então `sabido`/`revelado` são forçados no código,
+// não deixados ao extrator (que só decide O QUE a prosa estabelece, não segredos).
+const OPENING_ENTITIES_SCHEMA = z.object({
+  entidades: z
+    .array(
+      z.object({
+        nome: z.string().describe('Nome da entidade exatamente como a prosa a nomeia, e.g. "Marta", "moinho ao norte", "arboreto".'),
+        tipo: z.enum(['npc', 'local', 'objeto', 'faccao', 'outro']).optional(),
+        local: z.string().optional().describe('Onde a entidade está/mora, SÓ se a prosa afirmar. NÃO invente.'),
+        nota: z.string().optional().describe('Fato durável curto que a prosa afirma sobre ela.'),
+      }),
+    )
+    .describe('Entidades DURÁVEIS que esta abertura estabelece explicitamente.'),
+})
+
 const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
 
 /**
@@ -496,7 +513,7 @@ export class AiService {
       // sobrevive (correção da amnésia que apagou "a Vigia" do resumo).
       recordEntity: tool({
         description:
-          'Record or update a DURABLE campaign entity (a named NPC, a place, a notable object, a faction) so it is never forgotten. Call this the moment you INTRODUCE such an entity, and again (with only the changed fields) whenever it moves or its state changes (an NPC wakes/dies/becomes an ally, a place is discovered/destroyed). Pass `nome` plus whatever is known: `tipo` (npc/local/objeto/faccao/outro), `local` (where it is now), `estado` (its current condition/relationship), `nota` (a short durable fact). Matching is by `nome` (accent/case tolerant); omitted fields keep their previous value. This ledger is re-shown to you in full every turn under "Entidades do mundo" — it is your permanent memory, unlike the scene (only the present) and the summary (lossy prose).',
+          'Record or update a DURABLE campaign entity (a named NPC, a place, a notable object, a faction) so it is never forgotten. Call this the moment you INTRODUCE such an entity, and again (with only the changed fields) whenever it moves or its state changes (an NPC wakes/dies/becomes an ally, a place is discovered/destroyed). Pass `nome` plus whatever is known: `tipo` (npc/local/objeto/faccao/outro), `local` (where it is now), `estado` (its current condition/relationship), `nota` (a short durable fact). Matching is by `nome` (accent/case tolerant); omitted fields keep their previous value. This ledger is re-shown to you in full every turn under "Entidades do mundo" — it is your permanent memory, unlike the scene (only the present) and the summary (lossy prose). Two independent knowledge axes (US-75): `sabido` = who in the WORLD may know this; `revelado` = whether the PLAYER has discovered it. Promote by re-recording: set `revelado: true` the moment the fiction reveals a hidden truth to the player, set `sabido: "publico"` when a private fact spreads through the world.',
         parameters: z.object({
           entidades: z
             .array(
@@ -506,6 +523,14 @@ export class AiService {
                 local: z.string().optional().describe('Where it is now (for a mobile NPC/object). A place itself needs no `local`.'),
                 estado: z.string().optional().describe('Current condition/relationship, e.g. "inconsciente", "acordado", "aliada", "hostil".'),
                 nota: z.string().optional().describe('A short durable fact the DM must not forget about this entity.'),
+                sabido: z
+                  .enum(['publico', 'privado'])
+                  .optional()
+                  .describe('World-provenance. "publico" (default) = common knowledge any local NPC may reference. "privado" = only the player and whoever witnessed it discovered it alone/off-scene (e.g. thugs the player met while alone) — an NPC must NOT mention it unless the player told them in scene.'),
+                revelado: z
+                  .boolean()
+                  .optional()
+                  .describe('Player-discovery. true (default) = the player character already knows this, narrate freely. false = a world-truth you PIN so you stay consistent but the player has NOT connected yet — keep it hidden from narration and options until the fiction reveals it, then re-record with revelado:true.'),
               }),
             )
             .describe('One or more entities to insert or update this turn.'),
@@ -819,6 +844,43 @@ export class AiService {
       return empty ? null : object
     } catch (err) {
       console.error('[AiService] Falha ao extrair cena da abertura, sceneState fica nulo:', err)
+      return null
+    }
+  }
+
+  /**
+   * US-75: SEMEIA o ledger `Adventure.entities` na criação da aventura, espelhando
+   * `extractOpeningScene`. A abertura (US-34) roda tool-free e estabelece NPCs/locais
+   * só em prosa — sem uma âncora estruturada, o Mestre fica livre para contradizê-los
+   * depois (Erro 1: a estalajadeira dá ao herborista um lar diferente do estabelecido).
+   *
+   * Extrai APENAS o que o texto AFIRMA, e nunca INFERE um vínculo (dono, identidade
+   * secreta, parentesco) que a prosa não diga — um arboreto anônimo entra como lugar,
+   * sem dono. Toda entidade semeada é conhecimento comum já vivido pelo jogador, então
+   * nasce `sabido: 'publico'` + `revelado: true` (forçado no código, não no extrator).
+   *
+   * Roda FORA da transação (é LLM). Nunca lança: falha/vazio devolve `null` e a aventura
+   * nasce com ledger vazio (comportamento pré-US-75) — jamais derruba a criação.
+   */
+  async extractOpeningEntities(openingText: string, questContext = ''): Promise<WorldEntity[] | null> {
+    const text = openingText.trim()
+    if (text.length === 0) return null
+    try {
+      const { object } = await generateObject({
+        model: summaryModel,
+        schema: OPENING_ENTITIES_SCHEMA,
+        system:
+          'Extraia as entidades DURÁVEIS que esta abertura de RPG estabelece — NPCs nomeados, locais, objetos notáveis, facções — e ONDE cada um está, usando APENAS o texto. Não invente e NÃO INFIRA vínculos que o texto não afirma explicitamente (dono, identidade secreta, parentesco): se a prosa mostra um arboreto sem dizer de quem é, extraia só "arboreto" (local), sem dono. Tudo aqui é conhecimento comum que o jogador já viu. Não inclua a própria personagem-jogadora. Se a abertura não estabelece nenhuma entidade durável, devolva a lista vazia.',
+        prompt: `Abertura:\n"""\n${text}\n"""${questContext ? `\n\nGancho da aventura (contexto):\n"""\n${questContext}\n"""` : ''}`,
+        providerOptions: NARRATION_PROVIDER_OPTIONS,
+      })
+      const seeded = object.entidades
+        .filter((e) => e.nome?.trim())
+        // A abertura É pública e já vivida: força os dois eixos, não deixa ao extrator.
+        .map((e): WorldEntity => ({ ...e, sabido: 'publico', revelado: true, atualizadoEm: new Date().toISOString() }))
+      return seeded.length > 0 ? seeded : null
+    } catch (err) {
+      console.error('[AiService] Falha ao semear entidades da abertura, ledger fica vazio:', err)
       return null
     }
   }
