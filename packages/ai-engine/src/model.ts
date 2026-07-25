@@ -105,10 +105,10 @@ export const narrationModels: LanguageModelV1[] = [primaryModel, fallbackModel, 
  */
 export const NARRATION_PROVIDER_OPTIONS = {
   // exclude: raciocínio gerado mas NÃO retornado (não vaza na prosa). SEM cortar
-  // effort: um `effort:'low'` fez o modelo raciocinar de menos e desrespeitar as
-  // regras do prompt (rolagens/magias inventadas). Raciocínio cheio = mais aderência;
-  // o teto de corte fica por conta do maxTokens (4000) no streamText.
-  openrouter: { reasoning: { effort: 'high', exclude: true } },
+  // effort: `effort:'low'` fez o modelo raciocinar de menos e desrespeitar as
+  // regras do prompt (rolagens/magias inventadas). 'medium' = meio-termo custo/aderência;
+  // se voltar a inventar regras, subir para 'high'. Teto de corte no maxTokens (4000).
+  openrouter: { reasoning: { effort: 'medium', exclude: true } },
 } as const
 
 // Compat: modelo principal isolado.

@@ -82,6 +82,26 @@ const OPENING_ENTITIES_SCHEMA = z.object({
 
 const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
 
+// US-74 (salvage): instrução da chamada que COMPLETA uma narração truncada. Foco
+// estreito — continuar + fechar nas opções, SEM tools, SEM dados. As opções são
+// ancoradas no próprio texto da narração (que já descreveu a cena), então não precisa
+// recarregar ficha/cena do banco: barato e rápido, cabe no teto de 60s do proxy.
+const SALVAGE_SYSTEM_PROMPT = `Você é o Mestre de um RPG. A narração de um turno foi TRUNCADA: parou antes do desfecho e/ou sem a lista de opções obrigatória. Escreva APENAS a CONTINUAÇÃO, para completar o turno:
+- Continue EXATAMENTE de onde a narração parou; NÃO repita nada do que já foi escrito.
+- Se algo estava prestes a ser revelado (uma carta aberta, uma porta, um rosto), revele agora, em 1–2 parágrafos curtos.
+- Termine SEMPRE com uma lista de 3–4 opções de ação, uma por linha, no formato \`- emoji texto\` (hífen + emoji). NUNCA use travessão (—) nas opções — travessão é só fala de personagem.
+- NÃO role dados, NÃO chame ferramentas, NÃO escreva números de teste nem blocos de estado. Só a prosa de continuação e as opções.
+- Escreva em pt-BR natural, no mesmo tom da narração.`
+
+// Raciocínio baixo de propósito: o fecho é uma tarefa curta e o que importa aqui é
+// LATÊNCIA (estamos dentro do orçamento de 60s do turno). `exclude` mantém o raciocínio
+// fora da prosa (mesma razão do NARRATION_PROVIDER_OPTIONS).
+const SALVAGE_PROVIDER_OPTIONS = { openrouter: { reasoning: { effort: 'low', exclude: true } } } as const
+
+// Fecho estático de último recurso — se a geração do salvamento falhar ou ainda vier
+// sem opções, o jogador NUNCA fica sem saída.
+const SALVAGE_FALLBACK = '\n\n- 💬 Continuar.'
+
 /**
  * US-73: monta o patch de cena a partir da extração estruturada, protegendo contra
  * ZERAR campos escalares. Um turno só-diálogo devolve `local`/`periodo` vazios — nesse
@@ -742,6 +762,61 @@ export class AiService {
     })
 
     return { result, hasFallback, turnGuard }
+  }
+
+  /**
+   * US-74 (salvage): completa uma narração TRUNCADA — o modelo parou num cliffhanger,
+   * sem a lista de opções. NÃO re-roda o turno: as tools já commitaram no banco
+   * (cena/entidades/inventário), então re-amostrar dessincronizaria o mundo (inventário
+   * em dobro, cena avançada 2×) e serializaria outra geração cheia, estourando o teto de
+   * 60s do proxy SSE (a causa real do "a narração sumiu" em prod). Em vez disso, UMA
+   * chamada curta, SEM tools, continua a prosa de onde parou e fecha com as opções.
+   *
+   * Persiste ACTION + NARRATION(narração + fecho) — é a autoridade de persistência do
+   * turno salvo (o `onFinish` da tentativa truncada foi gateado por `turnGuard.incomplete`
+   * e NÃO gravou). Devolve SÓ o fecho, para o controller anexar à narração que o cliente
+   * já mostrou. Nunca lança: falha/vazio devolve um fecho estático — o jogador nunca fica
+   * sem saída.
+   */
+  async completeTruncatedTurn(input: ChatInput, narration: string): Promise<string> {
+    const { adventureId, characterId, message } = input
+    const base = narration.trimEnd()
+
+    let closure = ''
+    try {
+      const { text } = await generateText({
+        // narrationModels[0] = deepseek-v4-flash (mesmo primário da narração).
+        model: narrationModels[0]!,
+        system: SALVAGE_SYSTEM_PROMPT,
+        prompt: `[AÇÃO DO JOGADOR]:\n${message}\n\n[NARRAÇÃO ATÉ AGORA — continue EXATAMENTE de onde parou, sem repetir]:\n${base}`,
+        maxTokens: 700,
+        providerOptions: SALVAGE_PROVIDER_OPTIONS,
+      })
+      // Mesma cadeia de saneadores do onFinish: o fecho volta ao histórico como contexto.
+      closure = stripWorldStateTags(stripFabricatedRolls(stripReasoningLeak(text).clean).clean).clean.trim()
+    } catch (err) {
+      console.error('[AiService] completeTruncatedTurn: geração do fecho falhou; usando fecho estático:', err)
+    }
+
+    // Garante o contrato de fecho: sem opções (falha, vazio, ou o modelo ignorou) → anexa
+    // o fallback estático. Nunca devolve um turno ainda truncado.
+    if (!hasOptionsList(closure)) {
+      closure = closure ? `${closure}${SALVAGE_FALLBACK}` : SALVAGE_FALLBACK.trimStart()
+    }
+
+    const separator = base.endsWith('\n') ? '' : '\n\n'
+    const streamed = `${separator}${closure}`
+    const finalText = `${base}${streamed}`
+
+    await this.prisma.eventLog.create({
+      data: { adventureId, characterId, type: 'ACTION', payload: { text: message } },
+    })
+    await this.prisma.eventLog.create({
+      data: { adventureId, characterId, type: 'NARRATION', payload: { text: finalText } },
+    })
+    await this.summarizeOldTurns(adventureId, characterId)
+
+    return streamed
   }
 
   /**

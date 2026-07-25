@@ -5,7 +5,34 @@
 **Status:** ✅ Implementada
 **Depende de:** [US-34](./US-34-qualidade-da-narracao-do-dm.md) (ofício narrativo — o contrato "fecha nas opções"), [US-69](./US-69-guard-anti-degeneracao-narracao.md) (guard irmão anti-degeneração — mesma maquinaria de descarte+re-amostra).
 **Criada em:** 2026-07-24
-**Atualizada em:** 2026-07-24 — criada já implementada.
+**Atualizada em:** 2026-07-25 — incidente de produção: o descarte+re-amostra fazia a narração SUMIR (timeout do proxy) e dessincronizava o mundo (tools já commitadas). Redesenhado para SALVAMENTO. Ver "Atualização 2026-07-25".
+
+---
+
+## ⚠️ Atualização 2026-07-25 — incidente de produção e redesenho para SALVAMENTO
+
+### O que quebrou em prod
+
+Com o guard já live (deploy `9f75d4f`), um turno truncou e, em vez de reescrever, **a narração sumiu**; ao reenviar a ação, **o NPC respondeu de forma incoerente**. Duas causas-raiz, ambas na estratégia original de **descarte + re-amostra**:
+
+1. **"Sumiu" — timeout do proxy.** O guard mandava `X` (cliente limpa a bolha) e **re-amostrava o turno INTEIRO** (mesmo modelo até 2× + escada), tudo dentro da MESMA resposta SSE. Cada chamada deepseek com `effort:high` leva 20–40s; 2–3 seriais estouram o teto de **60s** do proxy Vercel Hobby (`apps/web/src/app/api/chat/route.ts`, `maxDuration=60`). O proxy é morto no meio → o cliente fica com a bolha vazia (último sentinel foi `X`) → nada persiste no servidor → o turno some. A reconciliação `getTurns` confirma o sumiço.
+2. **"NPC incoerente" — efeitos colaterais vazam.** Toda tool (`updateScene`/`recordEntity`/`updateInventory`/`updateCharacterHp`) escreve no banco na hora do `execute`, DURANTE a tentativa, antes do guard decidir descartar. Turno descartado/perdido = cena e entidades **já avançaram** sem ACTION/NARRATION persistida → no reenvio o DM lê um mundo adiantado sem narrativa correspondente. Bônus: `updateInventory` (delta) aplica em dobro a cada re-amostra.
+
+Lição: **descartar um turno que já rodou tools é destrutivo** — a narração é reversível (só stream), o mundo não é (tool já commitou). A re-amostra dentro de um SSE com teto de tempo é incompatível com `effort:high`.
+
+### O redesenho — salvar, não descartar
+
+A degeneração (US-69, loop "cra cra…") **continua** com descarte+re-amostra: ali o texto é lixo e é detectado cedo, mid-stream, com parcial pequeno. Só o caminho do **turno truncado** mudou:
+
+- **NÃO descarta e NÃO re-roda o turno.** A narração truncada é BOA — só falta o fecho. Mantém-se na tela.
+- **`AiService.completeTruncatedTurn`**: UMA chamada CURTA, SEM tools, `effort:low` (latência), `maxTokens: 700`, que continua a prosa de onde parou e fecha nas opções. As opções ancoram-se no próprio texto da narração (que já descreveu a cena) — não recarrega ficha/cena do banco. Cabe folgado no orçamento de 60s.
+- **Persistência única**: `completeTruncatedTurn` grava ACTION + NARRATION(narração + fecho) e sumariza. O `onFinish` da tentativa truncada continua gateado por `turnGuard.incomplete` (não grava). Como o turno é SALVO (não descartado), os efeitos das tools batem com a narração persistida — **fim do desync**.
+- **Nunca sem saída**: se a geração do fecho falhar ou vier sem opções, anexa um fecho estático (`- 💬 Continuar.`).
+- **Latch `turnHadOptions` reseta no `R`**: um step com opções descartado pelo `R` não pode marcar o turno como completo (senão um desfecho truncado após `R` se perderia).
+
+### Pendente (fora do escopo desta atualização)
+
+- **US-69 tem o MESMO defeito latente**: descarte+re-amostra serial (timeout) + efeitos colaterais de tentativas descartadas. Menos crítico (degeneração é rara e o parcial é pequeno), mas o vazamento de tools de uma tentativa descartada existe lá também. Endereçar se reincidir.
 
 ---
 

@@ -113,6 +113,9 @@ export class AiController {
       // Fim do turno sem ela = truncado (cliffhanger) → re-amostra. Latch (não checar só
       // o último step) cobre o caso preparação+desfecho: as opções vêm no step do desfecho.
       let turnHadOptions = false
+      // US-74 (salvage): espelha o texto que o cliente mostra (reset no `R`, append no
+      // `0:`) — é a narração exata a completar se o turno truncar, sem depender do onFinish.
+      let shownText = ''
 
       try {
         for await (const part of result.fullStream) {
@@ -150,6 +153,11 @@ export class AiController {
             if (curStepText === '' && hasOptionsList(prevStepText)) {
               res.write('R\n')
               prevStepText = ''
+              shownText = '' // o cliente descarta o step anterior; espelha isso
+              // O step descartado tinha as opções; ao descartá-lo, o turno volta a NÃO
+              // ter fecho. Sem este reset, um desfecho truncado após um `R` passaria por
+              // completo e o turno se perderia (onFinish também não persistiria).
+              turnHadOptions = false
             }
             curStepText += part.textDelta
             // US-69: detecta o loop ANTES de escrever o delta que cruza o limiar —
@@ -164,6 +172,7 @@ export class AiController {
             // tem fecho. Sem isto ao fim = truncado.
             if (!turnHadOptions && hasOptionsList(curStepText)) turnHadOptions = true
             emittedAnyText = true
+            shownText += part.textDelta
             res.write('0:' + JSON.stringify(part.textDelta) + '\n')
           } else if (part.type === 'error') {
             if (!emittedAnyText && hasFallback) {
@@ -187,40 +196,49 @@ export class AiController {
         continue // tenta o próximo provedor
       }
 
-      // US-74: turno truncado — o modelo emitiu prosa mas NUNCA a lista de opções
-      // (parou num cliffhanger, `finishReason=stop`). Mesmo predicado que o gate de
-      // persistência do serviço; ambos re-decidem sozinhos, sem depender da ordem
-      // onFinish×fim-do-loop. Mesmo tratamento do degenerado: descarta e re-amostra.
-      const incomplete = !degenerated && emittedAnyText && !turnHadOptions
-      // Marca o guard para o onFinish NÃO persistir o beco-sem-saída. Reforço: o serviço
-      // também computa o mesmo predicado sobre o finalText saneado (ordem onFinish×loop
-      // não é garantida) — quem decidir primeiro basta; ambos usam a mesma regra.
-      if (incomplete) turnGuard.incomplete = true
-
-      if (degenerated || incomplete) {
-        const reason = degenerated ? 'degeneração' : 'turno truncado (sem lista de opções)'
+      // US-69: degeneração (loop "cra cra…") — o texto é LIXO, então descartar (`X`) e
+      // re-amostrar é o certo. Detectado cedo, mid-stream, com parcial pequeno.
+      if (degenerated) {
         // Descarte de TURNO — o cliente apaga o parcial (rolagens + prosa) e espera a
-        // reescrita. Reseta o estado de emissão: a reescrita reemite do zero (rolagens
-        // incluídas — o cliente as descartou).
+        // reescrita. Reseta o estado de emissão: a reescrita reemite do zero.
         res.write('X\n')
         emittedAnyText = false
         emittedRolls.clear()
 
         if (sameModelRerolls < MAX_SAME_MODEL_REROLLS) {
           sameModelRerolls++
-          console.warn(`[AiController] ${reason} (modelo attempt=${modelIndex}); re-amostrando o mesmo modelo (reroll ${sameModelRerolls}/${MAX_SAME_MODEL_REROLLS})`)
+          console.warn(`[AiController] degeneração (modelo attempt=${modelIndex}); re-amostrando o mesmo modelo (reroll ${sameModelRerolls}/${MAX_SAME_MODEL_REROLLS})`)
           continue // MESMO modelIndex
         }
 
         // Escalona: re-rolls no mesmo modelo esgotados — desce a escada.
-        console.warn(`[AiController] ${reason} persistente no modelo attempt=${modelIndex} após ${sameModelRerolls} re-rolls; escalando`)
+        console.warn(`[AiController] degeneração persistente no modelo attempt=${modelIndex} após ${sameModelRerolls} re-rolls; escalando`)
         sameModelRerolls = 0
         if (hasFallback) {
           modelIndex++
           continue
         }
-        // Último recurso: mensagem limpa, nunca a parede nem o beco-sem-saída.
+        // Último recurso: mensagem limpa, nunca a parede.
         res.write('0:' + JSON.stringify('[O Mestre se perdeu nas palavras. Tenta de novo.]') + '\n')
+        break
+      }
+
+      // US-74: turno truncado — prosa emitida mas SEM a lista de opções (cliffhanger,
+      // finishReason=stop). Distinto da degeneração: a narração é BOA, só falta o fecho, e
+      // as tools JÁ commitaram no banco. Por isso NÃO descartamos nem re-rodamos o turno —
+      // descartar perderia a prosa e dessincronizaria o mundo (inventário em dobro, cena
+      // avançada 2×); re-amostrar serializaria outra geração cheia e estouraria o teto de
+      // 60s do proxy (a causa real do "a narração sumiu" em prod). Em vez disso, uma chamada
+      // curta SEM tools completa o fecho e é anexada; o serviço persiste o turno combinado.
+      const incomplete = emittedAnyText && !turnHadOptions
+      if (incomplete) {
+        // Gate do onFinish (não persiste o beco-sem-saída) — quem persiste o turno salvo é
+        // o completeTruncatedTurn. O serviço também computa o mesmo predicado, sem depender
+        // da ordem onFinish×loop.
+        turnGuard.incomplete = true
+        console.warn(`[AiController] turno truncado (sem opções) no attempt=${modelIndex}; completando o fecho sem re-rodar o turno`)
+        const closure = await this.aiService.completeTruncatedTurn({ adventureId, characterId, message }, shownText)
+        res.write('0:' + JSON.stringify(closure) + '\n')
         break
       }
       break
