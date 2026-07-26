@@ -3,7 +3,7 @@
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
-**Depende de:** [US-23](./US-23-dm-ciente-da-ficha.md) (a ficha injetada no prompt) · [US-11b](./US-11b-estado-de-cena-estruturado.md) (o bloco de cena estruturado) · [US-18](#) (histórico servido pela API / memória de sessão) — todos definem o conteúdo que hoje entra no system prompt em ordem ruim para cache
+**Depende de:** [US-23](./US-23-dm-ciente-da-ficha.md) (a ficha injetada no prompt) · [US-11b](./US-11b-estado-de-cena-estruturado.md) (o bloco de cena estruturado) · [US-18](./US-18-historico-servido-pela-api.md) (histórico servido pela API / memória de sessão) — todos definem o conteúdo que hoje entra no system prompt em ordem ruim para cache
 **Alimenta:** [US-56](./US-56-estado-do-turno-na-mensagem.md) (Fase B: move o estado volátil para a última mensagem e libera o cache do histórico — só se a medição desta US justificar) · custo e latência de TODO turno
 **Criada em:** 2026-07-19
 

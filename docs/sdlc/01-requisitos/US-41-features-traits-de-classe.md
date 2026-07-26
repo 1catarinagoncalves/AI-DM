@@ -4,7 +4,7 @@
 **Fase:** 2 — Memória / continuidade espacial (Fase B)
 **Status:** ✅ Implementada
 **Depende de:** [US-23](./US-23-dm-ciente-da-ficha.md) (injeção dirigida por dados) · fonte do kit de classe ([US-28](./US-28-aventura-inicial-baseada-na-classe.md) / catálogo [US-20](./US-20-catalogo-de-sistemas-via-api.md)/[US-21](./US-21-sistemas-como-dado.md))
-**Relacionado:** [US-42](./US-42-magias-conhecidas.md) (magias — sistema separado no 5e, fora do escopo) · [US-27](./US-27-pericias-do-personagem.md) (perícias, que NÃO são features) · [US-45](./US-45-background-visivel-na-ficha.md) (abas da ficha — reusar o mesmo mecanismo para a aba "Features")
+**Relacionado:** [US-42](./US-42-magias-conhecidas.md) (magias — sistema separado no 5e, fora do escopo) · [US-27](./US-27-pericias-do-personagem.md) (perícias, que NÃO são features) · [US-45](./US-45-background-na-ficha-da-interface.md) (abas da ficha — reusar o mesmo mecanismo para a aba "Features")
 **Bloqueia:** [US-17](./US-17-comparacao-modelos-eval.md) slice 2 — o cenário de **Dilema** do bake-off usa **Sentido Divino** (feature de nível 1); sem o kit, o modelo inventa poder ou narra genérico. (Features de níveis superiores — Expulsar Mortos-Vivos, Aura de Proteção — ficam fora deste escopo; ver [Fora do escopo](#fora-do-escopo).)
 **Criada em:** 2026-07-09
 
@@ -33,7 +33,7 @@ O código tem **atributos** (ability scores em `shared/ability.ts`) e **perícia
 Uma lista read-only de **features de classe de nível 1** do personagem (nome + descrição curta), com dois consumidores da mesma fonte:
 
 1. **Mestre:** injetada no system prompt (padrão dirigido por dados da US-23), para o mestre **oferecer e narrar** coerente.
-2. **Jogador:** exibida numa **nova aba "Features" na ficha** (mesmo mecanismo de abas da [US-45](./US-45-background-visivel-na-ficha.md)), read-only, para o jogador saber o que o personagem pode fazer.
+2. **Jogador:** exibida numa **nova aba "Features" na ficha** (mesmo mecanismo de abas da [US-45](./US-45-background-na-ficha-da-interface.md)), read-only, para o jogador saber o que o personagem pode fazer.
 
 **Awareness apenas** — resolver o efeito/custo é outra camada (ver Fora do escopo).
 
@@ -47,7 +47,7 @@ Uma lista read-only de **features de classe de nível 1** do personagem (nome + 
 - **Apenas features desbloqueadas no nível 1** (o único nível da Fase 1 — MVP). Features de níveis superiores não são materializadas.
 - Origem no **kit da classe** (o mesmo caminho do equipamento inicial da [US-28](./US-28-aventura-inicial-baseada-na-classe.md) e das perícias) — populada na criação, não digitada à mão pelo jogador.
 - Injeção no prompt: seção read-only "Class features", renderizada por iteração (US-23), com instrução ao mestre de **oferecer/narrar**, nunca resolver mecânica ali.
-- **Aba "Features" na ficha** (frontend): nova aba ao lado de "Ficha"/"Background", reusando o mecanismo de abas da [US-45](./US-45-background-visivel-na-ficha.md) (`SHEET_TABS` em `GameView.tsx` — nova aba entra só acrescentando um item). Lista `{name, description}` read-only. Sem features → aba presente com empty state (não some, não crasha), igual ao painel de Background.
+- **Aba "Features" na ficha** (frontend): nova aba ao lado de "Ficha"/"Background", reusando o mecanismo de abas da [US-45](./US-45-background-na-ficha-da-interface.md) (`SHEET_TABS` em `GameView.tsx` — nova aba entra só acrescentando um item). Lista `{name, description}` read-only. Sem features → aba presente com empty state (não some, não crasha), igual ao painel de Background.
 
 ### Fora do escopo
 

@@ -48,7 +48,7 @@ Fundir `Campaign` em `Adventure`. A aventura passa a ser a história (título, m
 ### Fora do escopo
 
 - `System.config` e validação dinâmica de atributos — é a [US-21](./US-21-sistemas-como-dado.md) (D1), pré-requisito desta.
-- **Ferramenta/tool para o mestre criar e reapontar quests** — pertence à gestão de missões ([US-07](./user-stories.md)). Aqui entra só o campo `isPrimary` e a invariante; quem o alterna é a US-07.
+- **Ferramenta/tool para o mestre criar e reapontar quests** — pertence à gestão de missões ([US-07](#)). Aqui entra só o campo `isPrimary` e a invariante; quem o alterna é a US-07.
 - Multiplayer de fato (salas, limite, turnos) — Fase 4 (US-14/15/16). O join já fica pronto, mas o MVP usa um participante por aventura.
 - Persistência da memória entre aventuras (snapshot) — inalterada; já coberta por [ADR 002](../../adr/002-memoria-de-sessao.md).
 

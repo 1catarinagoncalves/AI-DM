@@ -158,4 +158,4 @@ Em ambos os casos, o **merge é parcial**: campos não informados num turno pres
 - `apps/api/src/ai/ai.service.ts` — pipeline de turno, `onFinish`, `summarizeOldTurns` (Fase A).
 - `packages/ai-engine/src/prompts/dm-system.ts` — seção *SPATIAL & SCENE CONTINUITY RULE* e *MANDATORY TEXT FORMATTING RULES* (tags `[WORLD_STATE_UPDATE]`).
 - `apps/api/prisma/schema.prisma` — `CharacterState`, `EventLog`, enum `EventType`.
-- `docs/sdlc/01-requisitos/user-stories.md` — entrada-resumo desta story.
+- `docs/sdlc/01-requisitos/user-stories.md` — índice das stories. *(A "entrada-resumo desta story" existia no índice monolítico antigo, apagado. Desde a US-78 o índice é gerado por Dataview e só lista código, épico e status.)*

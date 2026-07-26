@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 🗂️ Backlog
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, artefato, overlay pt-BR, desacoplamento do Free) · [US-21](./US-21-sistemas-como-dado.md) (`config.startingKits` + `StartingKitItemSchema`)
-**Relacionado:** [US-02](./US-02-inventário%20personagem.md) (tabela de kits autorais, superada por esta story) · [US-38](./US-38-rolagens-ancoradas-na-ficha.md) (rolagens ancoradas no inventário) · [ADR 003](../../adr/003-sistemas-como-dado.md)
+**Relacionado:** [US-02](./US-02-inventario-do-personagem.md) (tabela de kits autorais, superada por esta story) · [US-38](./US-38-rolagens-ancoradas-na-ficha.md) (rolagens ancoradas no inventário) · [ADR 003](../../adr/003-sistemas-como-dado.md)
 **Gera ADR:** acrescenta a seção "segunda fonte / licença dupla" ao **ADR 004** (ou ADR 005 se a decisão de licença crescer — ver §Decisão de arquitetura)
 **Criada em:** 2026-07-14
 
@@ -83,7 +83,7 @@ Os kits de hoje **não são SRD** — são flavor autoral do MVP, alguns com ite
 - [ ] O mapa cobre as 12 classes na chave do `5e-database`; classe sem entrada **falha o ingest**.
 - [ ] O artefato segue passando em `SystemConfigSchema.parse()` e **byte-a-byte idêntico** entre duas rodadas (idempotente).
 - [ ] **Licença OGL 1.0a versionada:** texto integral + Section 15, com o arquivo dizendo explicitamente que **só `startingKits`** deriva de material OGL; o restante é CC-BY-4.0.
-- [ ] A tabela de kits da [US-02](./US-02-inventário%20personagem.md) fica marcada como superada por esta story (já está marcada como histórica).
+- [ ] A tabela de kits da [US-02](./US-02-inventario-do-personagem.md) fica marcada como superada por esta story (já está marcada como histórica).
 
 ---
 

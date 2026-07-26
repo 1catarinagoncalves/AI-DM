@@ -7,13 +7,16 @@ import type { AiService } from '../ai/ai.service'
 // Fake do AiService: por padrão devolve null (força o fallback estático da US-28,
 // preservando as asserções de texto abaixo). `opening` != null exercita o caminho IA.
 // `scene` (US-35) default null → extração falha/vazia, sceneState nulo (fallback).
+// `entities` (US-75) default null → ledger vazio, igual ao comportamento pré-US-75.
 function fakeAi(
   opening: string | null = null,
   scene: Record<string, unknown> | null = null,
+  entities: Record<string, unknown>[] | null = null,
 ): AiService {
   return {
     generateOpeningNarration: async () => opening,
     extractOpeningScene: async () => scene,
+    extractOpeningEntities: async () => entities,
   } as unknown as AiService
 }
 

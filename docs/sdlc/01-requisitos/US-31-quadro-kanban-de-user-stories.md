@@ -20,11 +20,11 @@
 
 ### O problema observado
 
-As user stories vivem como arquivos `.md` soltos em `docs/sdlc/01-requisitos`. Pra saber o que está feito e o que falta, tenho que abrir cada arquivo e ler a linha `**Status:**`. Já são ~15 stories; a lista em [`user-stories.md`](./user-stories.md) agrupa por épico mas **não mostra status** — é um índice, não um painel de progresso.
+As user stories vivem como arquivos `.md` soltos em `docs/sdlc/01-requisitos`. Pra saber o que está feito e o que falta, tenho que abrir cada arquivo e ler a linha `**Status:**`. Já são ~15 stories; a lista em [`user-stories.md`](./user-stories.md) agrupava por épico mas **não mostrava status** — era um índice, não um painel de progresso. *(A [US-78](./US-78-vault-obsidian-para-os-docs.md) recriou esse índice como bloco DataviewJS, que hoje **mostra** o status; o quadro continua sendo o único que o edita por arraste.)*
 
 ### Por que a solução atual não basta
 
-- `user-stories.md` é mantido à mão e não reflete o campo `Status` de cada arquivo.
+- `user-stories.md` era mantido à mão e não refletia o campo `Status` de cada arquivo. *(Desde a [US-78](./US-78-vault-obsidian-para-os-docs.md) ele é gerado por Dataview e reflete — mas só renderiza dentro do Obsidian, e continua sendo leitura. O quadro segue sendo o único jeito de **editar** status.)*
 - Não há visão "coluna por estado". Pra montar essa visão hoje eu leio 15 arquivos de cabeça.
 - Os próprios status estão **inconsistentes** entre arquivos (`Feito`, `✅ Implementada`, `✅ Pronta para desenvolvimento`, `📋 Planejada (não iniciada)`), então nem um `grep` resolve limpo.
 
@@ -167,7 +167,7 @@ Todas resolvidas:
 ## Referências no código
 
 - `docs/sdlc/01-requisitos/US-*.md` — fonte de verdade das stories (título, status, épico); lidos e reescritos pelo servidor.
-- `docs/sdlc/01-requisitos/user-stories.md` — índice atual por épico, sem status; o quadro complementa isto.
+- `docs/sdlc/01-requisitos/user-stories.md` — índice; desde a US-78 é um bloco DataviewJS que lê os mesmos campos. Leitura; o quadro é quem escreve.
 - `docs/sdlc/01-requisitos/US-TEMPLATE.md` — molde do cabeçalho que o parser lê; deve ser excluído do quadro.
 - `tools/kanban/kanban-server.js` (a criar) — servidor Node puro: serve o HTML e lê/grava os `.md`.
 - `tools/kanban/kanban.html` (a criar) — o quadro: HTML/CSS/JS inline, sem dependências.

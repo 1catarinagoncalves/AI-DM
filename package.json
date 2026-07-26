@@ -11,6 +11,7 @@
     "db:migrate": "dotenv -e .env -- pnpm --filter api db:migrate",
     "db:studio": "dotenv -e .env -- pnpm --filter api db:studio",
     "db:seed": "dotenv -e .env -- pnpm --filter api db:seed",
+    "docs:links": "node scripts/check-doc-links.mjs",
     "srd:sync": "node scripts/srd/sync.mjs",
     "srd:ingest": "pnpm --filter @ai-dm/shared build && node scripts/srd/ingest.mjs"
   },

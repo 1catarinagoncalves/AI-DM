@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-35](./US-35-cena-estruturada-na-abertura.md) (extração estruturada da prosa de abertura — o padrão reusado para semear o ledger) · o ledger de entidades (`Adventure.entities` / `recordEntity`, introduzido junto da [US-71](./US-71-simplificar-localizacao-do-personagem.md) e reusado pela [US-73](./US-73-reconciliador-de-cena-em-background.md)).
-**Relacionada a:** [US-73](./US-73-reconciliador-de-cena-em-background.md) (mesma arquitetura de extração pós-LLM em background; aquela reconcilia a CENA, esta semeia e escopa o LEDGER) · [US-67](./US-67-edicao-de-turno.md) (por isso a semeadura e os gates NÃO logam `CHARACTER_UPDATE`).
+**Relacionada a:** [US-73](./US-73-reconciliador-de-cena-em-background.md) (mesma arquitetura de extração pós-LLM em background; aquela reconcilia a CENA, esta semeia e escopa o LEDGER) · [US-67](./US-67-editar-acao-enviada-ao-dm.md) (por isso a semeadura e os gates NÃO logam `CHARACTER_UPDATE`).
 **Criada em:** 2026-07-24
 
 ---

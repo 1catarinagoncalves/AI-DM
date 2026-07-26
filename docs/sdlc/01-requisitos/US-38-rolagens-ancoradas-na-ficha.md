@@ -3,7 +3,7 @@
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
-**Depende de:** [US-27](./US-27-pericias-do-personagem.md) (o modificador de cada perícia — `buildSkillSheet`/`skillModifier` — é a fonte da verdade que a rolagem deve usar) · [US-09](#) (rolagem transparente do Game Server) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (bloco de rolagem exibido antes da narração; um teste por ação reforça o "uma narração por turno")
+**Depende de:** [US-27](./US-27-pericias-do-personagem.md) (o modificador de cada perícia — `buildSkillSheet`/`skillModifier` — é a fonte da verdade que a rolagem deve usar) · [US-09](./criterios-de-aceite.md#us-09--rolagem-de-dados-transparente) (rolagem transparente do Game Server) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (bloco de rolagem exibido antes da narração; um teste por ação reforça o "uma narração por turno")
 **Alimenta:** [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (o número do bloco passa a ser sempre coerente com a ficha) · [US-23](./US-23-dm-ciente-da-ficha.md) (a ficha injetada deixa de ser decorativa — vira a fonte real do modificador)
 **Criada em:** 2026-07-08
 

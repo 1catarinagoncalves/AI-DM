@@ -2,8 +2,8 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-29](./US-29-saneamento-de-rolagens.md) (o eval que quebrou), [US-36](./US-36-eval-qualidade-narracao.md) (precedente do guard de drift por hash em `rubric-drift.test.ts`).
+**Status:** ✅ Implementada
+**Depende de:** [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (o eval que quebrou), [US-36](./US-36-eval-de-qualidade-da-narracao.md) (precedente do guard de drift por hash em `rubric-drift.test.ts`).
 **Relacionada a:** [US-71](./US-71-simplificar-localizacao-do-personagem.md) (colapsou seções do prompt; expôs a fragilidade ao renomear `SPATIAL & SCENE CONTINUITY`).
 **Criada em:** 2026-07-24
 
@@ -75,11 +75,22 @@ E **documentar a convenção** (num comentário no topo do bloco de assertivas d
 
 ## Critérios de aceite
 
-- [ ] `pnpm eval` roda **sem falhas** (as 2 vermelhas de `us-29-rolagens.ts` ficam verdes; nenhuma outra regride).
-- [ ] As 2 assertivas corrigidas **não** contêm mais a conjugação/exemplo literal (`sanitizer will DELETE`, `quero rolar`); casam o **conceito** e sobrevivem a uma reescrita que troque conjugação/exemplo mantendo a intenção.
-- [ ] Prova da resistência: reescrever localmente `DELETES`→`will remove` e `rolo Percepção`→`quero rolar` no prompt **não** derruba as assertivas corrigidas (validação manual do implementador, descrita no PR).
-- [ ] O comportamento do prompt **não** mudou (nenhuma edição em `dm-system.ts`); o diff é só em `evals/cases/us-29-rolagens.ts`.
-- [ ] A convenção anti-drift está escrita como comentário no bloco de assertivas de prompt de `us-29`.
+- [x] `pnpm eval` roda **sem falhas** (as 2 vermelhas de `us-29-rolagens.ts` ficam verdes; nenhuma outra regride). — 52 passed | 2 skipped (US-36 ao vivo, skip por design).
+- [x] As 2 assertivas corrigidas **não** contêm mais a conjugação/exemplo literal (`sanitizer will DELETE`, `quero rolar`); casam o **conceito** e sobrevivem a uma reescrita que troque conjugação/exemplo mantendo a intenção.
+- [x] Prova da resistência: reescrever localmente `DELETES`→`will remove` e `rolo Percepção`→`quero rolar` no prompt **não** derruba as assertivas corrigidas — ver *Prova de resistência* abaixo.
+- [x] O comportamento do prompt **não** mudou (nenhuma edição em `dm-system.ts`); o diff é só em `evals/cases/us-29-rolagens.ts`.
+- [x] A convenção anti-drift está escrita como comentário no bloco de assertivas de prompt de `us-29` (`:56-60`).
+
+### Prova de resistência (validação manual)
+
+Script descartável sobre o prompt real (`buildDmSystemPrompt` do `dist`), aplicando as 5 regex das 2 assertivas nas duas direções:
+
+| Cenário | `QUALITATIVELY` | `saniti[sz]er…(delete\|remove)` | `TRIVIAL actions NEVER roll` | `PLAYER asks to roll` | `rollDice` |
+|---|---|---|---|---|---|
+| **Reescrita** (`DELETES`→`will remove`, `rolo Percepção`→`quero rolar`) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Remoção** das 2 linhas de contrato | ❌ | ❌ | ✅ | ❌ | ✅ |
+
+Reescrita mantém verde; remoção da regra fica vermelha (os dois testes falham). As assertivas não estão sobre-endurecidas nem frouxas demais.
 
 ---
 
@@ -99,6 +110,7 @@ E **documentar a convenção** (num comentário no topo do bloco de assertivas d
 ## Questões em aberto
 
 1. **Os outros eval cases verbatim** (`us-23`, `us-38`, `us-39`, `us-40`, `us-41`, `us-42`, `dm-system.test.ts`, `guardrails.test.ts`) têm a **mesma fragilidade** e passam só porque a frase ainda não foi reescrita. Endereçar agora = reescrever teste verde (churn sem sinal). **Decisão:** deixar como **risco conhecido documentado**; reancorar caso-a-caso quando um quebrar (mesma lente desta US). Reavaliar se a taxa de quebra por reescrita de prompt virar recorrente — aí vale um helper compartilhado de asserção por intenção.
+   **Encaminhado:** a auditoria completa virou a [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) — 30 assertivas frágeis em 6 arquivos, mais a lacuna de CI que fez esta quebra ficar invisível por 2 commits.
 2. **Guard automático** que detecte "assertiva ancorada em frase volátil" antes de quebrar (ex.: lint que proíbe `toMatch` de string longa de prosa no prompt). Fica aberto — é ferramenta nova para uma dor ainda pontual; só vale se a #1 provar recorrência.
 
 ---

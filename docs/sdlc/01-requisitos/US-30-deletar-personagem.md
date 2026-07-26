@@ -106,7 +106,7 @@ Sem tabela nova e **sem migração**. O trabalho é a **ordem de exclusão**, j�
 - **Controller:** `@Delete(':id') remove(@Param('id') id: string)` no `CharacterController`, ao lado dos já existentes; documentar com `@ApiOperation`.
 - **Cliente:** `deleteCharacter(id)` em `api.ts` (mesmo padrão dos outros fetch); no `HomeHero`, após sucesso, filtrar o item do `useState` da lista (ou refetch de `listCharacters`) e reavaliar o foco.
 - **Confirmação:** reusar o padrão de diálogo/modal já existente na web se houver; senão, um `window.confirm` cobre o MVP (`// ponytail: window.confirm no MVP, trocar por modal se o design pedir`).
-- **Autorização:** quando US-24 existir, o `DELETE` deve validar que o `Character.userId` bate com o usuário da sessão. Sem US-24, não há como impor isso server-side de forma confiável — registrar como dívida ligada a [US-24](#).
+- **Autorização:** o `DELETE` deve validar que o `Character.userId` bate com o usuário da sessão. Isso deixou de ser dívida quando o login entrou pela [US-61](./US-61-login-do-jogador.md) (a antiga US-24) — **confirmar se o `DELETE` de fato valida o dono via sessão**; se não valida, é bug de autorização, não escopo futuro.
 - Reusar estilos/estrutura de `HomeHero.tsx` (botão secundário/ícone) para a ação de deletar.
 
 ---

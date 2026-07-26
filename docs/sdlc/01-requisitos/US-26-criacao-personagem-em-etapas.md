@@ -3,7 +3,7 @@
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
-**Depende de:** [US-20](./US-20-catalogo-de-sistemas-via-api.md) (catálogo de sistemas via API — reusado na etapa de Sistema) e [US-01](#) (criação de personagem já existe). A etapa de **Perícias** é preenchida por [US-27](./user-stories.md); esta story entrega o *slot* dela, não o conteúdo. Navegação de/para o assistente vem de [US-25](./US-25-boas-vindas-adaptativa.md); a etapa de **aventura** foi separada para [US-28](./user-stories.md).
+**Depende de:** [US-20](./US-20-catalogo-de-sistemas-via-api.md) (catálogo de sistemas via API — reusado na etapa de Sistema) e [US-01](./US-01-atributos-do-personagem.md) (criação de personagem já existe). A etapa de **Perícias** é preenchida por [US-27](./US-27-pericias-do-personagem.md); esta story entrega o *slot* dela, não o conteúdo. Navegação de/para o assistente vem de [US-25](./US-25-boas-vindas-adaptativa.md); a etapa de **aventura** foi separada para [US-28](./US-28-aventura-inicial-baseada-na-classe.md).
 **Criada em:** 2026-07-03
 
 ---
@@ -50,7 +50,7 @@ Reestruturar a criação num assistente de **cinco etapas** com uma **trilha de 
   - Sistema: um sistema selecionado (reusa [US-20](./US-20-catalogo-de-sistemas-via-api.md)).
   - Raça/Classe: nome obrigatório; **género, raça e classe são escolhidos em listas fechadas** (seleção, não texto livre). Género: Feminino, Masculino, Não-binário. Raças: Anão, Meio-Orc, Elfo, Halfling, Humano, Dragonborn, Gnomo, Meio-Elfo, Tiefling. Classes: Bárbaro, Bardo, Clérigo, Druida, Guerreiro, Monge, Paladino, Patrulheiro, Ladino, Feiticeiro, Bruxo, Mago. Avançar exige género, raça e classe selecionados.
   - Atributos: **point-buy** — mostra "pontos restantes" e **bloqueia Próximo** se o orçamento estourar ou sobrar (ver Questões em aberto sobre a fonte do orçamento).
-  - Perícias: **por enquanto**, o jogador escreve **3 perícias** em texto livre para o personagem (a regra completa dirigida pelo sistema — lista fechada + orçamento — fica para [US-27](./user-stories.md)). Avançar exige as 3 preenchidas.
+  - Perícias: **por enquanto**, o jogador escreve **3 perícias** em texto livre para o personagem (a regra completa dirigida pelo sistema — lista fechada + orçamento — fica para [US-27](./US-27-pericias-do-personagem.md)). Avançar exige as 3 preenchidas.
 - **Persistência do preenchimento entre etapas:** voltar e avançar **não** apaga o que já foi preenchido (estado mantido enquanto o assistente está montado).
 - **Tela de Revisão** que resume nome, género, raça, classe, nível, atributos e perícias; o botão **Confirmar personagem** persiste via `api.createCharacter` (uma única chamada, no fim).
 - **Reuso pelo fluxo 2a:** "Criar novo personagem" (US-25) entra no assistente a partir da etapa de Sistema.
@@ -59,8 +59,8 @@ Reestruturar a criação num assistente de **cinco etapas** com uma **trilha de 
 
 ### Fora do escopo
 
-- **Conteúdo da etapa de Perícias** (lista de perícias, orçamento, injeção no DM) — é [US-27](./user-stories.md). Esta story só entrega o passo vazio/estrutural na trilha.
-- **Seleção de aventura** (a antiga etapa `adventure`) — movida para [US-28](./user-stories.md). O assistente de US-26 **termina** em "Confirmar personagem"; quem encadeia para a aventura é US-28.
+- **Conteúdo da etapa de Perícias** (lista de perícias, orçamento, injeção no DM) — é [US-27](./US-27-pericias-do-personagem.md). Esta story só entrega o passo vazio/estrutural na trilha.
+- **Seleção de aventura** (a antiga etapa `adventure`) — movida para [US-28](./US-28-aventura-inicial-baseada-na-classe.md). O assistente de US-26 **termina** em "Confirmar personagem"; quem encadeia para a aventura é US-28.
 - **Edição de personagem existente** pelo assistente (o wizard é só criação).
 - **Login/conta** (US-24) — assume-se `userId` já conhecido, como hoje (`loadSession` / `api.createUser` guest).
 
@@ -153,7 +153,7 @@ Esta story é majoritariamente de **UI/fluxo**: não cria tabela nova e a persis
 - `packages/shared/src/types/system.ts` — `SystemConfig` (`attributes` + `startingKits`); onde entraria `pointBuy.budget` opcional.
 - `docs/sdlc/01-requisitos/US-20-catalogo-de-sistemas-via-api.md` — etapa de Sistema reusa o catálogo.
 - `docs/sdlc/01-requisitos/US-25-boas-vindas-adaptativa.md` — de onde o jogador entra no assistente ("Criar meu personagem" / "Criar novo personagem").
-- `docs/sdlc/01-requisitos/user-stories.md` — índice; US-26 nas linhas 26–32 e no mapa de cobertura dos fluxos 1a/2a (telas 3–6).
+- `docs/sdlc/01-requisitos/user-stories.md` — índice das stories. *(A referência a "linhas 26–32 e mapa de cobertura dos fluxos 1a/2a" valia para o índice monolítico antigo, apagado. Desde a US-78 o índice é gerado por Dataview e não tem seção por story.)*
 
 ### Referências externas (regras)
 

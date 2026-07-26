@@ -3,7 +3,7 @@
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
-**Depende de:** [US-55](./US-55-prompt-caching-do-dm.md) (Fase A: system reordenado por volatilidade e medição de cache-hit; esta US só se justifica se aquele número indicar ganho real ao cachear o histórico) · [US-18](#) (janela de histórico verbatim) · [US-11b](./US-11b-estado-de-cena-estruturado.md) (estado de cena) · [US-23](./US-23-dm-ciente-da-ficha.md) (ficha)
+**Depende de:** [US-55](./US-55-prompt-caching-do-dm.md) (Fase A: system reordenado por volatilidade e medição de cache-hit; esta US só se justifica se aquele número indicar ganho real ao cachear o histórico) · [US-18](./US-18-historico-servido-pela-api.md) (janela de histórico verbatim) · [US-11b](./US-11b-estado-de-cena-estruturado.md) (estado de cena) · [US-23](./US-23-dm-ciente-da-ficha.md) (ficha)
 **Criada em:** 2026-07-19
 
 ---

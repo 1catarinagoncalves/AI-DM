@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (adicionou `AiService.extractOpeningEntities`, chamada em `createForCharacter`).
 **Criada em:** 2026-07-25
 
@@ -48,9 +48,9 @@ TypeError: this.ai.extractOpeningEntities is not a function
 
 ## Critérios de aceite
 
-- [ ] `fakeAi` inclui `extractOpeningEntities`, default `null`.
-- [ ] `pnpm --filter api exec vitest run src/adventure/adventure.service.test.ts` passa (0 falhas).
-- [ ] Nenhuma mudança em código de produção.
+- [x] `fakeAi` inclui `extractOpeningEntities`, default `null`.
+- [x] `pnpm --filter api exec vitest run src/adventure/adventure.service.test.ts` passa (0 falhas).
+- [x] Nenhuma mudança em código de produção.
 
 ---
 

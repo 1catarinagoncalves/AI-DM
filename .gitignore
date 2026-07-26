@@ -18,3 +18,12 @@ apps/api/src/generated/
 
 # US-36: relatórios de eval gerados por execução (narração + notas + metadados)
 evals/reports/
+
+# US-78: estado de UI do vault Obsidian (churn a cada scroll) e plugins de terceiros
+docs/.obsidian/workspace.json
+docs/.obsidian/appearance.json
+docs/.obsidian/graph.json
+docs/.obsidian/plugins/
+
+# Cache do plugin impeccable (uma pasta por diretório visitado, 10 e contando)
+.impeccable/

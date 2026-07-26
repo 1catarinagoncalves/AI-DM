@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-21](./US-21-sistemas-como-dado.md) (perícias vêm do `System.config`, não hardcoded) · [US-26](./US-26-criacao-personagem-em-etapas.md) (entrega o *slot* da etapa "Perícias"; esta story preenche o conteúdo) · [US-32](../../../packages/shared/src/ability.ts) (modificador de atributo — `abilityModifier`, reusado no cálculo)
-**Alimenta:** [US-02](#) / [US-19](./US-19-estado-de-ficha-via-api.md) (ficha exibe todas as perícias com modificador) · [US-23](./US-23-dm-ciente-da-ficha.md) (todas as perícias com modificador injetadas no DM)
+**Alimenta:** [US-02](./US-02-inventario-do-personagem.md) / [US-19](./US-19-estado-de-ficha-via-api.md) (ficha exibe todas as perícias com modificador) · [US-23](./US-23-dm-ciente-da-ficha.md) (todas as perícias com modificador injetadas no DM)
 **Criada em:** 2026-07-08
 
 ---
@@ -25,7 +25,7 @@ A etapa de **Perícias** entregue pela [US-26](./US-26-criacao-personagem-em-eta
 
 - **Não é dado do sistema.** As perícias não vêm do `System.config` — contrariam a [US-21](./US-21-sistemas-como-dado.md) ("sistema como dado"). Não há lista fechada nem vínculo com atributo.
 - **Não têm mecânica.** Texto livre não vira modificador. O mestre não sabe se "escalar" é bom ou ruim, nem em que atributo se apoia.
-- **Não aparecem na ficha com número.** A ficha ([US-02](#)/[US-19](./US-19-estado-de-ficha-via-api.md)) não mostra perícias, muito menos o modificador de cada uma.
+- **Não aparecem na ficha com número.** A ficha ([US-02](./US-02-inventario-do-personagem.md)/[US-19](./US-19-estado-de-ficha-via-api.md)) não mostra perícias, muito menos o modificador de cada uma.
 
 ### A regra (D&D 5e, aplicável ao Free)
 
@@ -56,7 +56,7 @@ Modelar as perícias como **dado no `System.config`** (lista fechada `{ key, lab
 - **Etapa de Perícias (US-26) real**: substitui os 3 inputs livres por uma lista das perícias do config, cada uma mostrando o atributo-âncora; o jogador marca **exatamente `proficiency.choices` (2)** como proficientes. "Próximo" bloqueado enquanto ≠ 2.
 - **Persistência**: `Character.skills` (lista das *keys* proficientes) gravado por `createCharacter`. Perícias não-proficientes **não** se persistem — derivam da lista do config.
 - **Cálculo de modificador**: helper puro `skillModifier(abilityScore, isProficient, proficiencyBonus)` em `packages/shared` (reusa `abilityModifier`), com teste.
-- **Ficha ([US-02](#)/[US-19](./US-19-estado-de-ficha-via-api.md))**: mostra **todas** as 18 perícias agrupadas/rotuladas, cada uma com seu modificador formatado (`formatModifier`) e um marcador visual de proficiência.
+- **Ficha ([US-02](./US-02-inventario-do-personagem.md)/[US-19](./US-19-estado-de-ficha-via-api.md))**: mostra **todas** as 18 perícias agrupadas/rotuladas, cada uma com seu modificador formatado (`formatModifier`) e um marcador visual de proficiência.
 - **Injeção no DM ([US-23](./US-23-dm-ciente-da-ficha.md))**: **todas** as 18 perícias, com o modificador de cada uma e a marca de proficiência, entram no bloco read-only da ficha, pela iteração dirigida por dados já existente (sem novo `if` no builder). O mestre precisa da tabela completa para decidir qualquer teste (não só onde o personagem é proficiente).
 
 ### Fora do escopo

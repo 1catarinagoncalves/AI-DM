@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-11b](./US-11b-estado-de-cena-estruturado.md) (`sceneState`), [US-35](./US-35-cena-estruturada-na-abertura.md) (extração de cena da prosa — reusada aqui), [US-71](./US-71-simplificar-localizacao-do-personagem.md) (sinal de continuidade que **depende** da cena estar fresca).
-**Relacionada a:** [US-67](./US-67-edicao-de-turno.md) (por isso o reconciliador NÃO loga `CHARACTER_UPDATE`), [US-69](./US-69-guard-anti-degeneracao-narracao.md) (a rede determinística em runtime — abordagem alternativa/complementar).
+**Relacionada a:** [US-67](./US-67-editar-acao-enviada-ao-dm.md) (por isso o reconciliador NÃO loga `CHARACTER_UPDATE`), [US-69](./US-69-guard-anti-degeneracao-narracao.md) (a rede determinística em runtime — abordagem alternativa/complementar).
 **Criada em:** 2026-07-24
 
 ---

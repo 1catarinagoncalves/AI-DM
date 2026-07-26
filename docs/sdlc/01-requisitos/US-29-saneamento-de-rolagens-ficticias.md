@@ -3,7 +3,7 @@
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
-**Depende de:** [US-09](#) (rolagem transparente — a `rollDice` do Game Server é a ÚNICA fonte legítima de resultado; esta story protege esse contrato) · [US-34](./US-34-qualidade-da-narracao-do-dm.md) (o prompt do DM já proíbe inventar números — `dm-system.ts:81,127,138`; esta story adiciona a rede de segurança que garante quando o modelo desobedece)
+**Depende de:** [US-09](./criterios-de-aceite.md#us-09--rolagem-de-dados-transparente) (rolagem transparente — a `rollDice` do Game Server é a ÚNICA fonte legítima de resultado; esta story protege esse contrato) · [US-34](./US-34-qualidade-da-narracao-do-dm.md) (o prompt do DM já proíbe inventar números — `dm-system.ts:81,127,138`; esta story adiciona a rede de segurança que garante quando o modelo desobedece)
 **Alimenta:** [US-18](./US-18-historico-servido-pela-api.md) (o histórico persistido não realimenta rolagens inventadas nos turnos seguintes) · [US-23](./US-23-dm-ciente-da-ficha.md) (a ficha injetada continua sendo a única mecânica; a prosa não vira fonte paralela)
 **Criada em:** 2026-07-08
 
@@ -176,4 +176,4 @@ Regra de corte: **remover a frase** (do início até o `.`/`!`/`?`/quebra de lin
 
 ### Referências externas (regras)
 
-- [US-09 — Rolagem de dados transparente](./user-stories.md) — o breakdown (`2d6+3: [4,2] +3 = 9`) é entregue pelo evento `DICE`/painel, nunca pela prosa; base do contrato "número de teste não pertence à narração".
+- [US-09 — Rolagem de dados transparente](./criterios-de-aceite.md#us-09--rolagem-de-dados-transparente) — o breakdown (`2d6+3: [4,2] +3 = 9`) é entregue pelo evento `DICE`/painel, nunca pela prosa; base do contrato "número de teste não pertence à narração".

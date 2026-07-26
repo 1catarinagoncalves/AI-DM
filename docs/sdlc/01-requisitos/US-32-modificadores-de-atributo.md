@@ -62,7 +62,7 @@ Modificador = `floor((valorAtributo - 10) / 2)`, arredondando sempre para baixo.
 | 8-9 | -1 | 20-21 | +5 |
 | 10-11 | 0 | | |
 
-Referência completa: [modificadores atributos.md](modificadores%20atributos.md) (roll20 / SRD 5e).
+Referência completa: [modificadores-atributos.md](./modificadores-atributos.md) (roll20 / SRD 5e).
 
 ---
 
@@ -96,4 +96,4 @@ Nenhuma — escopo fechado.
 
 - `packages/shared` — local proposto para o helper de modificador compartilhado entre web/api/ai-engine.
 - Componente de exibição de atributos criado na US-01 (abaixo do HP na página de chat) — ponto de extensão para o modificador.
-- `docs/sdlc/01-requisitos/modificadores atributos.md` — regra de cálculo e tabela de referência 5e.
+- `docs/sdlc/01-requisitos/modificadores-atributos.md` — regra de cálculo e tabela de referência 5e.
