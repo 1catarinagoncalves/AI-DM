@@ -50,7 +50,11 @@ describe('US-40 — divindade no prompt', () => {
       ...base,
       background: { deity: { name: 'Solariel' } },
     })
-    expect(prompt.toLowerCase()).toMatch(/faith color invocations|invocations, omens/)
+    // US-77 — âncora por conceito (ver evals/PROMPT-ANCHORS.md): a fé COLORE a
+    // narração, presos na mesma frase. As duas variantes anteriores eram prosa pura —
+    // a segunda já era remendo de uma reescrita. `/divindade|deity/` seria falso verde:
+    // casa a linha de DADO "Divindade: Solariel" que o próprio fixture injeta.
+    expect(prompt.toLowerCase()).toMatch(/(faith|fé)[^.]{0,60}(invocation|omen|presságio|invocaç)/)
   })
 
   it('personagem sem deity não gera linha de divindade', () => {

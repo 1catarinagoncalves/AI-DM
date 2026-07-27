@@ -53,11 +53,8 @@ describe('US-29 — prompt endurece o gate de rolagem', () => {
     sheet: { level: 1, hp: 10, maxHp: 10, attributes: { strength: 12 }, conditions: [] },
   })
 
-  // US-72 — CONVENÇÃO ANTI-DRIFT: ancore a assertiva na INTENÇÃO (nome de tool,
-  // cabeçalho-contrato, conceito), NUNCA na conjugação/adjetivo/exemplo em pt-BR — é a
-  // parte que mais muda na reescrita do prompt. Regex tolerante à reescrita, mas que
-  // ainda FALHA se a regra for removida. (As frases literais `sanitizer will DELETE` e
-  // `quero rolar` quebraram no commit e0a6817 sem nenhuma regressão de comportamento.)
+  // Assertivas que grepam o prompt: ancore na INTENÇÃO, não na prosa.
+  // Convenção + método de prova em evals/PROMPT-ANCHORS.md (US-72 → US-77).
   it('proíbe número de teste na prosa e pede narração qualitativa', () => {
     expect(prompt).toMatch(/QUALITATIVELY/i)
     // conceito: um saneador APAGA o número fabricado (tolera DELETE(S)/will delete/removes)

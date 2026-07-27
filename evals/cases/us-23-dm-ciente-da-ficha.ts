@@ -53,7 +53,11 @@ describe('US-23 — DM ciente da ficha', () => {
   })
 
   it('o bloco de estado do turno declara-se fonte de verdade (não fala do jogador)', () => {
-    expect(turnState.toLowerCase()).toMatch(/source of truth|fonte de verdade/)
-    expect(turnState.toLowerCase()).toMatch(/not the player speaking/)
+    // US-77 — o contrato é PRECEDÊNCIA sobre a prosa + "isto não é fala do jogador";
+    // as duas ancoravam em frases do preâmbulo (ver evals/PROMPT-ANCHORS.md).
+    // `source of truth` sozinho seria falso verde: a seção "## Estado atual" também o diz.
+    // Mesmo contrato, mesmas âncoras, em packages/ai-engine/src/prompts/dm-system.test.ts.
+    expect(turnState.toLowerCase()).toMatch(/(precedence|precedência)[^.]{0,80}(infer|prose|prosa)/)
+    expect(turnState.toLowerCase()).toMatch(/\b(not|não)\s+(the\s+)?(player|jogador)[^.]{0,30}(speak|talk|fala|input|voice)/)
   })
 })

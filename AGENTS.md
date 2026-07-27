@@ -54,9 +54,14 @@ Roadmap incremental (fase atual: MVP single-player):
 
 ### Backend (`apps/api`)
 - NestJS com módulos por domínio: `game`, `campaign`, `character`, `ai`, `ingestion`
-- Prisma ORM sobre PostgreSQL; migrações versionadas em `prisma/migrations/`
+- Prisma ORM sobre PostgreSQL; schema, migrações e seed em `apps/api/prisma/`
 - BullMQ para filas (ingestão de livros, sumarização de memória)
 - Socket.IO para salas de campanha em tempo real
+- **`nest start` não carrega `.env`**: a API não tem `ConfigModule` nem dependência `dotenv`,
+  lê `process.env` cru. Em dev os secrets vêm do `.env` da **raiz**, via o wrapper
+  `dotenv -e .env` do script `dev` (mesmo padrão dos `db:*`). `apps/api/.env` não é lido —
+  não use. Antes de escrever "coloque em `.env`" numa spec ou US, confirme no código como
+  aquele env var é lido.
 
 ### AI Engine (`packages/ai-engine`)
 - Vercel AI SDK (`ai` package) como camada de abstração de provedor
@@ -97,6 +102,13 @@ Fonte de verdade destas regras. `CLAUDE.md` aponta para cá — não duplique.
 
 ### Testes
 - Comando único: `pnpm test` (evals do DM Agent: `pnpm eval`).
+- `pnpm eval` é `vitest run --config vitest.eval.config.ts` dentro de `packages/ai-engine`.
+  Filtro é **posicional** (`pnpm eval us-36`), não `--filter`, e o gate é um `expect` dentro
+  do case — não há flag de CLI para isso.
+- **Não importe de `'ai'` dentro de `evals/cases/`.** A resolução falha a partir da raiz
+  (`Cannot find package '@ai-sdk/provider-utils'`). Código que chama o SDK vive dentro do
+  pacote (ex.: `packages/ai-engine/src/narration-gen.ts`) e o case importa de
+  `@ai-dm/ai-engine`.
 - Toda função nova ganha teste. Todo bug fix ganha teste de regressão.
 - I/O externo (API, banco, filesystem) é mockado com fake class nomeada, não stub inline.
 - F.I.R.S.T: fast, independent, repeatable, self-validating, timely.
@@ -122,10 +134,49 @@ Fonte de verdade destas regras. `CLAUDE.md` aponta para cá — não duplique.
 
 ---
 
+## Armadilhas do repo (falham em silêncio)
+
+Cada item já queimou uma sessão. Nenhum dá erro claro na hora: o comando passa verde e o
+comportamento é o antigo.
+
+- **A API roda o `dist/` do ai-engine, não o `src/`.** `@ai-dm/ai-engine` resolve para
+  `./dist/index.js`, e o `pnpm dev` da raiz só põe `api` e `web` em watch. Editar
+  `packages/ai-engine/src/` sem rebuild deixa a API executando código antigo **sem erro
+  nenhum** — já custou um debug inteiro de troca de modelo que "não fazia efeito". Ao mexer
+  no pacote: `pnpm --filter ai-engine build` + reiniciar a API, ou deixar
+  `pnpm --filter ai-engine dev` (`tsc --watch`) em paralelo.
+- **O client do Prisma é gerado e gitignored** em `apps/api/src/generated/prisma`
+  (`.gitignore:14`). Depois de clonar ou trocar de branch, rode `prisma generate` antes de
+  `build`/`test`. O caminho é acoplado ao `exclude: [..., "prisma", ...]` do
+  `apps/api/tsconfig.build.json`: gerar fora de `src/` mantém o build verde e quebra só em
+  runtime.
+- **Provider do AI SDK é pinado.** O projeto é AI SDK **v4** (`ai@^4.3.16`,
+  `LanguageModelV1`) e todo `@ai-sdk/*` precisa resolver para `@ai-sdk/provider@1.1.x`.
+  `@ai-sdk/openai-compatible` fica em `^0.2.16` — as versões `1.0.x`/`3.x` saltam para
+  provider `2.x` (AI SDK v5) e o `tsc` quebra com *"Property 'defaultObjectGenerationMode'
+  is missing"*. Slug de modelo **não** se documenta aqui: muda com frequência, a fonte viva
+  é `packages/ai-engine/src/model.ts`.
+- **Instalar dependência nova pode travar todos os comandos pnpm.** O pnpm acrescenta
+  pacotes com build script ao `allowBuilds:` do `pnpm-workspace.yaml` com um placeholder
+  literal (`'@scarf/scarf': set this to true or false`), e isso derruba o preflight de
+  qualquer comando com `ERR_PNPM_IGNORED_BUILDS`. Fix: trocar o placeholder por `true`/`false`
+  (telemetria pura como `@scarf/scarf` → `false`).
+
+---
+
 ## Workflow de desenvolvimento
 
 1. **Antes de implementar:** leia o user story relevante em `docs/sdlc/01-requisitos/`
    e os critérios de aceite correspondentes.
+   - **Afirmação de defeito vinda de US/issue/doc é hipótese, não fato.** Verificar não é
+     achar uma linha compatível com a tese — é traçar o fluxo ponta a ponta (quem roda antes
+     de quem) e procurar ativamente o código ou comentário que **explica** o achado. Comentário
+     adjacente que justifica o valor ofensor mata a hipótese; US posterior que já resolveu o
+     caso também. Citar `arquivo:linha` não prova nada se a linha foi escolhida por casar com
+     a tese — é justamente o que faz uma afirmação não verificada parecer verificada.
+     Nasceu da US-84 (*Questões em aberto* #2): `ai.service.ts:863` passa `sceneState: null`,
+     mas o comentário 6 linhas acima explica que na abertura **não pode** haver cena, e a
+     US-35 preenche o campo a partir do texto da abertura para o turno 1 em diante.
 2. **Antes de gerar código:** crie ou atualize os testes/evals primeiro — eles são o
    contrato com o agente.
 3. **Ao modificar o DM Agent:** teste contra o eval suite em `evals/` antes de abrir PR.

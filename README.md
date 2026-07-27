@@ -25,12 +25,12 @@ alteração de estado passa por uma tool.
 apps/
   web/          # Next.js (frontend)
   api/          # NestJS (Game Server + REST + WebSocket)
+    prisma/     # Schema, migrações e seed do banco
 packages/
   ai-engine/    # DM Agent: AI SDK + tools + prompts
   shared/       # Tipos compartilhados
 docs/           # PRD, ADRs, artefatos do SDLC
 evals/          # Suite de avaliação do DM Agent
-prisma/         # Schema e migrações
 ```
 
 ## Começando

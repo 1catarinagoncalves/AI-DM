@@ -30,8 +30,11 @@ describe('US-41 — features de classe no prompt', () => {
 
   it('a seção instrui o mestre a NÃO resolver custo/efeito ali (awareness apenas)', () => {
     const prompt = buildDmSystemPrompt({ ...base, features: paladinoFeatures })
-    expect(prompt.toLowerCase()).toMatch(/offer and narrate/)
-    expect(prompt.toLowerCase()).toMatch(/never resolve/)
+    // US-77 — as duas ancoravam no texto DENTRO do parêntese do cabeçalho
+    // "## Class features (read-only — …)", que é decorativo e reescrevível
+    // (ver evals/PROMPT-ANCHORS.md). Agora: o contrato em si, casando cabeçalho OU corpo.
+    expect(prompt.toLowerCase()).toMatch(/(offer|present|ofereç|apresent)[^.]{0,80}narrat/)
+    expect(prompt.toLowerCase()).toMatch(/(never|not|não)\s+resolv[ea]r?[^.]{0,80}(cost|effect|charge|cooldown|custo|efeito)/)
   })
 
   it('sem features (lista vazia) a seção de features não existe', () => {

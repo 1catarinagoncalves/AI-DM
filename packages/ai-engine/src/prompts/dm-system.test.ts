@@ -88,9 +88,12 @@ describe('buildDmSystemPrompt — background narrativo (US-39)', () => {
   it('marca a seção como read-only / roleplay guidance e instrui o USO de cada eixo', () => {
     const p = build({ background })
     expect(p.toLowerCase()).toMatch(/character identity \(read-only/)
-    // a redação default (US-39 §3): condicional + papel de cada traço
-    expect(p.toLowerCase()).toMatch(/flaw|fraqueza/)
-    expect(p.toLowerCase()).toMatch(/when the scene|quando a cena/)
+    // a redação default (US-39 §3): condicional + papel de cada traço.
+    // US-77 — âncoras por conceito (evals/PROMPT-ANCHORS.md). O `/fraqueza/` anterior
+    // casava a linha de DADO "- Fraquezas: …" injetada pelo fixture: sobrevivia à
+    // remoção da regra e provava só que o background tem o campo.
+    expect(p.toLowerCase()).toMatch(/(flaw|fraqueza)s?[^.]{0,60}(dilemma|dilema)/)
+    expect(p.toLowerCase()).toMatch(/\b(not|never|não|nunca)\s+for[çc][ae]r?\b[^.]{0,60}(scene|cena)/)
   })
 
   it('sem background → não gera a seção nem quebra', () => {
@@ -148,7 +151,11 @@ describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas
   it('não perde regras semânticas (rolagens, gênero, craft, continuidade, ordem do turno)', () => {
     const p = build()
     expect(p).toMatch(/rollDice/)
-    expect(p).toMatch(/Gender Agreement/)
+    // US-77: ancorado no campo + no valor do enum (ambos do código), não no cabeçalho
+    // "### 8. Gender Agreement" — cabeçalho é prosa autoral e já foi renomeado antes (US-71).
+    // As aspas em "feminino" são obrigatórias: sem elas a regex casa a linha
+    // `- Gender: ${characterGender}` da ficha (:365) e sobrevive à deleção da regra.
+    expect(p).toMatch(/gender[^.]{0,40}"feminino"/i)
     expect(p).toMatch(/Narrative craft/)
     expect(p).toMatch(/SCENE CONTINUITY & OPTIONS/)
     expect(p).toMatch(/TURN RESOLUTION ORDER/)
@@ -160,13 +167,22 @@ describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas
     // US-36: a barra NÃO nomeia mais os slop names (nomeá-los PRIMAVA o modelo a
     // usá-los — "elefante rosa"). O enforcement da lista fechada é o guardrail
     // determinístico detectSlopName; aqui o prompt só faz steering POSITIVO.
+    // assertiva NEGATIVA ancora em literal fechado (evals/PROMPT-ANCHORS.md): regex
+    // tolerante aqui produziria falso VERMELHO, não falso verde.
     expect(p).not.toMatch(/Elara/)
     expect(p).not.toMatch(/Kael/)
-    expect(p).toMatch(/invent every proper name from scratch/)
-    expect(p).toMatch(/generic default name/)
-    // paleta aberta + cobre pessoas/lugares/coisas
-    expect(p).toMatch(/OPEN PALETTE/)
-    expect(p).toMatch(/not just NPCs/)
+    // US-77 — as 4 positivas eram frases inteiras da seção reescrita em e0a6817.
+    // Agora: conceito + conceito preso na mesma frase.
+    expect(p).toMatch(/invent[^.]{0,60}(from scratch|fresh|do zero)/i)
+    // `(generic|genérico)[^.]{0,40}(default|name)` seria falso verde: casa
+    // "a generic AND a named-skill version" da regra de rolagem (dm-system.ts:273).
+    expect(p).toMatch(/(generic|genérico)[^.]{0,30}(default|fallback|off-the-shelf|padrão)/i)
+    // paleta aberta = INVENTAR um registro que a cheat-sheet não lista (não a frase
+    // "OPEN PALETTE"); `invent … register` sozinho casaria o passo 2 e sobreviveria
+    // à deleção do parágrafo.
+    expect(p).toMatch(/invent[^.]{0,80}(coherent register|register of its own|registro (próprio|coerente))/i)
+    // cobre pessoas/lugares/coisas, não só NPCs
+    expect(p).toMatch(/\b(everything|all|tudo)\b[^.]{0,60}proper name/i)
   })
 
   it('a regra em-dash/opções aparece UMA vez (sem a duplicata "ABSOLUTE RULE")', () => {
@@ -203,9 +219,15 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     const s = buildState()
     // O risco principal da US: lido como fala do usuário, o estado precisa dobrar a
     // linguagem de precedência para não perder força de instrução.
-    expect(s.toLowerCase()).toMatch(/source of truth|fonte de verdade/)
-    expect(s.toLowerCase()).toMatch(/not the player speaking/)
-    expect(s.toLowerCase()).toMatch(/precedence/)
+    // US-77 — o contrato é PRECEDÊNCIA sobre a prosa + "isto não é fala do jogador";
+    // as três eram frases do preâmbulo (evals/PROMPT-ANCHORS.md). O mesmo contrato é
+    // testado em evals/cases/us-23-dm-ciente-da-ficha.ts — reancorado igual lá.
+    // `/authoritative/` sozinho seria falso verde: a seção de inventário também o diz.
+    expect(s.toLowerCase()).toMatch(/(precedence|precedência)[^.]{0,80}(infer|prose|prosa)/)
+    expect(s.toLowerCase()).toMatch(/\b(not|não)\s+(the\s+)?(player|jogador)[^.]{0,30}(speak|talk|fala|input|voice)/)
+    // `source of truth` fica FORA da alternação de propósito: a seção "## Estado atual"
+    // (:401) também o diz, então a assertiva sobreviveria à deleção do preâmbulo.
+    expect(s.toLowerCase()).toMatch(/(authoritative|ground truth|fonte de verdade)[^.]{0,80}(this turn|deste turno|game server)/)
   })
 
   it('inclui cena, main quest, active quests, inventário e resumo quando presentes', () => {
@@ -230,8 +252,11 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
 
   it('o resumo refere as mensagens recentes como estando ACIMA (history fica antes do bloco)', () => {
     const s = buildState({ memorySummary: 'Algo aconteceu.' })
-    expect(s).toMatch(/before the recent messages above/)
-    expect(s).not.toMatch(/before the recent messages below/)
+    // US-77 — o par positivo/negativo É o ponto do teste (a preposição já inverteu uma vez).
+    // Positiva: só "mensagens + acima", isolado do resto da frase. Negativa: literal fechado,
+    // por regra (evals/PROMPT-ANCHORS.md) — tolerância aqui daria falso vermelho.
+    expect(s).toMatch(/messages[^.]{0,20}\babove\b/i)
+    expect(s).not.toMatch(/recent messages below/i)
   })
 
   it('campos ausentes → sem cena/resumo, placeholders para quest/inventário, sem crash', () => {
@@ -263,9 +288,12 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
   // personagem JÁ está lá e que a chegada já foi narrada (substitui a prosa "Arrival happens ONCE").
   it('emite o sinal de continuidade com o local quando há cena com `local`', () => {
     const s = buildState({ sceneState: scene })
-    expect(s).toContain('is ALREADY at «Praça da vila ao anoitecer»')
-    expect(s).toMatch(/arrival here were narrated on earlier turns/)
-    expect(s).toMatch(/Do NOT re-narrate the trip, the arrival, or the greeting/)
+    // US-77 — as 3 eram frases longas da área que a própria US-71 reescreveu.
+    // Âncora: o local do fixture entre «» (marcador estrutural, só a linha de
+    // continuidade os usa — formatSceneState renderiza "- local: X") + conceito.
+    expect(s).toMatch(/(already|já)[^.]{0,20}«Praça da vila ao anoitecer»/i)
+    expect(s).toMatch(/(arrival|chegada)[^.]{0,60}(earlier turns|turnos anteriores|já (foi )?narrad)/i)
+    expect(s).toMatch(/\b(not|never|não|nunca)\b[^.]{0,20}re-narrat/i)
   })
 
   it('sem `local` na cena → nenhum sinal de continuidade', () => {

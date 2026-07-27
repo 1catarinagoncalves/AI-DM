@@ -12,6 +12,7 @@ Leia `AGENTS.md` para as regras completas do projeto antes de começar qualquer 
 apps/
   web/          # Next.js 15 App Router (frontend)
   api/          # NestJS (Game Server + REST + WebSocket)
+    prisma/     # Schema, migrações e seed do banco
 packages/
   ai-engine/    # DM Agent: Vercel AI SDK + tools + prompts
   shared/       # Tipos TypeScript compartilhados (contrato client-server)
@@ -20,7 +21,6 @@ docs/
   adr/
   sdlc/         # Artefatos por fase do SDLC
 evals/          # Suite de avaliação do DM Agent
-prisma/         # Schema e migrações do banco
 ```
 
 ## Comandos principais
