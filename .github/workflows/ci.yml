@@ -1,0 +1,56 @@
+# CI — US-80. Roda em todo push e PR, sem nenhum secret configurado.
+# Passos separados de propósito (não `&&` numa linha): a aba de checks mostra
+# QUAL etapa caiu sem precisar abrir o log.
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    env:
+      # prisma.config.ts faz env('DATABASE_URL') no carregamento. `prisma generate`
+      # não conecta ao banco, mas o config precisa da variável resolver.
+      # Nenhum teste toca banco (US-80, Questões em aberto #2) — daí a URL fictícia.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # Antes do setup-node: `cache: pnpm` precisa do pnpm já no PATH.
+      # Sem `version:` de propósito — o action lê `packageManager` do package.json
+      # (pnpm@11.9.0). Declarar os dois faz o action falhar com "Multiple versions
+      # of pnpm specified", e duplicar o pin convida à divergência.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.23.0 # casa com NODE_VERSION do render.yaml
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # O client é gerado em apps/api/src/generated/ e é gitignored: sem isto o
+      # typecheck da API não compila.
+      - name: Gerar client Prisma
+        run: pnpm --filter api exec prisma generate
+
+      # Antes do typecheck: apps/api importa @ai-dm/shared e @ai-dm/ai-engine, cujos
+      # `types` apontam para dist/. Sem build, tsc dá TS2307 "Cannot find module
+      # '@ai-dm/shared'" (medido em 27/07/2026, apagando os dois dist). O eval NÃO
+      # depende disto — vitest.eval.config.ts faz alias dos dois pacotes para o src.
+      - name: Build dos pacotes
+        run: pnpm --filter './packages/*' build
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      - run: pnpm eval
+
+      # Gate de links .md (US-78) e de nome de arquivo (US-82), mesmo script.
+      # --only-md porque o gate completo ainda conta os 85 quebrados que são da
+      # US-79; troca para `pnpm docs:links` quando aquela story fechar.
+      - name: Gate de docs
+        run: pnpm docs:links --only-md

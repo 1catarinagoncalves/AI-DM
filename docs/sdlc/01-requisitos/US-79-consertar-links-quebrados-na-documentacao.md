@@ -3,7 +3,7 @@
 **Épico:** 0 — Infra e documentação
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Depende de:** nenhuma. Irmã da [US-78](./US-78-vault-obsidian-para-os-docs.md), que cobre a outra metade dos links quebrados (os 16 de alvo `.md`). Podem ser feitas em qualquer ordem.
+**Depende de:** [US-78](./US-78-vault-obsidian-para-os-docs.md) — **satisfeita** (commit `720c452`). Eram irmãs de escopo independente (ela, os 16 links de alvo `.md`; esta, os 82 de profundidade), mas ela acabou entregando `scripts/check-doc-links.mjs`, a varredura que esta story ia construir. Esta agora **estende** o script existente com o modo de escrita, em vez de criar o seu. Ver *A proposta*.
 **Criada em:** 2026-07-26
 
 ---
@@ -35,11 +35,19 @@ docs/sdlc/01-requisitos/US-45-...md
 
 ### Por que a solução atual não basta
 
-Não há checagem de links no repo (nem lint de markdown, nem CI). O erro é silencioso: no GitHub o link vira 404 e no editor não abre nada. Como o AGENTS.md e as USs são o principal mecanismo de contexto para agentes, link quebrado = contexto perdido.
+O erro é silencioso: no GitHub o link vira 404 e no editor não abre nada. Como o AGENTS.md e as USs são o principal mecanismo de contexto para agentes, link quebrado = contexto perdido.
+
+> **Correção (27/07/2026).** Este parágrafo abria com *"Não há checagem de links no repo (nem lint de markdown, nem CI)"*. Deixou de ser verdade: a [US-78](./US-78-vault-obsidian-para-os-docs.md) entregou `scripts/check-doc-links.mjs` (`pnpm docs:links`) e a [US-80](./US-80-ci-typecheck-testes-e-evals.md) o ligou no workflow. O que continua sem dono é o **conserto**, não a detecção.
 
 ### A proposta
 
-Um script de varredura que (1) encontra links relativos quebrados em `docs/`, (2) resolve o alvo pretendido por correspondência de sufixo de caminho a partir da raiz do repo, e (3) reescreve o link com a profundidade correta. O mesmo script roda em modo `--check` para verificação antes/depois.
+Um script de varredura que (1) encontra links relativos quebrados em `docs/`, (2) resolve o alvo pretendido por correspondência de sufixo de caminho a partir da raiz do repo, e (3) reescreve o link com a profundidade correta.
+
+> **Metade já existe (27/07/2026).** Os itens (1) e (2) são `scripts/check-doc-links.mjs`, entregue pela [US-78](./US-78-vault-obsidian-para-os-docs.md) (commit `720c452`) porque os critérios de aceite das duas stories dependiam da mesma varredura. **Falta o item (3): o modo de escrita.** O script hoje é somente-leitura — 217 linhas, sem nenhuma função de reescrita.
+>
+> **Não existe flag `--check`.** A interface real é `pnpm docs:links` (gate, `process.exit(1)` por padrão) mais `--list`, `--naive` e `--only-md`. O nome `--check` só existiu nesta proposta e nos critérios de aceite abaixo, ambos escritos antes de o script nascer; foram corrigidos. Quando esta story adicionar a escrita, ela ganha uma flag nova (`--fix` ou equivalente) — **o padrão continua sendo checar, nunca reescrever**, senão o passo de CI da US-80 passa a editar arquivos sozinho.
+>
+> **Baseline de hoje** (27/07/2026, `main` com a US-78 e a US-82 aplicadas): 92 `.md`, 722 links relativos, **85 quebrados** = 82 de profundidade + 3 de alvo inexistente. Os 16 de `.md` que constavam da baseline original estão em zero.
 
 ---
 
@@ -60,7 +68,8 @@ Um script de varredura que (1) encontra links relativos quebrados em `docs/`, (2
   - **16 apontam para `.md`** → [US-78](./US-78-vault-obsidian-para-os-docs.md), que abre `docs/` como vault Obsidian e conserta esses alvos com autocomplete, impedindo a reincidência via atualização automática de link no rename.
   - **3 apontam para código** (`ingest.ts` → provavelmente `ingest.mjs`; `session.ts` → alvo desconhecido) → continuam sem dono, exigem decisão humana caso a caso. Ver *Questões em aberto*.
 - Links `http(s)` mortos (link rot externo) — outro problema, outra ferramenta.
-- Adicionar lint de markdown ou hook de CI. Vale considerar depois; ver "Questões em aberto".
+- Adicionar lint de markdown. ~~ou hook de CI~~ — o passo de CI já existe: a [US-80](./US-80-ci-typecheck-testes-e-evals.md) roda `pnpm docs:links --only-md` no workflow. Ver *Questões em aberto* #1.
+- **A varredura em si** (detecção, resolução por sufixo, máscara de código, gate). Entregue pela [US-78](./US-78-vault-obsidian-para-os-docs.md). Esta story consome o script existente e acrescenta o modo de escrita — não reimplementa nem cria um segundo script.
 - Arquivos `.md` fora de `docs/` (`AGENTS.md`, `CLAUDE.md`, `README`) — a varredura atual mostra que o problema está concentrado em `docs/sdlc/01-requisitos/`; ampliar só se a varredura de verificação acusar.
 
 ---
@@ -100,13 +109,18 @@ O caminho **sem** o `:122` existe. Decidir na implementação: o script deve **t
 
 ## Critérios de aceite
 
-- [ ] Existe um script de varredura (`--check` e modo de escrita) que reporta: total de links relativos, quebrados, auto-consertáveis, ambíguos e sem candidato.
-- [ ] O script trata sufixo `:NN` como não-quebrado (ver nota acima).
-- [ ] O script ignora `](caminho)` dentro de bloco cercado e de code span. **Teste de regressão obrigatório: rodar o script sobre esta própria US não reporta nem reescreve nada.** Ela contém 5 ocorrências em exemplos, uma delas (`../../apps/web/src/components/game/GameView.tsx`, bloco da seção *O problema observado*) sintaticamente idêntica ao bug que a story conserta.
+> **Os quatro primeiros já estavam satisfeitos pela [US-78](./US-78-vault-obsidian-para-os-docs.md) quando esta story foi reavaliada em 27/07/2026** — ela construiu a varredura para poder provar os próprios números. Ficam marcados, com a evidência, porque continuam sendo contrato: quem mexer no script não pode quebrá-los. O trabalho que resta a esta story começa no critério do **modo de escrita**.
+
+- [x] Existe um script de varredura que reporta: total de links relativos, quebrados, auto-consertáveis, ambíguos e sem candidato. *(`scripts/check-doc-links.mjs`, `pnpm docs:links`. A saída separa os buckets por story dona.)*
+- [x] O script trata sufixo `:NN` como não-quebrado (ver nota acima). *(`--naive` existe justamente para exibir a contagem alternativa que os conta.)*
+- [x] O script ignora `](caminho)` dentro de bloco cercado e de code span. **Teste de regressão obrigatório: rodar o script sobre esta própria US não reporta nem reescreve nada.** Ela contém 5 ocorrências em exemplos, uma delas (`../../apps/web/src/components/game/GameView.tsx`, bloco da seção *O problema observado*) sintaticamente idêntica ao bug que a story conserta. *(27/07/2026: `pnpm docs:links --list` não lista nenhuma linha deste arquivo — os únicos hits de "US-79" na saída são os rótulos de bucket.)*
+- [x] Rodar o gate num `.md` com link `../../apps/...` sabidamente errado retorna exit code ≠ 0 e nomeia o arquivo. *(É o comportamento padrão hoje: exit 1 com os 82; `--list` nomeia arquivo e linha.)*
+- [ ] **O script ganha um modo de escrita** (flag explícita, ex. `--fix`). Sem a flag o comportamento não muda: checa e sai, nunca edita. É o que impede o passo de CI da [US-80](./US-80-ci-typecheck-testes-e-evals.md) de reescrever arquivos sozinho.
 - [ ] Após rodar: **0 links quebrados por profundidade errada** em `docs/`. **Invariante, independente da ordem em relação à [US-78](./US-78-vault-obsidian-para-os-docs.md):** nenhum quebrado restante tem candidato único por sufixo de caminho. Quebrados de alvo inexistente não contam aqui. (Para conferência: se a US-78 ainda não rodou, restam 19 quebrados no total; se já rodou, restam 3.)
 - [ ] Nenhum link ambíguo foi reescrito; a lista de não-consertados sai no relatório.
 - [ ] Nenhum arquivo fora de `docs/` foi modificado; nenhum código de produção tocado.
-- [ ] **Teste de regressão:** rodar o script em modo `--check` num arquivo `.md` de fixture com um link `../../apps/...` sabidamente errado retorna exit code ≠ 0 e nomeia o arquivo.
+- [ ] **Teste de regressão do modo de escrita:** rodar `--fix` sobre um `.md` de fixture com um link `../../apps/...` sabidamente errado reescreve **só** aquele link — `git diff --numstat` do fixture mostra `1 1`. Nenhuma reformatação de corpo, nenhum EOL alterado.
+- [ ] **O gate do CI aperta junto:** com os 82 consertados, o passo da [US-80](./US-80-ci-typecheck-testes-e-evals.md) passa de `pnpm docs:links --only-md` para `pnpm docs:links` (gate completo). É o critério que fecha a *Questão em aberto #3* daquela story.
 
 ---
 
@@ -120,14 +134,16 @@ O caminho **sem** o `:122` existe. Decidir na implementação: o script deve **t
 - **Máscara de código, medida em 26/07/2026:** nos 83 `.md` versionados há **0** ocorrências de `](caminho)` dentro de código — a baseline de 634/101 não muda com a máscara. Incluindo as 3 US novas ainda untracked (77, 78, 79), aparecem **8 falsos positivos, 5 deles nesta própria US**. Ou seja: a máscara não altera o conserto de hoje, mas sem ela o script se auto-sabota assim que alguém documenta o problema que ele resolve.
 - Implementar a máscara **preservando o comprimento** do texto (trocar o trecho por espaços, não removê-lo), para que os offsets das ocorrências continuem válidos na hora de reescrever o arquivo. Ordem: primeiro os blocos cercados, depois os code spans — um bloco cercado pode conter crases soltas que quebrariam a varredura inversa.
 - Regex de code span tem que casar a cerca por comprimento (`` ` `` vs ` `` `): usar backreference ao delimitador de abertura, senão um `` `código com ` dentro` `` fecha no lugar errado.
-- Script pode viver em `scripts/` (Node `.mjs`, sem dependência nova — `node:fs`/`node:path` bastam), no padrão de `scripts/srd/*.mjs`.
+- ~~Script pode viver em `scripts/`~~ — **já vive**: `scripts/check-doc-links.mjs`, Node `.mjs` sem dependência, no padrão de `scripts/srd/*.mjs`, como esta nota previa. As notas de máscara acima descrevem código que **já existe**; ficam registradas porque explicam o PORQUÊ de o script ser assim, e quem for acrescentar o modo de escrita precisa delas — em especial a de preservar o comprimento do texto na máscara, que existe exatamente para os offsets continuarem válidos na hora de reescrever.
+- O modo de escrita reaproveita o que a varredura já calcula: `depthCandidates()` (`check-doc-links.mjs:65`) já devolve o candidato único que viraria a substituição. Falta aplicar, não descobrir.
 
 ---
 
 ## Questões em aberto
 
-1. O script vira etapa de CI/pre-commit ou é one-shot? One-shot conserta hoje mas o erro volta na próxima US escrita por analogia. Um `--check` barato no CI é o que impede a reincidência.
-   > **A mesma pergunta está aberta na [US-78](./US-78-vault-obsidian-para-os-docs.md) (questão 3).** Decidir uma vez, nas duas: o vault Obsidian previne o link quebrado *na escrita* (autocomplete + rename), o `--check` no CI pega quem editar fora do Obsidian. São camadas complementares, não alternativas.
+1. ~~O script vira etapa de CI/pre-commit ou é one-shot?~~ **Resolvida em 27/07/2026: etapa de CI.** A [US-80](./US-80-ci-typecheck-testes-e-evals.md) roda `pnpm docs:links --only-md` no workflow, em todo push e PR. É `--only-md` porque o gate completo ainda conta os 82 quebrados **desta** story — o aperto para o gate completo é critério de aceite daqui.
+
+   A intuição registrada aqui se confirmou nas três camadas, e cada uma pega o que a outra não pega: o vault Obsidian ([US-78](./US-78-vault-obsidian-para-os-docs.md)) previne o link quebrado *na escrita*; o gate de CI pega quem editar fora do Obsidian; o gate de nome de arquivo ([US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md)) pega o arquivo mal nomeado a que ninguém aponta — o caso que nenhum checador de link vê. Nada de pre-commit: mesma razão que a US-80 registrou para o `pre-push`, é pulável com `--no-verify` e depende de configuração por máquina.
 2. ~~Vale uma US irmã para os 19 links de rename?~~ **Resolvido:** os 16 de `.md` são a [US-78](./US-78-vault-obsidian-para-os-docs.md). Restam os 3 de código (`ingest.ts` ×2, `session.ts`) — consertar caso a caso quando alguém encostar no arquivo, ou abrir uma US mínima se incomodarem.
 3. Ampliar a varredura para `AGENTS.md` / `README` / `docs/adr/`? (A baseline não acusou quebras lá, mas o CI checaria de graça.)
 
