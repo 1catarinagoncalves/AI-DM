@@ -13,8 +13,8 @@ alteração de estado passa por uma tool.
 
 ## Stack
 
-- **Frontend** (`apps/web`) — Next.js 15 App Router, React, Tailwind + shadcn/ui, Zustand
-- **Backend** (`apps/api`) — NestJS, Prisma sobre PostgreSQL (+ pgvector), Redis, BullMQ, Socket.IO
+- **Frontend** (`apps/web`) — Next.js 15 App Router, React, Tailwind CSS, Auth.js (`next-auth`)
+- **Backend** (`apps/api`) — NestJS, Prisma sobre PostgreSQL, Socket.IO
 - **AI Engine** (`packages/ai-engine`) — Vercel AI SDK; provedores Groq e OpenRouter
 - **Shared** (`packages/shared`) — tipos TypeScript do contrato client-server
 - **Monorepo** — pnpm workspaces, TypeScript 5.x strict
@@ -41,8 +41,9 @@ pnpm db:migrate     # aplicar migrações Prisma
 pnpm dev            # rodar web + api em modo dev
 ```
 
-Configure as variáveis de ambiente antes (chaves de provedor, `DATABASE_URL`, Redis, S3).
-Nunca commite segredos — tudo via env.
+Configure as variáveis de ambiente antes: `DATABASE_URL` e as chaves dos provedores de LLM.
+Elas vão no `.env` da **raiz** — a API não carrega `.env` sozinha; ver
+[`AGENTS.md`](AGENTS.md). Nunca commite segredos.
 
 ## Comandos
 
@@ -52,20 +53,19 @@ Nunca commite segredos — tudo via env.
 | `pnpm build` | Build de produção (packages → apps) |
 | `pnpm test` | Testes unitários e de integração |
 | `pnpm eval` | Suite de evals do DM Agent |
-| `pnpm typecheck` | `tsc --noEmit` nos pacotes que declaram o script (hoje: `api`) |
+| `pnpm typecheck` | `tsc --noEmit` nos pacotes que declaram o script (hoje: `api` e `web`) |
 | `pnpm db:migrate` / `db:studio` / `db:seed` | Prisma |
 
 ## Tools do DM Agent
 
-| Tool | Responsável | Descrição |
-|------|-------------|-----------|
-| `rollDice` | Game Server | Rola dados (ex: `2d6+3`), determinístico via RNG no servidor |
-| `getRule` | AI Engine / RAG | Recupera regra do sistema ativo |
-| `updateCharacterSheet` | Game Server | Atualiza HP, status, inventário, atributos |
-| `advanceQuest` | Game Server | Avança missão / marca objetivo |
-| `recallMemory` | AI Engine / RAG | Recupera memória de aventuras anteriores |
-| `getCharacterState` | Game Server | Lê estado do personagem (somente leitura) |
-| `addEventLog` | Game Server | Registra evento no EventLog |
+Seis, todas executadas no Game Server e definidas em
+[`apps/api/src/ai/ai.service.ts`](apps/api/src/ai/ai.service.ts):
+
+`rollDice` (teste de d20 — o modelo diz o que testar, o modificador vem da ficha) ·
+`updateCharacterHp` · `updateInventory` · `updateScene` (continuidade espacial) ·
+`recordEntity` (canon durável da campanha) · `getSpell` (consulta, não gasta slot).
+
+A `description` de cada uma é o contrato que o modelo lê — está no código, não aqui.
 
 ## Desenvolvimento
 

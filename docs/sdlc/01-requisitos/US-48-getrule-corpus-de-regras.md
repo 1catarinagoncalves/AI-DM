@@ -21,7 +21,7 @@
 
 ### O problema observado
 
-O system prompt **já manda** o mestre consultar regras: *"NEVER invent rules, modifiers, or stats. Use `getRule` to look them up when unsure."* ([dm-system.ts](../../../packages/ai-engine/src/prompts/dm-system.ts), seção Rules). Mas a **tool `getRule` não existe** — está comentada em [`tools/index.ts`](../../../packages/ai-engine/src/tools/index.ts) como "Future tool". O mestre é instruído a usar algo que não pode chamar; na dúvida, ele inventa.
+O system prompt **já manda** o mestre consultar regras: *"NEVER invent rules, modifiers, or stats. Use `getRule` to look them up when unsure."* ([dm-system.ts](../../../packages/ai-engine/src/prompts/dm-system.ts), seção Rules). Mas a **tool `getRule` não existe** — nunca foi implementada; até 27/07/2026 aparecia comentada como "Future tool" em `packages/ai-engine/src/tools/index.ts`, pasta apagada por só conter código morto. O mestre é instruído a usar algo que não pode chamar; na dúvida, ele inventa.
 
 ### Por que a solução atual não basta
 
@@ -42,7 +42,7 @@ O `config` da [US-21](./US-21-sistemas-como-dado.md)/[US-47](./US-47-ingestao-sr
   - A US-47 (rev. 2026-07-14) trocou a fonte para Open5e, que tem as 339 magias 2024 nativas. **O stopgap de puxar magias do SRD 5.1 (`2014/`) não existe mais** — o corpus é 5.2 puro, sem mistura de edição.
   - **O corpus é 100% Open5e (CC-BY-4.0).** A US-47 é CC-BY puro; a fonte OGL (`5e-bits/5e-database`) aparece só na [US-51](./US-51-kits-iniciais-do-srd.md), e **só** para `startingKits` — kit não é regra consultável. Nada de material OGL entra no `srd-5e.rules.json`; se algum dia entrar, o corpus herda a OGL junto.
   - Aqui, ao contrário do `config`, o alvo **é** o texto de record longo: `getRule` devolve regra, não resumo de prompt. Traduzir o corpus para PT é decisão à parte (ver Questões em aberto).
-- **Tool `getRule`** em `packages/ai-engine/src/tools/get-rule.ts`, registrada em `tools/index.ts` (descomentar) e exposta no loop de tools do agente.
+- **Tool `getRule`** no objeto `tools` de [`ai.service.ts`](../../../apps/api/src/ai/ai.service.ts), junto das 6 vivas — é onde as tools moram hoje (a pasta `packages/ai-engine/src/tools/` foi apagada em 27/07/2026).
   - Input: `{ query: string, category?: 'condition' | 'spell' | 'combat' | 'class' }`.
   - Resolução: normaliza `query` → match por nome (exato + fuzzy) no corpus do **sistema ativo** → devolve 1–3 trechos **curtos** (não o capítulo inteiro).
   - Determinística, sem LLM, server-side.
@@ -86,7 +86,7 @@ getRule({ query: "enfeitiçado", category?: "condition" })
 
 ## Critérios de aceite
 
-- [ ] A tool `getRule` existe, está registrada em `tools/index.ts` e é exposta ao agente no loop de tools.
+- [ ] A tool `getRule` existe no objeto `tools` de `ai.service.ts` e é exposta ao agente no loop de tools.
 - [ ] `getRule({ query, category? })` resolve por nome normalizado (exato + fuzzy) no corpus do **sistema ativo** e devolve 1–3 trechos curtos.
 - [ ] O corpus é gerado pelo **`ingest` da [US-47](./US-47-ingestao-srd-como-dado.md)** (mesmo pipeline), não por um segundo caminho paralelo.
 - [ ] `getRule` é **determinística e read-only:** não rola dado, não altera ficha, não chama LLM.
@@ -98,7 +98,7 @@ getRule({ query: "enfeitiçado", category?: "condition" })
 
 ## Notas de implementação
 
-- **Espelhar `rollDice`:** `getRule` segue o mesmo formato de tool determinística server-side de [`roll-dice.ts`](../../../packages/ai-engine/src/tools/roll-dice.ts) — entrada validada, resultado estruturado, sem efeito colateral de estado.
+- **Espelhar `rollDice`:** `getRule` segue o mesmo formato de tool determinística server-side da `rollDice` viva ([`ai.service.ts:349`](../../../apps/api/src/ai/ai.service.ts)) — entrada validada, resultado estruturado, sem efeito colateral de estado.
 - **Trecho curto, não capítulo:** o corpus guarda o efeito enxuto. Devolver o texto inteiro do SRD estoura contexto e é o anti-padrão que motivou separar isto do `config`.
 - **Normalização de chave:** minúsculas, sem acento, prefixo de categoria (`condicao:`, `magia:`). Fuzzy simples (distância de edição) resolve "bola de fogo" vs "Bola de Fogo"; sem embeddings.
 - **Não duplicar dado estruturado:** o que já está no `config` (perícia, feature) o mestre lê do prompt — `getRule` é para o **texto de referência** que não cabe no config.
@@ -116,8 +116,7 @@ getRule({ query: "enfeitiçado", category?: "condition" })
 
 ## Referências no código
 
-- `packages/ai-engine/src/tools/index.ts` — `getRuleTool` comentada como "Future tool" (linha a descomentar).
-- `packages/ai-engine/src/tools/roll-dice.ts` — molde de tool determinística server-side.
+- `apps/api/src/ai/ai.service.ts` — objeto `tools` com as 6 tools vivas; `rollDice` (`:349`) é o molde de tool determinística server-side, e é aqui que `getRule` entra.
 - `packages/ai-engine/src/prompts/dm-system.ts` — instrução "Use `getRule` to look them up" já presente (seção Rules).
 - `apps/api/prisma/schema.prisma` — `System.ragIndexId` (RAG de upload, caminho distinto deste corpus).
 - `scripts/srd/ingest.ts` — gera `srd-5e.rules.json` além do `config` (ver [US-47](./US-47-ingestao-srd-como-dado.md)).

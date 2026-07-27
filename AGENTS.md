@@ -66,7 +66,10 @@ Roadmap incremental (fase atual: MVP single-player):
 ### AI Engine (`packages/ai-engine`)
 - Vercel AI SDK (`ai` package) como camada de abstração de provedor
 - Provedores: Groq (`@ai-sdk/groq`) para modelos rápidos e baratos; OpenRouter (`@ai-sdk/openai-compatible`) para acesso a modelos variados — roteável por custo/qualidade via Vercel AI SDK
-- Tools tipadas em `packages/ai-engine/src/tools/` — uma tool por arquivo
+- ~~Tools tipadas em `packages/ai-engine/src/tools/` — uma tool por arquivo~~ **Convenção sem
+  nenhum caso vigente**: as 6 tools vivas são inline em `apps/api/src/ai/ai.service.ts`, e a pasta
+  `tools/` foi apagada em 27/07/2026 por só conter código morto (ver *Tools disponíveis para o
+  DM Agent*)
 - Prompt do sistema em `packages/ai-engine/src/prompts/dm-system.ts`
 
 ### Persistência
@@ -168,20 +171,23 @@ comportamento é o antigo.
 
 1. **Antes de implementar:** leia o user story relevante em `docs/sdlc/01-requisitos/`
    e os critérios de aceite correspondentes.
-   - **Afirmação de defeito vinda de US/issue/doc é hipótese, não fato.** Verificar não é
-     achar uma linha compatível com a tese — é traçar o fluxo ponta a ponta (quem roda antes
-     de quem) e procurar ativamente o código ou comentário que **explica** o achado. Comentário
-     adjacente que justifica o valor ofensor mata a hipótese; US posterior que já resolveu o
-     caso também. Citar `arquivo:linha` não prova nada se a linha foi escolhida por casar com
-     a tese — é justamente o que faz uma afirmação não verificada parecer verificada.
+   - **Afirmação de defeito vinda de US/issue = hipótese, não fato.** Verificar não é achar
+     uma linha compatível — é traçar o fluxo ponta a ponta (quem roda antes de quem) e
+     procurar ativamente o código/comentário que EXPLICA o achado. Comentário adjacente que
+     justifica o valor ofensor mata a hipótese. Citar `file:line` não prova nada se a linha
+     foi escolhida por casar com a tese.
      Nasceu da US-84 (*Questões em aberto* #2): `ai.service.ts:863` passa `sceneState: null`,
      mas o comentário 6 linhas acima explica que na abertura **não pode** haver cena, e a
      US-35 preenche o campo a partir do texto da abertura para o turno 1 em diante.
 2. **Antes de gerar código:** crie ou atualize os testes/evals primeiro — eles são o
    contrato com o agente.
 3. **Ao modificar o DM Agent:** teste contra o eval suite em `evals/` antes de abrir PR.
-4. **Ao adicionar uma nova tool:** declare o schema TypeScript em `packages/ai-engine/src/tools/`,
-   implemente o handler no Game Server, e adicione ao prompt do sistema.
+4. **Ao adicionar uma nova tool:** declare o schema, implemente o handler e cite a tool no prompt
+   do sistema. **Onde, na prática:** todas as 6 tools vivas são definidas inline no objeto `tools`
+   de `apps/api/src/ai/ai.service.ts` (`:349-585`), porque cada uma fecha sobre `this.prisma` (ou,
+   no caso do `getSpell`, sobre o contexto do turno) — extrair para o pacote exigiria inverter a
+   dependência, não mover arquivo. A convenção "uma tool por arquivo no pacote" (*Estrutura*,
+   abaixo) é seguida por **0 de 6**. Siga o arquivo vizinho até existir story que decida a questão.
 5. **Ao alterar o schema do banco:** crie uma migração Prisma versionada; nunca edite
    migrações existentes.
 6. **Code review:** todo PR que toca o AI Engine precisa de revisão de um humano,
@@ -191,15 +197,26 @@ comportamento é o antigo.
 
 ## Tools disponíveis para o DM Agent
 
-| Tool | Responsável | Descrição |
-|------|-------------|-----------|
-| `rollDice` | Game Server | Rola dados (ex: `2d6+3`); retorna resultado e breakdown |
-| `getRule` | AI Engine / RAG | Recupera regra do sistema ativo via RAG |
-| `updateCharacterSheet` | Game Server | Atualiza HP, status, inventário, atributos |
-| `advanceQuest` | Game Server | Marca objetivo como completo, avança missão |
-| `recallMemory` | AI Engine / RAG | Recupera memória de aventuras anteriores do personagem |
-| `getCharacterState` | Game Server | Lê estado atual do personagem (somente leitura) |
-| `addEventLog` | Game Server | Registra evento no EventLog (alimenta memória futura) |
+**Fonte de verdade:** o objeto `tools` de `apps/api/src/ai/ai.service.ts` (`:349-585`). Esta tabela
+é resumo; se divergir, o código manda. Verificada em 27/07/2026.
+
+| Tool | Onde é definida | O que faz |
+|------|-----------------|-----------|
+| `rollDice` | `:349` | Teste de d20. O modelo diz **o quê** testar (`skill`/`ability`); o modificador vem da ficha, nunca do LLM |
+| `updateCharacterHp` | `:393` | Aplica dano ou cura |
+| `updateInventory` | `:425` | Adiciona/remove itens (delta positivo ou negativo) |
+| `updateScene` | `:483` | Atualiza o estado estruturado da cena (continuidade espacial). Só os campos que mudaram |
+| `recordEntity` | `:534` | Registra/atualiza entidade durável da campanha (NPC, local, objeto, facção) — o ledger reexibido todo turno |
+| `getSpell` | `:585` | Consulta magia conhecida antes de narrar o lançamento. Só leitura: não gasta slot nem rola dano |
+
+> **Não existem** `getRule`, `advanceQuest`, `recallMemory`, `getCharacterState` nem `addEventLog`.
+> Estavam nesta tabela como roadmap escrito no presente — um agente que planejasse em cima delas
+> escreveria código para uma interface inexistente. Se voltarem, voltam com linha de código.
+>
+> **`packages/ai-engine/src/tools/` não existe mais.** A pasta guardava só um `rollDiceTool`
+> exportado e nunca importado, com `execute` que só lançava exceção e interface
+> (`formula: "2d6+3"`) que nem batia com a `rollDice` real (teste de d20 por `skill`), mais a
+> lista das 5 tools acima comentada como `// Future tools`. Apagada em 27/07/2026.
 
 ---
 

@@ -29,6 +29,12 @@ dm-system.ts:349   The "Cena atual" and "Entidades do mundo" blocks in the turn-
 dm-system.ts:359   …it is listed under "Current inventory" in the turn-state block that precedes the player's action.
 ```
 
+E não só o system prompt: a `description` da tool `recordEntity` — **noutro pacote** — faz a mesma promessa ao modelo:
+
+```
+ai.service.ts:536   …This ledger is re-shown to you in full every turn under "Entidades do mundo"…
+```
+
 E o builder do turn-state emite os cabeçalhos, em **outra função** e — desde a [US-56](./US-56-estado-do-turno-na-mensagem.md) — em **outra mensagem**:
 
 ```
@@ -43,20 +49,31 @@ O precedente já existe: a [US-71](./US-71-simplificar-localizacao-do-personagem
 
 ### O inventário do acoplamento
 
-Quatro nomes, seis citações, duas camadas:
+Quatro nomes, **sete** citações, duas camadas, **dois pacotes**:
 
-| Nome do bloco | Emitido em | Citado na prosa em | Camada da citação |
+| Nome do bloco | Emitido em | Citado em | Camada / arquivo da citação |
 |---|---|---|---|
 | `Cena atual` | `dm-system.ts:415` | `:349` (2×) | system prompt (estático, cacheado) |
 | `Entidades do mundo` | `:430` | `:314`, `:349` | system prompt |
+| `Entidades do mundo` | ↑ mesmo | **`ai.service.ts:536`** | **`description` da tool `recordEntity`** (`apps/api`) |
 | `Current inventory` | `:465` | `:275`, `:359` | system prompt |
 | `Skills` (linha da ficha) | `:183` | `:272` | system prompt |
 
 O caso de `Skills` é o mais afiado: `:272` manda passar `skill` para o `rollDice` **com o nome EXATAMENTE como está na linha "Skills" da ficha**. Renomear a linha para `Perícias` (o repo é bilíngue — ver [ADR 005](../../adr/005-locale-como-dimensao.md)) quebra a instrução sem quebrar nenhum teste.
 
+**A citação de fora do pacote é a mais perigosa das sete.** Description de tool *é* prompt — vai inteira ao modelo todo turno — mas mora em `apps/api/src/ai/ai.service.ts`, que não parece arquivo de prompt e por isso escapa de qualquer varredura feita só em `packages/ai-engine/src/prompts/`. E o que ela promete é exatamente o contrato desta story: *"grave, porque isto reaparece sob «Entidades do mundo»"*. Renomear o bloco transforma a description numa promessa falsa — o modelo grava esperando reencontrar o dado sob um nome que não existe mais. Consequência prática: a constante **precisa ser exportada** (ver *Notas de implementação*), e o inventário de acoplamento de prompt tem de varrer `tool({ description })` junto com os builders.
+
 ### Por que a solução atual não basta
 
-Os testes existentes (`dm-system.test.ts:132`, `:219`, `:239`, `:253`, `:259`) provam **só o lado emissor**: que o builder emite `## Cena atual` quando há cena, e não emite quando não há. Nenhum prova que a prosa do system prompt cita o mesmo nome. As duas metades do contrato são testadas pela metade.
+Os testes existentes provam **só o lado emissor** — que o builder emite o cabeçalho quando há dado, e não emite quando não há:
+
+| Bloco | Asserções em `dm-system.test.ts` |
+|---|---|
+| `## Cena atual` | `:135` (ausente do system), `:241` (presente), `:264` (ausente sem cena) |
+| `## Current inventory` | `:138` (ausente do system), `:247` (presente) |
+| `## Entidades do mundo` | `:278` (presente), `:284` (ausente sem entidades) |
+
+Nenhum prova que a prosa do system prompt cita o mesmo nome, e nenhum toca a `description` de `recordEntity`. As duas metades do contrato são testadas pela metade.
 
 A [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) chegou a esse acoplamento por outro caminho — perguntando se cabeçalho é âncora de teste válida — e concluiu corretamente que **é**, justamente porque é interface. Mas ela é uma story de testes: reancorar assertivas não impede a dessincronia, só a torna detectável se alguém tiver escrito um teste para ela. Ninguém escreveu.
 
@@ -71,7 +88,7 @@ Extrair os nomes de bloco para constantes e interpolá-las **nos dois lados**. R
 ### Dentro do escopo
 
 - Constante única por nome de bloco (`Cena atual`, `Entidades do mundo`, `Current inventory`, `Skills`), interpolada tanto no cabeçalho emitido quanto na citação em prosa.
-- As 6 citações e os 4 pontos de emissão da tabela acima.
+- As 7 citações e os 4 pontos de emissão da tabela acima — incluindo a de `ai.service.ts:536`, que fica fora do pacote `ai-engine`.
 - Prova de que o prompt renderizado não mudou: `buildDmSystemPrompt` e `buildTurnStateBlock` produzem texto **idêntico byte a byte** antes e depois.
 
 ### Fora do escopo
@@ -79,14 +96,20 @@ Extrair os nomes de bloco para constantes e interpolá-las **nos dois lados**. R
 - **Reescrever qualquer regra do prompt.** É refactor de identificador; o texto que chega ao modelo é o mesmo.
 - **As 🟡 MÉDIO da US-77.** Continuam com a política de lá: reancoradas oportunisticamente por quem tocar no arquivo.
 - **Os cabeçalhos da categoria 3** (`## ⚠️ TURN RESOLUTION ORDER`, `## MANDATORY TEXT FORMATTING RULES`, …). Ninguém os cita; não há acoplamento para remover. Extrair constante para eles seria abstração sem segundo caller.
-- **`## Estado atual`** (`:401`). É a fronteira de cache da [US-55](./US-55-prompt-caching-do-dm.md), o que o torna sensível por outro motivo — mas nenhuma prosa o cita pelo nome. Entra só se a Questão #1 disser que sim.
+- **`## Estado atual`** (`:401`). É a fronteira de cache da [US-55](./US-55-prompt-caching-do-dm.md), o que o torna sensível por outro motivo — mas nenhuma prosa o cita pelo nome. **Fica fora em definitivo** (Questão #1, fechada): sem segundo escritor, não há acoplamento; a fronteira de cache se protege por hash (US-77 P3), não por constante.
 
 ---
 
 ## Critérios de aceite
 
-- [ ] Cada um dos 4 nomes existe **uma vez** no código; `grep` pelo literal (`"Cena atual"`, `"Entidades do mundo"`, `"Current inventory"`, `"Skills"`) retorna a definição da constante e mais nada em `dm-system.ts`.
-- [ ] Renomear a constante muda o cabeçalho **e** a citação na prosa, sem nenhuma outra edição.
+- [ ] Cada um dos 4 nomes existe **uma vez** no código. O grep de aceite roda no **repo inteiro** (`apps/` + `packages/`), não só em `dm-system.ts` — foi o escopo estreito que deixou `ai.service.ts:536` passar despercebido na primeira redação desta story:
+
+  ```bash
+  grep -rn --include=*.ts -e '"Cena atual"' -e '"Entidades do mundo"' -e '"Current inventory"' -e '"Skills"' apps packages
+  ```
+
+  Único hit em código de produção = a definição da constante. Hits em `*.test.ts` são esperados e legítimos (âncoras de teste; ver US-77).
+- [ ] Renomear a constante muda o cabeçalho, a citação na prosa **e** a `description` de `recordEntity`, sem nenhuma outra edição.
 - [ ] **Prompt renderizado inalterado:** o texto de `buildDmSystemPrompt` e de `buildTurnStateBlock` (com cena, entidades, inventário e perícias preenchidos) é idêntico byte a byte ao de antes do refactor. Sem isso, o refactor invalida o cache da [US-55](./US-55-prompt-caching-do-dm.md).
 - [ ] **Teste de regressão:** um teste que quebra se as duas pontas divergirem — asserção sobre o par (a prosa do system prompt contém o mesmo literal que o builder emite como `## `), escrita em cima da constante, não do literal repetido.
 - [ ] `pnpm test` verde. `pnpm eval` verde (nenhuma assertiva de prompt deveria nem notar o refactor — se alguma notar, ela ancorava em algo que mudou e isso é achado, não falha esperada).
@@ -95,18 +118,32 @@ Extrair os nomes de bloco para constantes e interpolá-las **nos dois lados**. R
 
 ## Notas de implementação
 
-- **Onde a constante vive:** `dm-system.ts`, junto do builder. Não exportar para fora do pacote sem terceiro caller — as duas funções que precisam dela estão no mesmo arquivo.
-- **A objeção óbvia, e por que não se aplica aqui.** A [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) rejeitou (*Alternativas* 1) "exportar os contratos do prompt como constantes e os testes casarem a constante" — porque o eval passaria a testar a si mesmo. Aqui o alvo é outro: não é o **conteúdo da regra**, é o **identificador compartilhado por dois emissores**. Se a regra sumir, o teste de conteúdo continua sendo o de sempre; a constante só garante que os dois lados escrevem o mesmo nome. Vale a pena registrar essa distinção no `PROMPT-ANCHORS.md` da US-77 quando ele existir.
+- **Onde a constante vive:** `dm-system.ts`, junto do builder — mas **exportada**, não local. O terceiro caller existe e está noutro pacote (`ai.service.ts:536`). Duas consequências operacionais:
+  - Não precisa mexer no barril: `packages/ai-engine/src/index.ts:2` já faz `export * from './prompts/dm-system'`, então um `export const` no builder sai do pacote sozinho.
+  - A API consome o **`dist`** do `ai-engine`. Editar `src` sem `pnpm --filter @ai-dm/ai-engine build` deixa `ai.service.ts` importando o valor antigo — o refactor pareceria pronto com as duas pontas ainda dessincronizadas em runtime.
+- **A objeção óbvia, e por que não se aplica aqui.** A [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) rejeitou (*Alternativas* 1) "exportar os contratos do prompt como constantes e os testes casarem a constante" — porque o eval passaria a testar a si mesmo. Aqui o alvo é outro: não é o **conteúdo da regra**, é o **identificador compartilhado por dois emissores**. Se a regra sumir, o teste de conteúdo continua sendo o de sempre; a constante só garante que os dois lados escrevem o mesmo nome. Registrar essa distinção em [evals/PROMPT-ANCHORS.md](../../../evals/PROMPT-ANCHORS.md) — que **já existe** e já é citado pelos comentários dos testes (`dm-system.test.ts:223`, `:257`).
 - **Legibilidade do prompt cai um pouco.** `The "${SCENE_BLOCK}" and "${ENTITIES_BLOCK}" blocks…` lê pior que a prosa literal. É o preço; a alternativa é um teste de consistência que precisa ser lembrado a cada bloco novo.
 - **Cache:** interpolar constante não muda o texto renderizado (mesma string todo turno), então a fronteira de cache da US-55 e a divisão de camadas da US-56 ficam intactas. O critério de aceite "byte a byte" é o que prova isso — rodar antes/depois e comparar, não confiar na leitura.
 - **`Skills` merece atenção separada:** `:183` emite `- Skills (modifier; * = proficient): …` e `:272` cita `"Skills" line`. A constante é só a palavra `Skills`, não a linha inteira.
 
 ---
 
-## Questões em aberto
+## Questões em aberto — ambas fechadas em 2026-07-27 (escopo congelado)
 
-1. **`## Estado atual` entra?** É a fronteira de cache da [US-55](./US-55-prompt-caching-do-dm.md) e o cabeçalho mais sensível do prompt, mas **nenhuma prosa o cita pelo nome** — não há acoplamento a remover, só um cabeçalho valioso. Se entrar, entra por outro motivo (proteger a fronteira de cache), e aí é candidato ao guard por hash da US-77 (P3), não a esta story.
-2. **"Entidades do mundo" citado incondicionalmente, emitido condicionalmente.** `entitiesSection` é `''` quando o ledger está vazio (`:429`), mas `:314` e `:349` afirmam sem ressalva que ele é a fonte de verdade — o prompt aponta para um bloco ausente. E ledger vazio **não é falha**: `extractOpeningEntities` é best-effort por design (`adventure.service.ts:127-135` — falha/vazio → ledger vazio) e `recordEntity` é discricionário do modelo, então uma campanha nova roda vários turnos sem entidade nenhuma. Provavelmente inofensivo (o modelo ignora), mas é a mesma classe de defeito desta story vista de outro ângulo — dessincronia no eixo *presença* em vez do eixo *nome*. Medir antes de mexer: vale um eval, não um palpite.
+1. ~~**`## Estado atual` entra?**~~ **Fechada em 2026-07-27: não entra.** É a fronteira de cache da [US-55](./US-55-prompt-caching-do-dm.md) e o cabeçalho mais sensível do prompt, mas **nenhuma prosa o cita pelo nome** — não há acoplamento a remover, só um cabeçalho valioso. Três razões para ficar fora:
+
+   - **Um só escritor.** Constante compartilhada só paga quando o mesmo literal é *escrito* em dois lugares. `## Estado atual` é emitido uma vez (`:401`) e nada o cita. Um escritor com muitos leitores (os testes `dm-system.test.ts:132`, `:213`, e o comentário em `evals/cases/us-23-dm-ciente-da-ficha.ts:58`) não é acoplamento — é **interface**, e teste ancorar nela é o comportamento que a [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) concluiu ser correto. Mesma regra que já excluiu os cabeçalhos da categoria 3.
+   - **Ferramenta errada para o risco certo.** O risco dele é *bytes mudarem* e invalidarem o prefixo de cache — propriedade de posição e texto, não de nome. Constante não protege isso: interpolar `${STATE_BLOCK}` deixa o texto igualmente livre para mudar. O que protege é o **guard por hash da US-77 (P3)**. Se alguém quiser blindar a fronteira, é lá, não aqui.
+   - **Armadilha se implementado mesmo assim.** `grep "Estado atual"` retorna **duas strings distintas**: `:401` (`## Estado atual (read-only — source of truth…)`, o bloco da ficha) e `:454` (`[Estado atual do turno — FONTE DE VERDADE…]`, o preâmbulo do wrapper). Uma constante ingênua uniria o que é semanticamente diferente e mudaria o texto renderizado — exatamente o que o critério "byte a byte" proíbe.
+
+   Consequência: o escopo (*Fora do escopo* → `## Estado atual`) fica como está, sem a ressalva "entra só se a Questão #1 disser que sim".
+2. ~~**"Entidades do mundo" citado incondicionalmente, emitido condicionalmente.**~~ **Fechada em 2026-07-27: fica fora desta story, e o conserto óbvio está proibido.** `entitiesSection` é `''` quando o ledger está vazio (`:429`), mas `:314` e `:349` afirmam sem ressalva que ele é a fonte de verdade — o prompt aponta para um bloco ausente. E ledger vazio **não é falha**: `extractOpeningEntities` é best-effort por design (`adventure.service.ts:127-135` — falha/vazio → ledger vazio) e `recordEntity` é discricionário do modelo, então uma campanha nova roda vários turnos sem entidade nenhuma. Por que fecha sem virar trabalho:
+
+   - **O eixo é outro, e a ferramenta desta story não alcança.** Aqui a dessincronia é de *presença*, não de *nome*: constante compartilhada faz os dois lados escreverem o mesmo literal, não faz um lado aparecer quando o outro cita. Nenhum critério de aceite de US-84 mexe nisso — juntar as duas coisas seria escopo novo com prova diferente.
+   - **Condicionar a prosa é proibido pela arquitetura de que esta story depende.** `:314` e `:349` vivem na **camada 2** (system prompt, estático, cacheado). Torná-los condicionais exigiria passar `entities` para `buildDmSystemPrompt` — que hoje não recebe nada da camada 3 (`:148-163`) — fazendo o system prompt variar a cada turno. Isso quebra a fronteira de cache da [US-55](./US-55-prompt-caching-do-dm.md) e viola a *regra 2* do [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md), a mesma regra que esta story implementa. O conserto intuitivo é o pior conserto possível.
+   - **As duas citações não são igualmente expostas.** `:314` é forward-looking: está dentro da instrução de *chamar* `recordEntity` e descreve o efeito de gravar ("re-shown in full every turn under…"). Com ledger vazio ela continua verdadeira — é justamente o que tira o ledger do vazio. Só `:349` afirma no presente, e ainda assim cita o par `"Cena atual" + "Entidades do mundo"`, e `Cena atual` está preenchida do turno 1 em diante (ver abaixo) — a frase nunca fica inteiramente pendurada. Com ledger vazio ela não restringe nada: zero afirmações de entidade para o modelo trair.
+
+   **Se um dia se provar defeito, o conserto é no emissor, não na prosa.** Emitir o cabeçalho sempre, com um rodapé vazio (`- (nenhuma entidade registrada ainda — chame \`recordEntity\` ao introduzir uma)`) mantém a camada 2 intacta e mata a referência pendurada com uma edição em `:429`. Custa alguns tokens todo turno de campanha nova. **Não fazer agora**: sem medição isso é palpite, e o palpite atual é que o modelo simplesmente ignora. O gatilho seria um eval de campanha nova (ledger vazio nos primeiros turnos) checando se o Mestre nega/inventa entidade ou alucina o bloco; achado positivo vira story própria.
 
    **A metade da cena não entra.** `sceneSection` também é `''` sem cena (`:414`), mas a [US-35](./US-35-cena-estruturada-na-abertura.md) confinou esse caso ao turno de **abertura**, onde ele é logicamente inevitável: a abertura é o que *gera* a cena (`adventure.service.ts:104` gera o texto → `:130` extrai a cena dele → `:172` persiste), então `ai.service.ts:863` passa `sceneState: null` por causalidade, não por omissão. Do turno 1 em diante o campo está preenchido. Sobram só resíduos raros: extração da US-35 falhando, e cena não-nula que `formatSceneState` renderiza vazia (`scene.ts:38`).
 
@@ -114,6 +151,8 @@ Extrair os nomes de bloco para constantes e interpolá-las **nos dois lados**. R
 
 ## Referências no código
 
-- `packages/ai-engine/src/prompts/dm-system.ts` — `:183`, `:272`, `:275`, `:314`, `:349`, `:359` (citações) e `:415`, `:430`, `:465` (emissões). É o arquivo inteiro da story.
-- `packages/ai-engine/src/prompts/dm-system.test.ts` — `:132`, `:219`, `:239`, `:253`, `:259`: os testes que cobrem só o lado emissor e explicam a lacuna.
+- `packages/ai-engine/src/prompts/dm-system.ts` — `:183`, `:272`, `:275`, `:314`, `:349`, `:359` (citações) e `:415`, `:430`, `:465` (emissões). O grosso da story.
+- `apps/api/src/ai/ai.service.ts:536` — `description` da tool `recordEntity`, a **sétima** citação e a única fora do pacote `ai-engine`. Não pode ser esquecida: é a que promete ao modelo onde o ledger reaparece.
+- `packages/ai-engine/src/index.ts:2` — `export * from './prompts/dm-system'`: o caminho por onde a constante chega à API.
+- `packages/ai-engine/src/prompts/dm-system.test.ts` — `:135`, `:138`, `:241`, `:247`, `:264`, `:278`, `:284`: os testes que cobrem só o lado emissor e explicam a lacuna.
 - [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) — *Questões em aberto #2*, tabela das três categorias: a categoria 1 é exatamente o alvo desta story.
