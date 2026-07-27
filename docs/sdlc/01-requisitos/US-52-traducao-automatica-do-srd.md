@@ -124,6 +124,6 @@ Dá para o `ingest` traduzir PT→EN de volta e comparar, ou pedir a um segundo 
 
 ## Referências no código
 
-- [scripts/srd/ingest.ts](../../../scripts/srd/ingest.ts) — pipeline da US-47, estendido aqui com a camada de tradução.
+- [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — pipeline da US-47, estendido aqui com a camada de tradução.
 - [scripts/srd/locale/pt-BR.json](../../../scripts/srd/locale/pt-BR.json) — overlay curado (US-47) + rascunhos `_mt` (esta story).
 - [packages/ai-engine/src/model.ts](../../../packages/ai-engine/src/model.ts) — `createGoogleGenerativeAI` + `gemini-3.1-flash-lite` já montados (US-17); reaproveitar o provider.

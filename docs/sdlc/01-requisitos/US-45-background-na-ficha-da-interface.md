@@ -21,13 +21,13 @@
 
 ### O problema observado
 
-A [US-39](./US-39-identidade-narrativa-background-ideais.md) faz o personagem ter background e o **mestre** o conhece (injetado no prompt). Mas o **jogador** não o vê: a sidebar "Ficha do personagem" no [GameView.tsx:215](../../apps/web/src/components/game/GameView.tsx) mostra HP, condições, atributos, perícias e inventário — **nada de background**. O jogador preenche a história na criação e depois ela some da vista.
+A [US-39](./US-39-identidade-narrativa-background-ideais.md) faz o personagem ter background e o **mestre** o conhece (injetado no prompt). Mas o **jogador** não o vê: a sidebar "Ficha do personagem" no [GameView.tsx:215](../../../apps/web/src/components/game/GameView.tsx) mostra HP, condições, atributos, perícias e inventário — **nada de background**. O jogador preenche a história na criação e depois ela some da vista.
 
 Além disso, hoje a ficha é uma **pilha vertical única** que rola: HP, condições, atributos, perícias e inventário empilhados na sidebar, sem qualquer separação por aba. Empurrar a história (que pode ser um parágrafo longo, mais ideais/vínculos/fraquezas) para o fim dessa mesma pilha afundaria o dado mecânico (HP, atributos) que o jogador consulta a cada turno. Prosa longa e dado de referência rápido têm ritmos de leitura diferentes e não deviam competir pelo mesmo scroll.
 
 ### Por que a solução atual não basta
 
-O dado já existe e já é servido: `Character.background` é persistido (US-39) e o endpoint `findOne` já o devolve (é um scalar do `Character`, sem `select` que o exclua — [character.service.ts](../../apps/api/src/character/character.service.ts) `findOne`). Falta **passar** o campo à `GameView` e **renderizar** — mas renderizar numa pilha única mistura mecânica e narrativa. A ficha precisa ganhar **abas**: um eixo de navegação que separe "o que meu personagem consegue fazer" (mecânica) de "quem meu personagem é" (background).
+O dado já existe e já é servido: `Character.background` é persistido (US-39) e o endpoint `findOne` já o devolve (é um scalar do `Character`, sem `select` que o exclua — [character.service.ts](../../../apps/api/src/character/character.service.ts) `findOne`). Falta **passar** o campo à `GameView` e **renderizar** — mas renderizar numa pilha única mistura mecânica e narrativa. A ficha precisa ganhar **abas**: um eixo de navegação que separe "o que meu personagem consegue fazer" (mecânica) de "quem meu personagem é" (background).
 
 ### A proposta
 
@@ -44,7 +44,7 @@ A identidade do topo (nome, raça, classe) e a barra de **HP** ficam **fixas aci
 
 ### Dentro do escopo
 
-- **Abas na ficha** (sidebar da [GameView.tsx](../../apps/web/src/components/game/GameView.tsx)): pelo menos duas — **"Ficha"** (mecânica) e **"Background"** (narrativa). Uma aba ativa por vez; a "Ficha" é a inicial.
+- **Abas na ficha** (sidebar da [GameView.tsx](../../../apps/web/src/components/game/GameView.tsx)): pelo menos duas — **"Ficha"** (mecânica) e **"Background"** (narrativa). Uma aba ativa por vez; a "Ficha" é a inicial.
 - Nome/raça/classe e a barra de **HP** ficam **fixos acima das abas** (sempre visíveis, não pertencem a nenhuma aba).
 - Aba **"Ficha"**: condições, atributos, perícias e inventário (o conteúdo mecânico de hoje, movido para dentro da aba).
 - Aba **"Background"**, read-only: história (prosa) + ideais + vínculos + fraquezas.
@@ -79,7 +79,7 @@ A identidade do topo (nome, raça, classe) e a barra de **HP** ficam **fixas aci
 ## Notas de implementação
 
 - `GameView` recebe a ficha por props (`attributes`, `skills`, `conditions`, …) montadas na página de jogo. Adicionar `background?: { story?; ideals?; bonds?; flaws? }` às `Props`.
-- **Abas via estado local:** `const [tab, setTab] = useState<'ficha' | 'background'>('ficha')` na `GameView`. É estado só de vista — **não** mexer no estado de jogo (`messages`, `currentHp`, `inventory`), para que trocar de aba não remonte nem perca nada. A sidebar (`<aside>` em [GameView.tsx:216](../../apps/web/src/components/game/GameView.tsx)) passa a ter: bloco fixo (nome/raça/classe + HP) → barra de abas → conteúdo da aba ativa.
+- **Abas via estado local:** `const [tab, setTab] = useState<'ficha' | 'background'>('ficha')` na `GameView`. É estado só de vista — **não** mexer no estado de jogo (`messages`, `currentHp`, `inventory`), para que trocar de aba não remonte nem perca nada. A sidebar (`<aside>` em [GameView.tsx:216](../../../apps/web/src/components/game/GameView.tsx)) passa a ter: bloco fixo (nome/raça/classe + HP) → barra de abas → conteúdo da aba ativa.
 - **Barra de abas:** renderizar a partir de uma **lista de abas** (ex.: `[{ id: 'ficha', label: 'Ficha' }, { id: 'background', label: 'Background' }]`), não dois botões hard-coded — assim uma futura aba (divindade/features/magias) entra acrescentando um item. Cada botão `role="tab"` + `aria-selected` + `aria-controls` num container `role="tablist"`; cada painel `role="tabpanel"`. Aba ativa com destaque (ex.: borda inferior âmbar + texto `text-amber-600 dark:text-amber-400`), inativa esmaecida. Alvo de toque ≥44px; navegação por teclado com setas.
 - Mover o conteúdo mecânico atual (condições, atributos, perícias, inventário) para dentro do painel da aba **"Ficha"** — é recolocação, não reescrita das seções.
 - Painel **"Background"**: render condicional dos blocos como as outras seções (`background?.story && …`); iterar os eixos com rótulos ("História", "Ideais", "Vínculos", "Fraquezas"), listas como itens. `story` longa com `whitespace-pre-wrap` (a sidebar rola). Se nenhum eixo tiver conteúdo, renderizar o **empty state** em vez dos blocos (ex.: um `<p>` esmaecido "Este personagem ainda não tem história.").

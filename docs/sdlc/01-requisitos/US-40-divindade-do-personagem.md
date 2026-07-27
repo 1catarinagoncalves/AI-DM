@@ -100,7 +100,7 @@ Sem `portfolio` (só `name`), render sem parênteses: `- Divindade: Tymora.`
 - [x] O prompt inclui a linha de divindade **só quando presente**; personagem sem divindade não gera linha nem crash.
 - [x] O prompt instrui o mestre a usar a fé como cor narrativa (invocações, presságios, tom), coerente com ideais/fraquezas da US-39.
 - [x] A divindade é renderizada pela **mesma iteração** da seção de identidade — não é um `if` novo dedicado no builder.
-- [x] **Interface:** a **aba "Background"** da ficha ([GameView.tsx](../../apps/web/src/components/game/GameView.tsx)) mostra a divindade (nome + portfólio) **quando presente**, read-only; personagem sem `deity` **não** gera bloco de divindade na aba (sem bloco fantasma nem crash).
+- [x] **Interface:** a **aba "Background"** da ficha ([GameView.tsx](../../../apps/web/src/components/game/GameView.tsx)) mostra a divindade (nome + portfólio) **quando presente**, read-only; personagem sem `deity` **não** gera bloco de divindade na aba (sem bloco fantasma nem crash).
 - [x] **Eval / regressão (prompt):** personagem com `deity` produz um prompt contendo o nome da divindade na seção de identidade; personagem sem `deity` produz a seção sem linha de divindade (`evals/cases/us-40-*.ts`).
 - [x] **Eval / regressão (interface):** renderizar `GameView` com `deity` e ver o nome da divindade na aba **Background**; sem `deity`, a aba não mostra bloco de divindade (`GameView.test.tsx` ou equivalente).
 

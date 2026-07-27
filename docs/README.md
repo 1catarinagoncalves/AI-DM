@@ -78,6 +78,14 @@ toda execução, e o primeiro link relativo vindo de fora para aquela pasta
 pnpm docs:links            # falha se houver link relativo quebrado ou nome fora da convenção
 pnpm docs:links --list     # mostra cada quebrado (com correção sugerida) e cada nome irregular
 pnpm docs:links --only-md  # falha só nos links que apontam para .md (aceite da US-78; ignora nomes)
+pnpm docs:links --fix      # reescreve os de profundidade errada (US-79); só com a flag
 ```
 
 Node puro, sem dependência. Rode antes de commitar documentação.
+
+`--fix` só toca no bucket de **profundidade errada com candidato único** (o
+`../../` que devia ser `../../../`). Ambíguo e alvo inexistente ficam intactos e
+saem no relatório: escolher entre dois candidatos, ou adivinhar qual arquivo o
+autor quis citar, é decisão humana. A escrita nunca sai de `docs/` e dos três
+`.md` da raiz, e **nunca acontece sem a flag** — o gate roda no CI, e gate que
+edita arquivo sozinho não é gate.

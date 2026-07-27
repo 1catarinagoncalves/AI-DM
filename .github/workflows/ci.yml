@@ -49,8 +49,14 @@ jobs:
 
       - run: pnpm eval
 
-      # Gate de links .md (US-78) e de nome de arquivo (US-82), mesmo script.
-      # --only-md porque o gate completo ainda conta os 85 quebrados que são da
-      # US-79; troca para `pnpm docs:links` quando aquela story fechar.
+      # Gate completo de links (US-78 + US-79) e de nome de arquivo (US-82), mesmo
+      # script. Era `--only-md` enquanto os 85 quebrados da US-79 existiam; ela
+      # fechou em 27/07/2026 e o gate apertou. Sem `--fix` de propósito: um passo
+      # de CI que reescreve arquivo sozinho não é gate.
       - name: Gate de docs
-        run: pnpm docs:links --only-md
+        run: pnpm docs:links
+
+      # O `pnpm test` acima é recursivo pelos workspaces e não alcança a raiz;
+      # este é o teste de regressão do modo de escrita do próprio gate (US-79).
+      - name: Teste do gate de docs
+        run: pnpm docs:links:test

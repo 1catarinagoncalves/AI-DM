@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** nenhuma. Fatiada da [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) (era o "P1" dela), que passa a recomendar esta story como pré-requisito prático.
 **Criada em:** 2026-07-26
 
@@ -52,7 +52,8 @@ Foi por isso que a US-77 colocou o CI como P1 e mandou fazê-lo primeiro. Esta s
   7. `pnpm typecheck` — `apps/api` + `apps/web` (o script do `web` nasceu aqui; ver *Questões em aberto* #4)
   8. `pnpm test`
   9. `pnpm eval`
-  10. `pnpm docs:links --only-md` — gate de links `.md` e de nome de arquivo ([US-78](./US-78-vault-obsidian-para-os-docs.md) e [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md)). Node puro, sem deps, roda em segundos. Por que `--only-md` e não o gate completo: *Questões em aberto* #3.
+  10. `pnpm docs:links` — gate de links e de nome de arquivo ([US-78](./US-78-vault-obsidian-para-os-docs.md) e [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md)). Node puro, sem deps, roda em segundos. Nasceu como `--only-md` e apertou para o gate completo em 27/07/2026, quando a [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) zerou os 85 quebrados: *Questões em aberto* #3.
+  11. `pnpm docs:links:test` — teste de regressão do modo de escrita do próprio gate (US-79). Passo separado porque o `pnpm test` do item 8 é `--recursive` pelos workspaces e não alcança `scripts/`, que vive na raiz.
 - `DATABASE_URL` fictícia no ambiente do job (ver *Notas*), o suficiente para o `prisma.config.ts` resolver.
 
 ### Fora do escopo
@@ -61,7 +62,7 @@ Foi por isso que a US-77 colocou o CI como P1 e mandou fazê-lo primeiro. Esta s
 - **Secrets de provedor de LLM.** Os evals que chamam modelo de verdade já são `skip` por design ([US-36](./US-36-eval-de-qualidade-da-narracao.md)). O job roda sem nenhuma chave; se algum eval **exigir** chave para passar, isso é bug do eval, não do CI — reportar, não contornar com secret.
 - **Banco de dados de verdade no runner.** Se algum teste do `apps/api` precisar de Postgres para passar, ele sai desta story como achado (ver *Questões em aberto* #2), não vira um serviço no workflow.
 - **As reancoragens de assertiva e o `PROMPT-ANCHORS.md`** — são a [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md).
-- **O gate completo de links** (`pnpm docs:links` sem flag). Hoje sai vermelho por 85 quebrados que são da [US-79](./US-79-consertar-links-quebrados-na-documentacao.md). O job roda a variante `--only-md`, que já passa; a troca para o gate completo é critério de aceite daquela story. Ver *Questões em aberto* #3.
+- ~~**O gate completo de links** (`pnpm docs:links` sem flag). Hoje sai vermelho por 85 quebrados que são da [US-79](./US-79-consertar-links-quebrados-na-documentacao.md). O job roda a variante `--only-md`, que já passa; a troca para o gate completo é critério de aceite daquela story.~~ **Entrou em 27/07/2026**, pela mão da US-79: ela zerou os 85 e apertou o passo, como o critério de aceite dela previa. Ver *Questões em aberto* #3.
 - Matriz de sistemas operacionais ou de versões de Node. Um runner `ubuntu-latest`, uma versão.
 
 ---
@@ -172,6 +173,8 @@ Foi por isso que a US-77 colocou o CI como P1 e mandou fazê-lo primeiro. Esta s
    Entra `pnpm docs:links --only-md`. O gate completo nasceria vermelho, e passo de CI que nasce vermelho treina a pessoa a ignorar o vermelho — mesmo raciocínio com que a US-82 esperou a US-81 antes de ligar o gate de nomes. Como o script já classifica os quebrados por dona, `--only-md` é exatamente "tudo que já foi consertado": vale como trava contra regressão sem cobrar dívida que outra story tem.
 
    **Troca para o gate completo** (`pnpm docs:links`, sem flag) quando a US-79 fechar — é critério de aceite dela, não desta.
+
+   > **A troca aconteceu no mesmo dia, 27/07/2026.** A US-79 entregou o `--fix`, zerou os 82 de profundidade, resolveu à mão os 3 de código e apertou este passo para `pnpm docs:links`. O `--only-md` cumpriu exatamente o papel para que foi escolhido: trava contra regressão durante as horas em que a dívida ainda era de outra story. **`--fix` não entra no CI** — o gate reporta, quem reescreve é uma pessoa rodando o comando. A US-79 acrescentou também o passo 11, `pnpm docs:links:test`.
 4. ~~**`pnpm typecheck` cobre um projeto só — `apps/web` não é typecheckado por ninguém no CI.**~~ **Achado de 27/07/2026, não previsto pela story. Fechado no mesmo dia.**
 
    `pnpm typecheck` é `pnpm --recursive typecheck`, e **só o `apps/api` tinha esse script** — a saída dizia `Scope: 4 of 5 workspace projects` e rodava um `tsc` apenas. Os pacotes escapam por acidente feliz: `pnpm --filter './packages/*' build` é literalmente `tsc`, então erro de tipo em `shared` ou `ai-engine` derruba o passo de build. **`apps/web` não tinha nem uma coisa nem outra** — nenhum `typecheck`, e o `next build` não está no job (a story recorta os apps do passo de build). O único gate era o `next build` da Vercel a cada push ([US-60](./US-60-web-em-producao-vercel.md)): sinal que chega pelo painel da Vercel, não pela aba de checks — a mesma invisibilidade que motivou esta story, uma casa adiante.

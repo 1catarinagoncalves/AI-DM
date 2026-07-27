@@ -22,11 +22,11 @@
 
 ### O problema observado
 
-O endpoint do Mestre ([ai.controller.ts](../../apps/api/src/ai/ai.controller.ts)) responde em **SSE**, mantendo a resposta HTTP aberta por dezenas de segundos enquanto o LLM streama. O [ADR 006](../../adr/006-deploy-custo-zero.md) (D2) conclui que isso **não** cabe em função serverless (teto de execução) — precisa de um **host de processo persistente**. Hoje a API só roda em `localhost`; não há deploy.
+O endpoint do Mestre ([ai.controller.ts](../../../apps/api/src/ai/ai.controller.ts)) responde em **SSE**, mantendo a resposta HTTP aberta por dezenas de segundos enquanto o LLM streama. O [ADR 006](../../adr/006-deploy-custo-zero.md) (D2) conclui que isso **não** cabe em função serverless (teto de execução) — precisa de um **host de processo persistente**. Hoje a API só roda em `localhost`; não há deploy.
 
 ### Por que a solução atual não basta
 
-A API já é um processo Node de longa duração (`app.listen`, [main.ts](../../apps/api/src/main.ts)) — está pronta para um host de processo, mas ninguém a hospedou. Falta o serviço na nuvem, as env vars e o passo de migração no release.
+A API já é um processo Node de longa duração (`app.listen`, [main.ts](../../../apps/api/src/main.ts)) — está pronta para um host de processo, mas ninguém a hospedou. Falta o serviço na nuvem, as env vars e o passo de migração no release.
 
 ### A proposta
 
@@ -42,7 +42,7 @@ Subir o `apps/api` como **Web Service no Render** (plano Free): build do monorep
 - **Build do monorepo:** instalar deps, buildar os `packages/*` que a API importa (`@ai-dm/shared`, `@ai-dm/ai-engine` — memória `ai-engine-dist-rebuild`), `prisma generate` (client gitignored) e `nest build`. O `pnpm build` da raiz já encadeia packages→apps.
 - **Start:** `node dist/main` (`PORT` injetada pelo Render).
 - **Release step:** `prisma migrate deploy` (idempotente; não `migrate dev`, não re-seed).
-- **Env vars (segredos):** `DATABASE_URL` (Neon, US-58), `FRONTEND_URL` (domínio da Vercel, US-60 — fecha o CORS em [main.ts:9](../../apps/api/src/main.ts)), e as chaves de LLM que o `ai-engine` lê **em runtime** na narração ([model.ts](../../packages/ai-engine/src/model.ts)). **Nenhuma** chave de LLM vai para o web.
+- **Env vars (segredos):** `DATABASE_URL` (Neon, US-58), `FRONTEND_URL` (domínio da Vercel, US-60 — fecha o CORS em [main.ts:9](../../../apps/api/src/main.ts)), e as chaves de LLM que o `ai-engine` lê **em runtime** na narração ([model.ts](../../../packages/ai-engine/src/model.ts)). **Nenhuma** chave de LLM vai para o web.
 - **Arquivo de config de deploy** (`render.yaml` ou equivalente) versionado, se ajudar a reprodutibilidade.
 - **Verificação:** `GET /api/v1/systems` público retorna os sistemas; `POST /api/v1/ai/chat` streama tokens SSE de ponta a ponta.
 
@@ -71,7 +71,7 @@ Subir o `apps/api` como **Web Service no Render** (plano Free): build do monorep
 ## Notas de implementação
 
 - **`prisma generate` é obrigatório no build** — o client vive em `src/generated/prisma` e é gitignored (memória `prisma-7-upgrade`); sem gerar, o build da API quebra.
-- **Chaves de runtime vs. eval:** [model.ts](../../packages/ai-engine/src/model.ts) lê várias chaves, mas as de **produção** são as do caminho de narração (primário + fallback); `GEMINI/OPENAI/NVIDIA` extras são de bake-off/eval e **não** precisam existir no Render. Confirmar em `model.ts` qual par é o de runtime antes de configurar.
+- **Chaves de runtime vs. eval:** [model.ts](../../../packages/ai-engine/src/model.ts) lê várias chaves, mas as de **produção** são as do caminho de narração (primário + fallback); `GEMINI/OPENAI/NVIDIA` extras são de bake-off/eval e **não** precisam existir no Render. Confirmar em `model.ts` qual par é o de runtime antes de configurar.
 - **Sleep do Free (~15 min):** aceito por decisão (ADR 006, D2). A [US-57](./US-57-warmup-do-servidor-na-entrada.md) esconde o cold start na entrada do jogo.
 - **`FRONTEND_URL` é dependência circular leve com a US-60:** o web precisa da URL da API e a API precisa do domínio do web (CORS). Subir a API primeiro com um valor provisório e ajustar `FRONTEND_URL` quando a Vercel der o domínio final.
 - **Alternativas de host (mesmo papel):** Fly.io / Koyeb, caso o sleep do Render incomode (ADR 006, D2). Trocar de provedor não muda esta US além do painel.

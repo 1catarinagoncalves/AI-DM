@@ -108,4 +108,4 @@ Sugestão: **decidir ao planejar a US-51**, com o ADR 004 já escrito em mãos �
 - [apps/api/prisma/seed.ts](../../../apps/api/prisma/seed.ts) — `dnd5eKits` (hoje manual, alvo da derivação); `freeConfig.startingKits` (referência a desacoplar).
 - [apps/api/src/character/starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) — `getStartingInventory` + `CLASS_SYNONYMS`; **inalterado** (o kit muda de conteúdo, não de mecanismo de resolução).
 - [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `StartingKitItemSchema` (`{ name, qty }`), destino do mapeamento.
-- [scripts/srd/ingest.ts](../../../scripts/srd/ingest.ts) — pipeline da US-47, estendido aqui.
+- [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — pipeline da US-47, estendido aqui.

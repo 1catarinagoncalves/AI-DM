@@ -27,7 +27,7 @@ Assimetria estranha: o mestre sabe que a personagem tem "Chama Sagrada"; quem jo
 
 ### Por que a solução atual não basta
 
-O dado já existe e **já é servido**: `spells` é um scalar do `Character`, e o `findOne` ([character.service.ts](../../apps/api/src/character/character.service.ts)) não tem `select` que o exclua — o endpoint `GET /characters/:id` já o devolve hoje. Falta apenas **passá-lo adiante** (página de jogo → prop da `GameView`) e **renderizar**. Nenhum endpoint novo, nenhuma migração, nenhuma mudança de backend.
+O dado já existe e **já é servido**: `spells` é um scalar do `Character`, e o `findOne` ([character.service.ts](../../../apps/api/src/character/character.service.ts)) não tem `select` que o exclua — o endpoint `GET /characters/:id` já o devolve hoje. Falta apenas **passá-lo adiante** (página de jogo → prop da `GameView`) e **renderizar**. Nenhum endpoint novo, nenhuma migração, nenhuma mudança de backend.
 
 A US-42 excluiu explicitamente a UI do seu escopo ("esta US é **só backend/prompt + eval**; a aba de magias na ficha, se desejada, é uma US de interface separada"). Esta é essa US.
 
@@ -45,10 +45,10 @@ O formato de linha é o mesmo das features — **nome + descrição curta** — 
 
 ### Dentro do escopo
 
-- Secção **"Magias"** dentro do painel da aba **"Features"** ([GameView.tsx](../../apps/web/src/components/game/GameView.tsx), `FeaturesPanel`), abaixo da secção de features.
+- Secção **"Magias"** dentro do painel da aba **"Features"** ([GameView.tsx](../../../apps/web/src/components/game/GameView.tsx), `FeaturesPanel`), abaixo da secção de features.
 - Cada magia: **nome + rótulo de nível + descrição curta**, read-only. `level === 0` → `(truque)`; `level >= 1` → `(nível N)`; `level` ausente → sem rótulo (mesma regra da secção "Known spells" do prompt, US-42).
 - Thread do campo `spells` do que a API **já devolve** (`findOne`) → `app/play/[adventureId]/page.tsx` → prop `spells` da `GameView` (espelha exatamente o thread de `features`).
-- Tipo `spells` acrescentado ao retorno tipado de `getCharacter` em [api.ts](../../apps/web/src/lib/api.ts) (hoje só declara `features`).
+- Tipo `spells` acrescentado ao retorno tipado de `getCharacter` em [api.ts](../../../apps/web/src/lib/api.ts) (hoje só declara `features`).
 - **Empty state por secção:** conjurador sem magias, ou não-conjurador (`spells: []`), **não** gera secção "Magias" vazia. A **aba nunca some** (padrão US-45) — se *nem* features *nem* magias existirem, mantém-se o empty state de hoje.
 - Ordenação: magias por **nível e depois nome** (truques primeiro), para a lista de 20 truques do mago ficar legível.
 - Acessibilidade e dark mode coerentes com o painel existente (US-46): sub-títulos como headings reais, não `<p>` a fingir de título.
@@ -74,7 +74,7 @@ O formato de linha é o mesmo das features — **nome + descrição curta** — 
 - [ ] As magias são lidas do que a API **já devolve** (`findOne`) — **sem** endpoint novo, **sem** chamar `getSpell` a partir do frontend.
 - [ ] Trocar de aba **não perde estado** de jogo (mensagens, HP, inventário) — continua a ser só troca de vista (US-45).
 - [ ] A lista está **ordenada por nível e depois por nome** (os 20 truques do mago não saem em ordem arbitrária).
-- [ ] **Eval / regressão:** renderizar `GameView` com um clérigo, clicar na aba **Features** e ver "Chama Sagrada" com "(truque)" e a descrição; com `spells: []` (guerreiro), a aba abre, mostra as features e **não** mostra a secção "Magias" ([GameView.test.tsx](../../apps/web/src/components/game/GameView.test.tsx)).
+- [ ] **Eval / regressão:** renderizar `GameView` com um clérigo, clicar na aba **Features** e ver "Chama Sagrada" com "(truque)" e a descrição; com `spells: []` (guerreiro), a aba abre, mostra as features e **não** mostra a secção "Magias" ([GameView.test.tsx](../../../apps/web/src/components/game/GameView.test.tsx)).
 
 ---
 
@@ -82,11 +82,11 @@ O formato de linha é o mesmo das features — **nome + descrição curta** — 
 
 - **Backend: zero.** `Character.spells` já é persistido (US-42) e o `findOne` já o devolve. Resistir à tentação de criar `GET /characters/:id/spells` — não é preciso.
 - **Thread do dado** (copiar linha a linha o que `features` já faz):
-  - [page.tsx](../../apps/web/src/app/play/[adventureId]/page.tsx): `spells={character.spells}` ao lado de `features={character.features}`.
-  - [GameView.tsx](../../apps/web/src/components/game/GameView.tsx): `spells?: KnownSpell[]` nas `Props`, desestruturado e passado ao `FeaturesPanel`.
-  - [api.ts](../../apps/web/src/lib/api.ts): acrescentar `spells: { name: string; level?: number; description?: string }[]` ao tipo do `getCharacter`.
+  - [page.tsx](../../../apps/web/src/app/play/[adventureId]/page.tsx): `spells={character.spells}` ao lado de `features={character.features}`.
+  - [GameView.tsx](../../../apps/web/src/components/game/GameView.tsx): `spells?: KnownSpell[]` nas `Props`, desestruturado e passado ao `FeaturesPanel`.
+  - [api.ts](../../../apps/web/src/lib/api.ts): acrescentar `spells: { name: string; level?: number; description?: string }[]` ao tipo do `getCharacter`.
 - **Tipo:** reaproveitar `KnownSpell` de `@ai-dm/ai-engine` (já exportado pela US-42, ao lado de `ClassFeature` — que a `GameView` já importa). **Não** redefinir a forma no web.
-- **Rótulo de nível:** a US-42 já tem essa regra em `spellLevelLabel` ([dm-system.ts](../../packages/ai-engine/src/prompts/dm-system.ts)), mas está **privada** ao módulo. Exportá-la e reusar, em vez de reescrever a regra no web — senão o prompt e a ficha podem divergir (ex.: um diz "truque" e o outro "nível 0").
+- **Rótulo de nível:** a US-42 já tem essa regra em `spellLevelLabel` ([dm-system.ts](../../../packages/ai-engine/src/prompts/dm-system.ts)), mas está **privada** ao módulo. Exportá-la e reusar, em vez de reescrever a regra no web — senão o prompt e a ficha podem divergir (ex.: um diz "truque" e o outro "nível 0").
 - **`FeaturesPanel`:** passa a receber `{ features, spells }` e a renderizar duas secções condicionais. Cada secção só existe se a sua lista tiver itens; o empty state atual ("Esta classe ainda não tem features registadas.") passa a cobrir o caso "**nem** features **nem** magias" — reformular o texto para não mentir a um conjurador sem features (ex.: "Esta classe ainda não tem features nem magias registadas.").
 - A linha da magia reusa o layout da linha da feature (nome a âmbar, descrição por baixo); o nível entra no nome (`Chama Sagrada (truque)`), não numa coluna nova.
 - Ordenação: `[...spells].sort((a, b) => (a.level ?? 0) - (b.level ?? 0) || a.name.localeCompare(b.name))` — não mutar a prop.

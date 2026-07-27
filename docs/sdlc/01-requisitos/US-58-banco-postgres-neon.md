@@ -24,7 +24,7 @@ O [ADR 006](../../adr/006-deploy-custo-zero.md) escolhe a **Neon** (Postgres ser
 
 ### Por que a solução atual não basta
 
-O schema e o seed existem no repo ([schema.prisma](../../apps/api/prisma/schema.prisma), [seed.ts](../../apps/api/prisma/seed.ts), pipeline SRD da US-47), mas nunca correram contra um banco gerenciado. O adapter `pg` do Prisma 7 já fala com qualquer Postgres via connection string — falta a string e o banco do outro lado.
+O schema e o seed existem no repo ([schema.prisma](../../../apps/api/prisma/schema.prisma), [seed.ts](../../../apps/api/prisma/seed.ts), pipeline SRD da US-47), mas nunca correram contra um banco gerenciado. O adapter `pg` do Prisma 7 já fala com qualquer Postgres via connection string — falta a string e o banco do outro lado.
 
 ### A proposta
 

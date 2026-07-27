@@ -34,7 +34,7 @@ pnpm eval                 # rodar suite de evals do DM Agent
 pnpm db:migrate           # aplicar migrações Prisma
 pnpm db:studio            # abrir Prisma Studio
 pnpm typecheck            # tsc --noEmit (não há lint: ver AGENTS.md)
-pnpm docs:links           # links relativos quebrados em docs/ (--list, --only-md, --naive)
+pnpm docs:links           # links quebrados em docs/ + .md da raiz (--list, --only-md, --naive, --fix)
 ```
 
 ## Regras de trabalho para o Claude Code

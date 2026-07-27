@@ -25,18 +25,18 @@ O `apps/web` está público na Vercel (US-60) e o jogador chega por link — a m
 
 Só a mesa de jogo tem breakpoints. Contagem de classes responsivas (`sm:`/`md:`/`lg:`) por componente:
 
-- [GameView.tsx](../../apps/web/src/components/game/GameView.tsx) — **11** ocorrências (único que trata mobile).
-- [HomeHero.tsx](../../apps/web/src/components/HomeHero.tsx) — **0**.
-- [SetupWizard.tsx](../../apps/web/src/components/setup/SetupWizard.tsx) — **0**.
-- [login/page.tsx](../../apps/web/src/app/login/page.tsx) — **0**.
+- [GameView.tsx](../../../apps/web/src/components/game/GameView.tsx) — **11** ocorrências (único que trata mobile).
+- [HomeHero.tsx](../../../apps/web/src/components/HomeHero.tsx) — **0**.
+- [SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx) — **0**.
+- [login/page.tsx](../../../apps/web/src/app/login/page.tsx) — **0**.
 
 Problemas concretos encontrados:
 
-1. **Trilha de etapas do wizard esmaga em tela estreita.** A `<nav>` de progresso ([SetupWizard.tsx:227](../../apps/web/src/components/setup/SetupWizard.tsx)) põe **7 etapas lado a lado** com `flex-1` e rótulo `text-[10px]`. Num celular de 375px (com `max-w-md` + `p-4`, sobram ~343px úteis), cada rótulo ganha ~49px — "Atributos", "Background", "Perícias" não cabem: quebram linha ou estouram. Além de ser texto de 10px, abaixo do confortável (choca com o espírito da US-46).
-2. **A ficha vira faixa horizontal apertada na mesa.** No mobile a `<aside>` da `GameView` colapsa para `flex md:flex-col` com `overflow-x-auto` ([GameView.tsx:383](../../apps/web/src/components/game/GameView.tsx)) — a ficha inteira (atributos em `grid grid-cols-3`, HP, perícias) vira uma tira que rola de lado no topo. Conteúdo denso espremido numa faixa; o jogador rola horizontalmente para ver a própria ficha.
-3. **Altura da lista de mensagens é fixa e assume chrome de desktop.** O container de narração usa `style={{ maxHeight: 'calc(100vh - 120px)' }}` inline ([GameView.tsx:551](../../apps/web/src/components/game/GameView.tsx)). O `120px` é um chute do cabeçalho de desktop; no mobile a `aside` horizontal + a caixa de ação empurram o layout e o cálculo desalinha (área de rolagem sob a barra de digitação, ou sob a URL bar do navegador móvel que muda de altura).
-4. **Títulos grandes sem escala.** `text-5xl`/`text-4xl` fixos no herói ([HomeHero.tsx:11](../../apps/web/src/components/HomeHero.tsx)) — grandes num aparelho estreito, sem `text-3xl sm:text-5xl` para respirar.
-5. **Grids de coluna fixa.** `grid-cols-2` em Raça/Classe e Atributos ([SetupWizard.tsx:286](../../apps/web/src/components/setup/SetupWizard.tsx)) e `grid-cols-3` na ficha da mesa — nunca degradam para 1 coluna no aparelho mais estreito, arriscando corte/aperto dos campos.
+1. **Trilha de etapas do wizard esmaga em tela estreita.** A `<nav>` de progresso ([SetupWizard.tsx:227](../../../apps/web/src/components/setup/SetupWizard.tsx)) põe **7 etapas lado a lado** com `flex-1` e rótulo `text-[10px]`. Num celular de 375px (com `max-w-md` + `p-4`, sobram ~343px úteis), cada rótulo ganha ~49px — "Atributos", "Background", "Perícias" não cabem: quebram linha ou estouram. Além de ser texto de 10px, abaixo do confortável (choca com o espírito da US-46).
+2. **A ficha vira faixa horizontal apertada na mesa.** No mobile a `<aside>` da `GameView` colapsa para `flex md:flex-col` com `overflow-x-auto` ([GameView.tsx:383](../../../apps/web/src/components/game/GameView.tsx)) — a ficha inteira (atributos em `grid grid-cols-3`, HP, perícias) vira uma tira que rola de lado no topo. Conteúdo denso espremido numa faixa; o jogador rola horizontalmente para ver a própria ficha.
+3. **Altura da lista de mensagens é fixa e assume chrome de desktop.** O container de narração usa `style={{ maxHeight: 'calc(100vh - 120px)' }}` inline ([GameView.tsx:551](../../../apps/web/src/components/game/GameView.tsx)). O `120px` é um chute do cabeçalho de desktop; no mobile a `aside` horizontal + a caixa de ação empurram o layout e o cálculo desalinha (área de rolagem sob a barra de digitação, ou sob a URL bar do navegador móvel que muda de altura).
+4. **Títulos grandes sem escala.** `text-5xl`/`text-4xl` fixos no herói ([HomeHero.tsx:11](../../../apps/web/src/components/HomeHero.tsx)) — grandes num aparelho estreito, sem `text-3xl sm:text-5xl` para respirar.
+5. **Grids de coluna fixa.** `grid-cols-2` em Raça/Classe e Atributos ([SetupWizard.tsx:286](../../../apps/web/src/components/setup/SetupWizard.tsx)) e `grid-cols-3` na ficha da mesa — nunca degradam para 1 coluna no aparelho mais estreito, arriscando corte/aperto dos campos.
 
 ### Por que a solução atual não basta
 
@@ -58,8 +58,8 @@ Um passe de **responsividade mobile-first** nas quatro superfícies (hub, login,
 - **Tipografia fluida:** títulos e textos-chave escalam por breakpoint (ex.: `text-3xl sm:text-4xl md:text-5xl`) — sem títulos grandes demais no aparelho estreito.
 - **Grids que degradam:** `grid-cols-2`/`grid-cols-3` ganham base de 1 coluna quando necessário (ex.: `grid-cols-1 sm:grid-cols-2`), garantindo que nenhum campo/atributo corte.
 - **Sem rolagem horizontal de página:** nenhuma das quatro telas gera scroll horizontal em 360px de largura; conteúdo sempre dentro do viewport.
-- **Alvos de toque no mobile:** interativos-chave mantêm alvo confortável (≥44×44px) também em telas pequenas — reaproveitando o que a US-46 já fez pontualmente ([HomeHero.tsx:161](../../apps/web/src/components/HomeHero.tsx) já usa `min-w-[44px] min-h-[44px]`).
-- **Viewport meta explícito:** garantir `width=device-width, initial-scale=1` — via `export const viewport` no [layout.tsx](../../apps/web/src/app/layout.tsx) — em vez de depender só do default do Next.
+- **Alvos de toque no mobile:** interativos-chave mantêm alvo confortável (≥44×44px) também em telas pequenas — reaproveitando o que a US-46 já fez pontualmente ([HomeHero.tsx:161](../../../apps/web/src/components/HomeHero.tsx) já usa `min-w-[44px] min-h-[44px]`).
+- **Viewport meta explícito:** garantir `width=device-width, initial-scale=1` — via `export const viewport` no [layout.tsx](../../../apps/web/src/app/layout.tsx) — em vez de depender só do default do Next.
 
 ### Fora do escopo
 
@@ -91,7 +91,7 @@ Um passe de **responsividade mobile-first** nas quatro superfícies (hub, login,
 - **Ficha na mesa:** a `aside` já é `md:flex-col` / `md:w-64` — falta o comportamento mobile decente. Opção leve: no `< md`, tornar a ficha um `<details>`/painel recolhível (ou reaproveitar o padrão de abas da US-45) em vez de `overflow-x-auto`. Evitar recriar um drawer do zero se um `<details>` acessível resolve.
 - **Altura sem `100vh` fixo:** o padrão robusto é a página em `flex flex-col` com `min-h-dvh`, a lista de mensagens `flex-1 min-h-0 overflow-y-auto`, e a caixa de ação como irmã fora da área de rolagem — dispensa o `calc(100vh - 120px)`. `min-h-0` é o detalhe que faz o filho flex rolar em vez de empurrar.
 - **`dvh` vs `vh`:** `100dvh` acompanha a URL bar móvel que aparece/some; `100vh` não. Trocar onde o corte de altura importa.
-- **Reaproveitar padrões existentes:** US-45 (abas acessíveis) e US-46 (foco, alvos, contraste) já fixaram convenções — seguir, não divergir. `min-w-[44px] min-h-[44px]` já existe no [HomeHero.tsx](../../apps/web/src/components/HomeHero.tsx).
+- **Reaproveitar padrões existentes:** US-45 (abas acessíveis) e US-46 (foco, alvos, contraste) já fixaram convenções — seguir, não divergir. `min-w-[44px] min-h-[44px]` já existe no [HomeHero.tsx](../../../apps/web/src/components/HomeHero.tsx).
 - **Verificação:** `resize_window` (preset `mobile` 375×812) no preview + navegar as quatro telas; conferir ausência de scroll horizontal e a trilha/ficha legíveis.
 
 ---
