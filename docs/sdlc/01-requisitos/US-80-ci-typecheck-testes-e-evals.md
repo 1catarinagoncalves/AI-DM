@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** nenhuma. Fatiada da [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) (era o "P1" dela), que passa a recomendar esta story como pré-requisito prático.
 **Criada em:** 2026-07-26
 
@@ -52,6 +52,7 @@ Foi por isso que a US-77 colocou o CI como P1 e mandou fazê-lo primeiro. Esta s
   7. `pnpm typecheck`
   8. `pnpm test`
   9. `pnpm eval`
+  10. `pnpm docs:links --only-md` — gate de links `.md` e de nome de arquivo ([US-78](./US-78-vault-obsidian-para-os-docs.md) e [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md)). Node puro, sem deps, roda em segundos. Por que `--only-md` e não o gate completo: *Questões em aberto* #3.
 - `DATABASE_URL` fictícia no ambiente do job (ver *Notas*), o suficiente para o `prisma.config.ts` resolver.
 
 ### Fora do escopo
@@ -60,7 +61,7 @@ Foi por isso que a US-77 colocou o CI como P1 e mandou fazê-lo primeiro. Esta s
 - **Secrets de provedor de LLM.** Os evals que chamam modelo de verdade já são `skip` por design ([US-36](./US-36-eval-de-qualidade-da-narracao.md)). O job roda sem nenhuma chave; se algum eval **exigir** chave para passar, isso é bug do eval, não do CI — reportar, não contornar com secret.
 - **Banco de dados de verdade no runner.** Se algum teste do `apps/api` precisar de Postgres para passar, ele sai desta story como achado (ver *Questões em aberto* #2), não vira um serviço no workflow.
 - **As reancoragens de assertiva e o `PROMPT-ANCHORS.md`** — são a [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md).
-- **O `--check` de links da [US-79](./US-79-consertar-links-quebrados-na-documentacao.md).** Vira um passo a mais quando aquela story existir; não se antecipa aqui.
+- **O gate completo de links** (`pnpm docs:links` sem flag). Hoje sai vermelho por 85 quebrados que são da [US-79](./US-79-consertar-links-quebrados-na-documentacao.md). O job roda a variante `--only-md`, que já passa; a troca para o gate completo é critério de aceite daquela story. Ver *Questões em aberto* #3.
 - Matriz de sistemas operacionais ou de versões de Node. Um runner `ubuntu-latest`, uma versão.
 
 ---
@@ -98,9 +99,41 @@ Foi por isso que a US-77 colocou o CI como P1 e mandou fazê-lo primeiro. Esta s
 
 ## Questões em aberto
 
-1. **O CI bloqueia merge?** Fora do escopo aqui, mas precisa de resposta quando o fluxo deixar de ser commit direto em `main`. (Herdada da US-77, questão 3.)
+1. ~~**O CI bloqueia merge?**~~ **Respondida em 2026-07-27: não, e não há o que trancar.** (Herdada da US-77, questão 3.)
+
+   Branch protection com *required status checks* age sobre o botão de merge de um **pull request**. O histórico do repo não tem nenhum: 82 commits, um único autor, zero merge commits, e a única branch de trabalho é `main` (há uma `vercel/install-and-configure-vercel-*` órfã no remote, criada pela integração da [US-60](./US-60-web-em-producao-vercel.md) e nunca mergeada). Sem PR, a regra não teria efeito algum.
+
+   Para ela **ter** efeito no fluxo atual seria preciso ligar também *restrict pushes*, que proíbe `git push` direto em `main` — ou seja, obrigaria branch + PR + espera de CI a cada mudança. Isso é mudança de processo de trabalho, não de CI, e num repo de uma pessoa só é cerimônia sem contraparte: o e-mail de falha do GitHub já chega a quem pode consertar, porque é a mesma pessoa que empurrou. Bloqueio de merge resolve coordenação (impedir que alguém mergeie por cima do vermelho de outra pessoa); esse problema ainda não existe aqui.
+
+   Há também um risco de ordem: ligar a tranca antes de a `main` ter uma execução verde comprovada (critério de aceite #2) tranca a mantenedora fora do próprio repo no primeiro falso vermelho.
+
+   **Gatilho para reabrir** — qualquer um destes:
+   - um segundo committer no repo;
+   - o fluxo passar a usar PR por outro motivo;
+   - um commit vermelho chegar em produção (`main` faz deploy contínuo para Render e Vercel) e custar rollback.
+
+   Até lá, o CI **reporta e não bloqueia**, como já registrado em *Fora do escopo*.
 2. **`pnpm test` do `apps/api` passa num runner limpo, sem banco?** A US-77 levantou a dúvida e ninguém verificou. Se algum teste exigir Postgres, o achado sai desta story — a decisão (mockar, marcar `skip`, ou subir um serviço) é de outra.
-3. **O `--check` de links da US-79 e o check do vault da US-78 entram aqui depois?** As duas stories têm essa pergunta em aberto apontando para o CI. Com o workflow existindo, a resposta natural é "sim, um passo a mais" — mas quem decide é a story que traz o script.
+3. ~~**O `--check` de links da US-79 e o check do vault da US-78 entram aqui depois?**~~ **Respondida em 2026-07-27: sim, um passo — mas `--only-md`, e a decisão é desta story.**
+
+   A pergunta foi escrita com três premissas erradas, todas corrigidas aqui:
+
+   - **Não são dois checks, é um.** `scripts/check-doc-links.mjs` foi entregue pela [US-78](./US-78-vault-obsidian-para-os-docs.md) (commit `720c452`), que o construiu porque dois critérios de aceite dependiam da varredura — o dela e o da [US-79](./US-79-consertar-links-quebrados-na-documentacao.md). Um script, uma entrada `pnpm docs:links`, com os quebrados separados por dona na própria saída.
+   - **Não existe flag `--check`.** As flags reais são `--list`, `--naive` e `--only-md`; o gate é o comportamento padrão (`process.exit(1)`, `check-doc-links.mjs:215`). `--check` era a redação da *proposta* da US-79, que segue planejada — o nome nunca chegou ao código.
+   - **Falta a [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md)** (✅ implementada, criada depois desta). Ela pôs o gate de nome de arquivo **no mesmo script**, explicitamente para não duplicar este passo de CI. Um passo cobre links e nomes.
+
+   **"Quem decide é a story que traz o script"** já apontou de volta para cá: a US-78 fechou a própria questão gêmea com *"ligar no workflow é da US-80; nada a decidir aqui"* (US-78, Questões em aberto #3). Não há terceira story a esperar.
+
+   **Qual modo entra.** Medido em 27/07/2026, na `main` com a US-82 aplicada:
+
+   ```
+   node scripts/check-doc-links.mjs              → exit 1   (85 quebrados, todos da US-79)
+   node scripts/check-doc-links.mjs --only-md    → exit 0
+   ```
+
+   Entra `pnpm docs:links --only-md`. O gate completo nasceria vermelho, e passo de CI que nasce vermelho treina a pessoa a ignorar o vermelho — mesmo raciocínio com que a US-82 esperou a US-81 antes de ligar o gate de nomes. Como o script já classifica os quebrados por dona, `--only-md` é exatamente "tudo que já foi consertado": vale como trava contra regressão sem cobrar dívida que outra story tem.
+
+   **Troca para o gate completo** (`pnpm docs:links`, sem flag) quando a US-79 fechar — é critério de aceite dela, não desta.
 
 ---
 

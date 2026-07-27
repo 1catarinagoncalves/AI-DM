@@ -71,6 +71,57 @@ Roadmap incremental (fase atual: MVP single-player):
 
 ---
 
+## Padrões de código
+
+Fonte de verdade destas regras. `CLAUDE.md` aponta para cá — não duplique.
+
+### Estilo
+- Funções: 4–20 linhas. Passou disso, divida.
+- Arquivos: abaixo de 500 linhas. Divida por responsabilidade.
+- Uma coisa por função, uma responsabilidade por módulo (SRP).
+- Nomes específicos e únicos. Evite `data`, `handler`, `Manager`. Prefira nomes que
+  retornem menos de 5 hits no grep do repo.
+- Tipos explícitos. Sem `any`, sem `Record<string, unknown>` genérico como desculpa,
+  sem função sem tipo. (Exceção já vigente nas Regras absolutas: `any` só com
+  comentário justificando.)
+- Zero duplicação. Lógica repetida vira função/módulo compartilhado.
+- Early return em vez de if aninhado. Máximo 2 níveis de indentação.
+- Mensagem de exceção inclui o valor ofensor e o formato esperado.
+
+### Comentários
+- Não apague comentários existentes em refactor — eles carregam intenção e proveniência.
+- Escreva o PORQUÊ, não o QUÊ. Nada de `// incrementa contador` acima de `i++`.
+- Docstring em função pública: intenção + um exemplo de uso.
+- Cite número de issue/US ou SHA quando a linha existe por causa de um bug específico
+  ou restrição de upstream.
+
+### Testes
+- Comando único: `pnpm test` (evals do DM Agent: `pnpm eval`).
+- Toda função nova ganha teste. Todo bug fix ganha teste de regressão.
+- I/O externo (API, banco, filesystem) é mockado com fake class nomeada, não stub inline.
+- F.I.R.S.T: fast, independent, repeatable, self-validating, timely.
+
+### Dependências
+- Injete dependências por construtor/parâmetro, não por global/import direto
+  (o DI do NestJS já é o caminho no `apps/api`).
+- Envolva libs de terceiros atrás de uma interface fina própria do projeto.
+
+### Estrutura
+- Siga a convenção do framework (Next.js App Router, módulos NestJS, etc.).
+- Módulos pequenos e focados em vez de god files.
+- Caminhos previsíveis: `src/`, módulo por domínio, uma tool por arquivo.
+
+### Formatação
+- **Não há formatter no projeto** (sem Prettier, sem ESLint — ver "Análise estática"
+  acima). Até existir story para adotar um, siga o estilo do arquivo vizinho e não
+  reformate código alheio no mesmo diff.
+
+### Logging
+- JSON estruturado para debugging/observabilidade.
+- Texto plano só para saída de CLI voltada ao humano.
+
+---
+
 ## Workflow de desenvolvimento
 
 1. **Antes de implementar:** leia o user story relevante em `docs/sdlc/01-requisitos/`

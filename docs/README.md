@@ -63,12 +63,21 @@ da função).
 em [`criterios-de-aceite.md`](./sdlc/01-requisitos/criterios-de-aceite.md), nem
 story posterior que o absorveu. "Não tem arquivo `US-NN-*.md`" não basta.
 
+A convenção é **cobrada** por `pnpm docs:links` (US-82), não só documentada:
+a regra de espaço/não-ASCII vale para todo `.md` de `docs/`, e o regex acima
+para os que começam com `US-`.
+
+`docs/prompts/` é **isento enquanto ninguém linkar de lá** — são despejos de
+prompt ad-hoc que a US-81 decidiu não renomear. A isenção aparece contada em
+toda execução, e o primeiro link relativo vindo de fora para aquela pasta
+**falha o gate**: aí o certo é renomear o arquivo e tirar a isenção do script.
+
 ## Verificação de links
 
 ```bash
-pnpm docs:links            # falha se houver qualquer link relativo quebrado
-pnpm docs:links --list     # mostra cada quebrado, com a correção sugerida
-pnpm docs:links --only-md  # falha só nos que apontam para .md
+pnpm docs:links            # falha se houver link relativo quebrado ou nome fora da convenção
+pnpm docs:links --list     # mostra cada quebrado (com correção sugerida) e cada nome irregular
+pnpm docs:links --only-md  # falha só nos links que apontam para .md (aceite da US-78; ignora nomes)
 ```
 
 Node puro, sem dependência. Rode antes de commitar documentação.

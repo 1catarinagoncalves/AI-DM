@@ -51,6 +51,22 @@ pnpm docs:links           # links relativos quebrados em docs/ (--list, --only-m
   - `chore(deps): update @ai-sdk/groq`
 - Antes de escrever "coloque em `.env`" numa spec/US, **verifique no código** como aquele env var é lido (`grep process.env`, checar ConfigModule/dotenv/wrapper). Não assuma auto-load.
 
+## Padrões de código
+
+Regras completas em `AGENTS.md` → "Padrões de código" (estilo, comentários, testes,
+dependências, estrutura, formatação, logging). Leia antes de escrever código.
+
+Os que mais pegam neste repo:
+- Função 4–20 linhas; arquivo abaixo de 500. Passou disso, divida por responsabilidade.
+- Nomes que retornem menos de 5 hits no grep. Nada de `data`, `handler`, `Manager`.
+- Early return; máximo 2 níveis de indentação.
+- **Não apague comentários existentes** em refactor. Comentário diz o PORQUÊ, com número
+  de US/SHA quando a linha existe por causa de um bug.
+- Mensagem de exceção inclui o valor ofensor e o formato esperado.
+- Toda função nova ganha teste; todo bug fix ganha teste de regressão. I/O externo mockado
+  com fake class nomeada, não stub inline.
+- Sem formatter no projeto: siga o estilo do arquivo vizinho, não reformate código alheio.
+
 ## Env em dev (IMPORTANTE)
 
 A API (`apps/api`) **não** tem `ConfigModule` nem `dotenv`: `nest start` não carrega

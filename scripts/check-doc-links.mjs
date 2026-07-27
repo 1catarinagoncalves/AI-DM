@@ -1,11 +1,15 @@
 #!/usr/bin/env node
-// Varredura de links relativos nos .md de docs/ (US-78 / US-79).
+// Varredura de links relativos e de nomes de arquivo nos .md de docs/ (US-78 / US-79 / US-82).
 //
 // Reproduz a taxonomia do Contexto da US-78 e serve de gate de CI:
 //   depth   - profundidade errada, resolução única  (../../ -> ../../../)   -> US-79
 //   code    - alvo não existe, aponta para código                          -> US-79
 //   md      - alvo não existe, aponta para .md                             -> US-78
 //   ambig   - >1 candidato ao corrigir profundidade: exige decisão humana
+//
+// E o gate de nome de arquivo (US-82):
+//   nome           - espaço/não-ASCII no basename, ou US-*.md fora da convenção
+//   isento-linkado - alguém de fora passou a linkar docs/prompts/, a isenção caiu
 //
 // Uso:
 //   node scripts/check-doc-links.mjs              # falha se houver QUALQUER quebrado
@@ -15,7 +19,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { dirname, join, posix, relative, resolve, sep } from "node:path";
+import { basename, dirname, join, posix, relative, resolve, sep } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const DOCS = join(ROOT, "docs");
@@ -71,6 +75,40 @@ function depthCandidates(fromDir, target) {
 }
 
 const files = (await mdFiles(DOCS)).sort();
+
+// --- US-82: convenção de nome de arquivo -----------------------------------
+// docs/prompts/ é isento (despejos de prompt ad-hoc, US-81 decidiu não arrumar).
+// A isenção é contada no resumo e vigiada pelo trip-wire abaixo: ela se justifica
+// por "ninguém linka aquilo", e o dia em que alguém linkar o gate avisa.
+const isPrompts = (abs) => relative(DOCS, abs).startsWith(`prompts${sep}`);
+
+// Exceções deliberadas (mesma razão do filtro em tools/kanban/kanban-server.js:50):
+//   US-TEMPLATE.md          - maiúscula proposital, é template e não story
+//   US-76-…extractOpening…  - camelCase é o nome real da função, achatar perde informação
+const NAME_ALLOW = new Set([
+  "US-TEMPLATE.md",
+  "US-76-consertar-fake-teste-extractOpeningEntities.md",
+]);
+const US_NAME_RE = /^US-[0-9]+[a-z]?-[a-z0-9-]+\.md$/;
+
+const nameHits = [];
+for (const file of files) {
+  if (isPrompts(file)) continue;
+  const base = basename(file); // basename, não o path: o repo vive em ".../Desktop/AI DM/"
+  if (NAME_ALLOW.has(base)) continue;
+  const where = posix.join(...relative(ROOT, file).split(sep));
+  // Fora de \x20-\x7E pega acento em NFC e a combining cedilla do NFD — não precisa normalizar.
+  // O espaço (\x20) está *dentro* da faixa, por isso os dois testes.
+  if (base.includes(" ") || /[^\x20-\x7E]/.test(base)) {
+    nameHits.push({ where, rule: "regra 1: espaço ou byte não-ASCII no nome" });
+  } else if (base.startsWith("US-") && !US_NAME_RE.test(base)) {
+    nameHits.push({ where, rule: "regra 2: fora de ^US-[0-9]+[a-z]?-[a-z0-9-]+\\.md$" });
+  }
+}
+
+const exemptCount = files.filter(isPrompts).length;
+const exemptLinked = [];
+
 const buckets = { depth: [], code: [], md: [], ambig: [] };
 let total = 0;
 let naiveExtra = 0; // quebrados só porque o sufixo :NN foi tratado como parte do path
@@ -92,8 +130,18 @@ for (const file of files) {
       const target = decodeURIComponent(noAnchor);
       const stripped = target.replace(LINE_SUFFIX_RE, "");
 
-      if (existsSync(resolve(dir, stripped))) {
+      const abs = resolve(dir, stripped);
+      if (existsSync(abs)) {
         if (stripped !== target) naiveExtra++; // válido só graças ao strip do :NN
+        // Trip-wire da isenção: link de fora apontando para docs/prompts/.
+        // O segundo teste evita acusar link interno da própria pasta isenta.
+        if (isPrompts(abs) && !isPrompts(file)) {
+          exemptLinked.push({
+            where: `${posix.join(...relative(ROOT, file).split(sep))}:${lineNo + 1}`,
+            raw,
+            alvo: posix.join(...relative(ROOT, abs).split(sep)),
+          });
+        }
         continue;
       }
 
@@ -121,6 +169,9 @@ console.log(`  alvo não existe, aponta p/ código    : ${String(buckets.code.le
 console.log(`  alvo não existe, aponta p/ .md       : ${String(buckets.md.length).padStart(3)}  (US-78)`);
 console.log(`  ambíguos (>1 candidato)              : ${String(buckets.ambig.length).padStart(3)}`);
 if (has("--naive")) console.log(`Contagem ingênua (sufixo :NN como path): ${broken + naiveExtra}  (= ${broken} + ${naiveExtra})`);
+console.log(`Nome fora da convenção: ${nameHits.length}  (US-82)`);
+console.log(`  linkados apesar de isentos           : ${String(exemptLinked.length).padStart(3)}  (US-82)`);
+console.log(`  isentos (docs/prompts/)              : ${String(exemptCount).padStart(3)}  (fora do gate)`);
 
 if (has("--list")) {
   for (const [name, items] of Object.entries(buckets)) {
@@ -131,12 +182,36 @@ if (has("--list")) {
       console.log(`  ${i.where}  ${i.raw}${extra}`);
     }
   }
+  // Hits de nome têm outra forma que os de link; bloco próprio sai mais barato
+  // que generalizar a impressão acima.
+  if (nameHits.length) {
+    console.log("\n[nome]");
+    for (const i of nameHits) console.log(`  ${i.where}  ${i.rule}`);
+  }
+  if (exemptLinked.length) {
+    console.log("\n[isento-linkado]");
+    for (const i of exemptLinked) console.log(`  ${i.where}  ${i.raw}  -> ${i.alvo}`);
+  }
 }
 
-// Gate. --only-md = critério de aceite da US-78; default = US-79 (zero quebrados).
-const gate = has("--only-md") ? buckets.md.length + buckets.ambig.length : broken;
+// Gate. --only-md = critério de aceite da US-78 (só links .md; nome fica de fora
+// para não reescrever aquele aceite); default = US-79 + US-82.
+const gate = has("--only-md")
+  ? buckets.md.length + buckets.ambig.length
+  : broken + nameHits.length + exemptLinked.length;
 if (gate > 0) {
-  console.error(`\nFALHA: ${gate} link(s) quebrado(s) no gate${has("--only-md") ? " (.md + ambíguos)" : ""}.`);
+  if (has("--only-md")) console.error(`\nFALHA: ${gate} link(s) quebrado(s) no gate (.md + ambíguos).`);
+  else {
+    console.error(`\nFALHA: ${gate} problema(s) no gate.`);
+    if (broken) console.error(`  ${broken} link(s) quebrado(s).`);
+    if (nameHits.length) console.error(`  ${nameHits.length} arquivo(s) com nome fora da convenção (rode com --list).`);
+    if (exemptLinked.length) {
+      console.error(
+        `  ${exemptLinked.length} link(s) para docs/prompts/: a isenção valia enquanto ninguém linkasse.\n` +
+          `    Renomeie o alvo (US-78) e remova docs/prompts/ da isenção em ${posix.join("scripts", "check-doc-links.mjs")}.`,
+      );
+    }
+  }
   process.exit(1);
 }
 console.log("\nOK");
