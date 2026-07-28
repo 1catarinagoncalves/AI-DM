@@ -35,9 +35,11 @@ unicidade, "nome de tool é âncora estável" leva direto ao falso verde.
 Não existe regra "cabeçalho é/não é âncora". O critério é **quem possui a string**:
 
 1. **O cabeçalho é referenciado por nome por outra parte do sistema?**
-   Sim → é **contrato**, ancore nele. Ex.: `## Cena atual` e `## Entidades do mundo`
-   (`dm-system.ts:415`/`:430`) são citados em prosa inglesa em `:349` — o acoplamento é real
-   e cross-language, nenhum `typecheck` o pega. Reancorar em "conceito" apagaria a única prova.
+   Sim → é **contrato**, ancore nele. Ex.: `## Cena atual` e `## Entidades do mundo` são
+   citados em prosa inglesa no system prompt e na `description` de `recordEntity`.
+   Desde a US-84 esse nome vem de uma constante (`SCENE_BLOCK`, `ENTITIES_BLOCK`,
+   `INVENTORY_BLOCK`, `SKILLS_LINE` em `dm-system.ts`) — o acoplamento **de nome** morreu,
+   mas o cabeçalho continua sendo o identificador da seção e continua sendo a âncora certa.
 2. Não → **existe no corpo da seção um token que o código possui e que não aparece em
    nenhuma outra seção?**
    Sim → ancore nele. Não → **mantenha o cabeçalho**: é o único identificador único que a
@@ -47,6 +49,32 @@ Não existe regra "cabeçalho é/não é âncora". O critério é **quem possui 
 Cabeçalho renomeado = vermelho **visível**, uma linha de regex para consertar. Âncora
 tolerante demais = verde **invisível** escondendo uma seção deletada. Entre ruído barato e
 silêncio caro, escolha ruído.
+
+## Constante de prompt: identificador SIM, conteúdo de regra NÃO (US-84)
+
+A US-77 rejeitou "exportar os contratos do prompt como constantes e os testes casarem a
+constante": o eval passaria a testar a si mesmo — deletar a regra deletaria também a
+assertiva, e nada ficaria vermelho. Essa rejeição continua valendo **para o conteúdo da
+regra**.
+
+A US-84 extraiu constantes para outra coisa: o **identificador escrito por dois emissores**.
+`## Cena atual` é emitido por `buildTurnStateBlock` (camada 3, na mensagem) e citado pela
+prosa de `buildDmSystemPrompt` (camada 2, cacheada) — e `Entidades do mundo` ainda por um
+terceiro, a `description` de `recordEntity` em `apps/api`. Duas grafias manuais do mesmo
+nome, em pacotes diferentes: renomear uma ponta deixava o prompt mandando o modelo confiar
+num bloco fantasma, sem quebrar teste, `typecheck` nem log.
+
+A linha divisória:
+
+| | US-77 (proibido) | US-84 (correto) |
+|---|---|---|
+| O que a constante guarda | o TEXTO da regra | o NOME do bloco |
+| Quantos escritores | um | dois ou mais, em camadas/pacotes diferentes |
+| Se o alvo sumir | a assertiva some junto → falso verde | o teste de conteúdo continua o de sempre |
+
+Regra prática: **um escritor com muitos leitores é interface — ancore, não extraia.**
+Só o segundo *escritor* justifica a constante. Por isso `## Estado atual` ficou de fora
+(ninguém o cita) e os cabeçalhos decorativos (`## ⚠️ TURN RESOLUTION ORDER`) também.
 
 ## Assertiva de existência de regra ≠ assertiva de presença de seção
 

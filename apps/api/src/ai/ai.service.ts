@@ -22,6 +22,7 @@ import {
   formatScoreLines,
   detectSlopName,
   SUMMARY_SYSTEM_PROMPT,
+  ENTITIES_BLOCK,
   type ScenePatch,
   type DmCharacterSheet,
   type CharacterBackground,
@@ -532,8 +533,12 @@ export class AiService {
       // sumarização, então um callback a uma entidade de muitos turnos atrás
       // sobrevive (correção da amnésia que apagou "a Vigia" do resumo).
       recordEntity: tool({
+        // US-84: a description É prompt (vai inteira ao modelo todo turno) e promete ao
+        // modelo SOB QUE NOME o ledger reaparece — o mesmo literal que
+        // `buildTurnStateBlock` emite. Vem da constante do ai-engine, não escrito à mão:
+        // renomear o bloco lá renomearia esta promessa aqui também.
         description:
-          'Record or update a DURABLE campaign entity (a named NPC, a place, a notable object, a faction) so it is never forgotten. Call this the moment you INTRODUCE such an entity, and again (with only the changed fields) whenever it moves or its state changes (an NPC wakes/dies/becomes an ally, a place is discovered/destroyed). Pass `nome` plus whatever is known: `tipo` (npc/local/objeto/faccao/outro), `local` (where it is now), `estado` (its current condition/relationship), `nota` (a short durable fact). Matching is by `nome` (accent/case tolerant); omitted fields keep their previous value. This ledger is re-shown to you in full every turn under "Entidades do mundo" — it is your permanent memory, unlike the scene (only the present) and the summary (lossy prose). Two independent knowledge axes (US-75): `sabido` = who in the WORLD may know this; `revelado` = whether the PLAYER has discovered it. Promote by re-recording: set `revelado: true` the moment the fiction reveals a hidden truth to the player, set `sabido: "publico"` when a private fact spreads through the world.',
+          `Record or update a DURABLE campaign entity (a named NPC, a place, a notable object, a faction) so it is never forgotten. Call this the moment you INTRODUCE such an entity, and again (with only the changed fields) whenever it moves or its state changes (an NPC wakes/dies/becomes an ally, a place is discovered/destroyed). Pass \`nome\` plus whatever is known: \`tipo\` (npc/local/objeto/faccao/outro), \`local\` (where it is now), \`estado\` (its current condition/relationship), \`nota\` (a short durable fact). Matching is by \`nome\` (accent/case tolerant); omitted fields keep their previous value. This ledger is re-shown to you in full every turn under "${ENTITIES_BLOCK}" — it is your permanent memory, unlike the scene (only the present) and the summary (lossy prose). Two independent knowledge axes (US-75): \`sabido\` = who in the WORLD may know this; \`revelado\` = whether the PLAYER has discovered it. Promote by re-recording: set \`revelado: true\` the moment the fiction reveals a hidden truth to the player, set \`sabido: "publico"\` when a private fact spreads through the world.`,
         parameters: z.object({
           entidades: z
             .array(

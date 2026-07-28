@@ -30,8 +30,9 @@ Roadmap incremental (fase atual: MVP single-player):
   nunca delegada ao LLM. Use a tool `rollDice` para toda rolagem.
 - **Nunca exponha texto bruto de livros upados** para outros usuários. O índice RAG de um
   livro é isolado por campanha/usuário.
-- **Toda ação do LLM que altera estado passa pela tool correspondente** (`updateCharacterSheet`,
-  `advanceQuest`, `rollDice`, etc.). O LLM só narra; o Game Server decide e persiste.
+- **Toda ação do LLM que altera estado passa pela tool correspondente** (`updateCharacterHp`,
+  `updateInventory`, `updateScene`, `recordEntity` — lista viva em *Tools disponíveis para o
+  DM Agent*). O LLM só narra; o Game Server decide e persiste.
 - **Typescript estrito em todo o codebase.** Sem `any` explícito sem justificativa em comentário.
 - **Sem segredos no código.** Chaves, tokens e senhas via variáveis de ambiente; nunca
   hardcoded, nunca commitados.
@@ -66,10 +67,9 @@ Roadmap incremental (fase atual: MVP single-player):
 ### AI Engine (`packages/ai-engine`)
 - Vercel AI SDK (`ai` package) como camada de abstração de provedor
 - Provedores: Groq (`@ai-sdk/groq`) para modelos rápidos e baratos; OpenRouter (`@ai-sdk/openai-compatible`) para acesso a modelos variados — roteável por custo/qualidade via Vercel AI SDK
-- ~~Tools tipadas em `packages/ai-engine/src/tools/` — uma tool por arquivo~~ **Convenção sem
-  nenhum caso vigente**: as 6 tools vivas são inline em `apps/api/src/ai/ai.service.ts`, e a pasta
-  `tools/` foi apagada em 27/07/2026 por só conter código morto (ver *Tools disponíveis para o
-  DM Agent*)
+- **Não há tool neste pacote.** As 6 tools vivas são inline em `apps/api/src/ai/ai.service.ts`
+  (ver *Tools disponíveis para o DM Agent*); a pasta `packages/ai-engine/src/tools/` foi apagada
+  em 27/07/2026 por só conter código morto
 - Prompt do sistema em `packages/ai-engine/src/prompts/dm-system.ts`
 
 ### Persistência
@@ -102,6 +102,16 @@ Fonte de verdade destas regras. `CLAUDE.md` aponta para cá — não duplique.
 - Docstring em função pública: intenção + um exemplo de uso.
 - Cite número de issue/US ou SHA quando a linha existe por causa de um bug específico
   ou restrição de upstream.
+- **Roadmap não vira código.** Nada de export comentado como `// Future tool`, arquivo
+  placeholder, nem função cujo corpo só faz `throw new Error('... must be bound to ...')`.
+  Plano mora em `docs/sdlc/01-requisitos/`, com checkbox e número de US. Em doc, a mesma
+  regra: tabela que descreve código lista **só o que existe hoje**, com `file:line` e data de
+  verificação; o planejado vai marcado como inexistente e com link para a US.
+  Nasceu do `// Future tools` de `packages/ai-engine/src/tools/index.ts` — 5 tools que nunca
+  existiram, comentadas ao lado de um `rollDiceTool` morto. O comentário virou tabela no
+  `AGENTS.md`, que virou tabela no `README.md`, e as três se citavam como prova uma da outra.
+  Pasta apagada em 27/07/2026. Comentário desse tipo é indistinguível de código vigente para
+  quem lê rápido — e para agente, é interface pronta para escrever código em cima.
 
 ### Testes
 - Comando único: `pnpm test` (evals do DM Agent: `pnpm eval`).
@@ -124,7 +134,7 @@ Fonte de verdade destas regras. `CLAUDE.md` aponta para cá — não duplique.
 ### Estrutura
 - Siga a convenção do framework (Next.js App Router, módulos NestJS, etc.).
 - Módulos pequenos e focados em vez de god files.
-- Caminhos previsíveis: `src/`, módulo por domínio, uma tool por arquivo.
+- Caminhos previsíveis: `src/`, módulo por domínio.
 
 ### Formatação
 - **Não há formatter no projeto** (sem Prettier, sem ESLint — ver "Análise estática"
@@ -186,8 +196,9 @@ comportamento é o antigo.
    do sistema. **Onde, na prática:** todas as 6 tools vivas são definidas inline no objeto `tools`
    de `apps/api/src/ai/ai.service.ts` (`:349-585`), porque cada uma fecha sobre `this.prisma` (ou,
    no caso do `getSpell`, sobre o contexto do turno) — extrair para o pacote exigiria inverter a
-   dependência, não mover arquivo. A convenção "uma tool por arquivo no pacote" (*Estrutura*,
-   abaixo) é seguida por **0 de 6**. Siga o arquivo vizinho até existir story que decida a questão.
+   dependência, não mover arquivo. Siga o arquivo vizinho. (Havia aqui uma convenção "uma tool
+   por arquivo"; foi apagada em 27/07/2026 por não ter nenhum caso vigente — ver [US-83](docs/sdlc/01-requisitos/US-83-readme-com-arquitetura-alto-nivel.md),
+   corolário da camada 1. Se um dia o `ai.service.ts` for dividido, a regra volta com a story que o fizer.)
 5. **Ao alterar o schema do banco:** crie uma migração Prisma versionada; nunca edite
    migrações existentes.
 6. **Code review:** todo PR que toca o AI Engine precisa de revisão de um humano,
@@ -238,3 +249,19 @@ comportamento é o antigo.
 - Critérios de aceite: `docs/sdlc/01-requisitos/criterios-de-aceite.md`
 - Modelo de dados: `docs/sdlc/02-design/modelo-de-dados.md`
 - Estratégia de testes: `docs/sdlc/04-testes/estrategia-de-testes.md`
+
+Respond terse like smart caveman. All technical substance stay. Only fluff die.
+
+Rules:
+- Drop: articles (a/an/the), filler (just/really/basically), pleasantries, hedging
+- Fragments OK. Short synonyms. Technical terms exact. Code unchanged.
+- Pattern: [thing] [action] [reason]. [next step].
+- Not: "Sure! I'd be happy to help you with that."
+- Yes: "Bug in auth middleware. Fix:"
+
+Switch level: /caveman lite|full|ultra|wenyan
+Stop: "stop caveman" or "normal mode"
+
+Auto-Clarity: drop caveman for security warnings, irreversible actions, user confused. Resume after.
+
+Boundaries: code/commits/PRs written normal.

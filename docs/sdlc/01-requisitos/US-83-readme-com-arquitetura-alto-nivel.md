@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Ferramentas de projeto / SDLC
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** nenhuma. Convive com a [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) (os links novos do README precisam passar no `pnpm docs:links`) e com a [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md), mas não espera nenhuma das duas. Ganha dentes com a [US-80](./US-80-ci-typecheck-testes-e-evals.md) (CI) pela mesma razão da US-82: sem CI, o gate anti-drift é comando local.
 **Relacionada a:** [US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md) — as duas mexem no bloco de árvore de diretórios do README. Esta quer **encolhê-lo ou deletá-lo** (*Notas de implementação*); a US-86 põe gate no que sobrar, em qualquer `.md`. Sem conflito e sem ordem obrigatória: se esta rodar primeiro, sobra menos para a outra cobrir — que é o desfecho preferido pelas duas.
 **Criada em:** 2026-07-26
@@ -45,7 +45,7 @@ Ou seja: as três primeiras linhas de contexto que um agente lê são **roadmap 
 
 Medidas contra o código, não relidas da auditoria de 26/07:
 
-- **Redis / BullMQ / pgvector / S3 — confirmado ausente.** Nenhum em `apps/api/package.json` (sem `redis`, `ioredis`, `bullmq`, `@nestjs/bull`, `@aws-sdk/*`), e **nenhuma migration menciona `vector`** — pgvector não está nem no banco, então não bastava olhar dependência. **Ressalva: Socket.IO não pertence a essa lista** — `@nestjs/platform-socket.io` e `@nestjs/websockets` **estão** instalados. Se é dependência dormente é a *Questão em aberto #1*, não uma mentira do README.
+- **Redis / BullMQ / pgvector / S3 — confirmado ausente.** Nenhum em `apps/api/package.json` (sem `redis`, `ioredis`, `bullmq`, `@nestjs/bull`, `@aws-sdk/*`), e **nenhuma migration menciona `vector`** — pgvector não está nem no banco, então não bastava olhar dependência. ~~**Ressalva: Socket.IO não pertence a essa lista** — `@nestjs/platform-socket.io` e `@nestjs/websockets` **estão** instalados.~~ **A ressalva caiu em 28/07/2026:** as duas eram dependência morta (0 gateways, 0 adapters, streaming é SSE) e foram removidas — ver *Questão em aberto #1*. Socket.IO entrou na mesma vala de Redis/BullMQ: afirmado, nunca usado.
 - **As 7 tools — a linha estava certa no diagnóstico e errada na correção.** O README lista 7 tools das quais 5 não existem (`getRule`, `advanceQuest`, `recallMemory`, `getCharacterState`, `addEventLog`). Mas a coluna "o que o repo tem" dizia **1 tool**, olhando só `packages/ai-engine/src/tools/`. O DM Agent tem **6 tools vivas**, todas inline em `apps/api/src/ai/ai.service.ts`: `rollDice` (`:349`), `updateCharacterHp` (`:393`), `updateInventory` (`:425`), `updateScene` (`:483`), `recordEntity` (`:534`), `getSpell` (`:585`).
 
   **A pasta que a auditoria consultou não tem tool viva nenhuma.** O `rollDiceTool` de `roll-dice.ts` é exportado, **nunca importado** (grep no repo todo fora de `dist/`), tem `execute` que só lança exceção, e recebe `formula: "2d6+3"` — interface que nem bate com a `rollDice` real (teste de d20 por `skill`, modificador vindo da ficha). E `tools/index.ts:2-8` lista as 5 tools fantasmas comentadas como `// Future tools`: **é dali que a tabela de 7 nasceu**, em três documentos que pareciam se confirmar e descendiam todos desse comentário.
@@ -80,6 +80,13 @@ Reescrever o README sem isso é pagar o conserto duas vezes: o README de hoje **
 Toda linha que **reafirma** um arquivo é dívida. As 4 mentiras auditadas acima eram todas duplicação: `prisma/` duplicava a árvore de diretórios, "Redis/BullMQ/pgvector/S3" duplicava `apps/api/package.json`, a tabela de 7 tools duplicava `packages/ai-engine/src/tools/`.
 
 Regra: **se manter a frase verdadeira exige editar dois lugares, a frase já está errada — mesmo enquanto está certa.** Lista de dependências vira link para o `package.json`; tabela de tools vira link para a pasta. O README afirma *que existe uma API NestJS com o estado autoritativo*; a versão do Prisma é problema do `package.json`.
+
+**Corolário decidido em 27/07/2026 — a camada 1 também apaga convenção sem caso vigente.** O `AGENTS.md` (*Padrões de código → Estrutura*) manda *"uma tool por arquivo"*. Nenhuma das 6 tools vivas segue: todas são inline em `apps/api/src/ai/ai.service.ts:349-585`, e a pasta `packages/ai-engine/src/tools/` que a regra pressupunha foi apagada no mesmo dia por só conter código morto. A regra passou a apontar para o vazio.
+
+Convenção com 0 casos é a mesma dívida de uma lista transcrita: alguém a lê, escreve código para cumpri-la e produz o único arquivo do repo naquele formato. **Decisão: apagar a frase**, não marcá-la como aspiracional. Duas razões:
+
+- *"Uma tool por arquivo"* e *"tool no pacote compartilhado"* eram duas regras coladas numa frase. A segunda morreu com a pasta (o `packages/ai-engine` não tem DI do NestJS, e as 6 tools fecham sobre `this.prisma` ou sobre o contexto do turno). A primeira continua **viável** — bastaria um arquivo por tool em `apps/api/src/ai/`, cada uma uma fábrica recebendo as dependências — mas viável não é o mesmo que decidido.
+- O problema real por trás disso é o `ai.service.ts` com **1106 linhas**, contra o limite de 500 do próprio `AGENTS.md`. "Uma tool por arquivo" é uma solução parcial procurando justificativa: extrairia ~240 linhas e deixaria 860. Se o serviço for dividido algum dia, a regra volta junto com a story que a executar — e aí com um caso vigente.
 
 #### Camada 2 — todo caminho é link, e o README entra no gate (~2 linhas de código)
 
@@ -141,12 +148,13 @@ Vale explicitar porque a redundância parece desperdício e não é: o **check d
   - camada 2 — todo caminho do README escrito como link relativo; ~~e `README.md` da raiz incluído na varredura do `scripts/check-doc-links.mjs`~~ **já feito pela [US-79](./US-79-consertar-links-quebrados-na-documentacao.md)**;
   - camada 3 — teste de drift da forma do sistema, no idioma do `rubric-drift.test.ts`;
   - camada 4 — linha no *Definition of Done* do `AGENTS.md`.
+- ~~**Apagar a frase "uma tool por arquivo"** de `AGENTS.md` → *Padrões de código → Estrutura*.~~ **Feito em 27/07/2026, fora da story** (era edição de uma linha e não dependia do resto). Saiu junto o cross-reference do passo 4 do *Workflow*, que apontava para a regra apagada, e o bullet do *AI Engine*, que a citava riscada — regra removida deixa referência órfã em outros pontos do arquivo, e o `grep` do critério de aceite não pega isso.
 
 ### Fora do escopo
 
 - **README por pacote** (`apps/web/README.md`, `packages/ai-engine/README.md`). Um README bom na raiz resolve 90% do problema de onboarding; quatro READMEs criam quatro fontes para dessincronizar. Se depois de pronto ainda faltar, vira story própria.
 - **ADR nova.** Esta story *documenta* decisões já tomadas e registradas; não toma nenhuma. Se a escrita revelar uma decisão sem ADR, o entregável é uma questão em aberto, não uma ADR escrita de improviso.
-- **Gerar o README a partir do código.** Elimina o drift e mata o valor junto: um README é útil porque escolhe *o que não contar*. Gerador não sabe que `@nestjs/platform-socket.io` pode ser dependência dormente — só sabe que está no `package.json`, e reintroduz exatamente a mentira que esta story existe para consertar.
+- **Gerar o README a partir do código.** Elimina o drift e mata o valor junto: um README é útil porque escolhe *o que não contar*. Um gerador teria escrito "WebSocket" na stack até 28/07/2026, porque `@nestjs/platform-socket.io` estava no `package.json` — sem saber que não havia um gateway sequer. É exatamente a mentira que esta story existe para consertar, produzida por automação.
 - **Linter que parseia prosa** atrás de afirmações sobre o código. Falso positivo caro, ninguém confia, todo mundo desliga. As camadas 2 e 3 cobrem o que dá para cobrir mecanicamente; o resto é o critério de "cada afirmação verificável na revisão".
 - **Traduzir o README para inglês.** O repo é pt-BR (ver [`locale`](./US-71-simplificar-localizacao-do-personagem.md) — bilíngue é dado de jogo, não de documentação).
 - Reescrever `docs/README.md` (é o índice do vault Obsidian da [US-78](./US-78-vault-obsidian-para-os-docs.md), escopo diferente).
@@ -164,6 +172,7 @@ Vale explicitar porque a redundância parece desperdício e não é: o **check d
 - [x] `pnpm docs:links` passa **e inclui o `README.md` da raiz** na contagem de arquivos varridos. *(Entregue pela [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) em 27/07/2026: `ROOT_MD` em `check-doc-links.mjs:36`. Continua sendo contrato — quem mexer no script não pode quebrá-lo.)*
 - [ ] Nenhum caminho de arquivo/pasta do README aparece só entre backticks: todos são link relativo (senão o gate da camada 2 não os enxerga).
 - [ ] O README não transcreve nenhuma lista que já existe no repo (dependências, tools, scripts): aponta para a fonte.
+- [x] `grep -n "uma tool por arquivo" AGENTS.md` não retorna nada. A convenção de 0 casos saiu de *Estrutura* — se voltar, volta com um caso vigente. *(27/07/2026. O único hit restante é a nota do passo 4 do Workflow que registra a remoção e o porquê.)*
 - [ ] Existe teste que falha quando a forma do sistema muda (pasta de topo, módulo em `apps/api/src/`, arquivo em `packages/ai-engine/src/tools/`), com mensagem mandando revisar a seção Arquitetura do README.
 - [ ] **Teste de regressão / eval:** um agente sem contexto, lendo **só** o `README.md`, responde corretamente: (a) em que pasta fica o `schema.prisma`; (b) qual componente rola os dados; (c) qual comando roda os evals. Hoje o README erra (a) e induz erro em (b).
 - [ ] **Regressão do próprio antídoto:** mover ou renomear `apps/api/prisma/` faz `pnpm docs:links` falhar apontando a linha do README. É o cenário exato que passou despercebido e produziu esta story.
@@ -203,9 +212,18 @@ Copie a estrutura de [`rubric-drift.test.ts`](../../../packages/ai-engine/src/ru
 
 ## Questões em aberto
 
-1. O `@nestjs/platform-socket.io` está nas dependências da API mas o multiplayer é Fase 4 — o WebSocket está **em uso hoje** (streaming? presença?) ou é dependência morta? A resposta muda o diagrama e pode gerar uma story de limpeza.
+1. ~~O `@nestjs/platform-socket.io` está nas dependências da API mas o multiplayer é Fase 4 — o WebSocket está **em uso hoje** (streaming? presença?) ou é dependência morta?~~ **Respondida e limpa em 28/07/2026: era dependência morta.** Grep no repo (fora de `node_modules`, `dist` e lock): **0** ocorrências de `@WebSocketGateway`, `@SubscribeMessage`, `useWebSocketAdapter` ou `IoAdapter`; [`main.ts`](../../../apps/api/src/main.ts) só faz `NestFactory.create` + `listen`; nenhum `socket.io-client` em [`apps/web`](../../../apps/web). Os únicos hits eram as próprias duas linhas de dependência.
+
+   **O streaming nunca foi WebSocket — é SSE puro sobre HTTP.** [`ai.controller.ts`](../../../apps/api/src/ai/ai.controller.ts) seta `Content-Type: text/event-stream` à mão e escreve no `@Res()`; o proxy do Next ([`route.ts`](../../../apps/web/src/app/api/chat/route.ts)) repassa o mesmo content-type. Não é preferência de estilo: o proxy da [US-60](./US-60-web-em-producao-vercel.md) sobrevive no plano Hobby porque SSE atravessa proxy HTTP comum — um upgrade de protocolo para WebSocket não sobreviveria ali.
+
+   **Consequência para esta story:** o diagrama de componentes **não** desenha seta de WebSocket, e a limpeza não virou story própria — `@nestjs/platform-socket.io` e `@nestjs/websockets` saíram de [`apps/api/package.json`](../../../apps/api/package.json) na mesma passada (remoção de duas linhas, sem código a migrar). Quando o multiplayer da Fase 4 existir, elas voltam com um gateway junto.
 2. A seção **Produção** entra no README ou vira `docs/deploy.md` linkado? Argumento para README: é a pergunta nº 2 de quem chega. Argumento contra: é a seção que mais apodrece. Recomendação: fica no README, mas em 5 linhas, com os detalhes nas US-58/59/60.
-3. Vale um terceiro diagrama para a pipeline de evals (`pnpm eval`, LLM-judge, live eval)? É subsistema real e não óbvio, mas talvez pertença a um README de `evals/` — que está fora de escopo aqui.
+3. ~~Vale um terceiro diagrama para a pipeline de evals (`pnpm eval`, LLM-judge, live eval)? É subsistema real e não óbvio, mas talvez pertença a um README de `evals/` — que está fora de escopo aqui.~~ **Respondida em 28/07/2026 e promovida a story: [US-90](./US-90-readme-de-evals-com-mapa-do-subsistema.md).** Duas partes:
+
+   - **Diagrama: não.** A auditoria da US-90 achou **4 modos independentes** (suite vitest gateada no CI, guard de drift da rubrica que roda no `pnpm test`, bake-offs `.mjs` fora do vitest, live eval no `onFinish`). Não se encadeiam — não formam fluxo, formam lista. Tabela de 4 linhas lê melhor e não apodrece por omissão, que é o defeito que a camada 3 desta story existe para pegar.
+   - **README de `evals/`: sim, e ele já existia mentindo.** [`evals/README.md`](../../../evals/README.md) tem o mesmo apodrecimento que gerou esta story: afirma `runner.ts` e `scorer.ts` (não existem), `fixtures/` com dados (está vazia), 4 casos com nomes errados (são 11, outros nomes), 3 flags que o vitest não aceita, uma interface `EvalCase` que 0 de 11 casos usam, e 3 thresholds sem mecanismo que os meça. Ele também **não é varrido** pelo `pnpm docs:links` — `ROOT_MD` cobre só os três `.md` da raiz —, que é exatamente por que pôde mentir tanto tempo.
+
+   **Consequência para o escopo desta story:** a seção de evals no README da raiz encolhe para ≤ 2 linhas + link para a US-90. Um subsistema com 4 casas não cabe na porta de entrada.
 
 ---
 

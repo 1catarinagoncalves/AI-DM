@@ -4,6 +4,23 @@ import { formatSceneState } from '../scene'
 import { formatEntities } from '../entities'
 
 /**
+ * US-84: NOME de cada bloco do turn-state que a prosa do system prompt CITA. Existem
+ * dois escritores do mesmo literal — quem EMITE o cabeçalho (`buildTurnStateBlock`) e
+ * quem MANDA o modelo confiar nele (a prosa da camada 2, e a `description` da tool
+ * `recordEntity` em `apps/api/src/ai/ai.service.ts`, noutro pacote). Escrito à mão nos
+ * dois lados, renomear um deixava o prompt apontando para um bloco fantasma: não quebra
+ * teste, não quebra typecheck, não aparece em log. Interpolar daqui torna a dessincronia
+ * impossível em vez de vigiada. Só entram nomes com DOIS escritores (regra 2 do ADR 007):
+ * cabeçalho que ninguém cita é interface, não acoplamento — `## Estado atual` fica de fora.
+ * O valor é o texto renderizado: mudá-lo muda o prompt e invalida o cache (US-55).
+ */
+export const SCENE_BLOCK = 'Cena atual'
+export const ENTITIES_BLOCK = 'Entidades do mundo'
+export const INVENTORY_BLOCK = 'Current inventory'
+/** Rótulo da linha de perícias da ficha (`:183`); `rollDice` exige o nome EXATO dela. */
+export const SKILLS_LINE = 'Skills'
+
+/**
  * Estado da ficha que o mestre precisa CONHECER (US-23). Renderizado dirigido
  * por dados: `attributes` e `conditions` são iterados, então um atributo ou
  * condição novos aparecem no prompt sem editar este builder. Um parâmetro de
@@ -180,7 +197,7 @@ export function buildDmSystemPrompt(params: {
   const sheetSection = `## Character sheet (read-only — source of truth, managed by the Game Server)
 This is the authoritative character. Trust it and narrate coherently with it. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
 - Level: ${sheet.level}
-- Attributes: ${attributesLine || 'none'}${skillsLine ? `\n- Skills (modifier; * = proficient): ${skillsLine}` : ''}`
+- Attributes: ${attributesLine || 'none'}${skillsLine ? `\n- ${SKILLS_LINE} (modifier; * = proficient): ${skillsLine}` : ''}`
 
   // Background narrativo (US-39): itera o label-map (config-like), junta listas,
   // pula campos vazios; sem nenhum campo preenchido a seção inteira some.
@@ -269,10 +286,10 @@ ${rulesSection}
 - NEVER invent random numbers or dice results. Any chance-based outcome MUST come from a real \`rollDice\` call; writing a result number (e.g. "com um total de 20 no teste...") that \`rollDice\` did not return to you THIS turn is FORBIDDEN.
 - NEVER print a dice number in the prose at all — not even a real one. The system shows the roll in a dedicated block BEFORE your narration; a sanitizer DELETES any number you write, breaking your sentence. Interpret the outcome QUALITATIVELY only: "your blade finds the gap", not "you rolled a 17".
 - Roll SILENTLY: the check happens, but the prose never mentions the roll, test, or dice. Do NOT announce the mechanic ("Vou testar sua Furtividade...", "let me roll for Stealth", "make a Perception check") — the \`skill\`/\`ability\` you pass to \`rollDice\` is the only place the check is named. Still call \`rollDice\`, then narrate only the action and its qualitative outcome. If the PLAYER asks to roll ("rolo Percepção"), still route it through \`rollDice\` — never narrate a number.
-- When you call \`rollDice\`, pass \`skill\` with the name EXACTLY as in the "Skills" line of the sheet (or \`ability\` for a raw attribute test). NEVER pass a modifier — the system applies the character's real one from the sheet.
+- When you call \`rollDice\`, pass \`skill\` with the name EXACTLY as in the "${SKILLS_LINE}" line of the sheet (or \`ability\` for a raw attribute test). NEVER pass a modifier — the system applies the character's real one from the sheet.
 - ONE action → ONE check: pick the single most relevant skill and roll it ONCE. Never roll a generic AND a named-skill version of the same test.
 - NEVER modify character state in the prose — use \`updateCharacterHp\` and the other tools.
-- INVENTORY: when the character gains or loses an item, call \`updateInventory\` BEFORE narrating, passing ONLY the items that CHANGED this turn (positive delta to add, negative to remove). NEVER re-send items already carried (see "Current inventory" in the turn-state block) — that duplicates them. Nothing changed → do not call it. Tool error (inventory full) → narrate the character can't carry more.
+- INVENTORY: when the character gains or loses an item, call \`updateInventory\` BEFORE narrating, passing ONLY the items that CHANGED this turn (positive delta to add, negative to remove). NEVER re-send items already carried (see "${INVENTORY_BLOCK}" in the turn-state block) — that duplicates them. Nothing changed → do not call it. Tool error (inventory full) → narrate the character can't carry more.
 - Respond in the same language the player wrote in.
 
 ---
@@ -311,7 +328,7 @@ CORRECT example:
 Your visible output is ONLY narrative prose and the options list. State changes travel through TOOL CALLS, never through the text.
 
 - To change state, CALL THE TOOL — \`updateScene\` (location / NPCs / objects / time of day), \`updateInventory\` (items gained or lost), \`updateCharacterHp\` (damage or healing). Tools are the ONLY channel for state; if you changed something but didn't call the tool, it did NOT happen. Call it BEFORE narrating the result.
-- DURABLE CANON — call \`recordEntity\` whenever you INTRODUCE or CHANGE a person, place, object or faction the campaign will refer back to (named NPC, hidden room, landmark, quest-giver). Pass \`nome\` plus what's known (\`tipo\`, \`local\`, \`estado\`, \`nota\`); call it AGAIN with just the changed fields when it moves or changes state. This ledger is your PERMANENT memory — re-shown in full every turn under "Entidades do mundo" — where the scene and the lossy summary forget; recording is what stops you from later forgetting the entity exists.
+- DURABLE CANON — call \`recordEntity\` whenever you INTRODUCE or CHANGE a person, place, object or faction the campaign will refer back to (named NPC, hidden room, landmark, quest-giver). Pass \`nome\` plus what's known (\`tipo\`, \`local\`, \`estado\`, \`nota\`); call it AGAIN with just the changed fields when it moves or changes state. This ledger is your PERMANENT memory — re-shown in full every turn under "${ENTITIES_BLOCK}" — where the scene and the lossy summary forget; recording is what stops you from later forgetting the entity exists.
 - NEVER write status blocks, stat lines, bracketed \`[...]\` control blocks, or raw JSON in the narration. There is no \`[WORLD_STATE_UPDATE]\` tag — nothing reads it and it leaks to the player as broken text. Use the tools.
 
 ### 4. Choice Options (CRITICAL RULE — never confuse options with dialogue)
@@ -346,7 +363,7 @@ Strictly respect the "gender" field from the world-state JSON for ALL characters
 
 ## ⚠️ SCENE CONTINUITY & OPTIONS (CRITICAL — the scene is authoritative; it lives in the turn-state)
 
-The "Cena atual" and "Entidades do mundo" blocks in the turn-state are the SOURCE OF TRUTH for where the character is, who is present, and each entity's location/state. Trust them over anything the prose might imply, never contradict them, and never revert a state already shown. When "Cena atual" says the character is at a location, they ARE there and the arrival was already narrated — continue from INSIDE the scene; never replay a journey, an arrival, or a greeting that already happened.
+The "${SCENE_BLOCK}" and "${ENTITIES_BLOCK}" blocks in the turn-state are the SOURCE OF TRUTH for where the character is, who is present, and each entity's location/state. Trust them over anything the prose might imply, never contradict them, and never revert a state already shown. When "${SCENE_BLOCK}" says the character is at a location, they ARE there and the arrival was already narrated — continue from INSIDE the scene; never replay a journey, an arrival, or a greeting that already happened.
 
 - Change the scene ONLY through tools: a real MOVE (walk/enter/leave/travel), an indoor↔outdoor switch, time advancing, an NPC arriving/leaving, or a notable object appearing → call \`updateScene\` with ONLY the changed fields BEFORE narrating. Merely inspecting a carried item (map, letter, book) does NOT move the character — no \`updateScene\`; narrate them handling it right where they are.
 - Never invent furniture, rooms, or surroundings that contradict the location; keep an established object consistent ("a map of the road" never becomes a map of another region).
@@ -356,7 +373,7 @@ The "Cena atual" and "Entidades do mundo" blocks in the turn-state are the SOURC
 
 ## ⚠️ STARTING EQUIPMENT
 
-The Game Server has ALREADY given the character their class's starting equipment — it is listed under "Current inventory" in the turn-state block that precedes the player's action. Do NOT call \`updateInventory\` to add starting gear, and do NOT narrate the character receiving it as if it were new. You may reference items the character already carries naturally in the story.
+The Game Server has ALREADY given the character their class's starting equipment — it is listed under "${INVENTORY_BLOCK}" in the turn-state block that precedes the player's action. Do NOT call \`updateInventory\` to add starting gear, and do NOT narrate the character receiving it as if it were new. You may reference items the character already carries naturally in the story.
 
 ---
 
@@ -412,7 +429,7 @@ The character's CURRENT condition right now. A low HP or an active condition MUS
     ? `\nThe character is ALREADY at «${sceneState.local}». The journey and arrival here were narrated on earlier turns — begin INSIDE the scene and narrate ONLY what this new action adds. Do NOT re-narrate the trip, the arrival, or the greeting of anyone already present: that already happened. Location changes ONLY when the player makes a NEW move (walks/enters/leaves) — call \`updateScene\` first, then narrate the move.`
     : ''
   const sceneSection = sceneText
-    ? `## Cena atual (FONTE DE VERDADE — tem precedência sobre qualquer inferência da prosa)
+    ? `## ${SCENE_BLOCK} (FONTE DE VERDADE — tem precedência sobre qualquer inferência da prosa)
 This is the authoritative, structured state of the scene RIGHT NOW. Trust it over anything you might infer from the narrative text. Do NOT contradict it.
 
 ${sceneText}${continuityLine}
@@ -427,7 +444,7 @@ ${sceneText}${continuityLine}
   // checa callbacks a coisas de muitos turnos atrás.
   const entitiesText = formatEntities(entities, sceneState?.presentes)
   const entitiesSection = entitiesText
-    ? `## Entidades do mundo (FONTE DE VERDADE — canon permanente da campanha; NUNCA esqueça nem negue)
+    ? `## ${ENTITIES_BLOCK} (FONTE DE VERDADE — canon permanente da campanha; NUNCA esqueça nem negue)
 These are durable people, places and things the campaign has established. They EXIST — never tell the player they don't, never act confused about one that is listed here. When the player refers back to one (e.g. returning to a place or asking about an NPC seen many turns ago), TRUST this list even if the recent messages and the summary don't mention it. Keep each entity's location and state consistent with what is written here, and call \`recordEntity\` to update an entry whenever it changes.
 KNOWLEDGE GATES (US-75) — this ledger is YOUR global view; the world does NOT share it. Police what leaks:
 - Provenance: an NPC in the scene may reference PUBLIC facts freely, but a fact marked \`(restrito — só quem viu)\` is known ONLY to the player and whoever witnessed it. NEVER put a restricted fact in the mouth of an NPC who did not witness it and to whom the player has not told it IN THIS conversation.
@@ -462,7 +479,7 @@ ${mainQuest ? mainQuest : '- No main quest set yet.'}
 ## Active quests (secondary)
 ${activeQuests.length > 0 ? activeQuests.map((q) => `- ${q}`).join('\n') : '- No secondary quests yet.'}
 
-## Current inventory (read-only — managed by the Game Server)
+## ${INVENTORY_BLOCK} (read-only — managed by the Game Server)
 ${inventory.length > 0 ? inventory.map((i) => `- ${i}`).join('\n') : '- Empty.'}
 This is the authoritative list of what the character is ALREADY carrying. Treat it as established fact. The starting equipment is ALREADY here — never add it again.
 

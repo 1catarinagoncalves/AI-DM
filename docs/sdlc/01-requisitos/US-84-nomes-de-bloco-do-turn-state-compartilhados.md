@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) — a *regra 2* dele (*a camada 2 nunca nomeia conteúdo da camada 3 por literal*) é o que esta story implementa. Fora isso é refactor puro em `dm-system.ts`; não precisa de CI nem de eval novo.
 **Nasceu de:** [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) → *Questões em aberto #2, categoria 1*. Aquela story classificou esses cabeçalhos como **interface** (não prosa) e por isso os deixou de fora da reancoragem; classificar não conserta o acoplamento.
 **Relacionada a:** [US-56](./US-56-estado-do-turno-na-mensagem.md) (separou as duas camadas em mensagens diferentes — é o que torna a dessincronia possível), [US-71](./US-71-simplificar-localizacao-do-personagem.md) (precedente: já renomeou um cabeçalho de seção), [US-55](./US-55-prompt-caching-do-dm.md) (o texto renderizado não pode mudar, sob pena de invalidar cache).
@@ -102,17 +102,17 @@ Extrair os nomes de bloco para constantes e interpolá-las **nos dois lados**. R
 
 ## Critérios de aceite
 
-- [ ] Cada um dos 4 nomes existe **uma vez** no código. O grep de aceite roda no **repo inteiro** (`apps/` + `packages/`), não só em `dm-system.ts` — foi o escopo estreito que deixou `ai.service.ts:536` passar despercebido na primeira redação desta story:
+- [x] Cada um dos 4 nomes existe **uma vez** no código. O grep de aceite roda no **repo inteiro** (`apps/` + `packages/`), não só em `dm-system.ts` — foi o escopo estreito que deixou `ai.service.ts:536` passar despercebido na primeira redação desta story:
 
   ```bash
   grep -rn --include=*.ts -e '"Cena atual"' -e '"Entidades do mundo"' -e '"Current inventory"' -e '"Skills"' apps packages
   ```
 
   Único hit em código de produção = a definição da constante. Hits em `*.test.ts` são esperados e legítimos (âncoras de teste; ver US-77).
-- [ ] Renomear a constante muda o cabeçalho, a citação na prosa **e** a `description` de `recordEntity`, sem nenhuma outra edição.
-- [ ] **Prompt renderizado inalterado:** o texto de `buildDmSystemPrompt` e de `buildTurnStateBlock` (com cena, entidades, inventário e perícias preenchidos) é idêntico byte a byte ao de antes do refactor. Sem isso, o refactor invalida o cache da [US-55](./US-55-prompt-caching-do-dm.md).
-- [ ] **Teste de regressão:** um teste que quebra se as duas pontas divergirem — asserção sobre o par (a prosa do system prompt contém o mesmo literal que o builder emite como `## `), escrita em cima da constante, não do literal repetido.
-- [ ] `pnpm test` verde. `pnpm eval` verde (nenhuma assertiva de prompt deveria nem notar o refactor — se alguma notar, ela ancorava em algo que mudou e isso é achado, não falha esperada).
+- [x] Renomear a constante muda o cabeçalho, a citação na prosa **e** a `description` de `recordEntity`, sem nenhuma outra edição.
+- [x] **Prompt renderizado inalterado:** o texto de `buildDmSystemPrompt` e de `buildTurnStateBlock` (com cena, entidades, inventário e perícias preenchidos) é idêntico byte a byte ao de antes do refactor. Sem isso, o refactor invalida o cache da [US-55](./US-55-prompt-caching-do-dm.md).
+- [x] **Teste de regressão:** um teste que quebra se as duas pontas divergirem — asserção sobre o par (a prosa do system prompt contém o mesmo literal que o builder emite como `## `), escrita em cima da constante, não do literal repetido.
+- [x] `pnpm test` verde. `pnpm eval` verde (nenhuma assertiva de prompt deveria nem notar o refactor — se alguma notar, ela ancorava em algo que mudou e isso é achado, não falha esperada).
 
 ---
 

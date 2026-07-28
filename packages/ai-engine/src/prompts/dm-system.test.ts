@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { buildDmSystemPrompt, buildTurnStateBlock, type DmCharacterSheet } from './dm-system'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import {
+  buildDmSystemPrompt,
+  buildTurnStateBlock,
+  SCENE_BLOCK,
+  ENTITIES_BLOCK,
+  INVENTORY_BLOCK,
+  SKILLS_LINE,
+  type DmCharacterSheet,
+} from './dm-system'
 
 const baseSheet: DmCharacterSheet = {
   level: 3,
@@ -309,5 +319,70 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     })
     expect(s).toContain('[NPC] Hélio — ocupado')
     expect(s).not.toContain('em forja de Hélio')
+  })
+})
+
+// US-84: o PAR é o teste. A camada 2 (system, estático e cacheado) manda o Mestre confiar
+// num bloco que a camada 3 (turn-state, outra mensagem desde a US-56) emite. Com o nome
+// escrito à mão dos dois lados, renomear um lado deixava o prompt apontando para um bloco
+// fantasma sem quebrar teste, typecheck ou log. Estas assertivas ancoram na CONSTANTE, não
+// no literal: o alvo é o identificador compartilhado por dois emissores, não o conteúdo da
+// regra (a distinção que a US-77 fez ao rejeitar constantes para regras — evals/PROMPT-ANCHORS.md).
+describe('US-84 — nome de bloco: emissor e citação saem da mesma constante', () => {
+  const fullState = () =>
+    buildTurnStateBlock({
+      sheet: baseSheet,
+      sceneState: {
+        local: 'Praça da vila ao anoitecer',
+        ambiente: 'externo' as const,
+        periodo: 'anoitecer',
+        presentes: [],
+        objetos_em_cena: [],
+        atualizadoEm: '',
+      },
+      entities: [{ nome: 'Vigia', tipo: 'npc' as const, estado: 'neutra', atualizadoEm: '' }],
+      activeQuests: [],
+      inventory: ['Espada'],
+    })
+
+  it.each([SCENE_BLOCK, ENTITIES_BLOCK, INVENTORY_BLOCK])(
+    '«%s» é emitido como cabeçalho no turn-state E citado com o mesmo nome na prosa do system',
+    (name) => {
+      expect(fullState()).toContain(`## ${name}`)
+      expect(build()).toContain(`"${name}"`)
+    },
+  )
+
+  // O par acima prova que a constante ESTÁ ligada nas duas pontas, mas não que ela seja a
+  // ÚNICA fonte: com DUAS citações do mesmo nome, uma interpolada e outra escrita à mão,
+  // ele passa verde (verificado por mutação ao escrever esta US). Este aqui é o grep de
+  // aceite automatizado, e pega o deslize realista: alguém copiar o nome do bloco para
+  // uma prosa nova em vez de interpolar → a contagem vai a 2 → vermelho.
+  // LIMITE conhecido: um rename que DESinterpole uma citação passa, porque o teste só
+  // conhece o valor ATUAL da constante, nunca o antigo. Contra isso o que vale é a
+  // estrutura (um literal só, interpolado), não a vigilância.
+  // A sétima citação (`apps/api/.../ai.service.ts`) não é varrida daqui: lá o literal veio
+  // embora pela import da constante, e import quebrada é erro de typecheck, não silêncio.
+  it('o literal de cada nome existe UMA vez no fonte — a declaração da constante', () => {
+    // cwd = raiz do pacote (o vitest roda por pacote). Arquivo ausente → readFileSync
+    // ESTOURA, que é o que se quer: um guard que não achou o fonte não pode passar verde.
+    const source = readFileSync(resolve(process.cwd(), 'src/prompts/dm-system.ts'), 'utf8')
+    for (const name of [SCENE_BLOCK, ENTITIES_BLOCK, INVENTORY_BLOCK, SKILLS_LINE]) {
+      const occurrences = source.split(`'${name}'`).length - 1
+      expect(`${name}: ${occurrences}`).toBe(`${name}: 1`)
+      // Reintrodução como texto cru num cabeçalho ou na prosa (`## Cena atual`, `"Cena atual"`)
+      // não fica em aspas simples — daí a segunda contagem, sobre o nome nu.
+      const raw = source.split(name).length - 1
+      expect(`${name} cru: ${raw}`).toBe(`${name} cru: 1`)
+    }
+  })
+
+  // A linha de perícias não é um bloco `## `, mas tem o mesmo acoplamento: `rollDice`
+  // exige o nome EXATO da linha, e o repo é bilíngue (ADR 005) — renomear para "Perícias"
+  // quebraria a instrução em silêncio.
+  it(`«${SKILLS_LINE}» é a linha emitida na ficha E o nome que a regra de rollDice exige`, () => {
+    const p = build({ sheet: { ...baseSheet, skills: [{ label: 'Percepção', modifier: 5, proficient: true }] } })
+    expect(p).toContain(`- ${SKILLS_LINE} (`)
+    expect(p).toContain(`"${SKILLS_LINE}"`)
   })
 })
