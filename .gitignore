@@ -27,3 +27,9 @@ docs/.obsidian/plugins/
 
 # Cache do plugin impeccable (uma pasta por diretório visitado, 10 e contando)
 .impeccable/
+
+# graphify: só graph.json e o relatório são versionáveis. O resto é local da
+# máquina (.graphify_python guarda caminho absoluto do venv) ou artefato de build.
+graphify-out/*
+!graphify-out/graph.json
+!graphify-out/GRAPH_REPORT.md

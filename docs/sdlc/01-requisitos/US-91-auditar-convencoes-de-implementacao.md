@@ -1,9 +1,9 @@
-# US-91 — Convenções de Implementação (e a lista de módulos do AGENTS.md) deixam de descrever um projeto que não é este
+# US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
 
 **Épico:** 0 — Infra e documentação
 **Fase:** 1 — MVP single-player
 **Status:** 🚧 Em progresso
-**Depende de:** nenhuma. Convive com a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md), que pegaria mecanicamente parte dos achados abaixo — mas não espera por ela: metade do que está errado aqui é prosa que nenhum gate lê.
+**Depende de:** nenhuma. A [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) entrou em 28/07/2026 e **não cobriu nada daqui**: o gate dela só acende em camelCase, e os achados deste arquivo são minúscula (`campaign`), PascalCase (`BullMQ`, `Socket.IO`) ou prosa semântica. Ela corrigiu o bloco *Frontend* do `AGENTS.md`, vizinho ao *Backend* que esta story trata — ver *A mesma lista mentindo em dois arquivos*.
 **Nasceu de:** sessão de 28/07/2026, durante a [US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md). Ao apagar as duas árvores de diretório de [`convencoes.md`](../03-implementacao/convencoes.md), ficou visível que **o resto do arquivo tem o mesmo defeito das árvores** — e que o gate daquela story não pegaria nenhum deles. A US-86 registrou a dívida em *Fora do escopo* e a promoveu a esta story.
 **Relacionada a:** [US-83](./US-83-readme-com-arquitetura-alto-nivel.md) (mesmo defeito no README, mesmo antídoto — camada 1: não escrever o fato), [US-90](./US-90-readme-de-evals-com-mapa-do-subsistema.md) (mesmo padrão: doc de subsistema que apodreceu sozinha), [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) (o gate que pegaria os identificadores inventados).
 **Criada em:** 2026-07-28
@@ -54,18 +54,29 @@ Nenhum dos três gates existentes pega o que sobrou, e isso não é falha deles:
 | `pnpm docs:shape` ([US-83](./US-83-readme-com-arquitetura-alto-nivel.md)) | forma do sistema vs. README | vigia o README, não este arquivo |
 | Gate de árvore ([US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md)) | entrada de árvore em fence | as árvores daqui já foram apagadas; o resto é prosa |
 
-A [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) pegaria **três** achados (`*.repository.ts`, `campaign`, `ingestion`) se estendida a este arquivo. Os outros cinco são afirmação semântica — *"nunca acessa o banco diretamente"*, *"com seed para auditoria"* — que só uma pessoa lendo o código reprova.
+| Gate de identificador ([US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md)) | nome camelCase em backtick, nos 3 `.md` da raiz | `campaign`, `ingestion`, `*.repository.ts`, `BullMQ`, `Socket.IO`: nenhum é camelCase; e o corpus é `AGENTS.md`/`CLAUDE.md`/`README.md`, não `docs/` |
+
+**Correção de 28/07/2026, medida com o gate já implementado.** Esta seção afirmava que a US-88 *"pegaria três achados (`*.repository.ts`, `campaign`, `ingestion`) se estendida a este arquivo"*. **Falso, e por construção:** a regex do gate é `/^[a-z][a-z0-9]*[A-Z][A-Za-z0-9]*$/` — exige maiúscula interna, justamente para matar o ruído de `pnpm`/`tsc`/caminho. `campaign` e `ingestion` não têm; `*.repository.ts` tem ponto e asterisco. **A US-88 cobre zero achados deste arquivo.** Todos os 8 são afirmação semântica ou nome fora da regex — *"nunca acessa o banco diretamente"*, *"com seed para auditoria"* — que só uma pessoa lendo o código reprova. Fica registrado como o erro que era: previsão sobre gate não escrito, feita antes de existir a regex.
 
 ### A mesma lista mentindo em dois arquivos (achado de 28/07/2026, durante a US-88)
 
-A lista de módulos não está só no `convencoes.md`. O [`AGENTS.md:57`](../../../AGENTS.md), seção *Backend*, tem a **mesma transcrição, igualmente podre**:
+A lista de módulos não está só no `convencoes.md`. O [`AGENTS.md:61`](../../../AGENTS.md), seção *Backend*, tem a **mesma transcrição, igualmente podre**:
 
 | Arquivo | O que lista | Inexistentes | Reais que faltam |
 |---|---|---|---|
 | [`convencoes.md`](../03-implementacao/convencoes.md) | `game`, `campaign`, `character`, `adventure`, `ai`, `ingestion` | `campaign`, `ingestion` | `auth`, `system`, `user` |
-| [`AGENTS.md:57`](../../../AGENTS.md) | `game`, `campaign`, `character`, `ai`, `ingestion` | `campaign`, `ingestion` | `adventure`, `auth`, `system`, `user` |
+| [`AGENTS.md:61`](../../../AGENTS.md) | `game`, `campaign`, `character`, `ai`, `ingestion` | `campaign`, `ingestion` | `adventure`, `auth`, `system`, `user` |
 
 Reais em [`apps/api/src`](../../../apps/api/src), medidos hoje: `adventure`, `ai`, `auth`, `character`, `game`, `system`, `user`.
+
+**E não é só a linha da lista: o bloco inteiro está podre** (medido em 28/07/2026, depois da US-88 entregue). As duas linhas seguintes afirmam infraestrutura que não existe:
+
+| `AGENTS.md` → *Backend* | O que o repo tem | Onde verificar |
+|---|---|---|
+| `:63` *"BullMQ para filas (ingestão de livros, sumarização de memória)"* | **Zero hits** de `bullmq` em `package.json` e `.ts` do repo, fora `node_modules`. Não há fila nenhuma — e "ingestão de livros" é o módulo `ingestion`, que também não existe | `grep -rni bullmq` |
+| `:64` *"Socket.IO para salas de campanha em tempo real"* | **Zero hits** de `socket.io` nem `@nestjs/websockets`. O transporte é SSE (`text/event-stream`) — e o [`CLAUDE.md`](../../../CLAUDE.md) já diz isso, então os dois docs normativos se contradizem | [`api/chat/route.ts:28`](../../../apps/web/src/app/api/chat/route.ts) |
+
+Mesmo gênero do `useChat` que a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) corrigiu poucas linhas acima: desenho que não foi adiante, com o código tendo seguido outro caminho. **Nenhuma das três acende no gate da US-88**, e por construção: `campaign`/`ingestion` são minúsculas sem maiúscula interna, `BullMQ` e `Socket.IO` são PascalCase/com ponto — todas fora da regex de camelCase. Por isso o escopo aqui é o **bloco** (`:61-64`), não a linha: corrigir a lista de módulos e deixar as duas de baixo intactas reencena o defeito dentro do mesmo parágrafo. É o mesmo argumento que a US-88 usou para cobrar o bloco *Frontend* em vez do token que acendeu.
 
 **Por que entra aqui e não vira story nova.** É o mesmo fato transcrito duas vezes — corrigir um lado e deixar o outro reencena exatamente o defeito que originou a US-83: duas cópias da mesma afirmação se citando como prova uma da outra. E o `AGENTS.md` é o mais grave dos dois, porque é o arquivo que todo agente lê antes de escrever qualquer linha. A [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) achou isso ao corrigir a linha vizinha e não podia absorver: nome de módulo é minúsculo, não acende no gate dela.
 
@@ -88,13 +99,13 @@ Auditar o arquivo inteiro contra o código e aplicar a **camada 1 da US-83** a c
 - Substituir o bloco de env por ponteiro: quem quiser a lista real roda `grep process.env`, e a regra de *onde* o `.env` é lido já está no [`CLAUDE.md`](../../../CLAUDE.md).
 - Atualizar o **"Atualizado em:"** — e, se a data não puder ser mantida honesta, apagar o campo em vez de deixá-lo mentir.
 - Decidir o destino do arquivo (ver *Questões em aberto* #1): sobreviver enxuto, ou ser absorvido pelo `AGENTS.md`.
-- **A lista de módulos do [`AGENTS.md:57`](../../../AGENTS.md)** (seção *Backend*), pelo mesmo tratamento da lista do `convencoes.md`: ponteiro para [`apps/api/src`](../../../apps/api/src), não transcrição. Só essa linha do `AGENTS.md` — o bloco *Frontend* logo acima é da [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md).
+- **O bloco *Backend* do [`AGENTS.md`](../../../AGENTS.md) (`:61-64`)**, inteiro: a lista de módulos ganha o mesmo tratamento da lista do `convencoes.md` (ponteiro para [`apps/api/src`](../../../apps/api/src), não transcrição), e as afirmações de BullMQ (`:63`) e Socket.IO (`:64`) **saem** — descrevem infra que não existe, e a de Socket.IO ainda contradiz o [`CLAUDE.md`](../../../CLAUDE.md). Só esse bloco do `AGENTS.md`: o *Frontend* logo acima já foi corrigido pela [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md).
 
 ### Fora do escopo
 
 - **Escrever gate novo.** Se a saída for mecanizável, ela é a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) — que já existe planejada e cobre a classe "identificador citado que não existe". Duas stories escrevendo checker sobre o mesmo corpus é o erro que a US-86 evitou fechando sem código.
 - **Mudar o código para obedecer à doc.** Nenhuma linha de `apps/api` muda aqui. Onde doc e código divergem, **o código está certo por definição** — ele roda. Se alguma regra apagada merecer voltar como refactor (extrair repositório, anotar retorno das tools), vira story própria com caso vigente.
-- **O resto do `AGENTS.md`.** Entra a lista de módulos do *Backend* (`:57`) porque é a mesma transcrição auditada aqui, e nada mais. Auditoria do arquivo inteiro é story própria, com baseline própria.
+- **O resto do `AGENTS.md`.** Entra o bloco *Backend* (`:61-64`) porque a lista de módulos é a mesma transcrição auditada aqui e as outras duas linhas são o mesmo defeito no mesmo parágrafo — corrigir uma e deixar as vizinhas é o que esta story existe para não fazer. Nada além disso. Auditoria do arquivo inteiro é story própria, com baseline própria.
 - **Auditar os outros arquivos de `docs/sdlc/03-implementacao`.** Mesmo argumento de sempre: medir antes de ampliar. Se esta auditoria mostrar que o vizinho tem a mesma taxa, aí sim.
 - **Registrar seed de rolagem para auditoria.** A frase sai da doc porque não descreve o código; se auditoria de rolagem for requisito de produto, é feature (e `getRandomValues` teria de sair junto), não conserto de doc.
 
@@ -105,6 +116,8 @@ Auditar o arquivo inteiro contra o código e aplicar a **camada 1 da US-83** a c
 - [ ] Toda afirmação restante em [`convencoes.md`](../03-implementacao/convencoes.md) é verificável no repo **hoje**, e a revisão registra onde cada uma foi conferida.
 - [ ] `grep -rn "repository.ts\|campaign\|ingestion" docs/sdlc/03-implementacao/convencoes.md AGENTS.md` não retorna nada — ou retorna só linha que diz explicitamente que aquilo **não** existe. **Os dois arquivos**, porque a lista de módulos está transcrita nos dois.
 - [ ] A seção *Backend* do [`AGENTS.md`](../../../AGENTS.md) não transcreve a lista de módulos: aponta para [`apps/api/src`](../../../apps/api/src).
+- [ ] `grep -niE "bullmq|socket\.io" AGENTS.md` não retorna nada — ou só linha que diz explicitamente que aquilo **não** existe. As duas afirmações são do mesmo bloco *Backend* e nenhum gate as pega.
+- [ ] O bloco *Backend* do `AGENTS.md` **não contradiz** o [`CLAUDE.md`](../../../CLAUDE.md) quanto ao transporte (*"REST e streaming SSE (não é WebSocket)"*) — mesmo critério que a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) aplicou ao bloco *Frontend*.
 - [ ] Nenhuma lista transcrita do código sobrevive no arquivo (módulos, env vars, arquivos de pasta): cada uma virou ponteiro para a fonte viva.
 - [ ] A *Regra de tools* descreve as 6 tools reais — ou some, se o que sobrar dela for redundante com o [`AGENTS.md`](../../../AGENTS.md).
 - [ ] Zero conflito normativo com o [`AGENTS.md`](../../../AGENTS.md) e o [`CLAUDE.md`](../../../CLAUDE.md): a regra de `any` diz a mesma coisa nos três, ou vive num só.
@@ -127,7 +140,7 @@ Auditar o arquivo inteiro contra o código e aplicar a **camada 1 da US-83** a c
 ## Questões em aberto
 
 1. **O arquivo deve existir?** Há **três** documentos normativos sobre como escrever código aqui: [`AGENTS.md`](../../../AGENTS.md) (canônico), [`CLAUDE.md`](../../../CLAUDE.md) (que já manda ler o AGENTS) e este. Foi a sobreposição que produziu o conflito da regra de `any`. Duas saídas: (a) absorver o que sobrar no `AGENTS.md` e apagar o arquivo, deixando ponteiro do índice do vault ([US-78](./US-78-vault-obsidian-para-os-docs.md)); (b) mantê-lo como o "como", com o `AGENTS.md` sendo o "o quê". Recomendação: **(a)** — o que sobrar depois da auditoria provavelmente cabe em 15 linhas, e um arquivo de 15 linhas que duplica outro é a próxima dívida.
-2. **Ampliar a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) para `docs/sdlc/03-implementacao/`?** O gate dela nasceu mirando `AGENTS.md`. Três dos 8 achados daqui são exatamente da classe dela. Decidir na US-88, com este arquivo já limpo — senão o gate nasce medindo lixo que esta story ia apagar de qualquer forma.
+2. **Ampliar a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) para `docs/sdlc/03-implementacao/`?** ❌ **Fechada na US-88 (questão #2), por medição:** a pasta tem 1 arquivo e **0 identificadores cobrados** — nenhum token em backtick fora de fence casa a regex de camelCase. Rodar o gate ali daria verde num arquivo comprovadamente podre, o que é pior que não rodar. A premissa desta questão (*"três dos 8 achados são da classe dela"*) estava errada; ver a correção em *Por que a solução atual não basta*. Este arquivo é tratado à mão, aqui.
 3. **A data de "Atualizado em" tem valor?** Ela estava um mês velha e ninguém notou; data velha em doc errada é pior que data ausente, porque dá falsa precisão. Considerar apagar o campo de todos os artefatos de `docs/sdlc/03-implementacao` — mas isso é decisão do vault, não desta story.
 
 ---
@@ -141,4 +154,5 @@ Auditar o arquivo inteiro contra o código e aplicar a **camada 1 da US-83** a c
 - [apps/api/prisma/schema.prisma](../../../apps/api/prisma/schema.prisma) — `model EventLog` (`:117`) e o enum `EventType`: o payload é `Json` e não guarda seed.
 - [apps/api/prisma/seed.ts](../../../apps/api/prisma/seed.ts) — o caminho real do seed, contra o `prisma/seed.ts` afirmado.
 - [CLAUDE.md](../../../CLAUDE.md) — *Env em dev*: a regra real de carregamento, que o bloco `# apps/api` contradiz.
-- [AGENTS.md](../../../AGENTS.md) — o documento canônico; é contra ele que os conflitos de norma se resolvem.
+- [AGENTS.md](../../../AGENTS.md) — o documento canônico; é contra ele que os conflitos de norma se resolvem. Bloco *Backend* (`:61-64`): lista de módulos transcrita, `BullMQ` e `Socket.IO` inexistentes. O bloco *Frontend* logo acima (`:53-58`) já foi corrigido pela [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) e serve de modelo do desfecho.
+- [apps/web/src/app/api/chat/route.ts](../../../apps/web/src/app/api/chat/route.ts) — `:28`, o `text/event-stream` que desmente o Socket.IO.
