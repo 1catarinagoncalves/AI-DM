@@ -2,7 +2,7 @@
 
 **Épico:** 0 — Infra e documentação
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-78](./US-78-vault-obsidian-para-os-docs.md) e [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) — **satisfeitas**. Entregaram `scripts/check-doc-links.mjs` e o par `pnpm docs:links` / `docs:links:test`. Esta story **estende** esse script com uma checagem nova; não cria um segundo.
 **Nasceu de:** sessão de 27/07/2026. O `prisma/` aparecia como diretório de **raiz** em 4 arquivos; o real é `apps/api/prisma/`. Três foram corrigidos à mão na hora ([`AGENTS.md`](../../../AGENTS.md), [`CLAUDE.md`](../../../CLAUDE.md), [`README.md`](../../../README.md)); o quarto ([`convencoes.md:16`](../03-implementacao/convencoes.md)) só apareceu quando a baseline foi medida por script — ninguém o tinha visto em 4 leituras manuais.
 **Relacionada a:** [US-80](./US-80-ci-typecheck-testes-e-evals.md) (é lá que o gate ganha dentes), [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md) (mesma família: gate mecânico sobre doc), [US-83](./US-83-readme-com-arquitetura-alto-nivel.md) (quer **deletar** a árvore do README — ver *Escopo*).

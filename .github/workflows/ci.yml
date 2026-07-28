@@ -60,3 +60,8 @@ jobs:
       # este é o teste de regressão do modo de escrita do próprio gate (US-79).
       - name: Teste do gate de docs
         run: pnpm docs:links:test
+
+      # Guard de drift da forma do sistema (US-83): módulo/pasta nova sem revisão
+      # da seção Arquitetura do README. Também mora na raiz, fora do `pnpm test`.
+      - name: Guard de drift do README
+        run: pnpm docs:shape

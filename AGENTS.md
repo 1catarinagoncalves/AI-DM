@@ -201,7 +201,11 @@ comportamento é o antigo.
    corolário da camada 1. Se um dia o `ai.service.ts` for dividido, a regra volta com a story que o fizer.)
 5. **Ao alterar o schema do banco:** crie uma migração Prisma versionada; nunca edite
    migrações existentes.
-6. **Code review:** todo PR que toca o AI Engine precisa de revisão de um humano,
+6. **Antes de abrir a PR:** mexeu em módulo de `apps/api/src/`, pasta de topo, tool do Mestre
+   ou topologia de produção → atualize a seção **Arquitetura** do `README.md` na MESMA PR.
+   O `pnpm docs:shape` (US-83, camada 3) falha até alguém reolhar o diagrama e colar o hash
+   novo à mão — colar o hash *é* a revisão, não uma formalidade a contornar.
+7. **Code review:** todo PR que toca o AI Engine precisa de revisão de um humano,
    independentemente de aprovação automatizada.
 
 ---

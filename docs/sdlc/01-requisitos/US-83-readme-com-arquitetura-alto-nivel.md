@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Ferramentas de projeto / SDLC
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada (28/07/2026)
 **Depende de:** nenhuma. Convive com a [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) (os links novos do README precisam passar no `pnpm docs:links`) e com a [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md), mas não espera nenhuma das duas. Ganha dentes com a [US-80](./US-80-ci-typecheck-testes-e-evals.md) (CI) pela mesma razão da US-82: sem CI, o gate anti-drift é comando local.
 **Relacionada a:** [US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md) — as duas mexem no bloco de árvore de diretórios do README. Esta quer **encolhê-lo ou deletá-lo** (*Notas de implementação*); a US-86 põe gate no que sobrar, em qualquer `.md`. Sem conflito e sem ordem obrigatória: se esta rodar primeiro, sobra menos para a outra cobrir — que é o desfecho preferido pelas duas.
 **Criada em:** 2026-07-26
@@ -163,19 +163,19 @@ Vale explicitar porque a redundância parece desperdício e não é: o **check d
 
 ## Critérios de aceite
 
-- [ ] O `README.md` da raiz tem uma seção **Arquitetura** contendo pelo menos um diagrama Mermaid de componentes e um `sequenceDiagram` do fluxo de um turno.
-- [ ] Os diagramas renderizam no GitHub (bloco ` ```mermaid `, sem dependência externa) e continuam legíveis como texto puro para quem lê via `cat` — nomes de nó = nomes reais de diretório/serviço.
-- [ ] **Zero afirmações não verificáveis:** toda tecnologia citada como presente aparece em um `package.json` do repo, e todo caminho citado existe. As 4 linhas da tabela de "O problema observado" estão corrigidas. *(A do `prisma/` saiu à mão em 27/07/2026; restam 3.)*
-- [ ] Existe seção que responde, sem o leitor abrir outro arquivo: *onde o estado de jogo vive* e *o que o LLM tem permissão de alterar*.
-- [ ] Existe seção **Produção** nomeando os três provedores em uso e o que cada um hospeda.
-- [ ] O que ainda não existe aparece **apenas** no Roadmap, em tempo futuro — nunca na Stack nem na Arquitetura.
+- [x] O `README.md` da raiz tem uma seção **Arquitetura** contendo pelo menos um diagrama Mermaid de componentes e um `sequenceDiagram` do fluxo de um turno. *(7 nós no `flowchart`, abaixo do teto de ~12.)*
+- [x] Os diagramas renderizam no GitHub (bloco ` ```mermaid `, sem dependência externa) e continuam legíveis como texto puro para quem lê via `cat` — nomes de nó = nomes reais de diretório/serviço.
+- [x] **Zero afirmações não verificáveis:** toda tecnologia citada como presente aparece em um `package.json` do repo, e todo caminho citado existe. As 4 linhas da tabela de "O problema observado" estão corrigidas. *(A do `prisma/` saiu à mão em 27/07/2026; as outras 3 em 28/07 — inclusive o Socket.IO da linha de stack, cuja dependência tinha caído na mesma passada da Questão #1.)* **Achado novo:** o repo não é bilíngue — não existe campo `locale` no schema nem em `apps/web`; o overlay pt-BR vive no ingest do SRD ([`scripts/srd/locale/`](../../../scripts/srd/locale)). A frase "em pt-BR e en" foi escrita e apagada durante esta story, pelo mesmo motivo de todas as outras: memória de decisão (ADR 005) não é estado do código.
+- [x] Existe seção que responde, sem o leitor abrir outro arquivo: *onde o estado de jogo vive* e *o que o LLM tem permissão de alterar*. *(Tabela "Onde o estado vive", uma linha por modelo do Prisma + a linha das rolagens, que não persistem.)*
+- [x] Existe seção **Produção** nomeando os três provedores em uso e o que cada um hospeda. *(Questão em aberto #2 resolvida como recomendado: fica no README, em tabela de 3 linhas, com a restrição de plano em cada uma.)*
+- [x] O que ainda não existe aparece **apenas** no Roadmap, em tempo futuro — nunca na Stack nem na Arquitetura. *(A seção "Stack" foi deletada: virou um parágrafo por componente dentro de Arquitetura, cada um dizendo também o que o componente deliberadamente não faz.)*
 - [x] `pnpm docs:links` passa **e inclui o `README.md` da raiz** na contagem de arquivos varridos. *(Entregue pela [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) em 27/07/2026: `ROOT_MD` em `check-doc-links.mjs:36`. Continua sendo contrato — quem mexer no script não pode quebrá-lo.)*
-- [ ] Nenhum caminho de arquivo/pasta do README aparece só entre backticks: todos são link relativo (senão o gate da camada 2 não os enxerga).
-- [ ] O README não transcreve nenhuma lista que já existe no repo (dependências, tools, scripts): aponta para a fonte.
+- [x] Nenhum caminho de arquivo/pasta do README aparece só entre backticks: todos são link relativo (senão o gate da camada 2 não os enxerga). *(Única exceção, deliberada: `.env`, que é gitignored e **não existe** — linkar faria o gate acusar com razão.)*
+- [x] O README não transcreve nenhuma lista que já existe no repo (dependências, tools, scripts): aponta para a fonte. *(Saíram a tabela de comandos, a lista das 6 tools e a seção Stack. Os 3 comandos do "Começando" mais `test`/`eval`/`typecheck`/`docs:links` ficam em prosa, com a lista completa linkando o `package.json` — o critério do eval exige que o README responda "qual comando roda os evals".)*
 - [x] `grep -n "uma tool por arquivo" AGENTS.md` não retorna nada. A convenção de 0 casos saiu de *Estrutura* — se voltar, volta com um caso vigente. *(27/07/2026. O único hit restante é a nota do passo 4 do Workflow que registra a remoção e o porquê.)*
-- [ ] Existe teste que falha quando a forma do sistema muda (pasta de topo, módulo em `apps/api/src/`, arquivo em `packages/ai-engine/src/tools/`), com mensagem mandando revisar a seção Arquitetura do README.
-- [ ] **Teste de regressão / eval:** um agente sem contexto, lendo **só** o `README.md`, responde corretamente: (a) em que pasta fica o `schema.prisma`; (b) qual componente rola os dados; (c) qual comando roda os evals. Hoje o README erra (a) e induz erro em (b).
-- [ ] **Regressão do próprio antídoto:** mover ou renomear `apps/api/prisma/` faz `pnpm docs:links` falhar apontando a linha do README. É o cenário exato que passou despercebido e produziu esta story.
+- [x] Existe teste que falha quando a forma do sistema muda (pasta de topo, módulo em `apps/api/src/`, arquivo em `packages/ai-engine/src/tools/`), com mensagem mandando revisar a seção Arquitetura do README. *([`scripts/readme-shape.test.mjs`](../../../scripts/readme-shape.test.mjs), `pnpm docs:shape`, no CI. Mora na raiz porque `pnpm test` é recursivo pelos workspaces e não a alcança — mesma razão do `docs:links:test`. A pasta `tools/` entra no hash como a string `(ausente)`: se voltar, o hash muda.)*
+- [x] **Teste de regressão / eval:** um agente sem contexto, lendo **só** o `README.md`, responde corretamente: (a) em que pasta fica o `schema.prisma`; (b) qual componente rola os dados; (c) qual comando roda os evals. Hoje o README erra (a) e induz erro em (b). *(a) linkado na tabela de estado e no mapa de leitura; (b) o `sequenceDiagram` mostra `dice.service` rolando dentro de `apps/api`, e a linha "Rolagens" da tabela diz "o LLM não gera número"; (c) `pnpm eval` no "Começando".*
+- [x] **Regressão do próprio antídoto:** mover ou renomear `apps/api/prisma/` faz `pnpm docs:links` falhar apontando a linha do README. É o cenário exato que passou despercebido e produziu esta story. *(Verificado em 28/07/2026 renomeando a pasta: 3 links quebrados, todos do README, categoria "alvo não existe, aponta p/ código".)*
 
 ---
 
