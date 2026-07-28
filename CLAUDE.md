@@ -8,20 +8,19 @@ Leia `AGENTS.md` para as regras completas do projeto antes de começar qualquer 
 
 ## Estrutura do repositório
 
-```
-apps/
-  web/          # Next.js 15 App Router (frontend)
-  api/          # NestJS (Game Server + REST + WebSocket)
-    prisma/     # Schema, migrações e seed do banco
-packages/
-  ai-engine/    # DM Agent: Vercel AI SDK + tools + prompts
-  shared/       # Tipos TypeScript compartilhados (contrato client-server)
-docs/
-  prd.md
-  adr/
-  sdlc/         # Artefatos por fase do SDLC
-evals/          # Suite de avaliação do DM Agent
-```
+<!-- Lista com links, não árvore em bloco de código (US-86): o `pnpm docs:links`
+     verifica destino de link e ignora tudo dentro de fence. A árvore antiga
+     afirmava `prisma/` na raiz e "WebSocket" na API — as duas mentiram por um
+     mês porque nada no repo as reprovava. -->
+
+- [apps/web](apps/web) — Next.js 15 App Router (frontend)
+- [apps/api](apps/api) — NestJS: Game Server, REST e streaming SSE (não é WebSocket). Schema, migrações e seed em [apps/api/prisma](apps/api/prisma)
+- [packages/ai-engine](packages/ai-engine) — prompts do DM Agent, escada de provedores, rubrica de eval e guardrails. As tools vivem inline em [apps/api/src/ai/ai.service.ts](apps/api/src/ai/ai.service.ts)
+- [packages/shared](packages/shared) — tipos TypeScript compartilhados (contrato client-server)
+- [docs](docs) — [prd.md](docs/prd.md), [adr](docs/adr), [sdlc](docs/sdlc) (artefatos por fase)
+- [evals](evals) — suite de avaliação do DM Agent
+
+Diagrama de componentes e fluxo de um turno: [README.md](README.md) → *Arquitetura*.
 
 ## Comandos principais
 

@@ -6,19 +6,12 @@
 
 ## Estrutura do monorepo
 
-```
-apps/
-  web/                  # Next.js 15 App Router
-  api/                  # NestJS Game Server
-packages/
-  ai-engine/            # DM Agent (Vercel AI SDK + tools + prompts)
-  shared/               # Tipos TypeScript compartilhados
-prisma/
-  schema.prisma
-  migrations/
-evals/                  # Suite de avaliação do DM Agent
-docs/
-```
+Fonte única: [CLAUDE.md](../../../CLAUDE.md) → *Estrutura do repositório*, e o diagrama de
+componentes do [README.md](../../../README.md) → *Arquitetura*.
+
+<!-- A árvore que ficava aqui era a 3ª cópia da mesma estrutura e afirmava
+     `prisma/` na raiz (o real é apps/api/prisma). Deletada na US-86: estrutura
+     duplicada em N arquivos dessincroniza em N-1 deles. -->
 
 ---
 
@@ -47,23 +40,18 @@ Módulos principais: `game`, `campaign`, `character`, `adventure`, `ai`, `ingest
 
 ### Estrutura de arquivos
 
-```
-src/
-  tools/
-    roll-dice.ts        — uma tool por arquivo
-    get-rule.ts
-    update-character-sheet.ts
-    advance-quest.ts
-    recall-memory.ts
-    get-character-state.ts
-    add-event-log.ts
-    index.ts            — exporta todas as tools
-  prompts/
-    dm-system.ts        — system prompt do DM Agent
-    memory-summarizer.ts — prompt para geração de resumo de aventura
-  agent.ts              — loop principal do DM Agent
-  context-builder.ts    — monta o contexto (estado + RAG) para cada turno
-```
+Inventário vivo: [packages/ai-engine/src](../../../packages/ai-engine/src).
+
+<!-- A árvore que ficava aqui desenhava `src/tools/` com 7 arquivos. A pasta foi
+     apagada na US-83 (só tinha código morto) e 0 dos 7 arquivos jamais
+     existiram: as 5 tools "futuras" saíram de um comentário `// Future tools`
+     que três documentos transcreveram como se fosse inventário. Deletada na
+     US-86 em vez de corrigida — árvore transcrita reafirma o filesystem e
+     apodrece sozinha. -->
+
+> **Onde as tools vivem hoje:** inline em
+> [apps/api/src/ai/ai.service.ts](../../../apps/api/src/ai/ai.service.ts), não neste pacote.
+> Elas fecham sobre o `PrismaService` do NestJS, e o `packages/ai-engine` não tem DI.
 
 ### Regra de tools
 

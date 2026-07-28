@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Ferramentas de projeto / SDLC
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Implementada (28/07/2026)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma. Convive com a [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) (os links novos do README precisam passar no `pnpm docs:links`) e com a [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md), mas não espera nenhuma das duas. Ganha dentes com a [US-80](./US-80-ci-typecheck-testes-e-evals.md) (CI) pela mesma razão da US-82: sem CI, o gate anti-drift é comando local.
 **Relacionada a:** [US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md) — as duas mexem no bloco de árvore de diretórios do README. Esta quer **encolhê-lo ou deletá-lo** (*Notas de implementação*); a US-86 põe gate no que sobrar, em qualquer `.md`. Sem conflito e sem ordem obrigatória: se esta rodar primeiro, sobra menos para a outra cobrir — que é o desfecho preferido pelas duas.
 **Criada em:** 2026-07-26
