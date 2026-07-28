@@ -306,6 +306,22 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     expect(s).toMatch(/\b(not|never|não|nunca)\b[^.]{0,20}re-narrat/i)
   })
 
+  // 2026-07-28 (emenda à US-71): regressão real de sessão local. O jogador escolheu
+  // "voltar para a vila e contar ao NPC" e o Mestre respondeu redescrevendo o local
+  // ATUAL e repetindo as mesmas opções — `finishReason=stop`, ou seja, ele julgou o
+  // turno completo (não foi corte nem falha de provedor). Causa: a linha tinha TRÊS
+  // proibições duras (não re-narrar trajeto/chegada/cumprimento) contra UMA cláusula
+  // final macia autorizando mover, e a ação pedida era exatamente trajeto+chegada+
+  // cumprimento. O deslocamento PEDIDO agora vence o anti-replay explicitamente.
+  it('autoriza a viagem que o jogador PEDIU, sobrepondo o anti-replay', () => {
+    const s = buildState({ sceneState: scene })
+    // Âncoras de conceito (não de frase): move novo × precedência; retorno a lugar já
+    // visitado é o caso que falhou; proibição de responder um deslocamento repetindo opções.
+    expect(s).toMatch(/(NEW move|novo deslocamento)[^.]{0,60}(overrides|sobrepõe)/i)
+    expect(s).toMatch(/(returning|voltar)[^.]{0,60}(already visited|já visitad)/i)
+    expect(s).toMatch(/\b(never|nunca)\b[^.]{0,120}(same options|mesmas opções)/i)
+  })
+
   it('sem `local` na cena → nenhum sinal de continuidade', () => {
     const s = buildState({ sceneState: { ...scene, local: '' } })
     expect(s).not.toMatch(/is ALREADY at/)

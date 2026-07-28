@@ -14,6 +14,13 @@
       "port": 3000
     },
     {
+      "_comment": "api+web juntos pelo script da raiz — o ÚNICO caminho com o wrapper `dotenv -e .env`, que é como os secrets de runtime da API chegam (ela não tem ConfigModule/dotenv). As configs `api`/`web` isoladas abaixo/acima sobem sem esses env vars.",
+      "name": "aidm",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "port": 3000
+    },
+    {
       "name": "api",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "api", "dev"],
