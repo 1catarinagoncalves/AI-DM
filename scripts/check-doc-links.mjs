@@ -12,6 +12,9 @@
 //   nome           - espaço/não-ASCII no basename, ou US-*.md fora da convenção
 //   isento-linkado - alguém de fora passou a linkar docs/prompts/, a isenção caiu
 //
+// E o gate de identificador (US-88), só nos .md normativos da raiz:
+//   ghost          - nome camelCase citado em prosa que não existe em fonte nenhum
+//
 // Uso:
 //   node scripts/check-doc-links.mjs              # falha se houver QUALQUER quebrado
 //   node scripts/check-doc-links.mjs --only-md    # falha só nos quebrados .md (aceite da US-78)
@@ -131,6 +134,101 @@ for (const file of files) {
   }
 }
 
+// --- US-88: identificador citado em prosa que não existe no fonte ----------
+// Roda só nos três .md normativos da raiz. No corpus `docs/`, 21% dos nomes
+// cobrados não existem no fonte e quase todos são proposta legítima de US
+// (medido em 28/07/2026) — gate ali reprovaria documento correto, e gate com
+// falso positivo é gate que alguém desliga.
+//
+// Cláusula de morte (US-88, questão 1): se ao fim da Fase 1 este bucket nunca
+// tiver acendido em CI, apague a checagem e o GHOST_ALLOW.
+const SRC_DIRS = ["apps", "packages", "scripts", "evals"];
+const SRC_EXT = /\.(?:tsx?|mjs|js|prisma|json|yaml)$/;
+// dist/ é build do próprio src (só duplica) e apps/api/src/generated/prisma é
+// código gerado com milhares de nomes: identificador que só existe lá não é API
+// do projeto, e indexá-lo criaria falso-negativo silencioso.
+const SRC_SKIP = new Set(["node_modules", "dist", "generated"]);
+
+// camelCase com pelo menos uma maiúscula. A maiúscula obrigatória é o que mata o
+// ruído: exclui `pnpm`, `tsc`, `nest`, `dotenv` e todo caminho/flag (têm `/`, `.`
+// ou `-`). Nome PascalCase fica de fora de propósito — colide com tipo, componente
+// e palavra em inglês (`WebSocket` no meio de prosa).
+const CAMEL_RE = /^[a-z][a-z0-9]*[A-Z][A-Za-z0-9]*$/;
+
+// US-88: nomes citados na doc justamente por NÃO existirem. Chave = identificador,
+// valor = motivo. Entrada que voltar a existir no fonte vira aviso, não erro — por
+// isso Map e não Set: o motivo precisa chegar ao relatório, comentário não chega.
+const GHOST_ALLOW = new Map([
+  ["rollDiceTool", "AGENTS.md :111 e :231 — tool morta apagada em 27/07/2026, citada como exemplo do defeito"],
+  ["getRule", "AGENTS.md :227 — roadmap escrito no presente, declarado inexistente no próprio bloco"],
+  ["advanceQuest", "AGENTS.md :227 — idem"],
+  ["recallMemory", "AGENTS.md :227 — idem"],
+  ["getCharacterState", "AGENTS.md :227 — idem"],
+  ["addEventLog", "AGENTS.md :227 — idem"],
+]);
+
+// Este arquivo e o seu teste ficam fora do índice: os dois moram em `scripts/` e
+// carregam identificador como DADO, não como API — as chaves do GHOST_ALLOW aqui,
+// os nomes de fixture lá. Indexados, as 6 entradas deliberadas "existiriam no
+// fonte" (aviso aceso sempre) e o nome inventado da fixture passaria no gate que
+// ela existe para reprovar. Teto conhecido: identificador que só exista nestes
+// dois arquivos é invisível ao gate.
+const SRC_SELF = new Set([import.meta.filename, import.meta.filename.replace(/\.mjs$/, ".test.mjs")]);
+
+/** Todo o fonte do projeto concatenado. A verificação é substring, não AST. */
+async function srcIndex(dir) {
+  const parts = [];
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    if (e.name.startsWith(".") || SRC_SKIP.has(e.name)) continue;
+    const p = join(dir, e.name);
+    if (SRC_SELF.has(p)) continue;
+    if (e.isDirectory()) parts.push(await srcIndex(p));
+    else if (SRC_EXT.test(e.name)) parts.push(readFileSync(p, "utf8"));
+  }
+  return parts.join("\n");
+}
+
+/**
+ * Tokens em backtick simples, fora de fence — o inverso da máscara de stripCode().
+ * Lá o que interessa é o que sobra (prosa); aqui é justamente o que ela descarta.
+ */
+function codeSpans(lines) {
+  let inFence = false;
+  const out = [];
+  for (const [i, line] of lines.entries()) {
+    if (/^\s*(?:```|~~~)/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    for (const m of line.matchAll(/`([^`]+)`/g)) out.push({ lineNo: i + 1, token: m[1] });
+  }
+  return out;
+}
+
+// Posicional entra no escopo: é como o teste de regressão roda sobre uma fixture
+// sem precisar de flag só-para-teste. `pnpm docs:links` não passa posicional, então
+// o gate de CI continua vendo apenas ROOT_MD.
+const ghostScope = picked.length ? files : files.filter((f) => ROOT_MD.includes(relative(ROOT, f)));
+const ghostHits = [];
+const ghostStale = [];
+
+if (ghostScope.length) {
+  const src = (
+    await Promise.all(SRC_DIRS.map((d) => join(ROOT, d)).filter(existsSync).map(srcIndex))
+  ).join("\n");
+
+  for (const file of ghostScope) {
+    const where = posix.join(...relative(ROOT, file).split(sep));
+    for (const { lineNo, token } of codeSpans(readFileSync(file, "utf8").split(/\r?\n/))) {
+      if (!CAMEL_RE.test(token) || GHOST_ALLOW.has(token)) continue;
+      if (!src.includes(token)) ghostHits.push({ where: `${where}:${lineNo}`, token });
+    }
+  }
+  // Contra o mesmo índice já em memória: um filter no fim, sem reler o disco.
+  for (const [nome, motivo] of GHOST_ALLOW) if (src.includes(nome)) ghostStale.push({ nome, motivo });
+}
+
 const exemptCount = files.filter(isPrompts).length;
 const exemptLinked = [];
 
@@ -230,6 +328,15 @@ if (has("--naive")) console.log(`Contagem ingênua (sufixo :NN como path): ${bro
 console.log(`Nome fora da convenção: ${nameHits.length}  (US-82)`);
 console.log(`  linkados apesar de isentos           : ${String(exemptLinked.length).padStart(3)}  (US-82)`);
 console.log(`  isentos (docs/prompts/)              : ${String(exemptCount).padStart(3)}  (fora do gate)`);
+console.log(`Identificador inexistente no fonte: ${ghostHits.length}  (US-88, em ${ghostScope.length} arquivo(s))`);
+
+// Aviso, não erro: a doc está certa, quem envelheceu foi o allowlist. Derrubar o
+// CI por isto ensinaria a esvaziar o GHOST_ALLOW no susto — o oposto do que ele
+// existe para fazer. Sai sempre, sem depender do --list.
+if (ghostStale.length) {
+  console.log(`\n[ghost-allow obsoleto] ${ghostStale.length} entrada(s) voltaram a existir no fonte — remova do GHOST_ALLOW:`);
+  for (const i of ghostStale) console.log(`  ${i.nome}  (${i.motivo})`);
+}
 
 if (has("--list")) {
   if (fixed.length) {
@@ -254,19 +361,29 @@ if (has("--list")) {
     console.log("\n[isento-linkado]");
     for (const i of exemptLinked) console.log(`  ${i.where}  ${i.raw}  -> ${i.alvo}`);
   }
+  if (ghostHits.length) {
+    console.log("\n[ghost]");
+    for (const i of ghostHits) console.log(`  ${i.where}  ${i.token}`);
+  }
 }
 
 // Gate. --only-md = critério de aceite da US-78 (só links .md; nome fica de fora
 // para não reescrever aquele aceite); default = US-79 + US-82.
 const gate = has("--only-md")
   ? buckets.md.length + buckets.ambig.length
-  : broken + nameHits.length + exemptLinked.length;
+  : broken + nameHits.length + exemptLinked.length + ghostHits.length;
 if (gate > 0) {
   if (has("--only-md")) console.error(`\nFALHA: ${gate} link(s) quebrado(s) no gate (.md + ambíguos).`);
   else {
     console.error(`\nFALHA: ${gate} problema(s) no gate.`);
     if (broken) console.error(`  ${broken} link(s) quebrado(s).`);
     if (nameHits.length) console.error(`  ${nameHits.length} arquivo(s) com nome fora da convenção (rode com --list).`);
+    if (ghostHits.length) {
+      console.error(
+        `  ${ghostHits.length} identificador(es) citado(s) em .md normativo sem existir no fonte (rode com --list).\n` +
+          `    Corrija a linha. Só allowliste em GHOST_ALLOW se a citação for deliberada — nome que a doc cita JUSTAMENTE por não existir.`,
+      );
+    }
     if (exemptLinked.length) {
       console.error(
         `  ${exemptLinked.length} link(s) para docs/prompts/: a isenção valia enquanto ninguém linkasse.\n` +

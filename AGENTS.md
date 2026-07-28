@@ -50,8 +50,12 @@ Roadmap incremental (fase atual: MVP single-player):
 ### Frontend (`apps/web`)
 - Next.js 15 App Router, React Server Components onde possível
 - Tailwind CSS + shadcn/ui para componentes
-- Zustand para estado local de UI; estado de jogo vem do servidor via WebSocket
-- Streaming de narração token-a-token via `useChat` do Vercel AI SDK
+- Estado local de UI em `useState` (`apps/web/src/components/game/GameView.tsx:204`) — **não há Zustand** no projeto
+- Estado de jogo vem do servidor por **SSE** (`text/event-stream`, `apps/web/src/app/api/chat/route.ts:28`), **não** por WebSocket: não existe `socket.io` nem `ws` no repo
+- Streaming de narração token-a-token por `fetch` + leitura manual do body
+  (`res.body.getReader()`, `apps/web/src/components/game/GameView.tsx:311`) — **não** pelo hook
+  useChat: `@ai-sdk/react` está no `package.json` do `apps/web` e nunca é importado.
+  Verificado em 28/07/2026 (US-88).
 
 ### Backend (`apps/api`)
 - NestJS com módulos por domínio: `game`, `campaign`, `character`, `ai`, `ingestion`

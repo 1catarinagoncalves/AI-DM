@@ -78,6 +78,55 @@ test("sem --fix o script não escreve nada", () => {
   });
 });
 
+// --- US-88: gate de identificador inexistente -------------------------------
+// A fixture entra no escopo por ser posicional (em produção o gate só vê ROOT_MD).
+const GHOST_FIXTURE = "docs/sdlc/01-requisitos/zz-fixture-us88-ghost.md";
+
+test("identificador camelCase que não existe em fonte nenhum reprova o gate", () => {
+  const corpo = ["# fixture", "", "Chame `naoExisteEmLugarNenhum` antes de narrar.", ""].join("\n");
+  withFixture(GHOST_FIXTURE, corpo, () => {
+    assert.throws(() => runChecker(GHOST_FIXTURE, "--list"), (err) => {
+      assert.match(err.stdout, /Identificador inexistente no fonte: 1/);
+      assert.match(err.stdout, /zz-fixture-us88-ghost\.md:3\s+naoExisteEmLugarNenhum/);
+      return true;
+    });
+  });
+});
+
+test("identificador real, entrada do GHOST_ALLOW e nome dentro de fence passam", () => {
+  const corpo = [
+    "# fixture",
+    "",
+    "Estado local em `useState`, e `advanceQuest` está no GHOST_ALLOW.",
+    "",
+    "```ts",
+    "const x = naoExisteEmLugarNenhum()",
+    "```",
+    "",
+    // Sem maiúscula e com ponto/traço: fora da regex de propósito.
+    "Nada disto é cobrado: `pnpm`, `apps/web`, `package.json`, `@ai-sdk/react`.",
+    "",
+  ].join("\n");
+  withFixture(GHOST_FIXTURE, corpo, () => {
+    const out = runChecker(GHOST_FIXTURE, "--list");
+    assert.match(out, /Identificador inexistente no fonte: 0/);
+    assert.match(out, /\nOK/);
+  });
+});
+
+test("entrada do GHOST_ALLOW que voltou a existir no fonte vira aviso, não erro", () => {
+  // Fixture de FONTE, não de doc: é o índice que precisa passar a conter o nome.
+  const revivida = "scripts/zz-fixture-us88-revivida.mjs";
+  withFixture(revivida, "export const advanceQuest = () => {}\n", () => {
+    withFixture(GHOST_FIXTURE, "# fixture\n", () => {
+      const out = runChecker(GHOST_FIXTURE);
+      assert.match(out, /\[ghost-allow obsoleto\] 1 entrada/);
+      assert.match(out, /advanceQuest/);
+      assert.match(out, /\nOK/); // a doc está certa: quem envelheceu foi o allowlist
+    });
+  });
+});
+
 test("--fix não escreve fora de docs/ e dos três .md da raiz", () => {
   // A fronteira do modo de escrita da US-79. packages/shared/ está dois níveis
   // abaixo da raiz, então aqui quem quebra é `../../../` — a mesma fixture com o
