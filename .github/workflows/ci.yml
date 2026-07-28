@@ -16,7 +16,12 @@ jobs:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
 
     steps:
+      # fetch-depth: 0 por causa do guard do grafo lá embaixo: ele faz
+      # `git log -- graphify-out/graph.json`, e o checkout raso (depth 1) não
+      # traz histórico nenhum — o comando devolveria vazio e o guard calaria.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       # Antes do setup-node: `cache: pnpm` precisa do pnpm já no PATH.
       # Sem `version:` de propósito — o action lê `packageManager` do package.json
@@ -65,3 +70,30 @@ jobs:
       # da seção Arquitetura do README. Também mora na raiz, fora do `pnpm test`.
       - name: Guard de drift do README
         run: pnpm docs:shape
+
+      # Guard de frescor do grafo graphify. Aviso, NÃO falha: consertar exige
+      # `graphify extract --backend gemini --force` local, que gasta chave e
+      # dinheiro — reprovar um PR de doc por isso é desproporcional (diferente
+      # do docs:links, cujo conserto é grátis).
+      #
+      # Compara por HISTÓRICO, não por mtime: num checkout limpo todo arquivo
+      # nasce com o mesmo timestamp, então a heurística de mtime do iniciar.ps1
+      # não vale aqui. A pergunta certa é "mudou .md em algum commit depois do
+      # último commit que tocou graph.json?".
+      - name: Guard de frescor do grafo
+        run: |
+          graph_commit=$(git log -1 --format=%H -- graphify-out/graph.json)
+          if [ -z "$graph_commit" ]; then
+            echo "graphify-out/graph.json não está versionado — guard ignorado."
+            exit 0
+          fi
+          # Exclui graphify-out/: GRAPH_REPORT.md é SAÍDA do grafo e muda a cada
+          # rebuild. Sem isto o guard se auto-dispara para sempre.
+          stale=$(git diff --name-only "$graph_commit" HEAD -- '*.md' ':(exclude)graphify-out/*')
+          if [ -n "$stale" ]; then
+            count=$(echo "$stale" | wc -l)
+            echo "::warning::$count doc(s) mudaram desde o último rebuild do grafo. Rode: graphify extract . --backend gemini --force && graphify label ."
+            echo "$stale"
+          else
+            echo "Grafo em dia com os docs."
+          fi

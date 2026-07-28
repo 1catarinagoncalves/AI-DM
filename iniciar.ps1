@@ -42,6 +42,11 @@ foreach ($line in Get-Content "$projectDir\.env") {
     if ($line -match "^NVIDIA_API_KEY=(.+)$") {
         $env:NVIDIA_API_KEY = $Matches[1] -replace '["]', ''
     }
+    # graphify le a chave do ambiente do processo (llm.py:140); nao carrega .env
+    # sozinho. Carregada aqui para o `graphify extract` correr nesta janela.
+    if ($line -match "^GEMINI_API_KEY=(.+)$") {
+        $env:GEMINI_API_KEY = $Matches[1] -replace '["]', ''
+    }
 }
 
 # 4. Compilar pacotes partilhados (shared, ai-engine). A API le o dist deles;
@@ -57,6 +62,26 @@ Write-Host "  [5/5] A preparar base de dados (migracoes + seed)..." -ForegroundC
 pnpm --filter api db:migrate:deploy
 pnpm --filter api db:seed
 Write-Host "       Base de dados atualizada." -ForegroundColor Green
+
+# Aviso de grafo desatualizado. O hook post-commit so re-extrai codigo; docs com
+# nos semanticos ficam congelados no rebuild (graphify watch.py, #1915), e a flag
+# needs_update so e escrita pelo modo watch. Sem este aviso nada denuncia a divida.
+$graphFile = "$projectDir\graphify-out\graph.json"
+if (Test-Path $graphFile) {
+    $graphTime = (Get-Item $graphFile).LastWriteTime
+    $docs = @(Get-ChildItem "$projectDir\docs" -Filter *.md -Recurse -ErrorAction SilentlyContinue)
+    $docs += @(Get-ChildItem $projectDir -Filter *.md -ErrorAction SilentlyContinue)
+    $stale = @($docs | Where-Object { $_.LastWriteTime -gt $graphTime } |
+        Sort-Object LastWriteTime -Descending)
+    if ($stale.Count -gt 0) {
+        Write-Host ""
+        Write-Host "  [graphify] $($stale.Count) doc(s) mudaram desde o ultimo grafo." -ForegroundColor Yellow
+        Write-Host "             Mais recente: $($stale[0].Name)" -ForegroundColor Gray
+        Write-Host "             Para atualizar (custa ~0.20 USD, uns minutos):" -ForegroundColor Gray
+        Write-Host "             graphify extract . --backend gemini --force" -ForegroundColor Gray
+        Write-Host "             graphify label ." -ForegroundColor Gray
+    }
+}
 
 Write-Host ""
 Write-Host "  O browser vai abrir automaticamente quando estiver pronto." -ForegroundColor Gray

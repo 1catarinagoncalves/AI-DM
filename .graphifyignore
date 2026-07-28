@@ -1,0 +1,7 @@
+# Exclusões extras do graphify (sintaxe gitignore; só exclui, nunca re-inclui).
+# O .gitignore já é respeitado por padrão — aqui vai só o que é versionado de
+# propósito mas não é conhecimento do projeto.
+
+# Config do editor: app.json virava 4 nós no grafo (useMarkdownLinks,
+# newLinkFormat, alwaysUpdateLinks). É preferência de UI, não arquitetura.
+docs/.obsidian/
