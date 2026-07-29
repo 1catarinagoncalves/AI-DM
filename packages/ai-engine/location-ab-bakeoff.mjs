@@ -1,5 +1,6 @@
 // A/B da LOCALIZAÇÃO do AI DM (US-71) — mesmo modelo de PRODUÇÃO, dois estados de
-// localização, sobre a cena EXATA do bug de replay (anexo `erro location.md`).
+// localização, sobre a cena EXATA do bug de replay (descrito em
+// docs/sdlc/01-requisitos/US-71-simplificar-localizacao-do-personagem.md).
 //
 // Clona `prompt-ab-bakeoff.mjs` para o cenário de localização:
 //   - ANTIGO = system + turn-state PRÉ-US-71 (capturados em location-old.snapshot.json

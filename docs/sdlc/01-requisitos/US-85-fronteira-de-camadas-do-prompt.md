@@ -44,6 +44,15 @@ A diferença é de **formato**, não de cobertura: o guard existente é uma list
 
 Trocar o guard que falha aberto por um que falha fechado: todo cabeçalho emitido na camada 3 tem de estar no registro compartilhado; bloco novo não registrado derruba o teste, com mensagem dizendo onde registrá-lo.
 
+### Descoberta de 2026-07-28 — o guard conta cabeçalhos, não bytes
+
+Investigação de um defeito de narração (o Mestre ignorou um deslocamento pedido pelo jogador e redescreveu o local atual) terminou numa emenda à `continuityLine` do `buildTurnStateBlock`. Duas consequências para esta story, ambas confirmadas contra o código:
+
+1. **A emenda passa incólume pelo guard proposto aqui, e está certo que passe.** Ela não cria cabeçalho `## ` nenhum — cresce dentro de uma seção já registrada. O guard de conjunto (regra: extrair `/^## (.+)$/m` e comparar com o registro) é sobre *nomes novos*, e a fronteira que ele protege é a de acoplamento por literal, não a de volume. Vale registrar explicitamente para que ninguém, no futuro, leia o verde do guard como aval de que a camada 3 não engordou.
+2. **O crescimento silencioso dentro de bloco existente é o modo de falha que sobra.** Cabeçalho novo é evento raro e visível em revisão; frase acrescentada a bloco existente é rotina e invisível. Se algum dia a *Questão em aberto #1* virar guard, o sinal a medir é o tamanho renderizado do bloco, não a contagem de cabeçalhos — são grandezas diferentes, e só a primeira captura este caso.
+
+Nada aqui muda o escopo desta story: o guard de cabeçalhos continua valendo o que vale. É delimitação, para a story não ser vendida como proteção que ela não dá.
+
 ---
 
 ## Escopo
@@ -85,6 +94,18 @@ Trocar o guard que falha aberto por um que falha fechado: todo cabeçalho emitid
 ## Questões em aberto
 
 1. **Vale guard para o lado inverso?** Texto estável que cai na camada 3 é re-enviado a cada turno — custo silencioso, o oposto exato do que a US-55/US-56 compraram. Não há hoje um teste barato para "isto devia estar na camada 2": o único sinal honesto é o tamanho do bloco por turno. Medir com o `DM_CACHE_SPIKE` da [US-55](./US-55-prompt-caching-do-dm.md) antes de inventar asserção.
+
+   **Deixou de ser hipotética em 2026-07-28.** A emenda daquela data à `continuityLine` (a correção do travamento de deslocamento — ver *Descoberta de 2026-07-28* acima) acrescentou **541 caracteres de prosa invariante** à camada 3. Medições do momento da emenda:
+
+   | o que | tamanho |
+   |---|---|
+   | a emenda | 541 chars (~135 tokens, estimados a 4 chars/token) |
+   | `continuityLine` inteira | 988 chars |
+   | turn-state renderizado (fixture só com cena, sem entidades/quests/inventário/resumo) | 2.563 chars |
+
+   Contra uma sessão local real (`promptTokens=16640`, `cachedPromptTokens=12288` → 4.352 não-cacheados), a emenda é ~3% do que cada turno paga fora do cache, permanentemente.
+
+   O caso é instrutivo porque **não tem conserto óbvio**: a linha interpola `sceneState.local` duas vezes, então não sobe inteira para a camada 2. O corte possível — invariante em cima, interpolação embaixo — foi descartado de propósito pela [US-71](./US-71-simplificar-localizacao-do-personagem.md), cujo ganho vinha justamente de a instrução citar o local concreto. Use este caso ao decidir a Questão: ele mostra que o lado inverso não é "alguém pôs texto no lugar errado", e sim uma tensão de desenho que cobra juros a cada melhoria de redação.
 2. **O registro vira a única forma de nomear bloco?** O guard prova que todo bloco emitido está registrado. Não prova que a prosa da camada 2 usa o registro em vez de um literal novo — para isso seria preciso ler o fonte como texto, e ler fonte em teste é frágil. Aceitar a lacuna (o ADR cobre por convenção) ou fechá-la é decisão desta story; a recomendação é aceitar até haver um caso real.
 
 ---

@@ -58,15 +58,30 @@ Roadmap incremental (fase atual: MVP single-player):
   Verificado em 28/07/2026 (US-88).
 
 ### Backend (`apps/api`)
-- NestJS com módulos por domínio: `game`, `campaign`, `character`, `ai`, `ingestion`
+- NestJS com um módulo por domínio. **A lista viva são as pastas de `apps/api/src/`** — leia a
+  pasta; esta linha não as transcreve de propósito. Não há camada de repositório: zero
+  `*.repository.ts` no repo, o service usa o `PrismaService` por DI
 - Prisma ORM sobre PostgreSQL; schema, migrações e seed em `apps/api/prisma/`
-- BullMQ para filas (ingestão de livros, sumarização de memória)
-- Socket.IO para salas de campanha em tempo real
+- **Não há fila nem worker** no repo: zero `bullmq` no `package.json` e no código. A ingestão
+  de livros é da fase 3 do roadmap e não existe ainda
+- Transporte é **REST + SSE** (`text/event-stream`), **não** WebSocket — mesma medição da
+  seção *Frontend* acima. Não existe `socket.io`, `ws` nem `@nestjs/websockets` como
+  dependência do projeto
 - **`nest start` não carrega `.env`**: a API não tem `ConfigModule` nem dependência `dotenv`,
   lê `process.env` cru. Em dev os secrets vêm do `.env` da **raiz**, via o wrapper
   `dotenv -e .env` do script `dev` (mesmo padrão dos `db:*`). `apps/api/.env` não é lido —
   não use. Antes de escrever "coloque em `.env`" numa spec ou US, confirme no código como
   aquele env var é lido.
+
+<!-- US-91 (29/07/2026): este bloco foi reescrito inteiro, não numa linha só. Ele afirmava
+     três coisas inexistentes: (1) a lista de módulos citava `campaign` e `ingestion`, que
+     NÃO EXISTEM em apps/api/src e nunca existiram, e omitia quatro módulos reais; (2) BullMQ
+     para filas — zero hits no package.json e no código, não há fila nenhuma; (3) Socket.IO
+     para salas em tempo real — zero hits, e contradizia o CLAUDE.md e a seção Frontend logo
+     acima, que já diziam SSE. Nenhuma das três acende no gate da US-88 (não são camelCase),
+     e a lista de módulos era a mesma transcrição podre do convencoes.md, corrigida junto.
+     Desenho que não foi adiante, escrito no presente, num arquivo que todo agente lê antes
+     de escrever a primeira linha. -->
 
 ### AI Engine (`packages/ai-engine`)
 - Vercel AI SDK (`ai` package) como camada de abstração de provedor
@@ -106,6 +121,13 @@ Fonte de verdade destas regras. `CLAUDE.md` aponta para cá — não duplique.
 - Docstring em função pública: intenção + um exemplo de uso.
 - Cite número de issue/US ou SHA quando a linha existe por causa de um bug específico
   ou restrição de upstream.
+- **Caminho de doc citado em comentário não é vigiado por nada.** O `pnpm docs:links` varre
+  link markdown de `docs/` mais os `.md` da raiz; um `// ver evals/PROMPT-ANCHORS.md` dentro
+  de `.ts` é texto solto para o gate. Ponteiro por bloco continua sendo o padrão (US-77) — o
+  que não existe é rede para o dia em que o alvo mudar de casa. Antes de mover ou renomear
+  um `.md`, `git grep` pelo basename: em 29/07/2026 eram 9 citações de `PROMPT-ANCHORS.md`
+  em 5 arquivos de código, e nenhuma delas reprovaria o gate depois do move (US-90,
+  *Questão em aberto #3*).
 - **Roadmap não vira código.** Nada de export comentado como `// Future tool`, arquivo
   placeholder, nem função cujo corpo só faz `throw new Error('... must be bound to ...')`.
   Plano mora em `docs/sdlc/01-requisitos/`, com checkbox e número de US. Em doc, a mesma

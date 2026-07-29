@@ -163,6 +163,347 @@
   },
   "nodes": [
     {
+      "label": "move-ab.mjs",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "move-ab.mjs"
+    },
+    {
+      "label": "REPS",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_reps",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "reps"
+    },
+    {
+      "label": "sleep()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_sleep",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "sleep()"
+    },
+    {
+      "label": "t()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_t",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "t()"
+    },
+    {
+      "label": "log()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_log",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "log()"
+    },
+    {
+      "label": "CHARACTER",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_character",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "character"
+    },
+    {
+      "label": "SYSTEM",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_system",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "system"
+    },
+    {
+      "label": "TURN_STATE_NEW",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_turn_state_new",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "turn_state_new"
+    },
+    {
+      "label": "corte",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_corte",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "corte"
+    },
+    {
+      "label": "fimDaLinha",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_fimdalinha",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "fimdalinha"
+    },
+    {
+      "label": "makeTools()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_maketools",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "maketools()"
+    },
+    {
+      "label": "umaRep()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L92",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_umarep",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "umarep()"
+    },
+    {
+      "label": "RODADAS",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L127",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_rodadas",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "rodadas"
+    },
+    {
+      "label": "resultado",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L132",
+      "_origin": "ast",
+      "id": "packages_ai_engine_move_ab_resultado",
+      "community": 59,
+      "community_name": "move-ab.mjs",
+      "norm_label": "resultado"
+    },
+    {
+      "label": "dm-system.test.ts",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_test",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "dm-system.test.ts"
+    },
+    {
+      "label": "baseSheet",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_test_basesheet",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "basesheet"
+    },
+    {
+      "label": "build()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_test_build",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "build()"
+    },
+    {
+      "label": "buildState()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_test_buildstate",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "buildstate()"
+    },
+    {
+      "label": "ADR-0005",
+      "file_type": "concept",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L397",
+      "_origin": "ast",
+      "id": "docref_adr_0005",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "adr-0005"
+    },
+    {
+      "label": "dm-system.ts",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "dm-system.ts"
+    },
+    {
+      "label": "DmCharacterSheet",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "dmcharactersheet"
+    },
+    {
+      "label": "CharacterBackground",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_characterbackground",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "characterbackground"
+    },
+    {
+      "label": "ClassFeature",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L64",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_classfeature",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "classfeature"
+    },
+    {
+      "label": "KnownSpell",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_knownspell",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "knownspell"
+    },
+    {
+      "label": "resolveKnownSpell()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L87",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_resolveknownspell",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "resolveknownspell()"
+    },
+    {
+      "label": "BACKGROUND_LABELS",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L97",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_background_labels",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "background_labels"
+    },
+    {
+      "label": "backgroundFieldText()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L111",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "backgroundfieldtext()"
+    },
+    {
+      "label": "buildDmSystemPrompt()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L165",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "builddmsystemprompt()"
+    },
+    {
+      "label": "buildTurnStateBlock()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L405",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "buildturnstateblock()"
+    },
+    {
+      "label": "buildOpeningInstruction()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L504",
+      "_origin": "ast",
+      "id": "packages_ai_engine_src_prompts_dm_system_buildopeninginstruction",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "buildopeninginstruction()"
+    },
+    {
+      "label": "ADR-0007",
+      "file_type": "concept",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "docref_adr_0007",
+      "community": 1,
+      "community_name": "dm-system.ts",
+      "norm_label": "adr-0007"
+    },
+    {
       "label": "nest-cli.json",
       "file_type": "code",
       "source_file": "apps/api/nest-cli.json",
@@ -1070,8 +1411,8 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 59,
-      "community_name": "Character/Adventure Controllers & Schemas",
+      "community": 23,
+      "community_name": "ai.controller.ts",
       "norm_label": "adventure.controller.ts",
       "id": "apps_api_src_adventure_adventure_controller"
     },
@@ -1269,7 +1610,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "adventure.module.ts",
       "id": "apps_api_src_adventure_adventure_module"
     },
@@ -1280,7 +1621,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "adventuremodule",
       "id": "apps_api_src_adventure_adventure_module_adventuremodule"
     },
@@ -1291,7 +1632,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_adventure_adventure_module_ts_module"
     },
@@ -1302,7 +1643,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 78,
-      "community_name": "Adventure Service Tests",
+      "community_name": "PrismaService",
       "norm_label": "adventure.service.test.ts",
       "id": "apps_api_src_adventure_adventure_service_test"
     },
@@ -1313,7 +1654,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "community": 78,
-      "community_name": "Adventure Service Tests",
+      "community_name": "PrismaService",
       "norm_label": "fakeai()",
       "id": "apps_api_src_adventure_adventure_service_test_fakeai"
     },
@@ -1324,7 +1665,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "community": 78,
-      "community_name": "Adventure Service Tests",
+      "community_name": "PrismaService",
       "norm_label": "config",
       "id": "apps_api_src_adventure_adventure_service_test_config"
     },
@@ -1335,7 +1676,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "community": 78,
-      "community_name": "Adventure Service Tests",
+      "community_name": "PrismaService",
       "norm_label": "recorded",
       "id": "apps_api_src_adventure_adventure_service_test_recorded"
     },
@@ -1346,7 +1687,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "community": 78,
-      "community_name": "Adventure Service Tests",
+      "community_name": "PrismaService",
       "norm_label": "fakeprisma()",
       "id": "apps_api_src_adventure_adventure_service_test_fakeprisma"
     },
@@ -1511,7 +1852,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "ai.controller.ts",
       "id": "apps_api_src_ai_ai_controller"
     },
@@ -1676,7 +2017,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "ai.module.ts",
       "id": "apps_api_src_ai_ai_module"
     },
@@ -1687,7 +2028,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "aimodule",
       "id": "apps_api_src_ai_ai_module_aimodule"
     },
@@ -1698,7 +2039,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_ai_ai_module_ts_module"
     },
@@ -2017,7 +2358,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "app.module.ts",
       "id": "apps_api_src_app_module"
     },
@@ -2028,7 +2369,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "appmodule",
       "id": "apps_api_src_app_module_appmodule"
     },
@@ -2039,7 +2380,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_app_module_ts_module"
     },
@@ -2049,8 +2390,8 @@
       "source_file": "apps/api/src/auth/auth.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": "auth.controller.ts",
       "id": "apps_api_src_auth_auth_controller"
     },
@@ -2060,8 +2401,8 @@
       "source_file": "apps/api/src/auth/auth.controller.ts",
       "source_location": "L15",
       "_origin": "ast",
-      "community": 42,
-      "community_name": "Auth Controller",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": "authcontroller",
       "id": "apps_api_src_auth_auth_controller_authcontroller"
     },
@@ -2071,8 +2412,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 42,
-      "community_name": "Auth Controller",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": "apitags",
       "id": "apps_api_src_auth_auth_controller_ts_apitags"
     },
@@ -2082,8 +2423,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 42,
-      "community_name": "Auth Controller",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": "apibearerauth",
       "id": "apps_api_src_auth_auth_controller_ts_apibearerauth"
     },
@@ -2093,8 +2434,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 42,
-      "community_name": "Auth Controller",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": "useguards",
       "id": "apps_api_src_auth_auth_controller_ts_useguards"
     },
@@ -2104,8 +2445,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 42,
-      "community_name": "Auth Controller",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": "controller",
       "id": "apps_api_src_auth_auth_controller_ts_controller"
     },
@@ -2116,7 +2457,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 42,
-      "community_name": "Auth Controller",
+      "community_name": ".sync",
       "norm_label": "apioperation",
       "id": "apps_api_src_auth_auth_controller_ts_apioperation"
     },
@@ -2127,7 +2468,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 42,
-      "community_name": "Auth Controller",
+      "community_name": ".sync",
       "norm_label": "post",
       "id": "apps_api_src_auth_auth_controller_ts_post"
     },
@@ -2137,8 +2478,8 @@
       "source_file": "apps/api/src/auth/auth.controller.ts",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 42,
-      "community_name": "Auth Controller",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": ".constructor()",
       "id": "apps_api_src_auth_auth_controller_authcontroller_constructor"
     },
@@ -2149,7 +2490,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "community": 42,
-      "community_name": "Auth Controller",
+      "community_name": ".sync",
       "norm_label": ".sync()",
       "id": "apps_api_src_auth_auth_controller_authcontroller_sync"
     },
@@ -2160,7 +2501,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "auth.guard.test.ts",
       "id": "apps_api_src_auth_auth_guard_test"
     },
@@ -2171,7 +2512,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "sign()",
       "id": "apps_api_src_auth_auth_guard_test_sign"
     },
@@ -2182,7 +2523,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "ctxwith()",
       "id": "apps_api_src_auth_auth_guard_test_ctxwith"
     },
@@ -2193,7 +2534,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "auth.guard.ts",
       "id": "apps_api_src_auth_auth_guard"
     },
@@ -2204,7 +2545,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "authguard",
       "id": "apps_api_src_auth_auth_guard_authguard"
     },
@@ -2215,7 +2556,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "injectable",
       "id": "apps_api_src_auth_auth_guard_ts_injectable"
     },
@@ -2226,7 +2567,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": ".canactivate()",
       "id": "apps_api_src_auth_auth_guard_authguard_canactivate"
     },
@@ -2237,7 +2578,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "auth.module.ts",
       "id": "apps_api_src_auth_auth_module"
     },
@@ -2247,8 +2588,8 @@
       "source_file": "apps/api/src/auth/auth.module.ts",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "NestJS App Modules",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": "authmodule",
       "id": "apps_api_src_auth_auth_module_authmodule"
     },
@@ -2258,8 +2599,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "NestJS App Modules",
+      "community": 18,
+      "community_name": "auth.controller.ts",
       "norm_label": "module",
       "id": "apps_api_src_auth_auth_module_ts_module"
     },
@@ -2270,7 +2611,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "auth.service.test.ts",
       "id": "apps_api_src_auth_auth_service_test"
     },
@@ -2281,7 +2622,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "u",
       "id": "apps_api_src_auth_auth_service_test_u"
     },
@@ -2292,7 +2633,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "c",
       "id": "apps_api_src_auth_auth_service_test_c"
     },
@@ -2303,7 +2644,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "a",
       "id": "apps_api_src_auth_auth_service_test_a"
     },
@@ -2314,7 +2655,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "fakeprisma()",
       "id": "apps_api_src_auth_auth_service_test_fakeprisma"
     },
@@ -2325,7 +2666,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "auth.service.ts",
       "id": "apps_api_src_auth_auth_service"
     },
@@ -2336,7 +2677,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "authservice",
       "id": "apps_api_src_auth_auth_service_authservice"
     },
@@ -2347,7 +2688,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": "injectable",
       "id": "apps_api_src_auth_auth_service_ts_injectable"
     },
@@ -2357,8 +2698,8 @@
       "source_file": "apps/api/src/auth/auth.service.ts",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community": 78,
+      "community_name": "PrismaService",
       "norm_label": ".constructor()",
       "id": "apps_api_src_auth_auth_service_authservice_constructor"
     },
@@ -2369,7 +2710,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community_name": "auth.controller.ts",
       "norm_label": ".sync()",
       "id": "apps_api_src_auth_auth_service_authservice_sync"
     },
@@ -2380,7 +2721,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "current-user.decorator.ts",
       "id": "apps_api_src_auth_current_user_decorator"
     },
@@ -2391,7 +2732,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "authuser",
       "id": "apps_api_src_auth_current_user_decorator_authuser"
     },
@@ -2401,8 +2742,8 @@
       "source_file": "apps/api/src/auth/current-user.decorator.ts",
       "source_location": "L12",
       "_origin": "ast",
-      "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community": 23,
+      "community_name": "ai.controller.ts",
       "norm_label": "currentuser",
       "id": "apps_api_src_auth_current_user_decorator_currentuser"
     },
@@ -2413,7 +2754,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "payloadtouser()",
       "id": "apps_api_src_auth_current_user_decorator_payloadtouser"
     },
@@ -2424,7 +2765,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "jwt.test.ts",
       "id": "apps_api_src_auth_jwt_test"
     },
@@ -2435,7 +2776,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "sign()",
       "id": "apps_api_src_auth_jwt_test_sign"
     },
@@ -2446,7 +2787,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "jwt.ts",
       "id": "apps_api_src_auth_jwt"
     },
@@ -2457,7 +2798,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "jwtpayload",
       "id": "apps_api_src_auth_jwt_jwtpayload"
     },
@@ -2468,7 +2809,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "b64urltobuffer()",
       "id": "apps_api_src_auth_jwt_b64urltobuffer"
     },
@@ -2479,7 +2820,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "community": 23,
-      "community_name": "Auth Guard & Controllers",
+      "community_name": "ai.controller.ts",
       "norm_label": "verifyjwt()",
       "id": "apps_api_src_auth_jwt_verifyjwt"
     },
@@ -2489,8 +2830,8 @@
       "source_file": "apps/api/src/character/character.controller.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 59,
-      "community_name": "Character/Adventure Controllers & Schemas",
+      "community": 58,
+      "community_name": "CharacterService",
       "norm_label": "character.controller.test.ts",
       "id": "apps_api_src_character_character_controller_test"
     },
@@ -2500,8 +2841,8 @@
       "source_file": "apps/api/src/character/character.controller.test.ts",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 59,
-      "community_name": "Character/Adventure Controllers & Schemas",
+      "community": 58,
+      "community_name": "CharacterService",
       "norm_label": "base",
       "id": "apps_api_src_character_character_controller_test_base"
     },
@@ -2511,8 +2852,8 @@
       "source_file": "apps/api/src/character/character.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 59,
-      "community_name": "Character/Adventure Controllers & Schemas",
+      "community": 23,
+      "community_name": "ai.controller.ts",
       "norm_label": "character.controller.ts",
       "id": "apps_api_src_character_character_controller"
     },
@@ -2523,7 +2864,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "charactercontroller",
       "id": "apps_api_src_character_character_controller_charactercontroller"
     },
@@ -2534,7 +2875,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "apitags",
       "id": "apps_api_src_character_character_controller_ts_apitags"
     },
@@ -2545,7 +2886,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "apibearerauth",
       "id": "apps_api_src_character_character_controller_ts_apibearerauth"
     },
@@ -2556,7 +2897,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "useguards",
       "id": "apps_api_src_character_character_controller_ts_useguards"
     },
@@ -2567,7 +2908,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "controller",
       "id": "apps_api_src_character_character_controller_ts_controller"
     },
@@ -2578,7 +2919,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "apioperation",
       "id": "apps_api_src_character_character_controller_ts_apioperation"
     },
@@ -2589,7 +2930,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "apibody",
       "id": "apps_api_src_character_character_controller_ts_apibody"
     },
@@ -2600,7 +2941,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "post",
       "id": "apps_api_src_character_character_controller_ts_post"
     },
@@ -2611,7 +2952,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "body",
       "id": "apps_api_src_character_character_controller_ts_body"
     },
@@ -2622,7 +2963,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "get",
       "id": "apps_api_src_character_character_controller_ts_get"
     },
@@ -2633,7 +2974,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "param",
       "id": "apps_api_src_character_character_controller_ts_param"
     },
@@ -2644,7 +2985,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": "delete",
       "id": "delete"
     },
@@ -2655,7 +2996,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": ".constructor()",
       "id": "apps_api_src_character_character_controller_charactercontroller_constructor"
     },
@@ -2666,7 +3007,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": ".create()",
       "id": "apps_api_src_character_character_controller_charactercontroller_create"
     },
@@ -2677,7 +3018,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": ".findmine()",
       "id": "apps_api_src_character_character_controller_charactercontroller_findmine"
     },
@@ -2688,7 +3029,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": ".findone()",
       "id": "apps_api_src_character_character_controller_charactercontroller_findone"
     },
@@ -2699,7 +3040,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": ".remove()",
       "id": "apps_api_src_character_character_controller_charactercontroller_remove"
     },
@@ -2710,7 +3051,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": ".requireuserid()",
       "id": "apps_api_src_character_character_controller_charactercontroller_requireuserid"
     },
@@ -2721,7 +3062,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": ".assertowner()",
       "id": "apps_api_src_character_character_controller_charactercontroller_assertowner"
     },
@@ -2732,7 +3073,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "character.module.ts",
       "id": "apps_api_src_character_character_module"
     },
@@ -2743,7 +3084,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "charactermodule",
       "id": "apps_api_src_character_character_module_charactermodule"
     },
@@ -2754,7 +3095,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_character_character_module_ts_module"
     },
@@ -2764,8 +3105,8 @@
       "source_file": "apps/api/src/character/character.schema.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 59,
-      "community_name": "Character/Adventure Controllers & Schemas",
+      "community": 58,
+      "community_name": "CharacterService",
       "norm_label": "character.schema.ts",
       "id": "apps_api_src_character_character_schema"
     },
@@ -2775,8 +3116,8 @@
       "source_file": "apps/api/src/character/character.schema.ts",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 59,
-      "community_name": "Character/Adventure Controllers & Schemas",
+      "community": 58,
+      "community_name": "CharacterService",
       "norm_label": "createcharacterschema",
       "id": "apps_api_src_character_character_schema_createcharacterschema"
     },
@@ -2787,7 +3128,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "community": 58,
-      "community_name": "Character Service",
+      "community_name": "CharacterService",
       "norm_label": "createcharacterdto",
       "id": "apps_api_src_character_character_schema_createcharacterdto"
     },
@@ -2864,7 +3205,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "community": 58,
-      "community_name": "Character Service",
+      "community_name": "CharacterService",
       "norm_label": "characterservice",
       "id": "apps_api_src_character_character_service_characterservice"
     },
@@ -2875,7 +3216,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 58,
-      "community_name": "Character Service",
+      "community_name": "CharacterService",
       "norm_label": "injectable",
       "id": "apps_api_src_character_character_service_ts_injectable"
     },
@@ -2886,7 +3227,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "community": 58,
-      "community_name": "Character Service",
+      "community_name": "CharacterService",
       "norm_label": ".constructor()",
       "id": "apps_api_src_character_character_service_characterservice_constructor"
     },
@@ -2897,7 +3238,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "community": 58,
-      "community_name": "Character Service",
+      "community_name": "CharacterService",
       "norm_label": ".create()",
       "id": "apps_api_src_character_character_service_characterservice_create"
     },
@@ -2908,7 +3249,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "community": 58,
-      "community_name": "Character Service",
+      "community_name": "CharacterService",
       "norm_label": ".normalizebackground()",
       "id": "apps_api_src_character_character_service_characterservice_normalizebackground"
     },
@@ -2919,7 +3260,7 @@
       "source_location": "L77",
       "_origin": "ast",
       "community": 58,
-      "community_name": "Character Service",
+      "community_name": "CharacterService",
       "norm_label": ".validateskills()",
       "id": "apps_api_src_character_character_service_characterservice_validateskills"
     },
@@ -2929,8 +3270,8 @@
       "source_file": "apps/api/src/character/character.service.ts",
       "source_location": "L105",
       "_origin": "ast",
-      "community": 58,
-      "community_name": "Character Service",
+      "community": 0,
+      "community_name": "AuthUser",
       "norm_label": ".findallbyuser()",
       "id": "apps_api_src_character_character_service_characterservice_findallbyuser"
     },
@@ -2940,8 +3281,8 @@
       "source_file": "apps/api/src/character/character.service.ts",
       "source_location": "L141",
       "_origin": "ast",
-      "community": 58,
-      "community_name": "Character Service",
+      "community": 0,
+      "community_name": "AuthUser",
       "norm_label": ".remove()",
       "id": "apps_api_src_character_character_service_characterservice_remove"
     },
@@ -2952,7 +3293,7 @@
       "source_location": "L171",
       "_origin": "ast",
       "community": 0,
-      "community_name": "Character Controller & Auth",
+      "community_name": "AuthUser",
       "norm_label": ".findone()",
       "id": "apps_api_src_character_character_service_characterservice_findone"
     },
@@ -3161,7 +3502,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "game.module.ts",
       "id": "apps_api_src_game_game_module"
     },
@@ -3172,7 +3513,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "gamemodule",
       "id": "apps_api_src_game_game_module_gamemodule"
     },
@@ -3183,7 +3524,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_game_game_module_ts_module"
     },
@@ -3194,7 +3535,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "main.ts",
       "id": "apps_api_src_main"
     },
@@ -3205,7 +3546,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "community": 14,
-      "community_name": "NestJS App Modules",
+      "community_name": "app.module.ts",
       "norm_label": "bootstrap()",
       "id": "apps_api_src_main_bootstrap"
     },
@@ -3215,8 +3556,8 @@
       "source_file": "apps/api/src/openapi.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 59,
-      "community_name": "Character/Adventure Controllers & Schemas",
+      "community": 23,
+      "community_name": "ai.controller.ts",
       "norm_label": "openapi.ts",
       "id": "apps_api_src_openapi"
     },
@@ -3226,8 +3567,8 @@
       "source_file": "apps/api/src/openapi.ts",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 59,
-      "community_name": "Character/Adventure Controllers & Schemas",
+      "community": 23,
+      "community_name": "ai.controller.ts",
       "norm_label": "zodbody()",
       "id": "apps_api_src_openapi_zodbody"
     },
@@ -3237,8 +3578,8 @@
       "source_file": "apps/api/src/prisma.service.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community": 22,
+      "community_name": "prisma.service.ts",
       "norm_label": "prisma.service.ts",
       "id": "apps_api_src_prisma_service"
     },
@@ -3248,8 +3589,8 @@
       "source_file": "apps/api/src/prisma.service.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community": 78,
+      "community_name": "PrismaService",
       "norm_label": "prismaservice",
       "id": "apps_api_src_prisma_service_prismaservice"
     },
@@ -3259,8 +3600,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community": 78,
+      "community_name": "PrismaService",
       "norm_label": "injectable",
       "id": "apps_api_src_prisma_service_ts_injectable"
     },
@@ -3270,8 +3611,8 @@
       "source_file": "apps/api/src/prisma.service.ts",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community": 78,
+      "community_name": "PrismaService",
       "norm_label": ".constructor()",
       "id": "apps_api_src_prisma_service_prismaservice_constructor"
     },
@@ -3281,8 +3622,8 @@
       "source_file": "apps/api/src/prisma.service.ts",
       "source_location": "L13",
       "_origin": "ast",
-      "community": 18,
-      "community_name": "Auth Service & Prisma",
+      "community": 78,
+      "community_name": "PrismaService",
       "norm_label": ".onmoduleinit()",
       "id": "apps_api_src_prisma_service_prismaservice_onmoduleinit"
     },
@@ -3293,7 +3634,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "system.controller.ts",
       "id": "apps_api_src_system_system_controller"
     },
@@ -3304,7 +3645,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "systemcontroller",
       "id": "apps_api_src_system_system_controller_systemcontroller"
     },
@@ -3315,7 +3656,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "apitags",
       "id": "apps_api_src_system_system_controller_ts_apitags"
     },
@@ -3326,7 +3667,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "controller",
       "id": "apps_api_src_system_system_controller_ts_controller"
     },
@@ -3337,7 +3678,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "apioperation",
       "id": "apps_api_src_system_system_controller_ts_apioperation"
     },
@@ -3348,7 +3689,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "get",
       "id": "apps_api_src_system_system_controller_ts_get"
     },
@@ -3359,7 +3700,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": ".constructor()",
       "id": "apps_api_src_system_system_controller_systemcontroller_constructor"
     },
@@ -3370,7 +3711,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": ".findall()",
       "id": "apps_api_src_system_system_controller_systemcontroller_findall"
     },
@@ -3381,7 +3722,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "system.module.ts",
       "id": "apps_api_src_system_system_module"
     },
@@ -3391,8 +3732,8 @@
       "source_file": "apps/api/src/system/system.module.ts",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 22,
-      "community_name": "System Controller/Module",
+      "community": 14,
+      "community_name": "app.module.ts",
       "norm_label": "systemmodule",
       "id": "apps_api_src_system_system_module_systemmodule"
     },
@@ -3402,8 +3743,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 22,
-      "community_name": "System Controller/Module",
+      "community": 14,
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_system_system_module_ts_module"
     },
@@ -3414,7 +3755,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "system.service.ts",
       "id": "apps_api_src_system_system_service"
     },
@@ -3425,7 +3766,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "systemservice",
       "id": "apps_api_src_system_system_service_systemservice"
     },
@@ -3436,7 +3777,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": "injectable",
       "id": "apps_api_src_system_system_service_ts_injectable"
     },
@@ -3446,8 +3787,8 @@
       "source_file": "apps/api/src/system/system.service.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 22,
-      "community_name": "System Controller/Module",
+      "community": 78,
+      "community_name": "PrismaService",
       "norm_label": ".constructor()",
       "id": "apps_api_src_system_system_service_systemservice_constructor"
     },
@@ -3458,7 +3799,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 22,
-      "community_name": "System Controller/Module",
+      "community_name": "prisma.service.ts",
       "norm_label": ".findall()",
       "id": "apps_api_src_system_system_service_systemservice_findall"
     },
@@ -4458,8 +4799,8 @@
       "source_file": "apps/web/src/app/api/auth/[...nextauth]/route.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 64,
-      "community_name": "NextAuth Route & Middleware",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "[...nextauth]/route.ts",
       "id": "apps_web_src_app_api_auth_nextauth_route"
     },
@@ -4492,7 +4833,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "layout.tsx",
       "id": "apps_web_src_app_layout"
     },
@@ -4503,7 +4844,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "metadata",
       "id": "apps_web_src_app_layout_metadata"
     },
@@ -4514,7 +4855,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "viewport",
       "id": "apps_web_src_app_layout_viewport"
     },
@@ -4525,7 +4866,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "rootlayout()",
       "id": "apps_web_src_app_layout_rootlayout"
     },
@@ -4558,7 +4899,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 26,
-      "community_name": "Home Page & Hero",
+      "community_name": "HomeHero.tsx",
       "norm_label": "app/page.tsx",
       "id": "apps_web_src_app_page"
     },
@@ -4569,7 +4910,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "community": 26,
-      "community_name": "Home Page & Hero",
+      "community_name": "HomeHero.tsx",
       "norm_label": "home()",
       "id": "apps_web_src_app_page_home"
     },
@@ -4613,7 +4954,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "setup/page.tsx",
       "id": "apps_web_src_app_setup_page"
     },
@@ -4624,7 +4965,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "setuppage()",
       "id": "apps_web_src_app_setup_page_setuppage"
     },
@@ -4634,8 +4975,8 @@
       "source_file": "apps/web/src/auth.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 64,
-      "community_name": "NextAuth Route & Middleware",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "auth.ts",
       "id": "apps_web_src_auth"
     },
@@ -4645,8 +4986,8 @@
       "source_file": "apps/web/src/auth.ts",
       "source_location": "L13",
       "_origin": "ast",
-      "community": 64,
-      "community_name": "NextAuth Route & Middleware",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "secretkey()",
       "id": "apps_web_src_auth_secretkey"
     },
@@ -4656,8 +4997,8 @@
       "source_file": "apps/web/src/auth.ts",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 64,
-      "community_name": "NextAuth Route & Middleware",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "signapitoken()",
       "id": "apps_web_src_auth_signapitoken"
     },
@@ -4667,8 +5008,8 @@
       "source_file": "apps/web/src/auth.ts",
       "source_location": "L27",
       "_origin": "ast",
-      "community": 64,
-      "community_name": "NextAuth Route & Middleware",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "{ handlers, auth, signin, signout }",
       "id": "apps_web_src_auth_handlers_auth_signin_signout"
     },
@@ -4678,8 +5019,8 @@
       "source_file": "apps/web/src/auth.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 64,
-      "community_name": "NextAuth Route & Middleware",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "adr-0006",
       "id": "docref_adr_0006"
     },
@@ -4690,7 +5031,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "authnav.tsx",
       "id": "apps_web_src_components_authnav"
     },
@@ -4701,7 +5042,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "authnav()",
       "id": "apps_web_src_components_authnav_authnav"
     },
@@ -4712,7 +5053,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 26,
-      "community_name": "Home Page & Hero",
+      "community_name": "HomeHero.tsx",
       "norm_label": "homehero.test.tsx",
       "id": "apps_web_src_components_homehero_test"
     },
@@ -4723,7 +5064,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "community": 26,
-      "community_name": "Home Page & Hero",
+      "community_name": "HomeHero.tsx",
       "norm_label": "{ listcharacters, deletecharacter }",
       "id": "apps_web_src_components_homehero_test_listcharacters_deletecharacter"
     },
@@ -4734,7 +5075,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 26,
-      "community_name": "Home Page & Hero",
+      "community_name": "HomeHero.tsx",
       "norm_label": "homehero.tsx",
       "id": "apps_web_src_components_homehero"
     },
@@ -4745,7 +5086,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 26,
-      "community_name": "Home Page & Hero",
+      "community_name": "HomeHero.tsx",
       "norm_label": "hubcharacter",
       "id": "apps_web_src_components_homehero_hubcharacter"
     },
@@ -4756,7 +5097,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "community": 26,
-      "community_name": "Home Page & Hero",
+      "community_name": "HomeHero.tsx",
       "norm_label": "homehero()",
       "id": "apps_web_src_components_homehero_homehero"
     },
@@ -4766,8 +5107,8 @@
       "source_file": "apps/web/src/components/Providers.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "providers.tsx",
       "id": "apps_web_src_components_providers"
     },
@@ -4777,8 +5118,8 @@
       "source_file": "apps/web/src/components/Providers.tsx",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "authtokenbridge()",
       "id": "apps_web_src_components_providers_authtokenbridge"
     },
@@ -4788,8 +5129,8 @@
       "source_file": "apps/web/src/components/Providers.tsx",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "providers()",
       "id": "apps_web_src_components_providers_providers"
     },
@@ -4800,7 +5141,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "themeprovider.tsx",
       "id": "apps_web_src_components_themeprovider"
     },
@@ -4811,7 +5152,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "themeprovider()",
       "id": "apps_web_src_components_themeprovider_themeprovider"
     },
@@ -4822,7 +5163,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "themetoggle.tsx",
       "id": "apps_web_src_components_themetoggle"
     },
@@ -4833,7 +5174,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 7,
-      "community_name": "Root Layout & Theme",
+      "community_name": "layout.tsx",
       "norm_label": "themetoggle()",
       "id": "apps_web_src_components_themetoggle_themetoggle"
     },
@@ -4843,8 +5184,8 @@
       "source_file": "apps/web/src/components/a11y.test.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 26,
-      "community_name": "Home Page & Hero",
+      "community": 64,
+      "community_name": "a11y.test.tsx",
       "norm_label": "a11y.test.tsx",
       "id": "apps_web_src_components_a11y_test"
     },
@@ -4854,8 +5195,8 @@
       "source_file": "apps/web/src/components/a11y.test.tsx",
       "source_location": "L13",
       "_origin": "ast",
-      "community": 26,
-      "community_name": "Home Page & Hero",
+      "community": 64,
+      "community_name": "a11y.test.tsx",
       "norm_label": "axe_options",
       "id": "apps_web_src_components_a11y_test_axe_options"
     },
@@ -4865,8 +5206,8 @@
       "source_file": "apps/web/src/components/a11y.test.tsx",
       "source_location": "L20",
       "_origin": "ast",
-      "community": 26,
-      "community_name": "Home Page & Hero",
+      "community": 64,
+      "community_name": "a11y.test.tsx",
       "norm_label": "expectnoviolations()",
       "id": "apps_web_src_components_a11y_test_expectnoviolations"
     },
@@ -4876,8 +5217,8 @@
       "source_file": "apps/web/src/components/a11y.test.tsx",
       "source_location": "L27",
       "_origin": "ast",
-      "community": 26,
-      "community_name": "Home Page & Hero",
+      "community": 64,
+      "community_name": "a11y.test.tsx",
       "norm_label": "{ listcharacters, getturns, listsystems }",
       "id": "apps_web_src_components_a11y_test_listcharacters_getturns_listsystems"
     },
@@ -4887,8 +5228,8 @@
       "source_file": "apps/web/src/components/a11y.test.tsx",
       "source_location": "L50",
       "_origin": "ast",
-      "community": 26,
-      "community_name": "Home Page & Hero",
+      "community": 64,
+      "community_name": "a11y.test.tsx",
       "norm_label": "gameprops",
       "id": "apps_web_src_components_a11y_test_gameprops"
     },
@@ -4898,8 +5239,8 @@
       "source_file": "apps/web/src/components/a11y.test.tsx",
       "source_location": "L89",
       "_origin": "ast",
-      "community": 26,
-      "community_name": "Home Page & Hero",
+      "community": 64,
+      "community_name": "a11y.test.tsx",
       "norm_label": "start()",
       "id": "apps_web_src_components_a11y_test_start"
     },
@@ -4910,7 +5251,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "gameview.test.tsx",
       "id": "apps_web_src_components_game_gameview_test"
     },
@@ -4921,7 +5262,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "{ getturns }",
       "id": "apps_web_src_components_game_gameview_test_getturns"
     },
@@ -4932,7 +5273,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "baseprops",
       "id": "apps_web_src_components_game_gameview_test_baseprops"
     },
@@ -4943,7 +5284,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "gameview.tsx",
       "id": "apps_web_src_components_game_gameview"
     },
@@ -4954,7 +5295,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "message",
       "id": "apps_web_src_components_game_gameview_message"
     },
@@ -4965,7 +5306,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "attr_labels",
       "id": "apps_web_src_components_game_gameview_attr_labels"
     },
@@ -4976,7 +5317,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "inventoryitem",
       "id": "apps_web_src_components_game_gameview_inventoryitem"
     },
@@ -4987,7 +5328,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "classfeature",
       "id": "apps_web_src_components_game_gameview_classfeature"
     },
@@ -4998,7 +5339,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "characterbackground",
       "id": "apps_web_src_components_game_gameview_characterbackground"
     },
@@ -5009,7 +5350,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "props",
       "id": "apps_web_src_components_game_gameview_props"
     },
@@ -5020,7 +5361,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "sheettabid",
       "id": "apps_web_src_components_game_gameview_sheettabid"
     },
@@ -5031,7 +5372,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "sheet_tabs",
       "id": "apps_web_src_components_game_gameview_sheet_tabs"
     },
@@ -5042,7 +5383,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "historykey()",
       "id": "apps_web_src_components_game_gameview_historykey"
     },
@@ -5053,7 +5394,7 @@
       "source_location": "L74",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "loadhistory()",
       "id": "apps_web_src_components_game_gameview_loadhistory"
     },
@@ -5064,7 +5405,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "savehistory()",
       "id": "apps_web_src_components_game_gameview_savehistory"
     },
@@ -5075,7 +5416,7 @@
       "source_location": "L89",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "backgroundpanel()",
       "id": "apps_web_src_components_game_gameview_backgroundpanel"
     },
@@ -5086,7 +5427,7 @@
       "source_location": "L143",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "featurespanel()",
       "id": "apps_web_src_components_game_gameview_featurespanel"
     },
@@ -5097,7 +5438,7 @@
       "source_location": "L203",
       "_origin": "ast",
       "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community_name": "GameView.tsx",
       "norm_label": "gameview()",
       "id": "apps_web_src_components_game_gameview_gameview"
     },
@@ -5107,8 +5448,8 @@
       "source_file": "apps/web/src/components/responsive.test.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community": 20,
+      "community_name": "SetupWizard.tsx",
       "norm_label": "responsive.test.tsx",
       "id": "apps_web_src_components_responsive_test"
     },
@@ -5118,8 +5459,8 @@
       "source_file": "apps/web/src/components/responsive.test.tsx",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 16,
-      "community_name": "GameView Frontend Component",
+      "community": 20,
+      "community_name": "SetupWizard.tsx",
       "norm_label": "{ listsystems, getturns }",
       "id": "apps_web_src_components_responsive_test_listsystems_getturns"
     },
@@ -5129,8 +5470,8 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community": 145,
+      "community_name": "SetupWizard.test.tsx",
       "norm_label": "setupwizard.test.tsx",
       "id": "apps_web_src_components_setup_setupwizard_test"
     },
@@ -5140,8 +5481,8 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L4",
       "_origin": "ast",
-      "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community": 145,
+      "community_name": "SetupWizard.test.tsx",
       "norm_label": "{ listsystems, createcharacter, getinitialadventure, createadventure }",
       "id": "apps_web_src_components_setup_setupwizard_test_listsystems_createcharacter_getinitialadventure_createadventure"
     },
@@ -5151,8 +5492,8 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L15",
       "_origin": "ast",
-      "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community": 145,
+      "community_name": "SetupWizard.test.tsx",
       "norm_label": "configwithbudget()",
       "id": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
@@ -5162,8 +5503,8 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community": 145,
+      "community_name": "SetupWizard.test.tsx",
       "norm_label": "configwithskills()",
       "id": "apps_web_src_components_setup_setupwizard_test_configwithskills"
     },
@@ -5173,8 +5514,8 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L57",
       "_origin": "ast",
-      "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community": 145,
+      "community_name": "SetupWizard.test.tsx",
       "norm_label": "picksystemandfillraceclass()",
       "id": "apps_web_src_components_setup_setupwizard_test_picksystemandfillraceclass"
     },
@@ -5185,7 +5526,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "setupwizard.tsx",
       "id": "apps_web_src_components_setup_setupwizard"
     },
@@ -5196,7 +5537,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "step",
       "id": "apps_web_src_components_setup_setupwizard_step"
     },
@@ -5207,7 +5548,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "steps",
       "id": "apps_web_src_components_setup_setupwizard_steps"
     },
@@ -5218,7 +5559,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "step_label",
       "id": "apps_web_src_components_setup_setupwizard_step_label"
     },
@@ -5229,7 +5570,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "genders",
       "id": "apps_web_src_components_setup_setupwizard_genders"
     },
@@ -5240,7 +5581,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "races",
       "id": "apps_web_src_components_setup_setupwizard_races"
     },
@@ -5251,7 +5592,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "classes",
       "id": "apps_web_src_components_setup_setupwizard_classes"
     },
@@ -5262,7 +5603,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "point_cost",
       "id": "apps_web_src_components_setup_setupwizard_point_cost"
     },
@@ -5273,7 +5614,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "systemoption",
       "id": "apps_web_src_components_setup_setupwizard_systemoption"
     },
@@ -5284,7 +5625,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "source_type_hint",
       "id": "apps_web_src_components_setup_setupwizard_source_type_hint"
     },
@@ -5295,7 +5636,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "parsedeity()",
       "id": "apps_web_src_components_setup_setupwizard_parsedeity"
     },
@@ -5306,7 +5647,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "community": 20,
-      "community_name": "Character Setup Wizard",
+      "community_name": "SetupWizard.tsx",
       "norm_label": "setupwizard()",
       "id": "apps_web_src_components_setup_setupwizard_setupwizard"
     },
@@ -5317,7 +5658,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community_name": "api.ts",
       "norm_label": "api.ts",
       "id": "apps_web_src_lib_api"
     },
@@ -5327,8 +5668,8 @@
       "source_file": "apps/web/src/lib/api.ts",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "setauthtoken()",
       "id": "apps_web_src_lib_api_setauthtoken"
     },
@@ -5339,7 +5680,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community_name": "api.ts",
       "norm_label": "authheaders()",
       "id": "apps_web_src_lib_api_authheaders"
     },
@@ -5350,7 +5691,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community_name": "api.ts",
       "norm_label": "post()",
       "id": "apps_web_src_lib_api_post"
     },
@@ -5361,7 +5702,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community_name": "api.ts",
       "norm_label": "get()",
       "id": "apps_web_src_lib_api_get"
     },
@@ -5372,7 +5713,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "community": 43,
-      "community_name": "Web Auth Providers/API Client",
+      "community_name": "api.ts",
       "norm_label": "del()",
       "id": "apps_web_src_lib_api_del"
     },
@@ -5383,7 +5724,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "community": 26,
-      "community_name": "Home Page & Hero",
+      "community_name": "HomeHero.tsx",
       "norm_label": "api",
       "id": "apps_web_src_lib_api_api"
     },
@@ -5415,8 +5756,8 @@
       "source_file": "apps/web/src/middleware.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 64,
-      "community_name": "NextAuth Route & Middleware",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "middleware.ts",
       "id": "apps_web_src_middleware"
     },
@@ -5426,8 +5767,8 @@
       "source_file": "apps/web/src/middleware.ts",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 64,
-      "community_name": "NextAuth Route & Middleware",
+      "community": 7,
+      "community_name": "layout.tsx",
       "norm_label": "config",
       "id": "apps_web_src_middleware_config"
     },
@@ -8056,7 +8397,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "entities.test.ts",
       "id": "packages_ai_engine_src_entities_test"
     },
@@ -8067,7 +8408,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "entities.ts",
       "id": "packages_ai_engine_src_entities"
     },
@@ -8078,7 +8419,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "entitypatch",
       "id": "packages_ai_engine_src_entities_entitypatch"
     },
@@ -8089,7 +8430,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "norm()",
       "id": "packages_ai_engine_src_entities_norm"
     },
@@ -8100,7 +8441,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "mergeentities()",
       "id": "packages_ai_engine_src_entities_mergeentities"
     },
@@ -8111,7 +8452,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "tipo_label",
       "id": "packages_ai_engine_src_entities_tipo_label"
     },
@@ -8122,7 +8463,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "formatentities()",
       "id": "packages_ai_engine_src_entities_formatentities"
     },
@@ -8276,7 +8617,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "ai-engine/src/index.ts",
       "id": "packages_ai_engine_src_index"
     },
@@ -8286,8 +8627,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "model.ts",
       "id": "packages_ai_engine_src_model"
     },
@@ -8297,8 +8638,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "groq",
       "id": "packages_ai_engine_src_model_groq"
     },
@@ -8308,8 +8649,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L15",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "google",
       "id": "packages_ai_engine_src_model_google"
     },
@@ -8319,8 +8660,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "openaijudge",
       "id": "packages_ai_engine_src_model_openaijudge"
     },
@@ -8330,8 +8671,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L27",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "openrouter",
       "id": "packages_ai_engine_src_model_openrouter"
     },
@@ -8341,8 +8682,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L38",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "judgemodel()",
       "id": "packages_ai_engine_src_model_judgemodel"
     },
@@ -8352,8 +8693,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L48",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "nvidia",
       "id": "packages_ai_engine_src_model_nvidia"
     },
@@ -8363,8 +8704,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L55",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "nvidiamodel()",
       "id": "packages_ai_engine_src_model_nvidiamodel"
     },
@@ -8374,8 +8715,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L64",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "resolvemodel()",
       "id": "packages_ai_engine_src_model_resolvemodel"
     },
@@ -8385,8 +8726,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L76",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "primarymodel",
       "id": "packages_ai_engine_src_model_primarymodel"
     },
@@ -8396,8 +8737,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L81",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "fallbackmodel",
       "id": "packages_ai_engine_src_model_fallbackmodel"
     },
@@ -8407,8 +8748,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L84",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "groqfallbackmodel",
       "id": "packages_ai_engine_src_model_groqfallbackmodel"
     },
@@ -8418,8 +8759,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L88",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "narrationmodels",
       "id": "packages_ai_engine_src_model_narrationmodels"
     },
@@ -8429,8 +8770,8 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L106",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "narration_provider_options",
       "id": "packages_ai_engine_src_model_narration_provider_options"
     },
@@ -8440,8 +8781,8 @@
       "source_file": "packages/ai-engine/src/narration-gen.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "narration-gen.ts",
       "id": "packages_ai_engine_src_narration_gen"
     },
@@ -8451,8 +8792,8 @@
       "source_file": "packages/ai-engine/src/narration-gen.ts",
       "source_location": "L14",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "generatednarration",
       "id": "packages_ai_engine_src_narration_gen_generatednarration"
     },
@@ -8462,8 +8803,8 @@
       "source_file": "packages/ai-engine/src/narration-gen.ts",
       "source_location": "L33",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "generatenarration()",
       "id": "packages_ai_engine_src_narration_gen_generatenarration"
     },
@@ -8704,8 +9045,8 @@
       "source_file": "packages/ai-engine/src/narrative-bakeoff.test.ts",
       "source_location": "L259",
       "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community": 37,
+      "community_name": "model.ts",
       "norm_label": "runturn()",
       "id": "packages_ai_engine_src_narrative_bakeoff_test_runturn"
     },
@@ -8738,7 +9079,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "overlap.ts",
       "id": "packages_ai_engine_src_overlap"
     },
@@ -8749,7 +9090,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "tokens()",
       "id": "packages_ai_engine_src_overlap_tokens"
     },
@@ -8760,7 +9101,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "trigrams()",
       "id": "packages_ai_engine_src_overlap_trigrams"
     },
@@ -8771,196 +9112,9 @@
       "source_location": "L23",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "overlapratio()",
       "id": "packages_ai_engine_src_overlap_overlapratio"
-    },
-    {
-      "label": "dm-system.test.ts",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "dm-system.test.ts",
-      "id": "packages_ai_engine_src_prompts_dm_system_test"
-    },
-    {
-      "label": "baseSheet",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L14",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "basesheet",
-      "id": "packages_ai_engine_src_prompts_dm_system_test_basesheet"
-    },
-    {
-      "label": "build()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L22",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "build()",
-      "id": "packages_ai_engine_src_prompts_dm_system_test_build"
-    },
-    {
-      "label": "buildState()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L34",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "buildstate()",
-      "id": "packages_ai_engine_src_prompts_dm_system_test_buildstate"
-    },
-    {
-      "label": "ADR-0005",
-      "file_type": "concept",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L381",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "adr-0005",
-      "id": "packages_ai_engine_src_prompts_dm_system_test_ts_docref_adr_0005"
-    },
-    {
-      "label": "dm-system.ts",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "dm-system.ts",
-      "id": "packages_ai_engine_src_prompts_dm_system"
-    },
-    {
-      "label": "DmCharacterSheet",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L30",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "dmcharactersheet",
-      "id": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet"
-    },
-    {
-      "label": "CharacterBackground",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L47",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "characterbackground",
-      "id": "packages_ai_engine_src_prompts_dm_system_characterbackground"
-    },
-    {
-      "label": "ClassFeature",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L64",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "classfeature",
-      "id": "packages_ai_engine_src_prompts_dm_system_classfeature"
-    },
-    {
-      "label": "KnownSpell",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L76",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "knownspell",
-      "id": "packages_ai_engine_src_prompts_dm_system_knownspell"
-    },
-    {
-      "label": "resolveKnownSpell()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L87",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "resolveknownspell()",
-      "id": "packages_ai_engine_src_prompts_dm_system_resolveknownspell"
-    },
-    {
-      "label": "BACKGROUND_LABELS",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L97",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "background_labels",
-      "id": "packages_ai_engine_src_prompts_dm_system_background_labels"
-    },
-    {
-      "label": "backgroundFieldText()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L111",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "backgroundfieldtext()",
-      "id": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext"
-    },
-    {
-      "label": "buildDmSystemPrompt()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L165",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "builddmsystemprompt()",
-      "id": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
-    },
-    {
-      "label": "buildTurnStateBlock()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L405",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "buildturnstateblock()",
-      "id": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
-    },
-    {
-      "label": "buildOpeningInstruction()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L495",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "buildopeninginstruction()",
-      "id": "packages_ai_engine_src_prompts_dm_system_buildopeninginstruction"
-    },
-    {
-      "label": "ADR-0007",
-      "file_type": "concept",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L13",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
-      "norm_label": "adr-0007",
-      "id": "docref_adr_0007"
     },
     {
       "label": "summary.ts",
@@ -8969,7 +9123,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "summary.ts",
       "id": "packages_ai_engine_src_prompts_summary"
     },
@@ -8980,7 +9134,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "summaryturn",
       "id": "packages_ai_engine_src_prompts_summary_summaryturn"
     },
@@ -8991,7 +9145,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "buildsummaryinput()",
       "id": "packages_ai_engine_src_prompts_summary_buildsummaryinput"
     },
@@ -9001,8 +9155,8 @@
       "source_file": "packages/ai-engine/src/rubric-drift.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "rubric-drift.test.ts",
       "id": "packages_ai_engine_src_rubric_drift_test"
     },
@@ -9012,8 +9166,8 @@
       "source_file": "packages/ai-engine/src/rubric.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "rubric.test.ts",
       "id": "packages_ai_engine_src_rubric_test"
     },
@@ -9023,8 +9177,8 @@
       "source_file": "packages/ai-engine/src/rubric.test.ts",
       "source_location": "L20",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "flat()",
       "id": "packages_ai_engine_src_rubric_test_flat"
     },
@@ -9034,8 +9188,8 @@
       "source_file": "packages/ai-engine/src/rubric.test.ts",
       "source_location": "L116",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "dims()",
       "id": "packages_ai_engine_src_rubric_test_dims"
     },
@@ -9045,8 +9199,8 @@
       "source_file": "packages/ai-engine/src/rubric.test.ts",
       "source_location": "L127",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "perdim()",
       "id": "packages_ai_engine_src_rubric_test_perdim"
     },
@@ -9057,7 +9211,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "rubric.ts",
       "id": "packages_ai_engine_src_rubric"
     },
@@ -9068,7 +9222,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "dimension",
       "id": "packages_ai_engine_src_rubric_dimension"
     },
@@ -9078,8 +9232,8 @@
       "source_file": "packages/ai-engine/src/rubric.ts",
       "source_location": "L39",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "dimensions",
       "id": "packages_ai_engine_src_rubric_dimensions"
     },
@@ -9089,8 +9243,8 @@
       "source_file": "packages/ai-engine/src/rubric.ts",
       "source_location": "L56",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "weights",
       "id": "packages_ai_engine_src_rubric_weights"
     },
@@ -9100,8 +9254,8 @@
       "source_file": "packages/ai-engine/src/rubric.ts",
       "source_location": "L83",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "dimension_floors",
       "id": "packages_ai_engine_src_rubric_dimension_floors"
     },
@@ -9112,7 +9266,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "gateinput",
       "id": "packages_ai_engine_src_rubric_gateinput"
     },
@@ -9123,7 +9277,7 @@
       "source_location": "L113",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "gateresult",
       "id": "packages_ai_engine_src_rubric_gateresult"
     },
@@ -9133,8 +9287,8 @@
       "source_file": "packages/ai-engine/src/rubric.ts",
       "source_location": "L131",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "gatequality()",
       "id": "packages_ai_engine_src_rubric_gatequality"
     },
@@ -9145,7 +9299,7 @@
       "source_location": "L148",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "dimscore",
       "id": "packages_ai_engine_src_rubric_dimscore"
     },
@@ -9156,7 +9310,7 @@
       "source_location": "L154",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "rubricschema",
       "id": "packages_ai_engine_src_rubric_rubricschema"
     },
@@ -9178,7 +9332,7 @@
       "source_location": "L169",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "price",
       "id": "packages_ai_engine_src_rubric_price"
     },
@@ -9189,7 +9343,7 @@
       "source_location": "L176",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "prices",
       "id": "packages_ai_engine_src_rubric_prices"
     },
@@ -9210,8 +9364,8 @@
       "source_file": "packages/ai-engine/src/rubric.ts",
       "source_location": "L197",
       "_origin": "ast",
-      "community": 37,
-      "community_name": "Rubric Quality Gate Tests",
+      "community": 9,
+      "community_name": "rubric.ts",
       "norm_label": "estimatecost()",
       "id": "packages_ai_engine_src_rubric_estimatecost"
     },
@@ -9222,7 +9376,7 @@
       "source_location": "L205",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "modelaggregate",
       "id": "packages_ai_engine_src_rubric_modelaggregate"
     },
@@ -9233,7 +9387,7 @@
       "source_location": "L216",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "weightedmean()",
       "id": "packages_ai_engine_src_rubric_weightedmean"
     },
@@ -9244,7 +9398,7 @@
       "source_location": "L232",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "aggregatereps()",
       "id": "packages_ai_engine_src_rubric_aggregatereps"
     },
@@ -9255,7 +9409,7 @@
       "source_location": "L255",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "meanofscore()",
       "id": "packages_ai_engine_src_rubric_meanofscore"
     },
@@ -9266,7 +9420,7 @@
       "source_location": "L261",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "formatscorelines()",
       "id": "packages_ai_engine_src_rubric_formatscorelines"
     },
@@ -9288,7 +9442,7 @@
       "source_location": "L284",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "buildjudgeprompt()",
       "id": "packages_ai_engine_src_rubric_buildjudgeprompt"
     },
@@ -9299,7 +9453,7 @@
       "source_location": "L320",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "judgeturn()",
       "id": "packages_ai_engine_src_rubric_judgeturn"
     },
@@ -9310,7 +9464,7 @@
       "source_location": "L343",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "batchitemschema",
       "id": "packages_ai_engine_src_rubric_batchitemschema"
     },
@@ -9321,7 +9475,7 @@
       "source_location": "L344",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "batchschema",
       "id": "packages_ai_engine_src_rubric_batchschema"
     },
@@ -9332,7 +9486,7 @@
       "source_location": "L346",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "buildbatchprompt()",
       "id": "packages_ai_engine_src_rubric_buildbatchprompt"
     },
@@ -9343,7 +9497,7 @@
       "source_location": "L379",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "judgebatch()",
       "id": "packages_ai_engine_src_rubric_judgebatch"
     },
@@ -9354,7 +9508,7 @@
       "source_location": "L403",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "reportmeta",
       "id": "packages_ai_engine_src_rubric_reportmeta"
     },
@@ -9365,7 +9519,7 @@
       "source_location": "L411",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "fmt()",
       "id": "packages_ai_engine_src_rubric_fmt"
     },
@@ -9376,7 +9530,7 @@
       "source_location": "L421",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "renderreportmarkdown()",
       "id": "packages_ai_engine_src_rubric_renderreportmarkdown"
     },
@@ -9387,7 +9541,7 @@
       "source_location": "L468",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "qualityrunmeta",
       "id": "packages_ai_engine_src_rubric_qualityrunmeta"
     },
@@ -9398,7 +9552,7 @@
       "source_location": "L485",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "qualityentry",
       "id": "packages_ai_engine_src_rubric_qualityentry"
     },
@@ -9409,7 +9563,7 @@
       "source_location": "L507",
       "_origin": "ast",
       "community": 9,
-      "community_name": "Judge Rubric Logic",
+      "community_name": "rubric.ts",
       "norm_label": "renderqualityreport()",
       "id": "packages_ai_engine_src_rubric_renderqualityreport"
     },
@@ -9420,7 +9574,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "scene.ts",
       "id": "packages_ai_engine_src_scene"
     },
@@ -9431,7 +9585,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "scenepatch",
       "id": "packages_ai_engine_src_scene_scenepatch"
     },
@@ -9442,7 +9596,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "empty",
       "id": "packages_ai_engine_src_scene_empty"
     },
@@ -9453,7 +9607,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "mergescenestate()",
       "id": "packages_ai_engine_src_scene_mergescenestate"
     },
@@ -9464,7 +9618,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "community": 1,
-      "community_name": "Entity Merging & ADR Docs",
+      "community_name": "dm-system.ts",
       "norm_label": "formatscenestate()",
       "id": "packages_ai_engine_src_scene_formatscenestate"
     },
@@ -14755,6 +14909,530 @@
     }
   ],
   "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_character",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L51",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_corte",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L53",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_fimdalinha",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_log",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_maketools",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_reps",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L132",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_resultado",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L127",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_rodadas",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_sleep",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_system",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_t",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_turn_state_new",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L92",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab",
+      "target": "packages_ai_engine_move_ab_umarep",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab_log",
+      "target": "packages_ai_engine_move_ab_t",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/move-ab.mjs",
+      "source_location": "L102",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_move_ab_umarep",
+      "target": "packages_ai_engine_move_ab_maketools",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L397",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test",
+      "target": "docref_adr_0005",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test",
+      "target": "packages_ai_engine_src_prompts_dm_system",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test",
+      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test",
+      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test",
+      "target": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test",
+      "target": "packages_ai_engine_src_prompts_dm_system_test_basesheet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test",
+      "target": "packages_ai_engine_src_prompts_dm_system_test_build",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test",
+      "target": "packages_ai_engine_src_prompts_dm_system_test_buildstate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test_build",
+      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_test_buildstate",
+      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/index.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "packages_ai_engine_src_index",
+      "target": "packages_ai_engine_src_prompts_dm_system"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/narrative-bakeoff.test.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "packages_ai_engine_src_narrative_bakeoff_test",
+      "target": "packages_ai_engine_src_prompts_dm_system"
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "docref_adr_0007",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_entities",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_entities_formatentities",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L97",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_background_labels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L111",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L165",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L504",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_buildopeninginstruction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L405",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_characterbackground",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_classfeature",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L76",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_knownspell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L87",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_prompts_dm_system_resolveknownspell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_scene",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system",
+      "target": "packages_ai_engine_src_scene_formatscenestate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/rubric-drift.test.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "packages_ai_engine_src_rubric_drift_test",
+      "target": "packages_ai_engine_src_prompts_dm_system"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
+      "source_location": "L206",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
+      "target": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/narrative-bakeoff.test.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "packages_ai_engine_src_narrative_bakeoff_test",
+      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/src/narrative-bakeoff.test.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "packages_ai_engine_src_narrative_bakeoff_test",
+      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -26034,18 +26712,6 @@
       "target": "packages_ai_engine_src_entities"
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_entities"
-    },
-    {
       "relation": "indirect_call",
       "context": "argument",
       "confidence": "INFERRED",
@@ -26068,42 +26734,6 @@
       "confidence_score": 1.0,
       "source": "packages_ai_engine_src_entities_mergeentities",
       "target": "packages_ai_engine_src_entities_norm"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L92",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "packages_ai_engine_src_prompts_dm_system_resolveknownspell",
-      "target": "packages_ai_engine_src_entities_norm"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_entities_formatentities"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L445",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
-      "target": "packages_ai_engine_src_entities_formatentities"
     },
     {
       "relation": "imports_from",
@@ -26477,18 +27107,6 @@
       "confidence_score": 1.0,
       "source": "packages_ai_engine_src_index",
       "target": "packages_ai_engine_src_overlap"
-    },
-    {
-      "relation": "re_exports",
-      "context": "export",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/index.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_index",
-      "target": "packages_ai_engine_src_prompts_dm_system"
     },
     {
       "relation": "re_exports",
@@ -27129,42 +27747,6 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "packages/ai-engine/src/narrative-bakeoff.test.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_narrative_bakeoff_test",
-      "target": "packages_ai_engine_src_prompts_dm_system"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/narrative-bakeoff.test.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_narrative_bakeoff_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/narrative-bakeoff.test.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_narrative_bakeoff_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/narrative-bakeoff.test.ts",
       "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
@@ -27384,303 +27966,6 @@
       "confidence_score": 1.0,
       "source": "packages_ai_engine_src_overlap_overlapratio",
       "target": "packages_ai_engine_src_overlap_trigrams"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L14",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_test_basesheet"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L22",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_test_build"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L34",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_test_buildstate"
-    },
-    {
-      "relation": "cites",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L381",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_test_ts_docref_adr_0005"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L23",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test_build",
-      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
-      "source_location": "L35",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_test_buildstate",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
-    },
-    {
-      "relation": "cites",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L13",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "docref_adr_0007"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L97",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_background_labels"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L111",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L165",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L495",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildopeninginstruction"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L405",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L47",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_characterbackground"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L64",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_classfeature"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L30",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L76",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_knownspell"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L87",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_resolveknownspell"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_scene"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_scene_formatscenestate"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/rubric-drift.test.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_rubric_drift_test",
-      "target": "packages_ai_engine_src_prompts_dm_system"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L206",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
-      "target": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
-      "source_location": "L423",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
-      "target": "packages_ai_engine_src_scene_formatscenestate"
     },
     {
       "relation": "contains",
@@ -33517,5 +33802,5 @@
       "source_file": "tools/kanban/kanban.html"
     }
   ],
-  "built_at_commit": "da6ff404a68e6fada433fe8d26430568a699021d"
+  "built_at_commit": "590007bfbd1848aabfb68a65d5b94065963ddff9"
 }

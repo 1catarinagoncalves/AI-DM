@@ -71,7 +71,8 @@ describe('US-03 — estado de cena estruturado', () => {
   })
 })
 
-// US-71 — regressão determinística do bug de REPLAY DE TRANSIÇÃO (anexo `erro location.md`).
+// US-71 — regressão determinística do bug de REPLAY DE TRANSIÇÃO (descrito em
+// docs/sdlc/01-requisitos/US-71-simplificar-localizacao-do-personagem.md).
 // Turno 1: a personagem chega à forja e Hélio a saúda. Turno 2 só CONTINUA a conversa.
 // O comportamento ANTIGO re-narra a chegada inteira (mesma saudação) → sobreposição de
 // trigramas alta contra a narração do turno 1. O NOVO responde ali mesmo, sem replay →

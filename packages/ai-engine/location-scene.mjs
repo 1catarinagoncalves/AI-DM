@@ -1,4 +1,5 @@
-// Cena-ímã de REPLAY DE TRANSIÇÃO (US-71) — o pior caso do anexo `erro location.md`,
+// Cena-ímã de REPLAY DE TRANSIÇÃO — o pior caso descrito em
+// docs/sdlc/01-requisitos/US-71-simplificar-localizacao-do-personagem.md,
 // compartilhada pelo capturador do baseline ANTIGO e pelo A/B `location-ab-bakeoff.mjs`
 // para que os dois braços usem EXATAMENTE a mesma cena, personagem e histórico.
 //

@@ -1,46 +1,47 @@
-# Graph Report - .  (2026-07-28)
+# Graph Report - AI DM  (2026-07-28)
 
 ## Corpus Check
-- cluster-only mode — file stats not available
+- 270 files · ~299,573 words
+- Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1336 nodes · 1645 edges · 146 communities (98 shown, 48 thin omitted)
+- 1350 nodes · 1657 edges · 147 communities (99 shown, 48 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.64)
-- Token cost: 197,484 input · 2,642 output
+- Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `da6ff404`
+- Built from commit: `590007bf`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- Character Controller & Auth
-- Entity Merging & ADR Docs
+- AuthUser
+- dm-system.ts
 - Web App Dependencies
 - Ability Scores & Narration Utils
 - System Config Schema
 - Location Bake-off Script
 - Bake-off Runner Script
-- Root Layout & Theme
+- layout.tsx
 - Narrative Bake-off Test Fixtures
-- Judge Rubric Logic
+- rubric.ts
 - Doc Link Checker Script
 - US-36 Eval Cases
 - Prompt A/B Bake-off Script
 - Onomastics Bake-off Script
-- NestJS App Modules
+- app.module.ts
 - AI Service & Controller
-- GameView Frontend Component
+- GameView.tsx
 - API Package Dependencies (Runtime)
-- Auth Service & Prisma
+- auth.controller.ts
 - Kanban Server Script
-- Character Setup Wizard
+- SetupWizard.tsx
 - DnD5e Seed Data
-- System Controller/Module
-- Auth Guard & Controllers
+- prisma.service.ts
+- ai.controller.ts
 - Adventure Controller/Service
 - User Controller
-- Home Page & Hero
+- HomeHero.tsx
 - Root Scripts Config
 - Guardrails & Slop Detection
 - API Package Dependencies
@@ -51,13 +52,13 @@
 - User Story Template
 - Test Strategy Doc
 - Web TSConfig
-- Rubric Quality Gate Tests
+- model.ts
 - AI Engine TSConfig
 - Shared Package TSConfig
 - Root TSConfig
 - PRD Doc
-- Auth Controller
-- Web Auth Providers/API Client
+- .sync
+- api.ts
 - Docs Meta (AGENTS/CLAUDE/README)
 - API Build TSConfig
 - US-01 Attributes Spec
@@ -72,13 +73,13 @@
 - SRD Ingestion User Stories
 - Docs Vault/CI User Stories
 - Character Service Tests
-- Character Service
-- Character/Adventure Controllers & Schemas
+- CharacterService
+- move-ab.mjs
 - NextAuth Type Defs
 - TTFT Benchmark Test
 - MCP Setup Script (PS)
 - MCP Setup Script (sh)
-- NextAuth Route & Middleware
+- a11y.test.tsx
 - Deploy Checklist Doc
 - Chat Route & Play Page
 - Bake-off README
@@ -92,7 +93,7 @@
 - Character Identity User Stories
 - ADR 004/005 Docs
 - Paladin Features Seed
-- Adventure Service Tests
+- PrismaService
 - Data Model Doc
 - DM Prompt Rules Doc
 - Next.js Config
@@ -137,6 +138,7 @@
 - US-87 Entity Block Prompt Fix
 - Default Model Config
 - Summary Model Config
+- SetupWizard.test.tsx
 - Kanban User Stories
 
 ## God Nodes (most connected - your core abstractions)
@@ -156,12 +158,12 @@
   scripts/srd/ingest.mjs → packages/shared/src/types/system.ts
 - `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
   docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
+- `build()` --calls--> `buildDmSystemPrompt()`  [EXTRACTED]
+  packages/ai-engine/src/prompts/dm-system.test.ts → packages/ai-engine/src/prompts/dm-system.ts
 - `POST()` --calls--> `apiAuthHeader()`  [EXTRACTED]
   apps/web/src/app/api/chat/route.ts → apps/web/src/lib/server-auth.ts
 - `PlayPage()` --calls--> `apiAuthHeader()`  [EXTRACTED]
   apps/web/src/app/play/[adventureId]/page.tsx → apps/web/src/lib/server-auth.ts
-- `runTurn()` --calls--> `resolveModel()`  [EXTRACTED]
-  packages/ai-engine/src/narrative-bakeoff.test.ts → packages/ai-engine/src/model.ts
 
 ## Import Cycles
 - None detected.
@@ -180,15 +182,15 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (146 total, 48 thin omitted)
+## Communities (147 total, 48 thin omitted)
 
-### Community 0 - "Character Controller & Auth"
-Cohesion: 0.17
-Nodes (14): AuthUser, CurrentUser, CharacterController, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body (+6 more)
+### Community 0 - "AuthUser"
+Cohesion: 0.15
+Nodes (13): AuthUser, CharacterController, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+5 more)
 
-### Community 1 - "Entity Merging & ADR Docs"
-Cohesion: 0.06
-Nodes (41): ADR-0007, EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL, fallbackModel, google (+33 more)
+### Community 1 - "dm-system.ts"
+Cohesion: 0.08
+Nodes (25): ADR-0005, ADR-0007, EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL, overlapRatio() (+17 more)
 
 ### Community 2 - "Web App Dependencies"
 Cohesion: 0.04
@@ -210,17 +212,17 @@ Nodes (25): system, turnState, ARMS, body, dir, EXEMPLAR, genOnce(), judge (+17 
 Cohesion: 0.07
 Nodes (26): accum, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, dir, EX, genTurn(), guardrailHits (+18 more)
 
-### Community 7 - "Root Layout & Theme"
-Cohesion: 0.27
-Nodes (5): metadata, viewport, AuthNav(), ThemeProvider(), ThemeToggle()
+### Community 7 - "layout.tsx"
+Cohesion: 0.12
+Nodes (13): metadata, viewport, { handlers, auth, signIn, signOut }, secretKey(), signApiToken(), AuthNav(), AuthTokenBridge(), Providers() (+5 more)
 
 ### Community 8 - "Narrative Bake-off Test Fixtures"
 Cohesion: 0.09
 Nodes (23): AMNESIA_ENTITIES, AMNESIA_TURN_STATE, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, EX_AMNESIA, EX_COHERENCE, EX_COMBAT (+15 more)
 
-### Community 9 - "Judge Rubric Logic"
-Cohesion: 0.10
-Nodes (24): aggregateReps(), batchItemSchema, batchSchema, buildBatchPrompt(), buildJudgePrompt(), Dimension, dimScore, fmt() (+16 more)
+### Community 9 - "rubric.ts"
+Cohesion: 0.08
+Nodes (31): aggregateReps(), batchItemSchema, batchSchema, buildBatchPrompt(), buildJudgePrompt(), Dimension, DIMENSION_FLOORS, DIMENSIONS (+23 more)
 
 ### Community 10 - "Doc Link Checker Script"
 Cohesion: 0.09
@@ -238,45 +240,45 @@ Nodes (17): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODEL, PACE_MS (+9 mor
 Cohesion: 0.11
 Nodes (15): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODELS, PACE_MS (+7 more)
 
-### Community 14 - "NestJS App Modules"
+### Community 14 - "app.module.ts"
 Cohesion: 0.16
-Nodes (12): AdventureModule, Module, AiModule, Module, AppModule, Module, AuthModule, Module (+4 more)
+Nodes (12): AdventureModule, Module, AiModule, Module, AppModule, Module, CharacterModule, Module (+4 more)
 
 ### Community 15 - "AI Service & Controller"
 Cohesion: 0.06
 Nodes (29): AiController, ChatBodySchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+21 more)
 
-### Community 16 - "GameView Frontend Component"
-Cohesion: 0.14
-Nodes (15): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), Message (+7 more)
+### Community 16 - "GameView.tsx"
+Cohesion: 0.15
+Nodes (14): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), Message (+6 more)
 
 ### Community 17 - "API Package Dependencies (Runtime)"
 Cohesion: 0.07
 Nodes (29): @ai-dm/ai-engine, dependencies, ai, @ai-dm/ai-engine, @ai-dm/shared, @nestjs/common, @nestjs/core, @nestjs/platform-express (+21 more)
 
-### Community 18 - "Auth Service & Prisma"
-Cohesion: 0.20
-Nodes (7): AuthService, A, C, U, Injectable, PrismaService, Injectable
+### Community 18 - "auth.controller.ts"
+Cohesion: 0.14
+Nodes (12): AuthController, ApiBearerAuth, ApiTags, Controller, UseGuards, AuthModule, Module, AuthService (+4 more)
 
 ### Community 19 - "Kanban Server Script"
 Cohesion: 0.17
 Nodes (15): abrirArquivo(), acharArquivo(), campo(), CANONICO, { execFile }, fs, gravarStatus(), HTML_FILE (+7 more)
 
-### Community 20 - "Character Setup Wizard"
-Cohesion: 0.13
-Nodes (14): CLASSES, GENDERS, parseDeity(), POINT_COST, RACES, SetupWizard(), SOURCE_TYPE_HINT, Step (+6 more)
+### Community 20 - "SetupWizard.tsx"
+Cohesion: 0.16
+Nodes (12): { listSystems, getTurns }, CLASSES, GENDERS, parseDeity(), POINT_COST, RACES, SetupWizard(), SOURCE_TYPE_HINT (+4 more)
 
 ### Community 21 - "DnD5e Seed Data"
 Cohesion: 0.13
 Nodes (13): CANTRIP_CATALOG, CANTRIP_CLASSES, dnd5eConfig, dnd5eInitialAdventures, dnd5eKits, dnd5eProficiency, freeAttributes, freeClassFeatures (+5 more)
 
-### Community 22 - "System Controller/Module"
-Cohesion: 0.17
-Nodes (9): SystemController, ApiOperation, ApiTags, Controller, Get, SystemModule, Module, SystemService (+1 more)
+### Community 22 - "prisma.service.ts"
+Cohesion: 0.22
+Nodes (7): SystemController, ApiOperation, ApiTags, Controller, Get, SystemService, Injectable
 
-### Community 23 - "Auth Guard & Controllers"
-Cohesion: 0.21
-Nodes (6): AuthGuard, Injectable, payloadToUser(), b64urlToBuffer(), JwtPayload, verifyJwt()
+### Community 23 - "ai.controller.ts"
+Cohesion: 0.20
+Nodes (8): AuthGuard, Injectable, CurrentUser, payloadToUser(), b64urlToBuffer(), JwtPayload, verifyJwt(), zodBody()
 
 ### Community 24 - "Adventure Controller/Service"
 Cohesion: 0.13
@@ -286,9 +288,9 @@ Nodes (14): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, 
 Cohesion: 0.16
 Nodes (10): CreateUserSchema, ApiBody, ApiOperation, ApiTags, Body, Controller, Post, UserController (+2 more)
 
-### Community 26 - "Home Page & Hero"
-Cohesion: 0.18
-Nodes (7): AXE_OPTIONS, gameProps, { listCharacters, getTurns, listSystems }, HomeHero(), HubCharacter, { listCharacters, deleteCharacter }, api
+### Community 26 - "HomeHero.tsx"
+Cohesion: 0.32
+Nodes (4): HomeHero(), HubCharacter, { listCharacters, deleteCharacter }, api
 
 ### Community 27 - "Root Scripts Config"
 Cohesion: 0.09
@@ -330,9 +332,9 @@ Nodes (12): 1. Testes unitários (apps/api, packages/ai-engine), 2. Testes de in
 Cohesion: 0.09
 Nodes (22): compilerOptions, allowJs, incremental, isolatedModules, jsx, lib, module, moduleResolution (+14 more)
 
-### Community 37 - "Rubric Quality Gate Tests"
-Cohesion: 0.22
-Nodes (7): DIMENSION_FLOORS, DIMENSIONS, estimateCost(), gateQuality(), dims(), perDim(), WEIGHTS
+### Community 37 - "model.ts"
+Cohesion: 0.18
+Nodes (15): fallbackModel, google, groq, groqFallbackModel, judgeModel(), NARRATION_PROVIDER_OPTIONS, narrationModels, nvidia (+7 more)
 
 ### Community 38 - "AI Engine TSConfig"
 Cohesion: 0.18
@@ -350,13 +352,9 @@ Nodes (9): compilerOptions, esModuleInterop, module, moduleResolution, noUncheck
 Cohesion: 0.18
 Nodes (10): 1. Declaração do problema, 2. Objetivos e critério de aceite, 3. Usuários alvo, 4.1 Personagens e campanhas, 4.2 Multiplayer, 4.3 Sistemas e aventuras, 4. Casos de uso, 5. Fora do escopo (v1) (+2 more)
 
-### Community 42 - "Auth Controller"
-Cohesion: 0.22
-Nodes (7): AuthController, ApiBearerAuth, ApiOperation, ApiTags, Controller, Post, UseGuards
-
-### Community 43 - "Web Auth Providers/API Client"
-Cohesion: 0.36
-Nodes (7): AuthTokenBridge(), Providers(), authHeaders(), del(), get(), post(), setAuthToken()
+### Community 43 - "api.ts"
+Cohesion: 0.70
+Nodes (4): authHeaders(), del(), get(), post()
 
 ### Community 44 - "Docs Meta (AGENTS/CLAUDE/README)"
 Cohesion: 0.25
@@ -410,13 +408,13 @@ Nodes (6): US-47 — Ingestão do SRD como dado, US-48 — Tool getRule e corpus
 Cohesion: 0.40
 Nodes (5): US-78 — Vault Obsidian sobre docs/, US-79 — Consertar links quebrados na documentação, US-80 — CI: typecheck, testes e evals, US-81 — Higiene de nomes de arquivo e placeholders (#), US-82 — Gate de convenção de nomes de arquivo
 
-### Community 58 - "Character Service"
-Cohesion: 0.31
-Nodes (3): CreateCharacterDto, CharacterService, Injectable
+### Community 58 - "CharacterService"
+Cohesion: 0.25
+Nodes (5): base, CreateCharacterDto, CreateCharacterSchema, CharacterService, Injectable
 
-### Community 59 - "Character/Adventure Controllers & Schemas"
-Cohesion: 0.39
-Nodes (3): base, CreateCharacterSchema, zodBody()
+### Community 59 - "move-ab.mjs"
+Cohesion: 0.16
+Nodes (12): CHARACTER, corte, fimDaLinha, log(), makeTools(), REPS, resultado, RODADAS (+4 more)
 
 ### Community 60 - "NextAuth Type Defs"
 Cohesion: 0.40
@@ -434,9 +432,9 @@ Nodes (4): Add-Neon(), Add-Render(), Add-Vercel(), Test-ClaudeCli()
 Cohesion: 0.70
 Nodes (4): setup-mcp.sh script, add_neon(), add_render(), add_vercel()
 
-### Community 64 - "NextAuth Route & Middleware"
-Cohesion: 0.29
-Nodes (5): { handlers, auth, signIn, signOut }, secretKey(), signApiToken(), config, ADR-0006
+### Community 64 - "a11y.test.tsx"
+Cohesion: 0.33
+Nodes (3): AXE_OPTIONS, gameProps, { listCharacters, getTurns, listSystems }
 
 ### Community 65 - "Deploy Checklist Doc"
 Cohesion: 0.25
@@ -474,6 +472,10 @@ Nodes (3): US-39 — Identidade narrativa do personagem, US-40 — Divindade / p
 Cohesion: 0.05
 Nodes (36): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset, 5. Alternativas rejeitadas, 6. Consequências, 7. Implementação (referência), ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado (+28 more)
 
+### Community 78 - "PrismaService"
+Cohesion: 0.18
+Nodes (4): config, Recorded, PrismaService, Injectable
+
 ### Community 79 - "Data Model Doc"
 Cohesion: 0.40
 Nodes (4): Diagrama de entidades (núcleo), Modelo de Dados — AI Dungeon Master, Notas de design, Índices e constraints principais
@@ -486,24 +488,28 @@ Nodes (3): ⚠️ REGRA ABSOLUTA - NUNCA confunda opções com diálogo:, ⚠️
 Cohesion: 0.06
 Nodes (30): 1. Contexto, 2.1 Topologia, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), ADR 006 — Deploy a custo zero (Fase 1) (+22 more)
 
+### Community 145 - "SetupWizard.test.tsx"
+Cohesion: 0.50
+Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacter, getInitialAdventure, createAdventure }
+
 ## Knowledge Gaps
-- **651 isolated node(s):** `$schema`, `collection`, `sourceRoot`, `deleteOutDir`, `name` (+646 more)
+- **659 isolated node(s):** `REPS`, `CHARACTER`, `SYSTEM`, `TURN_STATE_NEW`, `corte` (+654 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **48 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `SystemConfigSchema` connect `System Config Schema` to `Adventure Controller/Service`, `Character Service`, `AI Service & Controller`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `PrismaService` connect `Auth Service & Prisma` to `Character/Adventure Service Logic`, `Adventure Service Tests`, `NestJS App Modules`, `AI Service & Controller`, `System Controller/Module`, `Adventure Controller/Service`, `Character Service Tests`, `Character Service`, `User Controller`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `AiService` connect `AI Service & Controller` to `Character/Adventure Service Logic`, `NestJS App Modules`, `Adventure Service Tests`, `Auth Guard & Controllers`, `Adventure Controller/Service`?**
+- **Why does `SystemConfigSchema` connect `System Config Schema` to `Adventure Controller/Service`, `CharacterService`, `AI Service & Controller`?**
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+- **Why does `PrismaService` connect `PrismaService` to `Character/Adventure Service Logic`, `AuthUser`, `app.module.ts`, `AI Service & Controller`, `auth.controller.ts`, `prisma.service.ts`, `Adventure Controller/Service`, `Character Service Tests`, `CharacterService`, `User Controller`?**
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
+- **Why does `AuthUser` connect `AuthUser` to `.sync`, `AI Service & Controller`, `auth.controller.ts`, `ai.controller.ts`, `Adventure Controller/Service`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **What connects `$schema`, `collection`, `sourceRoot` to the rest of the system?**
-  _651 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Entity Merging & ADR Docs` be split into smaller, more focused modules?**
-  _Cohesion score 0.05656565656565657 - nodes in this community are weakly interconnected._
+- **What connects `REPS`, `CHARACTER`, `SYSTEM` to the rest of the system?**
+  _659 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `dm-system.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.07807807807807808 - nodes in this community are weakly interconnected._
 - **Should `Web App Dependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.041666666666666664 - nodes in this community are weakly interconnected._
 - **Should `Ability Scores & Narration Utils` be split into smaller, more focused modules?**

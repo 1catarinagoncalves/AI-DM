@@ -2,7 +2,7 @@
 
 **Épico:** 0 — Infra e documentação
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** nenhuma. A [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) entrou em 28/07/2026 e **não cobriu nada daqui**: o gate dela só acende em camelCase, e os achados deste arquivo são minúscula (`campaign`), PascalCase (`BullMQ`, `Socket.IO`) ou prosa semântica. Ela corrigiu o bloco *Frontend* do `AGENTS.md`, vizinho ao *Backend* que esta story trata — ver *A mesma lista mentindo em dois arquivos*.
 **Nasceu de:** sessão de 28/07/2026, durante a [US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md). Ao apagar as duas árvores de diretório de [`convencoes.md`](../03-implementacao/convencoes.md), ficou visível que **o resto do arquivo tem o mesmo defeito das árvores** — e que o gate daquela story não pegaria nenhum deles. A US-86 registrou a dívida em *Fora do escopo* e a promoveu a esta story.
 **Relacionada a:** [US-83](./US-83-readme-com-arquitetura-alto-nivel.md) (mesmo defeito no README, mesmo antídoto — camada 1: não escrever o fato), [US-90](./US-90-readme-de-evals-com-mapa-do-subsistema.md) (mesmo padrão: doc de subsistema que apodreceu sozinha), [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) (o gate que pegaria os identificadores inventados).
@@ -113,16 +113,37 @@ Auditar o arquivo inteiro contra o código e aplicar a **camada 1 da US-83** a c
 
 ## Critérios de aceite
 
-- [ ] Toda afirmação restante em [`convencoes.md`](../03-implementacao/convencoes.md) é verificável no repo **hoje**, e a revisão registra onde cada uma foi conferida.
-- [ ] `grep -rn "repository.ts\|campaign\|ingestion" docs/sdlc/03-implementacao/convencoes.md AGENTS.md` não retorna nada — ou retorna só linha que diz explicitamente que aquilo **não** existe. **Os dois arquivos**, porque a lista de módulos está transcrita nos dois.
-- [ ] A seção *Backend* do [`AGENTS.md`](../../../AGENTS.md) não transcreve a lista de módulos: aponta para [`apps/api/src`](../../../apps/api/src).
-- [ ] `grep -niE "bullmq|socket\.io" AGENTS.md` não retorna nada — ou só linha que diz explicitamente que aquilo **não** existe. As duas afirmações são do mesmo bloco *Backend* e nenhum gate as pega.
-- [ ] O bloco *Backend* do `AGENTS.md` **não contradiz** o [`CLAUDE.md`](../../../CLAUDE.md) quanto ao transporte (*"REST e streaming SSE (não é WebSocket)"*) — mesmo critério que a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) aplicou ao bloco *Frontend*.
-- [ ] Nenhuma lista transcrita do código sobrevive no arquivo (módulos, env vars, arquivos de pasta): cada uma virou ponteiro para a fonte viva.
-- [ ] A *Regra de tools* descreve as 6 tools reais — ou some, se o que sobrar dela for redundante com o [`AGENTS.md`](../../../AGENTS.md).
-- [ ] Zero conflito normativo com o [`AGENTS.md`](../../../AGENTS.md) e o [`CLAUDE.md`](../../../CLAUDE.md): a regra de `any` diz a mesma coisa nos três, ou vive num só.
-- [ ] `pnpm docs:links` e `pnpm docs:shape` continuam verdes.
-- [ ] **Teste de regressão (humano, deliberado):** um agente sem contexto, lendo **só** o arquivo, responde certo: (a) onde fica o seed do Prisma; (b) uma tool pode chamar o Prisma direto; (c) quais módulos existem em `apps/api/src`. Hoje erra as três.
+- [x] Toda afirmação restante em [`convencoes.md`](../03-implementacao/convencoes.md) é verificável no repo **hoje**, e a revisão registra onde cada uma foi conferida. Ver *Registro da auditoria de 29/07/2026* abaixo.
+- [x] `grep -rn "repository.ts\|campaign\|ingestion" docs/sdlc/03-implementacao/convencoes.md AGENTS.md` não retorna nada — ou retorna só linha que diz explicitamente que aquilo **não** existe. **Os dois arquivos**, porque a lista de módulos está transcrita nos dois. **4 hits, todos de não-existência:** `AGENTS.md:63` (*"zero `*.repository.ts` no repo"*), `AGENTS.md:77` (comentário HTML: *"`campaign` e `ingestion`, que NÃO EXISTEM"*), `convencoes.md:49` e `convencoes.md:57` (idem).
+- [x] A seção *Backend* do [`AGENTS.md`](../../../AGENTS.md) não transcreve a lista de módulos: aponta para [`apps/api/src`](../../../apps/api/src).
+- [x] `grep -niE "bullmq|socket\.io" AGENTS.md` não retorna nada — ou só linha que diz explicitamente que aquilo **não** existe. As duas afirmações são do mesmo bloco *Backend* e nenhum gate as pega. **Sobraram só negações** (`:54`, `:65`, `:68`, e o comentário HTML `:78-79`).
+- [x] O bloco *Backend* do `AGENTS.md` **não contradiz** o [`CLAUDE.md`](../../../CLAUDE.md) quanto ao transporte (*"REST e streaming SSE (não é WebSocket)"*) — mesmo critério que a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) aplicou ao bloco *Frontend*.
+- [x] Nenhuma lista transcrita do código sobrevive no arquivo (módulos, env vars, arquivos de pasta): cada uma virou ponteiro para a fonte viva.
+- [x] A *Regra de tools* descreve as 6 tools reais — ou some, se o que sobrar dela for redundante com o [`AGENTS.md`](../../../AGENTS.md). **Sumiu**, com comentário item a item do porquê; ficou o ponteiro para a tabela do `AGENTS.md` e a frase que diz o oposto da regra #3 antiga (*as tools acessam o banco direto*).
+- [x] Zero conflito normativo com o [`AGENTS.md`](../../../AGENTS.md) e o [`CLAUDE.md`](../../../CLAUDE.md): a regra de `any` diz a mesma coisa nos três, ou vive num só. **Vive num só:** saiu do `convencoes.md`; o canônico é o `AGENTS.md` → *Regras absolutas*.
+- [x] `pnpm docs:links` continua verde (1153 links, 0 quebrados, 0 identificadores inexistentes).
+- [x] `pnpm docs:shape` verde. **Estava vermelho por motivo alheio a esta story** — a pasta de topo `graphify-out/` entrou com a instalação do graphify e mudou o hash de forma; nenhuma linha desta auditoria toca o filesystem. Revisado e fechado aqui mesmo (29/07/2026): a pasta **não** virou nó do diagrama de componentes (é grafo derivado, reconstruído pelo hook de post-commit, não roda nada em produção — artefato de build em flowchart de componentes é outra mentira), e ganhou uma linha no *Mapa de leitura* do [`README.md`](../../../README.md). Hash colado à mão em [`scripts/readme-shape.test.mjs`](../../../scripts/readme-shape.test.mjs), com o comentário do porquê.
+- [x] **Teste de regressão (humano, deliberado):** um agente sem contexto, lendo **só** o arquivo, responde certo: (a) onde fica o seed do Prisma; (b) uma tool pode chamar o Prisma direto; (c) quais módulos existem em `apps/api/src`. Hoje erra as três. **Depois:** (a) *Banco de dados* dá o caminho como link e nega o `prisma/` da raiz; (b) *AI Engine* afirma que as tools **são** o Game Server e chamam `this.prisma`, com o exemplo do `EventLog` do `rollDice`; (c) *Módulos NestJS* manda ler a pasta em vez de listar.
+
+### Registro da auditoria de 29/07/2026
+
+Cada linha da tabela de *O problema observado* remedida contra o código no dia da implementação, e o desfecho aplicado:
+
+| Afirmação de 28/07 | Confirmada em 29/07? | Desfecho |
+|---|---|---|
+| `*.repository.ts` | Sim — `find apps packages -name "*.repository.ts"`: 0 arquivos | Invertida: o arquivo agora **afirma a ausência** e manda usar `PrismaService` por DI |
+| Lista de módulos | Sim — `apps/api/src`: `adventure ai auth character game system user` | Apagada nos **dois** arquivos; virou ponteiro para a pasta |
+| Tool nunca acessa o banco | Sim — `ai.service.ts:348` (*"cada tool chama o Game Server (this.dice, this.prisma)"*) e `:378` (`this.prisma.eventLog.create` dentro do `execute` do `rollDice`) | Regra apagada; o arquivo afirma o oposto, que é o que roda |
+| Retorno explícito nas tools | Sim — os `execute` anotam os **parâmetros**, nunca o retorno | Regra apagada (nenhum caso vigente) |
+| Seed em `prisma/seed.ts` | Sim — o real é `apps/api/prisma/seed.ts`, rodado por `pnpm db:seed` (`ts-node prisma/seed.ts`, relativo ao `apps/api`) | Corrigida para link relativo + negação explícita do `prisma/` da raiz |
+| `EventLog` com seed | Sim — `model EventLog` tem `payload Json`, sem campo de seed; o payload gravado é `{ formula, reason, skill, ability, skillLabel, rolls, modifier, total }` | Frase reescrita: registra sim, **seed não existe**, e o porquê (`getRandomValues` não tem seed) |
+| Env `REDIS_URL`/`S3_*`/`NEXT_PUBLIC_WS_URL` | Sim — 0 leituras. As vivas hoje: `DATABASE_URL` (`prisma.service.ts`, `prisma/seed.ts`), `AUTH_SECRET` (`auth.guard.ts`, `apps/web/src/auth.ts`), `PORT` e `FRONTEND_URL` (`main.ts`), `NEXT_PUBLIC_API_URL` (web), `DM_CACHE_SPIKE`/`DM_LIVE_EVAL` (`ai.service.ts`), as chaves de provedor e `JUDGE_MODEL` (`model.ts`), `PORT` no `render.yaml` | Bloco inteiro apagado; virou o comando de `grep` + ponteiro para o `CLAUDE.md` |
+| Rótulo `# apps/api` no bloco de env | Sim — `apps/api/package.json` não tem `dotenv` nem `@nestjs/config` | Some com o bloco; o *onde* fica no `CLAUDE.md`, linkado |
+| `paths` no `tsconfig` | Sim — só `apps/web/tsconfig.json:12` declara | Reescrita como convenção **do `apps/web`** |
+| `any` | Sim — conflito com `AGENTS.md`/`CLAUDE.md` | Regra removida do `convencoes.md`; canônico único |
+| `strict: true` por herança, tipos em `packages/shared`, `dice.service.ts` + `getRandomValues` + `XdY+Z`, Commits/PRs | Sim, todas | Mantidas — as de commits viraram ponteiro para o `AGENTS.md` (eram reescrita com outras palavras) |
+| `BullMQ` (`AGENTS.md:63`) | Sim — 0 hits em `package.json` e `.ts` fora de `node_modules` | Linha apagada; substituída por *"não há fila nem worker"* |
+| `Socket.IO` (`AGENTS.md:64`) | Sim — 0 dependência de `socket.io`/`ws`/`@nestjs/websockets` no `apps/api/package.json`; os hits do `pnpm-lock.yaml` são peers opcionais do `@nestjs/core`, não dependência do projeto | Linha apagada; substituída pela afirmação de REST + SSE, alinhada ao `CLAUDE.md` |
 
 ---
 
@@ -139,7 +160,7 @@ Auditar o arquivo inteiro contra o código e aplicar a **camada 1 da US-83** a c
 
 ## Questões em aberto
 
-1. **O arquivo deve existir?** Há **três** documentos normativos sobre como escrever código aqui: [`AGENTS.md`](../../../AGENTS.md) (canônico), [`CLAUDE.md`](../../../CLAUDE.md) (que já manda ler o AGENTS) e este. Foi a sobreposição que produziu o conflito da regra de `any`. Duas saídas: (a) absorver o que sobrar no `AGENTS.md` e apagar o arquivo, deixando ponteiro do índice do vault ([US-78](./US-78-vault-obsidian-para-os-docs.md)); (b) mantê-lo como o "como", com o `AGENTS.md` sendo o "o quê". Recomendação: **(a)** — o que sobrar depois da auditoria provavelmente cabe em 15 linhas, e um arquivo de 15 linhas que duplica outro é a próxima dívida.
+1. **O arquivo deve existir?** ✅ **Fechada em 29/07/2026 por (b), contra a recomendação de (a) — e por medição.** A recomendação era apagar o arquivo e absorver o resto no [`AGENTS.md`](../../../AGENTS.md). Ela ignorava o custo de saída: **21 links relativos apontam para `convencoes.md`** a partir de 3 arquivos (US-83, US-86 e esta US; a US-88 o cita em prosa, sem link), e o `pnpm docs:links` reprova cada um. Apagar exigiria reescrever o histórico de três stories para tirar o ponteiro — mexer em registro do passado para arrumar o presente, que é o oposto do que a US-83 defende. Some-se a isso que os *Critérios de aceite* daqui pressupõem o arquivo vivo (o teste de regressão manda "ler **só** o arquivo"). Ficou como (b): o `AGENTS.md` é o **canônico**, o `convencoes.md` guarda só o que não cabe lá (herança do `strict`, `paths` do `apps/web`, ausência de repositório, caminho do seed, ausência de seed na rolagem) e abre com um cabeçalho dizendo que perde para o `AGENTS.md` em qualquer divergência. Se um dia sobrar menos que isso, a absorção volta — aí com a mudança de link como escopo declarado.
 2. **Ampliar a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) para `docs/sdlc/03-implementacao/`?** ❌ **Fechada na US-88 (questão #2), por medição:** a pasta tem 1 arquivo e **0 identificadores cobrados** — nenhum token em backtick fora de fence casa a regex de camelCase. Rodar o gate ali daria verde num arquivo comprovadamente podre, o que é pior que não rodar. A premissa desta questão (*"três dos 8 achados são da classe dela"*) estava errada; ver a correção em *Por que a solução atual não basta*. Este arquivo é tratado à mão, aqui.
 3. **A data de "Atualizado em" tem valor?** Ela estava um mês velha e ninguém notou; data velha em doc errada é pior que data ausente, porque dá falsa precisão. Considerar apagar o campo de todos os artefatos de `docs/sdlc/03-implementacao` — mas isso é decisão do vault, não desta story.
 

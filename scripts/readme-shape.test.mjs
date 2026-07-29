@@ -19,7 +19,13 @@
 //   1. revise a seção "Arquitetura" do README.md (diagrama, parágrafo por
 //      componente, tabela "Onde o estado vive");
 //   2. cole o hash novo (a mensagem de erro o imprime) em REVIEWED_SHAPE_HASH.
-const REVIEWED_SHAPE_HASH = 'af3e99e16603492a133b4bc4bb504ee50efc622eaa57192128cb72aa3f89df63'
+// Revisado em 29/07/2026 (US-91): a forma mudou por UMA entrada — a pasta de topo
+// `graphify-out/`, que entrou com a instalação do graphify. Não é componente de
+// runtime (não roda nada em produção, é grafo derivado reconstruído pelo hook de
+// post-commit), então o diagrama de Arquitetura NÃO ganhou nó: pôr artefato de
+// build num flowchart de componentes é outra mentira. Ganhou uma linha no
+// *Mapa de leitura* do README, que é onde mora ferramenta de navegação.
+const REVIEWED_SHAPE_HASH = '6b668f756f7301e61ea03c5bd112cda3afc20da6cd27aad2cbd790644efdbc5c'
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
