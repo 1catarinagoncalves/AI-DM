@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída em 2026-07-29
+**Status:** ✅ Implementada
 **Depende de:** nenhuma. Pode rodar antes ou depois da [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) — as duas tocam as mesmas linhas, mas por motivos independentes. Se as duas entrarem, a US-84 primeiro (refactor puro, `diff` vazio no texto renderizado), esta depois (muda o que o modelo lê).
 **Nasceu de:** [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) → *Questões em aberto #2*. Aquela story identificou o defeito e o deixou de fora por incompatibilidade de prova: ela se valida com comparação byte a byte, esta muda o texto renderizado.
 **Relacionada a:** [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (dona do ledger e do corpo do bloco), [US-56](./US-56-estado-do-turno-na-mensagem.md) (separou as camadas — é o que torna a camada 3 barata de mexer), [US-55](./US-55-prompt-caching-do-dm.md) (a camada 2 é cacheada — é o que torna a camada 2 cara de mexer, e por isso esta story não a toca), [US-35](./US-35-cena-estruturada-na-abertura.md) (mesmo condicional na cena, fora do escopo).

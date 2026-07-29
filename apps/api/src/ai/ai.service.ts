@@ -90,7 +90,8 @@ const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/
 const SALVAGE_SYSTEM_PROMPT = `Você é o Mestre de um RPG. A narração de um turno foi TRUNCADA: parou antes do desfecho e/ou sem a lista de opções obrigatória. Escreva APENAS a CONTINUAÇÃO, para completar o turno:
 - Continue EXATAMENTE de onde a narração parou; NÃO repita nada do que já foi escrito.
 - Se algo estava prestes a ser revelado (uma carta aberta, uma porta, um rosto), revele agora, em 1–2 parágrafos curtos.
-- Termine SEMPRE com uma lista de 3–4 opções de ação, uma por linha, no formato \`- emoji texto\` (hífen + emoji). NUNCA use travessão (—) nas opções — travessão é só fala de personagem.
+- A AÇÃO DO JOGADOR já aconteceu na narração acima — NUNCA a re-ofereça como opção. As opções são o que vem DEPOIS dela.
+- Termine SEMPRE com uma lista de 3–4 opções de ação, uma por linha, no formato \`- emoji texto\` (hífen + emoji).
 - NÃO role dados, NÃO chame ferramentas, NÃO escreva números de teste nem blocos de estado. Só a prosa de continuação e as opções.
 - Escreva em pt-BR natural, no mesmo tom da narração.`
 
@@ -819,6 +820,21 @@ export class AiService {
     await this.prisma.eventLog.create({
       data: { adventureId, characterId, type: 'NARRATION', payload: { text: finalText } },
     })
+
+    // US-73 + US-74: este caminho NÃO passa pelo `onFinish` (gateado por
+    // `turnGuard.incomplete`), então o `reconcileScene` de lá nunca corria — o
+    // `sceneState` congelava no lugar ANTERIOR enquanto a narração já tinha mudado de
+    // cena (prod 29/07/2026: narração no beco do Foles Quebrado, cena ainda na cozinha
+    // da Sibil), e o sinal de continuidade da US-71 passava a apontar para trás no turno
+    // seguinte. Mesmo fire-and-forget do onFinish: o jogador já recebeu o fecho.
+    // ponytail: sem o gate `cenaTocada` do onFinish — os steps não chegam aqui, e um
+    // turno truncado é justamente o desleixado. Uma extração a mais num caminho raro.
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+      select: { name: true },
+    })
+    void this.reconcileScene(adventureId, characterId, finalText, character?.name ?? '')
+
     await this.summarizeOldTurns(adventureId, characterId)
 
     return streamed

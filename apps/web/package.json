@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-dm/shared": "workspace:*",
     "jose": "^5.9.6",
+    "lucide-react": "^0.469.0",
     "next": "^15.3.3",
     "next-auth": "5.0.0-beta.29",
     "react": "^19.1.0",

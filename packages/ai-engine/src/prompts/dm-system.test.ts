@@ -417,3 +417,70 @@ describe('US-84 — nome de bloco: emissor e citação saem da mesma constante',
     expect(p).toContain(`"${SKILLS_LINE}"`)
   })
 })
+
+// US-85 — guard de CONJUNTO da fronteira do ADR 007 (regra 2), que falha FECHADO.
+// O guard de campo volátil (`:139`) é uma lista de proibições nomeadas uma a uma; contra
+// bloco que ainda não tem nome ele falha ABERTO: um `## Clima atual` novo no turn-state,
+// citado na prosa da camada 2 com um literal fresco, passa por `pnpm test`, `pnpm typecheck`
+// e `pnpm eval` sem um vermelho — e nasce dessincronizável no mesmo dia. E a US-84 conserta
+// os acoplamentos que EXISTEM sem impedir o próximo. Aqui a asserção é invertida: extrai
+// TODOS os cabeçalhos do bloco renderizado e exige que cada um esteja declarado. Uma
+// asserção por nome conhecido voltaria a falhar aberto — é o formato que este teste substitui.
+//
+// LIMITE, registrado de propósito: o guard conta CABEÇALHOS, não bytes. Prosa acrescentada
+// a bloco JÁ existente (o que a emenda de 2026-07-28 à `continuityLine` fez: +541 chars)
+// passa incólume, e está certo que passe — a fronteira protegida aqui é a de acoplamento
+// por literal, não a de volume. Verde aqui NÃO é aval de que a camada 3 não engordou; esse
+// sinal é o tamanho renderizado do bloco, medido pelo `DM_CACHE_SPIKE` (US-85, Questão #1).
+describe('US-85 — fronteira das camadas: todo bloco da camada 3 é declarado', () => {
+  // Cabeçalhos que a prosa da camada 2 NÃO cita. Sem segundo escritor não são acoplamento,
+  // e por isso ficam FORA do registro de nomes da US-84 de propósito (`dm-system.ts:13`).
+  // São cabeçalhos emitidos mesmo assim, então o guard precisa conhecê-los para distinguir
+  // "bloco que já existe" de "bloco novo".
+  const UNCITED_TURN_STATE_BLOCKS = ['Estado atual', 'Main quest', 'Active quests', 'A história até agora']
+  const DECLARED = [SCENE_BLOCK, ENTITIES_BLOCK, INVENTORY_BLOCK, ...UNCITED_TURN_STATE_BLOCKS]
+
+  // Fixture CHEIO: `sceneSection` e `summarySection` são `''` quando vazios
+  // (`dm-system.ts:440`, `:485`); com fixture pela metade o guard veria metade dos
+  // cabeçalhos e passaria por engano. O caso ausente-vazio já é coberto em `:272`.
+  const emittedBlockNames = () => {
+    const rendered = buildState({
+      sceneState: {
+        local: 'Praça da vila ao anoitecer',
+        ambiente: 'externo' as const,
+        periodo: 'anoitecer',
+        presentes: [],
+        objetos_em_cena: [],
+        atualizadoEm: '',
+      },
+      entities: [{ nome: 'Vigia', tipo: 'npc' as const, estado: 'neutra', atualizadoEm: '' }],
+      mainQuest: 'Salvar a vila',
+      activeQuests: ['Encontrar o ferreiro'],
+      inventory: ['Espada'],
+      memorySummary: 'A vila foi atacada por goblins na noite anterior.',
+    })
+    // O nome do bloco é o cabeçalho SEM o qualificador entre parênteses ("(read-only — …)",
+    // "(secondary)"): o qualificador é redação, o nome é o que a camada 2 cita.
+    return [...rendered.matchAll(/^## (.+)$/gm)].map((m) => m[1].replace(/\s*\(.*$/, '').trim())
+  }
+
+  it('nenhum cabeçalho órfão (bloco novo sem declaração = vermelho)', () => {
+    const orphans = emittedBlockNames().filter((name) => !DECLARED.includes(name))
+    expect(
+      orphans,
+      `Cabeçalho novo na camada 3 sem declaração: ${orphans.map((o) => `"${o}"`).join(', ')}. ` +
+        `A prosa da camada 2 (buildDmSystemPrompt) cita este bloco pelo nome? Declare uma constante ` +
+        `em dm-system.ts junto de SCENE_BLOCK e interpole nos DOIS lados (ADR 007, regra 2). ` +
+        `Não cita? Acrescente o nome a UNCITED_TURN_STATE_BLOCKS neste arquivo. Esperado: ${DECLARED.join(' | ')}`,
+    ).toEqual([])
+  })
+
+  // A metade simétrica: sem ela, um fixture que parasse de preencher uma seção (ou uma regex
+  // quebrada, devolvendo lista vazia) deixaria o guard acima verde vendo cabeçalho nenhum.
+  it('o fixture do guard emite TODOS os blocos declarados', () => {
+    const emitted = emittedBlockNames()
+    for (const name of DECLARED) {
+      expect(emitted, `bloco declarado "${name}" não saiu do fixture — preencha a seção que o produz`).toContain(name)
+    }
+  })
+})

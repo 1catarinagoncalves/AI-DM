@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:**
 - [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) — define a regra de fronteira que este guard cobra. **Escrever o ADR primeiro**: guard sem regra escrita vira regra derivada do teste.
 - [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) — cria o registro de nomes que o guard usa como referência. Sem ele, o guard não tem contra o que comparar. As duas cabem num PR só; ver *Notas de implementação*.
@@ -74,10 +74,10 @@ Nada aqui muda o escopo desta story: o guard de cabeçalhos continua valendo o q
 
 ## Critérios de aceite
 
-- [ ] `dm-system.ts:175` e `:375` apontam para o [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) sem perder o que já explicam (os comentários **não** são substituídos — ver `AGENTS.md` → *Padrões de código*).
-- [ ] **Teste de regressão (falha fechado):** um bloco `## ` novo em `buildTurnStateBlock`, sem entrada no registro, derruba `pnpm test`. A mensagem de erro nomeia o cabeçalho órfão e diz onde registrá-lo.
-- [ ] O guard passa hoje, sem mudar nenhuma linha de prompt.
-- [ ] `pnpm test` e `pnpm eval` verdes.
+- [x] Os dois comentários apontam para o [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) sem perder o que já explicam — **uma linha acrescentada a cada um**, nada substituído (`AGENTS.md` → *Padrões de código*). Localize-os pelo conteúdo, não pelo número: o da ficha começa em `// US-55/US-56: a ficha é dividida por volatilidade` (era `:175`, hoje `:192`); o outro é o docblock de `buildTurnStateBlock` (era `:375`, hoje `:391`).
+- [x] **Teste de regressão (falha fechado):** um bloco `## ` novo em `buildTurnStateBlock`, sem declaração, derruba `pnpm test`. Verificado por mutação (`## Clima atual` injetado no emissor): `Cabeçalho novo na camada 3 sem declaração: "Clima atual". […] Esperado: Cena atual | Entidades do mundo | Current inventory | Estado atual | Main quest | Active quests | A história até agora`. A mensagem nomeia o órfão e bifurca o destino — constante em `dm-system.ts` se a camada 2 cita, `UNCITED_TURN_STATE_BLOCKS` se não.
+- [x] O guard passa hoje, sem mudar nenhuma linha de prompt (o diff em `dm-system.ts` são 6 linhas, todas de comentário).
+- [x] `pnpm test` verde (25 arquivos / 4 pacotes, 265 testes). `pnpm eval` verde (52 passando, 2 skipped — o juiz LLM da US-36, que já era skip sem a chave do juiz). `pnpm typecheck` verde.
 
 ---
 
@@ -88,6 +88,16 @@ Nada aqui muda o escopo desta story: o guard de cabeçalhos continua valendo o q
 - **O guard é de conjunto, não de lista:** extraia os cabeçalhos do bloco renderizado (`/^## (.+)$/m`) e compare com os valores do registro. Uma asserção por nome conhecido volta a falhar aberto — é o formato que esta story existe para substituir.
 - **Preencher TUDO no fixture do guard.** `sceneSection` e `entitiesSection` são `''` quando vazios (`dm-system.ts:414`, `:429`); com fixture pela metade o guard só vê metade dos cabeçalhos e passa por engano.
 - **Mensagem de erro no padrão do repo:** incluir o valor ofensor e o formato esperado, como o `REVIEWED_CRAFT_HASH` faz em `rubric-drift.test.ts:26`.
+
+### Desvio na implementação (2026-07-29): o conjunto declarado é o registro MAIS os não-citados
+
+Esta story dizia *"compare com os valores do registro"*. **O registro sozinho não serve como conjunto esperado**, e a incompatibilidade é de desenho, não de descuido: a [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) só admite nomes com **dois escritores** (`dm-system.ts:13` — *"cabeçalho que ninguém cita é interface, não acoplamento — `## Estado atual` fica de fora"*). Mas `buildTurnStateBlock` emite quatro cabeçalhos que a camada 2 nunca cita: `Estado atual`, `Main quest`, `Active quests`, `A história até agora`. Comparar só contra o registro daria vermelho nos quatro no primeiro `pnpm test`; empurrá-los para dentro do registro desfaria a regra que a US-84 escolheu de propósito.
+
+O conjunto declarado é a **união**: as constantes exportadas (o que é acoplamento) mais uma lista `UNCITED_TURN_STATE_BLOCKS` no próprio teste (o que é só interface). A mensagem de erro bifurca por essa distinção, então quem trombar nela decide onde registrar respondendo *"a camada 2 cita isto?"* — que é exatamente a regra 2 do ADR. A lista dos não-citados fica no teste, e não em produção, porque nenhum código a consome (mesmo critério da [US-89](./US-89-gate-de-codigo-morto-com-knip.md)); o guard é o único consumidor e é ele que a mantém em dia.
+
+Dois cabeçalhos por bloco, não um: o guard normaliza cortando o qualificador entre parênteses (`## Active quests (secondary)` → `Active quests`), porque o qualificador é redação e o nome é o que a camada 2 cita. Reescrever o qualificador não derruba o guard; renomear o bloco derruba.
+
+Além do conjunto órfão, há a metade simétrica — **todo nome declarado tem de sair do fixture**. Sem ela, um fixture que parasse de preencher uma seção (ou uma regex quebrada devolvendo lista vazia) deixaria o guard principal verde vendo cabeçalho nenhum: é a proteção contra o modo de falha que a nota *"preencher TUDO no fixture"* antecipou, convertida em asserção em vez de instrução para humano.
 
 ---
 
@@ -106,7 +116,7 @@ Nada aqui muda o escopo desta story: o guard de cabeçalhos continua valendo o q
    Contra uma sessão local real (`promptTokens=16640`, `cachedPromptTokens=12288` → 4.352 não-cacheados), a emenda é ~3% do que cada turno paga fora do cache, permanentemente.
 
    O caso é instrutivo porque **não tem conserto óbvio**: a linha interpola `sceneState.local` duas vezes, então não sobe inteira para a camada 2. O corte possível — invariante em cima, interpolação embaixo — foi descartado de propósito pela [US-71](./US-71-simplificar-localizacao-do-personagem.md), cujo ganho vinha justamente de a instrução citar o local concreto. Use este caso ao decidir a Questão: ele mostra que o lado inverso não é "alguém pôs texto no lugar errado", e sim uma tensão de desenho que cobra juros a cada melhoria de redação.
-2. **O registro vira a única forma de nomear bloco?** O guard prova que todo bloco emitido está registrado. Não prova que a prosa da camada 2 usa o registro em vez de um literal novo — para isso seria preciso ler o fonte como texto, e ler fonte em teste é frágil. Aceitar a lacuna (o ADR cobre por convenção) ou fechá-la é decisão desta story; a recomendação é aceitar até haver um caso real.
+2. ~~**O registro vira a única forma de nomear bloco?**~~ **Fechada na implementação (2026-07-29): a lacuna já estava coberta, por um teste que esta story não sabia que existia.** A pergunta era se o guard deveria também provar que a prosa da camada 2 usa o registro em vez de um literal novo — e a recomendação era aceitar a lacuna, porque fechá-la exigiria ler o fonte como texto. Acontece que a [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) já faz exatamente isso: `dm-system.test.ts` → *"o literal de cada nome existe UMA vez no fonte — a declaração da constante"* lê `dm-system.ts` com `readFileSync` e conta ocorrências, tanto entre aspas quanto do nome nu. Citação nova escrita à mão leva a contagem a 2 → vermelho. O limite conhecido continua o que aquele teste já registra (um rename que DESinterpole uma citação passa, porque o teste só conhece o valor atual da constante). Nada a fazer aqui: o guard desta story cobre *bloco emitido sem declaração*, o da US-84 cobre *nome citado fora do registro*, e juntos são as duas direções da regra 2.
 
 ---
 

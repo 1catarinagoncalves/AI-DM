@@ -194,6 +194,8 @@ export function buildDmSystemPrompt(params: {
   // fica no system. HP/condições mudam quase todo turno → camada 3 volátil, e desde a
   // US-56 saiu do system para o bloco de estado do turno (`buildTurnStateBlock`),
   // injetado na mensagem — assim o system inteiro vira prefixo estável.
+  // A regra completa das três camadas (e o critério "com que frequência isto muda?"
+  // para classificar dado novo) vive no ADR 007 — docs/adr/007-camadas-do-prompt-por-volatilidade.md.
   const sheetSection = `## Character sheet (read-only — source of truth, managed by the Game Server)
 This is the authoritative character. Trust it and narrate coherently with it. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
 - Level: ${sheet.level}
@@ -401,6 +403,10 @@ ${backgroundSection}${featuresSection}${spellsSection}`.trimEnd()
  *
  * IMPORTANTE: quem chama concatena `${buildTurnStateBlock(...)}\n\n${ação crua}` só na
  * hora de compor `messages`; a ação crua é persistida separada (nunca com este prefixo).
+ *
+ * A fronteira com as camadas 1+2 é contrato, não convenção: ADR 007
+ * (docs/adr/007-camadas-do-prompt-por-volatilidade.md). Bloco `## ` novo aqui derruba o
+ * guard de conjunto da US-85 em `dm-system.test.ts` até ser declarado.
  */
 export function buildTurnStateBlock(params: {
   /** Só a fatia volátil da ficha: HP/condições. Level/atributos/perícias ficam no system. */

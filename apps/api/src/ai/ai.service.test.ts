@@ -1,10 +1,23 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { AiService, scenePatchFromExtraction } from './ai.service'
 import { mergeSceneState } from '@ai-dm/ai-engine'
 import type { SceneState } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
 import type { EventLog } from '../generated/prisma/client'
+
+// US-74: a geração do fecho é a única I/O externa do `completeTruncatedTurn`. Fake
+// fixa — o que se testa aqui é o encanamento (o que é persistido, o que é
+// reconciliado, o que vai no prompt), não a prosa do modelo.
+const { salvage } = vi.hoisted(() => ({ salvage: { text: '', system: '', prompt: '' } }))
+vi.mock('ai', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('ai')>()),
+  generateText: async ({ system, prompt }: { system: string; prompt: string }) => {
+    salvage.system = system
+    salvage.prompt = prompt
+    return { text: salvage.text }
+  },
+}))
 
 // Evento mínimo para os testes de edição (US-67). `createdAt` numérico simplifica a
 // comparação de ordem (o serviço só usa <, >, >= sobre o campo).
@@ -109,6 +122,78 @@ describe('AiService.restoreClearedTurn (US-67)', () => {
     const { svc, created } = service([])
     await svc.restoreClearedTurn([])
     expect(created).toEqual([])
+  })
+})
+
+describe('AiService.completeTruncatedTurn (US-74)', () => {
+  // Prisma mínimo do caminho de salvamento: nome da personagem (para o
+  // reconciliador) + os dois EventLog do turno. `findMany` vazio mantém o
+  // `summarizeOldTurns` abaixo do limiar, sem tocar no modelo.
+  function salvageService() {
+    const narrations: string[] = []
+    const prisma = {
+      character: { findUnique: async () => ({ name: 'Seraphine Valthor' }) },
+      eventLog: {
+        create: async ({ data }: { data: { type: string; payload: { text: string } } }) => {
+          if (data.type === 'NARRATION') narrations.push(data.payload.text)
+          return data
+        },
+        findMany: async () => [],
+      },
+    } as unknown as PrismaService
+    const svc = new AiService(prisma, {} as unknown as DiceService)
+
+    // `reconcileScene` é privado e é LLM + DB — a US-73 já o cobre por dentro.
+    // O que falta cobrir é a CHAMADA a partir do salvamento, então aqui ele é
+    // substituído por um gravador.
+    const reconciled: Array<{ narration: string; playerName: string }> = []
+    const spy = async (_adventureId: string, _characterId: string, narration: string, playerName: string) => {
+      reconciled.push({ narration, playerName })
+    }
+    ;(svc as unknown as { reconcileScene: typeof spy }).reconcileScene = spy
+
+    return { svc, narrations, reconciled }
+  }
+
+  const INPUT = { adventureId: 'adv-1', characterId: 'char-1', message: 'Usar o frasco e descer ao poço' }
+
+  it('reconcilia a cena com o turno COMPLETO — o salvamento não passa pelo onFinish', async () => {
+    // Regressão do bug de prod (29/07/2026): o turno truncado narrou a chegada ao beco
+    // do Foles Quebrado, mas o sceneState ficou na cozinha da Sibil — o `reconcileScene`
+    // do onFinish nunca correu, porque o `turnGuard.incomplete` gateia aquele caminho.
+    const { svc, narrations, reconciled } = salvageService()
+    salvage.text = 'A grade cede sob os seus dedos.\n\n- 🗡️ Descer ao poço.'
+
+    await svc.completeTruncatedTurn(INPUT, 'O beco engole o som dos seus passos.')
+
+    expect(reconciled).toHaveLength(1)
+    expect(reconciled[0]!.narration).toContain('O beco engole') // parcial já mostrado
+    expect(reconciled[0]!.narration).toContain('A grade cede') // + fecho
+    expect(reconciled[0]!.playerName).toBe('Seraphine Valthor')
+    expect(narrations[0]).toContain('A grade cede') // e é o mesmo texto persistido
+  })
+
+  it('o prompt do fecho proíbe re-oferecer a ação que o jogador acabou de declarar', async () => {
+    // O fecho salvo em prod ofereceu "Passar o óleo nos pulsos, depois descer" DEPOIS
+    // de a jogadora ter declarado exatamente isso — a chamada de salvamento não tem
+    // ficha, cena nem histórico, então a regra precisa estar no próprio system.
+    const { svc } = salvageService()
+    salvage.text = 'A grade cede.\n\n- 🗡️ Descer.'
+
+    await svc.completeTruncatedTurn(INPUT, 'O beco engole o som dos seus passos.')
+
+    expect(salvage.system).toMatch(/já aconteceu/i)
+    expect(salvage.prompt).toContain(INPUT.message)
+  })
+
+  it('fecho sem lista de opções → anexa o fallback estático (jogador nunca fica sem saída)', async () => {
+    const { svc, narrations } = salvageService()
+    salvage.text = 'A grade cede sob os seus dedos, e o escuro respira.'
+
+    const closure = await svc.completeTruncatedTurn(INPUT, 'O beco engole o som dos seus passos.')
+
+    expect(closure).toContain('- 💬 Continuar.')
+    expect(narrations[0]).toContain('- 💬 Continuar.')
   })
 })
 

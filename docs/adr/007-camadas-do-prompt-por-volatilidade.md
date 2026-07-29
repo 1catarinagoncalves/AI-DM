@@ -18,7 +18,7 @@ Duas stories corrigiram isso em duas fases:
 - **[US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) (Fase A)** — reordenou o system por volatilidade: regras primeiro, dado do personagem depois, estado do turno no fim.
 - **[US-56](../sdlc/01-requisitos/US-56-estado-do-turno-na-mensagem.md) (Fase B)** — tirou o estado do turno do system e o prefixou à **última mensagem do jogador**. Assim `system` + todo o `history` (append-only) viram um prefixo estável; só o bloco de estado e a ação crua são recomputados.
 
-O desenho está certo e em produção. **O que nunca foi escrito é a regra que ele criou.** Ela vive hoje em dois comentários de código ([`dm-system.ts:175-178`](../../packages/ai-engine/src/prompts/dm-system.ts) e `:375-378`) e nas duas US. Quem edita a cena não passa pelo comentário da ficha; quem edita o system não passa pelo da camada 3.
+O desenho está certo e em produção. **O que nunca foi escrito é a regra que ele criou.** Ela vivia até este ADR em dois comentários de código ([`dm-system.ts`](../../packages/ai-engine/src/prompts/dm-system.ts): o da divisão da ficha e o docblock de `buildTurnStateBlock`) e nas duas US. Quem edita a cena não passa pelo comentário da ficha; quem edita o system não passa pelo da camada 3.
 
 O custo disso já apareceu: a camada 2 cita blocos da camada 3 **pelo nome, em prosa** (`:314`, `:349`, `:359`), com o literal repetido dos dois lados. As duas metades vivem em funções diferentes e, desde a US-56, em **mensagens diferentes**. Renomear um lado não quebra teste nem `typecheck` — o modelo simplesmente passa a receber uma instrução para confiar num bloco que não existe mais com aquele nome. A otimização de custo comprou distância; distância é onde string duplicada dessincroniza.
 
@@ -81,6 +81,9 @@ Três regras derivam disso:
 
 ## 6. Implementação (referência)
 
-- [`packages/ai-engine/src/prompts/dm-system.ts`](../../packages/ai-engine/src/prompts/dm-system.ts) — `buildDmSystemPrompt` (camadas 1+2) e `buildTurnStateBlock` (camada 3). Comentários em `:175-178` e `:375-378` explicam o porquê local e apontam para cá.
-- [`packages/ai-engine/src/prompts/dm-system.test.ts`](../../packages/ai-engine/src/prompts/dm-system.test.ts) — `:126-139`: guard de que nenhum campo volátil vaza para as camadas 1+2. É a regra 3, metade "nada volátil sobe".
+- [`packages/ai-engine/src/prompts/dm-system.ts`](../../packages/ai-engine/src/prompts/dm-system.ts) — `buildDmSystemPrompt` (camadas 1+2) e `buildTurnStateBlock` (camada 3). Dois comentários explicam o porquê local e apontam para cá: o da divisão da ficha (abre com `// US-55/US-56: a ficha é dividida por volatilidade`) e o docblock de `buildTurnStateBlock`. Localize-os por esse conteúdo — os números de linha já envelheceram três vezes.
+- [`packages/ai-engine/src/prompts/dm-system.test.ts`](../../packages/ai-engine/src/prompts/dm-system.test.ts) — os dois guards da fronteira:
+  - `describe('buildDmSystemPrompt — sem estado volátil no system')`: nenhum campo volátil vaza para as camadas 1+2. É a regra 3, metade "nada volátil sobe".
+  - `describe('US-85 — fronteira das camadas')`: todo cabeçalho `## ` emitido na camada 3 está declarado — as constantes de nome (o que a camada 2 cita) mais `UNCITED_TURN_STATE_BLOCKS` (o que ninguém cita). Bloco novo sem declaração = vermelho. É a regra 2, e falha **fechado**: ao contrário do guard acima, que é uma lista de proibições nomeadas uma a uma, este não precisa conhecer o nome de antemão. Conta **cabeçalhos, não bytes**: prosa acrescentada a bloco existente passa incólume — ver *Consequências* sobre a regra 3.
+  - `describe('US-84 — nome de bloco')`: a direção inversa — o literal de cada nome existe uma vez só no fonte, então citação nova escrita à mão em vez de interpolada também dá vermelho.
 - [`apps/api/src/ai/ai.service.ts`](../../apps/api/src/ai/ai.service.ts) — `:661`: o spike `DM_CACHE_SPIKE` que mede o ganho; composição de `messages` (`system` + `history` + bloco de estado prefixado à ação crua).

@@ -1,7 +1,7 @@
 # Graph Report - AI DM  (2026-07-29)
 
 ## Corpus Check
-- 270 files · ~305,525 words
+- 270 files · ~306,041 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0969a50b`
+- Built from commit: `87d27a38`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -156,10 +156,10 @@
   scripts/srd/ingest.mjs → packages/shared/src/types/system.ts
 - `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
   docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
-- `runTurn()` --calls--> `resolveModel()`  [EXTRACTED]
-  packages/ai-engine/src/narrative-bakeoff.test.ts → packages/ai-engine/src/model.ts
 - `build()` --calls--> `buildDmSystemPrompt()`  [EXTRACTED]
   packages/ai-engine/src/prompts/dm-system.test.ts → packages/ai-engine/src/prompts/dm-system.ts
+- `runTurn()` --calls--> `resolveModel()`  [EXTRACTED]
+  packages/ai-engine/src/narrative-bakeoff.test.ts → packages/ai-engine/src/model.ts
 - `POST()` --calls--> `apiAuthHeader()`  [EXTRACTED]
   apps/web/src/app/api/chat/route.ts → apps/web/src/lib/server-auth.ts
 
@@ -475,7 +475,7 @@ Cohesion: 0.50
 Nodes (3): name, private, version
 
 ## Knowledge Gaps
-- **653 isolated node(s):** `$schema`, `buildCommand`, `Convenções`, `Sistemas — público`, `Utilizadores e sessão` (+648 more)
+- **653 isolated node(s):** `baseSheet`, `ADR-0005`, `CharacterBackground`, `ClassFeature`, `KnownSpell` (+648 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **50 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -488,7 +488,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Why does `AdventureController` connect `AiService` to `AuthUser`, `app.module.ts`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **What connects `$schema`, `buildCommand`, `Convenções` to the rest of the system?**
+- **What connects `baseSheet`, `ADR-0005`, `CharacterBackground` to the rest of the system?**
   _653 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `AuthUser` be split into smaller, more focused modules?**
   _Cohesion score 0.0625 - nodes in this community are weakly interconnected._
