@@ -636,7 +636,11 @@ export function GameView({ adventureId, characterId, characterName, characterCla
       </aside>
 
       {/* Área de jogo. <div> (não <main>): o landmark <main> vive no layout — um por página. */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* `min-h-0` é obrigatório: sem ele o min-height desta coluna é `auto` (= altura
+          do conteúdo), o pai `h-dvh overflow-hidden` não a consegue encolher, e no
+          mobile (flex-col) a narração empurra a caixa de ação para fora do ecrã em vez
+          de rolar por dentro. `min-w-0` faz o mesmo no eixo horizontal do desktop. */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
 
         {/* US-46: histórico é uma região viva — leitor de tela anuncia a narração que chega.
             US-66: `flex-1 min-h-0` preenche o espaço disponível e rola por dentro — sem

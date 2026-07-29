@@ -78,4 +78,18 @@ describe('US-66 — ficha na mesa é painel recolhível no mobile, não faixa ho
     // Sem o chute de chrome de desktop: nenhum maxHeight inline.
     expect(log.style.maxHeight).toBe('')
   })
+
+  // Regressão: a coluna de jogo perdeu o `min-h-0` no passe de design e o mobile
+  // partiu — sem ele o min-height é `auto` (= altura do conteúdo), o pai
+  // `h-dvh overflow-hidden` não a consegue encolher, e a narração empurrava a caixa
+  // de ação ~2200px abaixo do ecrã (medido a 375×812) em vez de rolar por dentro.
+  // happy-dom não faz layout, então o guard é sobre a classe — como nos testes acima.
+  it('a coluna de jogo encolhe dentro do h-dvh (min-h-0), senão o input sai do ecrã no mobile', async () => {
+    render(<GameView {...props} />)
+    await screen.findByText('Atributos')
+
+    const chatColumn = screen.getByRole('log').parentElement!
+    expect(chatColumn.className).toContain('min-h-0')
+    expect(chatColumn.className).toContain('flex-1')
+  })
 })
