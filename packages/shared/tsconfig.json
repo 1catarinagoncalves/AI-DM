@@ -7,5 +7,8 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["src"]
+  // Testes fora do dist: erro de tipo em `*.test.ts` derrubava o build do Render
+  // (deploy de b336bfd). O typecheck deles vive em tsconfig.typecheck.json.
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }

@@ -1,0 +1,9 @@
+// Build (tsconfig.json) exclui os testes do dist; o typecheck os traz de volta,
+// senão `*.test.ts` ficaria sem checagem de tipo nenhuma (vitest não typecheca).
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "exclude": []
+}
