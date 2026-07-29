@@ -290,8 +290,15 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     expect(s).toContain('sala secreta')
   })
 
-  it('sem entidades → nenhuma seção de Entidades', () => {
-    expect(buildState()).not.toMatch(/## Entidades do mundo/)
+  // US-87 — este caso afirmava o OPOSTO (`not.toMatch`): a seção sumia com ledger vazio
+  // enquanto a camada 2 mandava confiar nela "every turn". Agora o cabeçalho é
+  // incondicional e o corpo vazio vira gatilho da tool.
+  it('sem entidades → o bloco de Entidades é emitido mesmo assim, apontando para recordEntity', () => {
+    const s = buildState()
+    expect(s).toMatch(/## Entidades do mundo/)
+    expect(s).toContain('recordEntity')
+    // Os gates da US-75 governam entradas que não existem — emiti-los aqui é prosa morta.
+    expect(s).not.toMatch(/KNOWLEDGE GATES/)
   })
 
   // US-71: sinal de continuidade estrutural — emitido só quando há `local`, afirma que a
@@ -368,6 +375,14 @@ describe('US-84 — nome de bloco: emissor e citação saem da mesma constante',
       expect(build()).toContain(`"${name}"`)
     },
   )
+
+  // US-87: o par acima roda sobre um turn-state CHEIO, então passava verde enquanto o bloco
+  // sumia com ledger vazio — que é exatamente o turno em que a citação da camada 2 ("re-shown
+  // in full EVERY turn") ficava órfã. A citação é incondicional; a emissão tem de ser também.
+  it(`«${ENTITIES_BLOCK}» é emitido e citado TAMBÉM no turno de ledger vazio`, () => {
+    expect(buildState({ entities: [] })).toContain(`## ${ENTITIES_BLOCK}`)
+    expect(build()).toContain(`"${ENTITIES_BLOCK}"`)
+  })
 
   // O par acima prova que a constante ESTÁ ligada nas duas pontas, mas não que ela seja a
   // ÚNICA fonte: com DUAS citações do mesmo nome, uma interpolada e outra escrita à mão,

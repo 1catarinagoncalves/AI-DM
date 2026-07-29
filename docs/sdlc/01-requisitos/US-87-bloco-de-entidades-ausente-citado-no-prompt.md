@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Concluída em 2026-07-29
 **Depende de:** nenhuma. Pode rodar antes ou depois da [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) — as duas tocam as mesmas linhas, mas por motivos independentes. Se as duas entrarem, a US-84 primeiro (refactor puro, `diff` vazio no texto renderizado), esta depois (muda o que o modelo lê).
 **Nasceu de:** [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) → *Questões em aberto #2*. Aquela story identificou o defeito e o deixou de fora por incompatibilidade de prova: ela se valida com comparação byte a byte, esta muda o texto renderizado.
 **Relacionada a:** [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (dona do ledger e do corpo do bloco), [US-56](./US-56-estado-do-turno-na-mensagem.md) (separou as camadas — é o que torna a camada 3 barata de mexer), [US-55](./US-55-prompt-caching-do-dm.md) (a camada 2 é cacheada — é o que torna a camada 2 cara de mexer, e por isso esta story não a toca), [US-35](./US-35-cena-estruturada-na-abertura.md) (mesmo condicional na cena, fora do escopo).
@@ -131,14 +131,14 @@ Registradas porque a análise custou caro e não deve ser refeita.
 
 ## Critérios de aceite
 
-- [ ] `buildTurnStateBlock` emite o cabeçalho `## ${ENTITIES_BLOCK}` em **todo** turno, com e sem entidades.
-- [ ] Com ledger vazio, o bloco traz a linha de instrução apontando para `recordEntity`, e **não** traz o bloco KNOWLEDGE GATES.
-- [ ] Com ledger cheio, o texto renderizado é **byte a byte idêntico** ao de hoje (nenhuma regressão no caso comum).
-- [ ] `dm-system.test.ts:293` foi **reescrito** para afirmar o novo contrato — não deletado. Localize pelo nome do caso (`'sem entidades → nenhuma seção de Entidades'`), não pelo número: esta é a terceira vez que estes ponteiros envelhecem.
-- [ ] Existe teste que falha se a citação da camada 2 e a emissão da camada 3 voltarem a divergir.
-- [ ] Nenhum diff em `dm-system.ts:331` e `:366`.
-- [ ] A *Questão #2* da [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) foi fechada apontando para esta story.
-- [ ] `pnpm test` verde. `pnpm eval` verde.
+- [x] `buildTurnStateBlock` emite o cabeçalho `## ${ENTITIES_BLOCK}` em **todo** turno, com e sem entidades.
+- [x] Com ledger vazio, o bloco traz a linha de instrução apontando para `recordEntity`, e **não** traz o bloco KNOWLEDGE GATES.
+- [x] Com ledger cheio, o texto renderizado é **byte a byte idêntico** ao de hoje (nenhuma regressão no caso comum). Verificado por comparação direta contra a versão de `HEAD` da função, com ledger cheio incluindo `⚠ OCULTO`, `(restrito)`, entidade em cena e resumo — igualdade estrita.
+- [x] `dm-system.test.ts:293` foi **reescrito** para afirmar o novo contrato — não deletado. Localize pelo nome do caso (`'sem entidades → nenhuma seção de Entidades'`), não pelo número: esta é a terceira vez que estes ponteiros envelhecem.
+- [x] Existe teste que falha se a citação da camada 2 e a emissão da camada 3 voltarem a divergir. É o par da US-84 (`it.each`) rodando **também** sobre o turn-state de ledger vazio — o caso que passava verde antes justamente por só olhar o turn-state cheio.
+- [x] Nenhum diff em `dm-system.ts:331` e `:366`.
+- [x] A *Questão #2* da [US-84](./US-84-nomes-de-bloco-do-turn-state-compartilhados.md) foi fechada apontando para esta story.
+- [x] `pnpm test` verde (25 arquivos / 4 pacotes). `pnpm eval` verde (52 passando, 2 skipped — o juiz LLM da US-36, que já era skip sem a chave do juiz).
 
 ---
 

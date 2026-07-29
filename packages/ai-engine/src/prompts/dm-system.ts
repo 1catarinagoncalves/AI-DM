@@ -406,7 +406,7 @@ export function buildTurnStateBlock(params: {
   /** Só a fatia volátil da ficha: HP/condições. Level/atributos/perícias ficam no system. */
   sheet: Pick<DmCharacterSheet, 'hp' | 'maxHp' | 'conditions'>
   sceneState?: SceneState | null
-  /** Registro durável de entidades da campanha (NPCs, locais, objetos). Vazio → nenhuma seção. */
+  /** Registro durável de entidades da campanha (NPCs, locais, objetos). Vazio → seção com a linha de instrução (US-87). */
   entities?: WorldEntity[] | null
   mainQuest?: string | null
   activeQuests: string[]
@@ -452,18 +452,32 @@ ${sceneText}${continuityLine}
   // reinjetado íntegro todo turno. É a memória de longo prazo contra a qual o mestre
   // checa callbacks a coisas de muitos turnos atrás.
   const entitiesText = formatEntities(entities, sceneState?.presentes)
-  const entitiesSection = entitiesText
-    ? `## ${ENTITIES_BLOCK} (FONTE DE VERDADE — canon permanente da campanha; NUNCA esqueça nem negue)
-These are durable people, places and things the campaign has established. They EXIST — never tell the player they don't, never act confused about one that is listed here. When the player refers back to one (e.g. returning to a place or asking about an NPC seen many turns ago), TRUST this list even if the recent messages and the summary don't mention it. Keep each entity's location and state consistent with what is written here, and call \`recordEntity\` to update an entry whenever it changes.
+  // US-87: o CABEÇALHO é incondicional. A camada 2 afirma sem ressalva que este bloco é
+  // re-mostrado "every turn" (`:331`) e é FONTE DE VERDADE (`:366`); emitir a seção só
+  // quando há entidades deixava essa instrução apontando para um bloco que não está no
+  // contexto — a via real é a semeadura da abertura falhar (`extractOpeningEntities`
+  // devolve null), e aí o ledger fica vazio a campanha inteira. Consertar no emissor
+  // (camada 3, prefixada à mensagem) e não na prosa mantém o custo de cache em ZERO:
+  // nenhuma linha da camada 2 muda. O corpo do caso CHEIO é byte a byte o de antes.
+  //
+  // KNOWLEDGE GATES fica de FORA do caso vazio de propósito: as três regras governam
+  // entradas que não existem — com zero entidades são prosa morta lida todo turno.
+  // A linha vazia reafirma a AÇÃO (`recordEntity`) em vez de só constatar a ausência:
+  // "(vazio)" seco convida o modelo a comentar isso na narração. Se esse sintoma
+  // aparecer, mexa na REDAÇÃO da linha — não volte a condicionar a emissão.
+  const entitiesBody = entitiesText
+    ? `These are durable people, places and things the campaign has established. They EXIST — never tell the player they don't, never act confused about one that is listed here. When the player refers back to one (e.g. returning to a place or asking about an NPC seen many turns ago), TRUST this list even if the recent messages and the summary don't mention it. Keep each entity's location and state consistent with what is written here, and call \`recordEntity\` to update an entry whenever it changes.
 KNOWLEDGE GATES (US-75) — this ledger is YOUR global view; the world does NOT share it. Police what leaks:
 - Provenance: an NPC in the scene may reference PUBLIC facts freely, but a fact marked \`(restrito — só quem viu)\` is known ONLY to the player and whoever witnessed it. NEVER put a restricted fact in the mouth of an NPC who did not witness it and to whom the player has not told it IN THIS conversation.
 - Hidden truths: an entity marked \`⚠ OCULTO\` is for YOUR consistency ONLY — a world-truth the player has NOT discovered yet. NEVER reveal it: do not name it, do not hint at it, in neither the narration nor the options — until the fiction makes the character discover it, then call \`recordEntity\` to mark it revealed (\`revelado: true\`).
 - Location continuity: when stating where a ledger entity is or lives, use its recorded \`local\`; NEVER invent a different place for an entity that already has a \`local\`.
 
-${entitiesText}
+${entitiesText}`
+    : '(nenhuma entidade registrada ainda — registre com `recordEntity` ao introduzir NPC, local ou objeto durável)'
+  const entitiesSection = `## ${ENTITIES_BLOCK} (FONTE DE VERDADE — canon permanente da campanha; NUNCA esqueça nem negue)
+${entitiesBody}
 
 `
-    : ''
 
   const hasSummary = !!memorySummary && memorySummary.trim().length > 0
   // "acima" (não "abaixo"): o resumo condensa o que veio ANTES da janela recente, e
