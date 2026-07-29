@@ -180,6 +180,19 @@ const GHOST_ALLOW = new Map([
   ["addEventLog", "AGENTS.md :227 — idem"],
 ]);
 
+// US-89: os dois docs de DESIGN que descrevem contrato de código entram no gate de
+// identificador junto com os .md de contexto. Motivo medido em 29/07/2026: os dois
+// descreviam tools apagadas havia um mês (`updateCharacterSheet`, `addEventLog`,
+// `recallMemory`, `advanceQuest`, `getCharacterState`) e nada acusou. O resto de `docs/`
+// continua fora de propósito — lá 21% dos nomes são proposta legítima de US futura, e
+// gate com falso positivo é gate que alguém desliga.
+const GHOST_MD = [
+  ...SCANNED_MD,
+  "docs/sdlc/02-design/contratos-de-api.md",
+  "docs/sdlc/02-design/modelo-de-dados.md",
+  "docs/sdlc/04-testes/estrategia-de-testes.md",
+];
+
 // Este arquivo e o seu teste ficam fora do índice: os dois moram em `scripts/` e
 // carregam identificador como DADO, não como API — as chaves do GHOST_ALLOW aqui,
 // os nomes de fixture lá. Indexados, as 6 entradas deliberadas "existiriam no
@@ -222,7 +235,7 @@ function codeSpans(lines) {
 // Posicional entra no escopo: é como o teste de regressão roda sobre uma fixture
 // sem precisar de flag só-para-teste. `pnpm docs:links` não passa posicional, então
 // o gate de CI continua vendo apenas SCANNED_MD.
-const ghostScope = picked.length ? files : files.filter((f) => SCANNED_MD.includes(rel(f)));
+const ghostScope = picked.length ? files : files.filter((f) => GHOST_MD.includes(rel(f)));
 const ghostHits = [];
 const ghostStale = [];
 

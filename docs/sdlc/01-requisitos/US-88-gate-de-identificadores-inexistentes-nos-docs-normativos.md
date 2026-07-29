@@ -160,6 +160,22 @@ Todas resolvidas em 28/07/2026, com a remedição acima. Ficam registradas com o
 3. **Nome de API de terceiro.** ✅ **Reescrever a linha vem antes de allowlistar.** `useChat` reprovou pelo motivo certo: o repo *afirmava usá-lo* e não usava — e é justamente isso que a busca por substring testa, porque uma API externa realmente em uso deixa `import` no fonte. Doc normativa que cita API externa ausente do código está afirmando algo falso sobre o repo; a correção default é tirar a afirmação, não silenciar o gate. O `GHOST_ALLOW` fica para o resíduo, e entrada de API externa **cita o pacote no motivo** — sem isso não dá para saber depois se a linha envelheceu.
 4. **Ordem com a US-83.** ✅ **Resolvida sozinha.** A US-83 entrou em `b026b44` e a tabela de 7 tools do README morreu antes desta story começar. O `README.md` sai verde na remedição de 28/07. O `GHOST_ALLOW` nasce com **6 entradas, todas no `AGENTS.md`, todas no mesmo bloco (`:227-235`)**. Desfecho preferido confirmado: linha apagada não precisou de gate.
 
+### Extensão de escopo (29/07/2026, pela [US-89](./US-89-gate-de-codigo-morto-com-knip.md))
+
+O escopo do gate deixou de ser só o `SCANNED_MD`: a lista `GHOST_MD` acrescentou
+[`docs/sdlc/02-design/contratos-de-api.md`](../02-design/contratos-de-api.md) e
+[`docs/sdlc/04-testes/estrategia-de-testes.md`](../04-testes/estrategia-de-testes.md).
+
+Não contradiz a questão #2 — lá a medição mostrou **zero** identificadores cobrados em
+`03-implementacao/`, e verde num arquivo podre é pior que ausência. Aqui a medição foi o
+contrário: os dois arquivos descreviam `updateCharacterSheet`, `addEventLog`, `recallMemory`,
+`advanceQuest` e `getCharacterState` — cinco tools apagadas (ou nunca escritas), citadas como
+contrato vigente por um mês, sem nada acusar. Doc de design que descreve API de código é
+normativa na prática: é o que o agente lê antes de implementar.
+
+O resto de `docs/` continua fora, pelo mesmo motivo de sempre (21% de proposta legítima de US).
+Guarda contra encolhimento silencioso da lista: um teste em `check-doc-links.test.mjs`.
+
 ### Registrado, não aberto
 
 - **`GHOST_ALLOW` central vs. marcador inline.** As 6 menções deliberadas estão todas dentro do bloco que **diz** "Não existem" — daria para marcá-las na própria linha (`<!-- ghost-ok: citada como inexistente -->`) em vez de listá-las no script. Vantagem estrutural: o motivo mora ao lado da afirmação e **morre junto com a linha**, fechando o modo principal de allowlist virar fóssil (o critério de aceite do aviso continua necessário nos dois desenhos, para o outro modo: o nome voltar a existir). Escolhido o `GHOST_ALLOW` porque 6 entradas em 1 arquivo é menos código hoje. **Gatilho para inverter:** o allowlist passar de ~15 entradas, ou uma entrada sobreviver à linha que a justificava.
@@ -168,7 +184,7 @@ Todas resolvidas em 28/07/2026, com a remedição acima. Ficam registradas com o
 
 ## Referências no código
 
-- [scripts/check-doc-links.mjs](../../../scripts/check-doc-links.mjs) — `ROOT_MD` (`:36`), `stripCode()` (`:46`), `NAME_ALLOW` (`:113`) e a estrutura de buckets do relatório.
+- [scripts/check-doc-links.mjs](../../../scripts/check-doc-links.mjs) — `SCANNED_MD` (era `ROOT_MD`, renomeado pela US-90), `GHOST_MD` (escopo do gate de identificador), `stripCode()`, `NAME_ALLOW` e a estrutura de buckets do relatório.
 - [scripts/check-doc-links.test.mjs](../../../scripts/check-doc-links.test.mjs) — padrão de fixture temporária com `try/finally`.
 - [AGENTS.md](../../../AGENTS.md) — *Regras absolutas* (o defeito de origem), *Frontend* `:54` (o `useChat`), e a regra "roadmap não vira código" em *Padrões de código → Comentários*.
 - [apps/api/src/ai/ai.service.ts](../../../apps/api/src/ai/ai.service.ts) — objeto `tools` (`:349-585`), fonte de verdade dos nomes de tool.

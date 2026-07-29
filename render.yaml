@@ -20,9 +20,9 @@ services:
     buildCommand: >-
       corepack enable &&
       pnpm install --frozen-lockfile &&
-      pnpm --filter api exec prisma generate &&
+      pnpm --fail-if-no-match --filter api exec prisma generate &&
       pnpm build &&
-      pnpm --filter api exec prisma migrate deploy
+      pnpm --fail-if-no-match --filter api exec prisma migrate deploy
 
     # PORT é injetada pelo Render; main.ts lê process.env.PORT
     startCommand: node apps/api/dist/main

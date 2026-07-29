@@ -1,60 +1,77 @@
 # Checklist de Deploy — AI Dungeon Master
 
-**Atualizado em:** 2026-06-27
+**Atualizado em:** 2026-07-29
+
+> Auditado contra o repo em 29/07/2026 ([US-89](../01-requisitos/US-89-gate-de-codigo-morto-com-knip.md)).
+> A versão anterior listava hooks, ambiente de staging, alertas e flags que nunca existiram
+> — checklist com item que ninguém consegue marcar ensina a ignorar o checklist inteiro.
+> O que é desejo está separado, no fim.
 
 ---
 
 ## Antes de abrir PR
 
-- [ ] `pnpm typecheck` passa sem erros
-- [ ] `pnpm test` passa (100% dos testes unitários e integração)
-- [ ] `pnpm eval` passa acima do threshold de qualidade
-- [ ] Migration Prisma incluída se o schema foi alterado
-- [ ] Variáveis de ambiente documentadas em `.env.example` se novas foram adicionadas
-- [ ] PR referencia o user story implementado (ex: "Implementa US-08")
+Os mesmos comandos que o CI roda ([`ci.yml`](../../../.github/workflows/ci.yml)) — rodar
+local é só antecipar a resposta:
+
+- [ ] `pnpm typecheck`
+- [ ] `pnpm test` (unitários; **não há suíte de integração** — ver [estratégia de testes](../04-testes/estrategia-de-testes.md))
+- [ ] `pnpm eval` acima do threshold de qualidade
+- [ ] `pnpm dead` (código/dep sem consumidor)
+- [ ] `pnpm docs:links` + `pnpm docs:links:test` + `pnpm docs:shape`
+- [ ] Migration Prisma incluída se o `schema.prisma` mudou
+- [ ] Env var nova: adicionada aos painéis (Render/Vercel) **e** ao bloco *Env em dev* do
+      [CLAUDE.md](../../../CLAUDE.md). Não há `.env.example` no repo — os `.env` são
+      gitignored e a configuração é manual. Antes de escrever "coloque no `.env`", confira
+      **como** a variável é lida: a API não tem `ConfigModule` nem `dotenv`.
+- [ ] PR referencia a user story (ex.: "Implementa US-08")
 
 ## Antes de merge para main
 
-- [ ] Revisão humana aprovada (obrigatório para PRs que tocam `packages/ai-engine`)
-- [ ] CI verde (GitHub Actions: typecheck + test + eval)
-- [ ] Sem segredos commitados (checado pelo hook de pre-commit)
+- [ ] CI verde. Os passos são independentes na aba de checks: typecheck, test, eval, gate de
+      código morto, gate de docs, teste do gate de docs, guard do README.
+- [ ] O guard de frescor do grafo é **aviso**, não bloqueio: doc mudado sem rebuild do
+      graphify acende warning. Consertar exige rodar `graphify extract` local (gasta chave).
+- [ ] Segredo em diff é responsabilidade de quem revisa: **não há hook de pre-commit** —
+      os únicos hooks do repo são `post-commit` e `post-checkout`, ambos do graphify.
 
-## Deploy para staging
+## Deploy
 
-- [ ] Migration aplicada em staging: `pnpm db:migrate` com `DATABASE_URL` de staging
-- [ ] Smoke test manual: criar personagem → iniciar aventura → enviar ação → verificar rolagem e narração
-- [ ] Verificar logs de erro no observability (sem erros inesperados no DM Agent)
+Não há ambiente de staging. `main` é produção, nos dois serviços, por push:
 
-## Deploy para produção
-
-- [ ] Aprovação do responsável pelo produto
-- [ ] Migration aplicada em produção em janela de baixo tráfego
-- [ ] Monitorar métricas por 30 minutos após deploy:
-  - Taxa de erro do DM Agent
-  - Latência do endpoint `/api/v1/ai/chat`
-  - Custo de tokens (não deve exceder baseline em >20%)
-- [ ] Rollback disponível: versão anterior do container tagueada e pronta para subir
-
----
-
-## Guardrails automáticos (Harness)
-
-Os seguintes hooks rodam automaticamente no pipeline e bloqueiam se falharem:
-
-| Hook | Trigger | Ação |
-|------|---------|------|
-| `pre-commit` | Antes de cada commit | Bloqueia se encontrar segredos (API keys, senhas) |
-| `pre-push` | Antes de push para main | Roda `pnpm typecheck` + `pnpm test` |
-| CI eval | PR aberto/atualizado | Roda `pnpm eval --ci`; bloqueia se abaixo do threshold |
-| Migration safety | PR com mudança em `prisma/schema.prisma` | Verifica se migration foi incluída |
+- [ ] **API — Render** ([`render.yaml`](../../../render.yaml)): `autoDeploy: true` na `main`.
+      O `buildCommand` roda `prisma migrate deploy` no fim — plano Free não tem
+      `preDeployCommand`, então a migração acontece no build, antes do start.
+- [ ] **Web — Vercel** ([`apps/web/vercel.json`](../../../apps/web/vercel.json)): build a
+      partir de `apps/web`, com `@ai-dm/shared` construído antes.
+- [ ] Smoke test manual: criar personagem → iniciar aventura → enviar ação → conferir bloco
+      de rolagem e narração em streaming.
+- [ ] Health check do Render bate em `/api/v1/systems` — endpoint público que **depende do
+      seed**. Banco novo sem `pnpm db:seed` responde lista vazia.
+- [ ] Rollback: redeploy da versão anterior pelo painel (Render e Vercel guardam o
+      histórico). Não há registry de container nem tag de versão nossa.
 
 ---
 
-## Observability em produção
+## Observabilidade — o que existe hoje
 
-- Logs estruturados (JSON) em todas as tools do DM Agent
-- Cada turno do DM Agent tem um `traceId` que conecta: ação do jogador → tools chamadas → narração gerada → state persistido
-- Alertas configurados para:
-  - Taxa de erro do AI Engine > 1%
-  - Latência p95 do chat > 10s
-  - Custo de tokens por sessão > 2x da média dos últimos 7 dias
+`console.log`/`console.warn` no serviço da IA, lidos pelo painel de logs do Render:
+
+- escolha do modelo e número da tentativa a cada turno (`[AiService] turno attempt=…`)
+- avisos de guard: rolagem repetida no turno, perícia não resolvida, degeneração, turno truncado
+
+**Não existe:** `traceId` por turno, log estruturado em JSON, métrica de custo de token,
+alerta automático de qualquer espécie. Diagnóstico de produção hoje é ler log à mão.
+
+---
+
+## Desejado, não implementado
+
+Fica registrado como desejo, sem checkbox — nenhum destes tem código ou configuração:
+
+- Hook de pre-commit varrendo segredo; pre-push rodando typecheck/test.
+- Ambiente de staging separado, com migração ensaiada antes da produção.
+- `traceId` ligando ação → tools → narração → estado persistido.
+- Alertas: erro do AI Engine > 1%, p95 do chat > 10s, custo por sessão > 2× a média de 7 dias.
+- Janela de baixo tráfego e aprovação de produto antes de migração — com um único ambiente
+  e deploy automático no push, isso hoje é ficção.

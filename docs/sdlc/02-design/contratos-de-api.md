@@ -1,56 +1,63 @@
 # Contratos de API — AI Dungeon Master
 
-**Atualizado em:** 2026-07-02
+**Atualizado em:** 2026-07-29
 
-> D1 ([US-21](../01-requisitos/US-21-sistemas-como-dado.md)) e D2
-> ([US-22](../01-requisitos/US-22-fusao-campanha-aventura.md)) da [ADR 003](../../adr/003-sistemas-como-dado.md)
-> estão implementadas. As rotas abaixo são as que existem hoje em `apps/api`.
+> **Fonte de verdade é o código, não este arquivo.** A API publica OpenAPI via Swagger em
+> `/api/docs` ([`main.ts:16`](../../../apps/api/src/main.ts)) — decorado nos próprios
+> controllers. Este documento é o mapa de leitura; divergiu, o controller ganha.
+>
+> Auditado contra `apps/api/src` em 29/07/2026 (US-89): a lista abaixo é o que existe.
 
 ---
 
 ## Convenções
 
 - REST para operações CRUD (sistemas, personagens, aventuras)
-- **POST /api/v1/ai/chat** — endpoint de streaming para o DM Agent (Vercel AI SDK)
-- WebSocket (Socket.IO) para eventos de sala multiplayer (Fase 4)
-- Autenticação: JWT Bearer token em todos os endpoints
-- Prefixo de versão: `/api/v1/`
+- **POST /api/v1/ai/chat** — turno do Mestre, resposta em **streaming SSE** (Vercel AI SDK).
+  **Não há WebSocket no projeto** — nem dependência de Socket.IO.
+- Autenticação: JWT Bearer (`AuthGuard`) nos controllers de personagem, aventura, Mestre e
+  `auth`. `GET /systems` e `POST /users` são **públicos** — o primeiro é o alvo do health
+  check do Render (US-58).
+- Prefixo de versão: `/api/v1/` (`setGlobalPrefix`), Swagger fora dele, em `/api/docs`.
 
 ---
 
-## Endpoints principais (Fase 1 — MVP)
+## Endpoints (Fase 1 — MVP)
 
-### Sistemas
-
-```
-GET    /api/v1/systems              — listar sistemas disponíveis (Free, D&D 5e SRD, ...)
-GET    /api/v1/systems/:id          — detalhes + config (atributos, kits) do sistema
-```
-
-### Personagens
+### Sistemas — público
 
 ```
-POST   /api/v1/characters           — criar personagem (implementado, US-21)
-Body: { userId, systemId, name, gender, race, class, attributes: Record<string, number> }
-                                       attributes validado com Zod dinâmico a partir de
-                                       System.config.attributes (chaves fora do config = erro)
-GET    /api/v1/characters           — listar personagens do usuário
-GET    /api/v1/characters/:id       — buscar personagem
-GET    /api/v1/characters/:id/state — estado atual do personagem numa aventura (planejado)
+GET    /api/v1/systems              — lista os sistemas com a config completa (atributos, kits)
 ```
 
-### Aventuras e missões
-
-Aventura = a história (campanha e aventura fundidas, ADR 003 D2). Criada sob o personagem, que é
-adicionado como participante; herda `systemId` do personagem.
+### Utilizadores e sessão
 
 ```
-POST   /api/v1/characters/:id/adventures  — criar aventura e ligar o personagem (participante)
-GET    /api/v1/characters/:id/adventures  — listar aventuras do personagem (em ordem)
-GET    /api/v1/adventures/:id             — detalhes da aventura
-GET    /api/v1/adventures/:id/turns       — histórico de turnos (EventLog: ACTION/NARRATION)
-GET    /api/v1/adventures/:id/quests      — missões da aventura (a primária tem isPrimary)
-GET    /api/v1/adventures/:id/log         — EventLog completo
+POST   /api/v1/users                — upsert por email { email, name } (público)
+POST   /api/v1/auth/sync            — sincroniza o utilizador do token e reclama órfãos (US-61)
+```
+
+### Personagens — dono derivado do token
+
+```
+POST   /api/v1/characters           — criar ficha (US-21). `userId` vem do TOKEN, não do corpo
+Body: { systemId, name, gender, race, class, attributes: Record<string, number>, skills?: string[] }
+                                      attributes validado com Zod dinâmico a partir de
+                                      System.config.attributes (chaves fora do config = erro)
+GET    /api/v1/characters/mine      — fichas do utilizador autenticado
+GET    /api/v1/characters/:id       — ficha completa; de outro dono → 403
+DELETE /api/v1/characters/:id       — apaga a ficha e dependentes (US-30); de outro dono → 403
+```
+
+### Aventuras
+
+Aventura = a história (campanha e aventura fundidas, ADR 003 D2). Sempre sob o personagem —
+não há rota `/adventures/:id` de topo.
+
+```
+GET    /api/v1/characters/:characterId/adventures/initial            — gancho inicial resolvido pela classe (US-28)
+POST   /api/v1/characters/:characterId/adventures                    — inicia a aventura { initialHookId }
+GET    /api/v1/characters/:characterId/adventures/:adventureId/turns — histórico de turnos (jogador/Mestre)
 ```
 
 ### DM Agent (streaming)
@@ -60,7 +67,8 @@ POST   /api/v1/ai/chat
 Body: {
   adventureId: string
   characterId: string
-  message: string        — ação do jogador em linguagem natural
+  message: string        — ação do jogador em linguagem natural (1–1000 chars)
+  edit?: boolean         — US-67: reexecuta o último turno, limpando o rastro antes
 }
 Response: text/event-stream (Vercel AI SDK format)
 ```
@@ -69,42 +77,44 @@ Response: text/event-stream (Vercel AI SDK format)
 
 ## Tools do DM Agent (contratos internos)
 
-Definidas em `packages/ai-engine/src/tools/`. Chamadas pelo LLM via tool calling;
-executadas no Game Server.
+**Vivem inline** no objeto `tools` de
+[`apps/api/src/ai/ai.service.ts`](../../../apps/api/src/ai/ai.service.ts) (`:349`), não num
+arquivo por tool: cada uma fecha sobre `this.prisma`/`this.dice` e sobre o contexto do turno.
+São 6, e a `description` de cada uma **é prompt** — vai inteira ao modelo todo turno.
 
 ```typescript
-rollDice(formula: string): DiceResult
-// Exemplo: rollDice("2d6+3") → { formula, rolls: [4,2], modifier: 3, total: 9 }
+rollDice({ reason, skill?, ability?, dice? })
+// Teste de d20. O modelo diz O QUE está sendo testado; o MODIFICADOR vem sempre da ficha
+// ("NEVER pass a modifier of your own"). Um teste ancorado por turno — o 2º reusa o 1º (US-38).
 
-getRule(query: string, systemId: string): RuleResult
-// Busca RAG no índice do sistema ativo
+updateCharacterHp({ newHp, reason })
+// Clampa em [0, maxHp] e loga CHARACTER_UPDATE.
 
-updateCharacterSheet(characterId: string, patch: CharacterStatePatch): void
-// Atualiza HP, inventário, condições, etc.
+updateInventory({ changes: [{ name, delta }] })
+// delta positivo adiciona, negativo remove. Teto de 9999 itens.
 
-advanceQuest(questId: string, status: 'completed' | 'failed'): void
+updateScene({ local?, ambiente?, periodo?, presentes?, objetos_em_cena? })
+// Estado de cena estruturado (US-03/US-11b): continuidade espacial. Campos omitidos
+// preservam o valor anterior; as listas são substituídas inteiras.
 
-recallMemory(characterId: string, query: string): MemoryResult
-// RAG no EventLog resumido de aventuras anteriores (Fase 2)
+recordEntity({ entidades: [{ nome, tipo?, local?, estado?, nota?, sabido?, revelado? }] })
+// Ledger durável de NPCs/locais/objetos no Adventure, FORA do EventLog — sobrevive à
+// sumarização. Dois eixos independentes (US-75): `sabido` (o mundo) e `revelado` (o jogador).
 
-getCharacterState(characterId: string): CharacterState
-
-addEventLog(adventureId: string, entry: EventLogEntry): void
+getSpell({ name })
+// Consulta magia conhecida da ficha → { known, level, description }. Awareness apenas:
+// não gasta slot, não rola dano/cura (US-42).
 ```
+
+Ainda **não existem** `getRule`, `advanceQuest`, `recallMemory`, `getCharacterState` nem
+`addEventLog` — eram roadmap escrito no presente, apagado em 29/07/2026 junto com os tipos
+órfãos que os acompanhavam (`EventLogEntry`, `CharacterStatePatch`) na
+[US-89](../01-requisitos/US-89-gate-de-codigo-morto-com-knip.md).
 
 ---
 
-## Eventos WebSocket (Fase 4 — Multiplayer)
+## Multiplayer (Fase 4)
 
-```
-// Servidor → Clientes da sala
-dm:narration          { chunk: string, done: boolean }
-game:state_update     { characterId, patch: CharacterStatePatch }
-game:dice_roll        { characterId, result: DiceResult }
-game:quest_update     { questId, status }
-player:joined         { characterId, playerName }
-player:left           { characterId }
-
-// Cliente → Servidor
-player:action         { characterId, message: string }
-```
+Sem contrato. A Fase 1 é single-player e o transporte de hoje é SSE; o desenho de sala —
+transporte, formato de evento, autoridade sobre o estado — é decisão da fase, e escrevê-la
+aqui antes da hora só criaria mais uma API que não existe.

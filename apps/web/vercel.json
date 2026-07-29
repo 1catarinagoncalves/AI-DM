@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm --filter @ai-dm/shared build && next build"
+  "buildCommand": "pnpm --fail-if-no-match --filter @ai-dm/shared build && next build"
 }

@@ -38,15 +38,18 @@ jobs:
 
       # O client é gerado em apps/api/src/generated/ e é gitignored: sem isto o
       # typecheck da API não compila.
+      # --fail-if-no-match em todo --filter: sem ele, filtro que não casa com
+      # projeto nenhum imprime "No projects matched" e sai 0 — o passo fica verde
+      # sem ter rodado nada. Pego em 29/07/2026 no `pnpm build` da raiz.
       - name: Gerar client Prisma
-        run: pnpm --filter api exec prisma generate
+        run: pnpm --fail-if-no-match --filter api exec prisma generate
 
       # Antes do typecheck: apps/api importa @ai-dm/shared e @ai-dm/ai-engine, cujos
       # `types` apontam para dist/. Sem build, tsc dá TS2307 "Cannot find module
       # '@ai-dm/shared'" (medido em 27/07/2026, apagando os dois dist). O eval NÃO
       # depende disto — vitest.eval.config.ts faz alias dos dois pacotes para o src.
       - name: Build dos pacotes
-        run: pnpm --filter './packages/*' build
+        run: pnpm --fail-if-no-match --filter "./packages/*" build
 
       - run: pnpm typecheck
 

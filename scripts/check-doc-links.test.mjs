@@ -114,6 +114,23 @@ test("identificador real, entrada do GHOST_ALLOW e nome dentro de fence passam",
   });
 });
 
+// US-89: os dois docs de design entraram no escopo do gate de identificador porque
+// descreviam tools apagadas havia um mês. O teste é estático (lê o GHOST_MD do script)
+// porque a alternativa — plantar um ghost no doc de verdade — reescreveria um arquivo
+// real: `withFixture` apaga no fim, não restaura o conteúdo anterior.
+test("GHOST_MD cobre os .md de contexto e os dois docs de design", () => {
+  const fonte = readFileSync(SCRIPT, "utf8");
+  const bloco = fonte.match(/const GHOST_MD = \[([\s\S]*?)\];/)?.[1] ?? "";
+  for (const esperado of [
+    "...SCANNED_MD",
+    "docs/sdlc/02-design/contratos-de-api.md",
+    "docs/sdlc/02-design/modelo-de-dados.md",
+    "docs/sdlc/04-testes/estrategia-de-testes.md",
+  ]) {
+    assert.ok(bloco.includes(esperado), `GHOST_MD perdeu ${esperado}`);
+  }
+});
+
 test("entrada do GHOST_ALLOW que voltou a existir no fonte vira aviso, não erro", () => {
   // Fixture de FONTE, não de doc: é o índice que precisa passar a conter o nome.
   const revivida = "scripts/zz-fixture-us88-revivida.mjs";

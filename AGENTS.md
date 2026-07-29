@@ -184,6 +184,13 @@ Fonte de verdade destas regras. `CLAUDE.md` aponta para cá — não duplique.
 Cada item já queimou uma sessão. Nenhum dá erro claro na hora: o comando passa verde e o
 comportamento é o antigo.
 
+- **`pnpm --filter` que não casa com ninguém sai 0.** O pnpm imprime `No projects matched
+  the filters` e devolve exit 0 — comando "verde" que não rodou nada. Foi assim que o
+  `pnpm build` da raiz passou a mentir no Windows: o filtro estava com aspas simples
+  (`'./packages/*'`), que o shell do Windows não remove, então nenhum projeto casava e o
+  build inteiro virava no-op silencioso (29/07/2026). Dois cuidados, os dois já aplicados
+  em `package.json`, `ci.yml`, `render.yaml` e `vercel.json`: **aspas duplas** em filtro com
+  glob (funciona nos dois shells) e **`--fail-if-no-match` em todo `--filter`**.
 - **A API roda o `dist/` do ai-engine, não o `src/`.** `@ai-dm/ai-engine` resolve para
   `./dist/index.js`, e o `pnpm dev` da raiz só põe `api` e `web` em watch. Editar
   `packages/ai-engine/src/` sem rebuild deixa a API executando código antigo **sem erro
