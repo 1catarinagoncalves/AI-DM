@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "@ai-dm/shared": "workspace:*",
-    "@ai-sdk/react": "^1.2.12",
-    "ai": "^4.3.16",
     "jose": "^5.9.6",
     "next": "^15.3.3",
     "next-auth": "5.0.0-beta.29",

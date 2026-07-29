@@ -2,7 +2,7 @@
 
 **Épico:** 0 — Infra e documentação
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-80](./US-80-ci-typecheck-testes-e-evals.md) — **satisfeita**. É onde o gate ganha dentes (`pnpm typecheck`, `test` e `eval` já rodam em todo push e PR).
 **Nasceu de:** sessão de 27/07/2026. `packages/ai-engine/src/tools/roll-dice.ts` exportava `rollDiceTool`, **nunca importado por ninguém**, com `execute` que só lançava exceção e uma interface (`formula: "2d6+3"`) que contradizia a `rollDice` viva. Estava lá desde o scaffold de 27/06/2026 — um mês, com `typecheck`, `test`, `eval` e gate de docs verdes o tempo todo. Achado à mão, apagado à mão.
 **Relacionada a:** [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) (mesmo buraco visto do lado da doc: lá a doc cita código que não existe, aqui o código existe e ninguém cita), [US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md) e [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md) (família de gate mecânico), [US-83](./US-83-readme-com-arquitetura-alto-nivel.md) (*"toda linha que reafirma um arquivo é dívida"* — o mesmo argumento aplicado a código).
@@ -97,15 +97,16 @@ Ou seja: a ferramenta certa aqui não é a que acha mais, é a que **sabe o que 
 
 ## Critérios de aceite
 
-- [ ] `knip` instalado como devDep da raiz, com `knip.jsonc` versionado e `pnpm dead` na raiz rodando ele.
-- [ ] `ignoreExportsUsedInFile: true` na config, com comentário apontando para esta US.
-- [ ] **Saída limpa:** `pnpm dead` sai com 0 achados e exit 0.
-- [ ] Cada entrada de `entry`/`ignore*` na config tem **comentário com o motivo** (por que aquele arquivo é entrypoint, ou por que aquela dep não aparece em import). Config sem motivo vira depósito.
-- [ ] `EventLogEntry` e `CharacterStatePatch` apagados de `packages/shared`, ou mantidos com comentário citando a US que vai consumi-los.
-- [ ] `@ai-sdk/react` removido de `apps/web`, ou usado de verdade.
-- [ ] Passo novo no [`ci.yml`](../../../.github/workflows/ci.yml), separado (não `&&` em cima de outro), para a aba de checks mostrar qual etapa caiu — convenção já registrada no topo do workflow.
-- [ ] O passo **reprova o build quando acha algo**: sem `continue-on-error`, sem `--no-exit-code`. Tipo de achado parcado com `--exclude` é aceitável e exige comentário nomeando o que ficou de fora.
-- [ ] `pnpm install` continua funcionando para quem clona: sem placeholder inválido no `pnpm-workspace.yaml` (ver *Notas*).
+- [x] `knip` instalado como devDep da raiz (`knip@6.29.0`), com [`knip.jsonc`](../../../knip.jsonc) versionado e `pnpm dead` na raiz rodando ele.
+- [x] `ignoreExportsUsedInFile: true` na config, com comentário apontando para esta US.
+- [x] **Saída limpa:** `pnpm dead` sai com 0 achados e exit 0.
+- [x] Cada entrada de `entry`/`ignore*` na config tem **comentário com o motivo** (por que aquele arquivo é entrypoint, ou por que aquela dep não aparece em import). Config sem motivo vira depósito.
+- [x] `EventLogEntry` e `CharacterStatePatch` apagados de `packages/shared` — junto com mais 4 fósseis que o gate achou (ver *Resultado*).
+- [x] `@ai-sdk/react` removido de `apps/web` — e `ai`, `pg`, `@types/pg`, `@nestjs/testing` junto, todos declarados e nunca importados.
+- [x] Passo novo no [`ci.yml`](../../../.github/workflows/ci.yml), separado (não `&&` em cima de outro), para a aba de checks mostrar qual etapa caiu — convenção já registrada no topo do workflow.
+- [x] O passo **reprova o build quando acha algo**: sem `continue-on-error`, sem `--no-exit-code`. Tipo de achado parcado com `--exclude` é aceitável e exige comentário nomeando o que ficou de fora.
+- [x] `pnpm install` continua funcionando para quem clona: sem placeholder inválido no `pnpm-workspace.yaml` (ver *Notas*) — conferido logo após o `pnpm add -Dw knip`, o arquivo não foi tocado.
+- [x] `pnpm typecheck` e `pnpm test` (259 testes) verdes depois de todas as remoções.
 
 ---
 
@@ -116,6 +117,35 @@ Ou seja: a ferramenta certa aqui não é a que acha mais, é a que **sabe o que 
 - **`packages/shared` é caso especial e merece decisão explícita.** É pacote de contrato: um tipo exportado sem consumidor *hoje* pode ser o contrato de uma US da fila — ou um fóssil, como `EventLogEntry` provou ser. A regra que evita as duas dores: tipo sem consumidor ou é apagado, ou ganha comentário com o número da US que vai consumi-lo. Sem comentário, é fóssil.
 - **A ordem importa:** configurar até zerar **antes** de pôr no CI. Gate que nasce vermelho é gate que nasce com `continue-on-error`, e aí não é gate.
 - **Não versionar o probe desta baseline.** Ele foi instrumento de medição, não ferramenta: heurística de substring, cego para arquivo fora de `src/`. Os números acima valem como ordem de grandeza; a saída do `knip` configurado é que vira a linha de base real.
+
+---
+
+## Resultado (29/07/2026)
+
+Implementada. `pnpm dead` sai limpo, e o passo `Gate de código morto` roda no CI entre `pnpm test` e `pnpm eval`.
+
+**O que a primeira execução achou de verdade — 6 fósseis e 5 deps:**
+
+| Achado | Onde | Veredito |
+|---|---|---|
+| `EventLogEntry`, `CharacterStatePatch` | `packages/shared/src/types/game.ts` | apagados — contrato das tools fantasma, como previsto |
+| `Quest`, `CharacterState`, `Attributes` | `packages/shared/src/types/{game,character}.ts` | apagados — interfaces TS que duplicavam modelos do Prisma; o código sempre usou os tipos gerados. `Attributes` só apareceu depois de `CharacterState` sair (cascata) |
+| `SystemSkill` | `packages/shared/src/types/system.ts` | apagado — único `z.infer` do bloco sem nenhum consumidor |
+| `defaultModel` | `packages/ai-engine/src/model.ts` | apagado — alias "Compat:" de `primaryModel` que ninguém importava |
+| `signIn`, `signOut` | `apps/web/src/auth.ts` | fora do destructuring — a UI usa os homônimos client-side de `next-auth/react` |
+| `@ai-sdk/react`, `ai` | `apps/web/package.json` | removidas — as duas são o rastro do `useChat` que nunca existiu (US-88) |
+| `pg`, `@types/pg` | `apps/api/package.json` | removidas — vêm como dependência do `@prisma/adapter-pg`, ninguém importa `pg` direto |
+| `@nestjs/testing` | `apps/api/package.json` | removida — os testes são Vitest puro |
+
+**Três achados da config que a story não previa:**
+
+1. **Declarar `entry` num workspace SUBSTITUI a lista padrão do knip.** Pôr só `prisma.config.ts` em `apps/api` fez a API inteira (15 arquivos, incluindo `main.ts`) virar "arquivo sem importador". Todo bloco `entry` precisa relistar as entradas normais.
+2. **O plugin do Prisma foi desligado** (`"prisma": false`): ele carrega `apps/api/prisma.config.ts`, que faz `env('DATABASE_URL')` no topo e explode fora do wrapper `dotenv -e .env`. O que ele acrescentava, o knip já acha pelos scripts do `package.json`.
+3. **`includeEntryExports: true` em `packages/shared`** foi o que deu dentes ao gate no pacote de contrato. Sem isso, export de arquivo de entrada conta como usado — e o knip passava limpo por cima de `EventLogEntry`, exatamente o símbolo que motivou a story. Foi essa opção que revelou os outros 4 tipos mortos.
+
+**Verificação de que o gate morde:** um arquivo `dead-probe.ts` com um export sem consumidor foi plantado em `packages/ai-engine/src/` e o `pnpm dead` reprovou com exit 1; o arquivo foi apagado em seguida.
+
+**Fora do escopo, confirmado no caminho:** [`docs/sdlc/02-design/contratos-de-api.md`](../02-design/contratos-de-api.md) ainda descreve `rollDice(formula)`, `addEventLog(...)` e um bloco de eventos WebSocket que não existem, e [`estrategia-de-testes.md`](../04-testes/estrategia-de-testes.md) manda validar `CharacterStatePatch`. É doc citando código inexistente — o lado da [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md), não deste gate.
 
 ---
 

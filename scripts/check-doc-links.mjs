@@ -151,6 +151,11 @@ for (const file of files) {
 // Cláusula de morte (US-88, questão 1): se ao fim da Fase 1 este bucket nunca
 // tiver acendido em CI, apague a checagem e o GHOST_ALLOW.
 const SRC_DIRS = ["apps", "packages", "scripts", "evals"];
+// Config da raiz que declara identificador cobrado em doc normativa: o knip.jsonc
+// é onde vivem os nomes de opção do gate de código morto (US-89), e sem ele o
+// AGENTS.md que os cita reprovaria. Só arquivo, não a raiz inteira — varrer a raiz
+// arrastaria rascunho solto para dentro do índice.
+const SRC_ROOT_FILES = ["knip.jsonc"];
 const SRC_EXT = /\.(?:tsx?|mjs|js|prisma|json|yaml)$/;
 // dist/ é build do próprio src (só duplica) e apps/api/src/generated/prisma é
 // código gerado com milhares de nomes: identificador que só existe lá não é API
@@ -222,9 +227,12 @@ const ghostHits = [];
 const ghostStale = [];
 
 if (ghostScope.length) {
-  const src = (
-    await Promise.all(SRC_DIRS.map((d) => join(ROOT, d)).filter(existsSync).map(srcIndex))
-  ).join("\n");
+  const src = [
+    ...(await Promise.all(SRC_DIRS.map((d) => join(ROOT, d)).filter(existsSync).map(srcIndex))),
+    ...SRC_ROOT_FILES.map((f) => join(ROOT, f))
+      .filter(existsSync)
+      .map((f) => readFileSync(f, "utf8")),
+  ].join("\n");
 
   for (const file of ghostScope) {
     const where = rel(file);

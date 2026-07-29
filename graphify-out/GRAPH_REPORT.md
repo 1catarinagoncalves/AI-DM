@@ -1,16 +1,16 @@
 # Graph Report - AI DM  (2026-07-29)
 
 ## Corpus Check
-- 270 files · ~302,997 words
+- 270 files · ~303,473 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1350 nodes · 1657 edges · 147 communities (99 shown, 48 thin omitted)
+- 1351 nodes · 1656 edges · 147 communities (99 shown, 48 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4d6aaba9`
+- Built from commit: `7837731b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -25,7 +25,7 @@
 - layout.tsx
 - Narrative Bake-off Test Fixtures
 - rubric.ts
-- Doc Link Checker Script
+- check-doc-links.mjs
 - US-36 Eval Cases
 - Prompt A/B Bake-off Script
 - Onomastics Bake-off Script
@@ -224,8 +224,8 @@ Nodes (23): AMNESIA_ENTITIES, AMNESIA_TURN_STATE, CHARACTER, COHERENCE_TURN_STAT
 Cohesion: 0.08
 Nodes (31): aggregateReps(), batchItemSchema, batchSchema, buildBatchPrompt(), buildJudgePrompt(), Dimension, DIMENSION_FLOORS, DIMENSIONS (+23 more)
 
-### Community 10 - "Doc Link Checker Script"
-Cohesion: 0.09
+### Community 10 - "check-doc-links.mjs"
+Cohesion: 0.08
 Nodes (18): argv, buckets, DOCS, exemptLinked, fixed, GHOST_ALLOW, ghostHits, ghostStale (+10 more)
 
 ### Community 11 - "US-36 Eval Cases"
@@ -493,7 +493,7 @@ Cohesion: 0.50
 Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacter, getInitialAdventure, createAdventure }
 
 ## Knowledge Gaps
-- **659 isolated node(s):** `praca`, `REPS`, `PACE_MS`, `MODEL`, `OLD` (+654 more)
+- **662 isolated node(s):** `ROOT`, `DOCS`, `SCANNED_MD`, `argv`, `picked` (+657 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **48 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -501,11 +501,11 @@ Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacte
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `SystemConfigSchema` connect `System Config Schema` to `Adventure Controller/Service`, `CharacterService`, `AI Service & Controller`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **Why does `PrismaService` connect `PrismaService` to `Character/Adventure Service Logic`, `AuthUser`, `app.module.ts`, `AI Service & Controller`, `auth.controller.ts`, `prisma.service.ts`, `Adventure Controller/Service`, `Character Service Tests`, `CharacterService`, `User Controller`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **What connects `praca`, `REPS`, `PACE_MS` to the rest of the system?**
-  _659 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `PrismaService` connect `PrismaService` to `Character/Adventure Service Logic`, `AuthUser`, `app.module.ts`, `AI Service & Controller`, `auth.controller.ts`, `prisma.service.ts`, `Adventure Controller/Service`, `Character Service Tests`, `CharacterService`, `User Controller`?**
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+- **What connects `ROOT`, `DOCS`, `SCANNED_MD` to the rest of the system?**
+  _662 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `dm-system.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.07807807807807808 - nodes in this community are weakly interconnected._
 - **Should `Web App Dependencies` be split into smaller, more focused modules?**

@@ -24,7 +24,9 @@ async function signApiToken(payload: Record<string, unknown>): Promise<string> {
     .sign(secretKey())
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+// US-89: `signIn`/`signOut` não são desestruturados de propósito — a UI usa os
+// homônimos de 'next-auth/react' (login/page.tsx, AuthNav.tsx), que são client-side.
+export const { handlers, auth } = NextAuth({
   // Render/Vercel ficam atrás de proxy; confia no host da requisição.
   trustHost: true,
   providers: [Google],

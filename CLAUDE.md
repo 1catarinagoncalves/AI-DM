@@ -33,6 +33,7 @@ pnpm eval                 # rodar suite de evals do DM Agent
 pnpm db:migrate           # aplicar migrações Prisma
 pnpm db:studio            # abrir Prisma Studio
 pnpm typecheck            # tsc --noEmit (não há lint: ver AGENTS.md)
+pnpm dead                 # knip: código/dep sem consumidor (config em knip.jsonc, US-89)
 pnpm docs:links           # links quebrados em docs/ + .md da raiz (--list, --only-md, --naive, --fix)
 ```
 

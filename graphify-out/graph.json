@@ -163,15 +163,389 @@
   },
   "nodes": [
     {
+      "label": "check-doc-links.mjs",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "check-doc-links.mjs"
+    },
+    {
+      "label": "ROOT",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_root",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "root"
+    },
+    {
+      "label": "DOCS",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_docs",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "docs"
+    },
+    {
+      "label": "SCANNED_MD",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_scanned_md",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "scanned_md"
+    },
+    {
+      "label": "rel()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_rel",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "rel()"
+    },
+    {
+      "label": "stripCode()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_stripcode",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "stripcode()"
+    },
+    {
+      "label": "mdFiles()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L72",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_mdfiles",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "mdfiles()"
+    },
+    {
+      "label": "depthCandidates()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L87",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_depthcandidates",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "depthcandidates()"
+    },
+    {
+      "label": "argv",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_argv",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "argv"
+    },
+    {
+      "label": "has()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L100",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_has",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "has()"
+    },
+    {
+      "label": "picked",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_picked",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "picked"
+    },
+    {
+      "label": "isWritable()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L113",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_iswritable",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "iswritable()"
+    },
+    {
+      "label": "isPrompts()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L119",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_isprompts",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "isprompts()"
+    },
+    {
+      "label": "NAME_ALLOW",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L124",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_name_allow",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "name_allow"
+    },
+    {
+      "label": "nameHits",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L130",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_namehits",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "namehits"
+    },
+    {
+      "label": "SRC_DIRS",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L153",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_src_dirs",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "src_dirs"
+    },
+    {
+      "label": "SRC_SKIP",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L158",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_src_skip",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "src_skip"
+    },
+    {
+      "label": "GHOST_ALLOW",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L169",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_ghost_allow",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "ghost_allow"
+    },
+    {
+      "label": "SRC_SELF",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L184",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_src_self",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "src_self"
+    },
+    {
+      "label": "srcIndex()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L187",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_srcindex",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "srcindex()"
+    },
+    {
+      "label": "codeSpans()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L203",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_codespans",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "codespans()"
+    },
+    {
+      "label": "ghostHits",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L221",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_ghosthits",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "ghosthits"
+    },
+    {
+      "label": "ghostStale",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L222",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_ghoststale",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "ghoststale"
+    },
+    {
+      "label": "exemptLinked",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L241",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_exemptlinked",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "exemptlinked"
+    },
+    {
+      "label": "buckets",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L243",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_buckets",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "buckets"
+    },
+    {
+      "label": "fixed",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L244",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_fixed",
+      "community": 10,
+      "community_name": "check-doc-links.mjs",
+      "norm_label": "fixed"
+    },
+    {
+      "label": "check-doc-links.test.mjs",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_test",
+      "community": 49,
+      "community_name": "Doc Link Checker Tests",
+      "norm_label": "check-doc-links.test.mjs"
+    },
+    {
+      "label": "ROOT",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_test_root",
+      "community": 49,
+      "community_name": "Doc Link Checker Tests",
+      "norm_label": "root"
+    },
+    {
+      "label": "SCRIPT",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_test_script",
+      "community": 49,
+      "community_name": "Doc Link Checker Tests",
+      "norm_label": "script"
+    },
+    {
+      "label": "runChecker()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_test_runchecker",
+      "community": 49,
+      "community_name": "Doc Link Checker Tests",
+      "norm_label": "runchecker()"
+    },
+    {
+      "label": "withFixture()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_test_withfixture",
+      "community": 49,
+      "community_name": "Doc Link Checker Tests",
+      "norm_label": "withfixture()"
+    },
+    {
+      "label": "corpo()",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_test_corpo",
+      "community": 49,
+      "community_name": "Doc Link Checker Tests",
+      "norm_label": "corpo()"
+    },
+    {
+      "label": "ANTES",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_test_antes",
+      "community": 49,
+      "community_name": "Doc Link Checker Tests",
+      "norm_label": "antes"
+    },
+    {
+      "label": "DEPOIS",
+      "file_type": "code",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "scripts_check_doc_links_test_depois",
+      "community": 49,
+      "community_name": "Doc Link Checker Tests",
+      "norm_label": "depois"
+    },
+    {
       "label": "us-03-scene-state.ts",
       "file_type": "code",
       "source_file": "evals/cases/us-03-scene-state.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "evals_cases_us_03_scene_state",
       "community": 94,
       "community_name": "Scene State Seed",
-      "norm_label": "us-03-scene-state.ts"
+      "norm_label": "us-03-scene-state.ts",
+      "id": "evals_cases_us_03_scene_state"
     },
     {
       "label": "praca",
@@ -179,10 +553,10 @@
       "source_file": "evals/cases/us-03-scene-state.ts",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "evals_cases_us_03_scene_state_praca",
       "community": 94,
       "community_name": "Scene State Seed",
-      "norm_label": "praca"
+      "norm_label": "praca",
+      "id": "evals_cases_us_03_scene_state_praca"
     },
     {
       "label": "location-ab-bakeoff.mjs",
@@ -190,10 +564,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "location-ab-bakeoff.mjs"
+      "norm_label": "location-ab-bakeoff.mjs",
+      "id": "packages_ai_engine_location_ab_bakeoff"
     },
     {
       "label": "t()",
@@ -201,10 +575,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_t",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "t()"
+      "norm_label": "t()",
+      "id": "packages_ai_engine_location_ab_bakeoff_t"
     },
     {
       "label": "log()",
@@ -212,10 +586,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L35",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_log",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "log()"
+      "norm_label": "log()",
+      "id": "packages_ai_engine_location_ab_bakeoff_log"
     },
     {
       "label": "sleep()",
@@ -223,10 +597,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L36",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_sleep",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "sleep()"
+      "norm_label": "sleep()",
+      "id": "packages_ai_engine_location_ab_bakeoff_sleep"
     },
     {
       "label": "REPS",
@@ -234,10 +608,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_reps",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "reps"
+      "norm_label": "reps",
+      "id": "packages_ai_engine_location_ab_bakeoff_reps"
     },
     {
       "label": "PACE_MS",
@@ -245,10 +619,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L40",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_pace_ms",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "pace_ms"
+      "norm_label": "pace_ms",
+      "id": "packages_ai_engine_location_ab_bakeoff_pace_ms"
     },
     {
       "label": "MODEL",
@@ -256,10 +630,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L43",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_model",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "model"
+      "norm_label": "model",
+      "id": "packages_ai_engine_location_ab_bakeoff_model"
     },
     {
       "label": "OLD",
@@ -267,10 +641,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L46",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_old",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "old"
+      "norm_label": "old",
+      "id": "packages_ai_engine_location_ab_bakeoff_old"
     },
     {
       "label": "NEW",
@@ -278,10 +652,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L47",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_new",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "new"
+      "norm_label": "new",
+      "id": "packages_ai_engine_location_ab_bakeoff_new"
     },
     {
       "label": "ARMS",
@@ -289,10 +663,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L51",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_arms",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "arms"
+      "norm_label": "arms",
+      "id": "packages_ai_engine_location_ab_bakeoff_arms"
     },
     {
       "label": "messagesFor()",
@@ -300,10 +674,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L58",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_messagesfor",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "messagesfor()"
+      "norm_label": "messagesfor()",
+      "id": "packages_ai_engine_location_ab_bakeoff_messagesfor"
     },
     {
       "label": "EXEMPLAR",
@@ -311,10 +685,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L68",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_exemplar",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "exemplar"
+      "norm_label": "exemplar",
+      "id": "packages_ai_engine_location_ab_bakeoff_exemplar"
     },
     {
       "label": "detectDegeneration()",
@@ -322,10 +696,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L75",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_detectdegeneration",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "detectdegeneration()"
+      "norm_label": "detectdegeneration()",
+      "id": "packages_ai_engine_location_ab_bakeoff_detectdegeneration"
     },
     {
       "label": "judge",
@@ -333,10 +707,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L88",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_judge",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "judge"
+      "norm_label": "judge",
+      "id": "packages_ai_engine_location_ab_bakeoff_judge"
     },
     {
       "label": "cost()",
@@ -344,10 +718,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L89",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_cost",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "cost()"
+      "norm_label": "cost()",
+      "id": "packages_ai_engine_location_ab_bakeoff_cost"
     },
     {
       "label": "genOnce()",
@@ -355,10 +729,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L91",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_genonce",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "genonce()"
+      "norm_label": "genonce()",
+      "id": "packages_ai_engine_location_ab_bakeoff_genonce"
     },
     {
       "label": "rows",
@@ -366,10 +740,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L105",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_rows",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "rows"
+      "norm_label": "rows",
+      "id": "packages_ai_engine_location_ab_bakeoff_rows"
     },
     {
       "label": "fmt()",
@@ -377,10 +751,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L148",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_fmt",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "fmt()"
+      "norm_label": "fmt()",
+      "id": "packages_ai_engine_location_ab_bakeoff_fmt"
     },
     {
       "label": "body",
@@ -388,10 +762,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L151",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_body",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "body"
+      "norm_label": "body",
+      "id": "packages_ai_engine_location_ab_bakeoff_body"
     },
     {
       "label": "samples",
@@ -399,10 +773,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L154",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_samples",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "samples"
+      "norm_label": "samples",
+      "id": "packages_ai_engine_location_ab_bakeoff_samples"
     },
     {
       "label": "dir",
@@ -410,10 +784,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L172",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_dir",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "dir"
+      "norm_label": "dir",
+      "id": "packages_ai_engine_location_ab_bakeoff_dir"
     },
     {
       "label": "path",
@@ -421,10 +795,10 @@
       "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
       "source_location": "L174",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_ab_bakeoff_path",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "path"
+      "norm_label": "path",
+      "id": "packages_ai_engine_location_ab_bakeoff_path"
     },
     {
       "label": "location-scene.mjs",
@@ -432,10 +806,10 @@
       "source_file": "packages/ai-engine/location-scene.mjs",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_scene",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "location-scene.mjs"
+      "norm_label": "location-scene.mjs",
+      "id": "packages_ai_engine_location_scene"
     },
     {
       "label": "HERE",
@@ -443,10 +817,10 @@
       "source_file": "packages/ai-engine/location-scene.mjs",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_scene_here",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "here"
+      "norm_label": "here",
+      "id": "packages_ai_engine_location_scene_here"
     },
     {
       "label": "character",
@@ -454,10 +828,10 @@
       "source_file": "packages/ai-engine/location-scene.mjs",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_scene_character",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "character"
+      "norm_label": "character",
+      "id": "packages_ai_engine_location_scene_character"
     },
     {
       "label": "sceneState",
@@ -465,10 +839,10 @@
       "source_file": "packages/ai-engine/location-scene.mjs",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_scene_scenestate",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "scenestate"
+      "norm_label": "scenestate",
+      "id": "packages_ai_engine_location_scene_scenestate"
     },
     {
       "label": "entities",
@@ -476,10 +850,10 @@
       "source_file": "packages/ai-engine/location-scene.mjs",
       "source_location": "L33",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_scene_entities",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "entities"
+      "norm_label": "entities",
+      "id": "packages_ai_engine_location_scene_entities"
     },
     {
       "label": "turnStateArgs",
@@ -487,10 +861,10 @@
       "source_file": "packages/ai-engine/location-scene.mjs",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_scene_turnstateargs",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "turnstateargs"
+      "norm_label": "turnstateargs",
+      "id": "packages_ai_engine_location_scene_turnstateargs"
     },
     {
       "label": "SCENE",
@@ -498,10 +872,10 @@
       "source_file": "packages/ai-engine/location-scene.mjs",
       "source_location": "L65",
       "_origin": "ast",
-      "id": "packages_ai_engine_location_scene_scene",
       "community": 5,
       "community_name": "Location Bake-off Script",
-      "norm_label": "scene"
+      "norm_label": "scene",
+      "id": "packages_ai_engine_location_scene_scene"
     },
     {
       "label": "readme-shape.test.mjs",
@@ -509,10 +883,10 @@
       "source_file": "scripts/readme-shape.test.mjs",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "scripts_readme_shape_test",
       "community": 70,
       "community_name": "README Shape Test",
-      "norm_label": "readme-shape.test.mjs"
+      "norm_label": "readme-shape.test.mjs",
+      "id": "scripts_readme_shape_test"
     },
     {
       "label": "ROOT",
@@ -520,10 +894,10 @@
       "source_file": "scripts/readme-shape.test.mjs",
       "source_location": "L36",
       "_origin": "ast",
-      "id": "scripts_readme_shape_test_root",
       "community": 70,
       "community_name": "README Shape Test",
-      "norm_label": "root"
+      "norm_label": "root",
+      "id": "scripts_readme_shape_test_root"
     },
     {
       "label": "entries()",
@@ -531,10 +905,10 @@
       "source_file": "scripts/readme-shape.test.mjs",
       "source_location": "L39",
       "_origin": "ast",
-      "id": "scripts_readme_shape_test_entries",
       "community": 70,
       "community_name": "README Shape Test",
-      "norm_label": "entries()"
+      "norm_label": "entries()",
+      "id": "scripts_readme_shape_test_entries"
     },
     {
       "label": "shape()",
@@ -542,10 +916,10 @@
       "source_file": "scripts/readme-shape.test.mjs",
       "source_location": "L50",
       "_origin": "ast",
-      "id": "scripts_readme_shape_test_shape",
       "community": 70,
       "community_name": "README Shape Test",
-      "norm_label": "shape()"
+      "norm_label": "shape()",
+      "id": "scripts_readme_shape_test_shape"
     },
     {
       "label": "move-ab.mjs",
@@ -10745,369 +11119,6 @@
       "id": "packages_shared_tsconfig_json_ref_src"
     },
     {
-      "label": "check-doc-links.mjs",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "check-doc-links.mjs",
-      "id": "scripts_check_doc_links"
-    },
-    {
-      "label": "ROOT",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L33",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "root",
-      "id": "scripts_check_doc_links_root"
-    },
-    {
-      "label": "DOCS",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L34",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "docs",
-      "id": "scripts_check_doc_links_docs"
-    },
-    {
-      "label": "ROOT_MD",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L39",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "root_md",
-      "id": "scripts_check_doc_links_root_md"
-    },
-    {
-      "label": "stripCode()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L49",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "stripcode()",
-      "id": "scripts_check_doc_links_stripcode"
-    },
-    {
-      "label": "mdFiles()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L64",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "mdfiles()",
-      "id": "scripts_check_doc_links_mdfiles"
-    },
-    {
-      "label": "depthCandidates()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L79",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "depthcandidates()",
-      "id": "scripts_check_doc_links_depthcandidates"
-    },
-    {
-      "label": "argv",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L91",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "argv",
-      "id": "scripts_check_doc_links_argv"
-    },
-    {
-      "label": "has()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L92",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "has()",
-      "id": "scripts_check_doc_links_has"
-    },
-    {
-      "label": "picked",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L97",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "picked",
-      "id": "scripts_check_doc_links_picked"
-    },
-    {
-      "label": "isWritable()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L105",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "iswritable()",
-      "id": "scripts_check_doc_links_iswritable"
-    },
-    {
-      "label": "isPrompts()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L111",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "isprompts()",
-      "id": "scripts_check_doc_links_isprompts"
-    },
-    {
-      "label": "NAME_ALLOW",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L116",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "name_allow",
-      "id": "scripts_check_doc_links_name_allow"
-    },
-    {
-      "label": "nameHits",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L122",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "namehits",
-      "id": "scripts_check_doc_links_namehits"
-    },
-    {
-      "label": "SRC_DIRS",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L145",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "src_dirs",
-      "id": "scripts_check_doc_links_src_dirs"
-    },
-    {
-      "label": "SRC_SKIP",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L150",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "src_skip",
-      "id": "scripts_check_doc_links_src_skip"
-    },
-    {
-      "label": "GHOST_ALLOW",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L161",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "ghost_allow",
-      "id": "scripts_check_doc_links_ghost_allow"
-    },
-    {
-      "label": "SRC_SELF",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L176",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "src_self",
-      "id": "scripts_check_doc_links_src_self"
-    },
-    {
-      "label": "srcIndex()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L179",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "srcindex()",
-      "id": "scripts_check_doc_links_srcindex"
-    },
-    {
-      "label": "codeSpans()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L195",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "codespans()",
-      "id": "scripts_check_doc_links_codespans"
-    },
-    {
-      "label": "ghostHits",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L213",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "ghosthits",
-      "id": "scripts_check_doc_links_ghosthits"
-    },
-    {
-      "label": "ghostStale",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L214",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "ghoststale",
-      "id": "scripts_check_doc_links_ghoststale"
-    },
-    {
-      "label": "exemptLinked",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L233",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "exemptlinked",
-      "id": "scripts_check_doc_links_exemptlinked"
-    },
-    {
-      "label": "buckets",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L235",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "buckets",
-      "id": "scripts_check_doc_links_buckets"
-    },
-    {
-      "label": "fixed",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L236",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "Doc Link Checker Script",
-      "norm_label": "fixed",
-      "id": "scripts_check_doc_links_fixed"
-    },
-    {
-      "label": "check-doc-links.test.mjs",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "Doc Link Checker Tests",
-      "norm_label": "check-doc-links.test.mjs",
-      "id": "scripts_check_doc_links_test"
-    },
-    {
-      "label": "ROOT",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L14",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "Doc Link Checker Tests",
-      "norm_label": "root",
-      "id": "scripts_check_doc_links_test_root"
-    },
-    {
-      "label": "SCRIPT",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L15",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "Doc Link Checker Tests",
-      "norm_label": "script",
-      "id": "scripts_check_doc_links_test_script"
-    },
-    {
-      "label": "runChecker()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L18",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "Doc Link Checker Tests",
-      "norm_label": "runchecker()",
-      "id": "scripts_check_doc_links_test_runchecker"
-    },
-    {
-      "label": "withFixture()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L23",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "Doc Link Checker Tests",
-      "norm_label": "withfixture()",
-      "id": "scripts_check_doc_links_test_withfixture"
-    },
-    {
-      "label": "corpo()",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L40",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "Doc Link Checker Tests",
-      "norm_label": "corpo()",
-      "id": "scripts_check_doc_links_test_corpo"
-    },
-    {
-      "label": "ANTES",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L56",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "Doc Link Checker Tests",
-      "norm_label": "antes",
-      "id": "scripts_check_doc_links_test_antes"
-    },
-    {
-      "label": "DEPOIS",
-      "file_type": "code",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L57",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "Doc Link Checker Tests",
-      "norm_label": "depois",
-      "id": "scripts_check_doc_links_test_depois"
-    },
-    {
       "label": "setup-mcp.ps1",
       "file_type": "code",
       "source_file": "scripts/mcp/setup-mcp.ps1",
@@ -14912,13 +14923,379 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L99",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_argv",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L243",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_buckets",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L203",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_codespans",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L87",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_depthcandidates",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_docs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L241",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_exemptlinked",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L244",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_fixed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L169",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_ghost_allow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L221",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_ghosthits",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L222",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_ghoststale",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_has",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "confidence": "INFERRED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L240",
+      "weight": 1.0,
+      "_origin": "ast",
+      "context": "argument",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_isprompts",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L113",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_iswritable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L72",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_mdfiles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L124",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_name_allow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L130",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_namehits",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_picked",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_rel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_scanned_md",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L153",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_src_dirs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L184",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_src_self",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L158",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_src_skip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "confidence": "INFERRED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L226",
+      "weight": 1.0,
+      "_origin": "ast",
+      "context": "argument",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_srcindex",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links",
+      "target": "scripts_check_doc_links_stripcode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.mjs",
+      "source_location": "L113",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links_iswritable",
+      "target": "scripts_check_doc_links_rel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links_test",
+      "target": "scripts_check_doc_links_test_antes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links_test",
+      "target": "scripts_check_doc_links_test_corpo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links_test",
+      "target": "scripts_check_doc_links_test_depois",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links_test",
+      "target": "scripts_check_doc_links_test_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links_test",
+      "target": "scripts_check_doc_links_test_runchecker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links_test",
+      "target": "scripts_check_doc_links_test_script",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-doc-links.test.mjs",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_doc_links_test",
+      "target": "scripts_check_doc_links_test_withfixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "evals/cases/us-03-scene-state.ts",
       "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "evals_cases_us_03_scene_state",
-      "target": "evals_cases_us_03_scene_state_praca",
-      "confidence_score": 1.0
+      "target": "evals_cases_us_03_scene_state_praca"
     },
     {
       "relation": "contains",
@@ -14927,9 +15304,9 @@
       "source_location": "L51",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_arms",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_arms"
     },
     {
       "relation": "contains",
@@ -14938,9 +15315,9 @@
       "source_location": "L151",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_body",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_body"
     },
     {
       "relation": "contains",
@@ -14949,9 +15326,9 @@
       "source_location": "L89",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_cost",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_cost"
     },
     {
       "relation": "contains",
@@ -14960,9 +15337,9 @@
       "source_location": "L75",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_detectdegeneration",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_detectdegeneration"
     },
     {
       "relation": "contains",
@@ -14971,9 +15348,9 @@
       "source_location": "L172",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_dir",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_dir"
     },
     {
       "relation": "contains",
@@ -14982,9 +15359,9 @@
       "source_location": "L68",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_exemplar",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_exemplar"
     },
     {
       "relation": "contains",
@@ -14993,9 +15370,9 @@
       "source_location": "L148",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_fmt",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_fmt"
     },
     {
       "relation": "contains",
@@ -15004,9 +15381,9 @@
       "source_location": "L91",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_genonce",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_genonce"
     },
     {
       "relation": "contains",
@@ -15015,9 +15392,9 @@
       "source_location": "L88",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_judge",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_judge"
     },
     {
       "relation": "contains",
@@ -15026,9 +15403,9 @@
       "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_log",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_log"
     },
     {
       "relation": "contains",
@@ -15037,9 +15414,9 @@
       "source_location": "L58",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_messagesfor",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_messagesfor"
     },
     {
       "relation": "contains",
@@ -15048,9 +15425,9 @@
       "source_location": "L43",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_model",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_model"
     },
     {
       "relation": "contains",
@@ -15059,9 +15436,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_new",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_new"
     },
     {
       "relation": "contains",
@@ -15070,9 +15447,9 @@
       "source_location": "L46",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_old",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_old"
     },
     {
       "relation": "contains",
@@ -15081,9 +15458,9 @@
       "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_pace_ms",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_pace_ms"
     },
     {
       "relation": "contains",
@@ -15092,9 +15469,9 @@
       "source_location": "L174",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_path",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_path"
     },
     {
       "relation": "contains",
@@ -15103,9 +15480,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_reps",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_reps"
     },
     {
       "relation": "contains",
@@ -15114,9 +15491,9 @@
       "source_location": "L105",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_rows",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_rows"
     },
     {
       "relation": "contains",
@@ -15125,9 +15502,9 @@
       "source_location": "L154",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_samples",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_samples"
     },
     {
       "relation": "contains",
@@ -15136,9 +15513,9 @@
       "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_sleep",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_sleep"
     },
     {
       "relation": "contains",
@@ -15147,9 +15524,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_t",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_t"
     },
     {
       "relation": "imports_from",
@@ -15159,9 +15536,9 @@
       "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_scene",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_scene"
     },
     {
       "relation": "imports",
@@ -15171,9 +15548,9 @@
       "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_scene_scene",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_scene_scene"
     },
     {
       "relation": "calls",
@@ -15183,9 +15560,9 @@
       "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff_log",
-      "target": "packages_ai_engine_location_ab_bakeoff_t",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_t"
     },
     {
       "relation": "calls",
@@ -15195,9 +15572,9 @@
       "source_location": "L95",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_ab_bakeoff_genonce",
-      "target": "packages_ai_engine_location_ab_bakeoff_messagesfor",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_ab_bakeoff_messagesfor"
     },
     {
       "relation": "imports_from",
@@ -15218,9 +15595,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_character",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_scene_character"
     },
     {
       "relation": "contains",
@@ -15229,9 +15606,9 @@
       "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_entities",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_scene_entities"
     },
     {
       "relation": "contains",
@@ -15240,9 +15617,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_here",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_scene_here"
     },
     {
       "relation": "contains",
@@ -15251,9 +15628,9 @@
       "source_location": "L65",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_scene",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_scene_scene"
     },
     {
       "relation": "contains",
@@ -15262,9 +15639,9 @@
       "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_scenestate",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_scene_scenestate"
     },
     {
       "relation": "contains",
@@ -15273,9 +15650,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_turnstateargs",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_location_scene_turnstateargs"
     },
     {
       "relation": "imports",
@@ -15296,9 +15673,9 @@
       "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "scripts_readme_shape_test",
-      "target": "scripts_readme_shape_test_entries",
-      "confidence_score": 1.0
+      "target": "scripts_readme_shape_test_entries"
     },
     {
       "relation": "contains",
@@ -15307,9 +15684,9 @@
       "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "scripts_readme_shape_test",
-      "target": "scripts_readme_shape_test_root",
-      "confidence_score": 1.0
+      "target": "scripts_readme_shape_test_root"
     },
     {
       "relation": "contains",
@@ -15318,9 +15695,9 @@
       "source_location": "L50",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "scripts_readme_shape_test",
-      "target": "scripts_readme_shape_test_shape",
-      "confidence_score": 1.0
+      "target": "scripts_readme_shape_test_shape"
     },
     {
       "relation": "calls",
@@ -15330,9 +15707,9 @@
       "source_location": "L54",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "scripts_readme_shape_test_shape",
-      "target": "scripts_readme_shape_test_entries",
-      "confidence_score": 1.0
+      "target": "scripts_readme_shape_test_entries"
     },
     {
       "relation": "contains",
@@ -30072,385 +30449,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L91",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_argv"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L235",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_buckets"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L195",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_codespans"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L79",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_depthcandidates"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L34",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_docs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L233",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_exemptlinked"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L236",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_fixed"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L161",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_ghost_allow"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L213",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_ghosthits"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L214",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_ghoststale"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L92",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_has"
-    },
-    {
-      "relation": "indirect_call",
-      "confidence": "INFERRED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L232",
-      "weight": 1.0,
-      "_origin": "ast",
-      "context": "argument",
-      "confidence_score": 0.5,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_isprompts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L105",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_iswritable"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L64",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_mdfiles"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L116",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_name_allow"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L122",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_namehits"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L97",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_picked"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L33",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_root"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L39",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_root_md"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L145",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_src_dirs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L176",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_src_self"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L150",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_src_skip"
-    },
-    {
-      "relation": "indirect_call",
-      "confidence": "INFERRED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L218",
-      "weight": 1.0,
-      "_origin": "ast",
-      "context": "argument",
-      "confidence_score": 0.5,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_srcindex"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L49",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links",
-      "target": "scripts_check_doc_links_stripcode"
-    },
-    {
-      "relation": "references",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L105",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "scripts_check_doc_links_iswritable",
-      "target": "scripts_check_doc_links_root_md"
-    },
-    {
-      "relation": "references",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L182",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "scripts_check_doc_links_srcindex",
-      "target": "scripts_check_doc_links_src_skip"
-    },
-    {
-      "relation": "references",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/check-doc-links.mjs",
-      "source_location": "L184",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "scripts_check_doc_links_srcindex",
-      "target": "scripts_check_doc_links_src_self"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L56",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links_test",
-      "target": "scripts_check_doc_links_test_antes"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L40",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links_test",
-      "target": "scripts_check_doc_links_test_corpo"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L57",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links_test",
-      "target": "scripts_check_doc_links_test_depois"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L14",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links_test",
-      "target": "scripts_check_doc_links_test_root"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L18",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links_test",
-      "target": "scripts_check_doc_links_test_runchecker"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L15",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links_test",
-      "target": "scripts_check_doc_links_test_script"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/check-doc-links.test.mjs",
-      "source_location": "L23",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_check_doc_links_test",
-      "target": "scripts_check_doc_links_test_withfixture"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "scripts/mcp/setup-mcp.ps1",
       "source_location": "L35",
       "weight": 1.0,
@@ -33802,5 +33800,5 @@
       "source_file": "tools/kanban/kanban.html"
     }
   ],
-  "built_at_commit": "4d6aaba9e9de99a81dbf51e1baccd4f0f3b30e6a"
+  "built_at_commit": "7837731b8a38e26f4c2d2237ae207f6ef9f5420e"
 }

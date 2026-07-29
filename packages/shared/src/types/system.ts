@@ -86,7 +86,6 @@ export const SystemConfigSchema = z.object({
 })
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
-export type SystemSkill = z.infer<typeof SystemSkillSchema>
 export type SystemClassFeature = z.infer<typeof SystemClassFeatureSchema>
 export type SystemSpell = z.infer<typeof SystemSpellSchema>
 export type InitialAdventureHook = z.infer<typeof InitialAdventureHookSchema>

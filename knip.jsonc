@@ -1,0 +1,72 @@
+// Gate de código morto — US-89. Roda com `pnpm dead`.
+// JSONC de propósito: toda exceção aqui precisa do motivo escrito ao lado, senão
+// a config vira depósito (US-89 → Critérios de aceite).
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+
+  // US-89: símbolo exportado mas consumido só dentro do próprio arquivo NÃO é
+  // achado. É a maior fatia da baseline (32 exports medidos em 27/07/2026) e o
+  // conserto seria remover a palavra `export` em dezenas de arquivos — muito
+  // ruído para zero risco. Quando o símbolo deixa de ser usado até internamente,
+  // o knip volta a reportar.
+  "ignoreExportsUsedInFile": true,
+
+  // `duplicates`: `summaryModel` é alias intencional de `primaryModel`
+  // (packages/ai-engine/src/model.ts). Os dois nomes existem porque as chamadas
+  // de sumarização documentam a INTENÇÃO, não o modelo — trocar um deles um dia
+  // é uma linha. Único tipo de achado parcado; os outros reprovam (US-89 → Decisões #1).
+  "exclude": ["duplicates"],
+
+  "workspaces": {
+    ".": {
+      // A pasta evals/ mora na raiz mas é rodada pelo workspace do ai-engine
+      // (`pnpm eval` → vitest.eval.config.ts). As deps que os casos importam são
+      // de lá, não da raiz — declarar de novo aqui só duplicaria versão.
+      "ignoreDependencies": ["vitest", "ai"],
+      // Servidor do quadro kanban: ferramenta de uso manual (`node tools/kanban/
+      // kanban-server.js`), sem importador — é entrada, não código morto.
+      "entry": ["tools/kanban/kanban-server.js"]
+    },
+
+    "apps/api": {
+      // Plugin desligado: ele carrega apps/api/prisma.config.ts, que faz
+      // env('DATABASE_URL') no topo e explode fora do `dotenv -e .env`. O que o
+      // plugin acrescentaria (schema.prisma, seed) o knip já acha pelos scripts
+      // do package.json (`db:seed` → prisma/seed.ts).
+      "prisma": false,
+      // Consequência de desligar o plugin: quem carrega prisma.config.ts é o CLI
+      // do Prisma (`prisma migrate`, `prisma generate`), não um import.
+      // `src/main.ts` vem junto porque declarar `entry` SUBSTITUI a lista padrão
+      // do knip — sem ele, a API inteira é lida como órfã.
+      "entry": ["src/main.ts", "prisma.config.ts"],
+      "ignoreDependencies": [
+        // Importado pelo client gerado em src/generated/prisma/, que é gitignored
+        // — o knip não enxerga o import, mas ele existe em runtime.
+        "@prisma/client",
+        // ai.controller.ts importa `Response` de 'express'. O pacote vem via
+        // @nestjs/platform-express; declarar a versão à parte convida a divergir
+        // da que o Nest instala.
+        "express",
+        // Referenciado por nest-cli.json ("collection"), instalado como dep do
+        // @nestjs/cli. Nunca aparece em import.
+        "@nestjs/schematics"
+      ]
+    },
+
+    "packages/shared": {
+      // Pacote de contrato: tudo sai por src/index.ts, e export de arquivo de
+      // entrada conta como usado por padrão. Sem isto o gate seria cego justo
+      // onde estavam os 2 fósseis da US-89 (`EventLogEntry`, `CharacterStatePatch`
+      // — tipos de tools que nunca existiram). Tipo sem consumidor aqui: ou
+      // apaga, ou ganha comentário com a US que vai consumi-lo.
+      "includeEntryExports": true
+    },
+
+    "packages/ai-engine": {
+      // Scripts de bake-off e de medição A/B, rodados à mão (`node move-ab.mjs`).
+      // Moram na raiz do pacote, fora de src/ — sem isto o knip os lê como
+      // arquivos sem importador. run-bakeoff.mjs é o runner da US-17.
+      "entry": ["*.mjs"]
+    }
+  }
+}

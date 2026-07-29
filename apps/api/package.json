@@ -23,7 +23,6 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "ai": "^4.3.16",
-    "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "zod": "^3.25.67",
@@ -31,9 +30,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
-    "@nestjs/testing": "^10.4.17",
     "@types/express": "^5.0.3",
-    "@types/pg": "^8.20.0",
     "prisma": "^7.8.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",

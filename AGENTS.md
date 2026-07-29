@@ -44,7 +44,13 @@ Roadmap incremental (fase atual: MVP single-player):
 ### Geral
 - Linguagem: TypeScript 5.x, strict mode
 - Gerenciador de pacotes: pnpm (workspace monorepo)
-- Análise estática: `pnpm typecheck` (`tsc --noEmit`). **Não há ESLint nem Prettier no projeto** — os scripts existiam desde o scaffold mas nunca tiveram dependência nem config, e foram removidos. Adotar um linter é story própria.
+- Análise estática: `pnpm typecheck` (`tsc --noEmit`) e `pnpm dead` (knip — arquivo sem
+  importador, dep declarada e nunca importada, export de contrato sem consumidor; US-89).
+  **Não há ESLint nem Prettier no projeto** — os scripts existiam desde o scaffold mas nunca
+  tiveram dependência nem config, e foram removidos. Adotar um linter é story própria.
+- Exceção nova no `knip.jsonc` exige comentário com o motivo ao lado. Símbolo exportado e
+  usado só dentro do próprio arquivo NÃO é achado (`ignoreExportsUsedInFile`); em
+  `packages/shared`, tipo sem consumidor ou é apagado ou ganha comentário com a US que vai usá-lo.
 - Commits: Conventional Commits (`feat:`, `fix:`, `chore:`, etc.)
 
 ### Frontend (`apps/web`)

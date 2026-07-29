@@ -111,9 +111,6 @@ export const NARRATION_PROVIDER_OPTIONS = {
   openrouter: { reasoning: { effort: 'medium', exclude: true } },
 } as const
 
-// Compat: modelo principal isolado.
-export const defaultModel: LanguageModelV1 = primaryModel
-
 // Sumarização de memória: mesmo deepseek-v4-flash da narração, via OpenRouter.
 // Antes usava groq('llama-3.1-8b-instant'), mas o free tier daquele modelo tem
 // teto de 6000 TPM — o lote de overflow (resumo acumulado + N turnos) estourava

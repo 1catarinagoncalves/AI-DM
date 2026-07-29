@@ -52,6 +52,13 @@ jobs:
 
       - run: pnpm test
 
+      # Gate de código morto (US-89): arquivo sem importador, dep declarada e
+      # nunca importada, export de contrato sem consumidor. Reprova de verdade —
+      # se um tipo de achado precisar ser parcado, é `--exclude <tipo>` no
+      # knip.jsonc com o motivo escrito, nunca `continue-on-error` aqui.
+      - name: Gate de código morto
+        run: pnpm dead
+
       - run: pnpm eval
 
       # Gate completo de links (US-78 + US-79) e de nome de arquivo (US-82), mesmo
