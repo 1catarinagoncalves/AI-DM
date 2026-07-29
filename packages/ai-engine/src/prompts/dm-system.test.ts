@@ -461,7 +461,8 @@ describe('US-85 — fronteira das camadas: todo bloco da camada 3 é declarado',
     })
     // O nome do bloco é o cabeçalho SEM o qualificador entre parênteses ("(read-only — …)",
     // "(secondary)"): o qualificador é redação, o nome é o que a camada 2 cita.
-    return [...rendered.matchAll(/^## (.+)$/gm)].map((m) => m[1].replace(/\s*\(.*$/, '').trim())
+    // `m[1]` sempre existe: a regex tem um grupo de captura e só chegamos aqui com match.
+    return [...rendered.matchAll(/^## (.+)$/gm)].map((m) => m[1]!.replace(/\s*\(.*$/, '').trim())
   }
 
   it('nenhum cabeçalho órfão (bloco novo sem declaração = vermelho)', () => {
