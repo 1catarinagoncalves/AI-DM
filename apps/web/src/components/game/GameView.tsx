@@ -453,9 +453,11 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           onClick={() => setSheetOpen(o => !o)}
           aria-expanded={sheetOpen}
           aria-controls="character-sheet"
-          className="flex min-h-[44px] items-center justify-between gap-2 p-4 font-serif font-semibold text-parchment md:hidden"
+          className="flex min-h-[44px] min-w-0 items-center justify-between gap-2 py-4 pl-4 pr-40 font-serif font-semibold text-parchment md:hidden"
         >
-          <span>Ficha — {characterName}</span>
+          {/* US-66: pr-40 reserva a pegada dos controles fixos (Sair em right-16 +
+              tema em right-4) para eles não taparem o nome/chevron da barra. */}
+          <span className="truncate">Ficha — {characterName}</span>
           <ChevronDown aria-hidden className={`size-4 text-primary transition-transform ${sheetOpen ? 'rotate-180' : ''}`} />
         </button>
 
