@@ -2,12 +2,13 @@
 
 **Épico:** 0 — Infra e documentação
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-80](./US-80-ci-typecheck-testes-e-evals.md) — **satisfeita**. É onde o gate ganha dentes (`pnpm typecheck`, `test` e `eval` já rodam em todo push e PR).
 **Nasceu de:** sessão de 27/07/2026. `packages/ai-engine/src/tools/roll-dice.ts` exportava `rollDiceTool`, **nunca importado por ninguém**, com `execute` que só lançava exceção e uma interface (`formula: "2d6+3"`) que contradizia a `rollDice` viva. Estava lá desde o scaffold de 27/06/2026 — um mês, com `typecheck`, `test`, `eval` e gate de docs verdes o tempo todo. Achado à mão, apagado à mão.
 **Relacionada a:** [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) (mesmo buraco visto do lado da doc: lá a doc cita código que não existe, aqui o código existe e ninguém cita), [US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md) e [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md) (família de gate mecânico), [US-83](./US-83-readme-com-arquitetura-alto-nivel.md) (*"toda linha que reafirma um arquivo é dívida"* — o mesmo argumento aplicado a código).
 
 **Criada em:** 2026-07-27
+**Revisada em:** 2026-07-29 — escopo enxugado: a triagem símbolo a símbolo dos 32 exports saiu do trabalho e virou `ignoreExportsUsedInFile: true`, uma linha de config. Sobrou instalar, rodar, apagar 3 resíduos e pôr no CI.
 
 ---
 
@@ -57,7 +58,7 @@ Sem instalar nada: script descartável (mini-knip) sobre `apps/*/src`, `packages
 | Classe | Exemplo verificado | Quantos | O que fazer |
 |---|---|---|---|
 | **Ponto cego do probe** | `judgeBatch` — usado por `packages/ai-engine/run-bakeoff.mjs`, que está na raiz do pacote e não em `src/` | poucos | nada: é uso legítimo, o probe é que era estreito |
-| **Exportado sem consumidor externo** | `PRICES` (`rubric.ts:176`), `ChatInput` (`ai.service.ts:35`), `primaryModel` (`model.ts:76`) — usados só dentro do arquivo que os define | maioria | tirar a palavra `export`; o símbolo continua |
+| **Exportado sem consumidor externo** | `PRICES` (`rubric.ts:176`), `ChatInput` (`ai.service.ts:35`), `primaryModel` (`model.ts:76`) — usados só dentro do arquivo que os define | maioria | nada: `ignoreExportsUsedInFile: true` cala a classe inteira em uma linha de config |
 | **Morto de verdade** | `EventLogEntry` e `CharacterStatePatch` ([`packages/shared/src/types/game.ts`](../../../packages/shared/src/types/game.ts)) — zero ocorrências em qualquer lugar | poucos | apagar |
 
 O segundo achado é o irônico: `EventLogEntry` é o tipo da tool `addEventLog` — uma das 5 "Future tools" que nunca existiram e que a [US-83](./US-83-readme-com-arquitetura-alto-nivel.md) já tinha caçado na doc. O contrato do fantasma sobreviveu ao fantasma.
@@ -75,16 +76,18 @@ Ou seja: a ferramenta certa aqui não é a que acha mais, é a que **sabe o que 
 
 ### Dentro do escopo
 
-- `knip` como **devDependency da raiz** (`pnpm add -Dw knip`), com `knip.json` versionado.
-- Configuração dos entrypoints reais até a saída ficar **sem falso positivo conhecido**: `run-bakeoff.mjs`, `scripts/*.mjs`, `evals/cases/*.ts`, e os plugins de Next/Nest/Vitest para `middleware.ts`, `page.tsx`, `route.ts`, `maxDuration`, decorators.
-- Script `pnpm dead` (nome a confirmar) na raiz, no padrão dos outros gates (`docs:links`).
-- **Triagem da baseline**, decidindo caso a caso: apagar o morto, tirar `export` do interno, ou declarar entrypoint na config. Nenhuma dessas três é automática.
-- Apagar o que a triagem confirmar como morto — incluindo `EventLogEntry`/`CharacterStatePatch` e a dep `@ai-sdk/react`, se a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) não tiver chegado antes.
-- Passo no workflow da [US-80](./US-80-ci-typecheck-testes-e-evals.md), depois de `pnpm test` — **só depois da saída estar limpa** (ver *Questões em aberto* #1).
+- `knip` como **devDependency da raiz** (`pnpm add -Dw knip`), com **`knip.jsonc`** versionado — JSONC porque aceita comentário nativo, e cada exceção precisa do motivo escrito ao lado.
+- **`ignoreExportsUsedInFile: true` na config.** Uma linha, e a classe "exportado, usado só dentro do próprio arquivo" — a **maioria dos 32** — some do relatório sem ninguém editar arquivo nenhum. Responde a antiga questão #2 por omissão: não reprova, e não custa triagem.
+- Script `pnpm dead` na raiz, no padrão dos outros gates (`docs:links`).
+- **Rodar primeiro, configurar depois.** Os plugins de Next/Nest/Vitest já vêm de fábrica; `entry` só ganha entrada quando a saída real acusar falso positivo. O único ponto cego conhecido da baseline é `run-bakeoff.mjs` (fora de `src/`) — mesmo esse, confirmar no relatório antes de escrever config para ele.
+- Apagar o resíduo confirmado: `EventLogEntry`/`CharacterStatePatch` em `packages/shared` e a dep `@ai-sdk/react`, se a [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) não tiver chegado antes.
+- Passo no workflow da [US-80](./US-80-ci-typecheck-testes-e-evals.md), depois de `pnpm test`, **falhando de verdade** — se sobrar resíduo, estreita-se o tipo de achado, não o exit code (ver *Decisões* #1).
 
 ### Fora do escopo
 
-- **`knip --fix`.** Deleção automática de export é o oposto de leitura: o valor da triagem está em decidir *qual das três coisas* cada achado é. Mesmo princípio do "reportar, não reescrever" da [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) (`:99`).
+- **Triagem símbolo a símbolo dos 32 e remoção da palavra `export`.** Era o grosso do trabalho na primeira versão desta story, e `ignoreExportsUsedInFile` o dispensa. Zero arquivo de código tocado, zero risco de regressão, nada para `pnpm typecheck` re-verificar. Se um dia esses símbolos incomodarem, é ligar a opção de volta — decisão de uma linha, com o gate já de pé.
+- **Config por workspace desenhada de antemão.** O repo tem 4 pacotes com contratos diferentes, mas escrever 4 blocos `workspaces` antes de ver o relatório é configurar contra fantasma. Bloco por workspace só quando a saída daquele workspace exigir.
+- **`knip --fix`.** Deleção automática de export é o oposto de leitura, e o pouco que sobrar para decidir merece olho humano. Mesmo princípio do "reportar, não reescrever" da [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) (`:99`).
 - **Mover as 6 tools vivas para o pacote.** Elas fecham sobre `this.prisma` (ou, no `getSpell`, sobre o contexto do turno); extrair exige inverter a dependência. É decisão de design, não limpeza — e continua sem story.
 - **Deps de runtime/build por heurística de import.** Se um plugin do `knip` não souber que `pg` é o adapter do Prisma, a entrada vai para o `ignoreDependencies` com motivo escrito, não para o `package.json` como remoção.
 - **Adotar ESLint junto.** Tentação natural ("já que vamos instalar ferramenta de análise"), escopo diferente, e o `AGENTS.md` registra que a ausência de linter é estado conhecido e não acidente. Story própria se alguém quiser.
@@ -94,13 +97,14 @@ Ou seja: a ferramenta certa aqui não é a que acha mais, é a que **sabe o que 
 
 ## Critérios de aceite
 
-- [ ] `knip` instalado como devDep da raiz, com `knip.json` versionado e um script de raiz que o roda.
-- [ ] **Saída limpa na baseline:** rodar o script com o repo no estado pós-triagem sai com 0 achados e exit 0.
-- [ ] Cada entrada de `ignore*`/`entry` na config tem **comentário com o motivo** (por que aquele arquivo é entrypoint, ou por que aquela dep não aparece em import). Config sem motivo vira depósito.
+- [ ] `knip` instalado como devDep da raiz, com `knip.jsonc` versionado e `pnpm dead` na raiz rodando ele.
+- [ ] `ignoreExportsUsedInFile: true` na config, com comentário apontando para esta US.
+- [ ] **Saída limpa:** `pnpm dead` sai com 0 achados e exit 0.
+- [ ] Cada entrada de `entry`/`ignore*` na config tem **comentário com o motivo** (por que aquele arquivo é entrypoint, ou por que aquela dep não aparece em import). Config sem motivo vira depósito.
 - [ ] `EventLogEntry` e `CharacterStatePatch` apagados de `packages/shared`, ou mantidos com comentário citando a US que vai consumi-los.
 - [ ] `@ai-sdk/react` removido de `apps/web`, ou usado de verdade.
-- [ ] Os símbolos da classe "exportado sem consumidor externo" perdem o `export` **sem mudar comportamento**: `pnpm typecheck` e `pnpm test` continuam verdes.
 - [ ] Passo novo no [`ci.yml`](../../../.github/workflows/ci.yml), separado (não `&&` em cima de outro), para a aba de checks mostrar qual etapa caiu — convenção já registrada no topo do workflow.
+- [ ] O passo **reprova o build quando acha algo**: sem `continue-on-error`, sem `--no-exit-code`. Tipo de achado parcado com `--exclude` é aceitável e exige comentário nomeando o que ficou de fora.
 - [ ] `pnpm install` continua funcionando para quem clona: sem placeholder inválido no `pnpm-workspace.yaml` (ver *Notas*).
 
 ---
@@ -108,19 +112,26 @@ Ou seja: a ferramenta certa aqui não é a que acha mais, é a que **sabe o que 
 ## Notas de implementação
 
 - **⚠️ Instalar a dep pode travar todo comando `pnpm`.** Armadilha já registrada no `AGENTS.md` → *Armadilhas do repo*: o pnpm acrescenta pacote com build script ao `allowBuilds:` do `pnpm-workspace.yaml` com um placeholder literal (`'@scarf/scarf': set this to true or false`), e isso derruba o preflight de **qualquer** comando `pnpm` com `ERR_PNPM_IGNORED_BUILDS`. Depois do `pnpm add -Dw knip`, conferir o `pnpm-workspace.yaml` **antes** de rodar qualquer outra coisa.
-- **Configurar por workspace, não por regex global.** O repo tem 4 pacotes com contratos de entrypoint diferentes (App Router, NestJS, biblioteca pura, suíte de eval). Uma config única com `ignore` largo esconde exatamente a classe de achado que motivou a story.
+- **Config mínima que passa, não config completa.** O caminho curto é `pnpm dead` → ler a saída → resolver **só o que ela reclamou**. `ignore` largo é o único atalho proibido: ele esconde exatamente a classe de achado que motivou a story. Preferir `entry` (declara o que é entrada) a `ignore` (manda calar).
 - **`packages/shared` é caso especial e merece decisão explícita.** É pacote de contrato: um tipo exportado sem consumidor *hoje* pode ser o contrato de uma US da fila — ou um fóssil, como `EventLogEntry` provou ser. A regra que evita as duas dores: tipo sem consumidor ou é apagado, ou ganha comentário com o número da US que vai consumi-lo. Sem comentário, é fóssil.
 - **A ordem importa:** configurar até zerar **antes** de pôr no CI. Gate que nasce vermelho é gate que nasce com `continue-on-error`, e aí não é gate.
 - **Não versionar o probe desta baseline.** Ele foi instrumento de medição, não ferramenta: heurística de substring, cego para arquivo fora de `src/`. Os números acima valem como ordem de grandeza; a saída do `knip` configurado é que vira a linha de base real.
 
 ---
 
-## Questões em aberto
+## Decisões
 
-1. **CI ou local?** O `knip` é o primeiro gate deste repo cuja saída depende de configuração fina — os outros (typecheck, test, docs:links) são binários. Se a triagem deixar resíduo que ninguém quer resolver agora, a alternativa honesta é rodar local/manual por uma fase e só depois promover a CI. Decidir com a saída na mão, não antes.
-2. **"Exportado sem consumidor externo" vale reprovar?** É a maior fatia dos 32 e o fix é remover uma palavra. Argumento a favor: `export` é declaração de API pública; exportar o que ninguém consome é o mesmo ruído do `// Future tool`. Contra: em pacote de biblioteca, atrito constante por algo que não quebra nada. Dá para ligar a regra separadamente no `knip` — decidir depois de ver quantos sobram após a triagem.
-3. **`unused exports in test files`?** O probe achou 0, mas foi porque a heurística exclui teste. Vale medir com o `knip` configurado antes de decidir se entra no gate.
-4. **Vale a pena para 165 exports?** O repo é pequeno; o `rollDiceTool` foi achado a olho. O argumento não é volume, é **tempo de sobrevivência**: um mês, com 5 gates verdes e várias sessões lendo o repo. E o custo de manutenção do `knip` é a config, que só muda quando entra framework novo.
+*Eram as duas questões em aberto da versão de 27/07/2026. Fechadas em 29/07/2026 — as outras duas (reprovar "exportado sem consumidor externo", e medir export morto em arquivo de teste) sumiram junto com a triagem, resolvidas por `ignoreExportsUsedInFile`.*
+
+1. **CI desde o primeiro dia, com falha dura.** Gate que só roda local não roda: o `rollDiceTool` sobreviveu um mês num repo com 5 gates verdes justamente porque ninguém procura à mão.
+
+   Se sobrar resíduo que não dá para resolver na hora, a saída **não** é `continue-on-error` nem `--no-exit-code` — os dois transformam gate em decoração. É **estreitar o que se checa, mantendo o que se checa vermelho**: o `knip` filtra por tipo de achado (`--include`/`--exclude` sobre `files`, `dependencies`, `unlisted`, `exports`, `types`, `duplicates`, …). Parcar um tipo, com comentário dizendo qual e por quê, é o precedente literal do `docs:links`, que entrou no CI com `--only-md` enquanto os 85 links quebrados da [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) existiam, e apertou quando ela fechou.
+
+   A pergunta que sobra é operacional, não de design: *quais tipos entram na primeira versão*. Responde-se com a saída na mão, em um commit, reversível.
+
+2. **Vale a pena — e com critério de abandono escrito.** O argumento nunca foi volume (165 exports é pouco), é **tempo de sobrevivência**: um mês, 5 gates verdes, várias sessões lendo o repo, e o export morto continuou lá. Com o escopo enxugado o custo virou uma devDep e ~10 linhas de `knip.jsonc` — abaixo do preço de discutir de novo.
+
+   Para não reabrir a discussão a cada release: **se ao fim da Fase 1 o `knip` não tiver pego nenhum achado real — só config crescendo para calar falso positivo — apaga-se a dep e o passo do CI.** Custo de sair: um commit.
 
 ---
 

@@ -163,15 +163,400 @@
   },
   "nodes": [
     {
+      "label": "us-03-scene-state.ts",
+      "file_type": "code",
+      "source_file": "evals/cases/us-03-scene-state.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "evals_cases_us_03_scene_state",
+      "community": 94,
+      "community_name": "Scene State Seed",
+      "norm_label": "us-03-scene-state.ts"
+    },
+    {
+      "label": "praca",
+      "file_type": "code",
+      "source_file": "evals/cases/us-03-scene-state.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "evals_cases_us_03_scene_state_praca",
+      "community": 94,
+      "community_name": "Scene State Seed",
+      "norm_label": "praca"
+    },
+    {
+      "label": "location-ab-bakeoff.mjs",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "location-ab-bakeoff.mjs"
+    },
+    {
+      "label": "t()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_t",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "t()"
+    },
+    {
+      "label": "log()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_log",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "log()"
+    },
+    {
+      "label": "sleep()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_sleep",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "sleep()"
+    },
+    {
+      "label": "REPS",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_reps",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "reps"
+    },
+    {
+      "label": "PACE_MS",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_pace_ms",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "pace_ms"
+    },
+    {
+      "label": "MODEL",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_model",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "model"
+    },
+    {
+      "label": "OLD",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_old",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "old"
+    },
+    {
+      "label": "NEW",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_new",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "new"
+    },
+    {
+      "label": "ARMS",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_arms",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "arms"
+    },
+    {
+      "label": "messagesFor()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_messagesfor",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "messagesfor()"
+    },
+    {
+      "label": "EXEMPLAR",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_exemplar",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "exemplar"
+    },
+    {
+      "label": "detectDegeneration()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_detectdegeneration",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "detectdegeneration()"
+    },
+    {
+      "label": "judge",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L88",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_judge",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "judge"
+    },
+    {
+      "label": "cost()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L89",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_cost",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "cost()"
+    },
+    {
+      "label": "genOnce()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_genonce",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "genonce()"
+    },
+    {
+      "label": "rows",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_rows",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "rows"
+    },
+    {
+      "label": "fmt()",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L148",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_fmt",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "fmt()"
+    },
+    {
+      "label": "body",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L151",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_body",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "body"
+    },
+    {
+      "label": "samples",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L154",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_samples",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "samples"
+    },
+    {
+      "label": "dir",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L172",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_dir",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "dir"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L174",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_ab_bakeoff_path",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "path"
+    },
+    {
+      "label": "location-scene.mjs",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_scene",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "location-scene.mjs"
+    },
+    {
+      "label": "HERE",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_scene_here",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "here"
+    },
+    {
+      "label": "character",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_scene_character",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "character"
+    },
+    {
+      "label": "sceneState",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_scene_scenestate",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "scenestate"
+    },
+    {
+      "label": "entities",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_scene_entities",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "entities"
+    },
+    {
+      "label": "turnStateArgs",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_scene_turnstateargs",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "turnstateargs"
+    },
+    {
+      "label": "SCENE",
+      "file_type": "code",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "packages_ai_engine_location_scene_scene",
+      "community": 5,
+      "community_name": "Location Bake-off Script",
+      "norm_label": "scene"
+    },
+    {
+      "label": "readme-shape.test.mjs",
+      "file_type": "code",
+      "source_file": "scripts/readme-shape.test.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_readme_shape_test",
+      "community": 70,
+      "community_name": "README Shape Test",
+      "norm_label": "readme-shape.test.mjs"
+    },
+    {
+      "label": "ROOT",
+      "file_type": "code",
+      "source_file": "scripts/readme-shape.test.mjs",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "scripts_readme_shape_test_root",
+      "community": 70,
+      "community_name": "README Shape Test",
+      "norm_label": "root"
+    },
+    {
+      "label": "entries()",
+      "file_type": "code",
+      "source_file": "scripts/readme-shape.test.mjs",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "scripts_readme_shape_test_entries",
+      "community": 70,
+      "community_name": "README Shape Test",
+      "norm_label": "entries()"
+    },
+    {
+      "label": "shape()",
+      "file_type": "code",
+      "source_file": "scripts/readme-shape.test.mjs",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "scripts_readme_shape_test_shape",
+      "community": 70,
+      "community_name": "README Shape Test",
+      "norm_label": "shape()"
+    },
+    {
       "label": "move-ab.mjs",
       "file_type": "code",
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "move-ab.mjs"
+      "norm_label": "move-ab.mjs",
+      "id": "packages_ai_engine_move_ab"
     },
     {
       "label": "REPS",
@@ -179,10 +564,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_reps",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "reps"
+      "norm_label": "reps",
+      "id": "packages_ai_engine_move_ab_reps"
     },
     {
       "label": "sleep()",
@@ -190,10 +575,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L23",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_sleep",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "sleep()"
+      "norm_label": "sleep()",
+      "id": "packages_ai_engine_move_ab_sleep"
     },
     {
       "label": "t()",
@@ -201,10 +586,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_t",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "t()"
+      "norm_label": "t()",
+      "id": "packages_ai_engine_move_ab_t"
     },
     {
       "label": "log()",
@@ -212,10 +597,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L25",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_log",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "log()"
+      "norm_label": "log()",
+      "id": "packages_ai_engine_move_ab_log"
     },
     {
       "label": "CHARACTER",
@@ -223,10 +608,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L29",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_character",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "character"
+      "norm_label": "character",
+      "id": "packages_ai_engine_move_ab_character"
     },
     {
       "label": "SYSTEM",
@@ -234,10 +619,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_system",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "system"
+      "norm_label": "system",
+      "id": "packages_ai_engine_move_ab_system"
     },
     {
       "label": "TURN_STATE_NEW",
@@ -245,10 +630,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L36",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_turn_state_new",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "turn_state_new"
+      "norm_label": "turn_state_new",
+      "id": "packages_ai_engine_move_ab_turn_state_new"
     },
     {
       "label": "corte",
@@ -256,10 +641,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L51",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_corte",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "corte"
+      "norm_label": "corte",
+      "id": "packages_ai_engine_move_ab_corte"
     },
     {
       "label": "fimDaLinha",
@@ -267,10 +652,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L53",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_fimdalinha",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "fimdalinha"
+      "norm_label": "fimdalinha",
+      "id": "packages_ai_engine_move_ab_fimdalinha"
     },
     {
       "label": "makeTools()",
@@ -278,10 +663,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L68",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_maketools",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "maketools()"
+      "norm_label": "maketools()",
+      "id": "packages_ai_engine_move_ab_maketools"
     },
     {
       "label": "umaRep()",
@@ -289,10 +674,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L92",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_umarep",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "umarep()"
+      "norm_label": "umarep()",
+      "id": "packages_ai_engine_move_ab_umarep"
     },
     {
       "label": "RODADAS",
@@ -300,10 +685,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L127",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_rodadas",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "rodadas"
+      "norm_label": "rodadas",
+      "id": "packages_ai_engine_move_ab_rodadas"
     },
     {
       "label": "resultado",
@@ -311,10 +696,10 @@
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L132",
       "_origin": "ast",
-      "id": "packages_ai_engine_move_ab_resultado",
       "community": 59,
       "community_name": "move-ab.mjs",
-      "norm_label": "resultado"
+      "norm_label": "resultado",
+      "id": "packages_ai_engine_move_ab_resultado"
     },
     {
       "label": "dm-system.test.ts",
@@ -322,10 +707,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_test",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "dm-system.test.ts"
+      "norm_label": "dm-system.test.ts",
+      "id": "packages_ai_engine_src_prompts_dm_system_test"
     },
     {
       "label": "baseSheet",
@@ -333,10 +718,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_test_basesheet",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "basesheet"
+      "norm_label": "basesheet",
+      "id": "packages_ai_engine_src_prompts_dm_system_test_basesheet"
     },
     {
       "label": "build()",
@@ -344,10 +729,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
       "source_location": "L22",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_test_build",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "build()"
+      "norm_label": "build()",
+      "id": "packages_ai_engine_src_prompts_dm_system_test_build"
     },
     {
       "label": "buildState()",
@@ -355,10 +740,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_test_buildstate",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "buildstate()"
+      "norm_label": "buildstate()",
+      "id": "packages_ai_engine_src_prompts_dm_system_test_buildstate"
     },
     {
       "label": "ADR-0005",
@@ -366,10 +751,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.test.ts",
       "source_location": "L397",
       "_origin": "ast",
-      "id": "docref_adr_0005",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "adr-0005"
+      "norm_label": "adr-0005",
+      "id": "docref_adr_0005"
     },
     {
       "label": "dm-system.ts",
@@ -377,10 +762,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "dm-system.ts"
+      "norm_label": "dm-system.ts",
+      "id": "packages_ai_engine_src_prompts_dm_system"
     },
     {
       "label": "DmCharacterSheet",
@@ -388,10 +773,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L30",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "dmcharactersheet"
+      "norm_label": "dmcharactersheet",
+      "id": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet"
     },
     {
       "label": "CharacterBackground",
@@ -399,10 +784,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L47",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_characterbackground",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "characterbackground"
+      "norm_label": "characterbackground",
+      "id": "packages_ai_engine_src_prompts_dm_system_characterbackground"
     },
     {
       "label": "ClassFeature",
@@ -410,10 +795,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L64",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_classfeature",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "classfeature"
+      "norm_label": "classfeature",
+      "id": "packages_ai_engine_src_prompts_dm_system_classfeature"
     },
     {
       "label": "KnownSpell",
@@ -421,10 +806,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L76",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_knownspell",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "knownspell"
+      "norm_label": "knownspell",
+      "id": "packages_ai_engine_src_prompts_dm_system_knownspell"
     },
     {
       "label": "resolveKnownSpell()",
@@ -432,10 +817,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L87",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_resolveknownspell",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "resolveknownspell()"
+      "norm_label": "resolveknownspell()",
+      "id": "packages_ai_engine_src_prompts_dm_system_resolveknownspell"
     },
     {
       "label": "BACKGROUND_LABELS",
@@ -443,10 +828,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L97",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_background_labels",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "background_labels"
+      "norm_label": "background_labels",
+      "id": "packages_ai_engine_src_prompts_dm_system_background_labels"
     },
     {
       "label": "backgroundFieldText()",
@@ -454,10 +839,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L111",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "backgroundfieldtext()"
+      "norm_label": "backgroundfieldtext()",
+      "id": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext"
     },
     {
       "label": "buildDmSystemPrompt()",
@@ -465,10 +850,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L165",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "builddmsystemprompt()"
+      "norm_label": "builddmsystemprompt()",
+      "id": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
     },
     {
       "label": "buildTurnStateBlock()",
@@ -476,10 +861,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L405",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "buildturnstateblock()"
+      "norm_label": "buildturnstateblock()",
+      "id": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
     },
     {
       "label": "buildOpeningInstruction()",
@@ -487,10 +872,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L504",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_prompts_dm_system_buildopeninginstruction",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "buildopeninginstruction()"
+      "norm_label": "buildopeninginstruction()",
+      "id": "packages_ai_engine_src_prompts_dm_system_buildopeninginstruction"
     },
     {
       "label": "ADR-0007",
@@ -498,10 +883,10 @@
       "source_file": "packages/ai-engine/src/prompts/dm-system.ts",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "docref_adr_0007",
       "community": 1,
       "community_name": "dm-system.ts",
-      "norm_label": "adr-0007"
+      "norm_label": "adr-0007",
+      "id": "docref_adr_0007"
     },
     {
       "label": "nest-cli.json",
@@ -6125,28 +6510,6 @@
       "id": "apps_web_vitest_config"
     },
     {
-      "label": "us-03-scene-state.ts",
-      "file_type": "code",
-      "source_file": "evals/cases/us-03-scene-state.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 94,
-      "community_name": "Scene State Seed",
-      "norm_label": "us-03-scene-state.ts",
-      "id": "evals_cases_us_03_scene_state"
-    },
-    {
-      "label": "praca",
-      "file_type": "code",
-      "source_file": "evals/cases/us-03-scene-state.ts",
-      "source_location": "L12",
-      "_origin": "ast",
-      "community": 94,
-      "community_name": "Scene State Seed",
-      "norm_label": "praca",
-      "id": "evals_cases_us_03_scene_state_praca"
-    },
-    {
       "label": "us-08-chat.ts",
       "file_type": "code",
       "source_file": "evals/cases/us-08-chat.ts",
@@ -6871,325 +7234,6 @@
       "community_name": "Location Bake-off Script",
       "norm_label": "turnstate",
       "id": "packages_ai_engine_capture_old_location_turnstate"
-    },
-    {
-      "label": "location-ab-bakeoff.mjs",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "location-ab-bakeoff.mjs",
-      "id": "packages_ai_engine_location_ab_bakeoff"
-    },
-    {
-      "label": "t()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L33",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "t()",
-      "id": "packages_ai_engine_location_ab_bakeoff_t"
-    },
-    {
-      "label": "log()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L34",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "log()",
-      "id": "packages_ai_engine_location_ab_bakeoff_log"
-    },
-    {
-      "label": "sleep()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L35",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "sleep()",
-      "id": "packages_ai_engine_location_ab_bakeoff_sleep"
-    },
-    {
-      "label": "REPS",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L37",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "reps",
-      "id": "packages_ai_engine_location_ab_bakeoff_reps"
-    },
-    {
-      "label": "PACE_MS",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L39",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "pace_ms",
-      "id": "packages_ai_engine_location_ab_bakeoff_pace_ms"
-    },
-    {
-      "label": "MODEL",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L42",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "model",
-      "id": "packages_ai_engine_location_ab_bakeoff_model"
-    },
-    {
-      "label": "OLD",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L45",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "old",
-      "id": "packages_ai_engine_location_ab_bakeoff_old"
-    },
-    {
-      "label": "NEW",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L46",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "new",
-      "id": "packages_ai_engine_location_ab_bakeoff_new"
-    },
-    {
-      "label": "ARMS",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L50",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "arms",
-      "id": "packages_ai_engine_location_ab_bakeoff_arms"
-    },
-    {
-      "label": "messagesFor()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L57",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "messagesfor()",
-      "id": "packages_ai_engine_location_ab_bakeoff_messagesfor"
-    },
-    {
-      "label": "EXEMPLAR",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L67",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "exemplar",
-      "id": "packages_ai_engine_location_ab_bakeoff_exemplar"
-    },
-    {
-      "label": "detectDegeneration()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L74",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "detectdegeneration()",
-      "id": "packages_ai_engine_location_ab_bakeoff_detectdegeneration"
-    },
-    {
-      "label": "judge",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L87",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "judge",
-      "id": "packages_ai_engine_location_ab_bakeoff_judge"
-    },
-    {
-      "label": "cost()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L88",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "cost()",
-      "id": "packages_ai_engine_location_ab_bakeoff_cost"
-    },
-    {
-      "label": "genOnce()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L90",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "genonce()",
-      "id": "packages_ai_engine_location_ab_bakeoff_genonce"
-    },
-    {
-      "label": "rows",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L104",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "rows",
-      "id": "packages_ai_engine_location_ab_bakeoff_rows"
-    },
-    {
-      "label": "fmt()",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L147",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "fmt()",
-      "id": "packages_ai_engine_location_ab_bakeoff_fmt"
-    },
-    {
-      "label": "body",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L150",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "body",
-      "id": "packages_ai_engine_location_ab_bakeoff_body"
-    },
-    {
-      "label": "samples",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L153",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "samples",
-      "id": "packages_ai_engine_location_ab_bakeoff_samples"
-    },
-    {
-      "label": "dir",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L171",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "dir",
-      "id": "packages_ai_engine_location_ab_bakeoff_dir"
-    },
-    {
-      "label": "path",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L173",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "path",
-      "id": "packages_ai_engine_location_ab_bakeoff_path"
-    },
-    {
-      "label": "location-scene.mjs",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "location-scene.mjs",
-      "id": "packages_ai_engine_location_scene"
-    },
-    {
-      "label": "HERE",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L12",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "here",
-      "id": "packages_ai_engine_location_scene_here"
-    },
-    {
-      "label": "character",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L14",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "character",
-      "id": "packages_ai_engine_location_scene_character"
-    },
-    {
-      "label": "sceneState",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L23",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "scenestate",
-      "id": "packages_ai_engine_location_scene_scenestate"
-    },
-    {
-      "label": "entities",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L32",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "entities",
-      "id": "packages_ai_engine_location_scene_entities"
-    },
-    {
-      "label": "turnStateArgs",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L37",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "turnstateargs",
-      "id": "packages_ai_engine_location_scene_turnstateargs"
-    },
-    {
-      "label": "SCENE",
-      "file_type": "code",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L64",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "Location Bake-off Script",
-      "norm_label": "scene",
-      "id": "packages_ai_engine_location_scene_scene"
     },
     {
       "label": "onomastica-bakeoff.mjs",
@@ -11194,50 +11238,6 @@
       "id": "scripts_mcp_setup_mcp_sh_scripts_mcp_setup_mcp_add_vercel"
     },
     {
-      "label": "readme-shape.test.mjs",
-      "file_type": "code",
-      "source_file": "scripts/readme-shape.test.mjs",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 70,
-      "community_name": "README Shape Test",
-      "norm_label": "readme-shape.test.mjs",
-      "id": "scripts_readme_shape_test"
-    },
-    {
-      "label": "ROOT",
-      "file_type": "code",
-      "source_file": "scripts/readme-shape.test.mjs",
-      "source_location": "L30",
-      "_origin": "ast",
-      "community": 70,
-      "community_name": "README Shape Test",
-      "norm_label": "root",
-      "id": "scripts_readme_shape_test_root"
-    },
-    {
-      "label": "entries()",
-      "file_type": "code",
-      "source_file": "scripts/readme-shape.test.mjs",
-      "source_location": "L33",
-      "_origin": "ast",
-      "community": 70,
-      "community_name": "README Shape Test",
-      "norm_label": "entries()",
-      "id": "scripts_readme_shape_test_entries"
-    },
-    {
-      "label": "shape()",
-      "file_type": "code",
-      "source_file": "scripts/readme-shape.test.mjs",
-      "source_location": "L44",
-      "_origin": "ast",
-      "community": 70,
-      "community_name": "README Shape Test",
-      "norm_label": "shape()",
-      "id": "scripts_readme_shape_test_shape"
-    },
-    {
       "label": "ingest.mjs",
       "file_type": "code",
       "source_file": "scripts/srd/ingest.mjs",
@@ -14912,13 +14912,438 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "evals/cases/us-03-scene-state.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "evals_cases_us_03_scene_state",
+      "target": "evals_cases_us_03_scene_state_praca",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L51",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_arms",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L151",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_body",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L89",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_cost",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_detectdegeneration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L172",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_dir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_exemplar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L148",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_fmt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_genonce",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_judge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_log",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L58",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_messagesfor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_model",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_new",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_old",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_pace_ms",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L174",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_reps",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_rows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_samples",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_sleep",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_ab_bakeoff_t",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_scene",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff",
+      "target": "packages_ai_engine_location_scene_scene",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff_log",
+      "target": "packages_ai_engine_location_ab_bakeoff_t",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
+      "source_location": "L95",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_ab_bakeoff_genonce",
+      "target": "packages_ai_engine_location_ab_bakeoff_messagesfor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/capture-old-location.mjs",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "packages_ai_engine_capture_old_location",
+      "target": "packages_ai_engine_location_scene"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_scene",
+      "target": "packages_ai_engine_location_scene_character",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_scene",
+      "target": "packages_ai_engine_location_scene_entities",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_scene",
+      "target": "packages_ai_engine_location_scene_here",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_scene",
+      "target": "packages_ai_engine_location_scene_scene",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_scene",
+      "target": "packages_ai_engine_location_scene_scenestate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/location-scene.mjs",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "packages_ai_engine_location_scene",
+      "target": "packages_ai_engine_location_scene_turnstateargs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/ai-engine/capture-old-location.mjs",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "packages_ai_engine_capture_old_location",
+      "target": "packages_ai_engine_location_scene_scene"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/readme-shape.test.mjs",
+      "source_location": "L39",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_readme_shape_test",
+      "target": "scripts_readme_shape_test_entries",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/readme-shape.test.mjs",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_readme_shape_test",
+      "target": "scripts_readme_shape_test_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/readme-shape.test.mjs",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_readme_shape_test",
+      "target": "scripts_readme_shape_test_shape",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/readme-shape.test.mjs",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_readme_shape_test_shape",
+      "target": "scripts_readme_shape_test_entries",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "packages/ai-engine/move-ab.mjs",
       "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_character",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_character"
     },
     {
       "relation": "contains",
@@ -14927,9 +15352,9 @@
       "source_location": "L51",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_corte",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_corte"
     },
     {
       "relation": "contains",
@@ -14938,9 +15363,9 @@
       "source_location": "L53",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_fimdalinha",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_fimdalinha"
     },
     {
       "relation": "contains",
@@ -14949,9 +15374,9 @@
       "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_log",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_log"
     },
     {
       "relation": "contains",
@@ -14960,9 +15385,9 @@
       "source_location": "L68",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_maketools",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_maketools"
     },
     {
       "relation": "contains",
@@ -14971,9 +15396,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_reps",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_reps"
     },
     {
       "relation": "contains",
@@ -14982,9 +15407,9 @@
       "source_location": "L132",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_resultado",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_resultado"
     },
     {
       "relation": "contains",
@@ -14993,9 +15418,9 @@
       "source_location": "L127",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_rodadas",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_rodadas"
     },
     {
       "relation": "contains",
@@ -15004,9 +15429,9 @@
       "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_sleep",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_sleep"
     },
     {
       "relation": "contains",
@@ -15015,9 +15440,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_system",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_system"
     },
     {
       "relation": "contains",
@@ -15026,9 +15451,9 @@
       "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_t",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_t"
     },
     {
       "relation": "contains",
@@ -15037,9 +15462,9 @@
       "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_turn_state_new",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_turn_state_new"
     },
     {
       "relation": "contains",
@@ -15048,9 +15473,9 @@
       "source_location": "L92",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab",
-      "target": "packages_ai_engine_move_ab_umarep",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_umarep"
     },
     {
       "relation": "calls",
@@ -15060,9 +15485,9 @@
       "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab_log",
-      "target": "packages_ai_engine_move_ab_t",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_t"
     },
     {
       "relation": "calls",
@@ -15072,9 +15497,9 @@
       "source_location": "L102",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_move_ab_umarep",
-      "target": "packages_ai_engine_move_ab_maketools",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_move_ab_maketools"
     },
     {
       "relation": "cites",
@@ -15083,9 +15508,9 @@
       "source_location": "L397",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "docref_adr_0005",
-      "confidence_score": 1.0
+      "target": "docref_adr_0005"
     },
     {
       "relation": "imports_from",
@@ -15095,9 +15520,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system"
     },
     {
       "relation": "imports",
@@ -15107,9 +15532,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
     },
     {
       "relation": "imports",
@@ -15119,9 +15544,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
     },
     {
       "relation": "imports",
@@ -15131,9 +15556,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet"
     },
     {
       "relation": "contains",
@@ -15142,9 +15567,9 @@
       "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_test_basesheet",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_test_basesheet"
     },
     {
       "relation": "contains",
@@ -15153,9 +15578,9 @@
       "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_test_build",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_test_build"
     },
     {
       "relation": "contains",
@@ -15164,9 +15589,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test",
-      "target": "packages_ai_engine_src_prompts_dm_system_test_buildstate",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_test_buildstate"
     },
     {
       "relation": "calls",
@@ -15176,9 +15601,9 @@
       "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test_build",
-      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
     },
     {
       "relation": "calls",
@@ -15188,9 +15613,9 @@
       "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_test_buildstate",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
     },
     {
       "relation": "re_exports",
@@ -15223,9 +15648,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "docref_adr_0007",
-      "confidence_score": 1.0
+      "target": "docref_adr_0007"
     },
     {
       "relation": "imports_from",
@@ -15235,9 +15660,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_entities",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_entities"
     },
     {
       "relation": "imports",
@@ -15247,9 +15672,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_entities_formatentities",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_entities_formatentities"
     },
     {
       "relation": "contains",
@@ -15258,9 +15683,9 @@
       "source_location": "L97",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_background_labels",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_background_labels"
     },
     {
       "relation": "contains",
@@ -15269,9 +15694,9 @@
       "source_location": "L111",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext"
     },
     {
       "relation": "contains",
@@ -15280,9 +15705,9 @@
       "source_location": "L165",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt"
     },
     {
       "relation": "contains",
@@ -15291,9 +15716,9 @@
       "source_location": "L504",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildopeninginstruction",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_buildopeninginstruction"
     },
     {
       "relation": "contains",
@@ -15302,9 +15727,9 @@
       "source_location": "L405",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_buildturnstateblock"
     },
     {
       "relation": "contains",
@@ -15313,9 +15738,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_characterbackground",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_characterbackground"
     },
     {
       "relation": "contains",
@@ -15324,9 +15749,9 @@
       "source_location": "L64",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_classfeature",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_classfeature"
     },
     {
       "relation": "contains",
@@ -15335,9 +15760,9 @@
       "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_dmcharactersheet"
     },
     {
       "relation": "contains",
@@ -15346,9 +15771,9 @@
       "source_location": "L76",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_knownspell",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_knownspell"
     },
     {
       "relation": "contains",
@@ -15357,9 +15782,9 @@
       "source_location": "L87",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_prompts_dm_system_resolveknownspell",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_resolveknownspell"
     },
     {
       "relation": "imports_from",
@@ -15369,9 +15794,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_scene",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_scene"
     },
     {
       "relation": "imports",
@@ -15381,9 +15806,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system",
-      "target": "packages_ai_engine_src_scene_formatscenestate",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_scene_formatscenestate"
     },
     {
       "relation": "imports_from",
@@ -15405,9 +15830,9 @@
       "source_location": "L206",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_prompts_dm_system_builddmsystemprompt",
-      "target": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_prompts_dm_system_backgroundfieldtext"
     },
     {
       "relation": "imports",
@@ -24421,17 +24846,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "evals/cases/us-03-scene-state.ts",
-      "source_location": "L12",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "evals_cases_us_03_scene_state",
-      "target": "evals_cases_us_03_scene_state_praca"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "evals/cases/us-23-dm-ciente-da-ficha.ts",
       "source_location": "L12",
       "weight": 1.0,
@@ -25013,375 +25427,6 @@
       "confidence_score": 1.0,
       "source": "packages_ai_engine_capture_old_location",
       "target": "packages_ai_engine_capture_old_location_turnstate"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/capture-old-location.mjs",
-      "source_location": "L8",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_capture_old_location",
-      "target": "packages_ai_engine_location_scene"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/capture-old-location.mjs",
-      "source_location": "L8",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_capture_old_location",
-      "target": "packages_ai_engine_location_scene_scene"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L50",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_arms"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L150",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_body"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L88",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_cost"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L74",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_detectdegeneration"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L171",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_dir"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L67",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_exemplar"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L147",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_fmt"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L90",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_genonce"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L87",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_judge"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L34",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_log"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L57",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_messagesfor"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L42",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_model"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L46",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_new"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L45",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_old"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L39",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_pace_ms"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L173",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_path"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L37",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_reps"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L104",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_rows"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L153",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_samples"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L35",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_sleep"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L33",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_ab_bakeoff_t"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L31",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_scene"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L31",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff",
-      "target": "packages_ai_engine_location_scene_scene"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L34",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff_log",
-      "target": "packages_ai_engine_location_ab_bakeoff_t"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-ab-bakeoff.mjs",
-      "source_location": "L94",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_ab_bakeoff_genonce",
-      "target": "packages_ai_engine_location_ab_bakeoff_messagesfor"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L14",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_character"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L32",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_entities"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L12",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_here"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L64",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_scene"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L23",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_scenestate"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "packages/ai-engine/location-scene.mjs",
-      "source_location": "L37",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "packages_ai_engine_location_scene",
-      "target": "packages_ai_engine_location_scene_turnstateargs"
     },
     {
       "relation": "contains",
@@ -30563,51 +30608,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "scripts/readme-shape.test.mjs",
-      "source_location": "L33",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_readme_shape_test",
-      "target": "scripts_readme_shape_test_entries"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/readme-shape.test.mjs",
-      "source_location": "L30",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_readme_shape_test",
-      "target": "scripts_readme_shape_test_root"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/readme-shape.test.mjs",
-      "source_location": "L44",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_readme_shape_test",
-      "target": "scripts_readme_shape_test_shape"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/readme-shape.test.mjs",
-      "source_location": "L48",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "scripts_readme_shape_test_shape",
-      "target": "scripts_readme_shape_test_entries"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "scripts/srd/ingest.mjs",
       "source_location": "L46",
       "weight": 1.0,
@@ -33802,5 +33802,5 @@
       "source_file": "tools/kanban/kanban.html"
     }
   ],
-  "built_at_commit": "590007bfbd1848aabfb68a65d5b94065963ddff9"
+  "built_at_commit": "4d6aaba9e9de99a81dbf51e1baccd4f0f3b30e6a"
 }

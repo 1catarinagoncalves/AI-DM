@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Ferramentas de projeto / SDLC
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** nenhuma.
 **Nasceu de:** [US-83](./US-83-readme-com-arquitetura-alto-nivel.md) → *Questão em aberto #3* — "vale um terceiro diagrama para a pipeline de evals?". Resposta: **vale um mapa, e ele não cabe no README da raiz.** Esta story é esse mapa. A US-83 mantém no README da raiz só a linha que diz que evals existem e o link para cá.
 **Relacionada a:** [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) e [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md) (o gate que este README precisa passar a ter), [US-86](./US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md) (a árvore de diretórios errada abaixo é exatamente o alvo dela), [US-80](./US-80-ci-typecheck-testes-e-evals.md) (é o que tornou verdadeira a frase "sem evals passando nada é mergeado").
@@ -112,16 +112,16 @@ Mesma lógica da camada 2 da US-83: caminho escrito como link é caminho verific
 
 ## Critérios de aceite
 
-- [ ] `evals/README.md` responde, sem o leitor abrir outro arquivo: **o que reprova um PR** que toca o DM Agent, e que isso vem de dois comandos (`pnpm eval` e `pnpm test`), não de um.
-- [ ] Existe tabela dos **4 modos de eval** com comando, se gateia, e env vars exigidas por cada um.
-- [ ] **Zero afirmações não verificáveis:** todo caminho citado existe, todo comando citado roda, toda flag citada é aceita pela ferramenta. Especificamente: nenhuma menção a `runner.ts`, `scorer.ts`, `--filter`, `--ci`, `--verbose` ou à interface `EvalCase`.
-- [ ] O README **não transcreve** a lista de eval cases nem os valores dos thresholds: aponta para [`evals/cases`](../../../evals/cases) e [`rubric.ts`](../../../packages/ai-engine/src/rubric.ts).
-- [ ] As 4 casas do subsistema (`evals/`, `packages/ai-engine/src/`, runners `.mjs` na raiz do pacote, `liveEvalTurn` na API) estão nomeadas e linkadas.
-- [ ] Nenhum caminho de arquivo/pasta aparece só entre backticks — todos são link relativo, exceto caminhos que **deliberadamente não existem** (exemplo ilustrativo), que ficam em backtick.
-- [ ] `pnpm docs:links` passa **e inclui `evals/README.md`** na contagem de arquivos varridos.
-- [ ] **Regressão do antídoto:** renomear ou mover [`evals/cases`](../../../evals/cases) faz `pnpm docs:links` falhar apontando a linha do README de evals.
-- [ ] **Teste de regressão:** um agente sem contexto, lendo **só** `evals/README.md`, responde corretamente: (a) qual comando roda os eval cases; (b) por que um eval pode passar sem ter rodado de verdade (chave ausente ⇒ caso pulado); (c) onde fica a rubrica. Hoje o README erra (a) — ensina `--filter` — e não menciona (b).
-- [ ] `README.md` da raiz cita evals em ≤ 2 linhas e linka para `evals/README.md`, sem repetir comandos.
+- [x] `evals/README.md` responde, sem o leitor abrir outro arquivo: **o que reprova um PR** que toca o DM Agent, e que isso vem de dois comandos (`pnpm eval` e `pnpm test`), não de um.
+- [x] Existe tabela dos **4 modos de eval** com comando, se gateia, e env vars exigidas por cada um.
+- [x] **Zero afirmações não verificáveis:** todo caminho citado existe, todo comando citado roda, toda flag citada é aceita pela ferramenta. Especificamente: nenhuma menção a `runner.ts`, `scorer.ts`, `--filter`, `--ci`, `--verbose` ou à interface `EvalCase`.
+- [x] O README **não transcreve** a lista de eval cases nem os valores dos thresholds: aponta para [`evals/cases`](../../../evals/cases) e [`rubric.ts`](../../../packages/ai-engine/src/rubric.ts).
+- [x] As 4 casas do subsistema (`evals/`, `packages/ai-engine/src/`, runners `.mjs` na raiz do pacote, `liveEvalTurn` na API) estão nomeadas e linkadas.
+- [x] Nenhum caminho de arquivo/pasta aparece só entre backticks — todos são link relativo, exceto caminhos que **deliberadamente não existem** (exemplo ilustrativo), que ficam em backtick.
+- [x] `pnpm docs:links` passa **e inclui `evals/README.md`** na contagem de arquivos varridos.
+- [x] **Regressão do antídoto:** renomear ou mover [`evals/cases`](../../../evals/cases) faz `pnpm docs:links` falhar apontando a linha do README de evals.
+- [x] **Teste de regressão:** um agente sem contexto, lendo **só** `evals/README.md`, responde corretamente: (a) qual comando roda os eval cases; (b) por que um eval pode passar sem ter rodado de verdade (chave ausente ⇒ caso pulado); (c) onde fica a rubrica. Hoje o README erra (a) — ensina `--filter` — e não menciona (b).
+- [x] `README.md` da raiz cita evals em ≤ 2 linhas e linka para `evals/README.md`, sem repetir comandos.
 
 ---
 

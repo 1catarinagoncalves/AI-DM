@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Varredura de links relativos e de nomes de arquivo nos .md de docs/ e nos três
-// .md de contexto da raiz (US-78 / US-79 / US-82).
+// Varredura de links relativos e de nomes de arquivo nos .md de docs/ e nos .md
+// de contexto listados em SCANNED_MD (US-78 / US-79 / US-82 / US-90).
 //
 // Reproduz a taxonomia do Contexto da US-78 e serve de gate de CI:
 //   depth   - profundidade errada, resolução única  (../../ -> ../../../)   -> US-79
@@ -12,7 +12,7 @@
 //   nome           - espaço/não-ASCII no basename, ou US-*.md fora da convenção
 //   isento-linkado - alguém de fora passou a linkar docs/prompts/, a isenção caiu
 //
-// E o gate de identificador (US-88), só nos .md normativos da raiz:
+// E o gate de identificador (US-88), só nos .md normativos do SCANNED_MD:
 //   ghost          - nome camelCase citado em prosa que não existe em fonte nenhum
 //
 // Uso:
@@ -36,7 +36,15 @@ const DOCS = join(ROOT, "docs");
 // US-79: os .md de contexto da raiz entram na varredura. Lista explícita, não
 // glob de `*.md` na raiz: glob varreria qualquer rascunho solto ali e o gate de
 // nome da US-82 (espaço/não-ASCII) reprovaria um arquivo que não é documentação.
-const ROOT_MD = ["AGENTS.md", "CLAUDE.md", "README.md"];
+// US-90: deixou de ser só a raiz (o README de evals entrou), daí o nome novo.
+// Entradas sempre com `/`: `join()` normaliza na varredura e `rel()` normaliza na
+// comparação, então nenhuma entrada futura depende do separador do sistema.
+const SCANNED_MD = ["AGENTS.md", "CLAUDE.md", "README.md", "evals/README.md"];
+
+// US-90: a lista é comparada com `relative(ROOT, abs)`, que no Windows devolve
+// `evals\README.md` e nunca casaria com a entrada acima — o arquivo seria varrido
+// mas ficaria fora do `isWritable`, e o --fix pararia de reescrevê-lo em silêncio.
+const rel = (abs) => relative(ROOT, abs).split(sep).join(posix.sep);
 
 // Só links inline: [texto](destino). Reference-style ([a]: url) não é usado no repo.
 const LINK_RE = /\[(?:[^\]\\]|\\.)*\]\(\s*([^)\s]+)/g;
@@ -97,12 +105,12 @@ const has = (f) => argv.includes(f);
 const picked = argv.filter((a) => !a.startsWith("--")).map((a) => resolve(ROOT, a));
 const files = picked.length
   ? picked.sort()
-  : [...(await mdFiles(DOCS)), ...ROOT_MD.map((f) => join(ROOT, f)).filter(existsSync)].sort();
+  : [...(await mdFiles(DOCS)), ...SCANNED_MD.map((f) => join(ROOT, f)).filter(existsSync)].sort();
 
-// Fronteira do modo de escrita (US-79): docs/ + os três nomes de ROOT_MD. O resto
+// Fronteira do modo de escrita (US-79): docs/ + os nomes de SCANNED_MD. O resto
 // do repo é varrível via posicional, mas nunca reescrito — nenhum código de
 // produção é tocado, mesmo que alguém aponte o --fix para ele.
-const isWritable = (abs) => abs.startsWith(DOCS + sep) || ROOT_MD.includes(relative(ROOT, abs));
+const isWritable = (abs) => abs.startsWith(DOCS + sep) || SCANNED_MD.includes(rel(abs));
 
 // --- US-82: convenção de nome de arquivo -----------------------------------
 // docs/prompts/ é isento (despejos de prompt ad-hoc, US-81 decidiu não arrumar).
@@ -124,7 +132,7 @@ for (const file of files) {
   if (isPrompts(file)) continue;
   const base = basename(file); // basename, não o path: o repo vive em ".../Desktop/AI DM/"
   if (NAME_ALLOW.has(base)) continue;
-  const where = posix.join(...relative(ROOT, file).split(sep));
+  const where = rel(file);
   // Fora de \x20-\x7E pega acento em NFC e a combining cedilla do NFD — não precisa normalizar.
   // O espaço (\x20) está *dentro* da faixa, por isso os dois testes.
   if (base.includes(" ") || /[^\x20-\x7E]/.test(base)) {
@@ -135,7 +143,7 @@ for (const file of files) {
 }
 
 // --- US-88: identificador citado em prosa que não existe no fonte ----------
-// Roda só nos três .md normativos da raiz. No corpus `docs/`, 21% dos nomes
+// Roda só nos .md normativos do SCANNED_MD. No corpus `docs/`, 21% dos nomes
 // cobrados não existem no fonte e quase todos são proposta legítima de US
 // (medido em 28/07/2026) — gate ali reprovaria documento correto, e gate com
 // falso positivo é gate que alguém desliga.
@@ -208,8 +216,8 @@ function codeSpans(lines) {
 
 // Posicional entra no escopo: é como o teste de regressão roda sobre uma fixture
 // sem precisar de flag só-para-teste. `pnpm docs:links` não passa posicional, então
-// o gate de CI continua vendo apenas ROOT_MD.
-const ghostScope = picked.length ? files : files.filter((f) => ROOT_MD.includes(relative(ROOT, f)));
+// o gate de CI continua vendo apenas SCANNED_MD.
+const ghostScope = picked.length ? files : files.filter((f) => SCANNED_MD.includes(rel(f)));
 const ghostHits = [];
 const ghostStale = [];
 
@@ -219,7 +227,7 @@ if (ghostScope.length) {
   ).join("\n");
 
   for (const file of ghostScope) {
-    const where = posix.join(...relative(ROOT, file).split(sep));
+    const where = rel(file);
     for (const { lineNo, token } of codeSpans(readFileSync(file, "utf8").split(/\r?\n/))) {
       if (!CAMEL_RE.test(token) || GHOST_ALLOW.has(token)) continue;
       if (!src.includes(token)) ghostHits.push({ where: `${where}:${lineNo}`, token });
@@ -273,15 +281,15 @@ for (const file of files) {
         // O segundo teste evita acusar link interno da própria pasta isenta.
         if (isPrompts(abs) && !isPrompts(file)) {
           exemptLinked.push({
-            where: `${posix.join(...relative(ROOT, file).split(sep))}:${lineNo + 1}`,
+            where: `${rel(file)}:${lineNo + 1}`,
             raw,
-            alvo: posix.join(...relative(ROOT, abs).split(sep)),
+            alvo: rel(abs),
           });
         }
         continue;
       }
 
-      const where = `${posix.join(...relative(ROOT, file).split(sep))}:${lineNo + 1}`;
+      const where = `${rel(file)}:${lineNo + 1}`;
       const hit = { where, raw };
       const cands = depthCandidates(dir, stripped);
 
@@ -298,7 +306,7 @@ for (const file of files) {
           edits.push({ start, end: start + raw.length, newRaw });
           fixed.push({ where, raw, fix: newRaw });
         } else {
-          buckets.depth.push({ ...hit, fix: posix.join(...relative(ROOT, cands[0]).split(sep)) });
+          buckets.depth.push({ ...hit, fix: rel(cands[0]) });
         }
       } else if (stripped.endsWith(".md")) buckets.md.push(hit);
       else buckets.code.push(hit);
@@ -316,7 +324,7 @@ for (const file of files) {
 
 const broken = buckets.depth.length + buckets.code.length + buckets.md.length + buckets.ambig.length;
 
-console.log(`docs/ + ${ROOT_MD.join(", ")}: ${files.length} arquivos .md`);
+console.log(`docs/ + ${SCANNED_MD.join(", ")}: ${files.length} arquivos .md`);
 if (has("--fix")) console.log(`Reescritos: ${fixed.length}`);
 console.log(`Links relativos totais: ${total}`);
 console.log(`Quebrados: ${broken}`);

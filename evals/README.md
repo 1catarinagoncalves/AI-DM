@@ -1,112 +1,111 @@
 # Evals — AI Dungeon Master
 
-Suite de avaliação do DM Agent. Mede qualidade, correção e comportamento do agente de IA.
+Como o DM Agent é avaliado: o que reprova um PR, como rodar cada modo, e onde mexer
+na barra. O subsistema mora em quatro lugares — o mapa está no fim.
 
-## Por que evals existem
+## O que reprova o seu PR
 
-Seguindo o novo SDLC: evals são escritos *antes* do código de produção.
-São o contrato formal do que "correto" significa para o DM Agent.
-Sem evals passando, nenhum PR que toca o AI Engine pode ser mergeado.
+**Dois comandos, não um.** [ci.yml](../.github/workflows/ci.yml) roda os dois:
 
-## Estrutura
+- **`pnpm eval`** — os eval cases de [cases](cases), um arquivo vitest por user story.
+  É `vitest run` com [vitest.eval.config.ts](../packages/ai-engine/vitest.eval.config.ts),
+  que inclui `evals/cases/**` e aliasa os pacotes `@ai-dm/*` para o `src` (não depende
+  de build prévio).
+- **`pnpm test`** — carrega os gates que moram dentro do pacote e ninguém lembra:
+  [rubric-drift.test.ts](../packages/ai-engine/src/rubric-drift.test.ts) falha se a barra
+  de ofício do system prompt mudar sem a rubrica ser revista, e
+  [rubric.test.ts](../packages/ai-engine/src/rubric.test.ts) prova o `gateQuality`
+  (média + pisos por dimensão) sem gastar uma chamada de API.
 
-```
-evals/
-  cases/          — eval cases por user story
-    us-08-streaming.ts
-    us-09-dice-roll.ts
-    us-10-rules.ts
-    us-11-natural-language.ts
-  fixtures/       — dados de teste reutilizáveis (personagens, aventuras, estados)
-  runner.ts       — executor dos evals
-  scorer.ts       — lógica de pontuação e threshold
-```
+**Um eval pode passar sem ter rodado.** Caso que depende de chave de API é *pulado*
+quando ela falta — não fica vermelho, não avisa. O CI hoje roda **sem nenhum secret
+configurado** ([ci.yml](../.github/workflows/ci.yml)), então o eval de qualidade da
+narração é pulado lá: para o portão valer, o job precisa exportar as chaves. Leia a
+contagem de *skipped* do vitest antes de confiar num verde.
 
-## Comandos
+## Os quatro modos
 
-```bash
-pnpm eval                    # todos os casos
-pnpm eval --filter us-09     # filtrar por story
-pnpm eval --ci               # modo CI (exit 1 se abaixo do threshold)
-pnpm eval --verbose          # exibe detalhes de cada caso
-```
+| Modo | Comando | Gateia? | Chaves | Relatório |
+|---|---|---|---|---|
+| Suite de eval cases | `pnpm eval` (ou `pnpm eval us-36` para um só) | **sim**, no CI | a maioria não usa; o de qualidade da narração exige `OPENROUTER_API_KEY` (narração) + `GEMINI_API_KEY` (juiz), senão **pula** | só o de narração grava, ver abaixo |
+| Guard de drift da rubrica | `pnpm test` | **sim**, no CI | nenhuma (compara hash) | nenhum |
+| Bake-off / A-B de modelos | `node --env-file=..\..\.env run-bakeoff.mjs`, de dentro de [packages/ai-engine](../packages/ai-engine) | não | varia por runner; sempre `GEMINI_API_KEY` para o juiz | `evals/reports/<data>-<tag>.md` |
+| Live eval em dev | `DM_LIVE_EVAL` ligada, jogando um turno normal | não | `GEMINI_API_KEY` | log da API |
 
-## Adicionando um novo eval case
+`evals/reports/` é gitignored.
 
-1. Crie `evals/cases/<story-id>-<descricao>.ts`
-2. Exporte um objeto `EvalCase` com: `id`, `description`, `story`, `input`, `expectedTools`, `assertions`
-3. Rode `pnpm eval --filter <story-id>` para validar localmente
-4. O novo caso é incluído automaticamente no CI
+## Onde mexo se quero mudar a barra
 
-## Thresholds mínimos
+[rubric.ts](../packages/ai-engine/src/rubric.ts) — dimensões, threshold de média, pisos
+por dimensão, limite de slop e o `gateQuality`. Os valores **não** são copiados para cá
+de propósito: tabela de threshold duplicada é tabela que envelhece mentindo.
 
-| Métrica | Mínimo | Onde |
-|---------|--------|------|
-| Tools corretas chamadas | 90% | asserts dos cases |
-| Ausência de alucinação de regras | 95% | asserts dos cases |
-| State persistido corretamente | 100% | asserts dos cases |
-| **Qualidade da narração (US-36)** | **MÉDIA ≥ 3.5** (escala 1–5) | `QUALITY_THRESHOLD` em `packages/ai-engine/src/rubric.ts` |
-| **Piso por dimensão (US-70)** | **sensorial/tensão/concretude/língua pt-BR ≥ 3** | `DIMENSION_FLOORS` em `packages/ai-engine/src/rubric.ts` |
-| **Taxa de slop de onomástica (US-70)** | **report-only** (aviso > 50% das reps; não reprova) | `SLOP_RATE_MAX` em `packages/ai-engine/src/rubric.ts` |
+## Qualidade da narração (US-36 + US-70)
 
-Ver estratégia completa em `docs/sdlc/04-testes/estrategia-de-testes.md`.
+LLM-as-judge contra regressão silenciosa da prosa: gera pela escada de produção (mesmo
+modelo e mesmo sampling do [ai.service.ts](../apps/api/src/ai/ai.service.ts)) e pontua
+pela rubrica, com juiz externo Gemini. Média abaixo do threshold reprova.
 
-## Eval de qualidade da narração (US-36)
+A US-70 fechou dois furos da versão original, que gateava só pela média:
 
-`evals/cases/us-36-qualidade-narracao.ts` — LLM-as-judge contra regressão silenciosa
-da prosa. Gera pela escada de produção (`narrationModels[0]` + mesmo sampling do
-`ai.service.ts`) e pontua pela rubrica `DIMENSIONS` (espelho da barra de ofício
-`NARRATIVE_CRAFT_SECTION` de `dm-system.ts`) com o juiz externo Gemini. MÉDIA
-abaixo do threshold reprova (exit ≠ 0).
+- **Piso por dimensão** — com muitas dimensões e um modelo base forte, uma queda
+  cirúrgica (só sensorial, só onomástica) some na média. Um eixo abaixo do piso reprova
+  **mesmo com média alta**.
+- **N repetições** — cada caso roda N vezes (`JUDGE_REPS`, `1` no smoke local) e o gate
+  opera sobre a média das reps, não sobre um tiro. Rep que falha por stall do provider é
+  pulada, não derruba o eval.
+- **Slop de onomástica é medido e avisado, não gateado.** A taxa-base do modelo cola no
+  limiar e a falha é intermitente por amostra: gatear a REPS=3 reintroduziria a
+  flakiness que a US-70 existe para matar. Vira gate quando a produção reduzir o slop —
+  o encanamento já está pronto.
+- **Anchor set** — narrações rotuladas boas/ruins; o caso reprova se o juiz não separar
+  as boas das ruins por margem. Detecta deriva do próprio juiz.
 
-- **Gated por chave:** precisa de `OPENROUTER_API_KEY` (narração) + `GEMINI_API_KEY`
-  (juiz). Sem elas o caso é PULADO — como o bake-off/bench. Para o portão valer no
-  CI, o job precisa exportar as duas chaves.
-- **Rodar só estes casos:** `pnpm eval us-36`.
-- **Relatório:** cada execução grava `evals/reports/us-36-<timestamp>.md` (narração
-  + notas por dimensão + justificativas + metadados: git HEAD/branch, modelo que
-  serviu, sampling, finishReason/tokens, juiz). `evals/reports/` é gitignored.
-- **Guard de drift:** `packages/ai-engine/src/rubric-drift.test.ts` falha (no
-  `pnpm test`) se a barra de ofício mudar sem a rubrica ser revista — força
-  atualizar `DIMENSIONS` e o hash a cada edição da barra.
-- **Ao vivo em dev:** com `DM_LIVE_EVAL` ligado, cada turno real é pontuado pelo
-  mesmo juiz, async/fire-and-forget no `onFinish` (nunca em produção; nunca atrasa
-  o stream). Ver `apps/api/src/ai/ai.service.ts` (`liveEvalTurn`).
+Cada execução grava `evals/reports/us-36-<timestamp>.md`: narração, notas por dimensão,
+justificativas e metadados (git HEAD/branch, modelo que serviu, sampling, tokens, juiz).
 
-## Robustez do gate (US-70)
+## Ao vivo em dev (`DM_LIVE_EVAL`)
 
-A US-36 gateava só pela **MÉDIA** — mas com 11 dimensões e um modelo base forte, uma
-queda cirúrgica (só onomástica, só sensorial) some na média (degradar a barra ainda
-tirava 4.45). E o slop de onomástica é **intermitente** (~3/4 samples), então gatear
-1 tiro seria *flaky*. A US-70 fecha os dois furos:
+Com a flag ligada, cada turno real de jogo é pontuado pelo mesmo juiz, async e
+fire-and-forget no `onFinish` — `liveEvalTurn` em
+[ai.service.ts](../apps/api/src/ai/ai.service.ts). Nunca roda em produção e nunca atrasa
+o stream: é medição de campo, não gate. A API não auto-carrega `.env`, então a flag vem
+do ambiente (ver [AGENTS.md](../AGENTS.md)).
 
-- **Piso por dimensão** (`DIMENSION_FLOORS`): cada eixo-chave tem um mínimo próprio;
-  um eixo abaixo do piso **reprova mesmo com média alta**.
-- **N repetições** (`JUDGE_REPS`, default **3**; `1` no smoke local): cada caso roda N
-  vezes, agrega com `aggregateReps`, e o gate opera sobre a **média das reps** — não um
-  tiro. Uma rep que falha (stall/timeout do provider) é **pulada**, não derruba o eval.
-- **Slop = report-only (por ora):** o `slopRate` é medido sobre as reps e **avisado**, mas
-  **não reprova**. A taxa-base de slop do modelo (~40% nos casos com muitos nomes) cola no
-  `SLOP_RATE_MAX`, então gatear a REPS=3 seria *flaky*. Vira gate quando a produção reduzir
-  o slop (US irmã de enforcement no `onFinish`) — o encanamento já está pronto (uma linha).
-- **`gateQuality({ perDim, media })`**: função **pura** (sem API) que decide aprovação por
-  **média + pisos**. O `pnpm test` a prova em `rubric.test.ts` — média 4.6 + `sensorial: 2`
-  **reprova** —, provando de graça que o piso pega o que a média deixava passar.
-- **Anchor set**: um punhado de narrações rotuladas boas/ruins; um caso gated reprova
-  se o juiz **não** pontuar as boas acima das ruins por margem (detecta deriva do juiz).
-- **Casos novos**: baixo HP, NPC vulnerável, turno em inglês (`língua pt-BR` vira *n/a*,
-  sem penalizar) e sistema Free. Todos de **narração pura** — combate/rolagem ficam de
-  fora (o eval julga a prosa, não a trajetória de tool calling; isso é a US-08/09).
+## Adicionando um eval case
 
-| Threshold | Default | Onde |
-|-----------|---------|------|
-| `DIMENSION_FLOORS` | 3 (sensorial, tensão, concretude, língua pt-BR) | `rubric.ts` |
-| `SLOP_RATE_MAX` | 0.5 (aviso; report-only) | `rubric.ts` |
-| `JUDGE_REPS` | 3 (env; `1` no smoke) | eval case |
+Crie um arquivo vitest em [cases](cases) nomeado `us-NN-descricao.ts` — `describe`/`it`/
+`expect` comuns, sem interface própria. O `include` da
+[config](../packages/ai-engine/vitest.eval.config.ts) pega o arquivo novo sozinho; não há
+registro para atualizar.
 
-> **Onomástica não é piso, e slop não é gate (por ora).** O slop de nome é intermitente
-> por amostra (a nota de onomástica do juiz oscila; a taxa-base ~40% cola no limiar), então
-> nem um piso por-dimensão nem um gate de taxa a REPS=3 são estáveis — reintroduziriam a
-> flakiness que a US-70 existe para matar. Enquanto a produção não reduz o slop (US irmã de
-> enforcement, fora de escopo), o `slopRate` é **medido e avisado, não gateado**. O gate real
-> é **média + pisos de qualidade** (estáveis). Vira gate de slop quando o base cair.
+**Não importe `ai` direto no caso.** O par `streamText` + vitest pendura e estoura o
+timeout — foi por isso que o bake-off virou runner standalone
+([README-bakeoff.md](../packages/ai-engine/README-bakeoff.md)). A geração de narração vive
+em [narration-gen.ts](../packages/ai-engine/src/narration-gen.ts) **dentro do pacote**, e o
+caso a importa por `@ai-dm/ai-engine`.
+
+Se o caso grepa o system prompt, ancore a assertiva conforme
+[PROMPT-ANCHORS.md](PROMPT-ANCHORS.md): o prompt é reescrito quase toda semana, e assertiva
+presa em prosa autoral fica vermelha sem nenhuma regressão de comportamento.
+
+## As quatro casas do subsistema
+
+1. **[evals](.)** — os eval cases em [cases](cases), a convenção de âncora em
+   [PROMPT-ANCHORS.md](PROMPT-ANCHORS.md), e `reports/` (gitignored).
+2. **[packages/ai-engine/src](../packages/ai-engine/src)** — onde a lógica de avaliação de
+   fato vive: [rubric.ts](../packages/ai-engine/src/rubric.ts),
+   [guardrails.ts](../packages/ai-engine/src/guardrails.ts),
+   [narration-gen.ts](../packages/ai-engine/src/narration-gen.ts),
+   [overlap.ts](../packages/ai-engine/src/overlap.ts), mais os testes que são gate de
+   verdade (drift da rubrica, `gateQuality`, bake-off, bench de TTFT).
+3. **Raiz de [packages/ai-engine](../packages/ai-engine)** — os runners `.mjs` de bake-off
+   e A-B, com os `.bat` de atalho e os snapshots. **Nada disso roda por `pnpm eval`**: é
+   ferramenta de investigação ad-hoc, documentada em
+   [README-bakeoff.md](../packages/ai-engine/README-bakeoff.md). Use quando suspeitar de
+   regressão e quiser comparar modelos ou duas versões de prompt.
+4. **[apps/api/src/ai/ai.service.ts](../apps/api/src/ai/ai.service.ts)** — o `liveEvalTurn`,
+   único pedaço da pipeline que roda dentro do produto.
+
+Estratégia de testes do projeto:
+[estrategia-de-testes.md](../docs/sdlc/04-testes/estrategia-de-testes.md).

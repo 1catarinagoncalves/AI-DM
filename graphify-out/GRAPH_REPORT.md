@@ -1,7 +1,7 @@
-# Graph Report - AI DM  (2026-07-28)
+# Graph Report - AI DM  (2026-07-29)
 
 ## Corpus Check
-- 270 files · ~299,573 words
+- 270 files · ~302,997 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `590007bf`
+- Built from commit: `4d6aaba9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -493,7 +493,7 @@ Cohesion: 0.50
 Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacter, getInitialAdventure, createAdventure }
 
 ## Knowledge Gaps
-- **659 isolated node(s):** `REPS`, `CHARACTER`, `SYSTEM`, `TURN_STATE_NEW`, `corte` (+654 more)
+- **659 isolated node(s):** `praca`, `REPS`, `PACE_MS`, `MODEL`, `OLD` (+654 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **48 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -503,10 +503,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `SystemConfigSchema` connect `System Config Schema` to `Adventure Controller/Service`, `CharacterService`, `AI Service & Controller`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Why does `PrismaService` connect `PrismaService` to `Character/Adventure Service Logic`, `AuthUser`, `app.module.ts`, `AI Service & Controller`, `auth.controller.ts`, `prisma.service.ts`, `Adventure Controller/Service`, `Character Service Tests`, `CharacterService`, `User Controller`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `AuthUser` connect `AuthUser` to `.sync`, `AI Service & Controller`, `auth.controller.ts`, `ai.controller.ts`, `Adventure Controller/Service`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **What connects `REPS`, `CHARACTER`, `SYSTEM` to the rest of the system?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **What connects `praca`, `REPS`, `PACE_MS` to the rest of the system?**
   _659 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `dm-system.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.07807807807807808 - nodes in this community are weakly interconnected._
@@ -514,3 +512,5 @@ _Questions this graph is uniquely positioned to answer:_
   _Cohesion score 0.041666666666666664 - nodes in this community are weakly interconnected._
 - **Should `Ability Scores & Narration Utils` be split into smaller, more focused modules?**
   _Cohesion score 0.07926829268292683 - nodes in this community are weakly interconnected._
+- **Should `System Config Schema` be split into smaller, more focused modules?**
+  _Cohesion score 0.07130124777183601 - nodes in this community are weakly interconnected._

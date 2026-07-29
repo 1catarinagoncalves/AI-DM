@@ -133,7 +133,7 @@ Provedores de LLM: OpenRouter (primário e fallback) e Groq (terceiro nível), n
 - Vai mexer no **banco** → [apps/api/prisma/schema.prisma](apps/api/prisma/schema.prisma) e migração versionada (nunca edite uma existente).
 - Quer o **porquê** de uma decisão → [docs/adr](docs/adr); o produto está em [docs/prd.md](docs/prd.md).
 - Vai implementar uma **feature** → o user story em [docs/sdlc/01-requisitos](docs/sdlc/01-requisitos) manda; escreva o teste antes.
-- Vai mexer nos **evals** → [evals](evals) tem quatro modos independentes, mapeados na [US-90](docs/sdlc/01-requisitos/US-90-readme-de-evals-com-mapa-do-subsistema.md).
+- Vai mexer nos **evals** → [evals/README.md](evals/README.md) mapeia os quatro modos independentes e diz quais deles reprovam o PR.
 - Não sabe **onde uma coisa mora** → [graphify-out](graphify-out) tem o grafo do repo (`graph.json` + `GRAPH_REPORT.md`, os dois únicos versionados da pasta). `graphify query "<pergunta>"` devolve um subgrafo em vez de você varrer arquivo. É artefato **derivado** — reconstruído pelo hook de post-commit, não editado à mão, e por isso não aparece no diagrama de componentes acima: não roda nada em produção.
 
 Convenções completas em [AGENTS.md](AGENTS.md) e [CLAUDE.md](CLAUDE.md). Commits em

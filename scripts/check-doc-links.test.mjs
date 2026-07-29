@@ -79,7 +79,7 @@ test("sem --fix o script não escreve nada", () => {
 });
 
 // --- US-88: gate de identificador inexistente -------------------------------
-// A fixture entra no escopo por ser posicional (em produção o gate só vê ROOT_MD).
+// A fixture entra no escopo por ser posicional (em produção o gate só vê SCANNED_MD).
 const GHOST_FIXTURE = "docs/sdlc/01-requisitos/zz-fixture-us88-ghost.md";
 
 test("identificador camelCase que não existe em fonte nenhum reprova o gate", () => {
@@ -127,7 +127,7 @@ test("entrada do GHOST_ALLOW que voltou a existir no fonte vira aviso, não erro
   });
 });
 
-test("--fix não escreve fora de docs/ e dos três .md da raiz", () => {
+test("--fix não escreve fora de docs/ e dos .md do SCANNED_MD", () => {
   // A fronteira do modo de escrita da US-79. packages/shared/ está dois níveis
   // abaixo da raiz, então aqui quem quebra é `../../../` — a mesma fixture com o
   // prefixo certo para esta profundidade. Se o guard cair, o teste acusa.
@@ -136,4 +136,25 @@ test("--fix não escreve fora de docs/ e dos três .md da raiz", () => {
     assert.throws(() => runChecker(fora, "--fix"), /Command failed/);
     assert.equal(readFileSync(abs, "utf8"), DEPOIS, "arquivo fora de docs/ foi reescrito");
   });
+});
+
+// US-90: a entrada de SCANNED_MD que não é da raiz. Sem a normalização de separador
+// do `rel()`, `relative()` devolve `evals\README.md` no Windows, a entrada
+// `"evals/README.md"` não casa, e o arquivo — varrido normalmente — fica fora do
+// isWritable: o --fix pararia de reescrevê-lo em silêncio. Este teste falha no
+// Windows sem o `rel()` e passa nos dois sistemas operacionais com ele.
+test("--fix reescreve evals/README.md, entrada de SCANNED_MD fora da raiz", () => {
+  const alvo = "evals/README.md";
+  const abs = join(ROOT, alvo);
+  const original = readFileSync(abs, "utf8");
+  // De evals/, o caminho certo é `../packages/…`; `../../` resolve único a partir da raiz.
+  const quebrado = `${original}\nLink quebrado: [rubric.ts](../../packages/ai-engine/src/rubric.ts)\n`;
+  try {
+    writeFileSync(abs, quebrado);
+    const out = runChecker(alvo, "--fix");
+    assert.match(out, /Reescritos: 1/);
+    assert.equal(readFileSync(abs, "utf8"), quebrado.replace("../../packages", "../packages"));
+  } finally {
+    writeFileSync(abs, original);
+  }
 });
