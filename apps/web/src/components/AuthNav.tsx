@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
+import { LogOut } from 'lucide-react'
 
 // US-61: controlo de sessão global (canto superior). Só aparece autenticado; sai
 // da conta e volta a /login. Fica no layout para não acoplar às telas de jogo.
@@ -14,8 +15,9 @@ export function AuthNav() {
       <button
         type="button"
         onClick={() => signOut({ redirectTo: '/login' })}
-        className="min-h-[36px] px-3 rounded-lg border border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:border-amber-500 transition-colors"
+        className="inline-flex min-h-[44px] items-center gap-1.5 rounded-md border border-border bg-card/70 px-3 font-medium text-foreground backdrop-blur transition-colors hover:border-primary/60 hover:text-primary"
       >
+        <LogOut className="size-3.5" aria-hidden />
         Sair
       </button>
     </div>

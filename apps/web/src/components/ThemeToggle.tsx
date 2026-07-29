@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Moon, Sun } from 'lucide-react'
 
 const STORAGE_KEY = 'ai-dm-theme'
 
@@ -20,17 +21,15 @@ export function ThemeToggle() {
     document.documentElement.classList.toggle('dark', next === 'dark')
   }
 
+  const label = isDark ? 'Mudar para modo claro' : 'Mudar para modo noturno'
   return (
     <button
       onClick={toggle}
-      aria-label={isDark ? 'Mudar para modo claro' : 'Mudar para modo noturno'}
-      title={isDark ? 'Mudar para modo claro' : 'Mudar para modo noturno'}
-      className="fixed top-4 right-4 z-50 w-10 h-10 rounded-lg border transition-colors
-        bg-stone-200 border-stone-300 text-stone-600 hover:bg-stone-300
-        dark:bg-stone-800 dark:border-stone-700 dark:text-amber-400 dark:hover:bg-stone-700
-        flex items-center justify-center shadow-md"
+      aria-label={label}
+      title={label}
+      className="fixed top-4 right-4 z-50 flex size-11 items-center justify-center rounded-md border border-border bg-card/70 text-foreground backdrop-blur transition-colors hover:border-primary/60 hover:text-primary"
     >
-      <span aria-hidden="true">{isDark ? '☀' : '🌙'}</span>
+      {isDark ? <Sun className="size-4" aria-hidden /> : <Moon className="size-4" aria-hidden />}
     </button>
   )
 }

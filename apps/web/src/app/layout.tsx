@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { Cinzel, Geist } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -6,9 +7,23 @@ import { Providers } from '@/components/Providers'
 import { AuthNav } from '@/components/AuthNav'
 import { auth } from '@/auth'
 
+// Design system: a fonte-sistema era a maior parcela do "cheiro de template"
+// (direcao-visual-anti-slop.md §1). Cinzel carrega a voz de grimório nos títulos;
+// Geist é o corpo/UI. Auto-hospedadas pelo next/font — nunca <link> do Google.
+const cinzel = Cinzel({ subsets: ['latin'], variable: '--font-cinzel', weight: ['400', '600', '700'] })
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
+
 export const metadata: Metadata = {
   title: 'AI Dungeon Master',
   description: 'Your AI-powered RPG narrator',
+  icons: {
+    icon: [
+      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-icon.png',
+  },
 }
 
 // US-66: viewport explícito — não depender só do default do Next. Garante que o
@@ -23,8 +38,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // API já existe no primeiro render do cliente (sem janela de 401 na entrada).
   const session = await auth()
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body suppressHydrationWarning className="bg-amber-50 dark:bg-stone-950 text-stone-900 dark:text-white antialiased">
+    <html lang="pt-BR" suppressHydrationWarning className={`${cinzel.variable} ${geist.variable}`}>
+      <body suppressHydrationWarning className="bg-background text-foreground font-sans antialiased">
         {/* US-46: skip link — primeiro elemento tabável do body, some até receber foco. */}
         <a href="#conteudo" className="skip-link" suppressHydrationWarning>
           Pular para o conteúdo

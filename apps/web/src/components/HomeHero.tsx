@@ -2,20 +2,34 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { X } from 'lucide-react'
 import { api } from '@/lib/api'
+import { DmButton, Logo, Panel, dmButtonClass } from '@/components/ui/dm'
 
 type HubCharacter = Awaited<ReturnType<typeof api.listCharacters>>[number]
 
+// Cabeçalho comum aos três estados do hub (vazio, erro, com personagem).
+function HubHeading({ title, children }: { title: string; children?: React.ReactNode }) {
+  return (
+    <>
+      <div className="mb-4 flex justify-center">
+        <Logo className="size-14" />
+      </div>
+      <h1 className="text-shadow-fantasy font-serif text-3xl font-bold tracking-wide text-primary sm:text-4xl">
+        {title}
+      </h1>
+      {children}
+    </>
+  )
+}
+
 const emptyState = (
-  <div className="text-center max-w-lg">
-    <p className="text-4xl sm:text-5xl mb-4" aria-hidden="true">⚔</p>
-    <h1 className="text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">Olá, Aventureiro</h1>
-    <p className="text-stone-600 dark:text-stone-400 text-lg mb-2">Você ainda não tem nenhum personagem.</p>
-    <p className="text-stone-600 dark:text-stone-400 mb-8">Crie seu primeiro personagem para começar a jogar.</p>
-    <Link
-      href="/setup"
-      className="inline-block bg-amber-600 hover:bg-amber-500 text-white font-semibold px-8 py-3 rounded-lg text-lg transition-colors"
-    >
+  <div className="w-full max-w-md text-center">
+    <HubHeading title="Olá, Aventureiro">
+      <p className="mt-3 text-sm text-muted-foreground">Você ainda não tem nenhum personagem.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Crie seu primeiro personagem para começar a jogar.</p>
+    </HubHeading>
+    <Link href="/setup" className={dmButtonClass('primary', 'mt-7 w-full py-3 text-base')}>
       Criar meu personagem
     </Link>
   </div>
@@ -59,22 +73,19 @@ export function HomeHero() {
 
   if (error) {
     return (
-      <div className="text-center max-w-lg">
-        <p className="text-4xl sm:text-5xl mb-4" aria-hidden="true">⚔</p>
-        <h1 className="text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
-        <p className="text-stone-600 dark:text-stone-400 mb-8">Não foi possível carregar seus personagens.</p>
-        <button
-          onClick={() => fetchCharacters()}
-          className="inline-block bg-amber-600 hover:bg-amber-500 text-white font-semibold px-8 py-3 rounded-lg text-lg transition-colors"
-        >
+      <div className="w-full max-w-md text-center">
+        <HubHeading title="AI Dungeon Master">
+          <p className="mt-3 text-sm text-muted-foreground">Não foi possível carregar seus personagens.</p>
+        </HubHeading>
+        <DmButton onClick={() => fetchCharacters()} className="mt-7 w-full py-3 text-base">
           Tentar de novo
-        </button>
+        </DmButton>
       </div>
     )
   }
 
   if (characters === null) {
-    return <p className="text-stone-600 dark:text-stone-400 animate-pulse">Carregando seus personagens…</p>
+    return <p className="animate-pulse text-sm text-muted-foreground">Carregando seus personagens…</p>
   }
 
   if (characters.length === 0) return emptyState
@@ -83,88 +94,83 @@ export function HomeHero() {
   const adventure = hero.currentAdventure
 
   return (
-    <div className="text-center max-w-lg">
-      <p className="text-4xl sm:text-5xl mb-4" aria-hidden="true">⚔</p>
-      <h1 className="text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">AI Dungeon Master</h1>
-      <p className="text-stone-600 dark:text-stone-400 mb-6">
-        Bem-vindo de volta, <span className="text-stone-900 dark:text-white font-semibold">Aventureiro</span>.
-      </p>
+    <div className="w-full max-w-md text-center">
+      <HubHeading title="AI Dungeon Master">
+        <p className="mt-2 text-sm text-muted-foreground">
+          Bem-vindo de volta, <span className="font-semibold text-parchment">Aventureiro</span>.
+        </p>
+      </HubHeading>
 
-      <div className="border border-stone-200 dark:border-stone-800 rounded-lg p-4 mb-8 bg-white/50 dark:bg-stone-900/50">
-        <p className="text-stone-900 dark:text-white font-semibold text-lg">{hero.name}</p>
-        <p className="text-stone-600 dark:text-stone-400 text-sm">
+      <Panel className="mt-6 p-5 text-left">
+        <p className="font-serif text-lg font-semibold text-parchment">{hero.name}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           {hero.race} · {hero.class} · Nv.{hero.level}
         </p>
         {adventure && (
-          <p className="text-stone-600 dark:text-stone-400 text-sm mt-2">
-            Aventura: <span className="text-stone-700 dark:text-stone-300">{adventure.title}</span>
+          <p className="mt-2 text-sm text-foreground">
+            Aventura: <span className="text-accent">{adventure.title}</span>
           </p>
         )}
-      </div>
+      </Panel>
 
-      <div className="flex flex-col gap-3">
+      <div className="mt-5 flex flex-col gap-2.5">
         {adventure ? (
           <Link
             href={`/play/${adventure.id}?characterId=${hero.id}`}
-            className="inline-block bg-amber-600 hover:bg-amber-500 text-white font-semibold px-8 py-3 rounded-lg text-lg transition-colors"
+            className={dmButtonClass('primary', 'w-full py-3 text-base')}
           >
             Continuar jogando
           </Link>
         ) : (
-          <span className="inline-block bg-stone-300 dark:bg-stone-700 text-stone-600 dark:text-stone-400 font-semibold px-8 py-3 rounded-lg text-lg cursor-not-allowed">
+          <span className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-border bg-muted px-5 py-3 text-base font-semibold text-muted-foreground">
             Nenhuma aventura em andamento
           </span>
         )}
-        <Link
-          href="/setup"
-          className="inline-block border border-stone-400 dark:border-stone-600 hover:border-stone-600 dark:hover:border-stone-400 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white font-semibold px-8 py-2 rounded-lg transition-colors text-sm"
-        >
+        <Link href="/setup" className={dmButtonClass('ghost', 'w-full')}>
           Criar novo personagem
         </Link>
 
-        <button
-          onClick={() => handleDelete(hero)}
-          className="min-h-[44px] text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm transition-colors"
-        >
+        <DmButton variant="danger" onClick={() => handleDelete(hero)} className="text-xs font-medium">
           Deletar {hero.name}
-        </button>
+        </DmButton>
 
         {deleteError && (
-          <p className="text-red-500 text-sm">Não foi possível deletar o personagem. Tente de novo.</p>
+          <p className="text-sm text-destructive">Não foi possível deletar o personagem. Tente de novo.</p>
         )}
 
         {characters.length > 1 && (
           <div>
             <button
               onClick={() => setShowAll((v) => !v)}
-              className="min-h-[44px] px-2 text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 text-xs transition-colors"
+              className="min-h-[44px] px-2 text-xs text-muted-foreground transition-colors hover:text-primary"
             >
               Ver todos os personagens
             </button>
             {showAll && (
-              <ul className="mt-3 flex flex-col gap-1">
-                {characters.map((c, i) => (
-                  <li key={c.id} className="flex items-center gap-1">
-                    <button
-                      onClick={() => { setFocus(i); setShowAll(false) }}
-                      className={`flex-1 text-sm px-3 py-2 rounded-lg transition-colors ${
-                        i === focus
-                          ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                          : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
-                      }`}
-                    >
-                      {c.name} · {c.race} · {c.class} · Nv.{c.level}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(c)}
-                      aria-label={`Deletar ${c.name}`}
-                      className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-600 dark:text-stone-400 hover:text-red-600 dark:hover:text-red-400 text-sm transition-colors"
-                    >
-                      <span aria-hidden="true">✕</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              // Um painel, agrupado por `divide` — sem card-sobre-card (direção §4).
+              <Panel className="mt-3 overflow-hidden text-left">
+                <ul className="divide-y divide-border">
+                  {characters.map((c, i) => (
+                    <li key={c.id} className="flex items-center gap-1 px-1">
+                      <button
+                        onClick={() => { setFocus(i); setShowAll(false) }}
+                        className={`min-h-[44px] flex-1 rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                          i === focus ? 'text-primary' : 'text-foreground hover:text-primary'
+                        }`}
+                      >
+                        {c.name} · {c.race} · {c.class} · Nv.{c.level}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(c)}
+                        aria-label={`Deletar ${c.name}`}
+                        className="flex min-h-[44px] min-w-[44px] items-center justify-center text-muted-foreground transition-colors hover:text-destructive"
+                      >
+                        <X className="size-4" aria-hidden />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
             )}
           </div>
         )}

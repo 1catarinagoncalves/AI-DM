@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { ChevronDown, Dices, Pencil, Send } from 'lucide-react'
 import { abilityModifier, formatModifier, stripFabricatedRolls, stripWorldStateTags, formatDiceBreakdown, spellLevelLabel } from '@ai-dm/shared'
 import type { ChatTurn, RollTurn, SystemSpell } from '@ai-dm/shared'
 import { api } from '@/lib/api'
+import { DmButton, Logo, SheetHeading, fieldClass } from '@/components/ui/dm'
 
 // US-29: um turno é ação do jogador, narração do Mestre OU um bloco de rolagem.
 type Message = ChatTurn
@@ -101,7 +103,7 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
 
   if (!hasAny) {
     return (
-      <p className="text-sm text-stone-600 dark:text-stone-400">
+      <p className="text-sm text-muted-foreground">
         Este personagem ainda não tem história.
       </p>
     )
@@ -111,22 +113,22 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
     <div className="flex flex-col gap-4">
       {story && (
         <div>
-          <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">História</p>
-          <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-wrap leading-relaxed">{story}</p>
+          <SheetHeading>História</SheetHeading>
+          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground">{story}</p>
         </div>
       )}
       {deityText && (
         <div>
-          <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Divindade/Patrono</p>
-          <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{deityText}</p>
+          <SheetHeading>Divindade/Patrono</SheetHeading>
+          <p className="text-[13px] leading-relaxed text-foreground">{deityText}</p>
         </div>
       )}
       {lists.map(({ label, items }) => items.length > 0 && (
         <div key={label}>
-          <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">{label}</p>
-          <ul className="space-y-1 list-disc list-inside">
+          <SheetHeading>{label}</SheetHeading>
+          <ul className="list-inside list-disc space-y-1">
             {items.map((it, i) => (
-              <li key={i} className="text-sm text-stone-700 dark:text-stone-300">{it}</li>
+              <li key={i} className="text-[13px] text-foreground">{it}</li>
             ))}
           </ul>
         </div>
@@ -150,7 +152,7 @@ function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells
 
   if (featureList.length === 0 && spellList.length === 0) {
     return (
-      <p className="text-sm text-stone-600 dark:text-stone-400">
+      <p className="text-sm text-muted-foreground">
         Esta classe ainda não tem features nem magias registadas.
       </p>
     )
@@ -160,13 +162,13 @@ function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells
     <div className="flex flex-col gap-4">
       {featureList.length > 0 && (
         <section>
-          <h3 className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Features</h3>
-          <ul className="flex flex-col gap-3">
+          <SheetHeading>Features</SheetHeading>
+          <ul className="flex flex-col gap-2">
             {featureList.map((f, i) => (
-              <li key={i}>
-                <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">{f.name}</p>
+              <li key={i} className="rounded-md border border-border bg-background/40 p-3">
+                <p className="text-sm font-semibold text-parchment">{f.name}</p>
                 {f.description?.trim() && (
-                  <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{f.description}</p>
+                  <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{f.description}</p>
                 )}
               </li>
             ))}
@@ -176,19 +178,19 @@ function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells
 
       {spellList.length > 0 && (
         <section>
-          <h3 className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Magias</h3>
-          <ul className="flex flex-col gap-3">
+          <SheetHeading>Magias</SheetHeading>
+          <ul className="flex flex-col gap-2">
             {spellList.map((s, i) => {
               // Rótulo vindo de @ai-dm/shared — a MESMA regra que o prompt do mestre usa
               // (US-42), para a ficha e o prompt nunca divergirem ("truque" vs "nível 0").
               const label = spellLevelLabel(s.level)
               return (
-                <li key={i}>
-                  <p data-testid="spell-name" className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                <li key={i} className="rounded-md border border-border bg-background/40 p-3">
+                  <p data-testid="spell-name" className="text-sm font-semibold text-parchment">
                     {label ? `${s.name} (${label})` : s.name}
                   </p>
                   {s.description?.trim() && (
-                    <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{s.description}</p>
+                    <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{s.description}</p>
                   )}
                 </li>
               )
@@ -432,7 +434,6 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   }
 
   const hpPercent = Math.max(0, (currentHp / maxHp) * 100)
-  const hpColor = hpPercent > 60 ? 'bg-green-500' : hpPercent > 30 ? 'bg-yellow-500' : 'bg-red-500'
 
   // US-67: só a ÚLTIMA ação do jogador é editável — o índice ancora o botão de
   // editar (e o esmaecimento do turno em edição) a essa bolha, nunca às anteriores.
@@ -442,42 +443,52 @@ export function GameView({ adventureId, characterId, characterName, characterCla
     // US-66: altura travada em `h-dvh` (acompanha a URL bar móvel) + overflow-hidden;
     // a lista de mensagens rola por dentro (flex-1 min-h-0) e a caixa de ação fica
     // sempre visível — sem o `calc(100vh - 120px)` que chutava o chrome de desktop.
-    <div className="h-dvh bg-amber-50 dark:bg-stone-950 text-stone-900 dark:text-white flex flex-col md:flex-row overflow-hidden">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground md:flex-row">
 
       {/* Ficha do personagem — sidebar no desktop; painel recolhível no mobile (US-66, D1). */}
-      <aside className="md:w-64 shrink-0 flex flex-col min-h-0 bg-stone-100 dark:bg-stone-900 border-b md:border-b-0 md:border-r border-stone-300 dark:border-stone-800">
+      <aside className="flex min-h-0 shrink-0 flex-col border-b border-border bg-sidebar md:w-72 md:border-b-0 md:border-r lg:w-80">
         {/* Toggle da ficha — só no mobile; no desktop a coluna está sempre aberta. */}
         <button
           type="button"
           onClick={() => setSheetOpen(o => !o)}
           aria-expanded={sheetOpen}
           aria-controls="character-sheet"
-          className="md:hidden flex items-center justify-between gap-2 p-4 min-h-[44px] font-semibold text-amber-600 dark:text-amber-400"
+          className="flex min-h-[44px] items-center justify-between gap-2 p-4 font-serif font-semibold text-parchment md:hidden"
         >
           <span>Ficha — {characterName}</span>
-          <span aria-hidden="true" className={`transition-transform ${sheetOpen ? 'rotate-180' : ''}`}>▾</span>
+          <ChevronDown aria-hidden className={`size-4 text-primary transition-transform ${sheetOpen ? 'rotate-180' : ''}`} />
         </button>
+
+        {/* Cabeçalho da ficha: marca + identidade + HP. Só no desktop — no mobile
+            o nome já está no toggle acima. */}
+        <div className="hidden border-b border-border p-4 md:block">
+          <div className="flex items-center gap-2.5">
+            <Logo className="size-8 shrink-0" />
+            <div className="min-w-0">
+              <p className="truncate font-serif text-base font-bold text-parchment">{characterName}</p>
+              <p className="truncate text-xs text-muted-foreground">{characterRace} · {characterClass}</p>
+            </div>
+          </div>
+        </div>
 
         {/* Conteúdo da ficha: escondido por padrão no mobile (abre com o toggle),
             sempre visível a partir de `md:`. `max-h-[70vh]` no mobile garante que a
             narração nunca some quando a ficha abre. */}
         <div
           id="character-sheet"
-          className={`${sheetOpen ? 'flex' : 'hidden'} md:flex flex-col gap-4 p-4 pt-0 md:pt-4 overflow-y-auto min-h-0 max-h-[70vh] md:max-h-none`}
+          className={`${sheetOpen ? 'flex' : 'hidden'} scrollbar-thin max-h-[70vh] min-h-0 flex-col gap-4 overflow-y-auto p-4 md:flex md:max-h-none`}
         >
-        <div>
-          <p className="text-amber-600 dark:text-amber-400 font-bold text-lg">{characterName}</p>
-          <p className="text-stone-600 dark:text-stone-400 text-sm">{characterRace} · {characterClass}</p>
-        </div>
-
         <div className="md:w-full">
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-stone-600 dark:text-stone-400">HP</span>
+          <div className="mb-1 flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            <span>HP</span>
             {/* US-46: mudança de HP anunciada de forma discreta (aria-live polite). */}
-            <span aria-live="polite" className={hpPercent > 30 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>{currentHp}/{maxHp}</span>
+            <span aria-live="polite" className={hpPercent > 30 ? 'text-foreground' : 'text-destructive'}>{currentHp}/{maxHp}</span>
           </div>
-          <div className="h-2 bg-stone-300 dark:bg-stone-700 rounded-full overflow-hidden">
-            <div className={`h-full ${hpColor} rounded-full transition-all`} style={{ width: `${hpPercent}%` }} />
+          <div className="h-2 overflow-hidden rounded-full bg-background/70 ring-1 ring-inset ring-border">
+            <div
+              className={`h-full rounded-full transition-[width] ${hpPercent > 30 ? 'bg-gradient-to-r from-ember to-primary' : 'bg-destructive'}`}
+              style={{ width: `${hpPercent}%` }}
+            />
           </div>
         </div>
 
@@ -485,7 +496,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         <div
           role="tablist"
           aria-label="Ficha do personagem"
-          className="md:w-full flex gap-1 border-b border-stone-300 dark:border-stone-700 shrink-0"
+          className="flex shrink-0 border-b border-border md:w-full"
           onKeyDown={e => {
             if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
             e.preventDefault()
@@ -509,13 +520,12 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                 aria-controls={`sheet-panel-${t.id}`}
                 tabIndex={active ? 0 : -1}
                 onClick={() => setTab(t.id)}
-                className={`min-h-[44px] px-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-                  active
-                    ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-                    : 'border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                className={`relative min-h-[44px] px-3 text-sm font-medium transition-colors ${
+                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {t.label}
+                {active && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-primary" />}
               </button>
             )
           })}
@@ -527,14 +537,14 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             id="sheet-panel-ficha"
             role="tabpanel"
             aria-labelledby="sheet-tab-ficha"
-            className="md:w-full flex flex-col gap-4 items-start"
+            className="flex flex-col items-start gap-5 md:w-full"
           >
             {conditions && conditions.length > 0 && (
               <div className="md:w-full">
-                <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Condições</p>
+                <SheetHeading>Condições</SheetHeading>
                 <div className="flex flex-wrap gap-1">
                   {conditions.map((c, i) => (
-                    <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">
+                    <span key={i} className="rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
                       {c}
                     </span>
                   ))}
@@ -544,17 +554,17 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
             {attributes && Object.keys(attributes).length > 0 && (
               <div className="md:w-full">
-              <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Atributos</p>
-              <div className="grid grid-cols-3 gap-x-2 gap-y-2">
+              <SheetHeading>Atributos</SheetHeading>
+              <div className="grid grid-cols-3 gap-2">
                 {Object.entries(attributes).map(([key, value]) => (
-                  <div key={key} className="flex flex-col items-center bg-stone-200 dark:bg-stone-800 rounded px-1 py-1">
-                    <span className="text-xs text-stone-600 dark:text-stone-400 font-medium">
+                  <div key={key} className="rounded-md border border-border bg-background/40 p-2 text-center">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
                       {ATTR_LABELS[key] ?? key.slice(0, 3).toUpperCase()}
-                    </span>
-                    <span className="text-lg font-bold text-stone-800 dark:text-stone-100 leading-tight">
+                    </p>
+                    <p className="font-serif text-lg font-bold leading-tight text-parchment">
                       {formatModifier(abilityModifier(value))}
-                    </span>
-                    <span className="text-xs text-stone-600 dark:text-stone-400">{value}</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">{value}</p>
                   </div>
                 ))}
               </div>
@@ -563,14 +573,18 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
             {skills && skills.length > 0 && (
               <div className="md:w-full">
-                <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">Perícias</p>
-                <ul className="space-y-1 max-h-56 overflow-y-auto pr-1">
+                <SheetHeading>Perícias</SheetHeading>
+                <ul className="scrollbar-thin max-h-56 space-y-0.5 overflow-y-auto pr-1">
                   {skills.map(sk => (
-                    <li key={sk.key} className="text-xs flex justify-between gap-2">
-                      <span className={sk.proficient ? 'text-amber-700 dark:text-amber-300 font-medium' : 'text-stone-700 dark:text-stone-300'}>
-                        {sk.proficient && <span aria-label="proficiente" title="Proficiente">● </span>}{sk.label}
+                    <li key={sk.key} className="flex items-center justify-between gap-2 px-1.5 py-1 text-[13px]">
+                      <span className={`flex items-center gap-1.5 ${sk.proficient ? 'text-primary' : 'text-foreground'}`}>
+                        {/* Marca de proficiência: o ponto substituiu o `●` textual, então
+                            precisa de `role="img"` — `aria-label` num <span> sem papel é
+                            atributo proibido (axe: aria-prohibited-attr). */}
+                        {sk.proficient && <span role="img" aria-label="proficiente" title="Proficiente" className="size-1.5 rounded-full bg-primary" />}
+                        {sk.label}
                       </span>
-                      <span className="text-stone-600 dark:text-stone-400 shrink-0 tabular-nums">{formatModifier(sk.modifier)}</span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">{formatModifier(sk.modifier)}</span>
                     </li>
                   ))}
                 </ul>
@@ -578,16 +592,14 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             )}
 
             <div className="md:w-full">
-              <p className="text-xs text-stone-600 dark:text-stone-400 font-semibold uppercase tracking-wide mb-2">
-                Inventário ({inventory.length})
-              </p>
+              <SheetHeading>Inventário ({inventory.length})</SheetHeading>
               {inventory.length === 0
-                ? <p className="text-xs text-stone-600 dark:text-stone-400">Nenhum item</p>
-                : <ul className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                ? <p className="text-[13px] text-muted-foreground">Nenhum item</p>
+                : <ul className="scrollbar-thin max-h-48 space-y-1 overflow-y-auto pr-1">
                     {inventory.map((item, i) => (
-                      <li key={i} className="text-xs text-stone-700 dark:text-stone-300 flex justify-between gap-1">
+                      <li key={i} className="flex items-start justify-between gap-2 text-[13px] text-foreground">
                         <span>{item.name}</span>
-                        {item.qty > 1 && <span className="text-stone-600 dark:text-stone-400 shrink-0">({item.qty})</span>}
+                        {item.qty > 1 && <span className="shrink-0 text-muted-foreground">({item.qty})</span>}
                       </li>
                     ))}
                   </ul>
@@ -624,7 +636,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
       </aside>
 
       {/* Área de jogo. <div> (não <main>): o landmark <main> vive no layout — um por página. */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex min-w-0 flex-1 flex-col">
 
         {/* US-46: histórico é uma região viva — leitor de tela anuncia a narração que chega.
             US-66: `flex-1 min-h-0` preenche o espaço disponível e rola por dentro — sem
@@ -634,13 +646,16 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           aria-live="polite"
           aria-atomic="false"
           aria-label="Narração do Mestre"
-          className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0"
+          className="scrollbar-thin min-h-0 flex-1 overflow-y-auto"
         >
+          {/* Coluna de leitura: a narração é o conteúdo-herói, medida de linha
+              confortável em vez de esticar até à largura do ecrã. */}
+          <div className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-6 sm:px-6">
           {messages.length === 0 && (
-            <div className="text-center text-stone-600 dark:text-stone-400 pt-16">
-              <p className="text-4xl mb-4" aria-hidden="true">⚔</p>
-              <p className="text-lg">A tua aventura começa aqui.</p>
-              <p className="text-sm mt-1">Diz ao Mestre o que queres fazer.</p>
+            <div className="pt-16 text-center text-muted-foreground">
+              <Logo className="mx-auto mb-4 size-12" />
+              <p className="font-serif text-lg text-parchment">A tua aventura começa aqui.</p>
+              <p className="mt-1 text-sm">Diz ao Mestre o que queres fazer.</p>
             </div>
           )}
 
@@ -650,11 +665,11 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             if (msg.role === 'roll') {
               return (
                 <div key={i} className="flex justify-center">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-amber-400 dark:border-amber-600 bg-amber-100 dark:bg-amber-950 px-3 py-1.5 text-xs">
-                    <span aria-hidden>🎲</span>
-                    {msg.skill && <span className="rounded-full bg-amber-200 dark:bg-amber-800 px-2 py-0.5 font-semibold text-amber-900 dark:text-amber-100">{msg.skill}</span>}
-                    {msg.label && <span className="font-semibold text-amber-800 dark:text-amber-200">{msg.label}</span>}
-                    <span className="font-mono tabular-nums text-stone-800 dark:text-stone-100">{formatDiceBreakdown(msg)}</span>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs">
+                    <Dices aria-hidden className="size-3.5 text-primary" />
+                    {msg.skill && <span className="rounded-full bg-primary/20 px-2 py-0.5 font-semibold text-primary">{msg.skill}</span>}
+                    {msg.label && <span className="font-semibold text-accent">{msg.label}</span>}
+                    <span className="font-mono tabular-nums text-parchment">{formatDiceBreakdown(msg)}</span>
                   </div>
                 </div>
               )
@@ -665,13 +680,22 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             const canEdit = msg.role === 'user' && i === lastUserIndex && msg.editable && !streaming && !warming && !editing
             // Turno em edição (ação + rolagens + narração dele): esmaecido para dar contexto.
             const dimmed = editing && lastUserIndex !== -1 && i >= lastUserIndex
+
+            // O Mestre narra em PROSA, não em bolha: a narração é o texto da página,
+            // e só a ação do jogador é uma bolha (é ela que precisa de se distinguir).
+            if (msg.role === 'dm') {
+              return (
+                <div key={i} className={`whitespace-pre-wrap text-[15px] leading-relaxed text-foreground ${dimmed ? 'opacity-50' : ''}`}>
+                  {msg.content}
+                  {streaming && i === messages.length - 1 && (
+                    <span aria-hidden="true" className="ml-1 inline-block h-4 w-2 animate-pulse bg-primary align-text-bottom" />
+                  )}
+                </div>
+              )
+            }
+
             return (
-              <div key={i} className={`group flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${dimmed ? 'opacity-50' : ''}`}>
-                {msg.role === 'dm' && (
-                  <div aria-hidden="true" className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900 border border-amber-500 dark:border-amber-600 flex items-center justify-center mr-2 mt-1 flex-shrink-0 text-sm text-amber-700 dark:text-amber-300">
-                    ✦
-                  </div>
-                )}
+              <div key={i} className={`group flex justify-end ${dimmed ? 'opacity-50' : ''}`}>
                 {canEdit && (
                   // Chip de editar. No mobile (sem hover) fica SEMPRE visível; a partir
                   // de `md:` esconde-se e só aparece no hover/foco da bolha. Focável por
@@ -680,25 +704,19 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                     type="button"
                     onClick={startEdit}
                     aria-label="Editar a tua última ação"
-                    className="self-center mr-2 px-3 min-h-[44px] inline-flex items-center gap-1 text-xs font-semibold rounded-full border border-stone-300 dark:border-stone-600 text-stone-600 dark:text-stone-300 hover:text-amber-600 hover:border-amber-400 dark:hover:text-amber-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+                    className="mr-2 inline-flex min-h-[44px] items-center gap-1 self-center rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground transition-all hover:border-primary/60 hover:text-primary md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
                   >
-                    <span aria-hidden="true">✎</span> Editar
+                    <Pencil aria-hidden className="size-3" /> Editar
                   </button>
                 )}
-                <div className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-                  msg.role === 'user'
-                    ? 'bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-white rounded-br-sm'
-                    : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 rounded-bl-sm'
-                }`}>
+                <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm border border-primary/40 bg-primary/15 px-4 py-2.5 text-[15px] text-parchment">
                   {msg.content}
-                  {streaming && i === messages.length - 1 && msg.role === 'dm' && (
-                    <span aria-hidden="true" className="inline-block w-2 h-4 bg-amber-500 dark:bg-amber-400 ml-1 animate-pulse align-text-bottom" />
-                  )}
-                </div>
+                </p>
               </div>
             )
           })}
           <div ref={bottomRef} />
+          </div>
         </div>
 
         {/* Warm-up: cold start do free tier pago aqui (com o tempo à mostra), não no
@@ -707,9 +725,9 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           <div
             role="status"
             aria-live="polite"
-            className="px-4 py-2 text-xs text-amber-900 dark:text-amber-100 bg-amber-100 dark:bg-amber-950 border-t border-amber-300 dark:border-amber-800 flex items-center gap-2"
+            className="flex items-center gap-2 border-t border-border bg-card/60 px-4 py-2 text-xs text-accent backdrop-blur"
           >
-            <span aria-hidden="true" className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span aria-hidden="true" className="inline-block size-2 animate-pulse rounded-full bg-primary" />
             O Mestre está a despertar… {warmSecs}s
           </div>
         )}
@@ -717,46 +735,43 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         {/* US-67: barra de modo edição — deixa claro no mobile que se está a reescrever
             uma ação (a bolha esmaecida pode estar fora do ecrã). */}
         {editing && (
-          <div role="status" className="px-4 pt-3 flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
-            <span aria-hidden="true">✎</span> A editar a tua última ação
+          <div role="status" className="flex items-center gap-1.5 px-4 pt-3 text-xs font-semibold text-accent">
+            <Pencil aria-hidden className="size-3" /> A editar a tua última ação
           </div>
         )}
 
         {/* Input. No mobile empilha (textarea em cima, botões numa linha abaixo) para o
             campo ficar em largura total — em modo edição a caixa não fica espremida
             entre os botões. A partir de `md:` volta à linha única. */}
-        <form onSubmit={sendMessage} className="p-4 flex flex-col md:flex-row gap-3 md:items-end border-t border-stone-200 dark:border-stone-800">
-          <textarea
-            ref={textareaRef}
-            rows={editing ? 4 : 2}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={warming ? 'O Mestre está a despertar…' : editing ? 'Corrige a tua ação e salva a edição…' : 'O que fazes? (Enter para enviar, Shift+Enter para nova linha)'}
-            aria-label={editing ? 'Editar a tua ação' : 'A tua ação'}
-            disabled={streaming || warming}
-            className="flex-1 w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg px-3 py-2 text-base md:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-stone-400 resize-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:border-amber-500"
-          />
-          {/* Botões: linha própria no mobile (alinhada à direita), inline no desktop. */}
-          <div className="flex gap-3 justify-end shrink-0">
-            {editing && (
-              <button
-                type="button"
-                onClick={cancelEdit}
-                disabled={streaming || warming}
-                className="min-h-[44px] border border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-200 rounded-lg px-4 py-2 font-semibold transition-colors hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40"
+        <form onSubmit={sendMessage} className="border-t border-border bg-card/40 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-3xl flex-col gap-3 md:flex-row md:items-end">
+            <textarea
+              ref={textareaRef}
+              rows={editing ? 4 : 2}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={warming ? 'O Mestre está a despertar…' : editing ? 'Corrige a tua ação e salva a edição…' : 'O que fazes? (Enter para enviar, Shift+Enter para nova linha)'}
+              aria-label={editing ? 'Editar a tua ação' : 'A tua ação'}
+              disabled={streaming || warming}
+              className={fieldClass('scrollbar-thin flex-1 resize-none disabled:opacity-50')}
+            />
+            {/* Botões: linha própria no mobile (alinhada à direita), inline no desktop. */}
+            <div className="flex shrink-0 justify-end gap-3">
+              {editing && (
+                <DmButton variant="ghost" type="button" onClick={cancelEdit} disabled={streaming || warming}>
+                  Cancelar
+                </DmButton>
+              )}
+              <DmButton
+                type="submit"
+                disabled={streaming || warming || !input.trim()}
+                aria-label={editing ? 'Salvar edição' : 'Enviar ação'}
+                className={editing ? undefined : 'px-4'}
               >
-                Cancelar
-              </button>
-            )}
-            <button
-              type="submit"
-              disabled={streaming || warming || !input.trim()}
-              aria-label={editing ? 'Salvar edição' : 'Enviar ação'}
-              className="min-h-[44px] bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-semibold transition-colors"
-            >
-              {editing ? 'Salvar edição' : <span aria-hidden="true">{streaming ? '...' : '➤'}</span>}
-            </button>
+                {editing ? 'Salvar edição' : <Send aria-hidden className={`size-4 ${streaming ? 'animate-pulse' : ''}`} />}
+              </DmButton>
+            </div>
           </div>
         </form>
       </div>

@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowLeft, ArrowRight, Check, Minus, Plus, Sparkles } from 'lucide-react'
 import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
 import { api } from '@/lib/api'
+import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, cn, fieldClass } from '@/components/ui/dm'
 
 type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'background' | 'review'
 const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'background', 'review']
@@ -29,6 +31,22 @@ const SOURCE_TYPE_HINT: Record<string, string> = {
   FREE: 'Narração livre, sem sistema oficial',
   SRD: 'Regras oficiais de um sistema conhecido',
   UPLOAD: 'Sistema customizado enviado por um usuário',
+}
+
+// Seta do select desenhada no próprio campo: `appearance-none` mata a nativa (que
+// vinha na cor do sistema operativo e destoava do painel).
+const SELECT_ARROW =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b58a5a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")"
+
+// Cartão de opção (sistema, perícia): a mesma materialidade em toda a escolha
+// múltipla do wizard. `selected` acende a borda de acento, `disabled` esmaece.
+function optionCardClass(selected: boolean) {
+  return cn(
+    'w-full rounded-md border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40',
+    selected
+      ? 'border-primary bg-primary/10 shadow-[inset_0_0_0_1px_var(--primary)]'
+      : 'border-border bg-background/40 hover:border-primary/60 hover:bg-background/70',
+  )
 }
 
 // US-40: campo único "Divindade/Patrono" → {name, portfolio}. Split na PRIMEIRA
@@ -175,60 +193,63 @@ export function SetupWizard() {
     })
   }
 
-  const inputClass = 'w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-stone-400'
-  const selectClass = 'w-full bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-3 py-2 text-stone-900 dark:text-white'
-  // US-46: rótulo visível persistente (não some ao digitar; contraste AA).
-  const labelClass = 'block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1'
+  const selectClass = fieldClass('appearance-none bg-[right_0.75rem_center] bg-no-repeat pr-9')
+  const errorBox = 'rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive'
+  // US-46: rótulo visível persistente (não some ao digitar; contraste AA) — o
+  // FieldLabel do design system carrega essa regra.
 
   const idx = steps.indexOf(step)
 
   // US-28: etapa "Aventura inicial" — personagem já criado, escolhemos o gancho da classe.
   if (charId) {
     return (
-      <div className="min-h-screen bg-amber-50 dark:bg-stone-950 flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-4">
-          <p className="text-xs uppercase tracking-wide text-stone-600 dark:text-stone-400">Aventura inicial</p>
-          {error && <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 border border-red-300 dark:border-red-800 rounded p-3">{error}</p>}
+      <SceneFrame scene="/scenes/arboretum-moonlit.png" dim="heavy">
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-8 sm:px-6">
+          <Panel className="p-6 sm:p-9">
+            <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-accent">
+              <Sparkles className="size-3.5" aria-hidden />
+              Aventura inicial
+            </p>
+            {error && <p className={cn(errorBox, 'mt-4')}>{error}</p>}
 
-          {hookError ? (
-            <div className="space-y-4">
-              <p className="text-stone-600 dark:text-stone-300 text-sm">Não foi possível carregar a aventura inicial de <span className="font-semibold">{charData.name}</span>.</p>
-              <button type="button" onClick={() => loadHook(charId)}
-                className="w-full bg-amber-600 hover:bg-amber-500 text-white rounded py-2 font-semibold">
-                Tentar de novo
-              </button>
-            </div>
-          ) : !hook ? (
-            <p className="text-stone-600 dark:text-stone-400 text-sm animate-pulse">A preparar a tua aventura…</p>
-          ) : (
-            <div className="space-y-4">
-              <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">{hook.title}</h1>
-              <p className="text-stone-600 dark:text-stone-400 text-sm">A primeira aventura de {charData.name}, {charData.class}.</p>
-              <div className="bg-white/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded p-4 space-y-3">
-                <p className="text-stone-700 dark:text-stone-300 text-sm">{hook.pitch}</p>
-                <p className="text-stone-800 dark:text-stone-100 text-sm italic leading-relaxed whitespace-pre-wrap">{hook.openingNarration}</p>
+            {hookError ? (
+              <div className="mt-4 space-y-5">
+                <p className="text-sm text-muted-foreground">Não foi possível carregar a aventura inicial de <span className="font-semibold text-parchment">{charData.name}</span>.</p>
+                <DmButton type="button" onClick={() => loadHook(charId)} className="w-full py-3 text-base">
+                  Tentar de novo
+                </DmButton>
               </div>
-              <button type="button" onClick={startAdventure} disabled={starting}
-                className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
-                {starting ? 'A iniciar...' : 'Iniciar aventura'}
-              </button>
-            </div>
-          )}
+            ) : !hook ? (
+              <p className="mt-4 animate-pulse text-sm text-muted-foreground">A preparar a tua aventura…</p>
+            ) : (
+              <>
+                <SectionTitle className="mt-3 sm:text-4xl">{hook.title}</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">A primeira aventura de {charData.name}, {charData.class}.</p>
+                <div className="mt-6 space-y-4 text-[15px] leading-relaxed text-foreground">
+                  <p>{hook.pitch}</p>
+                  <p className="whitespace-pre-wrap italic text-muted-foreground">{hook.openingNarration}</p>
+                </div>
+                <DmButton type="button" onClick={startAdventure} disabled={starting} className="mt-8 w-full py-3 text-base">
+                  {starting ? 'A iniciar...' : 'Iniciar aventura'}
+                </DmButton>
+              </>
+            )}
+          </Panel>
         </div>
-      </div>
+      </SceneFrame>
     )
   }
 
   return (
-    <div className="min-h-screen bg-amber-50 dark:bg-stone-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <SceneFrame scene="/scenes/tavern.png" dim="heavy">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6 sm:px-6">
 
         {/* Trilha de progresso navegável: etapas concluídas são clicáveis.
             US-66: no mobile as 7 barras ficam, mas os rótulos escondem (`hidden sm:block`)
             e um rótulo único "Etapa X de N — Label" resume a etapa atual — sem espremer
             rótulos de 10px lado a lado. A partir de `sm:` volta a trilha completa. */}
-        <nav className="mb-8" aria-label="Progresso">
-          <p className="sm:hidden text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+        <nav className="mb-6" aria-label="Progresso">
+          <p className="mb-2 text-sm font-medium text-parchment sm:hidden">
             Etapa {idx + 1} de {steps.length} — {STEP_LABEL[step]}
           </p>
           <div className="flex gap-2">
@@ -241,246 +262,255 @@ export function SetupWizard() {
                   disabled={state === 'pendente'}
                   aria-current={state === 'atual' ? 'step' : undefined}
                   data-state={state}
-                  className="flex-1 flex flex-col gap-1 text-left disabled:cursor-default"
+                  className="flex flex-1 flex-col gap-1 text-left disabled:cursor-default"
                 >
-                  <span className={`h-1 rounded-full ${state === 'atual' ? 'bg-amber-500' : state === 'concluída' ? 'bg-amber-700' : 'bg-stone-300 dark:bg-stone-700'}`} />
-                  <span className={`hidden sm:block text-xs ${state === 'pendente' ? 'text-stone-600 dark:text-stone-400' : 'text-stone-600 dark:text-stone-300'}`}>{STEP_LABEL[s]}</span>
+                  <span className={`h-0.5 rounded-full ${state === 'atual' ? 'bg-primary' : state === 'concluída' ? 'bg-primary/40' : 'bg-border'}`} />
+                  <span className={`hidden sm:block text-xs ${state === 'atual' ? 'font-semibold text-primary' : state === 'concluída' ? 'text-parchment' : 'text-muted-foreground'}`}>{STEP_LABEL[s]}</span>
                 </button>
               )
             })}
           </div>
         </nav>
 
-        {error && <p className="text-red-600 dark:text-red-400 text-sm mb-4 bg-red-50 dark:bg-red-950 border border-red-300 dark:border-red-800 rounded p-3">{error}</p>}
+        <Panel className="flex flex-1 flex-col p-6 sm:p-8">
+          {error && <p className={cn(errorBox, 'mb-4')}>{error}</p>}
 
-        {step === 'system' && (
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Escolha o Sistema</h1>
-            <div className="space-y-3">
-              {systems.map(s => (
-                <button key={s.id} type="button" onClick={() => handleSelectSystem(s)}
-                  className={`w-full text-left bg-white dark:bg-stone-800 border rounded px-4 py-3 hover:border-amber-500 ${system?.id === s.id ? 'border-amber-500' : 'border-stone-300 dark:border-stone-600'}`}>
-                  <p className="font-semibold text-stone-900 dark:text-white">{s.name}</p>
-                  <p className="text-sm text-stone-600 dark:text-stone-400">{SOURCE_TYPE_HINT[s.sourceType] ?? s.sourceType}</p>
-                </button>
-              ))}
-              {systemsError
-                ? <p className="text-red-600 dark:text-red-400 text-sm">Não foi possível carregar os sistemas. Recarrega a página.</p>
-                : systems.length === 0 && <p className="text-stone-600 dark:text-stone-400 text-sm">A carregar sistemas...</p>}
-            </div>
-          </div>
-        )}
-
-        {step === 'race-class' && system && (
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Raça e Classe</h1>
-            <p className="text-stone-600 dark:text-stone-400 text-sm">Sistema: {system.name}</p>
-            <div className="space-y-3">
-              {/* US-46: rótulo visível persistente acima de cada campo — placeholder deixa de ser o único rótulo. */}
+          <div className="flex-1">
+            {step === 'system' && (
               <div>
-                <label htmlFor="char-name" className={labelClass}>Nome do personagem</label>
-                <input id="char-name" required placeholder="Ex.: Lyra Silvermoon"
-                  value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
-                  className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="char-gender" className={labelClass}>Género</label>
-                <select id="char-gender" value={charData.gender}
-                  onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))} className={selectClass}>
-                  <option value="">Selecionar…</option>
-                  {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="char-race" className={labelClass}>Raça</label>
-                  <select id="char-race" value={charData.race}
-                    onChange={e => setCharData(p => ({ ...p, race: e.target.value }))} className={selectClass}>
-                    <option value="">Selecionar…</option>
-                    {RACES.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="char-class" className={labelClass}>Classe</label>
-                  <select id="char-class" value={charData.class}
-                    onChange={e => setCharData(p => ({ ...p, class: e.target.value }))} className={selectClass}>
-                    <option value="">Selecionar…</option>
-                    {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                <SectionTitle>Escolha o Sistema</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">Define as regras que guiarão a sua jornada.</p>
+                <div className="mt-6 flex flex-col gap-3">
+                  {systems.map(s => (
+                    <button key={s.id} type="button" onClick={() => handleSelectSystem(s)} className={optionCardClass(system?.id === s.id)}>
+                      <p className="font-serif text-base font-semibold text-parchment">{s.name}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{SOURCE_TYPE_HINT[s.sourceType] ?? s.sourceType}</p>
+                    </button>
+                  ))}
+                  {systemsError
+                    ? <p className="text-sm text-destructive">Não foi possível carregar os sistemas. Recarrega a página.</p>
+                    : systems.length === 0 && <p className="text-sm text-muted-foreground">A carregar sistemas...</p>}
                 </div>
               </div>
-            </div>
-          </div>
-        )}
-
-        {step === 'attributes' && system && (
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Atributos</h1>
-            {budget !== undefined && (
-              <p className="text-sm text-stone-600 dark:text-stone-400">
-                Pontos restantes: <span className={`font-semibold ${remaining === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{remaining}</span> / {budget}
-              </p>
             )}
-            <div className="space-y-2">
-              {attributes.map(a => (
-                <div key={a.key} className="flex items-center justify-between gap-3">
-                  <label className="text-sm text-stone-700 dark:text-stone-300">{a.label}</label>
-                  {budget !== undefined ? (
-                    <div className="flex items-center gap-2">
-                      <button type="button" aria-label={`Diminuir ${a.label}`} onClick={() => setAttr(a.key, -1, a.min, a.max)}
-                        className="w-8 h-8 rounded bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-white disabled:opacity-40"
-                        disabled={(attrs[a.key] ?? a.default) <= a.min}>−</button>
-                      <span className="w-8 text-center font-semibold text-stone-900 dark:text-white" data-attr={a.key}>{attrs[a.key] ?? a.default}</span>
-                      <button type="button" aria-label={`Aumentar ${a.label}`} onClick={() => setAttr(a.key, 1, a.min, a.max)}
-                        className="w-8 h-8 rounded bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-white disabled:opacity-40"
-                        disabled={(attrs[a.key] ?? a.default) >= a.max || remaining - ((POINT_COST[(attrs[a.key] ?? a.default) + 1] ?? 0) - (POINT_COST[attrs[a.key] ?? a.default] ?? 0)) < 0}>+</button>
+
+            {step === 'race-class' && system && (
+              <div>
+                <SectionTitle>Raça e Classe</SectionTitle>
+                <p className="mt-1 text-sm text-muted-foreground">Sistema: {system.name}</p>
+                <div className="mt-6 space-y-4">
+                  {/* US-46: rótulo visível persistente acima de cada campo — placeholder deixa de ser o único rótulo. */}
+                  <div>
+                    <FieldLabel htmlFor="char-name">Nome do personagem</FieldLabel>
+                    <input id="char-name" required placeholder="Ex.: Lyra Silvermoon"
+                      value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
+                      className={fieldClass()} />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="char-gender">Género</FieldLabel>
+                    <select id="char-gender" value={charData.gender}
+                      onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))}
+                      className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                      <option value="">Selecionar…</option>
+                      {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <FieldLabel htmlFor="char-race">Raça</FieldLabel>
+                      <select id="char-race" value={charData.race}
+                        onChange={e => setCharData(p => ({ ...p, race: e.target.value }))}
+                        className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                        <option value="">Selecionar…</option>
+                        {RACES.map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
                     </div>
-                  ) : (
-                    <input type="number" min={a.min} max={a.max} aria-label={a.label}
-                      value={attrs[a.key] ?? a.default}
-                      onChange={e => setAttrs(p => ({ ...p, [a.key]: Number(e.target.value) }))}
-                      className="w-20 bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded px-2 py-1 text-center text-stone-900 dark:text-white" />
+                    <div>
+                      <FieldLabel htmlFor="char-class">Classe</FieldLabel>
+                      <select id="char-class" value={charData.class}
+                        onChange={e => setCharData(p => ({ ...p, class: e.target.value }))}
+                        className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                        <option value="">Selecionar…</option>
+                        {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 'attributes' && system && (
+              <div>
+                <SectionTitle>Atributos</SectionTitle>
+                {budget !== undefined && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Pontos restantes: <span className={`font-semibold ${remaining === 0 ? 'text-success' : 'text-primary'}`}>{remaining}</span> / {budget}
+                  </p>
+                )}
+                {/* Agrupado por `divide` em vez de card por linha (direção §4: menos box-in-box). */}
+                <div className="mt-6 divide-y divide-border">
+                  {attributes.map(a => (
+                    <div key={a.key} className="flex items-center justify-between gap-3 py-3">
+                      <label className="text-sm font-medium text-foreground">{a.label}</label>
+                      {budget !== undefined ? (
+                        <div className="flex items-center gap-2">
+                          <button type="button" aria-label={`Diminuir ${a.label}`} onClick={() => setAttr(a.key, -1, a.min, a.max)}
+                            className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
+                            disabled={(attrs[a.key] ?? a.default) <= a.min}><Minus className="size-4" aria-hidden /></button>
+                          <span className="w-8 text-center font-serif text-lg font-bold tabular-nums text-parchment" data-attr={a.key}>{attrs[a.key] ?? a.default}</span>
+                          <button type="button" aria-label={`Aumentar ${a.label}`} onClick={() => setAttr(a.key, 1, a.min, a.max)}
+                            className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
+                            disabled={(attrs[a.key] ?? a.default) >= a.max || remaining - ((POINT_COST[(attrs[a.key] ?? a.default) + 1] ?? 0) - (POINT_COST[attrs[a.key] ?? a.default] ?? 0)) < 0}><Plus className="size-4" aria-hidden /></button>
+                        </div>
+                      ) : (
+                        <input type="number" min={a.min} max={a.max} aria-label={a.label}
+                          value={attrs[a.key] ?? a.default}
+                          onChange={e => setAttrs(p => ({ ...p, [a.key]: Number(e.target.value) }))}
+                          className={fieldClass('w-20 text-center')} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {step === 'skills' && system && (
+              <div>
+                <SectionTitle>Perícias</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Escolhe <span className="font-semibold text-parchment">{skillChoices}</span> perícias proficientes (+{system.config?.proficiency?.bonus ?? 2} cada).
+                  Selecionadas: <span className={`font-semibold ${skills.length === skillChoices ? 'text-success' : 'text-primary'}`}>{skills.length}</span>/{skillChoices}
+                </p>
+                <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {skillCatalog.map(sk => {
+                    const on = skills.includes(sk.key)
+                    const full = !on && skills.length >= skillChoices
+                    return (
+                      <button key={sk.key} type="button" onClick={() => toggleSkill(sk.key)}
+                        disabled={full}
+                        aria-pressed={on}
+                        className={optionCardClass(on)}>
+                        <span className="block text-sm font-medium text-foreground">{sk.label}</span>
+                        <span className="block text-xs text-muted-foreground">{attrLabel[sk.ability] ?? sk.ability}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {step === 'background' && system && (
+              <div>
+                <SectionTitle>Background</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Quem é {charData.name || 'o personagem'}? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.
+                </p>
+                <div className="mt-6 space-y-4">
+                  {/* US-46: cada textarea com rótulo visível persistente; placeholder vira só exemplo. */}
+                  <div>
+                    <FieldLabel htmlFor="bg-story">História</FieldLabel>
+                    <textarea id="bg-story" rows={3} placeholder="Ex.: nobre menor que perdeu a família para um culto demoníaco…"
+                      value={bg.story} onChange={e => setBg(p => ({ ...p, story: e.target.value }))} className={fieldClass('resize-y')} />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="bg-ideals">Ideais — um por linha</FieldLabel>
+                    <textarea id="bg-ideals" rows={2} placeholder="Ex.: Justiça acima de tudo"
+                      value={bg.ideals} onChange={e => setBg(p => ({ ...p, ideals: e.target.value }))} className={fieldClass('resize-y')} />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="bg-bonds">Vínculos — um por linha</FieldLabel>
+                    <textarea id="bg-bonds" rows={2} placeholder="Ex.: Jurou vingança contra o culto que matou sua família"
+                      value={bg.bonds} onChange={e => setBg(p => ({ ...p, bonds: e.target.value }))} className={fieldClass('resize-y')} />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="bg-flaws">Fraquezas — uma por linha</FieldLabel>
+                    <textarea id="bg-flaws" rows={2} placeholder="Ex.: Código de honra rígido: não mente, não abandona inocentes"
+                      value={bg.flaws} onChange={e => setBg(p => ({ ...p, flaws: e.target.value }))} className={fieldClass('resize-y')} />
+                  </div>
+                  {/* US-40: divindade/patrono — campo único, opcional para todas as classes.
+                      Nome antes da vírgula, portfólio depois (parseado ao confirmar). */}
+                  <div>
+                    <FieldLabel htmlFor="bg-deity">Divindade/Patrono — nome, e o que representa</FieldLabel>
+                    <input id="bg-deity" placeholder="Ex.: Auril, deusa do inverno"
+                      value={bg.deity} onChange={e => setBg(p => ({ ...p, deity: e.target.value }))} className={fieldClass()} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 'review' && system && (
+              <div>
+                <SectionTitle>Revisão</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">Confere a tua ficha antes de embarcar na aventura.</p>
+                <dl className="mt-6 divide-y divide-border">
+                  {[
+                    ['Nome', charData.name],
+                    ['Género', charData.gender],
+                    ['Raça', charData.race],
+                    ['Classe', charData.class],
+                    ['Nível', '1'],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{k}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">{v}</dd>
+                    </div>
+                  ))}
+                  <div className="flex items-start justify-between gap-6 py-2.5">
+                    <dt className="shrink-0 text-sm text-muted-foreground">Atributos</dt>
+                    <dd className="text-right text-sm font-medium text-parchment">
+                      {attributes.map(a => `${a.label} ${attrs[a.key] ?? a.default}`).join(' · ')}
+                    </dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-6 py-2.5">
+                    <dt className="shrink-0 text-sm text-muted-foreground">Perícias</dt>
+                    <dd className="text-right text-sm font-medium text-parchment">
+                      {skills.length > 0
+                        ? skills.map(k => skillCatalog.find(s => s.key === k)?.label ?? k).join(' · ')
+                        : '—'}
+                    </dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-6 py-2.5">
+                    <dt className="shrink-0 text-sm text-muted-foreground">Background</dt>
+                    <dd className="text-right text-sm font-medium text-parchment">
+                      {[bg.story, bg.ideals, bg.bonds, bg.flaws, bg.deity].some(s => s.trim()) ? 'Preenchido' : '—'}
+                    </dd>
+                  </div>
+                  {/* US-40: mostra o nome da divindade na revisão quando preenchida. */}
+                  {parseDeity(bg.deity) && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">Divindade/Patrono</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">
+                        {parseDeity(bg.deity)!.name}
+                      </dd>
+                    </div>
                   )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {step === 'skills' && system && (
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Perícias</h1>
-            <p className="text-stone-600 dark:text-stone-400 text-sm">
-              Escolhe <span className="font-semibold">{skillChoices}</span> perícias proficientes (+{system.config?.proficiency?.bonus ?? 2} cada).
-              Selecionadas: <span className={`font-semibold ${skills.length === skillChoices ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{skills.length}</span>/{skillChoices}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {skillCatalog.map(sk => {
-                const on = skills.includes(sk.key)
-                const full = !on && skills.length >= skillChoices
-                return (
-                  <button key={sk.key} type="button" onClick={() => toggleSkill(sk.key)}
-                    disabled={full}
-                    aria-pressed={on}
-                    className={`text-left rounded px-3 py-2 border text-sm disabled:opacity-40 disabled:cursor-not-allowed ${on ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 hover:border-amber-500'}`}>
-                    <span className="block font-medium text-stone-900 dark:text-white">{sk.label}</span>
-                    <span className="block text-xs text-stone-600 dark:text-stone-400">{attrLabel[sk.ability] ?? sk.ability}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {step === 'background' && system && (
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Background</h1>
-            <p className="text-stone-600 dark:text-stone-400 text-sm">
-              Quem é {charData.name || 'o personagem'}? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.
-            </p>
-            <div className="space-y-3">
-              {/* US-46: cada textarea com rótulo visível persistente; placeholder vira só exemplo. */}
-              <div>
-                <label htmlFor="bg-story" className={labelClass}>História</label>
-                <textarea id="bg-story" rows={3} placeholder="Ex.: nobre menor que perdeu a família para um culto demoníaco…"
-                  value={bg.story} onChange={e => setBg(p => ({ ...p, story: e.target.value }))} className={inputClass} />
+                </dl>
               </div>
-              <div>
-                <label htmlFor="bg-ideals" className={labelClass}>Ideais <span className="font-normal text-stone-600 dark:text-stone-400">— um por linha</span></label>
-                <textarea id="bg-ideals" rows={2} placeholder="Ex.: Justiça acima de tudo"
-                  value={bg.ideals} onChange={e => setBg(p => ({ ...p, ideals: e.target.value }))} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="bg-bonds" className={labelClass}>Vínculos <span className="font-normal text-stone-600 dark:text-stone-400">— um por linha</span></label>
-                <textarea id="bg-bonds" rows={2} placeholder="Ex.: Jurou vingança contra o culto que matou sua família"
-                  value={bg.bonds} onChange={e => setBg(p => ({ ...p, bonds: e.target.value }))} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="bg-flaws" className={labelClass}>Fraquezas <span className="font-normal text-stone-600 dark:text-stone-400">— uma por linha</span></label>
-                <textarea id="bg-flaws" rows={2} placeholder="Ex.: Código de honra rígido: não mente, não abandona inocentes"
-                  value={bg.flaws} onChange={e => setBg(p => ({ ...p, flaws: e.target.value }))} className={inputClass} />
-              </div>
-              {/* US-40: divindade/patrono — campo único, opcional para todas as classes.
-                  Nome antes da vírgula, portfólio depois (parseado ao confirmar). */}
-              <div>
-                <label htmlFor="bg-deity" className={labelClass}>Divindade/Patrono <span className="font-normal text-stone-600 dark:text-stone-400">— nome, e o que representa</span></label>
-                <input id="bg-deity" placeholder="Ex.: Auril, deusa do inverno"
-                  value={bg.deity} onChange={e => setBg(p => ({ ...p, deity: e.target.value }))} className={inputClass} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 'review' && system && (
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-amber-600 dark:text-amber-400">Revisão</h1>
-            <dl className="space-y-2 bg-white/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded p-4 text-sm">
-              {[
-                ['Nome', charData.name],
-                ['Género', charData.gender],
-                ['Raça', charData.race],
-                ['Classe', charData.class],
-                ['Nível', '1'],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between">
-                  <dt className="text-stone-600 dark:text-stone-400">{k}</dt>
-                  <dd className="text-stone-900 dark:text-white font-medium">{v}</dd>
-                </div>
-              ))}
-              <div className="flex justify-between">
-                <dt className="text-stone-600 dark:text-stone-400">Atributos</dt>
-                <dd className="text-stone-900 dark:text-white font-medium text-right">
-                  {attributes.map(a => `${a.label} ${attrs[a.key] ?? a.default}`).join(' · ')}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-stone-600 dark:text-stone-400">Perícias</dt>
-                <dd className="text-stone-900 dark:text-white font-medium text-right">
-                  {skills.length > 0
-                    ? skills.map(k => skillCatalog.find(s => s.key === k)?.label ?? k).join(' · ')
-                    : '—'}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-stone-600 dark:text-stone-400">Background</dt>
-                <dd className="text-stone-900 dark:text-white font-medium text-right">
-                  {[bg.story, bg.ideals, bg.bonds, bg.flaws, bg.deity].some(s => s.trim()) ? 'Preenchido' : '—'}
-                </dd>
-              </div>
-              {/* US-40: mostra o nome da divindade na revisão quando preenchida. */}
-              {parseDeity(bg.deity) && (
-                <div className="flex justify-between">
-                  <dt className="text-stone-600 dark:text-stone-400">Divindade/Patrono</dt>
-                  <dd className="text-stone-900 dark:text-white font-medium text-right">
-                    {parseDeity(bg.deity)!.name}
-                  </dd>
-                </div>
-              )}
-            </dl>
-          </div>
-        )}
-
-        {/* Voltar / Próximo / Confirmar */}
-        {step !== 'system' && (
-          <div className="flex gap-3 mt-6">
-            <button type="button" onClick={back}
-              className="flex-1 border border-stone-400 dark:border-stone-600 text-stone-600 dark:text-stone-300 rounded py-2 font-semibold hover:border-stone-600 dark:hover:border-stone-400">
-              ← Voltar
-            </button>
-            {step === 'review' ? (
-              <button type="button" onClick={handleConfirm} disabled={loading}
-                className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
-                {loading ? 'A criar...' : 'Confirmar personagem'}
-              </button>
-            ) : (
-              <button type="button" onClick={next} disabled={!canAdvance(step)}
-                className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded py-2 font-semibold">
-                Próximo →
-              </button>
             )}
           </div>
-        )}
+
+          {/* Voltar / Próximo / Confirmar */}
+          {step !== 'system' && (
+            <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
+              <DmButton variant="ghost" type="button" onClick={back}>
+                <ArrowLeft className="size-4" aria-hidden />
+                Voltar
+              </DmButton>
+              {step === 'review' ? (
+                <DmButton type="button" onClick={handleConfirm} disabled={loading}>
+                  <Check className="size-4" aria-hidden />
+                  {loading ? 'A criar...' : 'Confirmar personagem'}
+                </DmButton>
+              ) : (
+                <DmButton type="button" onClick={next} disabled={!canAdvance(step)}>
+                  Próximo
+                  <ArrowRight className="size-4" aria-hidden />
+                </DmButton>
+              )}
+            </div>
+          )}
+        </Panel>
       </div>
-    </div>
+    </SceneFrame>
   )
 }

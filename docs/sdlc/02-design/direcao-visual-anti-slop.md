@@ -1,8 +1,8 @@
 # Direção Visual Anti-Slop — AI Dungeon Master
 
-**Atualizado em:** 2026-07-22
-**Status:** 📋 Proposta (direção fixada; implementação não iniciada)
-**Relacionado:** [US-46](../01-requisitos/US-46-acessibilidade-wcag-aa.md) (vitórias de acessibilidade a preservar) · [US-66](../01-requisitos/US-66-telas-mobile-friendly.md) (responsividade — passe irmão, escopo separado) · [ADR 005](../../adr/005-locale-como-dimensao.md) (bilíngue PT/EN)
+**Atualizado em:** 2026-07-29
+**Status:** ✅ Implementado nas quatro superfícies. O contrato que saiu daqui (tokens, primitivas, regras) vive no [Design System](design-system.md) — é esse o documento a consultar antes de escrever tela nova; este fica como o registo do *porquê*.
+**Relacionado:** [Design System](design-system.md) (o contrato) · [US-46](../01-requisitos/US-46-acessibilidade-wcag-aa.md) (vitórias de acessibilidade a preservar) · [US-66](../01-requisitos/US-66-telas-mobile-friendly.md) (responsividade — passe irmão, escopo separado) · [ADR 005](../../adr/005-locale-como-dimensao.md) (bilíngue PT/EN)
 
 > Direção de arte para o redesign visual das quatro superfícies (hub, login, wizard de criação, mesa de jogo).
 > **Objetivo:** sair do look "app de fantasia AI-default" para uma identidade própria, sem regredir acessibilidade nem reescrever a arquitetura de informação.
@@ -82,7 +82,9 @@ Manter **dark-first** (encaixa no clima de mesa à noite). **Um único acento**,
 
 ### 3. Iconografia
 
-Substituir **todo** emoji por uma família de ícones — `@phosphor-icons/react` (tem espada, lua, sol, x, dado). Uma só família, `strokeWidth` global consistente. Zero SVG desenhado à mão.
+Substituir **todo** emoji por uma família de ícones — ~~`@phosphor-icons/react`~~ **`lucide-react`** na
+implementação (mesma cobertura: espada, lua, sol, x, dado; é a família que veio no design entregue).
+Uma só família, `strokeWidth` consistente. Zero SVG desenhado à mão.
 
 ### 4. Materialidade + textura
 
@@ -115,19 +117,31 @@ A ordem sugerida: **primeiro a US-66** (estrutura responsiva sólida), **depois 
 
 ---
 
-## Questões em aberto
+## Questões em aberto — como ficaram resolvidas
 
-1. **Fonte serif: licença + auto-hospedagem.** `PP Editorial New` e `GT Sectra` são comerciais. Confirmar licença de webfont; se inviável, cair na alternativa grotesk (`Cabinet Grotesk`). Auto-hospedar via `next/font` (nunca `<link>` do Google Fonts em produção).
-2. **Hex exatos do acento brasa/oxblood.** Fixar a rampa e validar contraste AA (texto e UI) nos dois temas antes de travar os tokens. O anel de foco atual (`#d97706`) pode precisar de reharmonização com o novo acento sem perder contraste.
-3. **Custo de imagem no plano grátis.** Arte gerada/hospedada pesa em LCP e banda (Vercel Hobby, [ADR 006](../../adr/006-deploy-custo-zero.md)). Definir orçamento de peso e usar `next/image` com `priority` só no above-the-fold.
-4. **Textura vs. legibilidade.** O grão não pode competir com o texto da narração; calibrar opacidade e testar com `prefers-reduced-transparency`.
+1. **Fonte serif: licença + auto-hospedagem.** ~~`PP Editorial New` e `GT Sectra` são comerciais.~~
+   **Resolvido:** ficou **Cinzel** (livre, auto-hospedada por `next/font`) nos títulos e **Geist** no corpo.
+   Nenhum dos serifs comerciais entrou; a alternativa grotesk não foi precisa.
+2. **Hex exatos do acento brasa/oxblood.** **Resolvido:** rampa fixada em `oklch` nos dois temas, com o
+   contraste **medido** (não estimado) — tabela no [Design System §1](design-system.md). O anel de foco
+   deixou o `#d97706` fixo e passou a seguir `--focus`/`--ring` por tema.
+3. **Custo de imagem no plano grátis.** **Resolvido:** três cenas de pixel art servidas por `next/image`
+   (`fill`, `quality={60}`, `sizes="100vw"`) — o PNG de origem nunca chega ao cliente. A mesa, que é a
+   tela de uso longo, ficou **sem** arte de fundo de propósito.
+4. **Textura vs. legibilidade.** **Adiado:** a camada de grão não entrou. O papel dela — dar matéria ao
+   fundo — está a ser feito pela arte de cena + scrim + vinheta, que já resolvem o "tell central". Se
+   voltar, entra como camada `fixed` (nunca num container que rola) e é calibrada contra a narração.
 
 ---
 
-## Referências no código
+## Referências no código (depois do passe)
 
-- `apps/web/src/app/layout.tsx` — sem `next/font`; ponto de entrada para registar a família tipográfica.
-- `apps/web/src/app/globals.css` — tokens de cor e camada de textura entram aqui; já contém o foco/reduced-motion da US-46 a preservar.
-- `apps/web/src/components/HomeHero.tsx` — emoji `⚔`, botões âmbar, cards `bg-white/50`; superfície-piloto sugerida.
-- `apps/web/src/components/ThemeToggle.tsx` — emoji `☀`/`🌙` a trocar por ícones Phosphor.
-- `apps/web/src/components/setup/SetupWizard.tsx` · `apps/web/src/components/game/GameView.tsx` — recebem o sistema visual, não recomposição (essa é a US-66).
+- `apps/web/src/app/globals.css` — os tokens dos dois temas e as utilities `.dm-panel`/`.dm-vignette`/
+  `.text-shadow-fantasy`/`.scrollbar-thin`. O foco/reduced-motion da US-46 continua lá, preservado.
+- `apps/web/src/app/layout.tsx` — Cinzel + Geist por `next/font`.
+- `apps/web/src/components/ui/dm.tsx` — as primitivas (`SceneFrame`, `Panel`, `DmButton`, `FieldLabel`,
+  `fieldClass`, `SectionTitle`, `SheetHeading`, `Logo`).
+- `apps/web/src/components/HomeHero.tsx` · `app/login/page.tsx` — as duas telas quase-landing.
+- `apps/web/src/components/setup/SetupWizard.tsx` · `apps/web/src/components/game/GameView.tsx` —
+  receberam o sistema visual; a composição responsiva continua a ser da US-66.
+- `apps/web/src/components/ThemeToggle.tsx` — ícones `Sun`/`Moon` do lucide no lugar dos emoji.

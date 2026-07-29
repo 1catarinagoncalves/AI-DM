@@ -1,9 +1,177 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @import "tailwindcss";
 
+/* ============================================================================
+   Design system "grimório vivo" — tokens.
+   Documento canónico: docs/sdlc/02-design/design-system.md
+   Direção de arte: docs/sdlc/02-design/direcao-visual-anti-slop.md
+   Nenhuma tela deve escrever cor literal (bg-amber-600, text-stone-400…):
+   tudo passa por estes tokens, para os dois temas mudarem num sítio só.
+   ========================================================================= */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-gold: var(--gold);
+  --color-ember: var(--ember);
+  --color-parchment: var(--parchment);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-cinzel), Georgia, serif;
+}
+
+/* --- Tema claro (pergaminho): base do documento -------------------------- */
+/* Cada par texto/fundo foi escolhido para ≥4.5:1 (US-46). Ver a tabela de
+   contraste no design-system.md antes de mexer em qualquer valor. */
+:root {
+  color-scheme: light;
+  --background: oklch(0.95 0.018 85);
+  --foreground: oklch(0.28 0.03 50);
+  --card: oklch(0.98 0.012 85);
+  --card-foreground: oklch(0.27 0.03 50);
+  --popover: oklch(0.98 0.012 85);
+  --popover-foreground: oklch(0.27 0.03 50);
+  --primary: oklch(0.44 0.15 42);
+  --primary-foreground: oklch(0.98 0.01 85);
+  --secondary: oklch(0.9 0.025 80);
+  --secondary-foreground: oklch(0.28 0.03 50);
+  --muted: oklch(0.92 0.02 82);
+  --muted-foreground: oklch(0.44 0.03 55);
+  --accent: oklch(0.45 0.11 60);
+  --accent-foreground: oklch(0.98 0.01 85);
+  --destructive: oklch(0.45 0.19 25);
+  --destructive-foreground: oklch(0.98 0.01 85);
+  --success: oklch(0.45 0.12 150);
+  --border: oklch(0.55 0.04 60 / 45%);
+  --input: oklch(0.62 0.04 65);
+  --ring: oklch(0.44 0.15 42);
+  --gold: oklch(0.52 0.12 75);
+  --ember: oklch(0.48 0.18 35);
+  --parchment: oklch(0.24 0.035 50);
+  --sidebar: oklch(0.93 0.022 84);
+  --radius: 0.5rem;
+
+  /* Painel: sombra TINTADA ao fundo, nunca preto puro sobre claro (direção §4). */
+  --panel-top: oklch(0.99 0.012 85 / 0.94);
+  --panel-bottom: oklch(0.94 0.02 82 / 0.96);
+  --panel-edge: oklch(0.6 0.06 65 / 0.55);
+  --panel-ring: oklch(0.75 0.04 70 / 0.5);
+  --panel-sheen: oklch(1 0 0 / 0.6);
+  --panel-drop: oklch(0.4 0.05 55 / 0.22);
+  --vignette: oklch(0.35 0.05 55 / 0.35);
+  --title-glow: 0 1px 2px oklch(0.98 0.01 85 / 0.8);
+  --focus: oklch(0.44 0.15 42);
+}
+
+/* --- Tema escuro (mesa à noite): a direção primária ---------------------- */
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.17 0.018 55);
+  --foreground: oklch(0.9 0.02 75);
+  --card: oklch(0.22 0.022 55);
+  --card-foreground: oklch(0.91 0.02 75);
+  --popover: oklch(0.2 0.02 55);
+  --popover-foreground: oklch(0.91 0.02 75);
+  --primary: oklch(0.68 0.16 55);
+  --primary-foreground: oklch(0.17 0.02 55);
+  --secondary: oklch(0.28 0.025 55);
+  --secondary-foreground: oklch(0.9 0.02 75);
+  --muted: oklch(0.26 0.02 55);
+  --muted-foreground: oklch(0.72 0.03 70);
+  --accent: oklch(0.72 0.15 70);
+  --accent-foreground: oklch(0.17 0.02 55);
+  --destructive: oklch(0.68 0.17 25);
+  --destructive-foreground: oklch(0.17 0.02 55);
+  --success: oklch(0.75 0.14 150);
+  --border: oklch(0.4 0.05 60 / 45%);
+  --input: oklch(0.3 0.03 55);
+  --ring: oklch(0.68 0.16 55);
+  --gold: oklch(0.82 0.14 80);
+  --ember: oklch(0.62 0.19 45);
+  --parchment: oklch(0.92 0.04 85);
+  --sidebar: oklch(0.2 0.02 55);
+
+  --panel-top: oklch(0.2 0.02 55 / 0.92);
+  --panel-bottom: oklch(0.16 0.018 55 / 0.96);
+  --panel-edge: oklch(0.5 0.08 65 / 0.5);
+  --panel-ring: oklch(0.1 0.01 55 / 0.6);
+  --panel-sheen: oklch(0.7 0.1 70 / 0.15);
+  --panel-drop: oklch(0 0 0 / 0.7);
+  --vignette: oklch(0.1 0.01 50 / 0.55);
+  --title-glow: 0 2px 8px oklch(0 0 0 / 0.6), 0 0 24px oklch(0.62 0.19 45 / 0.25);
+  --focus: oklch(0.68 0.16 55);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  /* Painel emoldurado — a unidade de superfície do sistema. Substitui o
+     card-sobre-card: um painel, e dentro dele agrupa-se com `divide`/borda. */
+  .dm-panel {
+    background: linear-gradient(var(--panel-top), var(--panel-bottom));
+    border: 1px solid var(--panel-edge);
+    box-shadow:
+      0 0 0 1px var(--panel-ring),
+      inset 0 1px 0 var(--panel-sheen),
+      0 20px 50px -12px var(--panel-drop);
+  }
+
+  /* Vinheta da moldura de cena — escurece as bordas para o olho cair no centro.
+     Camada `::after` sem eventos, sobre um container `relative`. */
+  .dm-vignette::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 40%, var(--vignette) 100%);
+  }
+
+  /* Só para os títulos serif sobre arte de cena — nunca em texto corrido. */
+  .text-shadow-fantasy {
+    text-shadow: var(--title-glow);
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--panel-edge) transparent;
+  }
+}
+
 /* US-46: foco de teclado visível e consistente (WCAG 2.4.7).
    :focus-visible só dispara em teclado/foco programático — clique de mouse não desenha o anel.
-   outline (não box-shadow) garante contraste próprio mesmo sobre fundos tintados. */
+   outline (não box-shadow) garante contraste próprio mesmo sobre fundos tintados.
+   A cor passou de #d97706 fixo para `--focus` por tema (o anel do dark acompanha
+   o acento brasa e ganha contraste sobre a tinta profunda). */
 :focus-visible {
   outline: 2px solid var(--focus, #d97706);
   outline-offset: 2px;
@@ -20,10 +188,10 @@
   z-index: 60;
   transform: translateY(-150%);
   border-radius: 0.5rem;
-  background-color: #d97706;
+  background-color: var(--primary);
   padding: 0.5rem 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--primary-foreground);
   transition: transform 0.15s ease;
 }
 .skip-link:focus {

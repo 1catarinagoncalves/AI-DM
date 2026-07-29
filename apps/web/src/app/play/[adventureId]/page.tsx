@@ -15,8 +15,8 @@ export default async function PlayPage({ params, searchParams }: Props) {
 
   if (!characterId) {
     return (
-      <div className="min-h-screen bg-stone-950 text-white flex items-center justify-center">
-        <p className="text-stone-400">Personagem não encontrado. <a href="/setup" className="text-amber-400 underline">Recomeçar</a></p>
+      <div className="flex min-h-dvh items-center justify-center bg-background text-foreground">
+        <p className="text-muted-foreground">Personagem não encontrado. <a href="/setup" className="text-primary underline underline-offset-4">Recomeçar</a></p>
       </div>
     )
   }

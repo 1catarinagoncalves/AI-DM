@@ -1,9 +1,12 @@
 import { HomeHero } from '@/components/HomeHero'
+import { SceneFrame } from '@/components/ui/dm'
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-amber-50 dark:bg-stone-950 flex items-center justify-center p-4">
-      <HomeHero />
-    </div>
+    <SceneFrame scene="/scenes/tavern.png" dim="medium">
+      <div className="flex flex-1 items-center justify-center px-4 py-10">
+        <HomeHero />
+      </div>
+    </SceneFrame>
   )
 }
