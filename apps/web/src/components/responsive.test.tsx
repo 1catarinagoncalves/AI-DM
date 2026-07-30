@@ -92,4 +92,34 @@ describe('US-66 — ficha na mesa é painel recolhível no mobile, não faixa ho
     expect(chatColumn.className).toContain('min-h-0')
     expect(chatColumn.className).toContain('flex-1')
   })
+
+  // Regressão: a barra da ficha era baixa demais (56px) e os controlos fixos do
+  // layout (Sair + tema, que ocupam 16px→60px na vertical) transbordavam dela para
+  // cima da narração. A barra tem de os conter: min-h ≥ 60px.
+  it('a barra da ficha é alta o bastante para conter os controlos fixos (Sair/tema)', async () => {
+    render(<GameView {...props} />)
+    await screen.findByText('Atributos')
+
+    const toggle = screen.getByRole('button', { name: /Ficha — Lyra/ })
+    const minH = /min-h-\[(\d+)px\]/.exec(toggle.className)
+    expect(minH).not.toBeNull()
+    expect(Number(minH![1])).toBeGreaterThanOrEqual(60)
+    // Reserva de largura para os mesmos controlos não taparem o nome.
+    expect(toggle.className).toContain('pr-40')
+  })
+
+  // Regressão: no turno normal o enviar caía numa linha própria abaixo do textarea
+  // (o `flex-col` do mobile, que só o modo edição precisa). Fora da edição os dois
+  // ficam na mesma linha.
+  it('no turno normal o enviar fica na mesma linha do textarea (sem flex-col)', async () => {
+    render(<GameView {...props} />)
+    await screen.findByText('Atributos')
+
+    const send = screen.getByRole('button', { name: 'Enviar ação' })
+    const row = send.parentElement!.parentElement!
+    // Âncora: é mesmo a linha que junta os dois (senão o guard passaria em vazio
+    // por apanhar um elemento errado que também não tem `flex-col`).
+    expect(row.contains(screen.getByLabelText('A tua ação'))).toBe(true)
+    expect(row.className).not.toContain('flex-col')
+  })
 })

@@ -453,10 +453,13 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           onClick={() => setSheetOpen(o => !o)}
           aria-expanded={sheetOpen}
           aria-controls="character-sheet"
-          className="flex min-h-[44px] min-w-0 items-center justify-between gap-2 py-4 pl-4 pr-40 font-serif font-semibold text-parchment md:hidden"
+          className="flex min-h-[76px] min-w-0 items-center justify-between gap-2 py-4 pl-4 pr-40 font-serif font-semibold text-parchment md:hidden"
         >
-          {/* US-66: pr-40 reserva a pegada dos controles fixos (Sair em right-16 +
-              tema em right-4) para eles não taparem o nome/chevron da barra. */}
+          {/* US-66: a barra hospeda os controlos fixos (Sair em right-16 + tema em
+              right-4), que ocupam 16px→60px na vertical. `min-h-[76px]` fecha-os
+              DENTRO dela (16px de folga em baixo, igual à de cima) em vez de os
+              deixar transbordar sobre a narração; `pr-40` reserva a largura deles
+              para não taparem o nome/chevron. */}
           <span className="truncate">Ficha — {characterName}</span>
           <ChevronDown aria-hidden className={`size-4 text-primary transition-transform ${sheetOpen ? 'rotate-180' : ''}`} />
         </button>
@@ -746,11 +749,12 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           </div>
         )}
 
-        {/* Input. No mobile empilha (textarea em cima, botões numa linha abaixo) para o
-            campo ficar em largura total — em modo edição a caixa não fica espremida
-            entre os botões. A partir de `md:` volta à linha única. */}
+        {/* Input. Turno normal: textarea e enviar na MESMA linha (o enviar é só um
+            ícone, não rouba largura ao campo). Só o modo edição empilha no mobile —
+            aí são dois botões com texto ("Cancelar" + "Salvar edição") que espremiam
+            a caixa. A partir de `md:` é sempre linha única. */}
         <form onSubmit={sendMessage} className="border-t border-border bg-card/40 px-4 py-3 backdrop-blur">
-          <div className="mx-auto flex max-w-3xl flex-col gap-3 md:flex-row md:items-end">
+          <div className={`mx-auto flex max-w-3xl gap-3 md:flex-row md:items-end ${editing ? 'flex-col' : 'items-end'}`}>
             <textarea
               ref={textareaRef}
               rows={editing ? 4 : 2}
