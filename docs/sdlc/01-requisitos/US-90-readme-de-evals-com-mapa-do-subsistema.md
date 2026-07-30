@@ -27,7 +27,7 @@
 | O que o README de evals afirma | O que o repo tem | Onde verificar |
 |---|---|---|
 | `evals/runner.ts` e `evals/scorer.ts` (bloco de estrutura) | **nenhum dos dois existe.** Não há runner nem scorer próprios: `pnpm eval` é `vitest run --config vitest.eval.config.ts` | [`evals/`](../../../evals), [`vitest.eval.config.ts`](../../../packages/ai-engine/vitest.eval.config.ts) |
-| `evals/fixtures/` — "dados de teste reutilizáveis" | a pasta existe e está **vazia** | [`evals/fixtures`](../../../evals/fixtures) |
+| `evals/fixtures/` — "dados de teste reutilizáveis" | a pasta existe e está **vazia** | `evals/fixtures` |
 | 4 casos: `us-08-streaming.ts`, `us-09-dice-roll.ts`, `us-10-rules.ts`, `us-11-natural-language.ts` | **11 casos, e nenhum com esses nomes.** O de us-08 é `us-08-chat.ts`; us-09/10/11 não existem. Reais: us-03, 08, 23, 27, 29, 36, 38, 39, 40, 41, 42 | [`evals/cases`](../../../evals/cases) |
 | `pnpm eval --filter us-09`, `--ci`, `--verbose` | **nenhuma das três é flag do vitest.** Não há `--filter` nem `--ci`; verbose é `--reporter verbose` | `npx vitest --help` |
 | "Exporte um objeto `EvalCase` com `id`, `description`, `story`, `input`, `expectedTools`, `assertions`" | **0 de 11 casos têm essa forma.** São arquivos vitest comuns: `describe`/`it`/`expect` | [`us-29-rolagens.ts`](../../../evals/cases/us-29-rolagens.ts) |
@@ -103,7 +103,7 @@ Mesma lógica da camada 2 da US-83: caminho escrito como link é caminho verific
 ### Fora do escopo
 
 - **Diagrama Mermaid da pipeline.** A US-83 perguntou se valia; a auditoria diz que não: 4 modos independentes que não se encadeiam não formam fluxo, formam lista. Uma tabela de 4 linhas é mais legível e não apodrece por omissão. Se a pipeline algum dia virar sequência real (gerar → julgar → agregar → gatear num só comando), aí vale o diagrama.
-- **Consertar a pasta [`evals/fixtures`](../../../evals/fixtures) vazia.** Ou os casos passam a usá-la, ou ela é apagada — as duas são mudança de código, não de documentação. O README só não vai afirmar que ela tem conteúdo. Vira story se incomodar.
+- **Consertar a pasta `evals/fixtures` vazia.** Ou os casos passam a usá-la, ou ela é apagada — as duas são mudança de código, não de documentação. O README só não vai afirmar que ela tem conteúdo. Vira story se incomodar.
 - **Mover os 6 `.mjs` e os 5 `.bat`** da raiz do `ai-engine` para um lugar melhor. É refactor com risco real (caminhos relativos de `.env` e de `dist/` hardcoded nos runners) e não é o que a story pede. O README documenta onde estão.
 - **Transformar o slop de onomástica em gate.** Já decidido e justificado na [US-70](./US-70-piso-por-dimensao-e-robustez-do-eval.md); depende de a produção reduzir a taxa-base.
 - **README por pacote.** Mesma justificativa da US-83: mais README, mais fontes para dessincronizar. Este existe porque `evals/` é um subsistema com 4 casas e regras próprias de gate, não porque todo diretório merece um.
@@ -167,7 +167,7 @@ Mesma lógica da camada 2 da US-83: caminho escrito como link é caminho verific
 
 - [`evals/README.md`](../../../evals/README.md) — o alvo da story. Linhas 11–52 são as que apodreceram; 54–113 (US-36/US-70) estão corretas e devem sobreviver, encolhidas.
 - [`evals/cases`](../../../evals/cases) — um arquivo vitest por user story. **Não** exportam objetos `EvalCase`.
-- [`evals/fixtures`](../../../evals/fixtures) — existe, vazia. Ver *Questão em aberto #1*.
+- `evals/fixtures` — existe, vazia. Ver *Questão em aberto #1*.
 - [`evals/PROMPT-ANCHORS.md`](../../../evals/PROMPT-ANCHORS.md) — anchor set do juiz; ausente do README atual.
 - [`packages/ai-engine/vitest.eval.config.ts`](../../../packages/ai-engine/vitest.eval.config.ts) — o que `pnpm eval` de fato é: `include` de `evals/cases/**` + alias dos pacotes `@ai-dm/*` para o `src`.
 - [`packages/ai-engine/src/rubric.ts`](../../../packages/ai-engine/src/rubric.ts) — rubrica e thresholds. A fonte que a tabela do README deve linkar em vez de copiar.
