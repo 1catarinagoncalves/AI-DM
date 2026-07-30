@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (custo zero) — [ADR 006](../../adr/006-deploy-custo-zero.md)
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída em 30/07/2026 — todos os critérios de aceite verificados em produção. Sobra a *Questão em aberto* #3, que só se mede numa mudança futura do `render.yaml`.
+**Status:** ✅ Implementada
 **Depende de:** [US-80](./US-80-ci-typecheck-testes-e-evals.md) (o CI que esta story passa a usar como pré-condição). Fecha o buraco que a *Questão em aberto* #1 da US-80 **não** cobriu.
 **Criada em:** 2026-07-30
 
