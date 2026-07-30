@@ -77,8 +77,8 @@ Fontes de check que o Render lê no GitHub: *"GitHub Actions"* e *"Tools that in
 
 ## Critérios de aceite
 
-- [ ] `render.yaml` tem `autoDeployTrigger: checksPass` e **não** tem mais `autoDeploy` (o campo deprecado sai junto; manter os dois só convida à divergência).
-- [ ] O painel do Render mostra `autoDeployTrigger: checksPass` depois do sync do Blueprint — confirmar que o sync pegou, não só que o arquivo mudou.
+- [x] `render.yaml` tem `autoDeployTrigger: checksPass` e **não** tem mais `autoDeploy` (o campo deprecado sai junto; manter os dois só convida à divergência). — `ebf3add`, 30/07/2026.
+- [x] O painel do Render mostra `autoDeployTrigger: checksPass` depois do sync do Blueprint — confirmar que o sync pegou, não só que o arquivo mudou. — confirmado na API às 14:53:57.4Z (`srv-d9f50kjrjlhs73dimceg`, `plan: free`). O plano Free aceita o campo.
 - [ ] **Teste de regressão (o gate morde):** um commit propositalmente vermelho na `main` (mesmo protocolo da US-80: quebrar uma assertiva de `dm-system.ts`, medir, restaurar) **não** dispara deploy nenhum no Render. Registrar o `list_deploys` mostrando que o último deploy continua sendo o do commit anterior.
 - [ ] **Teste do caminho feliz:** um commit verde na `main` dispara exatamente **um** deploy, e o `createdAt` desse deploy é posterior ao fim do check `ci`.
 - [ ] **Nenhum secret novo** no repo. Este critério substitui o do Deploy Hook: se a implementação precisar de um secret, ela saiu do desenho.
@@ -88,6 +88,7 @@ Fontes de check que o Render lê no GitHub: *"GitHub Actions"* e *"Tools that in
 
 ## Notas de implementação
 
+- **O commit que liga o gate não se gateia.** Medido no `ebf3add` (30/07/2026): commit às 14:53:44Z, push às 14:53:52Z, deploy criado às **14:53:55.9Z**, e o campo do serviço só virou `checksPass` às **14:53:57.4Z** — 1,5 s depois. O deploy do próprio commit saiu pela regra velha (`commit`), porque o Blueprint sync só se aplica depois que o commit existe. Não é bug: é a ordem inevitável. Consequência prática — o critério de aceite do caminho feliz **não** pode ser verificado neste commit; precisa do push verde seguinte.
 - **Falha fechada por ausência de check.** "Zero checks detected" = não deploya. Se o `ci.yml` deixar de rodar num commit da `main` (um `paths:` filter futuro, um workflow que não inicia), a `main` para de deployar **em silêncio**. É o comportamento certo, mas é novo: hoje um push sempre deploya. Se um dia o `ci.yml` ganhar filtro de caminho, este campo vira uma armadilha.
 - **`neutral` e `skipped` contam como passou.** Guard que se auto-pula vira gate que não morde — mesma família do `--fail-if-no-match` documentado em `ci.yml:43`. Relevante se o `ci.yml` ganhar passos condicionais.
 - **A Vercel não entra na conta.** Medido em 30/07/2026 nos 5 commits mais recentes da `main`: a Vercel publica **commit status** (`Vercel=success`), não check run, e o Render lê só a Checks API. Ressalva: em `2f487a8` apareceu o check run `vercel/Vercel Preview Comments` (app `vercel`, conclusão `success`) — é o toolbar de comentários, não o build, mas **é** um check run e, se um dia concluir `failure`, segura o deploy da API. Se acontecer, o conserto é desligar os preview comments, não voltar atrás no `checksPass`.
@@ -102,7 +103,7 @@ Fontes de check que o Render lê no GitHub: *"GitHub Actions"* e *"Tools that in
    **Assimetria assumida:** depois desta story, um commit vermelho sobe a web e **não** sobe a API — frontend na frente do backend, com skew de contrato `@ai-dm/shared` até o commit verde seguinte. Aceito na Fase 1 (single-player, uma autora, minutos de janela).
    **Fecho barato se incomodar:** o `ci.yml` hoje **não** roda `next build`. Um passo `pnpm --filter web build` tornaria o CI superconjunto do gate da Vercel — aí o sinal exclusivo dela some e "espelhar na Vercel" vira decisão reversível. Não entra nesta story; é candidato a US própria.
 2. ~~**Push na `main` com o CI anterior ainda rodando?**~~ **Dissolvida pelo desenho novo.** Ela só existia porque dois jobs `deploy` do GitHub podiam disparar fora de ordem. Com `checksPass` o Render avalia os checks **por commit**, então não há job a serializar — nem `concurrency`, nem `?ref=`.
-3. **`blueprint_sync` respeita o `checksPass`?** *(nova, aberta)* O histórico mostra que `blueprint_sync` é um trigger de deploy **distinto** de `new_commit`: `b336bfd` gerou os dois (`dep-d9l4grve3alc73frghe0` e `dep-d9l4gr8ae00c73dkhcdg`, ambos `build_failed`). Não está documentado se um sync de Blueprint espera os checks ou deploya direto. Consequência prática: o próprio commit que ligar o `checksPass` pode disparar um deploy sem gate. Inofensivo se for verde — mas medir na hora e anotar o resultado aqui, porque toda mudança futura no `render.yaml` cai no mesmo caminho.
+3. **`blueprint_sync` respeita o `checksPass`?** *(parcialmente respondida em 30/07/2026 — ver "O commit que liga o gate não se gateia" nas notas)* Um sync que muda **só** `autoDeployTrigger` não gera deploy nenhum: no `ebf3add` o campo mudou às 14:53:57.4Z e a lista de deploys ficou com uma única entrada, `trigger: new_commit`. Sobra a pergunta mais estreita: um sync que **precisa** deployar — mudança de `buildCommand`, `startCommand`, `envVars` — espera os checks? O `b336bfd` prova que esse caminho existe e é um trigger distinto (`dep-d9l4grve3alc73frghe0`, `blueprint_sync`, ao lado de `dep-d9l4gr8ae00c73dkhcdg`, `new_commit`). Só se mede na próxima mudança de verdade no `render.yaml`; anotar o resultado aqui quando acontecer.
 
 ---
 
