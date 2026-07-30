@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (custo zero) — [ADR 006](../../adr/006-deploy-custo-zero.md)
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Concluída em 30/07/2026 — todos os critérios de aceite verificados em produção. Sobra a *Questão em aberto* #3, que só se mede numa mudança futura do `render.yaml`.
 **Depende de:** [US-80](./US-80-ci-typecheck-testes-e-evals.md) (o CI que esta story passa a usar como pré-condição). Fecha o buraco que a *Questão em aberto* #1 da US-80 **não** cobriu.
 **Criada em:** 2026-07-30
 
@@ -79,10 +79,19 @@ Fontes de check que o Render lê no GitHub: *"GitHub Actions"* e *"Tools that in
 
 - [x] `render.yaml` tem `autoDeployTrigger: checksPass` e **não** tem mais `autoDeploy` (o campo deprecado sai junto; manter os dois só convida à divergência). — `ebf3add`, 30/07/2026.
 - [x] O painel do Render mostra `autoDeployTrigger: checksPass` depois do sync do Blueprint — confirmar que o sync pegou, não só que o arquivo mudou. — confirmado na API às 14:53:57.4Z (`srv-d9f50kjrjlhs73dimceg`, `plan: free`). O plano Free aceita o campo.
-- [ ] **Teste de regressão (o gate morde):** um commit propositalmente vermelho na `main` (mesmo protocolo da US-80: quebrar uma assertiva de `dm-system.ts`, medir, restaurar) **não** dispara deploy nenhum no Render. Registrar o `list_deploys` mostrando que o último deploy continua sendo o do commit anterior.
-- [ ] **Teste do caminho feliz:** um commit verde na `main` dispara exatamente **um** deploy, e o `createdAt` desse deploy é posterior ao fim do check `ci`.
-- [ ] **Nenhum secret novo** no repo. Este critério substitui o do Deploy Hook: se a implementação precisar de um secret, ela saiu do desenho.
-- [ ] O tempo entre o push e o início do deploy está registrado na descrição do commit — é o custo que esta story cobra (hoje ~6 s pelos `createdAt` medidos; passa a ser o tempo do job `ci`, ~29 s + install, pela linha de base da US-80).
+- [x] **Teste de regressão (o gate morde):** um commit propositalmente vermelho na `main` (mesmo protocolo da US-80: quebrar uma assertiva de `dm-system.ts`, medir, restaurar) **não** dispara deploy nenhum no Render. — `fbeecab`, 30/07/2026: push às 15:03:46Z, check `ci` `failure` às 15:05:08Z, e após 120 s de observação o topo do `list_deploys` continuava `dep-d9lmej8ae00c738fe630` (do commit anterior, `ba68b84`). Sob a regra velha esse commit teria deployado às ~15:03:52Z, antes de o CI sequer começar. A quebra foi feita **no arquivo de teste**, não em runtime, para que uma falha do gate não mudasse o comportamento de produção.
+- [x] **Teste do caminho feliz:** um commit verde na `main` dispara exatamente **um** deploy, e o `createdAt` desse deploy é posterior ao fim do check `ci`. — `ba68b84`, 30/07/2026: check fechou `success` às 15:01:29Z, deploy `dep-d9lmej8ae00c738fe630` criado às **15:01:33.7Z**, 4,2 s depois. Um único deploy.
+- [x] **Nenhum secret novo** no repo. Este critério substitui o do Deploy Hook: se a implementação precisar de um secret, ela saiu do desenho. — `gh secret list` devolve vazio: o repo não tem secret nenhum. (As ocorrências de `RENDER_API_KEY` em `scripts/mcp/setup-mcp.*` são setup local de MCP com placeholder, anteriores a esta story.)
+- [x] O tempo entre o push e o início do deploy está registrado na descrição do commit — é o custo que esta story cobra.
+
+### O custo medido
+
+| | antes (`commit`) | depois (`checksPass`) |
+|---|---|---|
+| push → deploy criado | ~6 s | **~84 s** |
+| janela com produção rodando código não verificado | ~99 s | **0** |
+
+Medido no mesmo dia, nos commits `7f2a92d` (antes) e `ba68b84` (depois). O preço da story são ~78 s de espera por deploy, e o que ele compra é a janela indo a zero.
 
 ---
 
