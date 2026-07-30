@@ -74,7 +74,9 @@ const rollDiceStub = tool({
 
 function guardrailFails(narration, calledRollDice, checkSelfRoll) {
   const fails = []
-  if (detectLanguageDrift(narration).drift) fails.push('idioma')
+  // US-97: alvo explícito. O bake-off mede a mesa PT; sem o alvo, "deriva" voltaria a
+  // ser um default implícito e uma mesa em inglês seria reprovada por existir.
+  if (detectLanguageDrift(narration, 'pt-BR').drift) fails.push('idioma')
   if (detectReasoningLeak(narration).leak) fails.push('reasoning-leak')
   if (checkSelfRoll && !checkNoSelfRoll({ calledRollDice, narration }).passed) fails.push('rollDice')
   return fails

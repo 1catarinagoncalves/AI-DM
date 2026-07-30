@@ -1,4 +1,4 @@
-import type { InitialAdventureHook, SystemConfig, ChatTurn } from '@ai-dm/shared'
+import type { InitialAdventureHook, Locale, SystemConfig, ChatTurn } from '@ai-dm/shared'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
@@ -27,6 +27,16 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}/api/v1${path}`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+async function patch<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}/api/v1${path}`, {
+    method: 'PATCH',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body),
+  })
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
@@ -61,6 +71,10 @@ export const api = {
     get<{ id: string; name: string; gender: string; race: string; class: string; level: number; baseAttributes: Record<string, number>; features: { name: string; description: string }[]; spells: { name: string; level?: number; description?: string }[]; states: { hp: number; maxHp: number; inventory: { name: string; qty: number }[] }[] }>(`/characters/${id}`),
 
   deleteCharacter: (id: string) => del(`/characters/${id}`),
+
+  // US-97: troca o idioma ativo da conta. O turno não manda locale — a API o deriva
+  // do token —, então esta é a única rota por onde a preferência viaja.
+  setLocale: (locale: Locale) => patch<{ id: string; locale: Locale }>('/auth/locale', { locale }),
 
   getTurns: (characterId: string, adventureId: string) =>
     get<ChatTurn[]>(`/characters/${characterId}/adventures/${adventureId}/turns`),

@@ -3,7 +3,7 @@ import { AuthService } from './auth.service'
 import type { PrismaService } from '../prisma.service'
 
 // Fake prisma em memória: cobre só as operações que o AuthService.sync usa.
-interface U { id: string; email: string; name: string }
+interface U { id: string; email: string; name: string; locale?: string }
 interface C { id: string; userId: string }
 interface A { id: string; creatorId: string }
 
@@ -18,13 +18,14 @@ function fakePrisma(seed: { users?: U[]; characters?: C[]; adventures?: A[] }) {
     user: {
       findUnique: async ({ where: { email } }: { where: { email: string } }) =>
         db.users.find((u) => u.email === email) ?? null,
-      update: async ({ where: { email }, data }: { where: { email: string }; data: { name: string } }) => {
-        const u = db.users.find((x) => x.email === email)!
-        u.name = data.name
+      update: async ({ where, data }: { where: { email?: string; id?: string }; data: { name?: string; locale?: string } }) => {
+        const u = db.users.find((x) => (where.email ? x.email === where.email : x.id === where.id))!
+        if (data.name !== undefined) u.name = data.name
+        if (data.locale !== undefined) u.locale = data.locale
         return u
       },
-      create: async ({ data }: { data: { email: string; name: string } }) => {
-        const u = { id: `real_${++seq}`, ...data }
+      create: async ({ data }: { data: { email: string; name: string; locale?: string } }) => {
+        const u = { locale: 'pt-BR', id: `real_${++seq}`, ...data }
         db.users.push(u)
         return u
       },
@@ -56,6 +57,7 @@ function fakePrisma(seed: { users?: U[]; characters?: C[]; adventures?: A[] }) {
   }
   const prisma = {
     $transaction: async <T>(fn: (t: typeof tx) => Promise<T>) => fn(tx),
+    user: tx.user,
   } as unknown as PrismaService
   return { prisma, db }
 }
@@ -108,5 +110,44 @@ describe('AuthService.sync — reivindicação única de órfãos (US-61 D1)', (
     expect(user.id).toBe('real_ana')
     expect(user.name).toBe('Ana Maria')
     expect(db.characters[0]!.userId).toBe('g3') // intacto — existing=true, sem claim
+  })
+})
+
+describe('AuthService — locale da conta (US-97)', () => {
+  it('conta nova nasce em pt-BR quando o login não traz preferência', async () => {
+    const { prisma } = fakePrisma({})
+    const user = await new AuthService(prisma).sync('ana@gmail.com', 'Ana')
+    expect(user.locale).toBe('pt-BR')
+  })
+
+  it('conta nova adota a preferência escolhida ANTES do login (visitante em inglês)', async () => {
+    const { prisma, db } = fakePrisma({})
+    const user = await new AuthService(prisma).sync('bob@gmail.com', 'Bob', 'en-US')
+    expect(user.locale).toBe('en-US')
+    expect(db.users[0]!.locale).toBe('en-US')
+  })
+
+  it('re-login NÃO sobrescreve a preferência salva com o palpite do browser', async () => {
+    const { prisma } = fakePrisma({
+      users: [{ id: 'real_ana', email: 'ana@gmail.com', name: 'Ana', locale: 'en-US' }],
+    })
+    const user = await new AuthService(prisma).sync('ana@gmail.com', 'Ana', 'pt-BR')
+    expect(user.locale).toBe('en-US')
+  })
+
+  it('setLocale troca a preferência da conta', async () => {
+    const { prisma, db } = fakePrisma({
+      users: [{ id: 'real_ana', email: 'ana@gmail.com', name: 'Ana', locale: 'pt-BR' }],
+    })
+    const out = await new AuthService(prisma).setLocale('real_ana', 'en-US')
+    expect(out.locale).toBe('en-US')
+    expect(db.users[0]!.locale).toBe('en-US')
+  })
+
+  it('normaliza qualquer tag do browser para uma das duas chaves', async () => {
+    const { prisma } = fakePrisma({})
+    // 'pt-PT' é português: cai em pt-BR, não em inglês (regressão do casamento por subtag).
+    const user = await new AuthService(prisma).sync('ci@gmail.com', 'Ci', 'pt-PT')
+    expect(user.locale).toBe('pt-BR')
   })
 })

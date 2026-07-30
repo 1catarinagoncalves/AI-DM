@@ -3,6 +3,7 @@
 import { SessionProvider, useSession } from 'next-auth/react'
 import type { Session } from 'next-auth'
 import { setAuthToken } from '@/lib/api'
+import { LocaleProvider } from '@/components/LocaleProvider'
 
 // US-61: ponte entre a sessão do Auth.js e o cliente da API. Injeta o token Bearer
 // no módulo `api` durante o render — antes de qualquer efeito de fetch das telas —
@@ -17,7 +18,8 @@ export function Providers({ children, session }: { children: React.ReactNode; se
   return (
     <SessionProvider session={session}>
       <AuthTokenBridge />
-      {children}
+      {/* US-97: dentro do SessionProvider — a preferência da CONTA vem da sessão. */}
+      <LocaleProvider>{children}</LocaleProvider>
     </SessionProvider>
   )
 }

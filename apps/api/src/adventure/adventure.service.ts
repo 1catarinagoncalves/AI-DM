@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, buildSkillSheet, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, resolveLocale, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, type CharacterBackground, type ClassFeature, type KnownSpell } from '@ai-dm/ai-engine'
@@ -70,7 +70,9 @@ export class AdventureService {
   async createForCharacter(characterId: string, dto: CreateAdventureDto) {
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },
-      include: { system: true },
+      // US-97: `user.locale` decide o idioma da primeira cena — é o único texto que
+      // nasce antes de o jogador escrever qualquer coisa (não há o que espelhar).
+      include: { system: true, user: { select: { locale: true } } },
     })
     if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
 
@@ -117,7 +119,10 @@ export class AdventureService {
       features: (character.features ?? []) as unknown as ClassFeature[],
       // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
       spells: ((character.spells ?? []) as unknown as KnownSpell[]).map((s) => ({ name: s.name, level: s.level })),
+      locale: resolveLocale(character.user?.locale),
     })
+    // ponytail: o fallback estático continua PT (o gancho é autoral, US-101). Numa mesa
+    // em inglês ele só aparece se a geração falhar — não vale um segundo caminho aqui.
     const openingText = generatedOpening ?? hook.openingNarration
 
     // US-35: extrai a cena estruturada da abertura ANTES da transação (é LLM). Sem

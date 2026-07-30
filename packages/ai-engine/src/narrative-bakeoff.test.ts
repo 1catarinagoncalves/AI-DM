@@ -294,7 +294,8 @@ async function runTurn(modelId: string, scenario: Scenario): Promise<TurnResult>
 /** Roda os guardrails aplicáveis a um turno e devolve as falhas (vazio = passou). */
 function evaluateGuardrails(r: TurnResult, checkSelfRoll: boolean, canonEntities?: string[]): string[] {
   const fails: string[] = []
-  if (detectLanguageDrift(r.narration).drift) fails.push('idioma')
+  // US-97: alvo explícito (as fixturas deste bake-off são todas de mesa PT).
+  if (detectLanguageDrift(r.narration, 'pt-BR').drift) fails.push('idioma')
   if (detectReasoningLeak(r.narration).leak) fails.push('reasoning-leak')
   if (checkSelfRoll && !checkNoSelfRoll({ calledRollDice: r.calledRollDice, narration: r.narration }).passed) {
     fails.push('rollDice')

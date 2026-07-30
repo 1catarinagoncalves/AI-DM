@@ -1,21 +1,21 @@
-# Graph Report - AI DM  (2026-07-29)
+# Graph Report - AI DM  (2026-07-30)
 
 ## Corpus Check
-- 274 files · ~542,012 words
+- 290 files · ~564,593 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1384 nodes · 1740 edges · 147 communities (98 shown, 49 thin omitted)
+- 1579 nodes · 1975 edges · 169 communities (117 shown, 52 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c0a1b172`
+- Built from commit: `eb594cd8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- AuthUser
+- CharacterController
 - dm-system.ts
 - devDependencies
 - narration.ts
@@ -23,41 +23,41 @@
 - Location Bake-off Script
 - Bake-off Runner Script
 - layout.tsx
-- Narrative Bake-off Test Fixtures
+- narrative-bakeoff.test.ts
 - rubric.ts
 - check-doc-links.mjs
 - US-36 Eval Cases
 - Prompt A/B Bake-off Script
 - Onomastics Bake-off Script
 - app.module.ts
-- ai.service.test.ts
+- AdventureController
 - GameView.tsx
 - dependencies
-- a11y.test.tsx
+- US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)
 - Kanban Server Script
 - SetupWizard.tsx
 - DnD5e Seed Data
 - SetupWizard.test.tsx
+- ai.service.ts
 - AiService
-- rubric.test.ts
-- prisma.service.ts
+- PrismaService
 - HomeHero.tsx
 - scripts
-- Guardrails & Slop Detection
+- guardrails.ts
 - devDependencies
 - shared/package.json
 - US-11b Scene State Spec
-- character.service.ts
+- adventure.service.ts
 - ai-engine/package.json
 - User Story Template
 - Endpoints (Fase 1 — MVP)
 - Web TSConfig
-- system.module.ts
+- prisma.service.ts
 - compilerOptions
 - compilerOptions
 - Root TSConfig
 - PRD Doc
-- ai.service.ts
+- AuthUser
 - user.controller.ts
 - scripts
 - API Build TSConfig
@@ -66,14 +66,14 @@
 - Seraphine Reference Adventure
 - Doc Link Checker Tests
 - Acceptance Criteria Doc
-- adventure.service.ts
+- AdventureService
 - Deploy Infra User Stories
 - Nest CLI Config
 - API TSConfig/Prisma
 - SRD Ingestion User Stories
 - Docs Vault/CI User Stories
-- AiController
-- PrismaService
+- US-95 — O loop `ação → tool → persistir → estado` ganha teste de integração
+- US-100 — A ficha do personagem acompanha o idioma ativo (features e magias por chave)
 - move-ab.mjs
 - NextAuth Type Defs
 - TTFT Benchmark Test
@@ -83,7 +83,7 @@
 - AuthController
 - next.config.ts
 - Bake-off README
-- Narration Quality User Stories
+- US-95-camada-de-integracao-com-banco-efemero.md
 - Spells Seed Data
 - README Shape Test
 - Sync Script
@@ -91,7 +91,7 @@
 - Vercel Config
 - Prompt Layers ADR/US
 - Character Identity User Stories
-- ADR 004/005 Docs
+- US-02 — Inventário do personagem e equipamento inicial
 - Paladin Features Seed
 - ai
 - @nestjs/platform-express
@@ -121,49 +121,72 @@
 - US-18 Turn History API
 - US-19 Character Sheet Sync
 - US-29 Fictional Roll Sanitization
-- US-38 Sheet-Anchored Rolls
+- US-101 — Ganchos de aventura inicial em inglês
 - US-45 Character Background
-- Design System "Grimório Vivo" — AI Dungeon Master
+- Direção por alavanca
 - US-50 Character Spells
 - US-53 Prisma Config Migration
 - US-57 Server Warm-up
 - US-65 Google Login Prod Setup
 - US-67 Edit Sent Action
-- US-68 Fantasy Name Generation
-- US-70 Eval Dimension Floors
+- US-99 — O `config` do sistema é servido no locale ativo (EN cru ou overlay pt-BR)
+- US-92 — O deploy espera o CI ficar verde
 - US-71 Character Location Simplification
-- US-72 Rewrite-Resistant Evals
+- US-94 — O gate de qualidade da narração passa a rodar de verdade, num job noturno
 - US-73 Background Scene Reconciler
 - US-75 Knowledge Ledger Dimensions
 - US-76 US-75 Test Fake Fix
-- US-87 Entity Block Prompt Fix
+- US-96 — A convenção de mensagem de commit passa a descrever este repo
 - zod-to-json-schema
 - Summary Model Config
+- US-93 — Três gates baratos: drift de migração, dependência vulnerável e smoke pós-deploy
+- Design System "Grimório Vivo" — AI Dungeon Master
 - Kanban User Stories
+- AGENTS.md
+- LocaleProvider.tsx
+- 2. Decisão
+- Camadas de teste
+- US-94-eval-vivo-noturno-com-chaves.md
+- jwt.ts
+- Checklist de Deploy — AI Dungeon Master
+- estrategia-de-testes.md
+- US-97-seletor-de-idioma-pt-br-en.md
+- US-98 — Interface web em inglês (i18n das strings do front)
+- ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma
+- rubric.test.ts
+- AiController
+- ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
+- locale.test.tsx
+- ApiBearerAuth
+- ApiOperation
+- ApiTags
+- Controller
+- Post
+- UseGuards
 
 ## God Nodes (most connected - your core abstractions)
-1. `PrismaService` - 31 edges
+1. `PrismaService` - 25 edges
 2. `AiService` - 22 edges
-3. `AuthUser` - 18 edges
+3. `AuthUser` - 17 edges
 4. `scripts` - 15 edges
-5. `CurrentUser` - 14 edges
+5. `CurrentUser` - 13 edges
 6. `CharacterController` - 13 edges
 7. `CharacterService` - 13 edges
 8. `AdventureService` - 12 edges
-9. `AdventureController` - 11 edges
-10. `compilerOptions` - 11 edges
+9. `cn()` - 12 edges
+10. `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --references--> `SystemConfigSchema`  [EXTRACTED]
   scripts/srd/ingest.mjs → packages/shared/src/types/system.ts
 - `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
   docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
-- `POST()` --calls--> `apiAuthHeader()`  [EXTRACTED]
-  apps/web/src/app/api/chat/route.ts → apps/web/src/lib/server-auth.ts
-- `PlayPage()` --calls--> `apiAuthHeader()`  [EXTRACTED]
-  apps/web/src/app/play/[adventureId]/page.tsx → apps/web/src/lib/server-auth.ts
-- `optionCardClass()` --calls--> `cn()`  [EXTRACTED]
-  apps/web/src/components/setup/SetupWizard.tsx → apps/web/src/components/ui/dm.tsx
+- `GameView()` --calls--> `useLocale()`  [EXTRACTED]
+  apps/web/src/components/game/GameView.tsx → apps/web/src/components/LocaleProvider.tsx
+- `LocaleToggle()` --calls--> `cn()`  [EXTRACTED]
+  apps/web/src/components/LocaleToggle.tsx → apps/web/src/components/ui/dm.tsx
+- `GameView()` --calls--> `fieldClass()`  [EXTRACTED]
+  apps/web/src/components/game/GameView.tsx → apps/web/src/components/ui/dm.tsx
 
 ## Import Cycles
 - None detected.
@@ -182,23 +205,23 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (147 total, 49 thin omitted)
+## Communities (169 total, 52 thin omitted)
 
-### Community 0 - "AuthUser"
-Cohesion: 0.06
-Nodes (35): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+27 more)
+### Community 0 - "CharacterController"
+Cohesion: 0.07
+Nodes (27): CharacterController, base, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+19 more)
 
 ### Community 1 - "dm-system.ts"
 Cohesion: 0.06
-Nodes (42): EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL, fallbackModel, google, groq (+34 more)
+Nodes (41): EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL, fallbackModel, google, groq (+33 more)
 
 ### Community 2 - "devDependencies"
 Cohesion: 0.04
 Nodes (45): dependencies, @ai-dm/shared, jose, lucide-react, next, next-auth, react, react-dom (+37 more)
 
 ### Community 3 - "narration.ts"
-Cohesion: 0.10
-Nodes (25): abilityModifier(), buildSkillSheet(), formatModifier(), ResolvedSkill, skillModifier(), detectDegeneration(), formatDiceBreakdown(), hasOptionsList() (+17 more)
+Cohesion: 0.07
+Nodes (31): abilityModifier(), buildSkillSheet(), formatModifier(), ResolvedSkill, skillModifier(), isLocale(), Locale, localeLabel() (+23 more)
 
 ### Community 4 - "ingest.mjs"
 Cohesion: 0.07
@@ -216,13 +239,13 @@ Nodes (26): accum, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, dir, EX, gen
 Cohesion: 0.09
 Nodes (19): POST(), cinzel, geist, metadata, viewport, PlayPage(), Props, { handlers, auth } (+11 more)
 
-### Community 8 - "Narrative Bake-off Test Fixtures"
+### Community 8 - "narrative-bakeoff.test.ts"
 Cohesion: 0.09
-Nodes (23): AMNESIA_ENTITIES, AMNESIA_TURN_STATE, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, EX_AMNESIA, EX_COHERENCE, EX_COMBAT (+15 more)
+Nodes (20): AMNESIA_ENTITIES, AMNESIA_TURN_STATE, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, EX_AMNESIA, EX_COHERENCE, EX_COMBAT (+12 more)
 
 ### Community 9 - "rubric.ts"
-Cohesion: 0.10
-Nodes (24): aggregateReps(), batchItemSchema, batchSchema, buildBatchPrompt(), buildJudgePrompt(), Dimension, dimScore, fmt() (+16 more)
+Cohesion: 0.09
+Nodes (26): aggregateReps(), batchItemSchema, batchSchema, buildBatchPrompt(), buildJudgePrompt(), Dimension, dimScore, Exemplar (+18 more)
 
 ### Community 10 - "check-doc-links.mjs"
 Cohesion: 0.08
@@ -241,32 +264,32 @@ Cohesion: 0.11
 Nodes (15): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODELS, PACE_MS (+7 more)
 
 ### Community 14 - "app.module.ts"
-Cohesion: 0.16
-Nodes (12): AdventureModule, Module, AiModule, Module, AppModule, Module, AuthModule, Module (+4 more)
+Cohesion: 0.18
+Nodes (10): AdventureModule, Module, AiModule, Module, AppModule, Module, CharacterModule, Module (+2 more)
 
-### Community 15 - "ai.service.test.ts"
-Cohesion: 0.19
-Nodes (7): Evt, fakePrisma(), { salvage }, service(), DiceService, dice, Injectable
+### Community 15 - "AdventureController"
+Cohesion: 0.18
+Nodes (12): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+4 more)
 
 ### Community 16 - "GameView.tsx"
-Cohesion: 0.14
-Nodes (15): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), Message (+7 more)
+Cohesion: 0.13
+Nodes (16): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), LocaleTurn (+8 more)
 
 ### Community 17 - "dependencies"
 Cohesion: 0.12
 Nodes (17): @ai-dm/ai-engine, dependencies, @ai-dm/ai-engine, @ai-dm/shared, @nestjs/common, @nestjs/core, @prisma/adapter-pg, @prisma/client (+9 more)
 
-### Community 18 - "a11y.test.tsx"
-Cohesion: 0.33
-Nodes (3): AXE_OPTIONS, gameProps, { listCharacters, getTurns, listSystems }
+### Community 18 - "US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)"
+Cohesion: 0.09
+Nodes (23): A proposta, Alternativas consideradas, Aviso de troca de idioma no chat, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo (+15 more)
 
 ### Community 19 - "Kanban Server Script"
 Cohesion: 0.17
 Nodes (15): abrirArquivo(), acharArquivo(), campo(), CANONICO, { execFile }, fs, gravarStatus(), HTML_FILE (+7 more)
 
 ### Community 20 - "SetupWizard.tsx"
-Cohesion: 0.17
-Nodes (13): CLASSES, GENDERS, optionCardClass(), parseDeity(), POINT_COST, RACES, SetupWizard(), SOURCE_TYPE_HINT (+5 more)
+Cohesion: 0.18
+Nodes (14): CLASSES, GENDERS, optionCardClass(), parseDeity(), POINT_COST, RACES, SetupWizard(), SOURCE_TYPE_HINT (+6 more)
 
 ### Community 21 - "DnD5e Seed Data"
 Cohesion: 0.13
@@ -276,29 +299,29 @@ Nodes (13): CANTRIP_CATALOG, CANTRIP_CLASSES, dnd5eConfig, dnd5eInitialAdventure
 Cohesion: 0.50
 Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacter, getInitialAdventure, createAdventure }
 
-### Community 23 - "AiService"
-Cohesion: 0.17
+### Community 23 - "ai.service.ts"
+Cohesion: 0.11
+Nodes (17): AnchoredRoll, ChatInput, ExtractedScene, normName(), OPENING_ENTITIES_SCHEMA, OPENING_SCENE_SCHEMA, RollTurnState, SALVAGE_PROVIDER_OPTIONS (+9 more)
+
+### Community 24 - "AiService"
+Cohesion: 0.16
 Nodes (9): ChatBodySchema, ApiBody, ApiOperation, Body, Post, AiService, Injectable, HttpCode (+1 more)
 
-### Community 24 - "rubric.test.ts"
-Cohesion: 0.22
-Nodes (7): DIMENSION_FLOORS, DIMENSIONS, estimateCost(), gateQuality(), dims(), perDim(), WEIGHTS
-
-### Community 25 - "prisma.service.ts"
-Cohesion: 0.23
-Nodes (5): AuthService, A, C, U, Injectable
+### Community 25 - "PrismaService"
+Cohesion: 0.15
+Nodes (8): AuthModule, Module, A, C, U, ADR-0005, PrismaService, Injectable
 
 ### Community 26 - "HomeHero.tsx"
-Cohesion: 0.22
-Nodes (10): HomeHero(), HubCharacter, { listCharacters, deleteCharacter }, DmButton(), dmButtonClass(), api, authHeaders(), del() (+2 more)
+Cohesion: 0.19
+Nodes (8): AXE_OPTIONS, gameProps, { listCharacters, getTurns, listSystems }, HomeHero(), HubCharacter, { listCharacters, deleteCharacter }, DmButton(), dmButtonClass()
 
 ### Community 27 - "scripts"
 Cohesion: 0.08
 Nodes (25): dotenv-cli, knip, devDependencies, dotenv-cli, knip, typescript, typescript, name (+17 more)
 
-### Community 28 - "Guardrails & Slop Detection"
-Cohesion: 0.25
-Nodes (12): checkNoSelfRoll(), DENIAL_PATTERNS, detectCanonDenial(), detectInventedRoll(), detectLanguageDrift(), detectReasoningLeak(), detectSlopName(), GuardrailResult (+4 more)
+### Community 28 - "guardrails.ts"
+Cohesion: 0.23
+Nodes (13): checkNoSelfRoll(), DENIAL_PATTERNS, detectCanonDenial(), detectInventedRoll(), detectLanguageDrift(), detectReasoningLeak(), detectSlopName(), GuardrailResult (+5 more)
 
 ### Community 29 - "devDependencies"
 Cohesion: 0.15
@@ -312,9 +335,9 @@ Nodes (18): dependencies, zod, devDependencies, typescript, vitest, typescript, 
 Cohesion: 0.12
 Nodes (16): A proposta, Como o `sceneState` é alimentado (determinístico), Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História (+8 more)
 
-### Community 32 - "character.service.ts"
-Cohesion: 0.19
-Nodes (11): base, CreateCharacterDto, CreateCharacterSchema, CLASS_SYNONYMS, getClassFeatures(), getClassSpells(), getStartingInventory(), normalize() (+3 more)
+### Community 32 - "adventure.service.ts"
+Cohesion: 0.25
+Nodes (4): CreateAdventureDto, config, Recorded, ADR-0002
 
 ### Community 33 - "ai-engine/package.json"
 Cohesion: 0.06
@@ -325,15 +348,15 @@ Cohesion: 0.13
 Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Modelo de dados proposto (+6 more)
 
 ### Community 35 - "Endpoints (Fase 1 — MVP)"
-Cohesion: 0.05
-Nodes (37): US-83 — README com arquitetura de alto nível, US-86 — Árvore de diretórios na documentação deixa de mentir sobre onde o arquivo está, US-88 — Doc que ordena deixa de citar API que não existe, US-89 — Export que ninguém importa para de sobreviver no repo, US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este, Aventuras, Contratos de API — AI Dungeon Master, Convenções (+29 more)
+Cohesion: 0.18
+Nodes (10): Aventuras, Contratos de API — AI Dungeon Master, Convenções, DM Agent (streaming), Endpoints (Fase 1 — MVP), Multiplayer (Fase 4), Personagens — dono derivado do token, Sistemas — público (+2 more)
 
 ### Community 36 - "Web TSConfig"
 Cohesion: 0.09
 Nodes (22): compilerOptions, allowJs, incremental, isolatedModules, jsx, lib, module, moduleResolution (+14 more)
 
-### Community 37 - "system.module.ts"
-Cohesion: 0.19
+### Community 37 - "prisma.service.ts"
+Cohesion: 0.18
 Nodes (9): SystemController, ApiOperation, ApiTags, Controller, Get, SystemModule, Module, SystemService (+1 more)
 
 ### Community 38 - "compilerOptions"
@@ -352,9 +375,9 @@ Nodes (9): compilerOptions, esModuleInterop, module, moduleResolution, noUncheck
 Cohesion: 0.18
 Nodes (10): 1. Declaração do problema, 2. Objetivos e critério de aceite, 3. Usuários alvo, 4.1 Personagens e campanhas, 4.2 Multiplayer, 4.3 Sistemas e aventuras, 4. Casos de uso, 5. Fora do escopo (v1) (+2 more)
 
-### Community 42 - "ai.service.ts"
-Cohesion: 0.22
-Nodes (9): AnchoredRoll, ChatInput, ExtractedScene, normName(), OPENING_ENTITIES_SCHEMA, OPENING_SCENE_SCHEMA, RollTurnState, SALVAGE_PROVIDER_OPTIONS (+1 more)
+### Community 42 - "AuthUser"
+Cohesion: 0.32
+Nodes (6): AuthGuard, Injectable, AuthUser, CurrentUser, payloadToUser(), zodBody()
 
 ### Community 43 - "user.controller.ts"
 Cohesion: 0.16
@@ -388,10 +411,6 @@ Nodes (4): ANTES, DEPOIS, ROOT, SCRIPT
 Cohesion: 0.20
 Nodes (9): Critérios de Aceite — AI Dungeon Master, Critérios de aceite transversais (todos os stories), US-01 — Criar personagem, US-02 — Ver ficha do personagem, US-03 — Personagem persiste entre aventuras, US-08 — Narração em streaming, US-09 — Rolagem de dados transparente, US-10 — Consulta de regras (+1 more)
 
-### Community 51 - "adventure.service.ts"
-Cohesion: 0.18
-Nodes (7): AdventureService, CreateAdventureDto, config, Recorded, Injectable, resolveHookTemplate(), ADR-0002
-
 ### Community 52 - "Deploy Infra User Stories"
 Cohesion: 0.29
 Nodes (7): US-58 — Banco Postgres gerenciado na Neon, US-59 — API em produção no Render, US-60 — Web em produção na Vercel, US-61 — Login do jogador, US-62 — Acesso do Claude à Neon via MCP, US-63 — Acesso do Claude ao Render via MCP, US-64 — Acesso do Claude à Vercel via MCP
@@ -412,13 +431,13 @@ Nodes (6): US-47 — Ingestão do SRD como dado, US-48 — Tool getRule e corpus
 Cohesion: 0.40
 Nodes (5): US-78 — Vault Obsidian sobre docs/, US-79 — Consertar links quebrados na documentação, US-80 — CI: typecheck, testes e evals, US-81 — Higiene de nomes de arquivo e placeholders (#), US-82 — Gate de convenção de nomes de arquivo
 
-### Community 57 - "AiController"
-Cohesion: 0.22
-Nodes (5): AiController, ApiBearerAuth, ApiTags, Controller, UseGuards
+### Community 57 - "US-95 — O loop `ação → tool → persistir → estado` ganha teste de integração"
+Cohesion: 0.14
+Nodes (14): A proposta, Alternativas consideradas e rejeitadas, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História (+6 more)
 
-### Community 58 - "PrismaService"
-Cohesion: 0.20
-Nodes (3): config, PrismaService, Injectable
+### Community 58 - "US-100 — A ficha do personagem acompanha o idioma ativo (features e magias por chave)"
+Cohesion: 0.14
+Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Modelo de dados proposto (+6 more)
 
 ### Community 59 - "move-ab.mjs"
 Cohesion: 0.16
@@ -445,16 +464,12 @@ Cohesion: 0.50
 Nodes (3): name, private, version
 
 ### Community 65 - "AuthController"
-Cohesion: 0.22
-Nodes (7): AuthController, ApiBearerAuth, ApiOperation, ApiTags, Controller, Post, UseGuards
+Cohesion: 0.12
+Nodes (15): ApiBearerAuth, ApiBody, ApiOperation, ApiTags, AuthController, SetLocaleSchema, SyncSchema, AuthService (+7 more)
 
 ### Community 67 - "Bake-off README"
 Cohesion: 0.33
 Nodes (5): Bake-off narrativo (US-17) — como rodar, Notas, Pré-requisitos, Rodar (PowerShell), Variáveis
-
-### Community 68 - "Narration Quality User Stories"
-Cohesion: 0.50
-Nodes (4): US-34 — Qualidade cinematográfica da narração do AI DM, US-35 — Estado de cena estruturado já na abertura da aventura, US-36 — Eval de qualidade da narração do DM, US-37 — Nível cinematográfico mantido em todos os turnos
 
 ### Community 69 - "Spells Seed Data"
 Cohesion: 0.50
@@ -472,41 +487,129 @@ Nodes (3): ADR 007 — Camadas do prompt por volatilidade, US-84 — Nomes de bl
 Cohesion: 0.67
 Nodes (3): US-39 — Identidade narrativa do personagem, US-40 — Divindade / patrono do personagem, US-43 — Calibração do peso dos traços de identidade
 
-### Community 76 - "ADR 004/005 Docs"
-Cohesion: 0.05
-Nodes (36): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset, 5. Alternativas rejeitadas, 6. Consequências, 7. Implementação (referência), ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado (+28 more)
+### Community 76 - "US-02 — Inventário do personagem e equipamento inicial"
+Cohesion: 0.14
+Nodes (13): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Equipamentos iniciais por classe, Escopo, Fora do escopo, História (+5 more)
 
 ### Community 80 - "DM Prompt Rules Doc"
 Cohesion: 0.50
 Nodes (3): ⚠️ REGRA ABSOLUTA - NUNCA confunda opções com diálogo:, ⚠️ REGRA DE CONSISTÊNCIA NARRATIVA (CRÍTICO):, REGRAS RÍGIDAS DE FORMATAÇÃO DE TEXTO (OBRIGATÓRIO):
 
 ### Community 86 - "dm.tsx"
-Cohesion: 0.18
-Nodes (11): BtnProps, cn(), DIM_CLASS, DmVariant, FieldLabel(), Logo(), Panel(), SceneFrame() (+3 more)
+Cohesion: 0.16
+Nodes (10): BtnProps, DIM_CLASS, DmVariant, FieldLabel(), Logo(), Panel(), SceneFrame(), SectionTitle() (+2 more)
 
-### Community 114 - "Design System "Grimório Vivo" — AI Dungeon Master"
-Cohesion: 0.05
-Nodes (42): 1. Contexto, 2.1 Topologia, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), ADR 006 — Deploy a custo zero (Fase 1) (+34 more)
+### Community 112 - "US-101 — Ganchos de aventura inicial em inglês"
+Cohesion: 0.14
+Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação (+6 more)
+
+### Community 114 - "Direção por alavanca"
+Cohesion: 0.14
+Nodes (14): 1. Tipografia — o maior ganho, 2. Recalibração de cor (paleta travada), 3. Iconografia, 4. Materialidade + textura, 5. Imagem — o tell central por resolver, 6. Movimento, A preservar (não regredir), Auditoria do estado atual (+6 more)
+
+### Community 121 - "US-99 — O `config` do sistema é servido no locale ativo (EN cru ou overlay pt-BR)"
+Cohesion: 0.14
+Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Modelo de dados proposto (+6 more)
+
+### Community 122 - "US-92 — O deploy espera o CI ficar verde"
+Cohesion: 0.14
+Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação (+6 more)
+
+### Community 124 - "US-94 — O gate de qualidade da narração passa a rodar de verdade, num job noturno"
+Cohesion: 0.15
+Nodes (13): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação (+5 more)
+
+### Community 128 - "US-96 — A convenção de mensagem de commit passa a descrever este repo"
+Cohesion: 0.15
+Nodes (13): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação (+5 more)
+
+### Community 145 - "US-93 — Três gates baratos: drift de migração, dependência vulnerável e smoke pós-deploy"
+Cohesion: 0.17
+Nodes (12): Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação, O problema observado (+4 more)
+
+### Community 146 - "Design System "Grimório Vivo" — AI Dungeon Master"
+Cohesion: 0.17
+Nodes (12): 1. Tokens de cor, 2. Tipografia, 3. Primitivas, 4. Materialidade e layout, 5. Movimento, 6. Acessibilidade (invariantes da US-46 embutidas no sistema), 7. Checklist de tela nova, Contraste medido (não estimado) (+4 more)
+
+### Community 148 - "AGENTS.md"
+Cohesion: 0.25
+Nodes (4): US-83 — README com arquitetura de alto nível, US-86 — Árvore de diretórios na documentação deixa de mentir sobre onde o arquivo está, US-88 — Doc que ordena deixa de citar API que não existe, US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
+
+### Community 149 - "LocaleProvider.tsx"
+Cohesion: 0.24
+Nodes (11): LocaleContext, LocaleContextValue, LocaleProvider(), rememberLocale(), storedLocale(), api, authHeaders(), del() (+3 more)
+
+### Community 150 - "2. Decisão"
+Cohesion: 0.14
+Nodes (14): 1. Contexto, 2.1 Topologia, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), ADR 006 — Deploy a custo zero (Fase 1) (+6 more)
+
+### Community 151 - "Camadas de teste"
+Cohesion: 0.17
+Nodes (12): 1. Testes unitários (todos os workspaces), 2. Testes de integração — não existem ainda, 3. Testes de componente (apps/web), 4. Evals do DM Agent (evals/), Camadas de teste, Estratégia de Testes e Evals — AI Dungeon Master, Estrutura de um eval case (evals/cases/), Flywheel de qualidade (após MVP) (+4 more)
+
+### Community 152 - "US-94-eval-vivo-noturno-com-chaves.md"
+Cohesion: 0.29
+Nodes (6): US-34 — Qualidade cinematográfica da narração do AI DM, US-35 — Estado de cena estruturado já na abertura da aventura, US-36 — Eval de qualidade da narração do DM, US-37 — Nível cinematográfico mantido em todos os turnos, US-70 — Piso por dimensão e robustez do eval, US-72 — Evals de prompt resistentes à reescrita
+
+### Community 153 - "jwt.ts"
+Cohesion: 0.47
+Nodes (3): b64urlToBuffer(), JwtPayload, verifyJwt()
+
+### Community 154 - "Checklist de Deploy — AI Dungeon Master"
+Cohesion: 0.33
+Nodes (6): Antes de abrir PR, Antes de merge para main, Checklist de Deploy — AI Dungeon Master, Deploy, Desejado, não implementado, Observabilidade — o que existe hoje
+
+### Community 155 - "estrategia-de-testes.md"
+Cohesion: 0.29
+Nodes (5): US-89 — Export que ninguém importa para de sobreviver no repo, Diagrama de entidades (núcleo), Modelo de Dados — AI Dungeon Master, Notas de design, Índices e constraints principais
+
+### Community 156 - "US-97-seletor-de-idioma-pt-br-en.md"
+Cohesion: 0.33
+Nodes (6): US-41 — Features de classe conhecidas pelo mestre, US-42 — Magias conhecidas pelo mestre, US-46 — Acessibilidade da aplicação web (WCAG 2.2 AA), US-47 — Ingestão do SRD 5e (2024) como dado do sistema, US-66 — Todas as telas mobile-friendly, US-68 — Nomes de fantasia originais
+
+### Community 157 - "US-98 — Interface web em inglês (i18n das strings do front)"
+Cohesion: 0.15
+Nodes (13): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação (+5 more)
+
+### Community 158 - "ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma"
+Cohesion: 0.17
+Nodes (12): 1. Contexto, 2.1 Faseamento, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma (+4 more)
+
+### Community 159 - "rubric.test.ts"
+Cohesion: 0.20
+Nodes (8): DIMENSION_FLOORS, DIMENSIONS, estimateCost(), gateQuality(), RubricScore, dims(), perDim(), WEIGHTS
+
+### Community 160 - "AiController"
+Cohesion: 0.22
+Nodes (5): AiController, ApiBearerAuth, ApiTags, Controller, UseGuards
+
+### Community 161 - "ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado"
+Cohesion: 0.25
+Nodes (8): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset, 5. Alternativas rejeitadas, 6. Consequências, 7. Implementação (referência), ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
+
+### Community 162 - "locale.test.tsx"
+Cohesion: 0.38
+Nodes (4): gameProps, { getTurns, setLocale }, useLocale(), LocaleToggle()
 
 ## Knowledge Gaps
-- **670 isolated node(s):** `Message`, `ATTR_LABELS`, `InventoryItem`, `ClassFeature`, `CharacterBackground` (+665 more)
+- **792 isolated node(s):** `CreateAdventureDto`, `ADR-0002`, `ChatInput`, `AnchoredRoll`, `OPENING_SCENE_SCHEMA` (+787 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **49 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **52 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `SystemConfigSchema` connect `ingest.mjs` to `character.service.ts`, `.createForCharacter`, `adventure.service.ts`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `PrismaService` connect `PrismaService` to `character.service.ts`, `AuthController`, `AuthUser`, `system.module.ts`, `ai.service.ts`, `user.controller.ts`, `app.module.ts`, `ai.service.test.ts`, `.createForCharacter`, `adventure.service.ts`, `AiService`, `prisma.service.ts`?**
+- **Why does `SystemConfigSchema` connect `ingest.mjs` to `CharacterController`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **What connects `Message`, `ATTR_LABELS`, `InventoryItem` to the rest of the system?**
-  _670 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `AuthUser` be split into smaller, more focused modules?**
-  _Cohesion score 0.062004662004662 - nodes in this community are weakly interconnected._
+- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-97-seletor-de-idioma-pt-br-en.md` to `US-02 — Inventário do personagem e equipamento inicial`, `US-95-camada-de-integracao-com-banco-efemero.md`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `US-88 — Doc que ordena deixa de citar API que não existe` connect `AGENTS.md` to `US-97-seletor-de-idioma-pt-br-en.md`?**
+  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+- **What connects `CreateAdventureDto`, `ADR-0002`, `ChatInput` to the rest of the system?**
+  _792 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `CharacterController` be split into smaller, more focused modules?**
+  _Cohesion score 0.06775510204081632 - nodes in this community are weakly interconnected._
 - **Should `dm-system.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.05519480519480519 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.055218855218855216 - nodes in this community are weakly interconnected._
 - **Should `devDependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
-- **Should `narration.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._

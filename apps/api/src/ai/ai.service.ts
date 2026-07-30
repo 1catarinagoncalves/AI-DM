@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
-import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList } from '@ai-dm/shared'
+import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -235,7 +235,9 @@ export class AiService {
 
     // Carrega contexto do banco
     const [character, adventure, characterState, quests, historyLogs] = await Promise.all([
-      this.prisma.character.findUnique({ where: { id: characterId } }),
+      // US-97: o idioma-alvo do turno é a preferência do DONO da ficha (`User.locale`),
+      // derivada aqui no servidor — o cliente nunca manda locale (US-61).
+      this.prisma.character.findUnique({ where: { id: characterId }, include: { user: { select: { locale: true } } } }),
       this.prisma.adventure.findUnique({
         where: { id: adventureId },
         include: { system: true },
@@ -317,6 +319,9 @@ export class AiService {
       features: (character.features ?? []) as unknown as ClassFeature[],
       // US-42: magias conhecidas — SÓ os nomes vão ao prompt; a descrição vem via getSpell.
       spells: ((character.spells ?? []) as unknown as KnownSpell[]).map((s) => ({ name: s.name, level: s.level })),
+      // US-97: camada 1 do prompt (estável por usuário) — trocar de idioma invalida o
+      // cache do prefixo uma vez, e é evento raro (ADR 007).
+      locale: resolveLocale(character.user?.locale),
     })
 
     // US-56: bloco de estado volátil do turno, prefixado à AÇÃO CRUA do jogador. A ação
@@ -861,6 +866,8 @@ export class AiService {
     background?: CharacterBackground
     features?: ClassFeature[]
     spells?: KnownSpell[]
+    /** US-97: idioma-alvo. A semente (gancho) é PT autoral — a cena sai no idioma do jogador. */
+    locale?: Locale
   }): Promise<string | null> {
     try {
       const system = buildDmSystemPrompt({
@@ -874,6 +881,7 @@ export class AiService {
         background: params.background,
         features: params.features,
         spells: params.spells,
+        locale: params.locale,
       })
       // US-56: o estado volátil saiu do system. Na abertura não há cena/histórico/HP
       // dinâmico, mas a main quest e o equipamento inicial ainda são contexto útil —
@@ -887,7 +895,7 @@ export class AiService {
         inventory: params.inventory,
         memorySummary: null,
       })
-      const prompt = `${turnState}\n\n${buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed })}`
+      const prompt = `${turnState}\n\n${buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed, locale: params.locale })}`
       // Percorre a MESMA escada de modelos dos turnos (narrationModels): o primário
       // pode estar indisponível para a conta (ex.: gpt-oss-120b sem acesso no OpenRouter)
       // e é justamente esse fallback que mantém a narração dos turnos viva. Sem a

@@ -67,6 +67,21 @@ describe('guardrail — deriva de idioma (narração saiu do PT-BR?)', () => {
     const pt = 'Você checa o status do goblin: ele ainda respira, encolhido contra a parede fria.'
     expect(detectLanguageDrift(pt).drift).toBe(false)
   })
+
+  // US-97: o alvo deixa de ser cravado em PT. Mesa em inglês → deriva é o CONTRÁRIO.
+  it('com alvo en-US, narração inglesa NÃO é deriva e narração PT é', () => {
+    const en =
+      'The rain falls on your helmet as you dismount. The gate creaks open and a figure watches from the shadows. What do you do?'
+    const pt =
+      'A chuva fina batia no seu elmo enquanto você desmontava. O portão entreaberto rangia, e uma silhueta observava das sombras. O que você faz?'
+    expect(detectLanguageDrift(en, 'en-US').drift).toBe(false)
+    expect(detectLanguageDrift(pt, 'en-US').drift).toBe(true)
+  })
+
+  it('sem alvo, continua medindo contra pt-BR (comportamento de antes da US-97)', () => {
+    const en = 'The gate creaks open and a figure watches from the shadows. What do you do?'
+    expect(detectLanguageDrift(en).drift).toBe(detectLanguageDrift(en, 'pt-BR').drift)
+  })
 })
 
 describe('guardrail — vazamento de reasoning / voz de assistente', () => {

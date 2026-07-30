@@ -1,14 +1,25 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Dices, Pencil, Send } from 'lucide-react'
+import { ChevronDown, Dices, Languages, Pencil, Send } from 'lucide-react'
 import { abilityModifier, formatModifier, stripFabricatedRolls, stripWorldStateTags, formatDiceBreakdown, spellLevelLabel } from '@ai-dm/shared'
-import type { ChatTurn, RollTurn, SystemSpell } from '@ai-dm/shared'
+import type { ChatTurn, Locale, RollTurn, SystemSpell } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { DmButton, Logo, SheetHeading, fieldClass } from '@/components/ui/dm'
+import { LocaleToggle } from '@/components/LocaleToggle'
+import { useLocale } from '@/components/LocaleProvider'
+
+// US-97: marcador de sessão — o aviso de troca de idioma. Vive SÓ na lista da tela:
+// não é turno de jogo, não vai ao EventLog nem ao histórico que o Mestre recebe (ele
+// não precisa saber que houve troca, precisa narrar no idioma-alvo). Por isso é um
+// tipo local, e não um `role` novo em ChatTurn — o contrato com a API fica intacto.
+interface LocaleTurn {
+  role: 'locale'
+  locale: Locale
+}
 
 // US-29: um turno é ação do jogador, narração do Mestre OU um bloco de rolagem.
-type Message = ChatTurn
+type Message = ChatTurn | LocaleTurn
 
 const ATTR_LABELS: Record<string, string> = {
   strength: 'FOR', dexterity: 'DES', constitution: 'CON',
@@ -83,7 +94,11 @@ function loadHistory(adventureId: string): Message[] {
 }
 
 function saveHistory(adventureId: string, messages: Message[]) {
-  localStorage.setItem(historyKey(adventureId), JSON.stringify(messages))
+  // US-97: o aviso de troca de idioma NÃO entra no cache. É marcador de sessão: se
+  // fosse gravado, ressuscitaria a cada abertura da mesa, fora do momento em que
+  // a troca aconteceu.
+  const persistable = messages.filter((m) => m.role !== 'locale')
+  localStorage.setItem(historyKey(adventureId), JSON.stringify(persistable))
 }
 
 // US-45: painel da aba Background. Read-only. Cada eixo só vira bloco se tiver
@@ -220,6 +235,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   // suspendem por ociosidade. O primeiro fetch do mount (getTurns) acorda os dois —
   // reusamo-lo como aquecimento e travamos o input até resolver, para o cold start
   // ser pago AQUI (com tempo à mostra) e não no primeiro turno do Mestre.
+  const { locale, switches } = useLocale()
   const [warming, setWarming] = useState(true)
   const [warmSecs, setWarmSecs] = useState(0)
   const [currentHp, setCurrentHp] = useState(hp)
@@ -253,6 +269,18 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // US-97: trocar o idioma no meio da mesa muda a língua da PRÓXIMA cena. Sem sinal,
+  // isso lê-se como o Mestre ter enlouquecido — então marcamos o ponto da conversa em
+  // que a troca aconteceu, no mesmo formato do bloco de rolagem. Observa `switches`
+  // (trocas do JOGADOR), não o valor do locale: a resolução inicial do provider muda o
+  // valor sem ninguém ter escolhido nada e faria a pílula aparecer ao abrir a mesa.
+  useEffect(() => {
+    if (switches === 0) return
+    setMessages((prev) => [...prev, { role: 'locale', locale }])
+    // `locale` de propósito fora das deps: quem dispara é a troca, não o valor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [switches])
 
   // US-67: início da edição — devolve o texto da última ação ao textarea e entra
   // em modo edição. Bloqueado enquanto o Mestre responde/acorda (igual ao enviar).
@@ -483,6 +511,12 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           id="character-sheet"
           className={`${sheetOpen ? 'flex' : 'hidden'} scrollbar-thin max-h-[70vh] min-h-0 flex-col gap-4 overflow-y-auto p-4 md:flex md:max-h-none`}
         >
+        {/* US-97: o seletor da mesa vive na ficha, não no topo — a barra superior já
+            está cheia (tema + Sair, com a largura reservada à mão em `pr-40` acima) e
+            trocar de idioma em plena mesa é raro. Um ponto só serve mobile (painel
+            recolhível) e desktop (coluna sempre aberta). */}
+        <LocaleToggle className="self-start" />
+
         <div className="md:w-full">
           <div className="mb-1 flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             <span>HP</span>
@@ -671,6 +705,22 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           {messages.map((msg, i) => {
             // US-29: bloco de rolagem REAL do sistema — mostrado antes da
             // narração. Número vindo do Game Server, nunca da prosa.
+            // US-97: aviso de troca de idioma — mesma família visual do bloco de
+            // rolagem (pílula centrada entre as falas), ícone próprio. Escrito no
+            // idioma NOVO: é isso que confirma ao jogador que a troca pegou.
+            if (msg.role === 'locale') {
+              return (
+                <div key={i} className="flex justify-center">
+                  <p
+                    role="status"
+                    className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs text-muted-foreground"
+                  >
+                    <Languages aria-hidden className="size-3.5 text-accent" />
+                    {msg.locale === 'pt-BR' ? 'Idioma alterado para Português' : 'Language changed to English'}
+                  </p>
+                </div>
+              )
+            }
             if (msg.role === 'roll') {
               return (
                 <div key={i} className="flex justify-center">

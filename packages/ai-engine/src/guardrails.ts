@@ -1,4 +1,4 @@
-import { stripReasoningLeak } from '@ai-dm/shared'
+import { stripReasoningLeak, type Locale } from '@ai-dm/shared'
 
 // Guardrails determinísticos do bake-off narrativo (US-17, slice 2).
 //
@@ -71,14 +71,23 @@ const PT_DIACRITICS = /[áàâãéêíóôõúüç]/gi
 const EN_MARKERS = /\b(the|you|your|with|and|is|are|of|to|into|while|from|what|do|as|this|that|there|his|her)\b/gi
 
 /**
- * A narração derivou do PT-BR? `drift = true` quando os marcadores de inglês
- * superam os de PT-BR (marcadores + diacríticos) por margem e passam de um piso
- * — o piso evita acusar um texto PT curto por causa de um "the" solto.
+ * A narração derivou do idioma-alvo do turno? `drift = true` quando os marcadores
+ * da OUTRA língua superam os do alvo por margem e passam de um piso — o piso evita
+ * acusar um texto curto por causa de um "the" (ou de um "você") solto.
+ *
+ * US-97: o alvo era cravado em PT-BR, o que reprovava qualquer mesa em inglês
+ * ("EN não estava ausente, estava proibido" — ADR 005 D4). Agora vem por parâmetro,
+ * com `pt-BR` como default para os chamadores que ainda medem só a mesa PT. A
+ * heurística já contava os dois lados; o alvo só escolhe qual placar é o "certo".
  */
-export function detectLanguageDrift(narration: string): { drift: boolean; ptScore: number; enScore: number } {
+export function detectLanguageDrift(
+  narration: string,
+  target: Locale = 'pt-BR',
+): { drift: boolean; ptScore: number; enScore: number } {
   const ptScore = (narration.match(PT_MARKERS)?.length ?? 0) + (narration.match(PT_DIACRITICS)?.length ?? 0)
   const enScore = narration.match(EN_MARKERS)?.length ?? 0
-  const drift = enScore > ptScore && enScore >= 3
+  const [targetScore, otherScore] = target === 'pt-BR' ? [ptScore, enScore] : [enScore, ptScore]
+  const drift = otherScore > targetScore && otherScore >= 3
   return { drift, ptScore, enScore }
 }
 

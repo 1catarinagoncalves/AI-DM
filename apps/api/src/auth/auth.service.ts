@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { resolveLocale, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 
 // Era anônima (US-61): o wizard criava contas com email `guest_xxxx@aidm.local`
@@ -19,12 +20,19 @@ export class AuthService {
    * única conta real no banco — a flag anti-roubo do D1: um segundo login (conta
    * diferente) começa vazio, não herda o que era do primeiro. Tudo numa transação.
    */
-  async sync(email: string, name: string): Promise<{ id: string; email: string; name: string }> {
+  async sync(
+    email: string,
+    name: string,
+    locale?: string | null,
+  ): Promise<{ id: string; email: string; name: string; locale: Locale }> {
     return this.prisma.$transaction(async (tx) => {
       const existing = await tx.user.findUnique({ where: { email } })
+      // US-97: a preferência do visitante (localStorage/browser) só semeia a conta NOVA.
+      // No re-login ela é um palpite do dispositivo da vez — sobrescrever com ele apagaria
+      // a escolha que o jogador fez de propósito noutra sessão.
       const user = existing
         ? await tx.user.update({ where: { email }, data: { name } })
-        : await tx.user.create({ data: { email, name } })
+        : await tx.user.create({ data: { email, name, locale: resolveLocale(locale) } })
 
       // Conta real = email que NÃO é de convidado. Se, após o upsert, só existe
       // uma conta real e ela acabou de nascer, é o primeiro login → reivindica.
@@ -48,7 +56,17 @@ export class AuthService {
         }
       }
 
-      return { id: user.id, email: user.email, name: user.name }
+      return { id: user.id, email: user.email, name: user.name, locale: resolveLocale(user.locale) }
     })
+  }
+
+  /**
+   * US-97: troca o idioma ativo da conta. Aplica ao conteúdo FUTURO (UI, narração
+   * nova, abertura); nada já gravado é reescrito — o `EventLog` e o texto autoral
+   * ficam na língua em que nasceram (ADR 005 D2).
+   */
+  async setLocale(userId: string, locale: Locale): Promise<{ id: string; locale: Locale }> {
+    const user = await this.prisma.user.update({ where: { id: userId }, data: { locale } })
+    return { id: user.id, locale: resolveLocale(user.locale) }
   }
 }

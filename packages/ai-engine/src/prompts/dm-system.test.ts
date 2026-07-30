@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
   buildDmSystemPrompt,
+  buildOpeningInstruction,
   buildTurnStateBlock,
   SCENE_BLOCK,
   ENTITIES_BLOCK,
@@ -39,6 +40,32 @@ function buildState(overrides: Partial<Parameters<typeof buildTurnStateBlock>[0]
     ...overrides,
   })
 }
+
+describe('US-97 — idioma-alvo explícito no prompt', () => {
+  it('sem locale, narra em pt-BR (comportamento de todas as mesas de hoje)', () => {
+    const p = build()
+    expect(p).toContain('Brazilian Portuguese (pt-BR)')
+    expect(p).not.toContain('in the same language the player uses')
+  })
+
+  it('com locale en-US, manda narrar em inglês e não cita pt-BR como alvo', () => {
+    const p = build({ locale: 'en-US' })
+    expect(p).toContain('always narrate in English')
+    expect(p).not.toContain('always narrate in Brazilian Portuguese (pt-BR)')
+  })
+
+  it('o alvo MANDA sobre o idioma da ação do jogador (não é mais espelhamento)', () => {
+    const p = build({ locale: 'en-US' })
+    expect(p).toMatch(/even if the player writes in another language/i)
+  })
+
+  it('a abertura nasce no idioma-alvo, antes de o jogador escrever qualquer coisa', () => {
+    const en = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'A tribo se reúne.', locale: 'en-US' })
+    const pt = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'A tribo se reúne.' })
+    expect(en).toContain('English')
+    expect(pt).toContain('Brazilian Portuguese (pt-BR)')
+  })
+})
 
 describe('buildDmSystemPrompt — ficha constante (US-23 / camada 2)', () => {
   it('inclui nível e atributos da ficha (constante por personagem)', () => {

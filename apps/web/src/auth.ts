@@ -1,6 +1,12 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
 import { SignJWT } from 'jose'
+import { cookies } from 'next/headers'
+import { isLocale } from '@ai-dm/shared'
+
+// US-97: mesmo nome da chave do localStorage (LOCALE_STORAGE_KEY, LocaleProvider) —
+// é o mesmo valor, espelhado em cookie só para o servidor conseguir lê-lo.
+const LOCALE_COOKIE = 'ai-dm-locale'
 
 // US-61: login por Google via Auth.js (NextAuth v5), dentro do próprio apps/web
 // (ADR 006 — custo zero, sem fornecedor de auth extra). A sessão é JWT (sem
@@ -46,17 +52,24 @@ export const { handlers, auth } = NextAuth({
         // Token de bootstrap: prova (via AUTH_SECRET) que a chamada veio do nosso
         // web com um email Google verificado. Ainda sem `sub` — só email/name.
         const bootstrap = await signApiToken({ email: profile.email, name: profile.name ?? 'Jogador' })
+        // US-97: idioma que o visitante escolheu ANTES de entrar. Vem por cookie
+        // (o LocaleProvider espelha o localStorage lá) porque aqui é servidor —
+        // sem ele, quem escolheu English veria a conta nascer em pt-BR.
+        const chosenLocale = (await cookies()).get(LOCALE_COOKIE)?.value
         try {
           const res = await fetch(`${API}/api/v1/auth/sync`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bootstrap}` },
-            body: '{}',
+            body: JSON.stringify(isLocale(chosenLocale) ? { locale: chosenLocale } : {}),
           })
           if (res.ok) {
-            const user = (await res.json()) as { id: string; email: string; name: string }
+            const user = (await res.json()) as { id: string; email: string; name: string; locale?: string }
             token.userId = user.id
             token.email = user.email
             token.name = user.name
+            // US-97: idioma da conta. Guardado no token para o cliente saber a
+            // preferência do SERVIDOR (e não só a do localStorage deste aparelho).
+            token.locale = user.locale
           }
         } catch {
           // Sem userId → authorized() barra e o jogador é levado a tentar de novo.
@@ -72,6 +85,7 @@ export const { handlers, auth } = NextAuth({
       if (token.userId) {
         session.userId = token.userId
         session.accessToken = await signApiToken({ sub: token.userId, email: token.email })
+        session.locale = token.locale
       }
       return session
     },

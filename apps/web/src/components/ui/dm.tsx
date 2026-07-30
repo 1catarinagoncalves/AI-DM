@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Swords } from 'lucide-react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { LocaleToggle } from '@/components/LocaleToggle'
 
 // Primitivas do design system "grimório vivo".
 // Documento canónico: docs/sdlc/02-design/design-system.md
@@ -138,6 +139,12 @@ export function SceneFrame({
         <span className="hidden font-serif text-sm font-semibold tracking-wide text-parchment sm:inline">
           AI Dungeon Master
         </span>
+        {/* US-97: o seletor de idioma vive AQUI, no fluxo do cabeçalho da marca — e não
+            como mais um `fixed` no canto, onde tema e Sair já dividem a largura por
+            offset calculado à mão (US-66). Um `ml-auto` serve as quatro telas com
+            SceneFrame: login, home, wizard e gancho. A folga à direita (`sm:mr-32`)
+            é a faixa dos dois controlos fixos, que flutuam sobre esta mesma banda. */}
+        <LocaleToggle className="ml-auto mr-24 sm:mr-32" />
       </header>
 
       <div className={cn('relative z-10 flex flex-1 flex-col', className)}>{children}</div>

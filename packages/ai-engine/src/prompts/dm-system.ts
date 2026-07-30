@@ -1,5 +1,5 @@
-import type { SceneState, WorldEntity } from '@ai-dm/shared'
-import { abilityModifier, formatModifier, spellLevelLabel } from '@ai-dm/shared'
+import type { Locale, SceneState, WorldEntity } from '@ai-dm/shared'
+import { abilityModifier, DEFAULT_LOCALE, formatModifier, localeNameForPrompt, spellLevelLabel } from '@ai-dm/shared'
 import { formatSceneState } from '../scene'
 import { formatEntities } from '../entities'
 
@@ -177,8 +177,11 @@ export function buildDmSystemPrompt(params: {
   features?: ClassFeature[]
   /** Magias conhecidas (US-42): SÓ os nomes vão ao prompt; a descrição vem via tool getSpell. Ausente/vazio → nenhuma seção. */
   spells?: KnownSpell[]
+  /** US-97: idioma-alvo do turno (`User.locale`). Ausente → pt-BR, o comportamento de todas as mesas até aqui. */
+  locale?: Locale
 }): string {
   const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells } = params
+  const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
   const attributesLine = Object.entries(sheet.attributes)
     .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value} (${formatModifier(abilityModifier(value))})`)
@@ -276,7 +279,7 @@ You are not bound to any official RPG system. Narrate freely and creatively.
   return `You are the Dungeon Master for a roleplaying game session${isFree ? '' : ` using the ${systemName} system`}.
 
 ## Your role
-- Narrate the adventure in vivid, immersive prose in the same language the player uses.
+- Narrate the adventure in vivid, immersive prose. US-97: the table's language is a PLAYER PREFERENCE, not a guess from the last message — always narrate in ${targetLanguage}, even if the player writes in another language.
 - Keep the player engaged and their choices meaningful.
 - Be fair: outcomes should feel earned, not arbitrary.
 
@@ -292,7 +295,7 @@ ${rulesSection}
 - ONE action → ONE check: pick the single most relevant skill and roll it ONCE. Never roll a generic AND a named-skill version of the same test.
 - NEVER modify character state in the prose — use \`updateCharacterHp\` and the other tools.
 - INVENTORY: when the character gains or loses an item, call \`updateInventory\` BEFORE narrating, passing ONLY the items that CHANGED this turn (positive delta to add, negative to remove). NEVER re-send items already carried (see "${INVENTORY_BLOCK}" in the turn-state block) — that duplicates them. Nothing changed → do not call it. Tool error (inventory full) → narrate the character can't carry more.
-- Respond in the same language the player wrote in.
+- Always respond in ${targetLanguage} — the language of the table, chosen by the player. Proper names already established in the adventure (the character's name, NPCs, places, the character's own background text) stay AS THEY ARE, even when they come from another language; only the prose follows the target language.
 
 ---
 
@@ -521,9 +524,15 @@ ${summarySection}`.trimEnd()
  * restringimos a saída a prosa + opções (sem tools, dados ou tags internas).
  * Reusa o mesmo system prompt (com a seção de ofício) dos turnos seguintes.
  */
-export function buildOpeningInstruction(params: { characterName: string; hookSeed: string }): string {
+export function buildOpeningInstruction(params: { characterName: string; hookSeed: string; locale?: Locale }): string {
   const { characterName, hookSeed } = params
+  // US-97: a abertura é o único texto que nasce ANTES de o jogador escrever qualquer
+  // coisa — não há mensagem de onde inferir idioma. Sem o alvo explícito aqui, a
+  // primeira cena de uma mesa em inglês sairia na língua da semente (o gancho, em PT).
+  const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
   return `This is the OPENING of the adventure. The player has NOT acted yet — you are setting the very first scene, before any player action.
+
+Write the scene in ${targetLanguage}. The seed below may be written in another language — that does not change the language of your narration.
 
 Use this seed as the spark for the scene. Expand it into a full cinematic opening that meets the Narrative craft bar; do NOT quote it verbatim:
 "${hookSeed}"
