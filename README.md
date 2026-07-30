@@ -63,7 +63,7 @@ sequenceDiagram
   A->>DB: ficha, cena, entidades, quests, histórico
   A->>M: system estático + histórico + bloco de estado do turno
   M-->>A: tool call rollDice(skill)
-  A->>A: dice.service rola o d20; o modificador vem da ficha
+  A->>A: dice.service rola o d20 — modificador vem da ficha
   A-->>M: resultado da rolagem
   M-->>A: narração, token a token
   A-->>W: SSE (texto, rolagem, HP, inventário)
