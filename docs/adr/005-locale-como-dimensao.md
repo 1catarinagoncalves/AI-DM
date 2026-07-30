@@ -33,10 +33,12 @@ Falta modelar **locale como dimensão**. A decisão precede a implementação da
 
 ### D1 — Locale é uma **preferência mutável do jogador** (`User.locale`), estilo videogame
 
-O idioma ativo é uma preferência no **`User`** (`locale: 'pt-BR' | 'en'`, default do browser, `'pt-BR'` como fallback). Ela:
+O idioma ativo é uma preferência no **`User`** (`locale: 'pt-BR' | 'en-US'`, default do browser, `'pt-BR'` como fallback). Ela:
 
 - é **escolhida antes de criar o primeiro personagem** — vive no menu/setup, não exige personagem para existir;
 - é **mutável a qualquer momento** e **aplica a tudo que tem fonte de dado**: a língua da **UI**, da **narração nova** e da **ficha do personagem** (ver D2), inclusive de personagens já criados.
+
+> **Correção (30/07/2026):** este ADR usava `'en'`. A chave do inglês passa a ser **`'en-US'`**, para os dois locales terem a mesma forma (`idioma-REGIÃO`) em vez de uma curta e uma longa convivendo — decidido ao especificar a [US-97](../sdlc/01-requisitos/US-97-seletor-de-idioma-pt-br-en.md), e já aplicado em todo este documento. Duas consequências: a resolução do default casa pela **subtag de idioma** (o browser devolve `en-GB`, `pt-PT`, `en` — comparar a string inteira erraria em quase todos), e a base nativa continua **sem arquivo de overlay** (`en-US` é o dataset cru, não `locale/en-US.json`).
 
 ### D2 — A ficha do personagem **segue o idioma ativo**; congela só o que não tem fonte
 
@@ -46,32 +48,35 @@ Isso exige mudar o formato de armazenamento:
 
 - **`skills`** — já guarda **chaves** (US-27). Nada muda: a label sai do `config` na leitura.
 - **`features` e `spells`** — hoje guardam `{name, description}` copiados do `config` na criação. Passam a guardar **chaves** (`string[]`, mesma forma de `skills`); `name`/`description` são resolvidos do `config` do locale ativo na leitura. **Esta é a mudança de schema real do ADR.**
-- **`race`, `class`** — já são a entrada do jogador casada contra chaves canônicas (`CLASS_SYNONYMS` em [starting-inventory.ts](../../apps/api/src/character/starting-inventory.ts)); a label exibida sai do `config`.
+- ~~**`race`, `class`** — já são a entrada do jogador casada contra chaves canônicas (`CLASS_SYNONYMS` em [starting-inventory.ts](../../apps/api/src/character/starting-inventory.ts)); a label exibida sai do `config`.~~ **Errado — corrigido em 30/07/2026** (ver abaixo).
+
+**Correção (30/07/2026):** o `CLASS_SYNONYMS` casa o texto do jogador **em tempo de leitura**, para escolher kit, features e gancho — mas o que se **grava** é o texto cru (`race: dto.race`, `class: dto.class` em [character.service.ts](../../apps/api/src/character/character.service.ts)), e é esse texto que a ficha exibe ([play/[adventureId]/page.tsx](../../apps/web/src/app/play/%5BadventureId%5D/page.tsx)). Não há chave canônica gravada em lugar nenhum do `Character`. Logo **`race` e `class` NÃO acompanham o locale**: um personagem criado como "paladino" continua "paladino" numa ficha inglesa. Erro de descrição do estado do código, não de decisão — a decisão (ficha segue o idioma ativo) continua valendo, e passar `race`/`class` a chave é trabalho a fazer, não trabalho já feito. Ver [US-100](../sdlc/01-requisitos/US-100-ficha-do-personagem-no-locale-ativo.md), *Questões em aberto* #2.
 
 Congela só o que **não tem chave para re-derivar**:
 
 - **`name` e `background`** (`story`/`ideals`/`bonds`/`flaws`/`deity`) — texto autoral do jogador ou do LLM, sem correspondente no `config`. Não há o que resolver: fica como foi escrito.
+- **`race` e `class`** — **por ora**, pela correção acima: o que está gravado é o texto do jogador. Diferente dos anteriores, este congelamento é *acidental* e reversível — raça e classe têm origem no `config` e poderiam ser chave, ao preço de decidir o que fazer com entrada livre que não casa com chave nenhuma ("meio-elfo do norte").
 - **Narração passada** (`EventLog`) — histórico imutável ([ADR 002](./002-memoria-de-sessao.md)). Re-traduzir transcrição seria reescrever o passado da mesa.
 
 **Sem `locale` no `Character`.** Antes seria um stamp da língua de materialização; agora não haveria o que stampar — a ficha não tem língua própria, ela fala a do `User`.
 
-Consequência aceita: **estado misto encolhe, mas não some.** Ficha e narração nova concordam; o que discorda é a narração antiga (PT no `EventLog`, sob preferência EN) e o texto autoral (um `background` escrito em PT continua PT numa ficha EN). É o limite honesto: o que veio de dado acompanha o idioma, o que veio de autor não.
+Consequência aceita: **estado misto encolhe, mas não some.** Ficha e narração nova concordam; o que discorda é a narração antiga (PT no `EventLog`, sob preferência EN), o texto autoral (um `background` escrito em PT continua PT numa ficha EN) e — pela correção de 30/07/2026 — a **raça e a classe**, gravadas como o jogador as digitou. É o limite honesto: o que veio de dado acompanha o idioma, o que veio de autor não.
 
 ### D3 — EN é a base nativa; PT-BR é um overlay de localização
 
 O `config` de dados por locale resolve assim:
 
-- **`locale = en` → o dataset cru.** Nenhum overlay, nenhuma tradução, nenhuma US-52.
+- **`locale = en-US` → o dataset cru.** Nenhum overlay, nenhuma tradução, nenhuma US-52.
 - **`locale = pt-BR` → dataset + overlay `locale/pt-BR.json`** (US-47), com fallback EN e `--strict`.
 
-O overlay da US-47 deixa de ser "a tradução para o idioma único" e passa a ser **a localização de _um_ locale sobre uma base EN**. Estrutura `locale/{xx}.json` (um por idioma não-nativo; `en` não tem arquivo). O pipeline da US-52 roda **só para locales ≠ en**.
+O overlay da US-47 deixa de ser "a tradução para o idioma único" e passa a ser **a localização de _um_ locale sobre uma base EN**. Estrutura `locale/{xx}.json` (um por idioma não-nativo; `en-US` não tem arquivo). O pipeline da US-52 roda **só para locales ≠ `en-US`**.
 
 ### D4 — Guardrail e eval parametrizados pelo idioma **do turno**
 
 `detectLanguageDrift` deixa de cravar PT. Recebe o **idioma-alvo do turno** — a preferência ativa (`User.locale`), que o prompt já espelha do input do jogador — e acusa deriva **para longe dele**:
 
 - alvo `pt-BR` → deriva quando EN supera PT (comportamento de hoje);
-- alvo `en` → deriva quando PT supera EN (lógica espelhada).
+- alvo `en-US` → deriva quando PT supera EN (lógica espelhada).
 
 A heurística (marcadores PT + diacríticos vs. marcadores EN) já conta os dois lados — falta escolher o "certo" pelo alvo. O bake-off e os guardrails de produção recebem o idioma corrente.
 
@@ -82,7 +87,7 @@ A heurística (marcadores PT + diacríticos vs. marcadores EN) já conta os dois
 | Fase | Entregável | Depende de |
 |------|-----------|-----------|
 | Fundação | **Este ADR** — locale como dimensão; preferência mutável; ficha por idioma; EN nativo; guardrail parametrizado | — |
-| Dados | [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) nasce locale-aware (`locale/pt-BR.json`; `en` = base) · [US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md) traduz só locale ≠ en | ADR 005 |
+| Dados | [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) nasce locale-aware (`locale/pt-BR.json`; `en-US` = base) · [US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md) traduz só locale ≠ `en-US` | ADR 005 |
 | Schema | `User.locale` + migração (default `'pt-BR'`); seletor de idioma no menu/setup | ADR 005 |
 | Ficha | `features`/`spells` de texto para chave + migração de dados (texto PT existente → chave, casando contra o `config`); resolução da label na leitura | Schema, Dados, [US-54](../sdlc/01-requisitos/US-54-chaves-canonicas-em-ingles.md) (ordem importa) |
 | UI | i18n da UI web (extração de strings, framework, seletor) — **o grosso do trabalho novo** | Schema |
@@ -137,6 +142,7 @@ As USs concretas serão abertas ao planejar o epic; este ADR fixa a **forma**.
 - **Mudança de schema + migração de dados** — `features`/`spells` deixam de guardar `{name, description}`. As linhas existentes têm texto PT que precisa casar de volta contra o `config` para virar chave; um item que não case exige decisão (descartar vs. manter texto num campo de escape). É o custo real desta decisão, e o ADR o assume.
 - **Ficha depende do `config` na leitura** — se o overlay do locale não tiver a chave, a label cai no fallback EN (US-47). A ficha nunca fica vazia, mas pode ficar bilíngue enquanto a tradução não cobre tudo.
 - **Texto autoral não acompanha** — `background` e nome do personagem escritos em PT continuam PT numa ficha EN. Assumido: traduzi-los seria reescrever o que o jogador escreveu.
+- **`race`/`class` também não acompanham** (correção de 30/07/2026, D2) — são gravados como texto cru do jogador, não como chave. Não estava no custo original desta decisão porque o ADR descrevia o código errado; o trabalho de passá-los a chave (e o que fazer com entrada livre sem chave correspondente) segue em aberto na [US-100](../sdlc/01-requisitos/US-100-ficha-do-personagem-no-locale-ativo.md).
 - **i18n da UI é trabalho novo real** — extrair strings PT da UI web e montar o framework é o grosso do epic; não há atalho de dado nem de LLM.
 - **Ganchos de aventura ([US-28](../sdlc/01-requisitos/US-28-aventura-inicial-baseada-na-classe.md)) são autorais em PT** — precisam de versão EN (escrita ou via US-52).
 - ~~**Chaves canônicas de classe são PT**~~ — **saldada pela [US-54](../sdlc/01-requisitos/US-54-chaves-canonicas-em-ingles.md)** (2026-07-16), antes da fase "Ficha" como a ordem exigia: o rename para `paladin`/`wizard` pegou só `config`/overlay/seed, sem tocar dado de usuário. A fase "Ficha" já nasce escrevendo chave EN.
@@ -151,6 +157,6 @@ As USs concretas serão abertas ao planejar o epic; este ADR fixa a **forma**.
 - Migração de dados — `features`/`spells` PT existentes casados de volta contra o `config` para virar chave.
 - `packages/ai-engine/src/guardrails.ts` — `detectLanguageDrift(narration, targetLocale)`; inverte o critério por alvo.
 - `packages/ai-engine/src/prompts/dm-system.ts` — **sem mudança** (já espelha o idioma do jogador).
-- `scripts/srd/locale/` — overlay por locale; `en` sem arquivo (base nativa). Ver [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md)/[US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md).
+- `scripts/srd/locale/` — overlay por locale; `en-US` sem arquivo (base nativa). Ver [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md)/[US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md).
 - `apps/web/` — i18n de strings da UI + seletor de idioma no menu/setup (lê/escreve `User.locale`).
 - `apps/api/src/ai/ai.service.ts` — passa o idioma corrente (`User.locale`) ao guardrail/eval.
