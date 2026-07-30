@@ -8,7 +8,11 @@ services:
     plan: free
     region: oregon           # mesma costa da Neon (us-east-2 → use ohio se preferir latência)
     branch: main
-    autoDeploy: true         # cada push na main → deploy
+    # US-92: o deploy espera os checks do commit (o job `ci` do .github/workflows/ci.yml).
+    # Substitui `autoDeploy: true` (campo deprecado, equivalente a `checksPass`→`commit`).
+    # Falha fechada: zero checks detectados = nenhum deploy. Se o ci.yml um dia ganhar
+    # filtro de `paths:`, a main para de deployar em silêncio.
+    autoDeployTrigger: checksPass
 
     # Build do monorepo pnpm:
     #  1. corepack ativa o pnpm pinado (packageManager no package.json raiz)
