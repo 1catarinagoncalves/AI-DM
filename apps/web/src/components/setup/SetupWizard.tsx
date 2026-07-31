@@ -6,18 +6,17 @@ import { ArrowLeft, ArrowRight, Check, Minus, Plus, Sparkles } from 'lucide-reac
 import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, cn, fieldClass } from '@/components/ui/dm'
+import { useT } from '@/components/LocaleProvider'
+import type { MessageKey } from '@/messages'
 
 type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'background' | 'review'
 const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'background', 'review']
-const STEP_LABEL: Record<Step, string> = {
-  system: 'Sistema',
-  'race-class': 'Raça/Classe',
-  attributes: 'Atributos',
-  skills: 'Perícias',
-  background: 'Background',
-  review: 'Revisão',
-}
 
+// US-98: os rótulos de gênero/raça/classe saíram destas listas para o dicionário,
+// mas as listas FICAM em pt-BR — elas são o `value` que viaja para a API, não o
+// texto da tela. O CLASS_SYNONYMS da API (starting-inventory.ts) casa por palavra
+// portuguesa ('mag' → wizard) e não conhece 'wizard' nem 'fighter': mandar o rótulo
+// traduzido faria a classe cair no kit `default` sem erro nenhum à vista.
 const GENDERS = ['Feminino', 'Masculino', 'Não-binário'] as const
 const RACES = ['Anão', 'Meio-Orc', 'Elfo', 'Halfling', 'Humano', 'Dragonborn', 'Gnomo', 'Meio-Elfo', 'Tiefling'] as const
 const CLASSES = ['Bárbaro', 'Bardo', 'Clérigo', 'Druida', 'Guerreiro', 'Monge', 'Paladino', 'Patrulheiro', 'Ladino', 'Feiticeiro', 'Bruxo', 'Mago'] as const
@@ -27,10 +26,13 @@ const POINT_COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13
 
 type SystemOption = { id: string; name: string; sourceType: string; config: SystemConfig | null }
 
-const SOURCE_TYPE_HINT: Record<string, string> = {
-  FREE: 'Narração livre, sem sistema oficial',
-  SRD: 'Regras oficiais de um sistema conhecido',
-  UPLOAD: 'Sistema customizado enviado por um usuário',
+// `sourceType` vem da API como string livre: mapa explícito para MessageKey (e não
+// `t(\`setup.system.hint.${x}\`)`) porque um valor novo do backend não pode virar
+// chave inexistente em tempo de execução — sem entrada, mostra-se o valor cru.
+const SOURCE_TYPE_HINT: Record<string, MessageKey> = {
+  FREE: 'setup.system.hint.FREE',
+  SRD: 'setup.system.hint.SRD',
+  UPLOAD: 'setup.system.hint.UPLOAD',
 }
 
 // Seta do select desenhada no próprio campo: `appearance-none` mata a nativa (que
@@ -64,6 +66,7 @@ function parseDeity(raw: string): { name: string; portfolio?: string } | undefin
 }
 
 export function SetupWizard() {
+  const t = useT()
   const router = useRouter()
   const [step, setStep] = useState<Step>('system')
   const [loading, setLoading] = useState(false)
@@ -152,7 +155,7 @@ export function SetupWizard() {
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
       setCharId(char.id)
       loadHook(char.id)
-    } catch { setError('Erro ao criar personagem. Tenta novamente.') }
+    } catch { setError(t('setup.error.create')) }
     finally { setLoading(false) }
   }
 
@@ -167,7 +170,7 @@ export function SetupWizard() {
     try {
       const adv = await api.createAdventure(charId, hook.id)
       router.push(`/play/${adv.id}?characterId=${charId}`)
-    } catch { setError('Erro ao iniciar a aventura. Tenta novamente.'); setStarting(false) }
+    } catch { setError(t('setup.error.start')); setStarting(false) }
   }
 
   // US-27: marca/desmarca proficiência; bloqueia marcar além do orçamento.
@@ -208,29 +211,32 @@ export function SetupWizard() {
           <Panel className="p-6 sm:p-9">
             <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-accent">
               <Sparkles className="size-3.5" aria-hidden />
-              Aventura inicial
+              {t('hook.eyebrow')}
             </p>
             {error && <p className={cn(errorBox, 'mt-4')}>{error}</p>}
 
             {hookError ? (
               <div className="mt-4 space-y-5">
-                <p className="text-sm text-muted-foreground">Não foi possível carregar a aventura inicial de <span className="font-semibold text-parchment">{charData.name}</span>.</p>
+                {/* US-98: o nome do personagem deixou de ser um <span> no meio da frase —
+                    partir a frase em duas chaves para destacar o miolo é a concatenação
+                    que quebra em idioma com outra ordem de palavras. */}
+                <p className="text-sm text-muted-foreground">{t('hook.error', { name: charData.name })}</p>
                 <DmButton type="button" onClick={() => loadHook(charId)} className="w-full py-3 text-base">
-                  Tentar de novo
+                  {t('common.retry')}
                 </DmButton>
               </div>
             ) : !hook ? (
-              <p className="mt-4 animate-pulse text-sm text-muted-foreground">A preparar a tua aventura…</p>
+              <p className="mt-4 animate-pulse text-sm text-muted-foreground">{t('hook.loading')}</p>
             ) : (
               <>
                 <SectionTitle className="mt-3 sm:text-4xl">{hook.title}</SectionTitle>
-                <p className="mt-2 text-sm text-muted-foreground">A primeira aventura de {charData.name}, {charData.class}.</p>
+                <p className="mt-2 text-sm text-muted-foreground">{t('hook.subtitle', { name: charData.name, class: charData.class })}</p>
                 <div className="mt-6 space-y-4 text-[15px] leading-relaxed text-foreground">
                   <p>{hook.pitch}</p>
                   <p className="whitespace-pre-wrap italic text-muted-foreground">{hook.openingNarration}</p>
                 </div>
                 <DmButton type="button" onClick={startAdventure} disabled={starting} className="mt-8 w-full py-3 text-base">
-                  {starting ? 'A iniciar...' : 'Iniciar aventura'}
+                  {starting ? t('hook.starting') : t('hook.start')}
                 </DmButton>
               </>
             )}
@@ -248,9 +254,9 @@ export function SetupWizard() {
             US-66: no mobile as 7 barras ficam, mas os rótulos escondem (`hidden sm:block`)
             e um rótulo único "Etapa X de N — Label" resume a etapa atual — sem espremer
             rótulos de 10px lado a lado. A partir de `sm:` volta a trilha completa. */}
-        <nav className="mb-6" aria-label="Progresso">
+        <nav className="mb-6" aria-label={t('setup.progress')}>
           <p className="mb-2 text-sm font-medium text-parchment sm:hidden">
-            Etapa {idx + 1} de {steps.length} — {STEP_LABEL[step]}
+            {t('setup.stepOf', { n: idx + 1, total: steps.length, label: t(`setup.step.${step}`) })}
           </p>
           <div className="flex gap-2">
             {steps.map((s, i) => {
@@ -265,7 +271,7 @@ export function SetupWizard() {
                   className="flex flex-1 flex-col gap-1 text-left disabled:cursor-default"
                 >
                   <span className={`h-0.5 rounded-full ${state === 'atual' ? 'bg-primary' : state === 'concluída' ? 'bg-primary/40' : 'bg-border'}`} />
-                  <span className={`hidden sm:block text-xs ${state === 'atual' ? 'font-semibold text-primary' : state === 'concluída' ? 'text-parchment' : 'text-muted-foreground'}`}>{STEP_LABEL[s]}</span>
+                  <span className={`hidden sm:block text-xs ${state === 'atual' ? 'font-semibold text-primary' : state === 'concluída' ? 'text-parchment' : 'text-muted-foreground'}`}>{t(`setup.step.${s}`)}</span>
                 </button>
               )
             })}
@@ -278,60 +284,64 @@ export function SetupWizard() {
           <div className="flex-1">
             {step === 'system' && (
               <div>
-                <SectionTitle>Escolha o Sistema</SectionTitle>
-                <p className="mt-2 text-sm text-muted-foreground">Define as regras que guiarão a sua jornada.</p>
+                <SectionTitle>{t('setup.system.titulo')}</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">{t('setup.system.subtitulo')}</p>
                 <div className="mt-6 flex flex-col gap-3">
-                  {systems.map(s => (
+                  {systems.map(s => {
+                    const hint = SOURCE_TYPE_HINT[s.sourceType]
+                    return (
                     <button key={s.id} type="button" onClick={() => handleSelectSystem(s)} className={optionCardClass(system?.id === s.id)}>
                       <p className="font-serif text-base font-semibold text-parchment">{s.name}</p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">{SOURCE_TYPE_HINT[s.sourceType] ?? s.sourceType}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{hint ? t(hint) : s.sourceType}</p>
                     </button>
-                  ))}
+                    )
+                  })}
                   {systemsError
-                    ? <p className="text-sm text-destructive">Não foi possível carregar os sistemas. Recarrega a página.</p>
-                    : systems.length === 0 && <p className="text-sm text-muted-foreground">A carregar sistemas...</p>}
+                    ? <p className="text-sm text-destructive">{t('setup.system.error')}</p>
+                    : systems.length === 0 && <p className="text-sm text-muted-foreground">{t('setup.system.loading')}</p>}
                 </div>
               </div>
             )}
 
             {step === 'race-class' && system && (
               <div>
-                <SectionTitle>Raça e Classe</SectionTitle>
-                <p className="mt-1 text-sm text-muted-foreground">Sistema: {system.name}</p>
+                <SectionTitle>{t('setup.raceClass.titulo')}</SectionTitle>
+                <p className="mt-1 text-sm text-muted-foreground">{t('setup.raceClass.system', { name: system.name })}</p>
                 <div className="mt-6 space-y-4">
                   {/* US-46: rótulo visível persistente acima de cada campo — placeholder deixa de ser o único rótulo. */}
                   <div>
-                    <FieldLabel htmlFor="char-name">Nome do personagem</FieldLabel>
-                    <input id="char-name" required placeholder="Ex.: Lyra Silvermoon"
+                    <FieldLabel htmlFor="char-name">{t('setup.raceClass.name')}</FieldLabel>
+                    <input id="char-name" required placeholder={t('setup.raceClass.namePlaceholder')}
                       value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
                       className={fieldClass()} />
                   </div>
+                  {/* US-98: `value` em pt-BR (é o que a API entende), rótulo traduzido. */}
                   <div>
-                    <FieldLabel htmlFor="char-gender">Género</FieldLabel>
+                    <FieldLabel htmlFor="char-gender">{t('setup.raceClass.gender')}</FieldLabel>
                     <select id="char-gender" value={charData.gender}
                       onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))}
                       className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
-                      <option value="">Selecionar…</option>
-                      {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+                      <option value="">{t('setup.raceClass.select')}</option>
+                      {GENDERS.map(g => <option key={g} value={g}>{t(`setup.gender.${g}`)}</option>)}
                     </select>
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <FieldLabel htmlFor="char-race">Raça</FieldLabel>
+                      <FieldLabel htmlFor="char-race">{t('setup.raceClass.race')}</FieldLabel>
                       <select id="char-race" value={charData.race}
                         onChange={e => setCharData(p => ({ ...p, race: e.target.value }))}
                         className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
-                        <option value="">Selecionar…</option>
-                        {RACES.map(r => <option key={r} value={r}>{r}</option>)}
+                        <option value="">{t('setup.raceClass.select')}</option>
+                        {RACES.map(r => <option key={r} value={r}>{t(`setup.race.${r}`)}</option>)}
                       </select>
                     </div>
                     <div>
-                      <FieldLabel htmlFor="char-class">Classe</FieldLabel>
+                      <FieldLabel htmlFor="char-class">{t('setup.raceClass.class')}</FieldLabel>
                       <select id="char-class" value={charData.class}
                         onChange={e => setCharData(p => ({ ...p, class: e.target.value }))}
                         className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
-                        <option value="">Selecionar…</option>
-                        {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+                        <option value="">{t('setup.raceClass.select')}</option>
+                        {CLASSES.map(c => <option key={c} value={c}>{t(`setup.class.${c}`)}</option>)}
                       </select>
                     </div>
                   </div>
@@ -341,10 +351,10 @@ export function SetupWizard() {
 
             {step === 'attributes' && system && (
               <div>
-                <SectionTitle>Atributos</SectionTitle>
+                <SectionTitle>{t('setup.attributes.titulo')}</SectionTitle>
                 {budget !== undefined && (
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Pontos restantes: <span className={`font-semibold ${remaining === 0 ? 'text-success' : 'text-primary'}`}>{remaining}</span> / {budget}
+                    {t('setup.attributes.remaining')} <span className={`font-semibold ${remaining === 0 ? 'text-success' : 'text-primary'}`}>{remaining}</span> / {budget}
                   </p>
                 )}
                 {/* Agrupado por `divide` em vez de card por linha (direção §4: menos box-in-box). */}
@@ -354,11 +364,11 @@ export function SetupWizard() {
                       <label className="text-sm font-medium text-foreground">{a.label}</label>
                       {budget !== undefined ? (
                         <div className="flex items-center gap-2">
-                          <button type="button" aria-label={`Diminuir ${a.label}`} onClick={() => setAttr(a.key, -1, a.min, a.max)}
+                          <button type="button" aria-label={t('setup.attributes.decrease', { label: a.label })} onClick={() => setAttr(a.key, -1, a.min, a.max)}
                             className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
                             disabled={(attrs[a.key] ?? a.default) <= a.min}><Minus className="size-4" aria-hidden /></button>
                           <span className="w-8 text-center font-serif text-lg font-bold tabular-nums text-parchment" data-attr={a.key}>{attrs[a.key] ?? a.default}</span>
-                          <button type="button" aria-label={`Aumentar ${a.label}`} onClick={() => setAttr(a.key, 1, a.min, a.max)}
+                          <button type="button" aria-label={t('setup.attributes.increase', { label: a.label })} onClick={() => setAttr(a.key, 1, a.min, a.max)}
                             className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
                             disabled={(attrs[a.key] ?? a.default) >= a.max || remaining - ((POINT_COST[(attrs[a.key] ?? a.default) + 1] ?? 0) - (POINT_COST[attrs[a.key] ?? a.default] ?? 0)) < 0}><Plus className="size-4" aria-hidden /></button>
                         </div>
@@ -376,10 +386,12 @@ export function SetupWizard() {
 
             {step === 'skills' && system && (
               <div>
-                <SectionTitle>Perícias</SectionTitle>
+                <SectionTitle>{t('setup.skills.titulo')}</SectionTitle>
+                {/* US-98: o número deixou de ser um <span> no meio da frase (concatenação
+                    que quebra noutra ordem de palavras); o destaque fica na contagem. */}
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Escolhe <span className="font-semibold text-parchment">{skillChoices}</span> perícias proficientes (+{system.config?.proficiency?.bonus ?? 2} cada).
-                  Selecionadas: <span className={`font-semibold ${skills.length === skillChoices ? 'text-success' : 'text-primary'}`}>{skills.length}</span>/{skillChoices}
+                  {t('setup.skills.instructions', { n: skillChoices, bonus: system.config?.proficiency?.bonus ?? 2 })}{' '}
+                  {t('setup.skills.selected')} <span className={`font-semibold ${skills.length === skillChoices ? 'text-success' : 'text-primary'}`}>{skills.length}</span>/{skillChoices}
                 </p>
                 <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                   {skillCatalog.map(sk => {
@@ -401,37 +413,37 @@ export function SetupWizard() {
 
             {step === 'background' && system && (
               <div>
-                <SectionTitle>Background</SectionTitle>
+                <SectionTitle>{t('setup.background.titulo')}</SectionTitle>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Quem é {charData.name || 'o personagem'}? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.
+                  {t('setup.background.subtitulo', { name: charData.name || t('setup.background.defaultName') })}
                 </p>
                 <div className="mt-6 space-y-4">
                   {/* US-46: cada textarea com rótulo visível persistente; placeholder vira só exemplo. */}
                   <div>
-                    <FieldLabel htmlFor="bg-story">História</FieldLabel>
-                    <textarea id="bg-story" rows={3} placeholder="Ex.: nobre menor que perdeu a família para um culto demoníaco…"
+                    <FieldLabel htmlFor="bg-story">{t('setup.background.story')}</FieldLabel>
+                    <textarea id="bg-story" rows={3} placeholder={t('setup.background.storyPlaceholder')}
                       value={bg.story} onChange={e => setBg(p => ({ ...p, story: e.target.value }))} className={fieldClass('resize-y')} />
                   </div>
                   <div>
-                    <FieldLabel htmlFor="bg-ideals">Ideais — um por linha</FieldLabel>
-                    <textarea id="bg-ideals" rows={2} placeholder="Ex.: Justiça acima de tudo"
+                    <FieldLabel htmlFor="bg-ideals">{t('setup.background.ideals')}</FieldLabel>
+                    <textarea id="bg-ideals" rows={2} placeholder={t('setup.background.idealsPlaceholder')}
                       value={bg.ideals} onChange={e => setBg(p => ({ ...p, ideals: e.target.value }))} className={fieldClass('resize-y')} />
                   </div>
                   <div>
-                    <FieldLabel htmlFor="bg-bonds">Vínculos — um por linha</FieldLabel>
-                    <textarea id="bg-bonds" rows={2} placeholder="Ex.: Jurou vingança contra o culto que matou sua família"
+                    <FieldLabel htmlFor="bg-bonds">{t('setup.background.bonds')}</FieldLabel>
+                    <textarea id="bg-bonds" rows={2} placeholder={t('setup.background.bondsPlaceholder')}
                       value={bg.bonds} onChange={e => setBg(p => ({ ...p, bonds: e.target.value }))} className={fieldClass('resize-y')} />
                   </div>
                   <div>
-                    <FieldLabel htmlFor="bg-flaws">Fraquezas — uma por linha</FieldLabel>
-                    <textarea id="bg-flaws" rows={2} placeholder="Ex.: Código de honra rígido: não mente, não abandona inocentes"
+                    <FieldLabel htmlFor="bg-flaws">{t('setup.background.flaws')}</FieldLabel>
+                    <textarea id="bg-flaws" rows={2} placeholder={t('setup.background.flawsPlaceholder')}
                       value={bg.flaws} onChange={e => setBg(p => ({ ...p, flaws: e.target.value }))} className={fieldClass('resize-y')} />
                   </div>
                   {/* US-40: divindade/patrono — campo único, opcional para todas as classes.
                       Nome antes da vírgula, portfólio depois (parseado ao confirmar). */}
                   <div>
-                    <FieldLabel htmlFor="bg-deity">Divindade/Patrono — nome, e o que representa</FieldLabel>
-                    <input id="bg-deity" placeholder="Ex.: Auril, deusa do inverno"
+                    <FieldLabel htmlFor="bg-deity">{t('setup.background.deity')}</FieldLabel>
+                    <input id="bg-deity" placeholder={t('setup.background.deityPlaceholder')}
                       value={bg.deity} onChange={e => setBg(p => ({ ...p, deity: e.target.value }))} className={fieldClass()} />
                   </div>
                 </div>
@@ -440,15 +452,17 @@ export function SetupWizard() {
 
             {step === 'review' && system && (
               <div>
-                <SectionTitle>Revisão</SectionTitle>
-                <p className="mt-2 text-sm text-muted-foreground">Confere a tua ficha antes de embarcar na aventura.</p>
+                <SectionTitle>{t('setup.review.titulo')}</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">{t('setup.review.subtitulo')}</p>
                 <dl className="mt-6 divide-y divide-border">
+                  {/* US-98: o VALOR de gênero/raça/classe é a chave PT guardada no estado,
+                      então a revisão o traduz para exibir — sem tocar no que vai à API. */}
                   {[
-                    ['Nome', charData.name],
-                    ['Género', charData.gender],
-                    ['Raça', charData.race],
-                    ['Classe', charData.class],
-                    ['Nível', '1'],
+                    [t('setup.review.name'), charData.name],
+                    [t('setup.review.gender'), charData.gender && t(`setup.gender.${charData.gender as typeof GENDERS[number]}`)],
+                    [t('setup.review.race'), charData.race && t(`setup.race.${charData.race as typeof RACES[number]}`)],
+                    [t('setup.review.class'), charData.class && t(`setup.class.${charData.class as typeof CLASSES[number]}`)],
+                    [t('setup.review.level'), '1'],
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{k}</dt>
@@ -456,13 +470,13 @@ export function SetupWizard() {
                     </div>
                   ))}
                   <div className="flex items-start justify-between gap-6 py-2.5">
-                    <dt className="shrink-0 text-sm text-muted-foreground">Atributos</dt>
+                    <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.attributes')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">
                       {attributes.map(a => `${a.label} ${attrs[a.key] ?? a.default}`).join(' · ')}
                     </dd>
                   </div>
                   <div className="flex items-start justify-between gap-6 py-2.5">
-                    <dt className="shrink-0 text-sm text-muted-foreground">Perícias</dt>
+                    <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.skills')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">
                       {skills.length > 0
                         ? skills.map(k => skillCatalog.find(s => s.key === k)?.label ?? k).join(' · ')
@@ -470,15 +484,15 @@ export function SetupWizard() {
                     </dd>
                   </div>
                   <div className="flex items-start justify-between gap-6 py-2.5">
-                    <dt className="shrink-0 text-sm text-muted-foreground">Background</dt>
+                    <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.background')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">
-                      {[bg.story, bg.ideals, bg.bonds, bg.flaws, bg.deity].some(s => s.trim()) ? 'Preenchido' : '—'}
+                      {[bg.story, bg.ideals, bg.bonds, bg.flaws, bg.deity].some(s => s.trim()) ? t('setup.review.filled') : '—'}
                     </dd>
                   </div>
                   {/* US-40: mostra o nome da divindade na revisão quando preenchida. */}
                   {parseDeity(bg.deity) && (
                     <div className="flex items-start justify-between gap-6 py-2.5">
-                      <dt className="shrink-0 text-sm text-muted-foreground">Divindade/Patrono</dt>
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.deity')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">
                         {parseDeity(bg.deity)!.name}
                       </dd>
@@ -494,16 +508,16 @@ export function SetupWizard() {
             <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
               <DmButton variant="ghost" type="button" onClick={back}>
                 <ArrowLeft className="size-4" aria-hidden />
-                Voltar
+                {t('setup.back')}
               </DmButton>
               {step === 'review' ? (
                 <DmButton type="button" onClick={handleConfirm} disabled={loading}>
                   <Check className="size-4" aria-hidden />
-                  {loading ? 'A criar...' : 'Confirmar personagem'}
+                  {loading ? t('setup.confirming') : t('setup.confirm')}
                 </DmButton>
               ) : (
                 <DmButton type="button" onClick={next} disabled={!canAdvance(step)}>
-                  Próximo
+                  {t('setup.next')}
                   <ArrowRight className="size-4" aria-hidden />
                 </DmButton>
               )}

@@ -36,7 +36,10 @@ describe('HomeHero — hub orientado a dados (US-25)', () => {
 
     render(<HomeHero />)
 
-    expect(await screen.findByText('Aventureiro')).toBeTruthy()
+    // US-98: a saudação virou uma frase inteira (o <span> que isolava "Aventureiro"
+    // saiu — destacar o miolo exigiria partir a frase em duas chaves). A asserção
+    // continua sendo a mesma: genérica, sem o nome do personagem.
+    expect(await screen.findByText('Bem-vindo de volta, Aventureiro.')).toBeTruthy()
     expect(screen.queryByText('Gale')).toBeNull()
   })
 

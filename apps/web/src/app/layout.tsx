@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next'
+import { cookies } from 'next/headers'
 import { Cinzel, Geist } from 'next/font/google'
 import './globals.css'
+import { LOCALE_COOKIE, localeFromCookie } from '@/lib/locale-cookie'
+import { messagesFor } from '@/messages'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Providers } from '@/components/Providers'
@@ -13,17 +16,29 @@ import { auth } from '@/auth'
 const cinzel = Cinzel({ subsets: ['latin'], variable: '--font-cinzel', weight: ['400', '600', '700'] })
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
 
-export const metadata: Metadata = {
-  title: 'AI Dungeon Master',
-  description: 'Your AI-powered RPG narrator',
-  icons: {
-    icon: [
-      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
-    apple: '/apple-icon.png',
-  },
+// US-98: idioma do lado do SERVIDOR. O estado do LocaleProvider não existe aqui, mas
+// o cookie que ele espelha (US-97) sim — é por ele que o `metadata` e o `lang` do
+// <html> saem no idioma certo já no primeiro paint, sem esperar a hidratação.
+async function activeLocale() {
+  return localeFromCookie((await cookies()).get(LOCALE_COOKIE)?.value)
+}
+
+// Dinâmico (e não mais `export const metadata`): título e descrição são texto de
+// interface como qualquer outro, e o idioma só se conhece em tempo de requisição.
+export async function generateMetadata(): Promise<Metadata> {
+  const t = messagesFor(await activeLocale())
+  return {
+    title: t('meta.title'),
+    description: t('meta.description'),
+    icons: {
+      icon: [
+        { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
+        { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
+        { url: '/icon.svg', type: 'image/svg+xml' },
+      ],
+      apple: '/apple-icon.png',
+    },
+  }
 }
 
 // US-66: viewport explícito — não depender só do default do Next. Garante que o
@@ -37,12 +52,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // US-61: sessão resolvida no servidor e passada ao SessionProvider — o token de
   // API já existe no primeiro render do cliente (sem janela de 401 na entrada).
   const session = await auth()
+  // US-98: `lang` já correto no HTML SERVIDO. O LocaleProvider corrige no cliente
+  // (US-97), mas o leitor de tela escolhe a voz pelo primeiro paint — e o HTML que
+  // vai para crawler ou para uma hidratação que falha nunca chega a ser corrigido.
+  const locale = await activeLocale()
+  const t = messagesFor(locale)
   return (
-    <html lang="pt-BR" suppressHydrationWarning className={`${cinzel.variable} ${geist.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${cinzel.variable} ${geist.variable}`}>
       <body suppressHydrationWarning className="bg-background text-foreground font-sans antialiased">
         {/* US-46: skip link — primeiro elemento tabável do body, some até receber foco. */}
         <a href="#conteudo" className="skip-link" suppressHydrationWarning>
-          Pular para o conteúdo
+          {t('common.skipLink')}
         </a>
         {/* US-46: aplica o tema antes do React hidratar — sem escolha salva, respeita o prefers-color-scheme do sistema. */}
         <script

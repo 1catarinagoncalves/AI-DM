@@ -2,10 +2,12 @@
 
 import { signIn } from 'next-auth/react'
 import { Logo, Panel, SceneFrame } from '@/components/ui/dm'
+import { useT } from '@/components/LocaleProvider'
 
 // US-61: tela de login. "Entrar com Google" abre o fluxo OAuth do Auth.js e volta
 // ao app autenticado. É a única porta (D3): sem sessão, o middleware traz para cá.
 export default function LoginPage() {
+  const t = useT()
   return (
     <SceneFrame scene="/scenes/gate-entrance.png" dim="medium">
       <div className="flex flex-1 items-center justify-center px-4 py-10">
@@ -14,10 +16,10 @@ export default function LoginPage() {
             <Logo className="size-14" />
           </div>
           <h1 className="text-shadow-fantasy font-serif text-3xl font-bold tracking-wide text-primary">
-            AI Dungeon Master
+            {t('common.appName')}
           </h1>
           <p className="mx-auto mt-3 max-w-xs text-pretty text-sm leading-relaxed text-muted-foreground">
-            Entra com a tua conta para os teus personagens te seguirem em qualquer dispositivo.
+            {t('login.subtitle')}
           </p>
           <button
             type="button"
@@ -25,7 +27,7 @@ export default function LoginPage() {
             className="mt-7 inline-flex min-h-[44px] w-full items-center justify-center gap-3 rounded-md border border-border bg-card/80 px-5 py-3 text-sm font-semibold text-foreground shadow-lg backdrop-blur transition-all hover:border-primary/60 hover:bg-card active:translate-y-px"
           >
             <GoogleIcon className="size-5" />
-            Entrar com Google
+            {t('login.google')}
           </button>
         </Panel>
       </div>

@@ -97,7 +97,7 @@ describe('US-46 — GameView operável por teclado', () => {
     render(<GameView {...gameProps} />)
 
     // Campo alcançado pelo nome acessível (aria-label), não por posição/mouse.
-    const field = await screen.findByRole('textbox', { name: 'A tua ação' })
+    const field = await screen.findByRole('textbox', { name: 'A sua ação' })
     fireEvent.change(field, { target: { value: 'Ataco o goblin' } })
     // Enter (sem Shift) envia — caminho de teclado da GameView.
     fireEvent.keyDown(field, { key: 'Enter', shiftKey: false })

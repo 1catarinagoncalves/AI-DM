@@ -4,6 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { useSession } from 'next-auth/react'
 import { DEFAULT_LOCALE, resolveLocale, type Locale } from '@ai-dm/shared'
 import { api } from '@/lib/api'
+import { LOCALE_COOKIE } from '@/lib/locale-cookie'
+import { messagesFor, type Translate } from '@/messages'
 
 // US-97: idioma ativo da mesa. Escada de resolução em UM lugar só (duas cópias
 // divergem no primeiro default que mudar):
@@ -12,7 +14,10 @@ import { api } from '@/lib/api'
 // primeiro /auth/sync. Ela é espelhada num COOKIE porque o `localStorage` não existe
 // no servidor, e o sync corre no callback `jwt` do Auth.js (auth.ts) — sem o cookie,
 // o visitante que escolheu English antes de entrar veria a conta nascer em pt-BR.
-export const LOCALE_STORAGE_KEY = 'ai-dm-locale'
+// US-98: a string mudou de casa (lib/locale-cookie.ts) para o servidor poder usá-la
+// sem importar este módulo 'use client'. O nome exportado fica — é o que os testes
+// e o resto do front já usam.
+export const LOCALE_STORAGE_KEY = LOCALE_COOKIE
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
 
 function rememberLocale(locale: Locale) {
@@ -36,6 +41,15 @@ const LocaleContext = createContext<LocaleContextValue>({ locale: DEFAULT_LOCALE
 
 export function useLocale() {
   return useContext(LocaleContext)
+}
+
+/**
+ * US-98: tradutor do locale ativo. `t('game.send')` resolve contra o dicionário do
+ * idioma corrente; a troca re-renderiza quem usa o hook, sem recarregar a página.
+ * A chave é tipada (`MessageKey`), então typo não compila.
+ */
+export function useT(): Translate {
+  return messagesFor(useContext(LocaleContext).locale)
 }
 
 function storedLocale(): Locale | null {

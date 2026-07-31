@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { Swords } from 'lucide-react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { LocaleToggle } from '@/components/LocaleToggle'
+import { BrandName } from '@/components/BrandName'
 
 // Primitivas do design system "grimório vivo".
 // Documento canónico: docs/sdlc/02-design/design-system.md
@@ -136,9 +137,10 @@ export function SceneFrame({
 
       <header className="relative z-10 flex items-center gap-2 px-4 py-3 sm:px-6">
         <Logo className="size-8" />
-        <span className="hidden font-serif text-sm font-semibold tracking-wide text-parchment sm:inline">
-          AI Dungeon Master
-        </span>
+        {/* US-98: a marca é traduzida, então vem de um componente de cliente próprio
+            (BrandName) — este módulo tem de continuar renderizável no SERVIDOR, que
+            é como `app/page.tsx` monta o SceneFrame. */}
+        <BrandName className="hidden font-serif text-sm font-semibold tracking-wide text-parchment sm:inline" />
         {/* US-97: o seletor de idioma vive AQUI, no fluxo do cabeçalho da marca — e não
             como mais um `fixed` no canto, onde tema e Sair já dividem a largura por
             offset calculado à mão (US-66). Um `ml-auto` serve as quatro telas com

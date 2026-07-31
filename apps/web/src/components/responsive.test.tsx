@@ -119,7 +119,7 @@ describe('US-66 — ficha na mesa é painel recolhível no mobile, não faixa ho
     const row = send.parentElement!.parentElement!
     // Âncora: é mesmo a linha que junta os dois (senão o guard passaria em vazio
     // por apanhar um elemento errado que também não tem `flex-col`).
-    expect(row.contains(screen.getByLabelText('A tua ação'))).toBe(true)
+    expect(row.contains(screen.getByLabelText('A sua ação'))).toBe(true)
     expect(row.className).not.toContain('flex-col')
   })
 })

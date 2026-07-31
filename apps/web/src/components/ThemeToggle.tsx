@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
+import { useT } from '@/components/LocaleProvider'
 
 const STORAGE_KEY = 'ai-dm-theme'
 
 export function ThemeToggle() {
+  const t = useT()
   const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export function ThemeToggle() {
     document.documentElement.classList.toggle('dark', next === 'dark')
   }
 
-  const label = isDark ? 'Mudar para modo claro' : 'Mudar para modo noturno'
+  const label = isDark ? t('common.theme.toLight') : t('common.theme.toDark')
   return (
     <button
       onClick={toggle}

@@ -1,0 +1,203 @@
+import type { MessageKey } from './pt-BR'
+
+// US-98: dicionário en-US. Ao contrário do pt-BR (que é recorte do JSX), este é
+// texto NOVO.
+//
+// O tipo é o gate: `Record<MessageKey, string>` faz chave esquecida na tradução
+// virar erro de compilação no `pnpm typecheck` que o CI já roda — em vez de chegar
+// à produção como `undefined` no meio da tela.
+export const enUS: Record<MessageKey, string> = {
+  // ---- comum a todas as telas ----
+  'common.appName': 'Chronicle Master',
+  'common.skipLink': 'Skip to content',
+  'common.signOut': 'Sign out',
+  'common.retry': 'Try again',
+  'common.theme.toLight': 'Switch to light mode',
+  'common.theme.toDark': 'Switch to dark mode',
+  'common.locale.group': 'Table language',
+
+  'meta.title': 'Chronicle Master',
+  'meta.description': 'Your AI-powered RPG narrator',
+
+  // ---- login ----
+  'login.subtitle': 'Sign in so your characters follow you on any device.',
+  'login.google': 'Sign in with Google',
+
+  // ---- home / hub ----
+  'home.empty.title': 'Hello, Adventurer',
+  'home.empty.none': "You don't have any characters yet.",
+  'home.empty.hint': 'Create your first character to start playing.',
+  'home.empty.create': 'Create my character',
+  'home.loading': 'Loading your characters…',
+  'home.error.load': "Couldn't load your characters.",
+  'home.error.delete': "Couldn't delete the character. Try again.",
+  'home.welcomeBack': 'Welcome back, Adventurer.',
+  'home.level': 'Lv.{level}',
+  'home.adventureLabel': 'Adventure:',
+  'home.continue': 'Continue playing',
+  'home.noAdventure': 'No adventure in progress',
+  'home.newCharacter': 'Create a new character',
+  'home.delete': 'Delete {name}',
+  'home.confirmDelete': 'Delete {name}? This action cannot be undone.',
+  'home.showAll': 'See all characters',
+
+  // ---- wizard: trilha de etapas ----
+  'setup.progress': 'Progress',
+  'setup.stepOf': 'Step {n} of {total} — {label}',
+  'setup.step.system': 'System',
+  'setup.step.race-class': 'Race/Class',
+  'setup.step.attributes': 'Attributes',
+  'setup.step.skills': 'Skills',
+  'setup.step.background': 'Background',
+  'setup.step.review': 'Review',
+  'setup.back': 'Back',
+  'setup.next': 'Next',
+  'setup.confirm': 'Confirm character',
+  'setup.confirming': 'Creating...',
+
+  // ---- wizard: sistema ----
+  'setup.system.titulo': 'Choose the System',
+  'setup.system.subtitulo': 'It sets the rules that will guide your journey.',
+  'setup.system.loading': 'Loading systems...',
+  'setup.system.error': "Couldn't load the systems. Reload the page.",
+  'setup.system.hint.FREE': 'Free narration, no official system',
+  'setup.system.hint.SRD': 'Official rules from a well-known system',
+  'setup.system.hint.UPLOAD': 'Custom system uploaded by a user',
+
+  // ---- wizard: raça e classe ----
+  'setup.raceClass.titulo': 'Race and Class',
+  'setup.raceClass.system': 'System: {name}',
+  'setup.raceClass.name': 'Character name',
+  'setup.raceClass.namePlaceholder': 'E.g.: Lyra Silvermoon',
+  'setup.raceClass.gender': 'Gender',
+  'setup.raceClass.race': 'Race',
+  'setup.raceClass.class': 'Class',
+  'setup.raceClass.select': 'Select…',
+
+  // Só o RÓTULO é traduzido — o `value` enviado à API continua sendo a chave PT
+  // (ver o comentário gêmeo no pt-BR.ts e em SetupWizard).
+  'setup.gender.Feminino': 'Female',
+  'setup.gender.Masculino': 'Male',
+  'setup.gender.Não-binário': 'Non-binary',
+  'setup.race.Anão': 'Dwarf',
+  'setup.race.Meio-Orc': 'Half-Orc',
+  'setup.race.Elfo': 'Elf',
+  'setup.race.Halfling': 'Halfling',
+  'setup.race.Humano': 'Human',
+  'setup.race.Dragonborn': 'Dragonborn',
+  'setup.race.Gnomo': 'Gnome',
+  'setup.race.Meio-Elfo': 'Half-Elf',
+  'setup.race.Tiefling': 'Tiefling',
+  'setup.class.Bárbaro': 'Barbarian',
+  'setup.class.Bardo': 'Bard',
+  'setup.class.Clérigo': 'Cleric',
+  'setup.class.Druida': 'Druid',
+  'setup.class.Guerreiro': 'Fighter',
+  'setup.class.Monge': 'Monk',
+  'setup.class.Paladino': 'Paladin',
+  'setup.class.Patrulheiro': 'Ranger',
+  'setup.class.Ladino': 'Rogue',
+  'setup.class.Feiticeiro': 'Sorcerer',
+  'setup.class.Bruxo': 'Warlock',
+  'setup.class.Mago': 'Wizard',
+
+  // ---- wizard: atributos ----
+  'setup.attributes.titulo': 'Attributes',
+  'setup.attributes.remaining': 'Points remaining:',
+  'setup.attributes.decrease': 'Decrease {label}',
+  'setup.attributes.increase': 'Increase {label}',
+
+  // ---- wizard: perícias ----
+  'setup.skills.titulo': 'Skills',
+  'setup.skills.instructions': 'Choose {n} proficient skills (+{bonus} each).',
+  'setup.skills.selected': 'Selected:',
+
+  // ---- wizard: background ----
+  'setup.background.titulo': 'Background',
+  'setup.background.subtitulo': 'Who is {name}? The Dungeon Master uses this to give weight to your choices. All optional — one item per line in ideals, bonds and flaws.',
+  'setup.background.defaultName': 'this character',
+  'setup.background.story': 'Story',
+  'setup.background.storyPlaceholder': 'E.g.: minor noble who lost their family to a demonic cult…',
+  'setup.background.ideals': 'Ideals — one per line',
+  'setup.background.idealsPlaceholder': 'E.g.: Justice above all',
+  'setup.background.bonds': 'Bonds — one per line',
+  'setup.background.bondsPlaceholder': 'E.g.: Swore vengeance on the cult that killed their family',
+  'setup.background.flaws': 'Flaws — one per line',
+  'setup.background.flawsPlaceholder': "E.g.: Rigid code of honour: never lies, never abandons the innocent",
+  'setup.background.deity': 'Deity/Patron — name, and what they stand for',
+  'setup.background.deityPlaceholder': 'E.g.: Auril, goddess of winter',
+
+  // ---- wizard: revisão ----
+  'setup.review.titulo': 'Review',
+  'setup.review.subtitulo': 'Check your character sheet before setting out.',
+  'setup.review.name': 'Name',
+  'setup.review.gender': 'Gender',
+  'setup.review.race': 'Race',
+  'setup.review.class': 'Class',
+  'setup.review.level': 'Level',
+  'setup.review.attributes': 'Attributes',
+  'setup.review.skills': 'Skills',
+  'setup.review.background': 'Background',
+  'setup.review.filled': 'Filled in',
+  'setup.review.deity': 'Deity/Patron',
+
+  // ---- wizard: erros ----
+  'setup.error.create': 'Something went wrong creating the character. Try again.',
+  'setup.error.start': 'Something went wrong starting the adventure. Try again.',
+
+  // ---- gancho de aventura inicial ----
+  'hook.eyebrow': 'Opening adventure',
+  'hook.loading': 'Preparing your adventure…',
+  'hook.error': "Couldn't load the opening adventure for {name}.",
+  'hook.subtitle': 'The first adventure of {name}, {class}.',
+  'hook.start': 'Start adventure',
+  'hook.starting': 'Starting...',
+
+  // ---- mesa de jogo ----
+  'game.notFound': 'Character not found.',
+  'game.restart': 'Start over',
+  'game.sheetToggle': 'Sheet — {name}',
+  'game.sheetTabs': 'Character sheet',
+  'game.tab.ficha': 'Sheet',
+  'game.tab.features': 'Features',
+  'game.tab.background': 'Background',
+  'game.hp': 'HP',
+  'game.conditions': 'Conditions',
+  'game.attributes': 'Attributes',
+  'game.attr.strength': 'STR',
+  'game.attr.dexterity': 'DEX',
+  'game.attr.constitution': 'CON',
+  'game.attr.intelligence': 'INT',
+  'game.attr.wisdom': 'WIS',
+  'game.attr.charisma': 'CHA',
+  'game.skills': 'Skills',
+  'game.proficient': 'Proficient',
+  'game.inventory': 'Inventory ({n})',
+  'game.inventoryEmpty': 'No items',
+  'game.background.empty': "This character doesn't have a story yet.",
+  'game.background.story': 'Story',
+  'game.background.deity': 'Deity/Patron',
+  'game.background.ideals': 'Ideals',
+  'game.background.bonds': 'Bonds',
+  'game.background.flaws': 'Flaws',
+  'game.features.empty': "This class doesn't have any features or spells recorded yet.",
+  'game.features.title': 'Features',
+  'game.spells.title': 'Spells',
+  'game.log': "Dungeon Master's narration",
+  'game.empty.title': 'Your adventure begins here.',
+  'game.empty.hint': 'Tell the Dungeon Master what you want to do.',
+  'game.localeChanged': 'Language changed to English',
+  'game.warming': 'The Dungeon Master is waking up… {secs}s',
+  'game.warmingPlaceholder': 'The Dungeon Master is waking up…',
+  'game.editingBanner': 'Editing your last action',
+  'game.editLast': 'Edit your last action',
+  'game.edit': 'Edit',
+  'game.editPlaceholder': 'Fix your action and save the edit…',
+  'game.actionPlaceholder': 'What do you do? (Enter to send, Shift+Enter for a new line)',
+  'game.editLabel': 'Edit your action',
+  'game.actionLabel': 'Your action',
+  'game.cancel': 'Cancel',
+  'game.saveEdit': 'Save edit',
+  'game.send': 'Send action',
+  'game.error.connect': "Couldn't reach the Dungeon Master. Try again.",
+}

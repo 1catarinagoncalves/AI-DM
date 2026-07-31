@@ -129,7 +129,7 @@ describe('GameView — abas na ficha (US-45)', () => {
 
     fireEvent.click(await screen.findByRole('tab', { name: 'Features' }))
 
-    expect(screen.getByText('Esta classe ainda não tem features nem magias registadas.')).toBeTruthy()
+    expect(screen.getByText('Esta classe ainda não tem features nem magias registradas.')).toBeTruthy()
     // Nenhum título órfão.
     expect(screen.queryByRole('heading', { name: 'Magias' })).toBeNull()
   })
@@ -192,7 +192,7 @@ describe('GameView — abas na ficha (US-45)', () => {
 
     expect(await screen.findByText('Estilo de Combate')).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Magias' })).toBeNull()
-    expect(screen.queryByText('Esta classe ainda não tem features nem magias registadas.')).toBeNull()
+    expect(screen.queryByText('Esta classe ainda não tem features nem magias registradas.')).toBeNull()
   })
 
   it('HP fica fixo acima das abas e continua visível na aba Background', async () => {
@@ -216,13 +216,13 @@ describe('GameView — editar a última ação (US-67)', () => {
     render(<GameView {...baseProps} />)
 
     // Só um botão de editar — na última ação.
-    const editBtn = await screen.findByRole('button', { name: 'Editar a tua última ação' })
-    expect(screen.getAllByRole('button', { name: 'Editar a tua última ação' })).toHaveLength(1)
+    const editBtn = await screen.findByRole('button', { name: 'Editar a sua última ação' })
+    expect(screen.getAllByRole('button', { name: 'Editar a sua última ação' })).toHaveLength(1)
 
     fireEvent.click(editBtn)
 
     // Texto volta ao campo e o modo edição aparece (Salvar edição + Cancelar).
-    expect((screen.getByLabelText('Editar a tua ação') as HTMLTextAreaElement).value).toBe('abro a porta com a chava')
+    expect((screen.getByLabelText('Editar a sua ação') as HTMLTextAreaElement).value).toBe('abro a porta com a chava')
     expect(screen.getByRole('button', { name: 'Salvar edição' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeTruthy()
   })
@@ -235,7 +235,7 @@ describe('GameView — editar a última ação (US-67)', () => {
     render(<GameView {...baseProps} />)
 
     expect(await screen.findByText('A lâmina raspa o teu braço.')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Editar a tua última ação' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Editar a sua última ação' })).toBeNull()
   })
 
   it('Cancelar sai do modo edição e esvazia o campo sem mexer no histórico', async () => {
@@ -245,10 +245,10 @@ describe('GameView — editar a última ação (US-67)', () => {
     ])
     render(<GameView {...baseProps} />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Editar a tua última ação' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar a sua última ação' }))
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
 
-    expect((screen.getByLabelText('A tua ação') as HTMLTextAreaElement).value).toBe('')
+    expect((screen.getByLabelText('A sua ação') as HTMLTextAreaElement).value).toBe('')
     expect(screen.queryByRole('button', { name: 'Cancelar' })).toBeNull()
     // Histórico intacto.
     expect(screen.getByText('A porta range.')).toBeTruthy()

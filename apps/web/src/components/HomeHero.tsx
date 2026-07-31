@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { DmButton, Logo, Panel, dmButtonClass } from '@/components/ui/dm'
+import { useT } from '@/components/LocaleProvider'
+import type { Translate } from '@/messages'
 
 type HubCharacter = Awaited<ReturnType<typeof api.listCharacters>>[number]
 
@@ -23,19 +25,24 @@ function HubHeading({ title, children }: { title: string; children?: React.React
   )
 }
 
-const emptyState = (
-  <div className="w-full max-w-md text-center">
-    <HubHeading title="Olá, Aventureiro">
-      <p className="mt-3 text-sm text-muted-foreground">Você ainda não tem nenhum personagem.</p>
-      <p className="mt-1 text-sm text-muted-foreground">Crie seu primeiro personagem para começar a jogar.</p>
-    </HubHeading>
-    <Link href="/setup" className={dmButtonClass('primary', 'mt-7 w-full py-3 text-base')}>
-      Criar meu personagem
-    </Link>
-  </div>
-)
+// US-98: era uma const de módulo; virou função porque o texto agora depende do
+// locale ativo, que só existe dentro do componente (hook).
+function emptyState(t: Translate) {
+  return (
+    <div className="w-full max-w-md text-center">
+      <HubHeading title={t('home.empty.title')}>
+        <p className="mt-3 text-sm text-muted-foreground">{t('home.empty.none')}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t('home.empty.hint')}</p>
+      </HubHeading>
+      <Link href="/setup" className={dmButtonClass('primary', 'mt-7 w-full py-3 text-base')}>
+        {t('home.empty.create')}
+      </Link>
+    </div>
+  )
+}
 
 export function HomeHero() {
+  const t = useT()
   // US-61: a lista vem da conta autenticada (token) — sem userId no cliente.
   const [characters, setCharacters] = useState<HubCharacter[] | null>(null)
   const [focus, setFocus] = useState(0)
@@ -53,7 +60,7 @@ export function HomeHero() {
 
   // ponytail: window.confirm no MVP, trocar por modal se o design pedir
   function handleDelete(c: HubCharacter) {
-    if (!window.confirm(`Deletar ${c.name}? Esta ação não pode ser desfeita.`)) return
+    if (!window.confirm(t('home.confirmDelete', { name: c.name }))) return
     setDeleteError(false)
     api.deleteCharacter(c.id)
       .then(() => {
@@ -74,41 +81,42 @@ export function HomeHero() {
   if (error) {
     return (
       <div className="w-full max-w-md text-center">
-        <HubHeading title="AI Dungeon Master">
-          <p className="mt-3 text-sm text-muted-foreground">Não foi possível carregar seus personagens.</p>
+        <HubHeading title={t('common.appName')}>
+          <p className="mt-3 text-sm text-muted-foreground">{t('home.error.load')}</p>
         </HubHeading>
         <DmButton onClick={() => fetchCharacters()} className="mt-7 w-full py-3 text-base">
-          Tentar de novo
+          {t('common.retry')}
         </DmButton>
       </div>
     )
   }
 
   if (characters === null) {
-    return <p className="animate-pulse text-sm text-muted-foreground">Carregando seus personagens…</p>
+    return <p className="animate-pulse text-sm text-muted-foreground">{t('home.loading')}</p>
   }
 
-  if (characters.length === 0) return emptyState
+  if (characters.length === 0) return emptyState(t)
 
   const hero = characters[focus] ?? characters[0]!
   const adventure = hero.currentAdventure
 
   return (
     <div className="w-full max-w-md text-center">
-      <HubHeading title="AI Dungeon Master">
-        <p className="mt-2 text-sm text-muted-foreground">
-          Bem-vindo de volta, <span className="font-semibold text-parchment">Aventureiro</span>.
-        </p>
+      <HubHeading title={t('common.appName')}>
+        {/* US-98: o `<span>` que destacava só a palavra "Aventureiro" saiu — destacar
+            um pedaço da frase exigiria parti-la em duas chaves, e frase concatenada
+            quebra em qualquer idioma com outra ordem de palavras. */}
+        <p className="mt-2 text-sm font-semibold text-muted-foreground">{t('home.welcomeBack')}</p>
       </HubHeading>
 
       <Panel className="mt-6 p-5 text-left">
         <p className="font-serif text-lg font-semibold text-parchment">{hero.name}</p>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          {hero.race} · {hero.class} · Nv.{hero.level}
+          {hero.race} · {hero.class} · {t('home.level', { level: hero.level })}
         </p>
         {adventure && (
           <p className="mt-2 text-sm text-foreground">
-            Aventura: <span className="text-accent">{adventure.title}</span>
+            {t('home.adventureLabel')} <span className="text-accent">{adventure.title}</span>
           </p>
         )}
       </Panel>
@@ -119,23 +127,23 @@ export function HomeHero() {
             href={`/play/${adventure.id}?characterId=${hero.id}`}
             className={dmButtonClass('primary', 'w-full py-3 text-base')}
           >
-            Continuar jogando
+            {t('home.continue')}
           </Link>
         ) : (
           <span className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-border bg-muted px-5 py-3 text-base font-semibold text-muted-foreground">
-            Nenhuma aventura em andamento
+            {t('home.noAdventure')}
           </span>
         )}
         <Link href="/setup" className={dmButtonClass('ghost', 'w-full')}>
-          Criar novo personagem
+          {t('home.newCharacter')}
         </Link>
 
         <DmButton variant="danger" onClick={() => handleDelete(hero)} className="text-xs font-medium">
-          Deletar {hero.name}
+          {t('home.delete', { name: hero.name })}
         </DmButton>
 
         {deleteError && (
-          <p className="text-sm text-destructive">Não foi possível deletar o personagem. Tente de novo.</p>
+          <p className="text-sm text-destructive">{t('home.error.delete')}</p>
         )}
 
         {characters.length > 1 && (
@@ -144,7 +152,7 @@ export function HomeHero() {
               onClick={() => setShowAll((v) => !v)}
               className="min-h-[44px] px-2 text-xs text-muted-foreground transition-colors hover:text-primary"
             >
-              Ver todos os personagens
+              {t('home.showAll')}
             </button>
             {showAll && (
               // Um painel, agrupado por `divide` — sem card-sobre-card (direção §4).
@@ -158,11 +166,11 @@ export function HomeHero() {
                           i === focus ? 'text-primary' : 'text-foreground hover:text-primary'
                         }`}
                       >
-                        {c.name} · {c.race} · {c.class} · Nv.{c.level}
+                        {c.name} · {c.race} · {c.class} · {t('home.level', { level: c.level })}
                       </button>
                       <button
                         onClick={() => handleDelete(c)}
-                        aria-label={`Deletar ${c.name}`}
+                        aria-label={t('home.delete', { name: c.name })}
                         className="flex min-h-[44px] min-w-[44px] items-center justify-center text-muted-foreground transition-colors hover:text-destructive"
                       >
                         <X className="size-4" aria-hidden />

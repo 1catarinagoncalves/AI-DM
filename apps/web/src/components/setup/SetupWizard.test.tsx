@@ -59,7 +59,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     render(<SetupWizard />)
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
-    fireEvent.change(screen.getByLabelText('Género'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'Elfo' } })
     fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'Mago' } })
   }

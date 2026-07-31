@@ -2,7 +2,7 @@
 
 import { Languages } from 'lucide-react'
 import { LOCALES, localeLabel } from '@ai-dm/shared'
-import { useLocale } from '@/components/LocaleProvider'
+import { useLocale, useT } from '@/components/LocaleProvider'
 import { cn } from '@/components/ui/dm'
 
 // US-97: seletor de idioma. Segmentado (não `<select>`): com dois idiomas, mostra ao
@@ -12,10 +12,11 @@ import { cn } from '@/components/ui/dm'
 // a largura do tema + Sair (GameView, `pr-40`), e um terceiro comeria o nome do herói.
 export function LocaleToggle({ className }: { className?: string }) {
   const { locale, setLocale } = useLocale()
+  const t = useT()
   return (
     <div
       role="group"
-      aria-label={locale === 'pt-BR' ? 'Idioma da mesa' : 'Table language'}
+      aria-label={t('common.locale.group')}
       className={cn('inline-flex items-center gap-1 rounded-md border border-border bg-card/60 p-0.5 backdrop-blur', className)}
     >
       <Languages className="ml-1.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />

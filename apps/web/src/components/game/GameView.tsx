@@ -7,7 +7,8 @@ import type { ChatTurn, Locale, RollTurn, SystemSpell } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { DmButton, Logo, SheetHeading, fieldClass } from '@/components/ui/dm'
 import { LocaleToggle } from '@/components/LocaleToggle'
-import { useLocale } from '@/components/LocaleProvider'
+import { useLocale, useT } from '@/components/LocaleProvider'
+import { messagesFor, type MessageKey } from '@/messages'
 
 // US-97: marcador de sessão — o aviso de troca de idioma. Vive SÓ na lista da tela:
 // não é turno de jogo, não vai ao EventLog nem ao histórico que o Mestre recebe (ele
@@ -21,9 +22,12 @@ interface LocaleTurn {
 // US-29: um turno é ação do jogador, narração do Mestre OU um bloco de rolagem.
 type Message = ChatTurn | LocaleTurn
 
-const ATTR_LABELS: Record<string, string> = {
-  strength: 'FOR', dexterity: 'DES', constitution: 'CON',
-  intelligence: 'INT', wisdom: 'SAB', charisma: 'CAR',
+// US-98: as abreviaturas (FOR/DES/… ou STR/DEX/…) mudaram de casa para o dicionário;
+// o mapa aqui só liga a chave do atributo à chave de mensagem. Atributo desconhecido
+// continua caindo no fallback de 3 letras lá embaixo.
+const ATTR_LABELS: Record<string, MessageKey> = {
+  strength: 'game.attr.strength', dexterity: 'game.attr.dexterity', constitution: 'game.attr.constitution',
+  intelligence: 'game.attr.intelligence', wisdom: 'game.attr.wisdom', charisma: 'game.attr.charisma',
 }
 
 interface InventoryItem {
@@ -74,10 +78,10 @@ interface Props {
 // US-45: abas da ficha. Lista (não botões hard-coded) para novas abas
 // (divindade/features/magias — US-40/41/42) entrarem só acrescentando um item.
 type SheetTabId = 'ficha' | 'background' | 'features'
-const SHEET_TABS: { id: SheetTabId; label: string }[] = [
-  { id: 'ficha', label: 'Ficha' },
-  { id: 'features', label: 'Features' },
-  { id: 'background', label: 'Background' },
+const SHEET_TABS: { id: SheetTabId; label: MessageKey }[] = [
+  { id: 'ficha', label: 'game.tab.ficha' },
+  { id: 'features', label: 'game.tab.features' },
+  { id: 'background', label: 'game.tab.background' },
 ]
 
 function historyKey(adventureId: string) {
@@ -104,11 +108,12 @@ function saveHistory(adventureId: string, messages: Message[]) {
 // US-45: painel da aba Background. Read-only. Cada eixo só vira bloco se tiver
 // conteúdo; se nenhum tiver, mostra o empty state (a aba nunca some — só o conteúdo).
 function BackgroundPanel({ background }: { background?: CharacterBackground }) {
+  const t = useT()
   const story = background?.story?.trim()
-  const lists: { label: string; items: string[] }[] = [
-    { label: 'Ideais', items: background?.ideals ?? [] },
-    { label: 'Vínculos', items: background?.bonds ?? [] },
-    { label: 'Fraquezas', items: background?.flaws ?? [] },
+  const lists: { label: MessageKey; items: string[] }[] = [
+    { label: 'game.background.ideals', items: background?.ideals ?? [] },
+    { label: 'game.background.bonds', items: background?.bonds ?? [] },
+    { label: 'game.background.flaws', items: background?.flaws ?? [] },
   ]
   // US-40: divindade só vira bloco se tiver nome; "Nome — portfólio" (ou só o nome).
   const deityName = background?.deity?.name?.trim()
@@ -119,7 +124,7 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
   if (!hasAny) {
     return (
       <p className="text-sm text-muted-foreground">
-        Este personagem ainda não tem história.
+        {t('game.background.empty')}
       </p>
     )
   }
@@ -128,19 +133,19 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
     <div className="flex flex-col gap-4">
       {story && (
         <div>
-          <SheetHeading>História</SheetHeading>
+          <SheetHeading>{t('game.background.story')}</SheetHeading>
           <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground">{story}</p>
         </div>
       )}
       {deityText && (
         <div>
-          <SheetHeading>Divindade/Patrono</SheetHeading>
+          <SheetHeading>{t('game.background.deity')}</SheetHeading>
           <p className="text-[13px] leading-relaxed text-foreground">{deityText}</p>
         </div>
       )}
       {lists.map(({ label, items }) => items.length > 0 && (
         <div key={label}>
-          <SheetHeading>{label}</SheetHeading>
+          <SheetHeading>{t(label)}</SheetHeading>
           <ul className="list-inside list-disc space-y-1">
             {items.map((it, i) => (
               <li key={i} className="text-[13px] text-foreground">{it}</li>
@@ -158,6 +163,7 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
 // e a aba na mesma não some (igual ao painel de Background). Não resolve mecânica:
 // é só o que o personagem PODE fazer. Sem slots/preparação — não existem no modelo.
 function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells?: SystemSpell[] }) {
+  const t = useT()
   const featureList = (features ?? []).filter(f => f?.name?.trim())
   // Ordem estável por nível e depois nome (os 20 truques do mago não podem sair
   // arbitrários). Cópia — a prop não é mutada.
@@ -168,7 +174,7 @@ function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells
   if (featureList.length === 0 && spellList.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Esta classe ainda não tem features nem magias registadas.
+        {t('game.features.empty')}
       </p>
     )
   }
@@ -177,7 +183,7 @@ function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells
     <div className="flex flex-col gap-4">
       {featureList.length > 0 && (
         <section>
-          <SheetHeading>Features</SheetHeading>
+          <SheetHeading>{t('game.features.title')}</SheetHeading>
           <ul className="flex flex-col gap-2">
             {featureList.map((f, i) => (
               <li key={i} className="rounded-md border border-border bg-background/40 p-3">
@@ -193,7 +199,7 @@ function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells
 
       {spellList.length > 0 && (
         <section>
-          <SheetHeading>Magias</SheetHeading>
+          <SheetHeading>{t('game.spells.title')}</SheetHeading>
           <ul className="flex flex-col gap-2">
             {spellList.map((s, i) => {
               // Rótulo vindo de @ai-dm/shared — a MESMA regra que o prompt do mestre usa
@@ -236,6 +242,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   // reusamo-lo como aquecimento e travamos o input até resolver, para o cold start
   // ser pago AQUI (com tempo à mostra) e não no primeiro turno do Mestre.
   const { locale, switches } = useLocale()
+  const t = useT()
   const [warming, setWarming] = useState(true)
   const [warmSecs, setWarmSecs] = useState(0)
   const [currentHp, setCurrentHp] = useState(hp)
@@ -445,7 +452,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
       } catch { /* mantém a reconstrução local */ }
 
     } catch {
-      const errorMessages: Message[] = [...withUser, { role: 'dm', content: 'Erro ao conectar com o Mestre. Tenta novamente.' }]
+      const errorMessages: Message[] = [...withUser, { role: 'dm', content: t('game.error.connect') }]
       setMessages(errorMessages)
       saveHistory(adventureId, errorMessages)
     } finally {
@@ -488,7 +495,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
               DENTRO dela (16px de folga em baixo, igual à de cima) em vez de os
               deixar transbordar sobre a narração; `pr-40` reserva a largura deles
               para não taparem o nome/chevron. */}
-          <span className="truncate">Ficha — {characterName}</span>
+          <span className="truncate">{t('game.sheetToggle', { name: characterName })}</span>
           <ChevronDown aria-hidden className={`size-4 text-primary transition-transform ${sheetOpen ? 'rotate-180' : ''}`} />
         </button>
 
@@ -519,7 +526,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
         <div className="md:w-full">
           <div className="mb-1 flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            <span>HP</span>
+            <span>{t('game.hp')}</span>
             {/* US-46: mudança de HP anunciada de forma discreta (aria-live polite). */}
             <span aria-live="polite" className={hpPercent > 30 ? 'text-foreground' : 'text-destructive'}>{currentHp}/{maxHp}</span>
           </div>
@@ -534,12 +541,12 @@ export function GameView({ adventureId, characterId, characterName, characterCla
         {/* US-45: barra de abas da ficha — renderizada de SHEET_TABS (não hard-coded). */}
         <div
           role="tablist"
-          aria-label="Ficha do personagem"
+          aria-label={t('game.sheetTabs')}
           className="flex shrink-0 border-b border-border md:w-full"
           onKeyDown={e => {
             if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
             e.preventDefault()
-            const idx = SHEET_TABS.findIndex(t => t.id === tab)
+            const idx = SHEET_TABS.findIndex(item => item.id === tab)
             const delta = e.key === 'ArrowRight' ? 1 : -1
             const next = SHEET_TABS[(idx + delta + SHEET_TABS.length) % SHEET_TABS.length]
             if (!next) return
@@ -547,23 +554,23 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             document.getElementById(`sheet-tab-${next.id}`)?.focus()
           }}
         >
-          {SHEET_TABS.map(t => {
-            const active = t.id === tab
+          {SHEET_TABS.map(tab_ => {
+            const active = tab_.id === tab
             return (
               <button
-                key={t.id}
-                id={`sheet-tab-${t.id}`}
+                key={tab_.id}
+                id={`sheet-tab-${tab_.id}`}
                 role="tab"
                 type="button"
                 aria-selected={active}
-                aria-controls={`sheet-panel-${t.id}`}
+                aria-controls={`sheet-panel-${tab_.id}`}
                 tabIndex={active ? 0 : -1}
-                onClick={() => setTab(t.id)}
+                onClick={() => setTab(tab_.id)}
                 className={`relative min-h-[44px] px-3 text-sm font-medium transition-colors ${
                   active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {t.label}
+                {t(tab_.label)}
                 {active && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-primary" />}
               </button>
             )
@@ -580,7 +587,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           >
             {conditions && conditions.length > 0 && (
               <div className="md:w-full">
-                <SheetHeading>Condições</SheetHeading>
+                <SheetHeading>{t('game.conditions')}</SheetHeading>
                 <div className="flex flex-wrap gap-1">
                   {conditions.map((c, i) => (
                     <span key={i} className="rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-xs text-destructive">
@@ -593,12 +600,12 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
             {attributes && Object.keys(attributes).length > 0 && (
               <div className="md:w-full">
-              <SheetHeading>Atributos</SheetHeading>
+              <SheetHeading>{t('game.attributes')}</SheetHeading>
               <div className="grid grid-cols-3 gap-2">
                 {Object.entries(attributes).map(([key, value]) => (
                   <div key={key} className="rounded-md border border-border bg-background/40 p-2 text-center">
                     <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      {ATTR_LABELS[key] ?? key.slice(0, 3).toUpperCase()}
+                      {ATTR_LABELS[key] ? t(ATTR_LABELS[key]!) : key.slice(0, 3).toUpperCase()}
                     </p>
                     <p className="font-serif text-lg font-bold leading-tight text-parchment">
                       {formatModifier(abilityModifier(value))}
@@ -612,7 +619,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
             {skills && skills.length > 0 && (
               <div className="md:w-full">
-                <SheetHeading>Perícias</SheetHeading>
+                <SheetHeading>{t('game.skills')}</SheetHeading>
                 <ul className="scrollbar-thin max-h-56 space-y-0.5 overflow-y-auto pr-1">
                   {skills.map(sk => (
                     <li key={sk.key} className="flex items-center justify-between gap-2 px-1.5 py-1 text-[13px]">
@@ -620,7 +627,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                         {/* Marca de proficiência: o ponto substituiu o `●` textual, então
                             precisa de `role="img"` — `aria-label` num <span> sem papel é
                             atributo proibido (axe: aria-prohibited-attr). */}
-                        {sk.proficient && <span role="img" aria-label="proficiente" title="Proficiente" className="size-1.5 rounded-full bg-primary" />}
+                        {sk.proficient && <span role="img" aria-label={t('game.proficient')} title={t('game.proficient')} className="size-1.5 rounded-full bg-primary" />}
                         {sk.label}
                       </span>
                       <span className="shrink-0 tabular-nums text-muted-foreground">{formatModifier(sk.modifier)}</span>
@@ -631,9 +638,9 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             )}
 
             <div className="md:w-full">
-              <SheetHeading>Inventário ({inventory.length})</SheetHeading>
+              <SheetHeading>{t('game.inventory', { n: inventory.length })}</SheetHeading>
               {inventory.length === 0
-                ? <p className="text-[13px] text-muted-foreground">Nenhum item</p>
+                ? <p className="text-[13px] text-muted-foreground">{t('game.inventoryEmpty')}</p>
                 : <ul className="scrollbar-thin max-h-48 space-y-1 overflow-y-auto pr-1">
                     {inventory.map((item, i) => (
                       <li key={i} className="flex items-start justify-between gap-2 text-[13px] text-foreground">
@@ -688,7 +695,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           role="log"
           aria-live="polite"
           aria-atomic="false"
-          aria-label="Narração do Mestre"
+          aria-label={t('game.log')}
           className="scrollbar-thin min-h-0 flex-1 overflow-y-auto"
         >
           {/* Coluna de leitura: a narração é o conteúdo-herói, medida de linha
@@ -697,8 +704,8 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           {messages.length === 0 && (
             <div className="pt-16 text-center text-muted-foreground">
               <Logo className="mx-auto mb-4 size-12" />
-              <p className="font-serif text-lg text-parchment">A tua aventura começa aqui.</p>
-              <p className="mt-1 text-sm">Diz ao Mestre o que queres fazer.</p>
+              <p className="font-serif text-lg text-parchment">{t('game.empty.title')}</p>
+              <p className="mt-1 text-sm">{t('game.empty.hint')}</p>
             </div>
           )}
 
@@ -716,7 +723,10 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                     className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs text-muted-foreground"
                   >
                     <Languages aria-hidden className="size-3.5 text-accent" />
-                    {msg.locale === 'pt-BR' ? 'Idioma alterado para Português' : 'Language changed to English'}
+                    {/* US-98: resolvido pelo locale DO AVISO (`msg.locale`), não pelo ativo —
+                        um aviso antigo tem de continuar na língua para a qual se trocou
+                        naquele momento, senão pt→en→pt reescreve o histórico da sessão. */}
+                    {messagesFor(msg.locale)('game.localeChanged')}
                   </p>
                 </div>
               )
@@ -762,10 +772,10 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                   <button
                     type="button"
                     onClick={startEdit}
-                    aria-label="Editar a tua última ação"
+                    aria-label={t('game.editLast')}
                     className="mr-2 inline-flex min-h-[44px] items-center gap-1 self-center rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground transition-all hover:border-primary/60 hover:text-primary md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
                   >
-                    <Pencil aria-hidden className="size-3" /> Editar
+                    <Pencil aria-hidden className="size-3" /> {t('game.edit')}
                   </button>
                 )}
                 <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm border border-primary/40 bg-primary/15 px-4 py-2.5 text-[15px] text-parchment">
@@ -787,7 +797,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             className="flex items-center gap-2 border-t border-border bg-card/60 px-4 py-2 text-xs text-accent backdrop-blur"
           >
             <span aria-hidden="true" className="inline-block size-2 animate-pulse rounded-full bg-primary" />
-            O Mestre está a despertar… {warmSecs}s
+            {t('game.warming', { secs: warmSecs })}
           </div>
         )}
 
@@ -795,7 +805,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             uma ação (a bolha esmaecida pode estar fora do ecrã). */}
         {editing && (
           <div role="status" className="flex items-center gap-1.5 px-4 pt-3 text-xs font-semibold text-accent">
-            <Pencil aria-hidden className="size-3" /> A editar a tua última ação
+            <Pencil aria-hidden className="size-3" /> {t('game.editingBanner')}
           </div>
         )}
 
@@ -811,8 +821,8 @@ export function GameView({ adventureId, characterId, characterName, characterCla
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={warming ? 'O Mestre está a despertar…' : editing ? 'Corrige a tua ação e salva a edição…' : 'O que fazes? (Enter para enviar, Shift+Enter para nova linha)'}
-              aria-label={editing ? 'Editar a tua ação' : 'A tua ação'}
+              placeholder={warming ? t('game.warmingPlaceholder') : editing ? t('game.editPlaceholder') : t('game.actionPlaceholder')}
+              aria-label={editing ? t('game.editLabel') : t('game.actionLabel')}
               disabled={streaming || warming}
               className={fieldClass('scrollbar-thin flex-1 resize-none disabled:opacity-50')}
             />
@@ -820,16 +830,16 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             <div className="flex shrink-0 justify-end gap-3">
               {editing && (
                 <DmButton variant="ghost" type="button" onClick={cancelEdit} disabled={streaming || warming}>
-                  Cancelar
+                  {t('game.cancel')}
                 </DmButton>
               )}
               <DmButton
                 type="submit"
                 disabled={streaming || warming || !input.trim()}
-                aria-label={editing ? 'Salvar edição' : 'Enviar ação'}
+                aria-label={editing ? t('game.saveEdit') : t('game.send')}
                 className={editing ? undefined : 'px-4'}
               >
-                {editing ? 'Salvar edição' : <Send aria-hidden className={`size-4 ${streaming ? 'animate-pulse' : ''}`} />}
+                {editing ? t('game.saveEdit') : <Send aria-hidden className={`size-4 ${streaming ? 'animate-pulse' : ''}`} />}
               </DmButton>
             </div>
           </div>

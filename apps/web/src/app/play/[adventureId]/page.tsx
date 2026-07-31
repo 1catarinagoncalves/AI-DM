@@ -1,6 +1,9 @@
+import { cookies } from 'next/headers'
 import { GameView } from '@/components/game/GameView'
 import { buildSkillSheet, type SystemConfig } from '@ai-dm/shared'
 import { apiAuthHeader } from '@/lib/server-auth'
+import { LOCALE_COOKIE, localeFromCookie } from '@/lib/locale-cookie'
+import { messagesFor } from '@/messages'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
@@ -14,9 +17,11 @@ export default async function PlayPage({ params, searchParams }: Props) {
   const { characterId } = await searchParams
 
   if (!characterId) {
+    // Componente de SERVIDOR: sem hook, o locale vem do cookie que a US-97 espelha.
+    const t = messagesFor(localeFromCookie((await cookies()).get(LOCALE_COOKIE)?.value))
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background text-foreground">
-        <p className="text-muted-foreground">Personagem não encontrado. <a href="/setup" className="text-primary underline underline-offset-4">Recomeçar</a></p>
+        <p className="text-muted-foreground">{t('game.notFound')} <a href="/setup" className="text-primary underline underline-offset-4">{t('game.restart')}</a></p>
       </div>
     )
   }

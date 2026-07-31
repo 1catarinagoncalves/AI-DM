@@ -3,10 +3,11 @@ import Google from 'next-auth/providers/google'
 import { SignJWT } from 'jose'
 import { cookies } from 'next/headers'
 import { isLocale } from '@ai-dm/shared'
-
 // US-97: mesmo nome da chave do localStorage (LOCALE_STORAGE_KEY, LocaleProvider) —
 // é o mesmo valor, espelhado em cookie só para o servidor conseguir lê-lo.
-const LOCALE_COOKIE = 'ai-dm-locale'
+// US-98: a constante saiu daqui para lib/locale-cookie.ts quando o layout.tsx passou
+// a precisar dela também (eram duas cópias literais; agora é uma).
+import { LOCALE_COOKIE } from '@/lib/locale-cookie'
 
 // US-61: login por Google via Auth.js (NextAuth v5), dentro do próprio apps/web
 // (ADR 006 — custo zero, sem fornecedor de auth extra). A sessão é JWT (sem

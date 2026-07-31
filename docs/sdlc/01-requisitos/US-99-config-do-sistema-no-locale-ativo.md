@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-97](./US-97-seletor-de-idioma-pt-br-en.md) (é de `User.locale` que sai o idioma a servir) · [US-47](./US-47-ingestao-srd-como-dado.md) ✅ (o pipeline `sync`+`ingest` e o overlay `locale/pt-BR.json` já existem — falta o **consumidor** por locale)
 **Relacionada a:** [US-98](./US-98-i18n-da-interface-web.md) (a outra metade do texto do wizard; as duas juntas é que fazem o onboarding EN fechar) · [ADR 005](../../adr/005-locale-como-dimensao.md) (D3: **EN é a base nativa, pt-BR é overlay**) · [ADR 003](../../adr/003-sistemas-como-dado.md) / [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) (o `config` como dado e a origem dele) · [US-52](./US-52-traducao-automatica-do-srd.md) (produz overlay para locales ≠ `en-US`)
 **Criada em:** 2026-07-30
