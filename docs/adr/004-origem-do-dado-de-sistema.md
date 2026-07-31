@@ -29,7 +29,8 @@ Pipeline de dois passos, sem código de app novo, alimentando **só o `system-dn
   `scripts/srd/_data/` (gitignored). Reprodutibilidade > frescor; `main` nunca.
 - **`scripts/srd/ingest.mjs`** — mapeia o dataset → 4 campos do `SystemConfig`
   (`attributes`, `skills`, `classFeatures`, `classSpells`), aplica o overlay pt-BR, valida com
-  `SystemConfigSchema.parse()` e grava o artefato versionado **`scripts/srd/srd-5e.config.json`**.
+  `SystemConfigSchema.parse()` e grava os artefatos versionados **`scripts/srd/srd-5e.config.<locale>.json`**
+  (a US-99 desdobrou o artefato único em base EN + localização pt-BR).
 - O **`seed.ts` importa o artefato** só para o D&D; o `system-free` ficou **congelado** em literais
   próprias (ver §3, decisão 6). `System.version` do D&D passou de `'5.1'` → **`'5.2'`**.
 
@@ -51,7 +52,7 @@ que barra qualquer chave só-EN.
 |---|---------|---------|
 | 1 | **Open5e**, não `5e-database` | O `5e-database` **não tem** spells 2024 (só SRD 5.1) e é **OGL 1.0a** (copyleft, contamina o repo). O Open5e tem as magias 2024 nativas e é CC-BY-4.0. |
 | 2 | Tag pinada (`v2.1.0`), não `main` | Reprodutível. Bump vira PR com diff do artefato mostrando exatamente o que mudou. |
-| 3 | Artefato versionado (`srd-5e.config.json`), não submodule | O `seed` não depende de rede; o diff do artefato é a revisão de cada bump. |
+| 3 | Artefato versionado (`srd-5e.config.<locale>.json`), não submodule | O `seed` não depende de rede; o diff do artefato é a revisão de cada bump. |
 | 4 | Ingest deriva **4 campos**; kits/point-buy/proficiência/aventuras ficam no seed | A fronteira é "regra do SRD numa fonte CC". Orçamento de point-buy e faixa de atributo são decisão de produto; kit inicial é regra, mas a fonte é OGL (US-51). |
 | 5 | Overlay por **chave canônica**, não pela chave do Open5e | Desamarra o overlay do formato `srd-2024_*` da fonte; trocar dataset reescreve só o mapper, não o `pt-BR.json`. |
 | 6 | **Desacoplar o `freeConfig`** dos 4 campos substituídos | Antes o Free *referenciava* os mesmos objetos do D&D; trocar por artefato faria o Free herdar o SRD sem ninguém pedir, e nenhum teste pegaria (fixtures próprias). Agora tem literais `free*` congeladas. |
@@ -123,7 +124,7 @@ magias inclui **truques + todas as de nível 1**. As consequências são **relat
 - `scripts/srd/sync.mjs` — download pinado (`v2.1.0`) → `scripts/srd/_data/`.
 - `scripts/srd/ingest.mjs` — mapper + overlay + relatórios (órfãos / fallback EN) + `--strict` + escrita determinística.
 - `scripts/srd/locale/pt-BR.json` — overlay curado (chave canônica), semeado do seed.
-- `scripts/srd/srd-5e.config.json` — artefato derivado versionado.
+- `scripts/srd/srd-5e.config.en-US.json` / `srd-5e.config.pt-BR.json` — artefatos derivados versionados (US-99).
 - `scripts/srd/NOTICE-open5e.md` — atribuição CC-BY-4.0.
 - `apps/api/prisma/seed.ts` — `free*` congelado; D&D importa o artefato; `version '5.2'`.
 - `package.json` — scripts `srd:sync` e `srd:ingest`.

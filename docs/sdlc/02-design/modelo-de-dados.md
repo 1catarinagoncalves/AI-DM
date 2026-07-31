@@ -131,9 +131,10 @@ as respeitar:
   é preservado antes da criação da próxima; a continuidade entre aventuras mora no personagem.
 - `memorySummary` em `Adventure` é o resumo acumulado da própria aventura ([ADR 002](../../adr/002-memoria-de-sessao.md)).
   No MVP (Fase 1), pode ser nulo.
-- `System` para Free e D&D 5e SRD vem do seed (`apps/api/prisma/seed.ts`), não de upload. O
-  seed é **manual** (`pnpm db:seed`): o deploy do Render roda `migrate deploy`, não o seed
-  ([`render.yaml`](../../../render.yaml)) — banco novo sem seed sobe com a tabela `System` vazia.
+- `System` para Free e D&D 5e SRD vem do seed (`apps/api/prisma/seed.ts`), não de upload. Desde a
+  US-99 o seed roda **no `buildCommand` do Render**, logo após o `migrate deploy`
+  ([`render.yaml`](../../../render.yaml)): a migração cria a coluna, mas só o seed põe dado de
+  sistema nela. É idempotente (`upsert`), então rodar a cada deploy é seguro.
 - **Nem todo campo `JSON` tem tipo TypeScript.** Têm, em `packages/shared/src/types/`:
   `CharacterState.inventory` (`InventoryItem[]`), `CharacterState.sceneState` (`SceneState`),
   `Adventure.entities` (`WorldEntity[]`) e `System.config` (`SystemConfigSchema`, Zod).

@@ -1,6 +1,6 @@
 // US-47 — sync: baixa o dataset SRD do Open5e PINADO numa tag (reprodutível, nunca `main`).
 // Reprodutibilidade > frescor: bump de tag é um PR, com o diff do artefato mostrando o que mudou.
-// Grava em scripts/srd/_data/ (gitignored — só o artefato derivado srd-5e.config.json entra no repo).
+// Grava em scripts/srd/_data/ (gitignored — só os artefatos derivados srd-5e.config.<locale>.json entram no repo).
 // Fonte: open5e/open5e-api, CC-BY-4.0 (WotC / SRD 5.2). Ver NOTICE-open5e.md.
 //
 // Uso: node scripts/srd/sync.mjs

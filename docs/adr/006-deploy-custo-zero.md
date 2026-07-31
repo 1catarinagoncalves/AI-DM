@@ -145,7 +145,7 @@ Browser
 ## 6. Implementação (referência)
 
 - **Vercel (web):** importar o repo, root em `apps/web`, framework Next.js autodetectado. Env: `NEXT_PUBLIC_API_URL` = URL pública do Render. Build padrão do monorepo (respeitar o pnpm workspace).
-- **Render (api):** Web Service, runtime Node, build a partir de `apps/api` (com o build dos `packages/*` que ele importa — ver `pnpm build` no [package.json](../../package.json) raiz). Start: o `main.ts` compilado. Env: `DATABASE_URL` (Neon), `FRONTEND_URL` (URL da Vercel, para o CORS em [main.ts:9](../../apps/api/src/main.ts)), `OPENROUTER_API_KEY`/`GROQ_API_KEY`, `PORT` (o Render injeta). Release step: `prisma migrate deploy` + seed do SRD se o banco estiver vazio.
+- **Render (api):** Web Service, runtime Node, build a partir de `apps/api` (com o build dos `packages/*` que ele importa — ver `pnpm build` no [package.json](../../package.json) raiz). Start: o `main.ts` compilado. Env: `DATABASE_URL` (Neon), `FRONTEND_URL` (URL da Vercel, para o CORS em [main.ts:9](../../apps/api/src/main.ts)), `OPENROUTER_API_KEY`/`GROQ_API_KEY`, `PORT` (o Render injeta). Release step: `prisma migrate deploy` + `db:seed` (US-99: o seed é idempotente e roda a cada build — a migração cria a coluna, só o seed põe dado de sistema nela).
 - **Neon (db):** criar projeto Postgres, copiar a connection string (com `?sslmode=require`) para `DATABASE_URL`. Rodar `pnpm db:migrate` (ou o `migrate deploy` do release) contra ela.
 - **CORS:** [main.ts](../../apps/api/src/main.ts) já lê `FRONTEND_URL` — apontar para o domínio da Vercel fecha a origem.
 - **Sem novos serviços:** nada de Redis/BullMQ/vector store — não fazem parte do MVP nem deste deploy.

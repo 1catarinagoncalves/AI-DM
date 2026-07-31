@@ -1,5 +1,9 @@
 // US-47 — ingest: mapeia o dataset SRD (scripts/srd/_data, do sync) → subset do SystemConfig,
-// aplica o overlay pt-BR (locale/pt-BR.json), valida e grava o artefato srd-5e.config.json.
+// aplica o overlay pt-BR (locale/pt-BR.json), valida e grava os artefatos por locale.
+//
+// US-99: grava DOIS artefatos completos — a base EN (`srd-5e.config.en-US.json`, sem overlay)
+// e a localização (`srd-5e.config.pt-BR.json`, com overlay). Gerar o inglês é rodar o MESMO
+// código com o overlay vazio: `resolve()` já cai no texto do dataset quando falta tradução.
 //
 // Deriva 4 campos (attributes, skills, classFeatures, classSpells). Os demais campos do
 // SystemConfig (startingKits, pointBuy, proficiency, initialAdventures) NÃO são regra de SRD
@@ -50,56 +54,62 @@ const ATTR_ORDER = ['strength', 'dexterity', 'constitution', 'intelligence', 'wi
 // o orçamento (pointBuy.budget) segue no seed. Ver US-47 "Fora do escopo".
 const ATTR_RANGE = { min: 10, max: 18, default: 10 }
 
-const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
+// Stub dos campos que o ingest não deriva (o schema os exige; o valor real vive no seed).
+const STUB = { startingKits: { default: [{ name: '—', qty: 1 }] }, pointBuy: { budget: 27 } }
 
-// Relatórios: chave do overlay que traduz algo inexistente no dataset (órfã) vs. chave do
-// dataset sem PT no overlay (cai no fallback EN). Dois problemas distintos, dois relatórios.
-const fallbacks = [] // { domain, key }
-const orphans = [] // { domain, key }
-const usedOverlay = { attributes: new Set(), skills: new Set(), features: new Set(), spells: new Set() }
+const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
+const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
 async function load(name) {
   return JSON.parse(await readFile(join(DATA, name), 'utf8'))
 }
 
-// Resolve texto do overlay; registra fallback quando ausente/vazio. `enName`/`enDesc` = base EN do dataset.
-function resolve(domain, key, overlayEntry, enName, enDesc) {
-  const name = overlayEntry?.name?.trim()
-  const description = overlayEntry?.description?.trim()
-  if (name || description) usedOverlay[domain].add(key)
-  const missing = !name || (enDesc !== undefined && !description)
-  if (missing) fallbacks.push({ domain, key })
-  return {
-    name: name || enName,
-    ...(enDesc !== undefined ? { description: description || enDesc } : {}),
+// Relatórios: chave do overlay que traduz algo inexistente no dataset (órfã) vs. chave do
+// dataset sem PT no overlay (cai no fallback EN). Dois problemas distintos, dois relatórios.
+//
+// US-99: o estado vive POR BUILD, não no módulo — o ingest roda duas vezes (base EN e pt-BR)
+// e os relatórios de uma passagem não podem contaminar a outra.
+function makeResolver() {
+  const fallbacks = [] // { domain, key }
+  const orphans = [] // { domain, key }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), features: new Set(), spells: new Set() }
+
+  // Resolve texto do overlay; registra fallback quando ausente/vazio. `enName`/`enDesc` = base EN do dataset.
+  function resolve(domain, key, overlayEntry, enName, enDesc) {
+    const name = overlayEntry?.name?.trim()
+    const description = overlayEntry?.description?.trim()
+    if (name || description) usedOverlay[domain].add(key)
+    const missing = !name || (enDesc !== undefined && !description)
+    if (missing) fallbacks.push({ domain, key })
+    return {
+      name: name || enName,
+      ...(enDesc !== undefined ? { description: description || enDesc } : {}),
+    }
   }
+
+  return { resolve, fallbacks, orphans, usedOverlay }
 }
 
-async function main() {
-  const overlay = JSON.parse(await readFile(join(HERE, 'locale', 'pt-BR.json'), 'utf8'))
-  const [abilities, skillsRaw, classes, features, featureItems, spells] = await Promise.all([
-    load('AbilityDescription.json'),
-    load('Skill.json'),
-    load('CharacterClass.json'),
-    load('ClassFeature.json'),
-    load('ClassFeatureItem.json'),
-    load('Spell.json'),
-  ])
-
-  // --- attributes (6): dataset dá as chaves; label vem do overlay; min/max/default do produto ---
+// --- attributes (6): dataset dá as chaves; label vem do overlay; min/max/default do produto ---
+function buildAttributes(overlay, abilities, resolve) {
   const abilityKeys = new Set(abilities.map((a) => a.fields.describes))
   for (const canon of ATTR_ORDER) {
     const abbr = Object.keys(ABILITY_MAP).find((k) => ABILITY_MAP[k] === canon)
     if (!abilityKeys.has(abbr)) throw new Error(`Atributo ausente no dataset: ${abbr}`)
   }
-  const attributes = ATTR_ORDER.map((canon) => ({
+  return ATTR_ORDER.map((canon) => ({
     key: canon,
-    label: resolve('attributes', canon, { name: overlay.attributes?.[canon] }, canon).name,
+    // US-99: `AbilityDescription` não tem campo de nome — só a abreviação (`describes: "str"`)
+    // e uma frase de sabor. O rótulo EN é a chave canônica capitalizada, que É a palavra
+    // inglesa ("strength" → "Strength"). Sem isto a base EN serviria a chave crua.
+    label: resolve('attributes', canon, { name: overlay.attributes?.[canon] }, capitalize(canon)).name,
     ...ATTR_RANGE,
   }))
+}
 
-  // --- skills (18): doc `core` (traz `ability`); descarta a5e-ag_ (defensivo, AC) ---
-  const skills = skillsRaw
+// --- skills (18): doc `core` (traz `ability`); descarta a5e-ag_ (defensivo, AC) ---
+function buildSkills(overlay, skillsRaw, resolve) {
+  return skillsRaw
     .filter((s) => !String(s.pk).startsWith('a5e-ag_') && !String(s.fields.describes).startsWith('a5e-ag_'))
     .map((s) => {
       const key = String(s.pk).replace(/-/g, '_') // sleight-of-hand → sleight_of_hand
@@ -109,8 +119,10 @@ async function main() {
       return { key, label, ability }
     })
     .sort((a, b) => a.key.localeCompare(b.key))
+}
 
-  // --- classFeatures: nível 1, só classe base, sem ruído de tabela nem motor de conjuração ---
+// --- classFeatures: nível 1, só classe base, sem ruído de tabela nem motor de conjuração ---
+function buildClassFeatures(overlay, { classes, features, featureItems }, resolve) {
   const baseClasses = classes.filter((c) => c.fields.subclass_of === null)
   for (const c of baseClasses) {
     if (!CLASS_MAP[c.pk]) throw new Error(`Classe base sem entrada no CLASS_MAP: ${c.pk}`)
@@ -133,8 +145,11 @@ async function main() {
       .sort((a, b) => a._slug.localeCompare(b._slug))
       .map(({ _slug, ...e }) => e)
   }
+  return classFeatures
+}
 
-  // --- classSpells: nível <= 1 (truques + todas as de 1º), ligadas por classes[] ---
+// --- classSpells: nível <= 1 (truques + todas as de 1º), ligadas por classes[] ---
+function buildClassSpells(overlay, spells, resolve) {
   const classSpells = { default: [] }
   for (const s of spells) {
     if (s.fields.level > 1) continue
@@ -152,6 +167,16 @@ async function main() {
       .sort((a, b) => a.level - b.level || a._slug.localeCompare(b._slug))
       .map(({ _slug, ...e }) => e)
   }
+  return classSpells
+}
+
+// Monta um artefato completo a partir do dataset + um overlay. Overlay `{}` = base EN crua.
+function buildConfig(overlay, data) {
+  const { resolve, fallbacks, orphans, usedOverlay } = makeResolver()
+  const attributes = buildAttributes(overlay, data.abilities, resolve)
+  const skills = buildSkills(overlay, data.skillsRaw, resolve)
+  const classFeatures = buildClassFeatures(overlay, data, resolve)
+  const classSpells = buildClassSpells(overlay, data.spells, resolve)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
   for (const domain of ['features', 'spells']) {
@@ -161,19 +186,40 @@ async function main() {
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  // Stub dos campos que o ingest não deriva (o schema os exige; o valor real vive no seed).
-  const stub = { startingKits: { default: [{ name: '—', qty: 1 }] }, pointBuy: { budget: 27 } }
-  SystemConfigSchema.parse({ attributes, skills, classFeatures, classSpells, ...stub })
+  SystemConfigSchema.parse({ attributes, skills, classFeatures, classSpells, ...STUB })
+  return { artifact: { attributes, skills, classFeatures, classSpells }, fallbacks, orphans }
+}
 
-  // --- grava artefato (chaves ordenadas → idempotente byte-a-byte) ---
-  const artifact = { attributes, skills, classFeatures, classSpells }
-  await writeFile(join(HERE, 'srd-5e.config.json'), stableStringify(artifact) + '\n')
+async function main() {
+  const overlay = JSON.parse(await readFile(join(HERE, 'locale', 'pt-BR.json'), 'utf8'))
+  const [abilities, skillsRaw, classes, features, featureItems, spells] = await Promise.all([
+    load('AbilityDescription.json'),
+    load('Skill.json'),
+    load('CharacterClass.json'),
+    load('ClassFeature.json'),
+    load('ClassFeatureItem.json'),
+    load('Spell.json'),
+  ])
+  const data = { abilities, skillsRaw, classes, features, featureItems, spells }
 
-  report()
-  if (STRICT && fallbacks.length) {
-    console.error(`\n--strict: ${fallbacks.length} chave(s) só-EN. Build barrado.`)
+  const base = buildConfig({}, data)
+  const localized = buildConfig(overlay, data)
+
+  // --- grava artefatos (chaves ordenadas → idempotente byte-a-byte) ---
+  await write('srd-5e.config.en-US.json', base.artifact)
+  await write('srd-5e.config.pt-BR.json', localized.artifact)
+
+  // Relatórios só da localização: na base EN toda chave "cai no fallback" por definição
+  // (não há overlay), e avisar de tradução faltante ali seria ruído garantido. US-99.
+  report(localized)
+  if (STRICT && localized.fallbacks.length) {
+    console.error(`\n--strict: ${localized.fallbacks.length} chave(s) só-EN. Build barrado.`)
     process.exit(1)
   }
+}
+
+async function write(name, artifact) {
+  await writeFile(join(HERE, name), stableStringify(artifact) + '\n')
 }
 
 // Serializa com chaves ordenadas recursivamente (arrays preservam a ordem já definida).
@@ -192,8 +238,8 @@ function stableStringify(value, indent = 0) {
   return JSON.stringify(value)
 }
 
-function report() {
-  console.log('ingest OK → scripts/srd/srd-5e.config.json')
+function report({ fallbacks, orphans }) {
+  console.log('ingest OK → scripts/srd/srd-5e.config.{en-US,pt-BR}.json')
   console.log(`  attributes: 6 · skills: 18`)
   if (orphans.length) {
     console.log(`\n  ÓRFÃOS (${orphans.length}) — PT curado sem chave no SRD 5.2 (decidir: sumiu, mudou de nome, ou não é SRD):`)

@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { SystemConfigSchema, buildSkillSheet, resolveLocale, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
+import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, type CharacterBackground, type ClassFeature, type KnownSpell } from '@ai-dm/ai-engine'
 import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
@@ -44,11 +45,14 @@ export class AdventureService {
   async getInitialAdventure(characterId: string): Promise<InitialAdventureHook> {
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },
-      include: { system: true },
+      include: { system: true, user: { select: { locale: true } } },
     })
     if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
 
-    const config = SystemConfigSchema.parse(character.system.config)
+    // US-99: os ganchos são iguais nos dois artefatos hoje (seguem em PT, ver US-101),
+    // mas o config sai pelo locale como em todo lugar — quando a US-101 os traduzir,
+    // esta linha já está certa em vez de virar um bug silencioso.
+    const config = SystemConfigSchema.parse(configForLocale(character.system, resolveLocale(character.user?.locale)))
     const hook = resolveInitialHook(config, character.class)
     if (!hook) throw new BadRequestException('O sistema deste personagem não tem aventuras iniciais configuradas')
 
@@ -76,7 +80,7 @@ export class AdventureService {
     })
     if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
 
-    const config = SystemConfigSchema.parse(character.system.config)
+    const config = SystemConfigSchema.parse(configForLocale(character.system, resolveLocale(character.user?.locale)))
 
     // A classe é a fonte de verdade do gancho: resolvemos server-side e só usamos
     // o initialHookId do cliente para validar que ele não escolheu outro (US-28).

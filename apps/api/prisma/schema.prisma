@@ -148,7 +148,12 @@ model System {
   sourceType SourceType
   ragIndexId String?
   // Atributos + kits iniciais (ADR 003, D1). Validado por SystemConfigSchema em @ai-dm/shared.
+  // US-99: esta é a BASE EN (dataset SRD cru, sem overlay). `en-US` nunca tem entrada
+  // em configLocales — é esta coluna.
   config     Json?
+  // US-99: mapa `locale → SystemConfig` LOCALIZADO e completo (ADR 005: locale é dimensão
+  // de leitura, não linha nova de System). Leitura: configLocales[user.locale] ?? config.
+  configLocales Json @default("{}")
   adventures Adventure[]
   characters Character[]
 }

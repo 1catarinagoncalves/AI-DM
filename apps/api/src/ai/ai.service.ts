@@ -32,6 +32,7 @@ import {
 } from '@ai-dm/ai-engine'
 import { DiceService } from '../game/dice.service'
 import { PrismaService } from '../prisma.service'
+import { configForLocale } from '../system/system-locale'
 
 export interface ChatInput {
   adventureId: string
@@ -280,7 +281,10 @@ export class AiService {
 
     // Rótulos e perícias vêm de System.config (US-21/US-27, já validado na criação);
     // ausente → o builder usa a chave crua / sem perícias. ponytail: leitura defensiva sem re-validar.
-    const config = adventure.system.config as Partial<SystemConfig> | null
+    // US-99: resolvido pelo locale do dono — `system.config` cru é a base EN e mandaria
+    // "Strength" ao prompt de um Mestre que narra em português.
+    const locale = resolveLocale(character.user?.locale)
+    const config = configForLocale(adventure.system, locale) as Partial<SystemConfig> | null
     const attributeLabels = Object.fromEntries((config?.attributes ?? []).map((a) => [a.key, a.label]))
 
     // Ficha que o mestre precisa conhecer (US-23). Prefere o estado (evolui com
@@ -321,7 +325,7 @@ export class AiService {
       spells: ((character.spells ?? []) as unknown as KnownSpell[]).map((s) => ({ name: s.name, level: s.level })),
       // US-97: camada 1 do prompt (estável por usuário) — trocar de idioma invalida o
       // cache do prefixo uma vez, e é evento raro (ADR 007).
-      locale: resolveLocale(character.user?.locale),
+      locale,
     })
 
     // US-56: bloco de estado volátil do turno, prefixado à AÇÃO CRUA do jogador. A ação

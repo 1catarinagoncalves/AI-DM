@@ -115,7 +115,7 @@ As 12 chaves canônicas (`barbaro→barbarian`, `bardo→bard`, `clerigo→cleri
 
 - [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — `CLASS_MAP` (l. 25), composição `${canon}_${slug}` (l. 122), relatórios de órfão/fallback (l. 151+).
 - [scripts/srd/locale/pt-BR.json](../../../scripts/srd/locale/pt-BR.json) — overlay curado; chaves compostas a renomear, valores intactos.
-- [scripts/srd/srd-5e.config.json](../../../scripts/srd/srd-5e.config.json) — artefato a regenerar.
+- [scripts/srd/srd-5e.config.pt-BR.json](../../../scripts/srd/srd-5e.config.pt-BR.json) — artefato a regenerar (chamava-se `srd-5e.config.json` até a US-99 desdobrá-lo por locale).
 - [apps/api/src/character/starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) — `CLASS_SYNONYMS`: **coluna direita** entra no escopo, esquerda não.
 - [apps/api/prisma/seed.ts](../../../apps/api/prisma/seed.ts) — kits/features/hooks semeados por chave de classe.
 - [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `SystemConfigSchema`: os records são `z.record(z.string(), …)`, não enumeram chave. O schema **não pega** um rename incompleto — quem pega é o relatório de órfãos do `ingest` e os testes.

@@ -47,7 +47,8 @@ Não há ambiente de staging. `main` é produção, nos dois serviços, por push
 - [ ] Smoke test manual: criar personagem → iniciar aventura → enviar ação → conferir bloco
       de rolagem e narração em streaming.
 - [ ] Health check do Render bate em `/api/v1/systems` — endpoint público que **depende do
-      seed**. Banco novo sem `pnpm db:seed` responde lista vazia.
+      seed**. US-99: o seed passou a rodar no próprio `buildCommand` (é idempotente), então
+      banco novo já sobe semeado; antes disso, sem `pnpm db:seed` respondia lista vazia.
 - [ ] Rollback: redeploy da versão anterior pelo painel (Render e Vercel guardam o
       histórico). Não há registry de container nem tag de versão nossa.
 

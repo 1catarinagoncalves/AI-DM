@@ -23,3 +23,19 @@ export class AuthGuard implements CanActivate {
     }
   }
 }
+
+// US-99: mesma verificação, sem 401. Rota pública que PERSONALIZA quando há token:
+// `GET /systems` é o healthCheckPath do Render (render.yaml) e tem de responder 200
+// a um request anônimo — mas serve o `config` no locale do dono quando o token vem.
+// Token ausente ou inválido não popula `req.user`: `@CurrentUser()` devolve `{}` e o
+// handler cai no locale default. Anônimo, nunca a identidade que o token alegava.
+@Injectable()
+export class OptionalAuthGuard extends AuthGuard {
+  override canActivate(context: ExecutionContext): boolean {
+    try {
+      return super.canActivate(context)
+    } catch {
+      return true
+    }
+  }
+}

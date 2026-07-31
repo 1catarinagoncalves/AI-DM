@@ -1,6 +1,7 @@
 # Atribuição — dado de sistema D&D 5e (SRD 5.2)
 
-O artefato [`srd-5e.config.json`](./srd-5e.config.json) é **derivado** do System Reference
+Os artefatos [`srd-5e.config.en-US.json`](./srd-5e.config.en-US.json) e
+[`srd-5e.config.pt-BR.json`](./srd-5e.config.pt-BR.json) são **derivados** do System Reference
 Document 5.2 ("SRD 5.2"), publicado por **Wizards of the Coast LLC**, obtido a partir do
 projeto **Open5e** (`open5e/open5e-api`, tag `v2.1.0`).
 

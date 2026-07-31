@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { createHmac } from 'crypto'
 import { UnauthorizedException, type ExecutionContext } from '@nestjs/common'
-import { AuthGuard } from './auth.guard'
+import { AuthGuard, OptionalAuthGuard } from './auth.guard'
 
 function sign(payload: Record<string, unknown>, secret: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')
@@ -40,5 +40,34 @@ describe('AuthGuard (US-61)', () => {
     const token = sign({ sub: 'user_hacker' }, 'segredo-falso')
     const { ctx } = ctxWith({ authorization: `Bearer ${token}` })
     expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException)
+  })
+})
+
+describe('OptionalAuthGuard (US-99)', () => {
+  beforeAll(() => { process.env['AUTH_SECRET'] = SECRET })
+
+  it('deixa passar SEM header e não inventa identidade', () => {
+    // O health check do Render bate em GET /systems sem token (render.yaml). 401 aqui
+    // marcaria o serviço unhealthy e derrubaria o deploy.
+    const guard = new OptionalAuthGuard()
+    const { ctx, req } = ctxWith({})
+    expect(guard.canActivate(ctx)).toBe(true)
+    expect(req.user).toBeUndefined()
+  })
+
+  it('anexa a identidade quando o token é válido', () => {
+    const guard = new OptionalAuthGuard()
+    const token = sign({ sub: 'user_1', email: 'ana@gmail.com' }, SECRET)
+    const { ctx, req } = ctxWith({ authorization: `Bearer ${token}` })
+    expect(guard.canActivate(ctx)).toBe(true)
+    expect(req.user).toMatchObject({ userId: 'user_1' })
+  })
+
+  it('token inválido passa como anônimo — nunca como o dono que ele alega ser', () => {
+    const guard = new OptionalAuthGuard()
+    const token = sign({ sub: 'user_hacker' }, 'segredo-falso')
+    const { ctx, req } = ctxWith({ authorization: `Bearer ${token}` })
+    expect(guard.canActivate(ctx)).toBe(true)
+    expect(req.user).toBeUndefined()
   })
 })

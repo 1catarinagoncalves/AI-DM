@@ -389,20 +389,32 @@ const freeConfig: SystemConfig = {
 // Lido em runtime (fs), NÃO por `import` de JSON: o artefato mora em scripts/srd/, fora de
 // apps/api. Um import o traria para o programa do tsc, o rootDir inferido viraria a raiz do repo
 // e o emit sairia em dist/apps/api/src/main.js — quebrando `nest start` (que roda dist/main).
-const srd = JSON.parse(
-  readFileSync(join(__dirname, '../../../scripts/srd/srd-5e.config.json'), 'utf8'),
-) as Pick<SystemConfig, 'attributes' | 'skills' | 'classFeatures' | 'classSpells'>
-const dnd5eConfig: SystemConfig = {
-  ...srd,
+//
+// US-99: são DOIS artefatos, um por locale. O mesmo caminho de leitura serve os dois.
+function readSrdArtifact(locale: string) {
+  return JSON.parse(
+    readFileSync(join(__dirname, `../../../scripts/srd/srd-5e.config.${locale}.json`), 'utf8'),
+  ) as Pick<SystemConfig, 'attributes' | 'skills' | 'classFeatures' | 'classSpells'>
+}
+
+// Os campos de produto são os MESMOS nos dois locales: kits, point-buy, proficiência e
+// ganchos de aventura seguem em PT (US-99 "Fora do escopo"; os ganchos são a US-101).
+const dnd5eProductFields = {
   proficiency: dnd5eProficiency,
   startingKits: dnd5eKits,
   pointBuy: { budget: 27 },
   initialAdventures: dnd5eInitialAdventures,
 }
+const dnd5eConfig: SystemConfig = { ...readSrdArtifact('en-US'), ...dnd5eProductFields }
+const dnd5eConfigPtBr: SystemConfig = { ...readSrdArtifact('pt-BR'), ...dnd5eProductFields }
 
 async function main() {
   // Sistema "Free" — o AI DM narra livremente, sem seguir regras de um sistema oficial.
   // Ideal para quem quer jogar uma aventura sem se preocupar com mecânicas.
+  //
+  // US-99: sem `configLocales`. O Free é um snapshot PT escrito à mão (free*), não tem base
+  // EN de onde sair — a leitura cai no `?? config` e serve o PT nos dois locales. O overlay
+  // por locale cobre o que vem do SRD; traduzir o snapshot do Free é conteúdo, não transporte.
   await prisma.system.upsert({
     where: { id: 'system-free' },
     // update inclui version/name: re-seed num row existente também sincroniza esses campos
@@ -418,15 +430,17 @@ async function main() {
   })
 
   // Sistema D&D 5e SRD — regras abertas do Dungeons & Dragons 5ª edição.
+  // US-99: `config` é a base EN; o pt-BR vive em `configLocales` (ADR 005 D3).
   await prisma.system.upsert({
     where: { id: 'system-dnd5e' },
-    update: { name: 'D&D 5e SRD', version: '5.2', config: dnd5eConfig },
+    update: { name: 'D&D 5e SRD', version: '5.2', config: dnd5eConfig, configLocales: { 'pt-BR': dnd5eConfigPtBr } },
     create: {
       id: 'system-dnd5e',
       name: 'D&D 5e SRD',
       version: '5.2',
       sourceType: 'SRD',
       config: dnd5eConfig,
+      configLocales: { 'pt-BR': dnd5eConfigPtBr },
     },
   })
 

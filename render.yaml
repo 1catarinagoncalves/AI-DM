@@ -21,12 +21,19 @@ services:
     #     (gitignored, memória prisma-7-upgrade); sem gerar, nest build quebra
     #  4. pnpm build da raiz encadeia packages/* → apps/*
     #  5. migrate deploy (idempotente) — release step (Free não tem preDeployCommand)
+    #  6. seed (idempotente, upsert) — US-99: migração sozinha não basta. A coluna nova
+    #     nasce com o default e o dado de sistema (config por locale) só entra por aqui.
+    #     Usa ts-node, que é devDependency: `pnpm install` sem `--prod` as instala (é a
+    #     mesma razão de `nest build` e `prisma generate` funcionarem neste passo).
+    #     NÃO usa o script `db:seed` da RAIZ: aquele é wrapper `dotenv -e .env`, e no
+    #     Render não há `.env` — a DATABASE_URL vem do ambiente do serviço.
     buildCommand: >-
       corepack enable &&
       pnpm install --frozen-lockfile &&
       pnpm --fail-if-no-match --filter api exec prisma generate &&
       pnpm build &&
-      pnpm --fail-if-no-match --filter api exec prisma migrate deploy
+      pnpm --fail-if-no-match --filter api exec prisma migrate deploy &&
+      pnpm --fail-if-no-match --filter api db:seed
 
     # PORT é injetada pelo Render; main.ts lê process.env.PORT
     startCommand: node apps/api/dist/main

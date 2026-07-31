@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, type SystemConfig } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, resolveLocale, type SystemConfig } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
+import { configForLocale, localeOfUser } from '../system/system-locale'
 import { getClassFeatures, getClassSpells } from './starting-inventory'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
 // Reexporta para quem importava o tipo daqui.
@@ -18,7 +19,11 @@ export class CharacterService {
       throw new BadRequestException(`Sistema ${dto.systemId} não tem configuração de regras (config ausente)`)
     }
 
-    const config = SystemConfigSchema.parse(system.config)
+    // US-99: feature e magia são MATERIALIZADAS como texto aqui — logo a ficha nasce no
+    // idioma do jogador, não na base EN. Trocar de idioma depois não reescreve nada: isso
+    // é a US-100 (fase "Ficha" do ADR 005).
+    const locale = await localeOfUser(this.prisma, dto.userId)
+    const config = SystemConfigSchema.parse(configForLocale(system, locale))
     const baseAttributes = buildCharacterAttributesSchema(config.attributes).parse(dto.attributes)
     const skills = this.validateSkills(config, dto.skills ?? [])
     // US-41: features de classe de nível 1, derivadas do kit da classe (mesmo caminho
@@ -175,9 +180,18 @@ export class CharacterService {
         states: { orderBy: { updatedAt: 'desc' }, take: 1 },
         // US-27: o front deriva os modificadores das perícias do config do sistema.
         system: true,
+        // US-99: o locale do dono decide QUAL config sai daqui (os rótulos de perícia
+        // da ficha vêm dele). Sem isto, `system.config` cru serviria a base EN a todos.
+        user: { select: { locale: true } },
       },
     })
     if (!character) throw new NotFoundException(`Personagem ${id} não encontrado`)
-    return character
+
+    const locale = resolveLocale(character.user?.locale)
+    const { configLocales: _drop, ...system } = character.system
+    return {
+      ...character,
+      system: { ...system, config: configForLocale(character.system, locale) },
+    }
   }
 }

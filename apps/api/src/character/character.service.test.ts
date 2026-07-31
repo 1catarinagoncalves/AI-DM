@@ -5,9 +5,13 @@ import type { PrismaService } from '../prisma.service'
 
 // Test double mínimo do PrismaService: só os métodos que CharacterService.create chama.
 // `as unknown as PrismaService` porque o double não implementa PrismaClient inteiro.
-function fakePrisma(config: SystemConfig | null): PrismaService {
+//
+// US-99: `configLocales` entra no double porque a criação resolve o config pelo locale do
+// dono (`user.findUnique`). Sem localização, `configForLocale` cai na base — que é o `config`.
+function fakePrisma(config: SystemConfig | null, locale = 'pt-BR', configLocales: Record<string, SystemConfig> = {}): PrismaService {
   return {
-    system: { findUnique: async () => ({ id: 'sys-test', config }) },
+    user: { findUnique: async () => ({ locale }) },
+    system: { findUnique: async () => ({ id: 'sys-test', config, configLocales }) },
     character: { create: async ({ data }: { data: Record<string, unknown> }) => ({ id: 'char-1', ...data }) },
   } as unknown as PrismaService
 }
@@ -192,8 +196,47 @@ describe('CharacterService.create', () => {
     },
   }
 
+  // US-99: a base EN do mesmo sistema — o que o `ingest` grava sem overlay.
+  const configWithFeaturesEn: SystemConfig = {
+    ...config,
+    classFeatures: {
+      paladin: [
+        { name: 'Divine Sense', description: 'Senses evil nearby.' },
+        { name: 'Lay On Hands', description: 'Heals by touch.' },
+      ],
+      default: [],
+    },
+  }
+
   it('materializa as features de nível 1 da classe (match tolerante a acento/caixa)', async () => {
     const service = new CharacterService(fakePrisma(configWithFeatures))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'Paladina',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.features).toEqual([
+      { name: 'Sentido Divino', description: 'Sente o mal por perto.' },
+      { name: 'Impor as Mãos', description: 'Cura ao toque.' },
+    ])
+  })
+
+  // US-99: o `config` do sistema é a BASE EN; a ficha nasce no idioma do DONO. O par
+  // dos dois testes falha se a criação parar de resolver o locale — em qualquer direção:
+  // servir EN a um jogador pt-BR, ou continuar servindo PT a um jogador en-US.
+  it('locale en-US materializa a feature com o texto da base EN', async () => {
+    const service = new CharacterService(fakePrisma(configWithFeaturesEn, 'en-US', { 'pt-BR': configWithFeatures }))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Human', class: 'Paladina',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.features).toEqual([
+      { name: 'Divine Sense', description: 'Senses evil nearby.' },
+      { name: 'Lay On Hands', description: 'Heals by touch.' },
+    ])
+  })
+
+  it('locale pt-BR materializa a feature da localização, não da base EN', async () => {
+    const service = new CharacterService(fakePrisma(configWithFeaturesEn, 'pt-BR', { 'pt-BR': configWithFeatures }))
     const char = await service.create({
       userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'Paladina',
       attributes: { cool: 5, hard: 5 },
