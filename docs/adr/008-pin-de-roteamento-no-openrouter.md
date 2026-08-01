@@ -11,7 +11,9 @@
 
 `packages/ai-engine/src/model.ts` declara o primário da narração como um **slug**: `deepseek/deepseek-v4-flash`. O slug não é um servidor. Em 01/08/2026, medindo `GET /api/v1/models/deepseek/deepseek-v4-flash/endpoints`, ele era servido por **22 endpoints** distintos — Baidu, StreamLake, DeepInfra, Alibaba, Cloudflare, Fireworks, Novita, o first-party da própria DeepSeek e mais catorze.
 
-Sem `provider` no corpo do request, o OpenRouter escolhe entre os 22 por preço, latência e uptime, **a cada request**. Os 22 não são intercambiáveis:
+Sem `provider` no corpo do request, quem escolhe entre os 22 é o OpenRouter, por preço, latência e uptime. A escolha não é sorteada a cada request: o OpenRouter aplica **sticky routing**, fixando o endpoint por conversa depois do primeiro request com cache — a chave default é o hash da primeira mensagem de sistema mais a primeira não-sistema. O efeito prático é pior, não melhor: **a primeira escolha continua não-controlada, e a conversa inteira fica presa nela.** Caiu num dos 21 sem cache implícito, é cache-zero até o fim da sessão.
+
+Os 22 não são intercambiáveis:
 
 - **Cache implícito de prefixo: 1 dos 22.** Só o endpoint first-party da DeepSeek anuncia `supports_implicit_caching: true`. Os outros 21 listam preço de leitura de cache, mas cacheiam apenas com `cache_control` explícito — que não mandamos, por decisão registrada na [US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) (*Questões em aberto*, Q3).
 - **Preço da leitura de cache varia 25x.** $0.0028/M no first-party contra $0.0140–$0.0700/M nos demais.
@@ -21,7 +23,7 @@ Sem `provider` no corpo do request, o OpenRouter escolhe entre os 22 por preço,
 
 A consequência é que a [ADR 007](./007-camadas-do-prompt-por-volatilidade.md) §3 e a [US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) (*Notas de implementação*) afirmam, ambas, que o cache "é automático no DeepSeek/OpenRouter, sem parâmetro a passar". **A afirmação é verdadeira em 1 dos 22 endpoints e falsa nos outros 21.** Todo o trabalho das duas stories — reordenar o system, mover a camada 3 para a mensagem — rende exatamente zero quando o request cai nos outros 21. E rende zero **em silêncio**: a narração sai normal, só que a preço cheio.
 
-O mesmo vale para qualquer medição. O `DM_CACHE_SPIKE`, o bake-off de prompt (`prompt-ab-bakeoff.mjs`), o A/B de deslocamento (`move-ab.mjs`): cada braço pode ter sido servido por um endpoint diferente, com quantização diferente. A/B de prompt sem rota fixa é, em parte, A/B de infraestrutura.
+O mesmo vale para qualquer medição — e aqui o sticky routing **agrava**. A chave de aderência é o hash das primeiras mensagens, então dois braços de um A/B de prompt, que por definição diferem no system, recebem chaves diferentes e podem grudar em endpoints diferentes: um em fp8 com cache, outro em fp4 sem. O `DM_CACHE_SPIKE`, o `prompt-ab-bakeoff.mjs`, o `move-ab.mjs`: sem rota fixa, A/B de prompt é em parte A/B de infraestrutura, com o viés estável o suficiente para parecer sinal.
 
 ---
 
@@ -37,7 +39,7 @@ provider: { order: DEEPSEEK_ROUTE_ORDER, only: DEEPSEEK_ALLOWED_PROVIDERS, requi
 
 Três regras derivam disso:
 
-1. **`order` prioriza o único endpoint com cache implícito.** `['deepseek']`. Não é preferência por marca: é a única rota em que a ADR 007 tem efeito. Fica em primeiro, não sozinho — `allow_fallbacks` continua no default (`true`).
+1. **`order` prioriza o único endpoint com cache implícito.** `['deepseek']`. Não é preferência por marca: é a única rota em que a ADR 007 tem efeito. Fica em primeiro, não sozinho — `allow_fallbacks` continua no default (`true`). Declarar `order` **desliga o sticky routing** do OpenRouter, por decisão documentada dele: ordem explícita tem precedência. Não perdemos nada — o sticky existia para adivinhar o que agora afirmamos.
 
 2. **A restrição é allowlist (`only`), nunca denylist (`ignore`).** Oito endpoints aprovados: `deepseek`, `baidu`, `streamlake`, `alibaba`, `cloudflare`, `gmicloud`, `novita`, `siliconflow`. Critério de entrada: sem fp4, contexto ≥ 375k, uptime de 24h ≥ 99%. Denylist admite endpoint novo sem revisão — e o OpenRouter adiciona endpoints sem avisar ninguém.
 
@@ -63,7 +65,7 @@ Três regras derivam disso:
 
 ## 4. Alternativas rejeitadas
 
-1. **Não pinar (o estado anterior).** Mantém o cache-hit como loteria e deixa toda medição de prompt confundida com medição de infraestrutura. É o defeito, não uma opção.
+1. **Não pinar, confiando no sticky routing.** É o estado anterior, e a tentação é achar que o sticky já resolve. Ele resolve a *consistência* e não a *escolha*: o sorteio acontece uma vez por conversa e o resultado fica travado até o fim dela. Não pinar é aceitar 21 chances em 22 de jogar a ADR 007 fora numa sessão inteira, e deixar toda medição de prompt confundida com medição de infraestrutura.
 2. **`ignore` com a lista dos ruins.** Mais curta de escrever e envelhece mal na direção perigosa: endpoint fp4 novo entra por default. A allowlist envelhece na direção segura — endpoint bom novo fica de fora até alguém re-medir.
 3. **`quantizations: ['fp8']`.** Ver §3: derruba o first-party.
 4. **`allow_fallbacks: false`.** Ver §3: troca disponibilidade por pureza, com a escada já concentrada num provedor só.
@@ -84,6 +86,7 @@ Três regras derivam disso:
 - **A allowlist envelhece.** Endpoint novo com cache implícito ficaria de fora indefinidamente. Não há guard automático para isso: o teste em [`model-routing.test.ts`](../../packages/ai-engine/src/model-routing.test.ts) protege as invariantes (first-party em primeiro, fp4 fora, `require_parameters` ligado), não a atualidade da lista. Re-medir quando o custo de narração destoar, com o comando registrado no comentário de `model.ts`.
 - **Aposta condicionada ao hit-rate.** Se o cache-hit real for baixo, o pin fica mais caro que o Baidu. É a primeira coisa que o spike tem de responder.
 - **As extrações estruturadas não cacheiam.** Aceito e sem alternativa: não têm prefixo.
+- **`require_parameters` acopla a troca de modelo aos parâmetros que mandamos, e falha DURO.** Todo modelo candidato precisa suportar tudo o que o `streamText` envia — hoje inclui `presencePenalty: 0.3` ([`ai.service.ts`](../../apps/api/src/ai/ai.service.ts), busque por `presencePenalty`), a 1ª linha de defesa da [US-69](../sdlc/01-requisitos/US-69-guard-anti-degeneracao-narracao.md). Exemplo medido em 01/08/2026: `openai/gpt-5.6-luna` não aceita `presence_penalty`, `frequency_penalty`, `temperature` nem `top_p` em nenhum dos seus 6 endpoints — um request nosso casaria com **zero** provedores e erraria, em vez de degradar. Trocar o primário por ele exigiria remover o `presencePenalty` no mesmo commit, o que é uma decisão da US-69, não desta ADR. É o custo de falhar fechado; a alternativa (falhar aberto) é o provider aceitar e ignorar o parâmetro, que foi exatamente o defeito que esta ADR fecha.
 
 ---
 
@@ -94,10 +97,11 @@ Três regras derivam disso:
 - [`packages/ai-engine/src/model-routing.test.ts`](../../packages/ai-engine/src/model-routing.test.ts) — quatro asserções. Existem porque perder o pin é **falha silenciosa**: nenhum erro, nenhum teste vermelho, só custo. É a mesma classe de defeito que a regra 3 da ADR 007 descreve.
 - [`apps/api/src/ai/ai.service.ts`](../../apps/api/src/ai/ai.service.ts) — os três `generateObject` que dependem do desvio por `require_parameters`, e o `DM_CACHE_SPIKE` que mede o resultado.
 - Para saber qual endpoint serviu um request específico: `GET /api/v1/generation?id=<id>` na API do OpenRouter, ou a aba *Activity* do painel.
+- Fontes das afirmações sobre o OpenRouter, ambas em markdown cru (a página renderizada é JS e não dá pra grepar): `openrouter.ai/docs/features/provider-routing.md` (os campos de `provider`: `order`, `only`, `ignore`, `require_parameters`, `quantizations`) e `openrouter.ai/docs/features/prompt-caching.md` (sticky routing, sua chave default e a precedência de `order` sobre ele).
 
 ---
 
 ## 7. Questões em aberto
 
-1. **Hit-rate real pós-pin.** Rodar `DM_CACHE_SPIKE` e registrar aqui e na ADR 007 §3. Sem esse número, a §3 deste ADR é aritmética sobre premissa.
-2. **`require_parameters` filtra mesmo por `structured_outputs`?** Deduzido da lista `supported_parameters` de cada endpoint e do exemplo de formatação JSON na doc de provider routing, **não observado em produção**. Confirmar no primeiro `generateObject` pós-deploy, consultando qual endpoint serviu. Se não filtrar, a alternativa 5 volta à mesa.
+1. **Hit-rate real pós-pin.** Rodar `DM_CACHE_SPIKE` e registrar aqui e na ADR 007 §3. Sem esse número, a §3 deste ADR é aritmética sobre premissa. → [US-104](../sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md), que também deriva o limiar de hit-rate abaixo do qual o pin deixa de se pagar.
+2. **`require_parameters` filtra mesmo por `structured_outputs`?** Deduzido da lista `supported_parameters` de cada endpoint e do exemplo de formatação JSON na doc de provider routing, **não observado em produção**. Confirmar no primeiro `generateObject` pós-deploy, consultando qual endpoint serviu. Se não filtrar, a alternativa 5 volta à mesa. → [US-103](../sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md), que constrói o log sem o qual essa observação não existe.

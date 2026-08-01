@@ -1,22 +1,22 @@
-# Graph Report - AI DM  (2026-07-31)
+# Graph Report - AI DM  (2026-08-01)
 
 ## Corpus Check
-- 301 files · ~593,772 words
+- 303 files · ~596,020 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1638 nodes · 2140 edges · 174 communities (117 shown, 57 thin omitted)
+- 1650 nodes · 2153 edges · 176 communities (120 shown, 56 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8cd888f5`
+- Built from commit: `b7753afe`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - ingest.mjs
-- dm-system.ts
+- model.ts
 - devDependencies
 - narration.ts
 - system.ts
@@ -103,7 +103,7 @@
 - Hub/Delete User Stories
 - Kanban Board User Stories
 - Prompt Caching User Stories
-- Narration Guard User Stories
+- ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo
 - Prompt Anchors Convention
 - rxjs
 - Evals README User Story
@@ -167,6 +167,8 @@
 - ApiTags
 - Controller
 - Get
+- auth.ts
+- a11y.test.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `PrismaService` - 24 edges
@@ -181,10 +183,10 @@
 10. `AdventureService` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
-  docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
 - `LoginPage()` --calls--> `useT()`  [EXTRACTED]
   apps/web/src/app/login/page.tsx → apps/web/src/components/LocaleProvider.tsx
+- `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
+  docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
 - `HomeHero()` --calls--> `useT()`  [EXTRACTED]
   apps/web/src/components/HomeHero.tsx → apps/web/src/components/LocaleProvider.tsx
 - `GameView()` --calls--> `useLocale()`  [EXTRACTED]
@@ -209,15 +211,15 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (174 total, 57 thin omitted)
+## Communities (176 total, 56 thin omitted)
 
 ### Community 0 - "ingest.mjs"
 Cohesion: 0.14
 Nodes (22): ABILITY_MAP, ATTR_ORDER, ATTR_RANGE, buildAttributes(), buildClassFeatures(), buildClassSpells(), buildConfig(), buildSkills() (+14 more)
 
-### Community 1 - "dm-system.ts"
-Cohesion: 0.06
-Nodes (41): EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL, fallbackModel, google, groq (+33 more)
+### Community 1 - "model.ts"
+Cohesion: 0.05
+Nodes (43): EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL, DEEPSEEK_ALLOWED_PROVIDERS, DEEPSEEK_ROUTE_ORDER, fallbackModel (+35 more)
 
 ### Community 2 - "devDependencies"
 Cohesion: 0.04
@@ -240,8 +242,8 @@ Cohesion: 0.07
 Nodes (26): accum, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, dir, EX, genTurn(), guardrailHits (+18 more)
 
 ### Community 7 - "layout.tsx"
-Cohesion: 0.12
-Nodes (18): POST(), activeLocale(), cinzel, geist, generateMetadata(), RootLayout(), viewport, PlayPage() (+10 more)
+Cohesion: 0.24
+Nodes (11): activeLocale(), cinzel, geist, generateMetadata(), RootLayout(), viewport, PlayPage(), Props (+3 more)
 
 ### Community 8 - "narrative-bakeoff.test.ts"
 Cohesion: 0.09
@@ -276,8 +278,8 @@ Cohesion: 0.05
 Nodes (41): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+33 more)
 
 ### Community 16 - "GameView.tsx"
-Cohesion: 0.14
-Nodes (17): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), LocaleTurn (+9 more)
+Cohesion: 0.15
+Nodes (16): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), LocaleTurn (+8 more)
 
 ### Community 17 - "dependencies"
 Cohesion: 0.12
@@ -292,8 +294,8 @@ Cohesion: 0.17
 Nodes (15): abrirArquivo(), acharArquivo(), campo(), CANONICO, { execFile }, fs, gravarStatus(), HTML_FILE (+7 more)
 
 ### Community 20 - "SetupWizard.tsx"
-Cohesion: 0.10
-Nodes (18): AXE_OPTIONS, gameProps, { listCharacters, getTurns, listSystems }, CLASSES, GENDERS, optionCardClass(), parseDeity(), POINT_COST (+10 more)
+Cohesion: 0.14
+Nodes (16): CLASSES, GENDERS, optionCardClass(), parseDeity(), POINT_COST, RACES, SetupWizard(), SOURCE_TYPE_HINT (+8 more)
 
 ### Community 21 - "seed.ts"
 Cohesion: 0.11
@@ -496,8 +498,12 @@ Cohesion: 0.50
 Nodes (3): ⚠️ REGRA ABSOLUTA - NUNCA confunda opções com diálogo:, ⚠️ REGRA DE CONSISTÊNCIA NARRATIVA (CRÍTICO):, REGRAS RÍGIDAS DE FORMATAÇÃO DE TEXTO (OBRIGATÓRIO):
 
 ### Community 86 - "dm.tsx"
-Cohesion: 0.16
-Nodes (16): emptyState(), HomeHero(), HubCharacter, { listCharacters, deleteCharacter }, BtnProps, cn(), DIM_CLASS, DmButton() (+8 more)
+Cohesion: 0.13
+Nodes (17): LoginPage(), emptyState(), HomeHero(), HubCharacter, { listCharacters, deleteCharacter }, BtnProps, DIM_CLASS, DmButton() (+9 more)
+
+### Community 90 - "ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo"
+Cohesion: 0.18
+Nodes (10): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), 7. Questões em aberto, ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo (+2 more)
 
 ### Community 112 - "US-101 — Ganchos de aventura inicial em inglês"
 Cohesion: 0.14
@@ -588,28 +594,36 @@ Cohesion: 0.25
 Nodes (8): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset, 5. Alternativas rejeitadas, 6. Consequências, 7. Implementação (referência), ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
 
 ### Community 162 - "LocaleProvider.tsx"
-Cohesion: 0.15
-Nodes (16): LoginPage(), AuthNav(), BrandName(), BackgroundPanel(), FeaturesPanel(), gameProps, { getTurns, setLocale }, LocaleContext (+8 more)
+Cohesion: 0.16
+Nodes (15): AuthNav(), BrandName(), BackgroundPanel(), FeaturesPanel(), gameProps, { getTurns, setLocale }, LocaleContext, LocaleContextValue (+7 more)
+
+### Community 174 - "auth.ts"
+Cohesion: 0.21
+Nodes (7): POST(), { handlers, auth }, secretKey(), signApiToken(), apiAuthHeader(), config, ADR-0006
+
+### Community 175 - "a11y.test.tsx"
+Cohesion: 0.33
+Nodes (3): AXE_OPTIONS, gameProps, { listCharacters, getTurns, listSystems }
 
 ## Knowledge Gaps
-- **811 isolated node(s):** `prisma`, `freeAttributes`, `freeSkills`, `dnd5eProficiency`, `dnd5eKits` (+806 more)
+- **819 isolated node(s):** `1. Contexto`, `2. Decisão`, `3. Decisões-chave e justificativas`, `4. Alternativas rejeitadas`, `5. Consequências` (+814 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **57 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **56 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` connect `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` to `US-97-seletor-de-idioma-pt-br-en.md`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-97-seletor-de-idioma-pt-br-en.md` to `US-94-eval-vivo-noturno-com-chaves.md`, `US-02 — Inventário do personagem e equipamento inicial`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Why does `US-92 — O deploy espera o CI ficar verde` connect `US-92 — O deploy espera o CI ficar verde` to `006-deploy-custo-zero.md`?**
   _High betweenness centrality (0.009) - this node is a cross-community bridge._
-- **Why does `US-89 — Export que ninguém importa para de sobreviver no repo` connect `US-94-eval-vivo-noturno-com-chaves.md` to `Endpoints (Fase 1 — MVP)`, `Modelo de Dados — AI Dungeon Master`, `US-102-gate-de-string-literal-no-jsx.md`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **What connects `prisma`, `freeAttributes`, `freeSkills` to the rest of the system?**
-  _811 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `US-102 — Tela nova nasce traduzida` connect `US-102 — Tela nova nasce traduzida` to `US-102-gate-de-string-literal-no-jsx.md`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **What connects `1. Contexto`, `2. Decisão`, `3. Decisões-chave e justificativas` to the rest of the system?**
+  _819 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.1383399209486166 - nodes in this community are weakly interconnected._
-- **Should `dm-system.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.055218855218855216 - nodes in this community are weakly interconnected._
+- **Should `model.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.05202661826981246 - nodes in this community are weakly interconnected._
 - **Should `devDependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
