@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player (habilitador de manutenção; sem urgência de release)
-**Status:** 🗂️ Backlog
+**Status:** 🚧 Em progresso
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, overlay curado `pt-BR.json`, regra de merge + fallback EN) · [US-17](./US-17-comparacao-modelos-eval.md) (encanamento do Gemini como juiz — `model.ts`)
 **Relacionado:** [US-48](./US-48-getrule-corpus-de-regras.md) (o corpus do `getRule` é o próximo cliente do mesmo mecanismo, em volume muito maior) · [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — **EN é a base nativa**; este pipeline só serve locales ≠ en)
 **Criada em:** 2026-07-14

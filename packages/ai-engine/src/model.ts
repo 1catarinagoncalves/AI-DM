@@ -88,6 +88,37 @@ export const groqFallbackModel: LanguageModelV1 = groq('llama-3.3-70b-versatile'
 export const narrationModels: LanguageModelV1[] = [primaryModel, fallbackModel, groqFallbackModel]
 
 /**
+ * Roteamento do OpenRouter para `deepseek/deepseek-v4-flash`. O slug é servido
+ * por 22 endpoints (medido em 01/08/2026) e SEM pin o OpenRouter escolhe por
+ * preço/uptime a cada request — a rota muda debaixo do prompt.
+ *
+ * `order` põe o first-party da DeepSeek primeiro: é o ÚNICO endpoint com
+ * `supports_implicit_caching: true`. Os outros 21 só cacheiam com `cache_control`
+ * explícito, que não mandamos (US-55 decidiu não mandar) — roteou pra lá, o
+ * cache-hit da US-55/US-56 é ZERO e a leitura de cache custa 5x a 25x mais
+ * ($0.0028/M no first-party vs $0.014–0.070/M nos demais).
+ *
+ * `only` é allowlist, não denylist: endpoint novo entra sem revisão nossa e pode
+ * ser fp4. Ficaram de fora os fp4 (deepinfra, ionstream, ambient, atlas-cloud,
+ * mancer — quantização agressiva é o suspeito nº 1 da degeneração da US-69),
+ * os de contexto curto (io-net 32k, akashml 128k) e os de uptime < 99% em 24h.
+ *
+ * Re-medir com: curl -s openrouter.ai/api/v1/models/deepseek/deepseek-v4-flash/endpoints
+ */
+// Sem `as const`: readonly[] não casa com o JSONValue de providerOptions.
+const DEEPSEEK_ROUTE_ORDER = ['deepseek']
+const DEEPSEEK_ALLOWED_PROVIDERS = [
+  'deepseek', // ref quant, 1024k, cache implícito — sem structured_outputs
+  'baidu', // fp8, 1024k, mais barato, structured_outputs
+  'streamlake', // fp8, 1000k, structured_outputs
+  'alibaba', // fp8, 977k, structured_outputs
+  'cloudflare', // 375k, structured_outputs, uptime mais alto da lista
+  'gmicloud', // fp8, 1024k
+  'novita', // fp8, 1024k
+  'siliconflow', // fp8, 1024k
+]
+
+/**
  * Opções de provider da narração — passar em TODA chamada que usa
  * `narrationModels`. O primário é um modelo de raciocínio: separa o
  * pensamento (canal `analysis`) da resposta (canal `final`). Sem `exclude`, o
@@ -100,6 +131,14 @@ export const narrationModels: LanguageModelV1[] = [primaryModel, fallbackModel, 
  * A chave `openrouter` casa com o `name` do createOpenAICompatible; o fallback
  * Groq ignora o bloco (lê a chave `groq`), então serve os dois modelos da escada.
  *
+ * `require_parameters: true` faz o bloco servir os dois tipos de chamada com uma
+ * config só: no `streamText`/`generateText` da narração a DeepSeek suporta tudo
+ * que mandamos e fica em 1º; nos `generateObject` (ai.service.ts:948, :983, :1027)
+ * o request leva json_schema, que a DeepSeek NÃO anuncia (`structured_outputs`
+ * ausente) — o OpenRouter a descarta sozinho e cai no baidu/streamlake. Sem essa
+ * flag o provider aceitaria e ignoraria o schema, devolvendo objeto fora do
+ * formato. Extração não tem prefixo cacheável, então não perde nada indo pro 2º.
+ *
  * ponytail: o raciocínio ainda é gerado e cobrado, só não volta. Se o custo/TTFT
  * pesar, o próximo passo é `reasoning: { effort: 'low' }`.
  */
@@ -108,7 +147,10 @@ export const NARRATION_PROVIDER_OPTIONS = {
   // effort: `effort:'low'` fez o modelo raciocinar de menos e desrespeitar as
   // regras do prompt (rolagens/magias inventadas). 'medium' = meio-termo custo/aderência;
   // se voltar a inventar regras, subir para 'high'. Teto de corte no maxTokens (4000).
-  openrouter: { reasoning: { effort: 'medium', exclude: true } },
+  openrouter: {
+    reasoning: { effort: 'medium', exclude: true },
+    provider: { order: DEEPSEEK_ROUTE_ORDER, only: DEEPSEEK_ALLOWED_PROVIDERS, require_parameters: true },
+  },
 } as const
 
 // Sumarização de memória: mesmo deepseek-v4-flash da narração, via OpenRouter.

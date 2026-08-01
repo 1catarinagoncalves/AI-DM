@@ -3,7 +3,7 @@
 **Status:** Aceito
 **Data:** 2026-07-27
 **Decisores:** Time de Produto e Engenharia
-**Relacionado:** [ADR 002 — Memória de sessão](./002-memoria-de-sessao.md) (o `EventLog` e o resumo são o que a camada 3 carrega) · [ADR 001 — Arquitetura](./001-arquitetura.md) (o Game Server é a fonte do estado que entra na camada 3) · [US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) (Fase A: ordenou o system por volatilidade) · [US-56](../sdlc/01-requisitos/US-56-estado-do-turno-na-mensagem.md) (Fase B: tirou a camada 3 do system) · [US-84](../sdlc/01-requisitos/US-84-nomes-de-bloco-do-turn-state-compartilhados.md) e [US-85](../sdlc/01-requisitos/US-85-fronteira-de-camadas-do-prompt.md) (consertam e protegem a fronteira que este ADR define)
+**Relacionado:** [ADR 008 — Pin de roteamento no OpenRouter](./008-pin-de-roteamento-no-openrouter.md) (o endpoint que recebe o prefixo desenhado aqui; corrige a premissa de cache automático da §3) · [ADR 002 — Memória de sessão](./002-memoria-de-sessao.md) (o `EventLog` e o resumo são o que a camada 3 carrega) · [ADR 001 — Arquitetura](./001-arquitetura.md) (o Game Server é a fonte do estado que entra na camada 3) · [US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) (Fase A: ordenou o system por volatilidade) · [US-56](../sdlc/01-requisitos/US-56-estado-do-turno-na-mensagem.md) (Fase B: tirou a camada 3 do system) · [US-84](../sdlc/01-requisitos/US-84-nomes-de-bloco-do-turn-state-compartilhados.md) e [US-85](../sdlc/01-requisitos/US-85-fronteira-de-camadas-do-prompt.md) (consertam e protegem a fronteira que este ADR define)
 
 ---
 
@@ -52,7 +52,7 @@ Três regras derivam disso:
 
 **Por que a camada 2 fica no fim do system, e não no começo.** O cache é prefixal e a camada 1 é a maior e a mais estável: ela tem de vir primeiro para ser cacheada por **todos** os jogadores. A camada 2, invariante por aventura, cacheia por sessão. Ordem = volatilidade crescente.
 
-**Custo — o que está medido e o que não está.** O mecanismo do ganho é conhecido e o cache é automático no DeepSeek/OpenRouter (não há parâmetro no `streamText`; o ganho vem 100% da ordem do conteúdo). A ordem de grandeza do cache hit é ~10% do custo normal do input. **O número medido neste repo não está registrado aqui**: a medição é o spike `DM_CACHE_SPIKE` ([`ai.service.ts:661`](../../apps/api/src/ai/ai.service.ts)), que loga `usage`/`providerMetadata` no `onFinish`. Quem rodar o spike registra o antes/depois **neste ADR** — decisão de custo sem número é decisão que ninguém consegue revisar depois.
+**Custo — o que está medido e o que não está.** O mecanismo do ganho é conhecido e o cache é automático no DeepSeek/OpenRouter (não há parâmetro no `streamText`; o ganho vem 100% da ordem do conteúdo). **Correção (2026-08-01, [ADR 008](./008-pin-de-roteamento-no-openrouter.md)):** "automático no DeepSeek/OpenRouter" vale só no endpoint first-party da DeepSeek — 1 dos 22 que servem o slug. Nos outros 21 não há cache implícito e este ADR rende zero, em silêncio. Por isso a rota agora é pinada; sem o pin, tudo nesta seção é condicional. A ordem de grandeza do cache hit é ~10% do custo normal do input. **O número medido neste repo não está registrado aqui**: a medição é o spike `DM_CACHE_SPIKE` ([`ai.service.ts:661`](../../apps/api/src/ai/ai.service.ts)), que loga `usage`/`providerMetadata` no `onFinish`. Quem rodar o spike registra o antes/depois **neste ADR** — decisão de custo sem número é decisão que ninguém consegue revisar depois.
 
 ---
 
