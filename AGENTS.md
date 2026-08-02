@@ -228,6 +228,25 @@ comportamento é o antigo.
      Nasceu da US-84 (*Questões em aberto* #2): `ai.service.ts:863` passa `sceneState: null`,
      mas o comentário 6 linhas acima explica que na abertura **não pode** haver cena, e a
      US-35 preenche o campo a partir do texto da abertura para o turno 1 em diante.
+   - **Evidência de um lado da interface não prova nada do outro.** Dado medido, fresco e
+     correto ainda pode ser sobre o lado errado: capacidade anunciada pelo servidor ≠ conteúdo
+     do request que o nosso cliente manda; título no índice ≠ nome do arquivo; doc do
+     fornecedor ≠ versão instalada; opção existe ≠ opção está setada. Antes de afirmar,
+     pergunte de que lado veio o dado e leia o artefato do OUTRO lado — `ls` para nome de
+     arquivo, `node_modules/.pnpm/**/dist` para o que o cliente envia. Para afirmação sobre o
+     NOSSO comportamento, o pacote instalado e o fonte ganham de qualquer doc de fornecedor.
+     Nasceu da [ADR 008](docs/adr/008-pin-de-roteamento-no-openrouter.md) §3 (01/08/2026): a
+     lista `supported_parameters` do OpenRouter mostrava que o first-party da DeepSeek não
+     anuncia `structured_outputs`, e daí saiu a conclusão de que os `generateObject` eram
+     desviados para outro endpoint. Eles nem mandam `json_schema` — o `@ai-sdk/openai-compatible`
+     força modo tool na geração de objeto. A afirmação atravessou uma ADR, um commit e duas US
+     antes de alguém tentar testá-la.
+   - **Escreva como derrubar a afirmação, não só a afirmação.** Para cada fato que vai entrar
+     em ADR/US: *o que eu rodaria para provar isso falso?* Se for barato (`grep`, `ls`, `curl`),
+     rode agora. Marcar "deduzido, não observado" salva o conserto depois, mas não substitui
+     dois minutos de verificação: questão em aberto que um `grep` responde é dívida, não
+     documentação. Fica legitimamente aberta só a que precisa de dado de produção ou de tempo
+     (hit-rate de cache, latência, frequência de falha).
 2. **Antes de gerar código:** crie ou atualize os testes/evals primeiro — eles são o
    contrato com o agente.
 3. **Ao modificar o DM Agent:** teste contra o eval suite em `evals/` antes de abrir PR.

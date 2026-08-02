@@ -42,6 +42,16 @@ export const judgeModel = (): LanguageModelV1 => {
   return google(id)
 }
 
+/**
+ * Modelo de tradução do overlay do SRD (US-52). Roda no BUILD (`pnpm srd:ingest`),
+ * nunca em runtime de jogo. Mesmo provider e mesma `GEMINI_API_KEY` do `judgeModel`.
+ *
+ * Fixo de propósito (US-52 → Questões em aberto #2): como roda no build, um modelo
+ * mais forte custa latência, não dinheiro — mas trocar antes de o flash-lite
+ * decepcionar é env var sem cliente. Extrair `TRANSLATE_MODEL` é uma linha aqui.
+ */
+export const translateModel = (): LanguageModelV1 => google('gemini-3.1-flash-lite')
+
 // Candidatos do bake-off narrativo (US-17) via endpoint preview grátis do
 // NVIDIA NIM. Mesmo provider do bench-ttft.test.ts. Só usado nos evals — a
 // narração de produção continua no Groq (narrationModels abaixo).
@@ -131,13 +141,21 @@ const DEEPSEEK_ALLOWED_PROVIDERS = [
  * A chave `openrouter` casa com o `name` do createOpenAICompatible; o fallback
  * Groq ignora o bloco (lê a chave `groq`), então serve os dois modelos da escada.
  *
- * `require_parameters: true` faz o bloco servir os dois tipos de chamada com uma
- * config só: no `streamText`/`generateText` da narração a DeepSeek suporta tudo
- * que mandamos e fica em 1º; nos `generateObject` (ai.service.ts:948, :983, :1027)
- * o request leva json_schema, que a DeepSeek NÃO anuncia (`structured_outputs`
- * ausente) — o OpenRouter a descarta sozinho e cai no baidu/streamlake. Sem essa
- * flag o provider aceitaria e ignoraria o schema, devolvendo objeto fora do
- * formato. Extração não tem prefixo cacheável, então não perde nada indo pro 2º.
+ * `require_parameters: true` derruba o endpoint que não suporta TODO parâmetro do
+ * request, em vez de deixá-lo aceitar e ignorar em silêncio. Hoje quem isso protege
+ * é o `presencePenalty: 0.3` da narração (US-69): sem a flag, um endpoint que não
+ * o implementa serviria o turno sem a penalidade e sem avisar. Falha fechado de
+ * propósito — modelo candidato que não aceite algum parâmetro nosso vai ERRAR aqui,
+ * não degradar.
+ *
+ * NÃO afeta os `generateObject` (ai.service.ts:948, :983, :1027), ao contrário do que
+ * esta nota afirmou até 01/08/2026. `createChatModel` do openai-compatible força
+ * `defaultObjectGenerationMode: 'tool'`, e `generateObject` sem `mode` explícito
+ * resolve 'auto' para esse default: o schema vai como definição de tool, e
+ * `response_format` nunca é enviado. Sem `response_format` não há o que filtrar por
+ * `structured_outputs` — as extrações vão para o MESMO endpoint da narração.
+ * Para mudar isso seria preciso `supportsStructuredOutputs: true` no
+ * `createOpenAICompatible` acima (default do SDK é `false`, dist/index.mjs:246).
  *
  * ponytail: o raciocínio ainda é gerado e cobrado, só não volta. Se o custo/TTFT
  * pesar, o próximo passo é `reasoning: { effort: 'low' }`.

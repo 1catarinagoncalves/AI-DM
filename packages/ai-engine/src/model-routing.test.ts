@@ -18,7 +18,8 @@ describe('roteamento de provider do OpenRouter', () => {
   })
 
   it('exige suporte a todos os parâmetros do request', () => {
-    // Sem isso o provider aceita o json_schema dos generateObject e o ignora.
+    // Sem isso, endpoint que não implementa `presence_penalty` serve o turno sem a
+    // penalidade da US-69 e sem avisar. Falha fechado é o comportamento desejado.
     expect(provider.require_parameters).toBe(true)
   })
 

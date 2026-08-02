@@ -199,7 +199,7 @@
       "label": "2. Decis\u00e3o",
       "file_type": "document",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L28",
+      "source_location": "L30",
       "_origin": "ast",
       "id": "docs_adr_008_pin_de_roteamento_no_openrouter_2_decis\u00e3o",
       "community": 90,
@@ -210,7 +210,7 @@
       "label": "3. Decis\u00f5es-chave e justificativas",
       "file_type": "document",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L48",
+      "source_location": "L50",
       "_origin": "ast",
       "id": "docs_adr_008_pin_de_roteamento_no_openrouter_3_decis\u00f5es_chave_e_justificativas",
       "community": 90,
@@ -221,7 +221,7 @@
       "label": "4. Alternativas rejeitadas",
       "file_type": "document",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L64",
+      "source_location": "L66",
       "_origin": "ast",
       "id": "docs_adr_008_pin_de_roteamento_no_openrouter_4_alternativas_rejeitadas",
       "community": 90,
@@ -232,7 +232,7 @@
       "label": "5. Consequ\u00eancias",
       "file_type": "document",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L75",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "docs_adr_008_pin_de_roteamento_no_openrouter_5_consequ\u00eancias",
       "community": 90,
@@ -243,7 +243,7 @@
       "label": "6. Implementa\u00e7\u00e3o (refer\u00eancia)",
       "file_type": "document",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L90",
+      "source_location": "L93",
       "_origin": "ast",
       "id": "docs_adr_008_pin_de_roteamento_no_openrouter_6_implementa\u00e7\u00e3o_refer\u00eancia",
       "community": 90,
@@ -254,7 +254,7 @@
       "label": "7. Quest\u00f5es em aberto",
       "file_type": "document",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L100",
+      "source_location": "L104",
       "_origin": "ast",
       "id": "docs_adr_008_pin_de_roteamento_no_openrouter_7_quest\u00f5es_em_aberto",
       "community": 90,
@@ -262,15 +262,323 @@
       "norm_label": "7. questoes em aberto"
     },
     {
+      "label": "US-103-proveniencia-do-endpoint-no-turno.md",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "us-103-proveniencia-do-endpoint-no-turno.md"
+    },
+    {
+      "label": "US-103 \u2014 Saber qual endpoint serviu o turno",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "us-103 \u2014 saber qual endpoint serviu o turno"
+    },
+    {
+      "label": "Hist\u00f3ria",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_hist\u00f3ria",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "historia"
+    },
+    {
+      "label": "Contexto e motiva\u00e7\u00e3o",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_contexto_e_motiva\u00e7\u00e3o",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "contexto e motivacao"
+    },
+    {
+      "label": "O problema observado",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_o_problema_observado",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "o problema observado"
+    },
+    {
+      "label": "Por que a solu\u00e7\u00e3o atual n\u00e3o basta",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_por_que_a_solu\u00e7\u00e3o_atual_n\u00e3o_basta",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "por que a solucao atual nao basta"
+    },
+    {
+      "label": "O que fica bloqueado sem isto",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_o_que_fica_bloqueado_sem_isto",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "o que fica bloqueado sem isto"
+    },
+    {
+      "label": "Escopo",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L44",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_escopo",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "escopo"
+    },
+    {
+      "label": "Dentro do escopo",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_dentro_do_escopo",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "dentro do escopo"
+    },
+    {
+      "label": "Fora do escopo",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_fora_do_escopo",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "fora do escopo"
+    },
+    {
+      "label": "Crit\u00e9rios de aceite",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_crit\u00e9rios_de_aceite",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "criterios de aceite"
+    },
+    {
+      "label": "Notas de implementa\u00e7\u00e3o",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_notas_de_implementa\u00e7\u00e3o",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "notas de implementacao"
+    },
+    {
+      "label": "Quest\u00f5es em aberto",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L85",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_quest\u00f5es_em_aberto",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "questoes em aberto"
+    },
+    {
+      "label": "Refer\u00eancias no c\u00f3digo",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_refer\u00eancias_no_c\u00f3digo",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "referencias no codigo"
+    },
+    {
+      "label": "US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "us-104-baseline-de-cache-do-prompt-pos-pin.md"
+    },
+    {
+      "label": "US-104 \u2014 O cache de prompt vira n\u00famero",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "us-104 \u2014 o cache de prompt vira numero"
+    },
+    {
+      "label": "Hist\u00f3ria",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_hist\u00f3ria",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "historia"
+    },
+    {
+      "label": "Contexto e motiva\u00e7\u00e3o",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_contexto_e_motiva\u00e7\u00e3o",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "contexto e motivacao"
+    },
+    {
+      "label": "O problema observado",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_o_problema_observado",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "o problema observado"
+    },
+    {
+      "label": "Por que n\u00e3o d\u00e1 para reaproveitar medi\u00e7\u00e3o antiga",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_por_que_n\u00e3o_d\u00e1_para_reaproveitar_medi\u00e7\u00e3o_antiga",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "por que nao da para reaproveitar medicao antiga"
+    },
+    {
+      "label": "O n\u00famero que decide",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L33",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_o_n\u00famero_que_decide",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "o numero que decide"
+    },
+    {
+      "label": "Escopo",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_escopo",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "escopo"
+    },
+    {
+      "label": "Dentro do escopo",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_dentro_do_escopo",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "dentro do escopo"
+    },
+    {
+      "label": "Fora do escopo",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_fora_do_escopo",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "fora do escopo"
+    },
+    {
+      "label": "Crit\u00e9rios de aceite",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_crit\u00e9rios_de_aceite",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "criterios de aceite"
+    },
+    {
+      "label": "Notas de implementa\u00e7\u00e3o",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L78",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_notas_de_implementa\u00e7\u00e3o",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "notas de implementacao"
+    },
+    {
+      "label": "Quest\u00f5es em aberto",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L88",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_quest\u00f5es_em_aberto",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "questoes em aberto"
+    },
+    {
+      "label": "Refer\u00eancias no c\u00f3digo",
+      "file_type": "document",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L96",
+      "_origin": "ast",
+      "id": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_refer\u00eancias_no_c\u00f3digo",
+      "community": 90,
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
+      "norm_label": "referencias no codigo"
+    },
+    {
       "label": "model-routing.test.ts",
       "file_type": "code",
       "source_file": "packages/ai-engine/src/model-routing.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_routing_test",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "model-routing.test.ts"
+      "norm_label": "model-routing.test.ts",
+      "id": "packages_ai_engine_src_model_routing_test"
     },
     {
       "label": "model.ts",
@@ -278,10 +586,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "model.ts"
+      "norm_label": "model.ts",
+      "id": "packages_ai_engine_src_model"
     },
     {
       "label": "groq",
@@ -289,10 +597,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_groq",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "groq"
+      "norm_label": "groq",
+      "id": "packages_ai_engine_src_model_groq"
     },
     {
       "label": "google",
@@ -300,10 +608,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_google",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "google"
+      "norm_label": "google",
+      "id": "packages_ai_engine_src_model_google"
     },
     {
       "label": "openaiJudge",
@@ -311,10 +619,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L22",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_openaijudge",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "openaijudge"
+      "norm_label": "openaijudge",
+      "id": "packages_ai_engine_src_model_openaijudge"
     },
     {
       "label": "openrouter",
@@ -322,10 +630,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L27",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_openrouter",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "openrouter"
+      "norm_label": "openrouter",
+      "id": "packages_ai_engine_src_model_openrouter"
     },
     {
       "label": "judgeModel()",
@@ -333,10 +641,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_judgemodel",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "judgemodel()"
+      "norm_label": "judgemodel()",
+      "id": "packages_ai_engine_src_model_judgemodel"
     },
     {
       "label": "nvidia",
@@ -344,10 +652,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L48",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_nvidia",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "nvidia"
+      "norm_label": "nvidia",
+      "id": "packages_ai_engine_src_model_nvidia"
     },
     {
       "label": "nvidiaModel()",
@@ -355,10 +663,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L55",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_nvidiamodel",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "nvidiamodel()"
+      "norm_label": "nvidiamodel()",
+      "id": "packages_ai_engine_src_model_nvidiamodel"
     },
     {
       "label": "resolveModel()",
@@ -366,10 +674,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L64",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_resolvemodel",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "resolvemodel()"
+      "norm_label": "resolvemodel()",
+      "id": "packages_ai_engine_src_model_resolvemodel"
     },
     {
       "label": "primaryModel",
@@ -377,10 +685,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L76",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_primarymodel",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "primarymodel"
+      "norm_label": "primarymodel",
+      "id": "packages_ai_engine_src_model_primarymodel"
     },
     {
       "label": "fallbackModel",
@@ -388,10 +696,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L81",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_fallbackmodel",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "fallbackmodel"
+      "norm_label": "fallbackmodel",
+      "id": "packages_ai_engine_src_model_fallbackmodel"
     },
     {
       "label": "groqFallbackModel",
@@ -399,10 +707,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L84",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_groqfallbackmodel",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "groqfallbackmodel"
+      "norm_label": "groqfallbackmodel",
+      "id": "packages_ai_engine_src_model_groqfallbackmodel"
     },
     {
       "label": "narrationModels",
@@ -410,10 +718,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L88",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_narrationmodels",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "narrationmodels"
+      "norm_label": "narrationmodels",
+      "id": "packages_ai_engine_src_model_narrationmodels"
     },
     {
       "label": "DEEPSEEK_ROUTE_ORDER",
@@ -421,10 +729,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L109",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_deepseek_route_order",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "deepseek_route_order"
+      "norm_label": "deepseek_route_order",
+      "id": "packages_ai_engine_src_model_deepseek_route_order"
     },
     {
       "label": "DEEPSEEK_ALLOWED_PROVIDERS",
@@ -432,10 +740,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L110",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_deepseek_allowed_providers",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "deepseek_allowed_providers"
+      "norm_label": "deepseek_allowed_providers",
+      "id": "packages_ai_engine_src_model_deepseek_allowed_providers"
     },
     {
       "label": "NARRATION_PROVIDER_OPTIONS",
@@ -443,10 +751,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L145",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_narration_provider_options",
       "community": 1,
       "community_name": "model.ts",
-      "norm_label": "narration_provider_options"
+      "norm_label": "narration_provider_options",
+      "id": "packages_ai_engine_src_model_narration_provider_options"
     },
     {
       "label": "summaryModel",
@@ -454,10 +762,10 @@
       "source_file": "packages/ai-engine/src/model.ts",
       "source_location": "L162",
       "_origin": "ast",
-      "id": "packages_ai_engine_src_model_summarymodel",
       "community": 136,
       "community_name": "Summary Model Config",
-      "norm_label": "summarymodel"
+      "norm_label": "summarymodel",
+      "id": "packages_ai_engine_src_model_summarymodel"
     },
     {
       "label": "seed.ts",
@@ -685,8 +993,8 @@
       "source_file": "apps/api/src/adventure/adventure.service.ts",
       "source_location": "L14",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "adventureservice",
       "id": "apps_api_src_adventure_adventure_service_adventureservice"
     },
@@ -696,8 +1004,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "injectable",
       "id": "apps_api_src_adventure_adventure_service_ts_injectable"
     },
@@ -707,8 +1015,8 @@
       "source_file": "apps/api/src/adventure/adventure.service.ts",
       "source_location": "L15",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".constructor()",
       "id": "apps_api_src_adventure_adventure_service_adventureservice_constructor"
     },
@@ -718,8 +1026,8 @@
       "source_file": "apps/api/src/adventure/adventure.service.ts",
       "source_location": "L34",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".assertcharacterowner()",
       "id": "apps_api_src_adventure_adventure_service_adventureservice_assertcharacterowner"
     },
@@ -729,8 +1037,8 @@
       "source_file": "apps/api/src/adventure/adventure.service.ts",
       "source_location": "L45",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".getinitialadventure()",
       "id": "apps_api_src_adventure_adventure_service_adventureservice_getinitialadventure"
     },
@@ -740,8 +1048,8 @@
       "source_file": "apps/api/src/adventure/adventure.service.ts",
       "source_location": "L62",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".resolvehook()",
       "id": "apps_api_src_adventure_adventure_service_adventureservice_resolvehook"
     },
@@ -762,8 +1070,8 @@
       "source_file": "apps/api/src/adventure/adventure.service.ts",
       "source_location": "L215",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".getturns()",
       "id": "apps_api_src_adventure_adventure_service_adventureservice_getturns"
     },
@@ -1059,7 +1367,7 @@
       "source_file": "apps/api/src/auth/auth.guard.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "auth.guard.test.ts",
       "id": "apps_api_src_auth_auth_guard_test"
@@ -1070,7 +1378,7 @@
       "source_file": "apps/api/src/auth/auth.guard.test.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "sign()",
       "id": "apps_api_src_auth_auth_guard_test_sign"
@@ -1081,7 +1389,7 @@
       "source_file": "apps/api/src/auth/auth.guard.test.ts",
       "source_location": "L15",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "ctxwith()",
       "id": "apps_api_src_auth_auth_guard_test_ctxwith"
@@ -1092,7 +1400,7 @@
       "source_file": "apps/api/src/auth/auth.guard.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "auth.guard.ts",
       "id": "apps_api_src_auth_auth_guard"
@@ -1103,7 +1411,7 @@
       "source_file": "apps/api/src/auth/auth.guard.ts",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "authguard",
       "id": "apps_api_src_auth_auth_guard_authguard"
@@ -1114,7 +1422,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "injectable",
       "id": "apps_api_src_auth_auth_guard_ts_injectable"
@@ -1125,7 +1433,7 @@
       "source_file": "apps/api/src/auth/auth.guard.ts",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": ".canactivate()",
       "id": "apps_api_src_auth_auth_guard_authguard_canactivate"
@@ -1136,7 +1444,7 @@
       "source_file": "apps/api/src/auth/auth.guard.ts",
       "source_location": "L33",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "optionalauthguard",
       "id": "apps_api_src_auth_auth_guard_optionalauthguard"
@@ -1147,7 +1455,7 @@
       "source_file": "apps/api/src/auth/auth.guard.ts",
       "source_location": "L34",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": ".canactivate()",
       "id": "apps_api_src_auth_auth_guard_optionalauthguard_canactivate"
@@ -1225,7 +1533,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "characterservice",
       "id": "apps_api_src_character_character_service_characterservice"
     },
@@ -1236,7 +1544,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "injectable",
       "id": "apps_api_src_character_character_service_ts_injectable"
     },
@@ -1247,7 +1555,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".constructor()",
       "id": "apps_api_src_character_character_service_characterservice_constructor"
     },
@@ -1258,7 +1566,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".create()",
       "id": "apps_api_src_character_character_service_characterservice_create"
     },
@@ -1269,7 +1577,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".normalizebackground()",
       "id": "apps_api_src_character_character_service_characterservice_normalizebackground"
     },
@@ -1280,7 +1588,7 @@
       "source_location": "L82",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".validateskills()",
       "id": "apps_api_src_character_character_service_characterservice_validateskills"
     },
@@ -1291,7 +1599,7 @@
       "source_location": "L110",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".findallbyuser()",
       "id": "apps_api_src_character_character_service_characterservice_findallbyuser"
     },
@@ -1302,7 +1610,7 @@
       "source_location": "L146",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".remove()",
       "id": "apps_api_src_character_character_service_characterservice_remove"
     },
@@ -1313,7 +1621,7 @@
       "source_location": "L176",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".findone()",
       "id": "apps_api_src_character_character_service_characterservice_findone"
     },
@@ -1389,7 +1697,7 @@
       "source_file": "apps/api/src/system/system.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "system.controller.ts",
       "id": "apps_api_src_system_system_controller"
@@ -1599,7 +1907,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "004-origem-do-dado-de-sistema.md",
       "id": "docs_adr_004_origem_do_dado_de_sistema"
     },
@@ -1697,8 +2005,8 @@
       "source_file": "docs/adr/006-deploy-custo-zero.md",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 169,
-      "community_name": "006-deploy-custo-zero.md",
+      "community": 152,
+      "community_name": "US-94-eval-vivo-noturno-com-chaves.md",
       "norm_label": "006-deploy-custo-zero.md",
       "id": "docs_adr_006_deploy_custo_zero"
     },
@@ -1863,7 +2171,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "us-99-config-do-sistema-no-locale-ativo.md",
       "id": "docs_sdlc_01_requisitos_us_99_config_do_sistema_no_locale_ativo"
     },
@@ -3743,8 +4051,8 @@
       "source_file": "docs/sdlc/01-requisitos/US-102-gate-de-string-literal-no-jsx.md",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 148,
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community": 156,
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "us-102-gate-de-string-literal-no-jsx.md",
       "id": "docs_sdlc_01_requisitos_us_102_gate_de_string_literal_no_jsx"
     },
@@ -3920,7 +4228,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "us-98-i18n-da-interface-web.md",
       "id": "docs_sdlc_01_requisitos_us_98_i18n_da_interface_web"
     },
@@ -4084,7 +4392,7 @@
       "source_file": "apps/api/src/auth/auth.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "auth.controller.ts",
       "id": "apps_api_src_auth_auth_controller"
@@ -4217,7 +4525,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 25,
-      "community_name": "auth.service.test.ts",
+      "community_name": "PrismaService",
       "norm_label": "auth.service.test.ts",
       "id": "apps_api_src_auth_auth_service_test"
     },
@@ -4228,7 +4536,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "community": 25,
-      "community_name": "auth.service.test.ts",
+      "community_name": "PrismaService",
       "norm_label": "u",
       "id": "apps_api_src_auth_auth_service_test_u"
     },
@@ -4239,7 +4547,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 25,
-      "community_name": "auth.service.test.ts",
+      "community_name": "PrismaService",
       "norm_label": "c",
       "id": "apps_api_src_auth_auth_service_test_c"
     },
@@ -4250,7 +4558,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 25,
-      "community_name": "auth.service.test.ts",
+      "community_name": "PrismaService",
       "norm_label": "a",
       "id": "apps_api_src_auth_auth_service_test_a"
     },
@@ -4261,7 +4569,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "community": 25,
-      "community_name": "auth.service.test.ts",
+      "community_name": "PrismaService",
       "norm_label": "fakeprisma()",
       "id": "apps_api_src_auth_auth_service_test_fakeprisma"
     },
@@ -4271,7 +4579,7 @@
       "source_file": "apps/api/src/auth/auth.service.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": "auth.service.ts",
       "id": "apps_api_src_auth_auth_service"
@@ -4337,7 +4645,7 @@
       "source_file": "apps/api/src/auth/auth.service.ts",
       "source_location": "L66",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": "adr-0005",
       "id": "apps_api_src_auth_auth_service_ts_docref_adr_0005"
@@ -4569,7 +4877,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "005-locale-como-dimensao.md",
       "id": "docs_adr_005_locale_como_dimensao"
     },
@@ -4712,7 +5020,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "us-100-ficha-do-personagem-no-locale-ativo.md",
       "id": "docs_sdlc_01_requisitos_us_100_ficha_do_personagem_no_locale_ativo"
     },
@@ -4877,7 +5185,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "us-101-ganchos-de-aventura-em-ingles.md",
       "id": "docs_sdlc_01_requisitos_us_101_ganchos_de_aventura_em_ingles"
     },
@@ -5041,8 +5349,8 @@
       "source_file": "docs/sdlc/01-requisitos/US-92-deploy-espera-o-ci-verde.md",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 169,
-      "community_name": "006-deploy-custo-zero.md",
+      "community": 152,
+      "community_name": "US-94-eval-vivo-noturno-com-chaves.md",
       "norm_label": "us-92-deploy-espera-o-ci-verde.md",
       "id": "docs_sdlc_01_requisitos_us_92_deploy_espera_o_ci_verde"
     },
@@ -5207,7 +5515,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 148,
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community_name": "AGENTS.md",
       "norm_label": "us-96-convencao-de-commit-que-descreve-o-repo.md",
       "id": "docs_sdlc_01_requisitos_us_96_convencao_de_commit_que_descreve_o_repo"
     },
@@ -5361,7 +5669,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "us-97-seletor-de-idioma-pt-br-en.md",
       "id": "docs_sdlc_01_requisitos_us_97_seletor_de_idioma_pt_br_en"
     },
@@ -6680,8 +6988,8 @@
       "source_file": "docs/sdlc/01-requisitos/US-93-gates-baratos-de-migracao-dependencia-e-smoke.md",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 169,
-      "community_name": "006-deploy-custo-zero.md",
+      "community": 152,
+      "community_name": "US-94-eval-vivo-noturno-com-chaves.md",
       "norm_label": "us-93-gates-baratos-de-migracao-dependencia-e-smoke.md",
       "id": "docs_sdlc_01_requisitos_us_93_gates_baratos_de_migracao_dependencia_e_smoke"
     },
@@ -7813,7 +8121,7 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "adventure.controller.ts",
       "id": "apps_api_src_adventure_adventure_controller"
@@ -7824,8 +8132,8 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L9",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "createadventureschema",
       "id": "apps_api_src_adventure_adventure_controller_createadventureschema"
     },
@@ -7835,8 +8143,8 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L17",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "adventurecontroller",
       "id": "apps_api_src_adventure_adventure_controller_adventurecontroller"
     },
@@ -7846,8 +8154,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "apitags",
       "id": "apps_api_src_adventure_adventure_controller_ts_apitags"
     },
@@ -7857,8 +8165,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "apibearerauth",
       "id": "apps_api_src_adventure_adventure_controller_ts_apibearerauth"
     },
@@ -7868,8 +8176,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "useguards",
       "id": "apps_api_src_adventure_adventure_controller_ts_useguards"
     },
@@ -7879,8 +8187,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "controller",
       "id": "apps_api_src_adventure_adventure_controller_ts_controller"
     },
@@ -7890,8 +8198,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "apioperation",
       "id": "apps_api_src_adventure_adventure_controller_ts_apioperation"
     },
@@ -7901,8 +8209,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "get",
       "id": "apps_api_src_adventure_adventure_controller_ts_get"
     },
@@ -7912,8 +8220,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "param",
       "id": "apps_api_src_adventure_adventure_controller_ts_param"
     },
@@ -7923,8 +8231,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "apibody",
       "id": "apps_api_src_adventure_adventure_controller_ts_apibody"
     },
@@ -7934,8 +8242,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "post",
       "id": "apps_api_src_adventure_adventure_controller_ts_post"
     },
@@ -7945,8 +8253,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": "body",
       "id": "apps_api_src_adventure_adventure_controller_ts_body"
     },
@@ -7956,8 +8264,8 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L18",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".constructor()",
       "id": "apps_api_src_adventure_adventure_controller_adventurecontroller_constructor"
     },
@@ -7967,8 +8275,8 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".getinitial()",
       "id": "apps_api_src_adventure_adventure_controller_adventurecontroller_getinitial"
     },
@@ -7978,8 +8286,8 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L30",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".create()",
       "id": "apps_api_src_adventure_adventure_controller_adventurecontroller_create"
     },
@@ -7989,8 +8297,8 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L38",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".getturns()",
       "id": "apps_api_src_adventure_adventure_controller_adventurecontroller_getturns"
     },
@@ -8000,8 +8308,8 @@
       "source_file": "apps/api/src/adventure/adventure.controller.ts",
       "source_location": "L47",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 51,
+      "community_name": "AdventureService",
       "norm_label": ".assertowner()",
       "id": "apps_api_src_adventure_adventure_controller_adventurecontroller_assertowner"
     },
@@ -8012,7 +8320,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "adventure.module.ts",
       "id": "apps_api_src_adventure_adventure_module"
     },
@@ -8023,7 +8331,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "adventuremodule",
       "id": "apps_api_src_adventure_adventure_module_adventuremodule"
     },
@@ -8034,7 +8342,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_adventure_adventure_module_ts_module"
     },
@@ -8132,7 +8440,7 @@
       "source_file": "apps/api/src/ai/ai.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "ai.controller.ts",
       "id": "apps_api_src_ai_ai_controller"
@@ -8298,7 +8606,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "ai.module.ts",
       "id": "apps_api_src_ai_ai_module"
     },
@@ -8309,7 +8617,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "aimodule",
       "id": "apps_api_src_ai_ai_module_aimodule"
     },
@@ -8320,7 +8628,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_ai_ai_module_ts_module"
     },
@@ -8397,7 +8705,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "app.module.ts",
       "id": "apps_api_src_app_module"
     },
@@ -8407,8 +8715,8 @@
       "source_file": "apps/api/src/app.module.ts",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 51,
-      "community_name": "AppModule",
+      "community": 14,
+      "community_name": "app.module.ts",
       "norm_label": "appmodule",
       "id": "apps_api_src_app_module_appmodule"
     },
@@ -8418,8 +8726,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 51,
-      "community_name": "AppModule",
+      "community": 14,
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_app_module_ts_module"
     },
@@ -8495,7 +8803,7 @@
       "source_file": "apps/api/src/auth/auth.module.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": "auth.module.ts",
       "id": "apps_api_src_auth_auth_module"
@@ -8506,7 +8814,7 @@
       "source_file": "apps/api/src/auth/auth.module.ts",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": "authmodule",
       "id": "apps_api_src_auth_auth_module_authmodule"
@@ -8517,7 +8825,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": "module",
       "id": "apps_api_src_auth_auth_module_ts_module"
@@ -8528,7 +8836,7 @@
       "source_file": "apps/api/src/auth/current-user.decorator.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "current-user.decorator.ts",
       "id": "apps_api_src_auth_current_user_decorator"
@@ -8539,7 +8847,7 @@
       "source_file": "apps/api/src/auth/current-user.decorator.ts",
       "source_location": "L5",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "authuser",
       "id": "apps_api_src_auth_current_user_decorator_authuser"
@@ -8550,7 +8858,7 @@
       "source_file": "apps/api/src/auth/current-user.decorator.ts",
       "source_location": "L12",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "currentuser",
       "id": "apps_api_src_auth_current_user_decorator_currentuser"
@@ -8561,7 +8869,7 @@
       "source_file": "apps/api/src/auth/current-user.decorator.ts",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "payloadtouser()",
       "id": "apps_api_src_auth_current_user_decorator_payloadtouser"
@@ -8572,8 +8880,8 @@
       "source_file": "apps/api/src/auth/jwt.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 153,
+      "community_name": "jwt.ts",
       "norm_label": "jwt.test.ts",
       "id": "apps_api_src_auth_jwt_test"
     },
@@ -8583,8 +8891,8 @@
       "source_file": "apps/api/src/auth/jwt.test.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 153,
+      "community_name": "jwt.ts",
       "norm_label": "sign()",
       "id": "apps_api_src_auth_jwt_test_sign"
     },
@@ -8594,8 +8902,8 @@
       "source_file": "apps/api/src/auth/jwt.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 153,
+      "community_name": "jwt.ts",
       "norm_label": "jwt.ts",
       "id": "apps_api_src_auth_jwt"
     },
@@ -8605,8 +8913,8 @@
       "source_file": "apps/api/src/auth/jwt.ts",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 153,
+      "community_name": "jwt.ts",
       "norm_label": "jwtpayload",
       "id": "apps_api_src_auth_jwt_jwtpayload"
     },
@@ -8616,8 +8924,8 @@
       "source_file": "apps/api/src/auth/jwt.ts",
       "source_location": "L18",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 153,
+      "community_name": "jwt.ts",
       "norm_label": "b64urltobuffer()",
       "id": "apps_api_src_auth_jwt_b64urltobuffer"
     },
@@ -8627,8 +8935,8 @@
       "source_file": "apps/api/src/auth/jwt.ts",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 153,
+      "community_name": "jwt.ts",
       "norm_label": "verifyjwt()",
       "id": "apps_api_src_auth_jwt_verifyjwt"
     },
@@ -8638,8 +8946,8 @@
       "source_file": "apps/api/src/character/character.controller.test.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 169,
+      "community_name": "character.schema.ts",
       "norm_label": "character.controller.test.ts",
       "id": "apps_api_src_character_character_controller_test"
     },
@@ -8649,8 +8957,8 @@
       "source_file": "apps/api/src/character/character.controller.test.ts",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 169,
+      "community_name": "character.schema.ts",
       "norm_label": "base",
       "id": "apps_api_src_character_character_controller_test_base"
     },
@@ -8660,7 +8968,7 @@
       "source_file": "apps/api/src/character/character.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "character.controller.ts",
       "id": "apps_api_src_character_character_controller"
@@ -8672,7 +8980,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "charactercontroller",
       "id": "apps_api_src_character_character_controller_charactercontroller"
     },
@@ -8683,7 +8991,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "apitags",
       "id": "apps_api_src_character_character_controller_ts_apitags"
     },
@@ -8694,7 +9002,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "apibearerauth",
       "id": "apps_api_src_character_character_controller_ts_apibearerauth"
     },
@@ -8705,7 +9013,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "useguards",
       "id": "apps_api_src_character_character_controller_ts_useguards"
     },
@@ -8716,7 +9024,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "controller",
       "id": "apps_api_src_character_character_controller_ts_controller"
     },
@@ -8727,7 +9035,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "apioperation",
       "id": "apps_api_src_character_character_controller_ts_apioperation"
     },
@@ -8738,7 +9046,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "apibody",
       "id": "apps_api_src_character_character_controller_ts_apibody"
     },
@@ -8749,7 +9057,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "post",
       "id": "apps_api_src_character_character_controller_ts_post"
     },
@@ -8760,7 +9068,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "body",
       "id": "apps_api_src_character_character_controller_ts_body"
     },
@@ -8771,7 +9079,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "get",
       "id": "apps_api_src_character_character_controller_ts_get"
     },
@@ -8782,7 +9090,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "param",
       "id": "apps_api_src_character_character_controller_ts_param"
     },
@@ -8793,7 +9101,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": "delete",
       "id": "delete"
     },
@@ -8804,7 +9112,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".constructor()",
       "id": "apps_api_src_character_character_controller_charactercontroller_constructor"
     },
@@ -8815,7 +9123,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".create()",
       "id": "apps_api_src_character_character_controller_charactercontroller_create"
     },
@@ -8826,7 +9134,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".findmine()",
       "id": "apps_api_src_character_character_controller_charactercontroller_findmine"
     },
@@ -8837,7 +9145,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".findone()",
       "id": "apps_api_src_character_character_controller_charactercontroller_findone"
     },
@@ -8848,7 +9156,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".remove()",
       "id": "apps_api_src_character_character_controller_charactercontroller_remove"
     },
@@ -8859,7 +9167,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".requireuserid()",
       "id": "apps_api_src_character_character_controller_charactercontroller_requireuserid"
     },
@@ -8870,7 +9178,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "community": 15,
-      "community_name": "AuthUser",
+      "community_name": "CharacterController",
       "norm_label": ".assertowner()",
       "id": "apps_api_src_character_character_controller_charactercontroller_assertowner"
     },
@@ -8881,7 +9189,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "character.module.ts",
       "id": "apps_api_src_character_character_module"
     },
@@ -8892,7 +9200,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "charactermodule",
       "id": "apps_api_src_character_character_module_charactermodule"
     },
@@ -8903,7 +9211,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_character_character_module_ts_module"
     },
@@ -8913,8 +9221,8 @@
       "source_file": "apps/api/src/character/character.schema.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 169,
+      "community_name": "character.schema.ts",
       "norm_label": "character.schema.ts",
       "id": "apps_api_src_character_character_schema"
     },
@@ -8924,8 +9232,8 @@
       "source_file": "apps/api/src/character/character.schema.ts",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 169,
+      "community_name": "character.schema.ts",
       "norm_label": "createcharacterschema",
       "id": "apps_api_src_character_character_schema_createcharacterschema"
     },
@@ -8935,8 +9243,8 @@
       "source_file": "apps/api/src/character/character.schema.ts",
       "source_location": "L46",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "AuthUser",
+      "community": 169,
+      "community_name": "character.schema.ts",
       "norm_label": "createcharacterdto",
       "id": "apps_api_src_character_character_schema_createcharacterdto"
     },
@@ -9145,7 +9453,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "game.module.ts",
       "id": "apps_api_src_game_game_module"
     },
@@ -9156,7 +9464,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "gamemodule",
       "id": "apps_api_src_game_game_module_gamemodule"
     },
@@ -9167,7 +9475,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 14,
-      "community_name": "PrismaService",
+      "community_name": "app.module.ts",
       "norm_label": "module",
       "id": "apps_api_src_game_game_module_ts_module"
     },
@@ -9177,8 +9485,8 @@
       "source_file": "apps/api/src/main.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 51,
-      "community_name": "AppModule",
+      "community": 14,
+      "community_name": "app.module.ts",
       "norm_label": "main.ts",
       "id": "apps_api_src_main"
     },
@@ -9188,8 +9496,8 @@
       "source_file": "apps/api/src/main.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 51,
-      "community_name": "AppModule",
+      "community": 14,
+      "community_name": "app.module.ts",
       "norm_label": "bootstrap()",
       "id": "apps_api_src_main_bootstrap"
     },
@@ -9199,7 +9507,7 @@
       "source_file": "apps/api/src/openapi.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "openapi.ts",
       "id": "apps_api_src_openapi"
@@ -9210,7 +9518,7 @@
       "source_file": "apps/api/src/openapi.ts",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 15,
+      "community": 126,
       "community_name": "AuthUser",
       "norm_label": "zodbody()",
       "id": "apps_api_src_openapi_zodbody"
@@ -9221,7 +9529,7 @@
       "source_file": "apps/api/src/prisma.service.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": "prisma.service.ts",
       "id": "apps_api_src_prisma_service"
@@ -9232,7 +9540,7 @@
       "source_file": "apps/api/src/prisma.service.ts",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": "prismaservice",
       "id": "apps_api_src_prisma_service_prismaservice"
@@ -9243,7 +9551,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": "injectable",
       "id": "apps_api_src_prisma_service_ts_injectable"
@@ -9254,7 +9562,7 @@
       "source_file": "apps/api/src/prisma.service.ts",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": ".constructor()",
       "id": "apps_api_src_prisma_service_prismaservice_constructor"
@@ -9265,7 +9573,7 @@
       "source_file": "apps/api/src/prisma.service.ts",
       "source_location": "L13",
       "_origin": "ast",
-      "community": 14,
+      "community": 25,
       "community_name": "PrismaService",
       "norm_label": ".onmoduleinit()",
       "id": "apps_api_src_prisma_service_prismaservice_onmoduleinit"
@@ -9320,8 +9628,8 @@
       "source_file": "apps/api/src/system/system.module.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "PrismaService",
+      "community": 37,
+      "community_name": "character.service.ts",
       "norm_label": "system.module.ts",
       "id": "apps_api_src_system_system_module"
     },
@@ -9331,8 +9639,8 @@
       "source_file": "apps/api/src/system/system.module.ts",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "PrismaService",
+      "community": 37,
+      "community_name": "character.service.ts",
       "norm_label": "systemmodule",
       "id": "apps_api_src_system_system_module_systemmodule"
     },
@@ -9342,8 +9650,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "PrismaService",
+      "community": 37,
+      "community_name": "character.service.ts",
       "norm_label": "module",
       "id": "apps_api_src_system_system_module_ts_module"
     },
@@ -9353,8 +9661,8 @@
       "source_file": "apps/api/src/user/user.controller.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "PrismaService",
+      "community": 43,
+      "community_name": "user.controller.ts",
       "norm_label": "user.controller.ts",
       "id": "apps_api_src_user_user_controller"
     },
@@ -9365,7 +9673,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": "createuserschema",
       "id": "apps_api_src_user_user_controller_createuserschema"
     },
@@ -9376,7 +9684,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": "usercontroller",
       "id": "apps_api_src_user_user_controller_usercontroller"
     },
@@ -9387,7 +9695,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": "apitags",
       "id": "apps_api_src_user_user_controller_ts_apitags"
     },
@@ -9398,7 +9706,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": "controller",
       "id": "apps_api_src_user_user_controller_ts_controller"
     },
@@ -9409,7 +9717,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": "apioperation",
       "id": "apps_api_src_user_user_controller_ts_apioperation"
     },
@@ -9420,7 +9728,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": "apibody",
       "id": "apps_api_src_user_user_controller_ts_apibody"
     },
@@ -9431,7 +9739,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": "post",
       "id": "apps_api_src_user_user_controller_ts_post"
     },
@@ -9442,7 +9750,7 @@
       "source_location": "",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": "body",
       "id": "apps_api_src_user_user_controller_ts_body"
     },
@@ -9453,7 +9761,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": ".constructor()",
       "id": "apps_api_src_user_user_controller_usercontroller_constructor"
     },
@@ -9464,7 +9772,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "community": 43,
-      "community_name": "UserController",
+      "community_name": "user.controller.ts",
       "norm_label": ".create()",
       "id": "apps_api_src_user_user_controller_usercontroller_create"
     },
@@ -9474,8 +9782,8 @@
       "source_file": "apps/api/src/user/user.module.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "PrismaService",
+      "community": 43,
+      "community_name": "user.controller.ts",
       "norm_label": "user.module.ts",
       "id": "apps_api_src_user_user_module"
     },
@@ -9485,8 +9793,8 @@
       "source_file": "apps/api/src/user/user.module.ts",
       "source_location": "L9",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "PrismaService",
+      "community": 43,
+      "community_name": "user.controller.ts",
       "norm_label": "usermodule",
       "id": "apps_api_src_user_user_module_usermodule"
     },
@@ -9496,8 +9804,8 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 14,
-      "community_name": "PrismaService",
+      "community": 43,
+      "community_name": "user.controller.ts",
       "norm_label": "module",
       "id": "apps_api_src_user_user_module_ts_module"
     },
@@ -16645,7 +16953,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "design-system.md",
       "id": "docs_sdlc_02_design_design_system"
     },
@@ -16788,7 +17096,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "community": 156,
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "norm_label": "direcao-visual-anti-slop.md",
       "id": "docs_sdlc_02_design_direcao_visual_anti_slop"
     },
@@ -17476,9 +17784,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 153,
+      "community": 90,
       "norm_label": "us-34 \u2014 qualidade cinematografica da narracao do ai dm",
-      "community_name": "US-34 \u2014 Qualidade cinematogr\u00e1fica da narra\u00e7\u00e3o do AI DM",
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
       "id": "docs_sdlc_01_requisitos_us_34_qualidade_da_narracao_do_dm"
     },
     {
@@ -17490,9 +17798,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 153,
+      "community": 90,
       "norm_label": "us-35 \u2014 estado de cena estruturado ja na abertura da aventura",
-      "community_name": "US-34 \u2014 Qualidade cinematogr\u00e1fica da narra\u00e7\u00e3o do AI DM",
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
       "id": "docs_sdlc_01_requisitos_us_35_cena_estruturada_na_abertura"
     },
     {
@@ -17504,9 +17812,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 153,
+      "community": 90,
       "norm_label": "us-36 \u2014 eval de qualidade da narracao do dm",
-      "community_name": "US-34 \u2014 Qualidade cinematogr\u00e1fica da narra\u00e7\u00e3o do AI DM",
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
       "id": "docs_sdlc_01_requisitos_us_36_eval_de_qualidade_da_narracao"
     },
     {
@@ -17518,9 +17826,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 153,
+      "community": 90,
       "norm_label": "us-37 \u2014 nivel cinematografico mantido em todos os turnos",
-      "community_name": "US-34 \u2014 Qualidade cinematogr\u00e1fica da narra\u00e7\u00e3o do AI DM",
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
       "id": "docs_sdlc_01_requisitos_us_37_nivel_cinematografico_em_todos_os_turnos"
     },
     {
@@ -17576,7 +17884,7 @@
       "contributor": null,
       "community": 156,
       "norm_label": "us-41 \u2014 features de classe conhecidas pelo mestre",
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "id": "docs_sdlc_01_requisitos_us_41_features_traits_de_classe"
     },
     {
@@ -17590,7 +17898,7 @@
       "contributor": null,
       "community": 156,
       "norm_label": "us-42 \u2014 magias conhecidas pelo mestre",
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "id": "docs_sdlc_01_requisitos_us_42_magias_conhecidas"
     },
     {
@@ -17632,7 +17940,7 @@
       "contributor": null,
       "community": 156,
       "norm_label": "us-46 \u2014 acessibilidade da aplicacao web (wcag 2.2 aa)",
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "id": "docs_sdlc_01_requisitos_us_46_acessibilidade_wcag_aa"
     },
     {
@@ -17646,7 +17954,7 @@
       "contributor": null,
       "community": 156,
       "norm_label": "us-47 \u2014 ingestao do srd 5e (2024) como dado do sistema",
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "id": "docs_sdlc_01_requisitos_us_47_ingestao_srd_como_dado"
     },
     {
@@ -17826,7 +18134,7 @@
       "source_file": "docs/sdlc/01-requisitos/US-66-telas-mobile-friendly.md",
       "community": 156,
       "norm_label": "us-66 \u2014 todas as telas mobile-friendly",
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "id": "docs_sdlc_01_requisitos_us_66_telas_mobile_friendly"
     },
     {
@@ -17844,7 +18152,7 @@
       "source_file": "docs/sdlc/01-requisitos/US-68-nomes-de-fantasia-originais.md",
       "community": 156,
       "norm_label": "us-68 \u2014 nomes de fantasia originais",
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "id": "docs_sdlc_01_requisitos_us_68_nomes_de_fantasia_originais"
     },
     {
@@ -17905,9 +18213,9 @@
       "label": "US-75 \u2014 Dimens\u00f5es de conhecimento no ledger",
       "file_type": "document",
       "source_file": "docs/sdlc/01-requisitos/US-75-dimensao-de-proveniencia-no-ledger.md",
-      "community": 126,
+      "community": 90,
       "norm_label": "us-75 \u2014 dimensoes de conhecimento no ledger",
-      "community_name": "US-75 Knowledge Ledger Dimensions",
+      "community_name": "ADR 008 \u2014 Pin de roteamento no OpenRouter: o endpoint faz parte do modelo",
       "id": "docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger"
     },
     {
@@ -17988,7 +18296,7 @@
       "source_file": "docs/sdlc/01-requisitos/US-83-readme-com-arquitetura-alto-nivel.md",
       "community": 148,
       "norm_label": "us-83 \u2014 readme com arquitetura de alto nivel",
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community_name": "AGENTS.md",
       "id": "docs_sdlc_01_requisitos_us_83"
     },
     {
@@ -18024,7 +18332,7 @@
       "source_file": "README.md",
       "community": 148,
       "norm_label": "readme.md",
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community_name": "AGENTS.md",
       "id": "readme"
     },
     {
@@ -18051,7 +18359,7 @@
       "source_file": "docs/sdlc/01-requisitos/US-86-gate-de-caminhos-em-arvores-de-diretorio-nos-docs.md",
       "community": 148,
       "norm_label": "us-86 \u2014 arvore de diretorios na documentacao deixa de mentir sobre onde o arquivo esta",
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community_name": "AGENTS.md",
       "id": "docs_sdlc_01_requisitos_us_86_gate_de_caminhos_em_arvores_de_diretorio_nos_docs"
     },
     {
@@ -18069,7 +18377,7 @@
       "source_file": "docs/sdlc/01-requisitos/US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md",
       "community": 148,
       "norm_label": "us-88 \u2014 doc que ordena deixa de citar api que nao existe",
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community_name": "AGENTS.md",
       "id": "docs_sdlc_01_requisitos_us_88_gate_de_identificadores_inexistentes_nos_docs_normativos"
     },
     {
@@ -18096,7 +18404,7 @@
       "source_file": "docs/sdlc/01-requisitos/US-91-auditar-convencoes-de-implementacao.md",
       "community": 148,
       "norm_label": "us-91 \u2014 convencoes de implementacao (e o bloco backend do agents.md) deixam de descrever um projeto que nao e este",
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community_name": "AGENTS.md",
       "id": "docs_sdlc_01_requisitos_us_91_auditar_convencoes_de_implementacao"
     },
     {
@@ -18114,7 +18422,7 @@
       "source_file": "AGENTS.md",
       "community": 148,
       "norm_label": "agents.md",
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community_name": "AGENTS.md",
       "id": "agents"
     },
     {
@@ -18132,7 +18440,7 @@
       "source_file": "docs/sdlc/03-implementacao/convencoes.md",
       "community": 148,
       "norm_label": "docs/sdlc/03-implementacao/convencoes.md",
-      "community_name": "US-102-gate-de-string-literal-no-jsx.md",
+      "community_name": "AGENTS.md",
       "id": "docs_sdlc_03_implementacao_convencoes"
     },
     {
@@ -18141,7 +18449,7 @@
       "source_file": "scripts/srd/NOTICE-open5e.md",
       "community": 156,
       "norm_label": "notice-open5e.md",
-      "community_name": "US-97-seletor-de-idioma-pt-br-en.md",
+      "community_name": "US-99-config-do-sistema-no-locale-ativo.md",
       "id": "scripts_srd_notice_open5e"
     },
     {
@@ -18224,6 +18532,28 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_008_pin_de_roteamento_no_openrouter",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
+      "source_location": "L106",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_008_pin_de_roteamento_no_openrouter",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
       "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
@@ -18246,7 +18576,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L28",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_adr_008_pin_de_roteamento_no_openrouter_adr_008_pin_de_roteamento_no_openrouter_o_endpoint_faz_parte_do_modelo",
@@ -18257,7 +18587,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L48",
+      "source_location": "L50",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_adr_008_pin_de_roteamento_no_openrouter_adr_008_pin_de_roteamento_no_openrouter_o_endpoint_faz_parte_do_modelo",
@@ -18268,7 +18598,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L64",
+      "source_location": "L66",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_adr_008_pin_de_roteamento_no_openrouter_adr_008_pin_de_roteamento_no_openrouter_o_endpoint_faz_parte_do_modelo",
@@ -18279,7 +18609,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L75",
+      "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_adr_008_pin_de_roteamento_no_openrouter_adr_008_pin_de_roteamento_no_openrouter_o_endpoint_faz_parte_do_modelo",
@@ -18290,7 +18620,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L90",
+      "source_location": "L93",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_adr_008_pin_de_roteamento_no_openrouter_adr_008_pin_de_roteamento_no_openrouter_o_endpoint_faz_parte_do_modelo",
@@ -18301,11 +18631,352 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/adr/008-pin-de-roteamento-no-openrouter.md",
-      "source_location": "L100",
+      "source_location": "L104",
       "weight": 1.0,
       "_origin": "ast",
       "source": "docs_adr_008_pin_de_roteamento_no_openrouter_adr_008_pin_de_roteamento_no_openrouter_o_endpoint_faz_parte_do_modelo",
       "target": "docs_adr_008_pin_de_roteamento_no_openrouter_7_quest\u00f5es_em_aberto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno",
+      "target": "docs_sdlc_01_requisitos_us_69_guard_anti_degeneracao_narracao",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno",
+      "target": "docs_sdlc_01_requisitos_us_74_guard_turno_truncado_narracao",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno",
+      "target": "docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_contexto_e_motiva\u00e7\u00e3o",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L62",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_crit\u00e9rios_de_aceite",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L44",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_escopo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_hist\u00f3ria",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_notas_de_implementa\u00e7\u00e3o",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L85",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_quest\u00f5es_em_aberto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L93",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_us_103_saber_qual_endpoint_serviu_o_turno",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_refer\u00eancias_no_c\u00f3digo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_contexto_e_motiva\u00e7\u00e3o",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_o_problema_observado",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_contexto_e_motiva\u00e7\u00e3o",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_o_que_fica_bloqueado_sem_isto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_contexto_e_motiva\u00e7\u00e3o",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_por_que_a_solu\u00e7\u00e3o_atual_n\u00e3o_basta",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_escopo",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_dentro_do_escopo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md",
+      "source_location": "L53",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_escopo",
+      "target": "docs_sdlc_01_requisitos_us_103_proveniencia_do_endpoint_no_turno_fora_do_escopo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L92",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin",
+      "target": "docs_sdlc_01_requisitos_us_36_eval_de_qualidade_da_narracao",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_contexto_e_motiva\u00e7\u00e3o",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_crit\u00e9rios_de_aceite",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_escopo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_hist\u00f3ria",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L78",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_notas_de_implementa\u00e7\u00e3o",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_quest\u00f5es_em_aberto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L96",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_us_104_o_cache_de_prompt_vira_n\u00famero",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_refer\u00eancias_no_c\u00f3digo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_contexto_e_motiva\u00e7\u00e3o",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_o_n\u00famero_que_decide",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_contexto_e_motiva\u00e7\u00e3o",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_o_problema_observado",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_contexto_e_motiva\u00e7\u00e3o",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_por_que_n\u00e3o_d\u00e1_para_reaproveitar_medi\u00e7\u00e3o_antiga",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L49",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_escopo",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_dentro_do_escopo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_escopo",
+      "target": "docs_sdlc_01_requisitos_us_104_baseline_de_cache_do_prompt_pos_pin_fora_do_escopo",
       "confidence_score": 1.0
     },
     {
@@ -18316,9 +18987,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_routing_test",
-      "target": "packages_ai_engine_src_model",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model"
     },
     {
       "relation": "imports",
@@ -18328,9 +18999,9 @@
       "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_routing_test",
-      "target": "packages_ai_engine_src_model_narration_provider_options",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_narration_provider_options"
     },
     {
       "relation": "re_exports",
@@ -18351,9 +19022,9 @@
       "source_location": "L110",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_deepseek_allowed_providers",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_deepseek_allowed_providers"
     },
     {
       "relation": "contains",
@@ -18362,9 +19033,9 @@
       "source_location": "L109",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_deepseek_route_order",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_deepseek_route_order"
     },
     {
       "relation": "contains",
@@ -18373,9 +19044,9 @@
       "source_location": "L81",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_fallbackmodel",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_fallbackmodel"
     },
     {
       "relation": "contains",
@@ -18384,9 +19055,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_google",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_google"
     },
     {
       "relation": "contains",
@@ -18395,9 +19066,9 @@
       "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_groq",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_groq"
     },
     {
       "relation": "contains",
@@ -18406,9 +19077,9 @@
       "source_location": "L84",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_groqfallbackmodel",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_groqfallbackmodel"
     },
     {
       "relation": "contains",
@@ -18417,9 +19088,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_judgemodel",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_judgemodel"
     },
     {
       "relation": "contains",
@@ -18428,9 +19099,9 @@
       "source_location": "L145",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_narration_provider_options",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_narration_provider_options"
     },
     {
       "relation": "contains",
@@ -18439,9 +19110,9 @@
       "source_location": "L88",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_narrationmodels",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_narrationmodels"
     },
     {
       "relation": "contains",
@@ -18450,9 +19121,9 @@
       "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_nvidia",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_nvidia"
     },
     {
       "relation": "contains",
@@ -18461,9 +19132,9 @@
       "source_location": "L55",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_nvidiamodel",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_nvidiamodel"
     },
     {
       "relation": "contains",
@@ -18472,9 +19143,9 @@
       "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_openaijudge",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_openaijudge"
     },
     {
       "relation": "contains",
@@ -18483,9 +19154,9 @@
       "source_location": "L27",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_openrouter",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_openrouter"
     },
     {
       "relation": "contains",
@@ -18494,9 +19165,9 @@
       "source_location": "L76",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_primarymodel",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_primarymodel"
     },
     {
       "relation": "contains",
@@ -18505,9 +19176,9 @@
       "source_location": "L64",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model",
-      "target": "packages_ai_engine_src_model_resolvemodel",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_resolvemodel"
     },
     {
       "relation": "imports_from",
@@ -18541,9 +19212,9 @@
       "source_location": "L66",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_resolvemodel",
-      "target": "packages_ai_engine_src_model_groq",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_groq"
     },
     {
       "relation": "calls",
@@ -18553,9 +19224,9 @@
       "source_location": "L42",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_judgemodel",
-      "target": "packages_ai_engine_src_model_google",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_google"
     },
     {
       "relation": "calls",
@@ -18565,9 +19236,9 @@
       "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_judgemodel",
-      "target": "packages_ai_engine_src_model_openaijudge",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_openaijudge"
     },
     {
       "relation": "calls",
@@ -18577,9 +19248,9 @@
       "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_resolvemodel",
-      "target": "packages_ai_engine_src_model_openaijudge",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_openaijudge"
     },
     {
       "relation": "calls",
@@ -18589,9 +19260,9 @@
       "source_location": "L41",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_judgemodel",
-      "target": "packages_ai_engine_src_model_openrouter",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_openrouter"
     },
     {
       "relation": "calls",
@@ -18601,9 +19272,9 @@
       "source_location": "L68",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_resolvemodel",
-      "target": "packages_ai_engine_src_model_openrouter",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_openrouter"
     },
     {
       "relation": "imports",
@@ -18625,9 +19296,9 @@
       "source_location": "L55",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_nvidiamodel",
-      "target": "packages_ai_engine_src_model_nvidia",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_nvidia"
     },
     {
       "relation": "calls",
@@ -18637,9 +19308,9 @@
       "source_location": "L71",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "packages_ai_engine_src_model_resolvemodel",
-      "target": "packages_ai_engine_src_model_nvidia",
-      "confidence_score": 1.0
+      "target": "packages_ai_engine_src_model_nvidia"
     },
     {
       "relation": "imports",
@@ -42728,5 +43399,5 @@
       "source_file": "tools/kanban/kanban.html"
     }
   ],
-  "built_at_commit": "b7753afe6290e4a5756bb622a30444de0615a7d7"
+  "built_at_commit": "21ab89950f7a0bae82b9aba2c006770f7f95e781"
 }

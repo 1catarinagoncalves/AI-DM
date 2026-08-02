@@ -81,6 +81,14 @@ jobs:
       - name: Guard de drift do README
         run: pnpm docs:shape
 
+      # Idem: teste do ingest do SRD (US-52), na raiz. NÃO roda o `srd:ingest` em si
+      # — ele chamaria o Gemini, e o CI não tem (nem quer) GEMINI_API_KEY. O que este
+      # passo protege é o round-trip do overlay: se ele quebrar, gravar UM rascunho
+      # reescreve as ~90 linhas do pt-BR.json e o gate de revisão da US-52 (ler o
+      # `_mt` no diff do PR) some afogado.
+      - name: Teste do ingest do SRD
+        run: pnpm srd:ingest:test
+
       # Guard de frescor do grafo graphify. Aviso, NÃO falha: consertar exige
       # `graphify extract --backend gemini --force` local, que gasta chave e
       # dinheiro — reprovar um PR de doc por isso é desproporcional (diferente

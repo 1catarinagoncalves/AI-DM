@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player (habilitador de manutenção; sem urgência de release)
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, overlay curado `pt-BR.json`, regra de merge + fallback EN) · [US-17](./US-17-comparacao-modelos-eval.md) (encanamento do Gemini como juiz — `model.ts`)
 **Relacionado:** [US-48](./US-48-getrule-corpus-de-regras.md) (o corpus do `getRule` é o próximo cliente do mesmo mecanismo, em volume muito maior) · [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — **EN é a base nativa**; este pipeline só serve locales ≠ en)
 **Criada em:** 2026-07-14
@@ -88,7 +88,7 @@ Dá para o `ingest` traduzir PT→EN de volta e comparar, ou pedir a um segundo 
 
 ### Dentro do escopo
 
-- Estender `scripts/srd/ingest.ts`: chave sem PT curado → tradução via `gemini-3.1-flash-lite`, rascunho `_mt: true` gravado no `pt-BR.json`.
+- Estender `scripts/srd/ingest.mjs`: chave sem PT curado → tradução via `gemini-3.1-flash-lite`, rascunho `_mt: true` gravado no `pt-BR.json`.
 - **Glossário no prompt** (overlay atual como vocabulário fixo) + **checagem mecânica de termo canônico** (nível 1), com flag no relatório.
 - **Idempotência preservada:** só traduz chave sem PT; artefato segue byte-a-byte estável entre rodadas.
 - **Flag `--no-mt`** para rodar o ingest sem chamar o modelo (ex.: build offline, CI sem a key).
@@ -105,25 +105,40 @@ Dá para o `ingest` traduzir PT→EN de volta e comparar, ou pedir a um segundo 
 
 ## Critérios de aceite
 
-- [ ] Uma chave nova sem PT curado é traduzida por `gemini-3.1-flash-lite` no `ingest` e gravada em `pt-BR.json` com `"_mt": true`; aparece no diff do PR.
-- [ ] **Idempotente:** rodar o `ingest` de novo **não re-traduz** a chave já escrita; o artefato segue byte-a-byte idêntico (não regride o critério da US-47).
-- [ ] **Glossário aplicado:** o prompt recebe o overlay atual; a saída que ignora um termo canônico conhecido é **sinalizada** no relatório (checagem mecânica, sem LLM).
-- [ ] **Revisão destrava a marca:** ao editar/aprovar, remover `_mt` promove a entrada a curada; o `ingest` deixa de tratá-la como rascunho.
-- [ ] **`--no-mt` e ausência de `GEMINI_API_KEY`** não quebram o `ingest` — a tradução é pulada, cai no fallback EN da US-47, com aviso.
-- [ ] **A fronteira está documentada:** o critério deixa claro que `--strict`/schema **não** validam correção — o gate de correção é glossário + humano.
-- [ ] **Decisão de gate registrada:** rascunho `_mt` pode shipar (dívida rastreável) **ou** bloqueia merge — decidir e registrar (ver Questões em aberto).
+- [x] Uma chave nova sem PT curado é traduzida por `gemini-3.1-flash-lite` no `ingest` e gravada em `pt-BR.json` com `"_mt": true`; aparece no diff do PR.
+- [x] **Idempotente:** rodar o `ingest` de novo **não re-traduz** a chave já escrita; o artefato segue byte-a-byte idêntico (não regride o critério da US-47).
+- [x] **Glossário aplicado:** o prompt recebe o overlay atual; a saída que ignora um termo canônico conhecido é **sinalizada** no relatório (checagem mecânica, sem LLM).
+- [x] **Revisão destrava a marca:** ao editar/aprovar, remover `_mt` promove a entrada a curada; o `ingest` deixa de tratá-la como rascunho.
+- [x] **`--no-mt` e ausência de `GEMINI_API_KEY`** não quebram o `ingest` — a tradução é pulada, cai no fallback EN da US-47, com aviso.
+- [x] **A fronteira está documentada:** o critério deixa claro que `--strict`/schema **não** validam correção — o gate de correção é glossário + humano.
+- [x] **Decisão de gate registrada:** rascunho `_mt` pode shipar (dívida rastreável) **ou** bloqueia merge — decidir e registrar (ver Questões em aberto).
 
 ---
 
-## Questões em aberto
+## Questões em aberto (resolvidas)
 
 1. **Rascunho `_mt` pode shipar, ou bloqueia merge?** Deixar chegar a produção (tradução de máquina > EN cru) e revisar quando der, ou barrar merge até um humano tirar toda marca `_mt`? Sugestão: **pode shipar** — é PT decente, e a marca `_mt` no arquivo é dívida rastreável (dá para listar com um grep); o `--strict` já garante que não sobra chave só-EN. Bloquear merge por revisão de tradução trava bump por motivo cosmético.
+   > **Decidido: pode shipar.** O rascunho conta como traduzido para o `--strict` — é o comportamento natural do `resolve()`, não um caso especial. A dívida não fica só no grep: **toda rodada do `ingest` imprime o total de entradas `_mt` pendentes** no relatório, para não virar tradução de máquina esquecida em produção.
 2. **Modelo fixo ou trocável?** `gemini-3.1-flash-lite` é o default (grátis, já no projeto). Vale expor um env `TRANSLATE_MODEL` (espelhando o `JUDGE_MODEL` do `model.ts`) para testar um Gemini Pro se o flash-lite decepcionar? Como roda no build, um modelo mais forte custa latência, não dinheiro. Sugestão: **começar fixo**, extrair o env só quando/se a qualidade pedir.
+   > **Decidido: fixo.** `translateModel()` em `model.ts` devolve `gemini-3.1-flash-lite` direto. Env var sem cliente é config para um valor que nunca muda; extrair `TRANSLATE_MODEL` é uma linha lá quando a qualidade pedir.
+
+---
+
+## Decisões de implementação
+
+- **A chamada de LLM vive no `ai-engine`, não em `scripts/`.** `ai` e `@ai-sdk/google` não resolvem a partir da raiz do repo (o `node_modules` da raiz não os tem) — mesma restrição que empurrou a geração de narração para `narration-gen.ts` na [US-36](./US-36-eval-de-qualidade-da-narracao.md). O `ingest.mjs` importa `translateSrdToPtBr` do `dist/` do pacote, como já importava o `SystemConfigSchema` do `dist/` do `shared`. Consequência: `srd:ingest` agora builda `@ai-dm/ai-engine...` (que arrasta o `shared`) e roda sob `dotenv -e .env` — a `GEMINI_API_KEY` mora no `.env` da raiz.
+- **Só `features` e `spells` são traduzidos.** `attributes` e `skills` guardam **string crua** no overlay (`"strength": "Força"`), sem lugar para a marca `_mt` — e são os 6 atributos e as 18 perícias fixos do 5e, não conteúdo que um bump traga. Se um dia trouxer, cai no fallback EN e o `--strict` grita, como hoje.
+- **O overlay é regravado no formato em que é editado à mão** (`formatOverlay`, uma entrada por linha, ordem de inserção preservada), **não** com o `stableStringify` dos artefatos. Aquele ordena chave e quebra objeto em várias linhas: usá-lo aqui reescreveria as ~90 linhas do arquivo a cada rodada e afogaria o rascunho num diff gigante. **O gate desta story é a revisão do diff — diff pequeno é o produto.** Round-trip verificado byte-a-byte em [ingest.test.mjs](../../../scripts/srd/ingest.test.mjs).
+- **O glossário nasce no `resolve()`.** É o único ponto do pipeline onde o nome EN do dataset e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT, indexado por chave canônica. Rascunho `_mt` **não** entra no glossário: ele é o que se quer validar, não a régua.
+- **Falha de tradução não quebra o build.** Sem `GEMINI_API_KEY`, com `--no-mt`, ou com a chamada falhando (quota, rede), o `ingest` avisa e segue: a chave fica no fallback EN da US-47 e é o `--strict` que decide se aquilo barra o build. Tradução é conveniência, não pré-requisito.
+- **A saída do modelo é filtrada antes de virar arquivo** (`pickRequested`): chave que não estava no lote, chave repetida e campo vazio são descartados. O retorno aqui é gravado no repo, não numa resposta descartável — chave inventada seria lixo versionado.
 
 ---
 
 ## Referências no código
 
-- [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — pipeline da US-47, estendido aqui com a camada de tradução.
+- [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — pipeline da US-47, estendido aqui com `draftMissing`, `flagMissingGlossaryTerms`, `formatOverlay` e a flag `--no-mt`.
+- [scripts/srd/ingest.test.mjs](../../../scripts/srd/ingest.test.mjs) — round-trip do overlay e checagem de glossário (`pnpm srd:ingest:test`).
 - [scripts/srd/locale/pt-BR.json](../../../scripts/srd/locale/pt-BR.json) — overlay curado (US-47) + rascunhos `_mt` (esta story).
-- [packages/ai-engine/src/model.ts](../../../packages/ai-engine/src/model.ts) — `createGoogleGenerativeAI` + `gemini-3.1-flash-lite` já montados (US-17); reaproveitar o provider.
+- [packages/ai-engine/src/translate-srd.ts](../../../packages/ai-engine/src/translate-srd.ts) — prompt com glossário, lotes de 10 e o filtro `pickRequested`.
+- [packages/ai-engine/src/model.ts](../../../packages/ai-engine/src/model.ts) — `translateModel()`, sobre o mesmo `createGoogleGenerativeAI` do `judgeModel` (US-17).

@@ -3,7 +3,7 @@
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Nasceu de:** *Questões em aberto* #2 da [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) — *"`require_parameters` filtra mesmo por `structured_outputs`?"*, que não fecha sem observar qual endpoint serviu um `generateObject` real.
+**Nasceu de:** a [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) pinou a rota do OpenRouter e não deixou como conferir se o pin é obedecido. Nasceu apontando para a *Questão em aberto* #2 daquela ADR, que **fechou antes desta story começar** (a resposta estava no SDK, não no tráfego — ver ADR 008 §3); o motivo abaixo sobreviveu à pergunta que a originou.
 **Relacionada a:** [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) (o pin que esta story torna verificável), [US-69](./US-69-guard-anti-degeneracao-narracao.md) (o PASSO 0 que já tentou logar isto e não entregou o dado), [US-74](./US-74-guard-turno-truncado-narracao.md) (mesma classe de investigação: sintoma na prosa, causa possivelmente no backend), [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md) (consome este log para explicar um hit-rate ruim)
 **Criada em:** 2026-08-01
 
@@ -35,9 +35,11 @@ Não é certeza: **é a hipótese a testar no primeiro slice**, e a story tem um
 
 ### O que fica bloqueado sem isto
 
-1. **[ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) Q2.** O desvio dos três `generateObject` para fora do first-party (por `require_parameters`) é dedução a partir da lista `supported_parameters` de cada endpoint. Nunca foi observado. Se não estiver acontecendo, os `generateObject` estão rodando em modo json solto e a alternativa 5 da ADR volta à mesa.
-2. **O pin em si.** Declarar `provider.order` no request não é prova de que o request foi servido por ele — `allow_fallbacks` continua ligado, de propósito. Um outage silencioso do first-party degrada o cache sem erro nenhum. Hoje isso é invisível.
-3. **A próxima US-69.** Volta o embaralhamento, volta a mesma pergunta sem resposta.
+1. **O pin em si.** Declarar `provider.order` no request não é prova de que o request foi servido por ele — `allow_fallbacks` continua ligado, de propósito, e o único endpoint que cacheia é um só. Um outage silencioso do first-party degrada o cache sem erro nenhum. Hoje isso é invisível, e é a razão principal desta story.
+2. **A próxima US-69.** Volta o embaralhamento, volta a mesma pergunta sem resposta.
+3. **A [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md) quando o número vier ruim.** Hit-rate baixo com rota confirmada aponta para o prompt; hit-rate baixo com rota errada aponta para a allowlist. Sem este log, os dois diagnósticos são indistinguíveis.
+
+*(A quarta razão original — fechar a Q2 da ADR 008 — caiu. A pergunta pressupunha que os `generateObject` mandavam `json_schema`; eles mandam tool, e isso se descobriu lendo o SDK. Fica como lembrete de que capacidade anunciada pelo servidor não é o mesmo que conteúdo do request.)*
 
 ---
 
@@ -64,11 +66,10 @@ Não é certeza: **é a hipótese a testar no primeiro slice**, e a story tem um
 - [ ] Todo turno emite uma linha de log contendo o nome do endpoint que serviu (ex.: `deepseek`, `baidu/fp8`), no formato de uma linha só, sem dump de objeto.
 - [ ] Os três `generateObject` (`extractOpeningScene`, `extractOpeningEntities`, `reconcileScene`) também emitem essa linha.
 - [ ] Numa sessão real, o log mostra o endpoint da narração como o first-party da DeepSeek — o pin da [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) confirmado por observação, não por declaração.
-- [ ] Numa sessão real, o log mostra um `generateObject` servido por um endpoint **diferente** do da narração. Isso fecha a Q2 da ADR 008 com **sim**.
-- [ ] Se a linha anterior falhar — `generateObject` servido pelo mesmo first-party —, a Q2 fecha com **não** e a story registra o achado na ADR 008 §7 em vez de forçar o resultado esperado.
+- [ ] Numa sessão real, os três `generateObject` aparecem servidos pelo **mesmo** endpoint da narração — a §3 da [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) confirmada por observação. Se aparecerem em endpoint diferente, a §3 está errada e a story registra isso em vez de acomodar o resultado.
 - [ ] A extração tem teste com fixture do corpo bruto real, e o teste falha se o campo mudar de lugar.
 - [ ] A ausência do campo **não** derruba o turno: falta de proveniência loga `desconhecido` e segue.
-- [ ] A ADR 008 §7 é atualizada com o resultado, qualquer que seja ele.
+- [ ] Um turno servido por endpoint **fora** da allowlist (se acontecer) é distinguível no log sem precisar de investigação — é o caso que a story existe para tornar visível.
 
 ---
 
@@ -87,6 +88,7 @@ Não é certeza: **é a hipótese a testar no primeiro slice**, e a story tem um
 1. **O campo existe no corpo bruto?** Toda a story assume que sim. Se o dump com `DM_CACHE_SPIKE` mostrar que não, o slice 1 vira o plano B e o custo da story sobe — decidir ali se ainda vale.
 2. **Vale logar em todo turno ou só quando algo cheira mal?** A proposta é sempre, porque o incidente é justamente quando ninguém estava medindo. Se o volume de log incomodar em produção, a alternativa é logar sempre em erro/`finishReason` anômalo e amostrar o resto.
 3. **A escada de fallback também deveria aparecer?** Saber que o turno foi servido pelo nível 2 (`deepseek-v4-pro`) ou pelo Groq é informação da mesma família e hoje igualmente invisível. Fora do escopo por ora; se o slice 1 for barato, cabe junto.
+4. **Contar as extrações que caem no `catch`.** Signal diferente deste (conformidade de schema, não roteamento), mas mesma classe de defeito silencioso e mesmo arquivo. Hoje as três extrações rodam em tool mode e a conformidade depende de quão bem o endpoint valida argumento de tool; ninguém sabe com que frequência falham, porque o `catch` devolve `null` igual a "não havia cena para extrair". É o número que decide se vale ligar `supportsStructuredOutputs: true` (ver [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) §3) — e é um contador, não uma feature. Cabe junto se o slice 1 for barato; vira story própria se não for.
 
 ---
 

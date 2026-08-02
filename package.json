@@ -16,7 +16,8 @@
     "docs:links:test": "node --test scripts/check-doc-links.test.mjs",
     "docs:shape": "node --test scripts/readme-shape.test.mjs",
     "srd:sync": "node scripts/srd/sync.mjs",
-    "srd:ingest": "pnpm --fail-if-no-match --filter @ai-dm/shared build && node scripts/srd/ingest.mjs"
+    "srd:ingest": "pnpm --fail-if-no-match --filter @ai-dm/ai-engine... build && dotenv -e .env -- node scripts/srd/ingest.mjs",
+    "srd:ingest:test": "node --test scripts/srd/ingest.test.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

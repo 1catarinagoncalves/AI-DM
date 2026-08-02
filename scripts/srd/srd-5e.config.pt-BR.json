@@ -54,8 +54,8 @@
         "name": "Defesa sem Armadura"
       },
       {
-        "description": "Your training with weapons allows you to use the mastery properties of two kinds of Simple or Martial Melee weapons of your choice, such as Greataxes and Handaxes. Whenever you finish a Long Rest, you can practice weapon drills and change one of those weapon choices. When you reach certain Barbarian levels, you gain the ability to use the mastery properties of more kinds of weapons, as shown in the Weapon Mastery column of the Barbarian Features table.",
-        "name": "Weapon Mastery"
+        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas corpo-a-corpo Simples ou Marciais à sua escolha, como Machados Grandes e Machadinhas. Sempre que terminar um Descanso Longo, você pode praticar exercícios com armas e alterar uma dessas escolhas de arma. Ao atingir certos níveis de Bárbaro, você ganha a habilidade de usar as propriedades de domínio de mais tipos de armas, conforme mostrado na coluna Domínio de Armas da tabela de Características de Bárbaro.",
+        "name": "Domínio de Armas"
       }
     ],
     "bard": [
@@ -66,8 +66,8 @@
     ],
     "cleric": [
       {
-        "description": "You have dedicated yourself to one of the following sacred roles of your choice. **Protector.** Trained for battle, you gain proficiency with Martial weapons and training with Heavy armor. **Thaumaturge.** You know one extra cantrip from the Cleric spell list. In addition, your mystical connection to the divine gives you a bonus to your Intelligence (Arcana or Religion) checks. The bonus equals your Wisdom modifier (minimum of +1).",
-        "name": "Divine Order"
+        "description": "Você se dedicou a um dos seguintes papéis sagrados à sua escolha. **Protetor.** Treinado para a batalha, você ganha proficiência com armas Marciais e treinamento com armaduras Pesadas. **Taumaturgo.** Você conhece um truque extra da lista de magias de Clérigo. Além disso, sua conexão mística com o divino lhe concede um bônus em seus testes de Inteligência (Arcanismo ou Religião). O bônus é igual ao seu modificador de Sabedoria (mínimo de +1).",
+        "name": "Ordem Divina"
       }
     ],
     "default": [],
@@ -77,8 +77,8 @@
         "name": "Druídico"
       },
       {
-        "description": "You have dedicated yourself to one of the following sacred roles of your choice. **Magician.** You know one extra cantrip from the Druid spell list. In addition, your mystical connection to nature gives you a bonus to your Intelligence (Arcana or Nature) checks. The bonus equals your Wisdom modifier (minimum bonus of +1). **Warden.** Trained for battle, you gain proficiency with Martial weapons and training with Medium armor.",
-        "name": "Primal Order"
+        "description": "Você se dedicou a um dos seguintes papéis sagrados à sua escolha. **Mágico.** Você conhece um truque extra da lista de magias de Druida. Além disso, sua conexão mística com a natureza lhe concede um bônus em seus testes de Inteligência (Arcanismo ou Natureza). O bônus é igual ao seu modificador de Sabedoria (bônus mínimo de +1). **Guardião.** Treinado para a batalha, você ganha proficiência com armas Marciais e treinamento com armaduras Médias.",
+        "name": "Ordem Primal"
       }
     ],
     "fighter": [
@@ -91,8 +91,8 @@
         "name": "Retomar o Fôlego"
       },
       {
-        "description": "Your training with weapons allows you to use the mastery properties of three kinds of Simple or Martial weapons of your choice. Whenever you finish a Long Rest, you can practice weapon drills and change one of those weapon choices. When you reach certain Fighter levels, you gain the ability to use the mastery properties of more kinds of weapons, as shown in the Weapon Mastery column of the Fighter Features table.",
-        "name": "Weapon Mastery"
+        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de três tipos de armas Simples ou Marciais à sua escolha. Sempre que terminar um Descanso Longo, você pode praticar exercícios com armas e alterar uma dessas escolhas de arma. Ao atingir certos níveis de Guerreiro, você ganha a habilidade de usar as propriedades de domínio de mais tipos de armas, conforme mostrado na coluna Domínio de Armas da tabela de Características de Guerreiro.",
+        "name": "Domínio de Armas"
       }
     ],
     "monk": [
@@ -111,8 +111,8 @@
         "name": "Impor as Mãos"
       },
       {
-        "description": "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency, such as Longswords and Javelins. Whenever you finish a Long Rest, you can change the kinds of weapons you chose. For example, you could switch to using the mastery properties of Halberds and Flails.",
-        "name": "Weapon Mastery"
+        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Espadas Longas e Azagaias. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Alabardas e Mangual.",
+        "name": "Domínio de Armas"
       }
     ],
     "ranger": [
@@ -121,8 +121,8 @@
         "name": "Inimigo Favorito"
       },
       {
-        "description": "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency, such as Longbows and Shortswords. Whenever you finish a Long Rest, you can change the kinds of weapons you chose. For example, you could switch to using the mastery properties of Scimitars and Longswords.",
-        "name": "Weapon Mastery"
+        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Arcos Longos e Espadas Curtas. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Cimitarra e Espadas Longas.",
+        "name": "Domínio de Armas"
       }
     ],
     "rogue": [
@@ -139,20 +139,20 @@
         "name": "Gíria de Ladrão"
       },
       {
-        "description": "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency, such as Daggers and Shortbows. Whenever you finish a Long Rest, you can change the kinds of weapons you chose. For example, you could switch to using the mastery properties of Scimitars and Shortswords.",
-        "name": "Weapon Mastery"
+        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Adagas e Arcos Curtos. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Cimitarra e Espadas Curtas.",
+        "name": "Domínio de Armas"
       }
     ],
     "sorcerer": [
       {
-        "description": "An event in your past left an indelible mark on you, infusing you with simmering magic. As a Bonus Action, you can unleash that magic for 1 minute, during which you gain the following benefits: - The spell save DC of your Sorcerer spells increases by 1. - You have Advantage on the attack rolls of Sorcerer spells you cast. You can use this feature twice, and you regain all expended uses of it when you finish a Long Rest.",
-        "name": "Innate Sorcery"
+        "description": "Um evento em seu passado deixou uma marca indelével em você, infundindo-o com magia latente. Como uma Ação Bônus, você pode liberar essa magia por 1 minuto, durante o qual você ganha os seguintes benefícios: - A CD de resistência de suas magias de Feiticeiro aumenta em 1. - Você tem Vantagem nas jogadas de ataque de magias de Feiticeiro que você conjurar. Você pode usar esta característica duas vezes, e você recupera todos os usos gastos quando terminar um Descanso Longo.",
+        "name": "Feitiçaria Inata"
       }
     ],
     "warlock": [
       {
-        "description": "You have unearthed Eldritch Invocations, pieces of forbidden knowledge that imbue you with an abiding magical ability or other lessons. You gain one invocation of your choice, such as Pact of the Tome. Invocations are described in the \"Eldritch Invocation Options\" section later in this class's description. **Prerequisites.** If an invocation has a prerequisite, you must meet it to learn that invocation. For example, if an invocation requires you to be a level 5+ Warlock, you can select the invocation once you reach Warlock level 5. **Replacing and Gaining Invocations.** Whenever you gain a Warlock level, you can replace one of your invocations with another one for which you qualify. You can't replace an invocation if it's a prerequisite for another invocation that you have. When you gain certain Warlock levels, you gain more invocations of your choice, as shown in the Invocations column of the Warlock Features table. You can't pick the same invocation more than once unless its description says otherwise.",
-        "name": "Eldritch Invocations"
+        "description": "Você desenterrou Invocações Místicas, fragmentos de conhecimento proibido que lhe conferem uma habilidade mágica duradoura ou outras lições. Você ganha uma invocação à sua escolha, como Pacto do Tomo. As invocações estão descritas na seção \"Opções de Invocações Místicas\" mais adiante na descrição desta classe. **Pré-requisitos.** Se uma invocação tiver um pré-requisito, você deve atendê-lo para aprender essa invocação. Por exemplo, se uma invocação exige que você seja um Bruxo de nível 5 ou superior, você pode selecionar a invocação assim que atingir o nível 5 de Bruxo. **Substituindo e Ganhando Invocações.** Sempre que ganhar um nível de Bruxo, você pode substituir uma de suas invocações por outra para a qual você se qualifique. Você não pode substituir uma invocação se ela for um pré-requisito para outra invocação que você possua. Ao atingir certos níveis de Bruxo, você ganha mais invocações à sua escolha, conforme mostrado na coluna Invocações da tabela de Características de Bruxo. Você não pode escolher a mesma invocação mais de uma vez, a menos que sua descrição diga o contrário.",
+        "name": "Invocações Místicas"
       }
     ],
     "wizard": [
@@ -161,8 +161,8 @@
         "name": "Recuperação Arcana"
       },
       {
-        "description": "You can cast any spell as a Ritual if that spell has the Ritual tag and the spell is in your spellbook. You needn't have the spell prepared, but you must read from the book to cast a spell in this way.",
-        "name": "Ritual Adept"
+        "description": "Você pode conjurar qualquer magia como um Ritual se essa magia tiver a marca Ritual e a magia estiver em seu grimório. Você não precisa ter a magia preparada, mas deve ler o livro para conjurar uma magia desta forma.",
+        "name": "Adepto Ritual"
       }
     ]
   },
@@ -219,34 +219,34 @@
         "name": "Zombaria Cruel"
       },
       {
-        "description": "Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spells ends.",
+        "description": "Alveje uma Besta que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou ficará com a condição Enfeitiçado pela duração. Se você ou um de seus aliados causar dano ao alvo, a magia termina.",
         "level": 1,
-        "name": "Animal Friendship"
+        "name": "Amizade Animal"
       },
       {
-        "description": "Up to three creatures of your choice that you can see within range must each make a Charisma saving throw. Whenever a target that fails this save makes an attack roll or a saving throw before the spell ends, the target must subtract 1d4 from the attack roll or save.",
+        "description": "Até três criaturas à sua escolha que você possa ver dentro do alcance devem, cada uma, fazer um teste de resistência de Carisma. Sempre que um alvo que falhar nesse teste fizer uma jogada de ataque ou um teste de resistência antes da magia terminar, o alvo deve subtrair 1d4 da jogada de ataque ou teste.",
         "level": 1,
-        "name": "Bane"
+        "name": "Perdição"
       },
       {
-        "description": "One Humanoid you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.",
+        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
         "level": 1,
-        "name": "Charm Person"
+        "name": "Enfeitiçar Pessoa"
       },
       {
-        "description": "You launch a dazzling array of flashing, colorful light. Each creature in a 15-foot Cone originating from you must succeed on a Constitution saving throw or have the Blinded condition until the end of your next turn.",
+        "description": "Você lança uma matriz deslumbrante de luzes coloridas e piscantes. Cada criatura em um Cone de 15 pés originado de você deve ser bem-sucedida em um teste de resistência de Constituição ou ficará com a condição Cego até o final do seu próximo turno.",
         "level": 1,
-        "name": "Color Spray"
+        "name": "Leque Cromático"
       },
       {
-        "description": "You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options: - **Drop.** The target drops whatever it is holding and then ends its turn. - **Flee.** The target spends its turn moving away from you by the fastest available means. - **Grovel.** The target has the Prone condition and then ends its turn. - **Halt.** On its turn, the target doesn't move and takes no action or Bonus Action.",
+        "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
         "level": 1,
-        "name": "Command"
+        "name": "Comando"
       },
       {
-        "description": "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.",
+        "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
         "level": 1,
-        "name": "Comprehend Languages"
+        "name": "Compreender Idiomas"
       },
       {
         "description": "restaura vitalidade a uma criatura pelo toque.",
@@ -254,84 +254,84 @@
         "name": "Curar Ferimentos"
       },
       {
-        "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Magic"
+        "name": "Detectar Magia"
       },
       {
-        "description": "You make yourself—including your clothing, armor, weapons, and other belongings on your person look different until the spell ends. You can seem 1 foot shorter or taller and can appear heavier or lighter. You must adopt a form that has the same basic arrangement of limbs as you have. Otherwise, the extent of the illusion is up to you. The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to your outfit, objects pass through the hat, and anyone who touches it would feel nothing. To discern that you are disguised, a creature must take the Study action to inspect your appearance and succeed on an Intelligence (Investigation) check against your spell save DC.",
+        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences em sua posse — pareça diferente até que a magia termine. Você pode parecer 1 pé mais baixo ou mais alto e pode parecer mais pesado ou mais leve. Você deve adotar uma forma que tenha o mesmo arranjo básico de membros que você possui. Caso contrário, a extensão da ilusão depende de você. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passarão através do chapéu, e qualquer um que o toque não sentirá nada. Para discernir que você está disfarçado, uma criatura deve realizar a ação Estudar para inspecionar sua aparência e ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
         "level": 1,
-        "name": "Disguise Self"
+        "name": "Disfarçar-se"
       },
       {
-        "description": "One creature of your choice that you can see within range hears a discordant melody in its mind. The target makes a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its Reaction, if available, to move as far away from you as it can, using the safest route. On a successful save, the target takes half as much damage only.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance ouve uma melodia discordante em sua mente. O alvo faz um teste de resistência de Sabedoria. Em uma falha, ele sofre 3d6 de dano Psíquico e deve usar imediatamente sua Reação, se disponível, para se mover o mais longe possível de você, usando a rota mais segura. Em um sucesso, o alvo sofre apenas metade do dano.",
         "level": 1,
-        "name": "Dissonant Whispers"
+        "name": "Sussurros Dissonantes"
       },
       {
-        "description": "Objects in a 20-foot Cube within range are outlined in blue, green, or violet light (your choice). Each creature in the Cube is also outlined if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dim Light in a 10-foot radius and can't benefit from the Invisible condition. Attack rolls against an affected creature or object have Advantage if the attacker can see it.",
+        "description": "Objetos em um cubo de 6 metros dentro do alcance são contornados por uma luz azul, verde ou violeta (à sua escolha). Cada criatura no cubo também é contornada se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem Luz Penumbra em um raio de 3 metros e não podem se beneficiar da condição Invisível. Jogadas de ataque contra uma criatura ou objeto afetado têm Vantagem se o atacante puder vê-lo.",
         "level": 1,
-        "name": "Faerie Fire"
+        "name": "Fogo das Fadas"
       },
       {
-        "description": "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, the creature takes no damage from the fall, and the spell ends for that creature.",
+        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de descida de uma criatura caindo diminui para 18 metros por rodada até a magia terminar. Se uma criatura aterrissar antes da magia terminar, a criatura não sofre dano da queda e a magia termina para essa criatura.",
         "level": 1,
-        "name": "Feather Fall"
+        "name": "Queda Suave"
       },
       {
-        "description": "A creature of your choice that you can see within range regains Hit Points equal to 2d4 plus your spellcasting ability modifier.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera Pontos de Vida iguais a 2d4 mais seu modificador de habilidade de conjuração.",
         "level": 1,
-        "name": "Healing Word"
+        "name": "Palavra Curativa"
       },
       {
-        "description": "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to the Frightened condition and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns.",
+        "description": "Uma criatura voluntária que você toca é imbuída de bravura. Até o fim da magia, a criatura fica imune à condição Amedrontado e ganha Pontos de Vida Temporários iguais ao seu modificador de habilidade de conjuração no início de cada um de seus turnos.",
         "level": 1,
-        "name": "Heroism"
+        "name": "Heroísmo"
       },
       {
-        "description": "One creature of your choice that you can see within range makes a Wisdom saving throw. On a failed save, it has the Prone and Incapacitated conditions for the duration. During that time, it laughs uncontrollably if it's capable of laughter, and it can't end the Prone condition on itself. At the end of each of its turns and each time it takes damage, it makes another Wisdom saving throw. The target has Advantage on the save if the save is triggered by damage. On a successful save, the spell ends.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Se falhar, ela fica com as condições Caído e Incapacitado pela duração. Durante esse tempo, ela ri incontrolavelmente se for capaz de rir, e não pode encerrar a condição Caído por conta própria. No final de cada um de seus turnos e cada vez que sofrer dano, ela faz outro teste de resistência de Sabedoria. O alvo tem Vantagem no teste se ele for desencadeado por dano. Se obtiver sucesso no teste, a magia termina.",
         "level": 1,
-        "name": "Hideous Laughter"
+        "name": "Riso Histérico"
       },
       {
-        "description": "You touch an object throughout the spell's casting. If the object is a magic item or some other magical object, you learn its properties and how to use them, whether it requires Attunement, and how many charges it has, if any. You learn whether any ongoing spells are affecting the item and what they are. If the item was created by a spell, you learn that spell's name. If you instead touch a creature throughout the casting, you learn which ongoing spells, if any, are currently affecting it.",
+        "description": "Você toca um objeto durante toda a conjuração da magia. Se o objeto for um item mágico ou algum outro objeto mágico, você aprende suas propriedades e como usá-las, se ele requer Sintonização e quantas cargas ele possui, se houver. Você aprende se alguma magia contínua está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende o nome dessa magia. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias contínuas, se houver, estão afetando-a atualmente.",
         "level": 1,
-        "name": "Identify"
+        "name": "Identificação"
       },
       {
-        "description": "You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know. If the spell is dispelled, the original script and the illusion both disappear. A creature that has Truesight can read the hidden message.",
+        "description": "Você escreve em pergaminho, papel ou outro material adequado e o imbui com uma ilusão que dura pela duração. Para você e quaisquer criaturas que você designar ao conjurar a magia, a escrita parece normal, parece ter sido escrita por sua mão e transmite qualquer significado que você pretendia quando escreveu o texto. Para todos os outros, a escrita parece como se tivesse sido escrita em um idioma desconhecido ou mágico que é ininteligível. Alternativamente, a ilusão pode alterar o significado, a caligrafia e o idioma do texto, embora o idioma deva ser um que você conheça. Se a magia for dissipada, tanto a escrita original quanto a ilusão desaparecem. Uma criatura que possua Visão Verdadeira pode ler a mensagem oculta.",
         "level": 1,
-        "name": "Illusory Script"
+        "name": "Escrita Ilusória"
       },
       {
-        "description": "You touch a creature. The target's Speed increases by 10 feet until the spell ends.",
+        "description": "Você toca uma criatura. O Deslocamento do alvo aumenta em 10 pés até o fim da magia.",
         "level": 1,
-        "name": "Longstrider"
+        "name": "Passo Longo"
       },
       {
-        "description": "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects. As a Magic action, you can cause the image to move to any spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Physical interaction with the image reveals it to be an illusion, since things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image.",
+        "description": "Você cria a imagem de um objeto, uma criatura ou algum outro fenômeno visível que não seja maior que um Cubo de 4,5 metros. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada por som, cheiro ou outros efeitos sensoriais. Como uma ação de Magia, você pode fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar uma imagem de uma criatura e movê-la, você pode alterar a imagem para que ela pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, já que as coisas podem passar através dela. Uma criatura que use uma ação de Estudo para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura discernir a ilusão pelo que ela é, a criatura pode ver através da imagem.",
         "level": 1,
-        "name": "Silent Image"
+        "name": "Imagem Silenciosa"
       },
       {
-        "description": "Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save. If the target fails the second save, the target has the Unconscious condition for the duration. The spell ends on a target if it takes damage or someone within 5 feet of it takes an action to shake it out of the spell's effect. Creatures that don't sleep, such as elves, or that have Immunity to the Exhaustion condition automatically succeed on saves against this spell.",
+        "description": "Cada criatura à sua escolha em uma Esfera de 5 pés de raio centrada em um ponto dentro do alcance deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará com a condição Incapacitado até o final do seu próximo turno, momento em que deve repetir o teste. Se o alvo falhar no segundo teste, o alvo fica com a condição Inconsciente pela duração. A magia termina em um alvo se ele sofrer dano ou se alguém a até 5 pés dele usar uma ação para sacudi-lo e retirá-lo do efeito da magia. Criaturas que não dormem, como elfos, ou que possuem Imunidade à condição Exaustão, são automaticamente bem-sucedidas nos testes contra esta magia.",
         "level": 1,
-        "name": "Sleep"
+        "name": "Sono"
       },
       {
-        "description": "For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them. Most Beasts have little to say about topics that don't pertain to survival or companionship, but at minimum, a Beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.",
+        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
         "level": 1,
-        "name": "Speak with Animals"
+        "name": "Falar com Animais"
       },
       {
-        "description": "You unleash a wave of thunderous energy. Each creature in a 15-foot Cube originating from you makes a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, a creature takes half as much damage only. In addition, unsecured objects that are entirely within the Cube are pushed 10 feet away from you, and a thunderous boom is audible within 300 feet.",
+        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
         "level": 1,
-        "name": "Thunderwave"
+        "name": "Onda Trovejante"
       },
       {
-        "description": "This spell creates an Invisible, mindless, shapeless, Medium force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 Hit Point, and a Strength of 2, and it can't attack. If it drops to 0 Hit Points, the spell ends. Once on each of your turns as a Bonus Action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring drinks. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command. If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends.",
+        "description": "Esta magia cria uma força Invisível, sem mente, sem forma e de tamanho Médio que realiza tarefas simples sob seu comando até que a magia termine. O servo surge em um espaço desocupado no chão dentro do alcance. Ele possui CA 10, 1 Ponto de Vida e Força 2, e não pode atacar. Se ele cair para 0 Pontos de Vida, a magia termina. Uma vez em cada um dos seus turnos como uma Ação Bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir bebidas. Assim que você dá o comando, o servo realiza a tarefa da melhor maneira possível até completá-la, então aguarda seu próximo comando. Se você ordenar que o servo realize uma tarefa que o moveria a mais de 60 pés de distância de você, a magia termina.",
         "level": 1,
-        "name": "Unseen Servant"
+        "name": "Servo Invisível"
       }
     ],
     "cleric": [
@@ -371,9 +371,9 @@
         "name": "Taumaturgia"
       },
       {
-        "description": "Up to three creatures of your choice that you can see within range must each make a Charisma saving throw. Whenever a target that fails this save makes an attack roll or a saving throw before the spell ends, the target must subtract 1d4 from the attack roll or save.",
+        "description": "Até três criaturas à sua escolha que você possa ver dentro do alcance devem, cada uma, fazer um teste de resistência de Carisma. Sempre que um alvo que falhar nesse teste fizer uma jogada de ataque ou um teste de resistência antes da magia terminar, o alvo deve subtrair 1d4 da jogada de ataque ou teste.",
         "level": 1,
-        "name": "Bane"
+        "name": "Perdição"
       },
       {
         "description": "até três aliados ganham um impulso em ataques e salvamentos.",
@@ -381,14 +381,14 @@
         "name": "Abençoar"
       },
       {
-        "description": "You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options: - **Drop.** The target drops whatever it is holding and then ends its turn. - **Flee.** The target spends its turn moving away from you by the fastest available means. - **Grovel.** The target has the Prone condition and then ends its turn. - **Halt.** On its turn, the target doesn't move and takes no action or Bonus Action.",
+        "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
         "level": 1,
-        "name": "Command"
+        "name": "Comando"
       },
       {
-        "description": "You do one of the following: **Create Water.** You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot Cube within range, extinguishing exposed flames there. **Destroy Water.** You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot Cube within range.",
+        "description": "Você faz uma das seguintes opções: **Criar Água.** Você cria até 10 galões de água limpa dentro do alcance em um recipiente aberto. Alternativamente, a água cai como chuva em um cubo de 30 pés dentro do alcance, extinguindo chamas expostas ali. **Destruir Água.** Você destrói até 10 galões de água em um recipiente aberto dentro do alcance. Alternativamente, você destrói névoa em um cubo de 30 pés dentro do alcance.",
         "level": 1,
-        "name": "Create or Destroy Water"
+        "name": "Criar ou Destruir Água"
       },
       {
         "description": "restaura vitalidade a uma criatura pelo toque.",
@@ -396,54 +396,54 @@
         "name": "Curar Ferimentos"
       },
       {
-        "description": "For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the Hallow spell is active there and, if so, where. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a localização de qualquer Aberração, Celestial, Elemental, Fada, Corruptor ou Morto-vivo a até 30 pés de você. Você também sente se a magia Consagrar está ativa no local e, se estiver, onde. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Evil and Good"
+        "name": "Detectar o Bem e o Mal"
       },
       {
-        "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Magic"
+        "name": "Detectar Magia"
       },
       {
-        "description": "For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself. You sense the kind of poison, creature, or contagion in each case. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a localização de venenos, criaturas venenosas ou peçonhentas e contágios mágicos a até 30 pés de você. Você sente o tipo de veneno, criatura ou contágio em cada caso. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Poison and Disease"
+        "name": "Detectar Veneno e Doença"
       },
       {
-        "description": "You hurl a bolt of light toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 4d6 Radiant damage, and the next attack roll made against it before the end of your next turn has Advantage.",
+        "description": "Você lança um raio de luz em direção a uma criatura dentro do alcance. Faça um ataque de magia à distância contra o alvo. Em um acerto, ele sofre 4d6 de dano Radiante, e a próxima jogada de ataque feita contra ele antes do final do seu próximo turno tem Vantagem.",
         "level": 1,
-        "name": "Guiding Bolt"
+        "name": "Flecha Guiadora"
       },
       {
-        "description": "A creature of your choice that you can see within range regains Hit Points equal to 2d4 plus your spellcasting ability modifier.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera Pontos de Vida iguais a 2d4 mais seu modificador de habilidade de conjuração.",
         "level": 1,
-        "name": "Healing Word"
+        "name": "Palavra Curativa"
       },
       {
-        "description": "A creature you touch makes a Constitution saving throw, taking 2d10 Necrotic damage on a failed save or half as much damage on a successful one.",
+        "description": "Uma criatura que você toca faz um teste de resistência de Constituição, sofrendo 2d10 de dano Necrótico se falhar ou metade desse dano se obtiver sucesso.",
         "level": 1,
-        "name": "Inflict Wounds"
+        "name": "Infligir Ferimentos"
       },
       {
-        "description": "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
         "level": 1,
-        "name": "Protection from Evil and Good"
+        "name": "Proteção contra o Bem e o Mal"
       },
       {
-        "description": "You remove poison and rot from nonmagical food and drink in a 5-foot-radius Sphere centered on a point within range.",
+        "description": "Você remove veneno e apodrecimento de comida e bebida não mágicas em uma Esfera de 1,5 metro de raio centrada em um ponto dentro do alcance.",
         "level": 1,
-        "name": "Purify Food and Drink"
+        "name": "Purificar Alimentos e Bebidas"
       },
       {
-        "description": "You ward a creature within range. Until the spell ends, any creature who targets the warded creature with an attack roll or a damaging spell must succeed on a Wisdom saving throw or either choose a new target or lose the attack or spell. This spell doesn't protect the warded creature from areas of effect. The spell ends if the warded creature makes an attack roll, casts a spell, or deals damage.",
+        "description": "Você protege uma criatura dentro do alcance. Até o fim da magia, qualquer criatura que tenha como alvo a criatura protegida com uma jogada de ataque ou uma magia que cause dano deve ser bem-sucedida em um teste de resistência de Sabedoria ou deve escolher um novo alvo ou perder o ataque ou a magia. Esta magia não protege a criatura protegida de áreas de efeito. A magia termina se a criatura protegida fizer uma jogada de ataque, conjurar uma magia ou causar dano.",
         "level": 1,
-        "name": "Sanctuary"
+        "name": "Santuário"
       },
       {
-        "description": "A shimmering field surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
+        "description": "Um campo cintilante envolve uma criatura à sua escolha dentro do alcance, concedendo a ela um bônus de +2 na CA pela duração.",
         "level": 1,
-        "name": "Shield of Faith"
+        "name": "Escudo da Fé"
       }
     ],
     "default": [],
@@ -504,19 +504,19 @@
         "name": "Fagulha Estelar"
       },
       {
-        "description": "Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spells ends.",
+        "description": "Alveje uma Besta que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou ficará com a condição Enfeitiçado pela duração. Se você ou um de seus aliados causar dano ao alvo, a magia termina.",
         "level": 1,
-        "name": "Animal Friendship"
+        "name": "Amizade Animal"
       },
       {
-        "description": "One Humanoid you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.",
+        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
         "level": 1,
-        "name": "Charm Person"
+        "name": "Enfeitiçar Pessoa"
       },
       {
-        "description": "You do one of the following: **Create Water.** You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot Cube within range, extinguishing exposed flames there. **Destroy Water.** You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot Cube within range.",
+        "description": "Você faz uma das seguintes opções: **Criar Água.** Você cria até 10 galões de água limpa dentro do alcance em um recipiente aberto. Alternativamente, a água cai como chuva em um cubo de 30 pés dentro do alcance, extinguindo chamas expostas ali. **Destruir Água.** Você destrói até 10 galões de água em um recipiente aberto dentro do alcance. Alternativamente, você destrói névoa em um cubo de 30 pés dentro do alcance.",
         "level": 1,
-        "name": "Create or Destroy Water"
+        "name": "Criar ou Destruir Água"
       },
       {
         "description": "restaura vitalidade a uma criatura pelo toque.",
@@ -524,74 +524,74 @@
         "name": "Curar Ferimentos"
       },
       {
-        "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Magic"
+        "name": "Detectar Magia"
       },
       {
-        "description": "For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself. You sense the kind of poison, creature, or contagion in each case. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a localização de venenos, criaturas venenosas ou peçonhentas e contágios mágicos a até 30 pés de você. Você sente o tipo de veneno, criatura ou contágio em cada caso. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Poison and Disease"
+        "name": "Detectar Veneno e Doença"
       },
       {
-        "description": "Grasping plants sprout from the ground in a 20-foot square within range. For the duration, these plants turn the ground in the area into Difficult Terrain. They disappear when the spell ends. Each creature (other than you) in the area when you cast the spell must succeed on a Strength saving throw or have the Restrained condition until the spell ends. A Restrained creature can take an action to make a Strength (Athletics) check against your spell save DC. On a success, it frees itself from the grasping plants and is no longer Restrained by them.",
+        "description": "Plantas agarradoras brotam do solo em um quadrado de 20 pés dentro do alcance. Pela duração, essas plantas transformam o solo na área em Terreno Difícil. Elas desaparecem quando a magia termina. Cada criatura (exceto você) na área quando você conjura a magia deve ser bem-sucedida em um teste de resistência de Força ou ficará com a condição Contido até que a magia termine. Uma criatura Contida pode realizar uma ação para fazer um teste de Força (Atletismo) contra a CD de resistência da sua magia. Em um sucesso, ela se liberta das plantas agarradoras e não está mais Contida por elas.",
         "level": 1,
-        "name": "Entangle"
+        "name": "Emaranhar"
       },
       {
-        "description": "Objects in a 20-foot Cube within range are outlined in blue, green, or violet light (your choice). Each creature in the Cube is also outlined if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dim Light in a 10-foot radius and can't benefit from the Invisible condition. Attack rolls against an affected creature or object have Advantage if the attacker can see it.",
+        "description": "Objetos em um cubo de 6 metros dentro do alcance são contornados por uma luz azul, verde ou violeta (à sua escolha). Cada criatura no cubo também é contornada se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem Luz Penumbra em um raio de 3 metros e não podem se beneficiar da condição Invisível. Jogadas de ataque contra uma criatura ou objeto afetado têm Vantagem se o atacante puder vê-lo.",
         "level": 1,
-        "name": "Faerie Fire"
+        "name": "Fogo das Fadas"
       },
       {
-        "description": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured. It lasts for the duration or until a strong wind (such as one created by Gust of Wind) disperses it.",
+        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
         "level": 1,
-        "name": "Fog Cloud"
+        "name": "Névoa Obscurecente"
       },
       {
-        "description": "Ten berries appear in your hand and are infused with magic for the duration. A creature can take a Bonus Action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day. Uneaten berries disappear when the spell ends.",
+        "description": "Dez frutas aparecem em sua mão e são infundidas com magia pela duração. Uma criatura pode usar uma Ação Bônus para comer uma fruta. Comer uma fruta restaura 1 Ponto de Vida, e a fruta fornece nutrição suficiente para sustentar uma criatura por um dia. Frutas não comidas desaparecem quando a magia termina.",
         "level": 1,
-        "name": "Goodberry"
+        "name": "Fruta Sagrada"
       },
       {
-        "description": "A creature of your choice that you can see within range regains Hit Points equal to 2d4 plus your spellcasting ability modifier.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera Pontos de Vida iguais a 2d4 mais seu modificador de habilidade de conjuração.",
         "level": 1,
-        "name": "Healing Word"
+        "name": "Palavra Curativa"
       },
       {
-        "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.",
+        "description": "Você cria um fragmento de gelo e o arremessa em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 1d10 de dano Perfurante. Acertando ou errando, o fragmento então explode. O alvo e cada criatura a até 5 pés dele devem ser bem-sucedidos em um teste de resistência de Destreza ou sofrerão 2d6 de dano de Frio.",
         "level": 1,
-        "name": "Ice Knife"
+        "name": "Adaga de Gelo"
       },
       {
-        "description": "You touch a willing creature. Once on each of its turns until the spell ends, that creature can jump up to 30 feet by spending 10 feet of movement.",
+        "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
         "level": 1,
-        "name": "Jump"
+        "name": "Pulo"
       },
       {
-        "description": "You touch a creature. The target's Speed increases by 10 feet until the spell ends.",
+        "description": "Você toca uma criatura. O Deslocamento do alvo aumenta em 10 pés até o fim da magia.",
         "level": 1,
-        "name": "Longstrider"
+        "name": "Passo Longo"
       },
       {
-        "description": "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
         "level": 1,
-        "name": "Protection from Evil and Good"
+        "name": "Proteção contra o Bem e o Mal"
       },
       {
-        "description": "You remove poison and rot from nonmagical food and drink in a 5-foot-radius Sphere centered on a point within range.",
+        "description": "Você remove veneno e apodrecimento de comida e bebida não mágicas em uma Esfera de 1,5 metro de raio centrada em um ponto dentro do alcance.",
         "level": 1,
-        "name": "Purify Food and Drink"
+        "name": "Purificar Alimentos e Bebidas"
       },
       {
-        "description": "For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them. Most Beasts have little to say about topics that don't pertain to survival or companionship, but at minimum, a Beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.",
+        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
         "level": 1,
-        "name": "Speak with Animals"
+        "name": "Falar com Animais"
       },
       {
-        "description": "You unleash a wave of thunderous energy. Each creature in a 15-foot Cube originating from you makes a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, a creature takes half as much damage only. In addition, unsecured objects that are entirely within the Cube are pushed 10 feet away from you, and a thunderous boom is audible within 300 feet.",
+        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
         "level": 1,
-        "name": "Thunderwave"
+        "name": "Onda Trovejante"
       }
     ],
     "paladin": [
@@ -601,9 +601,9 @@
         "name": "Abençoar"
       },
       {
-        "description": "You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose the command from these options: - **Drop.** The target drops whatever it is holding and then ends its turn. - **Flee.** The target spends its turn moving away from you by the fastest available means. - **Grovel.** The target has the Prone condition and then ends its turn. - **Halt.** On its turn, the target doesn't move and takes no action or Bonus Action.",
+        "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
         "level": 1,
-        "name": "Command"
+        "name": "Comando"
       },
       {
         "description": "restaura vitalidade a uma criatura pelo toque.",
@@ -611,66 +611,66 @@
         "name": "Curar Ferimentos"
       },
       {
-        "description": "For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the Hallow spell is active there and, if so, where. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a localização de qualquer Aberração, Celestial, Elemental, Fada, Corruptor ou Morto-vivo a até 30 pés de você. Você também sente se a magia Consagrar está ativa no local e, se estiver, onde. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Evil and Good"
+        "name": "Detectar o Bem e o Mal"
       },
       {
-        "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Magic"
+        "name": "Detectar Magia"
       },
       {
-        "description": "For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself. You sense the kind of poison, creature, or contagion in each case. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a localização de venenos, criaturas venenosas ou peçonhentas e contágios mágicos a até 30 pés de você. Você sente o tipo de veneno, criatura ou contágio em cada caso. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Poison and Disease"
+        "name": "Detectar Veneno e Doença"
       },
       {
-        "description": "Until the spell ends, your attacks with weapons deal an extra 1d4 Radiant damage on a hit.",
+        "description": "Até que a magia termine, seus ataques com armas causam 1d4 de dano Radiante extra em um acerto.",
         "level": 1,
-        "name": "Divine Favor"
+        "name": "Favor Divino"
       },
       {
-        "description": "The target takes an extra 2d8 Radiant damage from the attack. The damage increases by 1d8 if the target is a Fiend or an Undead.",
+        "description": "O alvo sofre 2d8 de dano Radiante extra do ataque. O dano aumenta em 1d8 se o alvo for um Corruptor ou um Morto-vivo.",
         "level": 1,
-        "name": "Divine Smite"
+        "name": "Destruição Divina"
       },
       {
-        "description": "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to the Frightened condition and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns.",
+        "description": "Uma criatura voluntária que você toca é imbuída de bravura. Até o fim da magia, a criatura fica imune à condição Amedrontado e ganha Pontos de Vida Temporários iguais ao seu modificador de habilidade de conjuração no início de cada um de seus turnos.",
         "level": 1,
-        "name": "Heroism"
+        "name": "Heroísmo"
       },
       {
-        "description": "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
         "level": 1,
-        "name": "Protection from Evil and Good"
+        "name": "Proteção contra o Bem e o Mal"
       },
       {
-        "description": "You remove poison and rot from nonmagical food and drink in a 5-foot-radius Sphere centered on a point within range.",
+        "description": "Você remove veneno e apodrecimento de comida e bebida não mágicas em uma Esfera de 1,5 metro de raio centrada em um ponto dentro do alcance.",
         "level": 1,
-        "name": "Purify Food and Drink"
+        "name": "Purificar Alimentos e Bebidas"
       },
       {
-        "description": "As you hit the target, it takes an extra 1d6 Fire damage from the attack. At the start of each of its turns until the spell ends, the target takes 1d6 Fire damage and then makes a Constitution saving throw. On a failed save, the spell continues. On a successful save, the spell ends.",
+        "description": "Ao atingir o alvo, ele sofre 1d6 de dano de Fogo extra pelo ataque. No início de cada um de seus turnos até o fim da magia, o alvo sofre 1d6 de dano de Fogo e então faz um teste de resistência de Constituição. Em uma falha, a magia continua. Em um sucesso, a magia termina.",
         "level": 1,
-        "name": "Searing Smite"
+        "name": "Destruição Ardente"
       },
       {
-        "description": "A shimmering field surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
+        "description": "Um campo cintilante envolve uma criatura à sua escolha dentro do alcance, concedendo a ela um bônus de +2 na CA pela duração.",
         "level": 1,
-        "name": "Shield of Faith"
+        "name": "Escudo da Fé"
       }
     ],
     "ranger": [
       {
-        "description": "You set an alarm against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is audible or mental: **Audible Alarm.** The alarm produces the sound of a handbell for 10 seconds within 60 feet of the warded area. **Mental Alarm.** You are alerted by a mental ping if you are within 1 mile of the warded area. This ping awakens you if you're asleep.",
+        "description": "Você define um alarme contra intrusão. Escolha uma porta, uma janela ou uma área dentro do alcance que não seja maior que um cubo de 20 pés. Até que a magia termine, um alarme alerta você sempre que uma criatura tocar ou entrar na área protegida. Quando você conjura a magia, você pode designar criaturas que não ativarão o alarme. Você também escolhe se o alarme é audível ou mental: **Alarme Audível.** O alarme produz o som de uma sineta por 10 segundos dentro de 60 pés da área protegida. **Alarme Mental.** Você é alertado por um sinal mental se estiver dentro de 1 milha da área protegida. Esse sinal acorda você se estiver dormindo.",
         "level": 1,
-        "name": "Alarm"
+        "name": "Alarme"
       },
       {
-        "description": "Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spells ends.",
+        "description": "Alveje uma Besta que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou ficará com a condição Enfeitiçado pela duração. Se você ou um de seus aliados causar dano ao alvo, a magia termina.",
         "level": 1,
-        "name": "Animal Friendship"
+        "name": "Amizade Animal"
       },
       {
         "description": "restaura vitalidade a uma criatura pelo toque.",
@@ -678,34 +678,34 @@
         "name": "Curar Ferimentos"
       },
       {
-        "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Magic"
+        "name": "Detectar Magia"
       },
       {
-        "description": "For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself. You sense the kind of poison, creature, or contagion in each case. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a localização de venenos, criaturas venenosas ou peçonhentas e contágios mágicos a até 30 pés de você. Você sente o tipo de veneno, criatura ou contágio em cada caso. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Poison and Disease"
+        "name": "Detectar Veneno e Doença"
       },
       {
-        "description": "As you hit the target, grasping vines appear on it, and it makes a Strength saving throw. A Large or larger creature has Advantage on this save. On a failed save, the target has the Restrained condition until the spell ends. On a successful save, the vines shrivel away, and the spell ends. While Restrained, the target takes 1d6 Piercing damage at the start of each of its turns. The target or a creature within reach of it can take an action to make a Strength (Athletics) check against your spell save DC. On a success, the spell ends.",
+        "description": "Ao atingir o alvo, vinhas agarradoras aparecem nele, e ele faz um teste de resistência de Força. Uma criatura Grande ou maior tem Vantagem neste teste. Em uma falha, o alvo fica com a condição Contido até que a magia termine. Em um sucesso, as vinhas murcham e a magia termina. Enquanto Contido, o alvo sofre 1d6 de dano Perfurante no início de cada um de seus turnos. O alvo ou uma criatura ao alcance dele pode realizar uma ação para fazer um teste de Força (Atletismo) contra a CD de resistência da sua magia. Em um sucesso, a magia termina.",
         "level": 1,
-        "name": "Ensnaring Strike"
+        "name": "Ataque Enredante"
       },
       {
-        "description": "Grasping plants sprout from the ground in a 20-foot square within range. For the duration, these plants turn the ground in the area into Difficult Terrain. They disappear when the spell ends. Each creature (other than you) in the area when you cast the spell must succeed on a Strength saving throw or have the Restrained condition until the spell ends. A Restrained creature can take an action to make a Strength (Athletics) check against your spell save DC. On a success, it frees itself from the grasping plants and is no longer Restrained by them.",
+        "description": "Plantas agarradoras brotam do solo em um quadrado de 20 pés dentro do alcance. Pela duração, essas plantas transformam o solo na área em Terreno Difícil. Elas desaparecem quando a magia termina. Cada criatura (exceto você) na área quando você conjura a magia deve ser bem-sucedida em um teste de resistência de Força ou ficará com a condição Contido até que a magia termine. Uma criatura Contida pode realizar uma ação para fazer um teste de Força (Atletismo) contra a CD de resistência da sua magia. Em um sucesso, ela se liberta das plantas agarradoras e não está mais Contida por elas.",
         "level": 1,
-        "name": "Entangle"
+        "name": "Emaranhar"
       },
       {
-        "description": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured. It lasts for the duration or until a strong wind (such as one created by Gust of Wind) disperses it.",
+        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
         "level": 1,
-        "name": "Fog Cloud"
+        "name": "Névoa Obscurecente"
       },
       {
-        "description": "Ten berries appear in your hand and are infused with magic for the duration. A creature can take a Bonus Action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day. Uneaten berries disappear when the spell ends.",
+        "description": "Dez frutas aparecem em sua mão e são infundidas com magia pela duração. Uma criatura pode usar uma Ação Bônus para comer uma fruta. Comer uma fruta restaura 1 Ponto de Vida, e a fruta fornece nutrição suficiente para sustentar uma criatura por um dia. Frutas não comidas desaparecem quando a magia termina.",
         "level": 1,
-        "name": "Goodberry"
+        "name": "Fruta Sagrada"
       },
       {
         "description": "marca uma presa, somando dano a cada golpe e facilitando rastreá-la.",
@@ -713,19 +713,19 @@
         "name": "Marca do Caçador"
       },
       {
-        "description": "You touch a willing creature. Once on each of its turns until the spell ends, that creature can jump up to 30 feet by spending 10 feet of movement.",
+        "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
         "level": 1,
-        "name": "Jump"
+        "name": "Pulo"
       },
       {
-        "description": "You touch a creature. The target's Speed increases by 10 feet until the spell ends.",
+        "description": "Você toca uma criatura. O Deslocamento do alvo aumenta em 10 pés até o fim da magia.",
         "level": 1,
-        "name": "Longstrider"
+        "name": "Passo Longo"
       },
       {
-        "description": "For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them. Most Beasts have little to say about topics that don't pertain to survival or companionship, but at minimum, a Beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.",
+        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
         "level": 1,
-        "name": "Speak with Animals"
+        "name": "Falar com Animais"
       }
     ],
     "sorcerer": [
@@ -810,109 +810,109 @@
         "name": "Ataque Certeiro"
       },
       {
-        "description": "A thin sheet of flames shoots forth from you. Each creature in a 15-foot Cone makes a Dexterity saving throw, taking 3d6 Fire damage on a failed save or half as much damage on a successful one. Flammable objects in the Cone that aren't being worn or carried start burning.",
+        "description": "Uma fina camada de chamas dispara de você. Cada criatura em um Cone de 15 pés faz um teste de resistência de Destreza, sofrendo 3d6 de dano de Fogo se falhar no teste ou metade desse dano se obtiver sucesso. Objetos inflamáveis no Cone que não estejam sendo vestidos ou carregados começam a queimar.",
         "level": 1,
-        "name": "Burning Hands"
+        "name": "Mãos Flamejantes"
       },
       {
-        "description": "One Humanoid you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.",
+        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
         "level": 1,
-        "name": "Charm Person"
+        "name": "Enfeitiçar Pessoa"
       },
       {
-        "description": "You hurl an orb of energy at a target within range. Choose Acid, Cold, Fire, Lightning, Poison, or Thunder for the type of orb you create, and then make a ranged spell attack against the target. On a hit, the target takes 3d8 damage of the chosen type. If you roll the same number on two or more of the d8s, the orb leaps to a different target of your choice within 30 feet of the target. Make an attack roll against the new target, and make a new damage roll. The orb can't leap again unless you cast the spell with a level 2+ spell slot.",
+        "description": "Você arremessa um orbe de energia em um alvo dentro do alcance. Escolha Ácido, Frio, Fogo, Eletricidade, Veneno ou Trovoada para o tipo de orbe que você cria e, então, faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 3d8 de dano do tipo escolhido. Se você rolar o mesmo número em dois ou mais dos d8, o orbe salta para um alvo diferente à sua escolha dentro de 30 pés do alvo original. Faça uma jogada de ataque contra o novo alvo e faça uma nova jogada de dano. O orbe não pode saltar novamente a menos que você conjure a magia com um espaço de magia de nível 2 ou superior.",
         "level": 1,
-        "name": "Chromatic Orb"
+        "name": "Orbe Cromática"
       },
       {
-        "description": "You launch a dazzling array of flashing, colorful light. Each creature in a 15-foot Cone originating from you must succeed on a Constitution saving throw or have the Blinded condition until the end of your next turn.",
+        "description": "Você lança uma matriz deslumbrante de luzes coloridas e piscantes. Cada criatura em um Cone de 15 pés originado de você deve ser bem-sucedida em um teste de resistência de Constituição ou ficará com a condição Cego até o final do seu próximo turno.",
         "level": 1,
-        "name": "Color Spray"
+        "name": "Leque Cromático"
       },
       {
-        "description": "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.",
+        "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
         "level": 1,
-        "name": "Comprehend Languages"
+        "name": "Compreender Idiomas"
       },
       {
-        "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Magic"
+        "name": "Detectar Magia"
       },
       {
-        "description": "You make yourself—including your clothing, armor, weapons, and other belongings on your person look different until the spell ends. You can seem 1 foot shorter or taller and can appear heavier or lighter. You must adopt a form that has the same basic arrangement of limbs as you have. Otherwise, the extent of the illusion is up to you. The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to your outfit, objects pass through the hat, and anyone who touches it would feel nothing. To discern that you are disguised, a creature must take the Study action to inspect your appearance and succeed on an Intelligence (Investigation) check against your spell save DC.",
+        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences em sua posse — pareça diferente até que a magia termine. Você pode parecer 1 pé mais baixo ou mais alto e pode parecer mais pesado ou mais leve. Você deve adotar uma forma que tenha o mesmo arranjo básico de membros que você possui. Caso contrário, a extensão da ilusão depende de você. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passarão através do chapéu, e qualquer um que o toque não sentirá nada. Para discernir que você está disfarçado, uma criatura deve realizar a ação Estudar para inspecionar sua aparência e ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
         "level": 1,
-        "name": "Disguise Self"
+        "name": "Disfarçar-se"
       },
       {
-        "description": "You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action.",
+        "description": "Você realiza a ação Disparada e, até que a magia termine, você pode realizar essa ação novamente como uma Ação Bônus.",
         "level": 1,
-        "name": "Expeditious Retreat"
+        "name": "Recuada Acelerada"
       },
       {
-        "description": "You gain 2d4 + 4 Temporary Hit Points.",
+        "description": "Você ganha 2d4 + 4 Pontos de Vida Temporários.",
         "level": 1,
-        "name": "False Life"
+        "name": "Falsa Vida"
       },
       {
-        "description": "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, the creature takes no damage from the fall, and the spell ends for that creature.",
+        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de descida de uma criatura caindo diminui para 18 metros por rodada até a magia terminar. Se uma criatura aterrissar antes da magia terminar, a criatura não sofre dano da queda e a magia termina para essa criatura.",
         "level": 1,
-        "name": "Feather Fall"
+        "name": "Queda Suave"
       },
       {
-        "description": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured. It lasts for the duration or until a strong wind (such as one created by Gust of Wind) disperses it.",
+        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
         "level": 1,
-        "name": "Fog Cloud"
+        "name": "Névoa Obscurecente"
       },
       {
-        "description": "Nonflammable grease covers the ground in a 10 foot square centered on a point within range and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or have the Prone condition. A creature that enters the area or ends its turn there must also succeed on that save or fall Prone.",
+        "description": "Graxa não inflamável cobre o solo em um quadrado de 3 metros centrado em um ponto dentro do alcance e o transforma em Terreno Difícil pela duração. Quando a graxa aparece, cada criatura em pé na área deve ser bem-sucedida em um teste de resistência de Destreza ou ficará com a condição Caído. Uma criatura que entrar na área ou terminar seu turno nela também deve ser bem-sucedida nesse teste ou cairá Caída.",
         "level": 1,
-        "name": "Grease"
+        "name": "Graxa"
       },
       {
-        "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.",
+        "description": "Você cria um fragmento de gelo e o arremessa em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 1d10 de dano Perfurante. Acertando ou errando, o fragmento então explode. O alvo e cada criatura a até 5 pés dele devem ser bem-sucedidos em um teste de resistência de Destreza ou sofrerão 2d6 de dano de Frio.",
         "level": 1,
-        "name": "Ice Knife"
+        "name": "Adaga de Gelo"
       },
       {
-        "description": "You touch a willing creature. Once on each of its turns until the spell ends, that creature can jump up to 30 feet by spending 10 feet of movement.",
+        "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
         "level": 1,
-        "name": "Jump"
+        "name": "Pulo"
       },
       {
-        "description": "You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 plus its Dexterity modifier. The spell ends early if the target dons armor.",
+        "description": "Você toca uma criatura voluntária que não esteja vestindo armadura. Até o fim da magia, a CA base do alvo torna-se 13 mais seu modificador de Destreza. A magia termina prematuramente se o alvo vestir uma armadura.",
         "level": 1,
-        "name": "Mage Armor"
+        "name": "Armadura Arcana"
       },
       {
-        "description": "You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.",
+        "description": "Você cria três dardos brilhantes de força mágica. Cada dardo atinge uma criatura à sua escolha que você possa ver dentro do alcance. Um dardo causa 1d4 + 1 de dano de Força ao seu alvo. Os dardos atingem simultaneamente, e você pode direcioná-los para atingir uma criatura ou várias.",
         "level": 1,
-        "name": "Magic Missile"
+        "name": "Mísseis Mágicos"
       },
       {
-        "description": "You shoot a greenish ray at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 Poison damage and has the Poisoned condition until the end of your next turn.",
+        "description": "Você dispara um raio esverdeado em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se atingir, o alvo sofre 2d8 de dano de Veneno e fica com a condição Envenenado até o final do seu próximo turno.",
         "level": 1,
-        "name": "Ray of Sickness"
+        "name": "Raio de Enjoo"
       },
       {
-        "description": "An imperceptible barrier of magical force protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from Magic Missile.",
+        "description": "Uma barreira imperceptível de força mágica protege você. Até o início do seu próximo turno, você tem um bônus de +5 na CA, incluindo contra o ataque que desencadeou a magia, e você não sofre dano de Mísseis Mágicos.",
         "level": 1,
-        "name": "Shield"
+        "name": "Escudo"
       },
       {
-        "description": "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects. As a Magic action, you can cause the image to move to any spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Physical interaction with the image reveals it to be an illusion, since things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image.",
+        "description": "Você cria a imagem de um objeto, uma criatura ou algum outro fenômeno visível que não seja maior que um Cubo de 4,5 metros. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada por som, cheiro ou outros efeitos sensoriais. Como uma ação de Magia, você pode fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar uma imagem de uma criatura e movê-la, você pode alterar a imagem para que ela pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, já que as coisas podem passar através dela. Uma criatura que use uma ação de Estudo para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura discernir a ilusão pelo que ela é, a criatura pode ver através da imagem.",
         "level": 1,
-        "name": "Silent Image"
+        "name": "Imagem Silenciosa"
       },
       {
-        "description": "Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save. If the target fails the second save, the target has the Unconscious condition for the duration. The spell ends on a target if it takes damage or someone within 5 feet of it takes an action to shake it out of the spell's effect. Creatures that don't sleep, such as elves, or that have Immunity to the Exhaustion condition automatically succeed on saves against this spell.",
+        "description": "Cada criatura à sua escolha em uma Esfera de 5 pés de raio centrada em um ponto dentro do alcance deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará com a condição Incapacitado até o final do seu próximo turno, momento em que deve repetir o teste. Se o alvo falhar no segundo teste, o alvo fica com a condição Inconsciente pela duração. A magia termina em um alvo se ele sofrer dano ou se alguém a até 5 pés dele usar uma ação para sacudi-lo e retirá-lo do efeito da magia. Criaturas que não dormem, como elfos, ou que possuem Imunidade à condição Exaustão, são automaticamente bem-sucedidas nos testes contra esta magia.",
         "level": 1,
-        "name": "Sleep"
+        "name": "Sono"
       },
       {
-        "description": "You unleash a wave of thunderous energy. Each creature in a 15-foot Cube originating from you makes a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, a creature takes half as much damage only. In addition, unsecured objects that are entirely within the Cube are pushed 10 feet away from you, and a thunderous boom is audible within 300 feet.",
+        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
         "level": 1,
-        "name": "Thunderwave"
+        "name": "Onda Trovejante"
       }
     ],
     "warlock": [
@@ -952,64 +952,64 @@
         "name": "Ataque Certeiro"
       },
       {
-        "description": "Up to three creatures of your choice that you can see within range must each make a Charisma saving throw. Whenever a target that fails this save makes an attack roll or a saving throw before the spell ends, the target must subtract 1d4 from the attack roll or save.",
+        "description": "Até três criaturas à sua escolha que você possa ver dentro do alcance devem, cada uma, fazer um teste de resistência de Carisma. Sempre que um alvo que falhar nesse teste fizer uma jogada de ataque ou um teste de resistência antes da magia terminar, o alvo deve subtrair 1d4 da jogada de ataque ou teste.",
         "level": 1,
-        "name": "Bane"
+        "name": "Perdição"
       },
       {
-        "description": "One Humanoid you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.",
+        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
         "level": 1,
-        "name": "Charm Person"
+        "name": "Enfeitiçar Pessoa"
       },
       {
-        "description": "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.",
+        "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
         "level": 1,
-        "name": "Comprehend Languages"
+        "name": "Compreender Idiomas"
       },
       {
-        "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Magic"
+        "name": "Detectar Magia"
       },
       {
-        "description": "You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action.",
+        "description": "Você realiza a ação Disparada e, até que a magia termine, você pode realizar essa ação novamente como uma Ação Bônus.",
         "level": 1,
-        "name": "Expeditious Retreat"
+        "name": "Recuada Acelerada"
       },
       {
-        "description": "The creature that damaged you is momentarily surrounded by green flames. It makes a Dexterity saving throw, taking 2d10 Fire damage on a failed save or half as much damage on a successful one.",
+        "description": "A criatura que causou dano a você é momentaneamente cercada por chamas verdes. Ela faz um teste de resistência de Destreza, sofrendo 2d10 de dano de Fogo se falhar ou metade desse dano se obtiver sucesso.",
         "level": 1,
-        "name": "Hellish Rebuke"
+        "name": "Repreensão Infernal"
       },
       {
-        "description": "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 Necrotic damage to the target whenever you hit it with an attack roll. Also, choose one ability when you cast the spell. The target has Disadvantage on ability checks made with the chosen ability. If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature.",
+        "description": "Você coloca uma maldição em uma criatura que você possa ver dentro do alcance. Até o fim da magia, você causa 1d6 de dano Necrótico extra ao alvo sempre que acertá-lo com uma jogada de ataque. Além disso, escolha uma habilidade ao conjurar a magia. O alvo tem Desvantagem em testes de habilidade feitos com a habilidade escolhida. Se o alvo cair para 0 Pontos de Vida antes da magia terminar, você pode usar uma Ação Bônus em um turno posterior para amaldiçoar uma nova criatura.",
         "level": 1,
-        "name": "Hex"
+        "name": "Azar"
       },
       {
-        "description": "One creature of your choice that you can see within range makes a Wisdom saving throw. On a failed save, it has the Prone and Incapacitated conditions for the duration. During that time, it laughs uncontrollably if it's capable of laughter, and it can't end the Prone condition on itself. At the end of each of its turns and each time it takes damage, it makes another Wisdom saving throw. The target has Advantage on the save if the save is triggered by damage. On a successful save, the spell ends.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Se falhar, ela fica com as condições Caído e Incapacitado pela duração. Durante esse tempo, ela ri incontrolavelmente se for capaz de rir, e não pode encerrar a condição Caído por conta própria. No final de cada um de seus turnos e cada vez que sofrer dano, ela faz outro teste de resistência de Sabedoria. O alvo tem Vantagem no teste se ele for desencadeado por dano. Se obtiver sucesso no teste, a magia termina.",
         "level": 1,
-        "name": "Hideous Laughter"
+        "name": "Riso Histérico"
       },
       {
-        "description": "You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know. If the spell is dispelled, the original script and the illusion both disappear. A creature that has Truesight can read the hidden message.",
+        "description": "Você escreve em pergaminho, papel ou outro material adequado e o imbui com uma ilusão que dura pela duração. Para você e quaisquer criaturas que você designar ao conjurar a magia, a escrita parece normal, parece ter sido escrita por sua mão e transmite qualquer significado que você pretendia quando escreveu o texto. Para todos os outros, a escrita parece como se tivesse sido escrita em um idioma desconhecido ou mágico que é ininteligível. Alternativamente, a ilusão pode alterar o significado, a caligrafia e o idioma do texto, embora o idioma deva ser um que você conheça. Se a magia for dissipada, tanto a escrita original quanto a ilusão desaparecem. Uma criatura que possua Visão Verdadeira pode ler a mensagem oculta.",
         "level": 1,
-        "name": "Illusory Script"
+        "name": "Escrita Ilusória"
       },
       {
-        "description": "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
         "level": 1,
-        "name": "Protection from Evil and Good"
+        "name": "Proteção contra o Bem e o Mal"
       },
       {
-        "description": "For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them. Most Beasts have little to say about topics that don't pertain to survival or companionship, but at minimum, a Beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.",
+        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
         "level": 1,
-        "name": "Speak with Animals"
+        "name": "Falar com Animais"
       },
       {
-        "description": "This spell creates an Invisible, mindless, shapeless, Medium force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 Hit Point, and a Strength of 2, and it can't attack. If it drops to 0 Hit Points, the spell ends. Once on each of your turns as a Bonus Action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring drinks. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command. If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends.",
+        "description": "Esta magia cria uma força Invisível, sem mente, sem forma e de tamanho Médio que realiza tarefas simples sob seu comando até que a magia termine. O servo surge em um espaço desocupado no chão dentro do alcance. Ele possui CA 10, 1 Ponto de Vida e Força 2, e não pode atacar. Se ele cair para 0 Pontos de Vida, a magia termina. Uma vez em cada um dos seus turnos como uma Ação Bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir bebidas. Assim que você dá o comando, o servo realiza a tarefa da melhor maneira possível até completá-la, então aguarda seu próximo comando. Se você ordenar que o servo realize uma tarefa que o moveria a mais de 60 pés de distância de você, a magia termina.",
         "level": 1,
-        "name": "Unseen Servant"
+        "name": "Servo Invisível"
       }
     ],
     "wizard": [
@@ -1089,154 +1089,154 @@
         "name": "Ataque Certeiro"
       },
       {
-        "description": "You set an alarm against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is audible or mental: **Audible Alarm.** The alarm produces the sound of a handbell for 10 seconds within 60 feet of the warded area. **Mental Alarm.** You are alerted by a mental ping if you are within 1 mile of the warded area. This ping awakens you if you're asleep.",
+        "description": "Você define um alarme contra intrusão. Escolha uma porta, uma janela ou uma área dentro do alcance que não seja maior que um cubo de 20 pés. Até que a magia termine, um alarme alerta você sempre que uma criatura tocar ou entrar na área protegida. Quando você conjura a magia, você pode designar criaturas que não ativarão o alarme. Você também escolhe se o alarme é audível ou mental: **Alarme Audível.** O alarme produz o som de uma sineta por 10 segundos dentro de 60 pés da área protegida. **Alarme Mental.** Você é alertado por um sinal mental se estiver dentro de 1 milha da área protegida. Esse sinal acorda você se estiver dormindo.",
         "level": 1,
-        "name": "Alarm"
+        "name": "Alarme"
       },
       {
-        "description": "A thin sheet of flames shoots forth from you. Each creature in a 15-foot Cone makes a Dexterity saving throw, taking 3d6 Fire damage on a failed save or half as much damage on a successful one. Flammable objects in the Cone that aren't being worn or carried start burning.",
+        "description": "Uma fina camada de chamas dispara de você. Cada criatura em um Cone de 15 pés faz um teste de resistência de Destreza, sofrendo 3d6 de dano de Fogo se falhar no teste ou metade desse dano se obtiver sucesso. Objetos inflamáveis no Cone que não estejam sendo vestidos ou carregados começam a queimar.",
         "level": 1,
-        "name": "Burning Hands"
+        "name": "Mãos Flamejantes"
       },
       {
-        "description": "One Humanoid you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.",
+        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
         "level": 1,
-        "name": "Charm Person"
+        "name": "Enfeitiçar Pessoa"
       },
       {
-        "description": "You hurl an orb of energy at a target within range. Choose Acid, Cold, Fire, Lightning, Poison, or Thunder for the type of orb you create, and then make a ranged spell attack against the target. On a hit, the target takes 3d8 damage of the chosen type. If you roll the same number on two or more of the d8s, the orb leaps to a different target of your choice within 30 feet of the target. Make an attack roll against the new target, and make a new damage roll. The orb can't leap again unless you cast the spell with a level 2+ spell slot.",
+        "description": "Você arremessa um orbe de energia em um alvo dentro do alcance. Escolha Ácido, Frio, Fogo, Eletricidade, Veneno ou Trovoada para o tipo de orbe que você cria e, então, faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 3d8 de dano do tipo escolhido. Se você rolar o mesmo número em dois ou mais dos d8, o orbe salta para um alvo diferente à sua escolha dentro de 30 pés do alvo original. Faça uma jogada de ataque contra o novo alvo e faça uma nova jogada de dano. O orbe não pode saltar novamente a menos que você conjure a magia com um espaço de magia de nível 2 ou superior.",
         "level": 1,
-        "name": "Chromatic Orb"
+        "name": "Orbe Cromática"
       },
       {
-        "description": "You launch a dazzling array of flashing, colorful light. Each creature in a 15-foot Cone originating from you must succeed on a Constitution saving throw or have the Blinded condition until the end of your next turn.",
+        "description": "Você lança uma matriz deslumbrante de luzes coloridas e piscantes. Cada criatura em um Cone de 15 pés originado de você deve ser bem-sucedida em um teste de resistência de Constituição ou ficará com a condição Cego até o final do seu próximo turno.",
         "level": 1,
-        "name": "Color Spray"
+        "name": "Leque Cromático"
       },
       {
-        "description": "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.",
+        "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
         "level": 1,
-        "name": "Comprehend Languages"
+        "name": "Compreender Idiomas"
       },
       {
-        "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
         "level": 1,
-        "name": "Detect Magic"
+        "name": "Detectar Magia"
       },
       {
-        "description": "You make yourself—including your clothing, armor, weapons, and other belongings on your person look different until the spell ends. You can seem 1 foot shorter or taller and can appear heavier or lighter. You must adopt a form that has the same basic arrangement of limbs as you have. Otherwise, the extent of the illusion is up to you. The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to your outfit, objects pass through the hat, and anyone who touches it would feel nothing. To discern that you are disguised, a creature must take the Study action to inspect your appearance and succeed on an Intelligence (Investigation) check against your spell save DC.",
+        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences em sua posse — pareça diferente até que a magia termine. Você pode parecer 1 pé mais baixo ou mais alto e pode parecer mais pesado ou mais leve. Você deve adotar uma forma que tenha o mesmo arranjo básico de membros que você possui. Caso contrário, a extensão da ilusão depende de você. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passarão através do chapéu, e qualquer um que o toque não sentirá nada. Para discernir que você está disfarçado, uma criatura deve realizar a ação Estudar para inspecionar sua aparência e ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
         "level": 1,
-        "name": "Disguise Self"
+        "name": "Disfarçar-se"
       },
       {
-        "description": "You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action.",
+        "description": "Você realiza a ação Disparada e, até que a magia termine, você pode realizar essa ação novamente como uma Ação Bônus.",
         "level": 1,
-        "name": "Expeditious Retreat"
+        "name": "Recuada Acelerada"
       },
       {
-        "description": "You gain 2d4 + 4 Temporary Hit Points.",
+        "description": "Você ganha 2d4 + 4 Pontos de Vida Temporários.",
         "level": 1,
-        "name": "False Life"
+        "name": "Falsa Vida"
       },
       {
-        "description": "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, the creature takes no damage from the fall, and the spell ends for that creature.",
+        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de descida de uma criatura caindo diminui para 18 metros por rodada até a magia terminar. Se uma criatura aterrissar antes da magia terminar, a criatura não sofre dano da queda e a magia termina para essa criatura.",
         "level": 1,
-        "name": "Feather Fall"
+        "name": "Queda Suave"
       },
       {
-        "description": "You gain the service of a familiar, a spirit that takes an animal form you choose: Bat, Cat, Frog, Hawk, Lizard, Octopus, Owl, Rat, Raven, Spider, Weasel, or another Beast that has a Challenge Rating of 0. Appearing in an unoccupied space within range, the familiar has the statistics of the chosen form (see \"Monsters\"), though it is a Celestial, Fey, or Fiend (your choice) instead of a Beast. Your familiar acts independently of you, but it obeys your commands. **_Telepathic Connection._** While your familiar is within 100 feet of you, you can communicate with it telepathically. Additionally, as a Bonus Action, you can see through the familiar's eyes and hear what it hears until the start of your next turn, gaining the benefits of any special senses it has. Finally, when you cast a spell with a range of touch, your familiar can deliver the touch. Your familiar must be within 100 feet of you, and it must take a Reaction to deliver the touch when you cast the spell. **_Combat._** The familiar is an ally to you and your allies. It rolls its own Initiative and acts on its own turn. A familiar can't attack, but it can take other actions as normal. **_Disappearance of the Familiar._** When the familiar drops to 0 Hit Points, it disappears. It reappears after you cast this spell again. As a Magic action, you can temporarily dismiss the familiar to a pocket dimension. Alternatively, you can dismiss it forever. As a Magic action while it is temporarily dismissed, you can cause it to reappear in an unoccupied space within 30 feet of you. Whenever the familiar drops to 0 Hit Points or disappears into the pocket dimension, it leaves behind in its space anything it was wearing or carrying. **_One Familiar Only._** You can't have more than one familiar at a time. If you cast this spell while you have a familiar, you instead cause it to adopt a new eligible form.",
+        "description": "Você ganha o serviço de um familiar, um espírito que assume uma forma animal à sua escolha: Morcego, Gato, Sapo, Falcão, Lagarto, Polvo, Coruja, Rato, Corvo, Aranha, Doninha ou outra Besta que tenha um Desafio de 0. Aparecendo em um espaço desocupado dentro do alcance, o familiar possui as estatísticas da forma escolhida (veja \"Monstros\"), embora seja um Celestial, Fada ou Infernal (à sua escolha) em vez de uma Besta. Seu familiar age independentemente de você, mas obedece aos seus comandos. **_Conexão Telepática._** Enquanto seu familiar estiver a até 30 metros de você, você pode se comunicar com ele telepaticamente. Adicionalmente, como uma Ação Bônus, você pode ver através dos olhos do familiar e ouvir o que ele ouve até o início do seu próximo turno, ganhando os benefícios de quaisquer sentidos especiais que ele possua. Finalmente, quando você conjura uma magia com alcance de toque, seu familiar pode realizar o toque. Seu familiar deve estar a até 30 metros de você e deve usar uma Reação para realizar o toque quando você conjura a magia. **_Combate._** O familiar é um aliado seu e dos seus aliados. Ele rola sua própria Iniciativa e age em seu próprio turno. Um familiar não pode atacar, mas pode realizar outras ações normalmente. **_Desaparecimento do Familiar._** Quando o familiar cai para 0 Pontos de Vida, ele desaparece. Ele reaparece após você conjurar esta magia novamente. Como uma ação de Magia, você pode dispensar temporariamente o familiar para uma dimensão de bolso. Alternativamente, você pode dispensá-lo para sempre. Como uma ação de Magia enquanto ele estiver temporariamente dispensado, você pode fazer com que ele reapareça em um espaço desocupado a até 9 metros de você. Sempre que o familiar cai para 0 Pontos de Vida ou desaparece na dimensão de bolso, ele deixa para trás em seu espaço tudo o que estava vestindo ou carregando. **_Apenas um Familiar._** Você não pode ter mais de um familiar por vez. Se você conjurar esta magia enquanto tiver um familiar, você faz com que ele adote uma nova forma elegível.",
         "level": 1,
-        "name": "Find Familiar"
+        "name": "Encontrar Familiar"
       },
       {
-        "description": "This spell creates a circular, horizontal plane of force, 3 feet in diameter and 1 inch thick, that floats 3 feet above the ground in an unoccupied space of your choice that you can see within range. The disk remains for the duration and can hold up to 500 pounds. If more weight is placed on it, the spell ends, and everything on the disk falls to the ground. The disk is immobile while you are within 20 feet of it. If you move more than 20 feet away from it, the disk follows you so that it remains within 20 feet of you. It can move across uneven terrain, up or down stairs, slopes and the like, but it can't cross an elevation change of 10 feet or more. For example, the disk can't move across a 10-foot-deep pit, nor could it leave such a pit if it was created at the bottom. If you move more than 100 feet from the disk (typically because it can't move around an obstacle to follow you), the spell ends.",
+        "description": "Esta magia cria um plano de força circular e horizontal, com 90 centímetros de diâmetro e 2,5 centímetros de espessura, que flutua a 90 centímetros acima do solo em um espaço desocupado à sua escolha que você possa ver dentro do alcance. O disco permanece pela duração e pode carregar até 225 quilos. Se mais peso for colocado sobre ele, a magia termina e tudo sobre o disco cai no chão. O disco é imóvel enquanto você estiver a até 6 metros dele. Se você se mover para mais de 6 metros de distância dele, o disco segue você para que permaneça a até 6 metros de você. Ele pode se mover sobre terreno irregular, subir ou descer escadas, encostas e similares, mas não pode cruzar uma mudança de elevação de 3 metros ou mais. Por exemplo, o disco não pode se mover sobre um fosso de 3 metros de profundidade, nem poderia sair de tal fosso se fosse criado no fundo. Se você se mover para mais de 30 metros do disco (tipicamente porque ele não pode contornar um obstáculo para segui-lo), a magia termina.",
         "level": 1,
-        "name": "Floating Disk"
+        "name": "Disco Flutuante"
       },
       {
-        "description": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured. It lasts for the duration or until a strong wind (such as one created by Gust of Wind) disperses it.",
+        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
         "level": 1,
-        "name": "Fog Cloud"
+        "name": "Névoa Obscurecente"
       },
       {
-        "description": "Nonflammable grease covers the ground in a 10 foot square centered on a point within range and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or have the Prone condition. A creature that enters the area or ends its turn there must also succeed on that save or fall Prone.",
+        "description": "Graxa não inflamável cobre o solo em um quadrado de 3 metros centrado em um ponto dentro do alcance e o transforma em Terreno Difícil pela duração. Quando a graxa aparece, cada criatura em pé na área deve ser bem-sucedida em um teste de resistência de Destreza ou ficará com a condição Caído. Uma criatura que entrar na área ou terminar seu turno nela também deve ser bem-sucedida nesse teste ou cairá Caída.",
         "level": 1,
-        "name": "Grease"
+        "name": "Graxa"
       },
       {
-        "description": "One creature of your choice that you can see within range makes a Wisdom saving throw. On a failed save, it has the Prone and Incapacitated conditions for the duration. During that time, it laughs uncontrollably if it's capable of laughter, and it can't end the Prone condition on itself. At the end of each of its turns and each time it takes damage, it makes another Wisdom saving throw. The target has Advantage on the save if the save is triggered by damage. On a successful save, the spell ends.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Se falhar, ela fica com as condições Caído e Incapacitado pela duração. Durante esse tempo, ela ri incontrolavelmente se for capaz de rir, e não pode encerrar a condição Caído por conta própria. No final de cada um de seus turnos e cada vez que sofrer dano, ela faz outro teste de resistência de Sabedoria. O alvo tem Vantagem no teste se ele for desencadeado por dano. Se obtiver sucesso no teste, a magia termina.",
         "level": 1,
-        "name": "Hideous Laughter"
+        "name": "Riso Histérico"
       },
       {
-        "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.",
+        "description": "Você cria um fragmento de gelo e o arremessa em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 1d10 de dano Perfurante. Acertando ou errando, o fragmento então explode. O alvo e cada criatura a até 5 pés dele devem ser bem-sucedidos em um teste de resistência de Destreza ou sofrerão 2d6 de dano de Frio.",
         "level": 1,
-        "name": "Ice Knife"
+        "name": "Adaga de Gelo"
       },
       {
-        "description": "You touch an object throughout the spell's casting. If the object is a magic item or some other magical object, you learn its properties and how to use them, whether it requires Attunement, and how many charges it has, if any. You learn whether any ongoing spells are affecting the item and what they are. If the item was created by a spell, you learn that spell's name. If you instead touch a creature throughout the casting, you learn which ongoing spells, if any, are currently affecting it.",
+        "description": "Você toca um objeto durante toda a conjuração da magia. Se o objeto for um item mágico ou algum outro objeto mágico, você aprende suas propriedades e como usá-las, se ele requer Sintonização e quantas cargas ele possui, se houver. Você aprende se alguma magia contínua está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende o nome dessa magia. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias contínuas, se houver, estão afetando-a atualmente.",
         "level": 1,
-        "name": "Identify"
+        "name": "Identificação"
       },
       {
-        "description": "You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know. If the spell is dispelled, the original script and the illusion both disappear. A creature that has Truesight can read the hidden message.",
+        "description": "Você escreve em pergaminho, papel ou outro material adequado e o imbui com uma ilusão que dura pela duração. Para você e quaisquer criaturas que você designar ao conjurar a magia, a escrita parece normal, parece ter sido escrita por sua mão e transmite qualquer significado que você pretendia quando escreveu o texto. Para todos os outros, a escrita parece como se tivesse sido escrita em um idioma desconhecido ou mágico que é ininteligível. Alternativamente, a ilusão pode alterar o significado, a caligrafia e o idioma do texto, embora o idioma deva ser um que você conheça. Se a magia for dissipada, tanto a escrita original quanto a ilusão desaparecem. Uma criatura que possua Visão Verdadeira pode ler a mensagem oculta.",
         "level": 1,
-        "name": "Illusory Script"
+        "name": "Escrita Ilusória"
       },
       {
-        "description": "You touch a willing creature. Once on each of its turns until the spell ends, that creature can jump up to 30 feet by spending 10 feet of movement.",
+        "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
         "level": 1,
-        "name": "Jump"
+        "name": "Pulo"
       },
       {
-        "description": "You touch a creature. The target's Speed increases by 10 feet until the spell ends.",
+        "description": "Você toca uma criatura. O Deslocamento do alvo aumenta em 10 pés até o fim da magia.",
         "level": 1,
-        "name": "Longstrider"
+        "name": "Passo Longo"
       },
       {
-        "description": "You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 plus its Dexterity modifier. The spell ends early if the target dons armor.",
+        "description": "Você toca uma criatura voluntária que não esteja vestindo armadura. Até o fim da magia, a CA base do alvo torna-se 13 mais seu modificador de Destreza. A magia termina prematuramente se o alvo vestir uma armadura.",
         "level": 1,
-        "name": "Mage Armor"
+        "name": "Armadura Arcana"
       },
       {
-        "description": "You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.",
+        "description": "Você cria três dardos brilhantes de força mágica. Cada dardo atinge uma criatura à sua escolha que você possa ver dentro do alcance. Um dardo causa 1d4 + 1 de dano de Força ao seu alvo. Os dardos atingem simultaneamente, e você pode direcioná-los para atingir uma criatura ou várias.",
         "level": 1,
-        "name": "Magic Missile"
+        "name": "Mísseis Mágicos"
       },
       {
-        "description": "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
         "level": 1,
-        "name": "Protection from Evil and Good"
+        "name": "Proteção contra o Bem e o Mal"
       },
       {
-        "description": "You shoot a greenish ray at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 Poison damage and has the Poisoned condition until the end of your next turn.",
+        "description": "Você dispara um raio esverdeado em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se atingir, o alvo sofre 2d8 de dano de Veneno e fica com a condição Envenenado até o final do seu próximo turno.",
         "level": 1,
-        "name": "Ray of Sickness"
+        "name": "Raio de Enjoo"
       },
       {
-        "description": "An imperceptible barrier of magical force protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from Magic Missile.",
+        "description": "Uma barreira imperceptível de força mágica protege você. Até o início do seu próximo turno, você tem um bônus de +5 na CA, incluindo contra o ataque que desencadeou a magia, e você não sofre dano de Mísseis Mágicos.",
         "level": 1,
-        "name": "Shield"
+        "name": "Escudo"
       },
       {
-        "description": "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects. As a Magic action, you can cause the image to move to any spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Physical interaction with the image reveals it to be an illusion, since things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image.",
+        "description": "Você cria a imagem de um objeto, uma criatura ou algum outro fenômeno visível que não seja maior que um Cubo de 4,5 metros. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada por som, cheiro ou outros efeitos sensoriais. Como uma ação de Magia, você pode fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar uma imagem de uma criatura e movê-la, você pode alterar a imagem para que ela pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, já que as coisas podem passar através dela. Uma criatura que use uma ação de Estudo para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura discernir a ilusão pelo que ela é, a criatura pode ver através da imagem.",
         "level": 1,
-        "name": "Silent Image"
+        "name": "Imagem Silenciosa"
       },
       {
-        "description": "Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save. If the target fails the second save, the target has the Unconscious condition for the duration. The spell ends on a target if it takes damage or someone within 5 feet of it takes an action to shake it out of the spell's effect. Creatures that don't sleep, such as elves, or that have Immunity to the Exhaustion condition automatically succeed on saves against this spell.",
+        "description": "Cada criatura à sua escolha em uma Esfera de 5 pés de raio centrada em um ponto dentro do alcance deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará com a condição Incapacitado até o final do seu próximo turno, momento em que deve repetir o teste. Se o alvo falhar no segundo teste, o alvo fica com a condição Inconsciente pela duração. A magia termina em um alvo se ele sofrer dano ou se alguém a até 5 pés dele usar uma ação para sacudi-lo e retirá-lo do efeito da magia. Criaturas que não dormem, como elfos, ou que possuem Imunidade à condição Exaustão, são automaticamente bem-sucedidas nos testes contra esta magia.",
         "level": 1,
-        "name": "Sleep"
+        "name": "Sono"
       },
       {
-        "description": "You unleash a wave of thunderous energy. Each creature in a 15-foot Cube originating from you makes a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, a creature takes half as much damage only. In addition, unsecured objects that are entirely within the Cube are pushed 10 feet away from you, and a thunderous boom is audible within 300 feet.",
+        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
         "level": 1,
-        "name": "Thunderwave"
+        "name": "Onda Trovejante"
       },
       {
-        "description": "This spell creates an Invisible, mindless, shapeless, Medium force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 Hit Point, and a Strength of 2, and it can't attack. If it drops to 0 Hit Points, the spell ends. Once on each of your turns as a Bonus Action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring drinks. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command. If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends.",
+        "description": "Esta magia cria uma força Invisível, sem mente, sem forma e de tamanho Médio que realiza tarefas simples sob seu comando até que a magia termine. O servo surge em um espaço desocupado no chão dentro do alcance. Ele possui CA 10, 1 Ponto de Vida e Força 2, e não pode atacar. Se ele cair para 0 Pontos de Vida, a magia termina. Uma vez em cada um dos seus turnos como uma Ação Bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir bebidas. Assim que você dá o comando, o servo realiza a tarefa da melhor maneira possível até completá-la, então aguarda seu próximo comando. Se você ordenar que o servo realize uma tarefa que o moveria a mais de 60 pés de distância de você, a magia termina.",
         "level": 1,
-        "name": "Unseen Servant"
+        "name": "Servo Invisível"
       }
     ]
   },

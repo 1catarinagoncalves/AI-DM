@@ -110,19 +110,22 @@ magias inclui **truques + todas as de nível 1**. As consequências são **relat
 - Licença única (CC-BY-4.0) auditável no repo, sem depender de ler uma user story.
 
 **Negativas / riscos**
-- O overlay pt-BR é **dívida viva**: cada regra nova precisa de tradução (automatizada na US-52,
-  sinalizada pelo `--strict` até lá). No primeiro ingest, 64 chaves caem no fallback EN.
+- O overlay pt-BR é **dívida viva**: cada regra nova precisa de tradução. A US-52 automatizou o
+  rascunho (`"_mt": true`, revisável no diff), mas a **correção** continua sendo revisão humana —
+  nem o schema nem o `--strict` a validam. No primeiro ingest, 64 chaves caem no fallback EN.
 - O 5.2 **mudou conteúdo observável** vs. o seed anterior (features/magias por classe) — é a troca
   consciente por fidelidade à edição, não regressão acidental.
 - Nenhuma marca da WotC é licenciada: o produto **não** pode se chamar "D&D".
-- O `ingest` exige o `@ai-dm/shared` buildado (`dist`) — o script `srd:ingest` já o builda antes.
+- O `ingest` exige `@ai-dm/shared` e `@ai-dm/ai-engine` buildados (`dist`) — o script `srd:ingest`
+  já os builda antes. O `ai-engine` entrou na US-52: é de lá que sai a chamada de tradução, porque
+  `ai`/`@ai-sdk/google` não resolvem a partir da raiz do repo.
 
 ---
 
 ## 7. Implementação (referência)
 
 - `scripts/srd/sync.mjs` — download pinado (`v2.1.0`) → `scripts/srd/_data/`.
-- `scripts/srd/ingest.mjs` — mapper + overlay + relatórios (órfãos / fallback EN) + `--strict` + escrita determinística.
+- `scripts/srd/ingest.mjs` — mapper + overlay + relatórios (órfãos / fallback EN) + `--strict` + escrita determinística + rascunho `_mt` da US-52 (`--no-mt` desliga).
 - `scripts/srd/locale/pt-BR.json` — overlay curado (chave canônica), semeado do seed.
 - `scripts/srd/srd-5e.config.en-US.json` / `srd-5e.config.pt-BR.json` — artefatos derivados versionados (US-99).
 - `scripts/srd/NOTICE-open5e.md` — atribuição CC-BY-4.0.

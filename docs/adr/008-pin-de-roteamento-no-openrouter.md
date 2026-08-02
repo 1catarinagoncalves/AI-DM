@@ -11,7 +11,14 @@
 
 `packages/ai-engine/src/model.ts` declara o primário da narração como um **slug**: `deepseek/deepseek-v4-flash`. O slug não é um servidor. Em 01/08/2026, medindo `GET /api/v1/models/deepseek/deepseek-v4-flash/endpoints`, ele era servido por **22 endpoints** distintos — Baidu, StreamLake, DeepInfra, Alibaba, Cloudflare, Fireworks, Novita, o first-party da própria DeepSeek e mais catorze.
 
-Sem `provider` no corpo do request, quem escolhe entre os 22 é o OpenRouter, por preço, latência e uptime. A escolha não é sorteada a cada request: o OpenRouter aplica **sticky routing**, fixando o endpoint por conversa depois do primeiro request com cache — a chave default é o hash da primeira mensagem de sistema mais a primeira não-sistema. O efeito prático é pior, não melhor: **a primeira escolha continua não-controlada, e a conversa inteira fica presa nela.** Caiu num dos 21 sem cache implícito, é cache-zero até o fim da sessão.
+Sem `provider` no corpo do request, quem escolhe entre os 22 é o OpenRouter — por preço, latência e uptime, **nunca por capacidade de cache**. É a escolha que ninguém está fazendo de propósito, e ela decide se todo o trabalho da [ADR 007](./007-camadas-do-prompt-por-volatilidade.md) rende alguma coisa.
+
+O que acontece depois dessa primeira escolha depende do **sticky routing** do OpenRouter, e a doc dele não é conclusiva. Ela diz que, *"depois de um request que usa prompt caching"*, o endpoint fica fixo para os requests seguintes — chave default: o hash da primeira mensagem de sistema mais a primeira não-sistema. Duas leituras cabem no texto:
+
+- **(a)** a aderência vale para qualquer endpoint servido → a conversa fica **presa** no que saiu no sorteio, e uma sessão inteira roda a cache-zero;
+- **(b)** a aderência só vale quando houve cache de fato → nos 21 sem cache implícito não há aderência nenhuma, e a escolha é **re-sorteada** a cada turno.
+
+**Não sabemos qual das duas é.** Também não importa para esta decisão: as duas descrevem desperdício não-controlado — uma travada, a outra intermitente — e as duas são corrigidas pela mesma coisa. O que importa é o denominador: **21 dos 22 endpoints não cacheiam**, então qualquer sorteio é quase sempre perdido.
 
 Os 22 não são intercambiáveis:
 
@@ -19,11 +26,11 @@ Os 22 não são intercambiáveis:
 - **Preço da leitura de cache varia 25x.** $0.0028/M no first-party contra $0.0140–$0.0700/M nos demais.
 - **Quantização varia.** Cinco endpoints servem em **fp4** (DeepInfra, Ionstream, Ambient, AtlasCloud, Mancer). Quantização agressiva degrada aderência a instrução longa antes de degradar fluência — o sintoma é exatamente o da [US-69](../sdlc/01-requisitos/US-69-guard-anti-degeneracao-narracao.md) e o de "inventou rolagem que o prompt proíbe".
 - **Janela de contexto varia.** O modelo anuncia 1M tokens; Io Net serve 32k, AkashML 128k, DigitalOcean 256k.
-- **Saída estruturada varia.** Cinco endpoints não anunciam `structured_outputs` — inclusive o first-party da DeepSeek.
+- **Saída estruturada varia.** Cinco endpoints não anunciam `structured_outputs` — inclusive o first-party da DeepSeek. Hoje isso não nos atinge (as extrações usam tool mode, ver §3); atingiria no dia em que alguém ligar `json_schema`.
 
 A consequência é que a [ADR 007](./007-camadas-do-prompt-por-volatilidade.md) §3 e a [US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) (*Notas de implementação*) afirmam, ambas, que o cache "é automático no DeepSeek/OpenRouter, sem parâmetro a passar". **A afirmação é verdadeira em 1 dos 22 endpoints e falsa nos outros 21.** Todo o trabalho das duas stories — reordenar o system, mover a camada 3 para a mensagem — rende exatamente zero quando o request cai nos outros 21. E rende zero **em silêncio**: a narração sai normal, só que a preço cheio.
 
-O mesmo vale para qualquer medição — e aqui o sticky routing **agrava**. A chave de aderência é o hash das primeiras mensagens, então dois braços de um A/B de prompt, que por definição diferem no system, recebem chaves diferentes e podem grudar em endpoints diferentes: um em fp8 com cache, outro em fp4 sem. O `DM_CACHE_SPIKE`, o `prompt-ab-bakeoff.mjs`, o `move-ab.mjs`: sem rota fixa, A/B de prompt é em parte A/B de infraestrutura, com o viés estável o suficiente para parecer sinal.
+O mesmo vale para qualquer medição, e no A/B de prompt a leitura (a) é a **pior** das duas. Dois braços diferem no system por definição, logo têm chaves de aderência diferentes: cada braço pode fixar num endpoint distinto — um em fp8 com cache, o outro em fp4 sem — e manter esse viés **estável durante a corrida inteira**, que é a forma mais convincente de um artefato se passar por sinal. A leitura (b) é mais benigna aqui: o ruído aparece disperso entre os turnos, onde a média o dilui. O `DM_CACHE_SPIKE`, o `prompt-ab-bakeoff.mjs`, o `move-ab.mjs`: sem rota fixa, A/B de prompt é em parte A/B de infraestrutura, e não dá para saber de antemão em qual dos dois regimes a corrida caiu.
 
 ---
 
@@ -43,7 +50,7 @@ Três regras derivam disso:
 
 2. **A restrição é allowlist (`only`), nunca denylist (`ignore`).** Oito endpoints aprovados: `deepseek`, `baidu`, `streamlake`, `alibaba`, `cloudflare`, `gmicloud`, `novita`, `siliconflow`. Critério de entrada: sem fp4, contexto ≥ 375k, uptime de 24h ≥ 99%. Denylist admite endpoint novo sem revisão — e o OpenRouter adiciona endpoints sem avisar ninguém.
 
-3. **`require_parameters: true` faz a rota se adaptar ao request, em vez de duplicar configuração.** No `streamText`/`generateText` da narração, o first-party suporta tudo que mandamos e permanece em primeiro. Nos três `generateObject` ([`ai.service.ts`](../../apps/api/src/ai/ai.service.ts) — `extractOpeningScene`, `extractOpeningEntities`, `reconcileScene`), o request carrega json_schema, que o first-party **não** anuncia: o OpenRouter o descarta sozinho e cai no Baidu/StreamLake. Um bloco de config serve os dois workloads.
+3. **`require_parameters: true` faz o roteamento falhar fechado.** Endpoint que não suporta **todo** parâmetro do request é descartado, em vez de receber a chamada e ignorar o que não entende. Hoje quem isso protege é o `presencePenalty: 0.3` da narração ([`ai.service.ts`](../../apps/api/src/ai/ai.service.ts), busque por `presencePenalty`), a 1ª linha de defesa da [US-69](../sdlc/01-requisitos/US-69-guard-anti-degeneracao-narracao.md): sem a flag, um endpoint que não a implemente serviria o turno sem a penalidade e sem avisar ninguém.
 
 ---
 
@@ -55,7 +62,9 @@ Três regras derivam disso:
 
 **Por que allowlist e não `allow_fallbacks: false`.** Fallback desligado dá determinismo total, e é tentador: rota fixa ou erro, nunca degradação silenciosa. Rejeitado porque um 503 no first-party derrubaria o nível 1 da escada inteiro, e o nível 2 (`deepseek-v4-pro`) está no mesmo OpenRouter, com o mesmo pin — a nota em `model.ts:79-80` já registra que os dois primeiros níveis caem juntos num outage. Preferimos degradar o cache a degradar a disponibilidade.
 
-**Por que a extração estruturada pode sair do first-party sem perda.** Os três `generateObject` são one-shot, com prompt distinto a cada chamada: não existe prefixo repetido para cachear. Trocar cache por `structured_outputs` estrito é troca sem custo — e sem a flag, o provider aceitaria o schema e o ignoraria, devolvendo objeto fora do formato para um `catch` que hoje trata isso como "extração vazia".
+**Por que as extrações estruturadas NÃO são desviadas — e por que isso não é problema desta ADR.** Uma versão anterior deste texto afirmava que os três `generateObject` carregavam `json_schema` e por isso eram desviados do first-party. **Falso, verificado no SDK instalado em 01/08/2026.** `createChatModel` do `@ai-sdk/openai-compatible@0.2.16` força `defaultObjectGenerationMode: 'tool'` (`dist/index.mjs:1337`), e `generateObject` sem `mode` explícito resolve `'auto'` para esse default (`ai@4.3.19`, `dist/index.mjs:2744`). O schema viaja como definição de tool; `response_format` nunca é enviado. Sem `response_format` não existe nada para `require_parameters` filtrar por `structured_outputs`, e o first-party suporta `tools`/`tool_choice` — as extrações vão para o **mesmo** endpoint da narração.
+
+A conformidade de schema hoje vem da tool tipada, não de decodificação restrita por `json_schema`. Trocar isso exigiria `supportsStructuredOutputs: true` no `createOpenAICompatible` (o default do SDK é `false`, `dist/index.mjs:246`, e a linha 280 emite um warning que ninguém lê). **Aí sim** o desvio descrito acima passaria a acontecer, com Baidu e StreamLake recebendo as extrações. Se vale a pena é pergunta de qualidade de extração, não de roteamento — mede-se contando quantas caem no `catch`, e está fora do escopo desta ADR.
 
 **Por que a mesma allowlist serve o nível 2 da escada.** O bloco é passado também nas chamadas que caem no `deepseek-v4-pro`, e uma allowlist com nomes que não servem aquele slug produziria 404 em vez de fallback. Medido em 01/08/2026: o pro tem 18 endpoints e **os oito da allowlist estão entre eles** — inclusive o first-party, também com `supports_implicit_caching: true`. Nenhum ajuste necessário. (O pro traz um endpoint que o flash não tem, `baseten`, fp4: já excluído pelo mesmo critério.)
 
@@ -65,11 +74,11 @@ Três regras derivam disso:
 
 ## 4. Alternativas rejeitadas
 
-1. **Não pinar, confiando no sticky routing.** É o estado anterior, e a tentação é achar que o sticky já resolve. Ele resolve a *consistência* e não a *escolha*: o sorteio acontece uma vez por conversa e o resultado fica travado até o fim dela. Não pinar é aceitar 21 chances em 22 de jogar a ADR 007 fora numa sessão inteira, e deixar toda medição de prompt confundida com medição de infraestrutura.
+1. **Não pinar, confiando no sticky routing.** É o estado anterior, e a tentação é achar que o sticky já resolve. Ele resolveria, no máximo, a *consistência* — nunca a *escolha*, que é feita por preço e uptime, sem olhar cache. Sob a leitura (a) o sorteio perdido trava a sessão inteira; sob a (b) ele se repete a cada turno. Não pinar é aceitar 21 chances em 22 de jogar a ADR 007 fora, e deixar toda medição de prompt confundida com medição de infraestrutura.
 2. **`ignore` com a lista dos ruins.** Mais curta de escrever e envelhece mal na direção perigosa: endpoint fp4 novo entra por default. A allowlist envelhece na direção segura — endpoint bom novo fica de fora até alguém re-medir.
 3. **`quantizations: ['fp8']`.** Ver §3: derruba o first-party.
 4. **`allow_fallbacks: false`.** Ver §3: troca disponibilidade por pureza, com a escada já concentrada num provedor só.
-5. **Bloco de `providerOptions` separado para as extrações.** Duas constantes quase idênticas para manter em sincronia, quando `require_parameters` resolve com uma. Rejeitado pela mesma razão da regra 2 da ADR 007: duplicação a distância dessincroniza.
+5. **Bloco de `providerOptions` separado para as extrações.** Duas constantes quase idênticas para manter em sincronia, pela mesma razão da regra 2 da ADR 007: duplicação a distância dessincroniza. Rejeitado também por falta de motivo — as extrações não mandam nada que o first-party não suporte, então não há workload a separar. Volta à mesa **se** `supportsStructuredOutputs` for ligado, porque aí os dois workloads passam a querer endpoints diferentes de verdade.
 6. **`cache_control` explícito, para destravar os outros 21.** Já rejeitado na [US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) Q3 por redundância; segue rejeitado, agora com número: destravaria endpoints cuja leitura de cache custa 5x a 25x a do first-party. Reabre se o first-party sair do ar de vez.
 
 ---
@@ -95,7 +104,8 @@ Três regras derivam disso:
 - [`packages/ai-engine/src/model.ts`](../../packages/ai-engine/src/model.ts) — `DEEPSEEK_ROUTE_ORDER` e `DEEPSEEK_ALLOWED_PROVIDERS`, consumidos pelo bloco `provider` de `NARRATION_PROVIDER_OPTIONS`. O docblock traz o critério da allowlist e o comando de re-medição:
   `curl -s openrouter.ai/api/v1/models/deepseek/deepseek-v4-flash/endpoints`
 - [`packages/ai-engine/src/model-routing.test.ts`](../../packages/ai-engine/src/model-routing.test.ts) — quatro asserções. Existem porque perder o pin é **falha silenciosa**: nenhum erro, nenhum teste vermelho, só custo. É a mesma classe de defeito que a regra 3 da ADR 007 descreve.
-- [`apps/api/src/ai/ai.service.ts`](../../apps/api/src/ai/ai.service.ts) — os três `generateObject` que dependem do desvio por `require_parameters`, e o `DM_CACHE_SPIKE` que mede o resultado.
+- [`apps/api/src/ai/ai.service.ts`](../../apps/api/src/ai/ai.service.ts) — o `presencePenalty` que `require_parameters` protege, os três `generateObject` (que rodam em tool mode e **não** são desviados) e o `DM_CACHE_SPIKE` que mede o resultado do pin.
+- `@ai-sdk/openai-compatible@0.2.16` e `ai@4.3.19` em `node_modules/.pnpm/` — as duas afirmações da §3 sobre tool mode saíram do `dist/index.mjs` de cada um, nas linhas citadas lá. Reverificar ao subir qualquer um dos dois pacotes: se o default de `defaultObjectGenerationMode` mudar, a §3 muda junto.
 - Para saber qual endpoint serviu um request específico: `GET /api/v1/generation?id=<id>` na API do OpenRouter, ou a aba *Activity* do painel.
 - Fontes das afirmações sobre o OpenRouter, ambas em markdown cru (a página renderizada é JS e não dá pra grepar): `openrouter.ai/docs/features/provider-routing.md` (os campos de `provider`: `order`, `only`, `ignore`, `require_parameters`, `quantizations`) e `openrouter.ai/docs/features/prompt-caching.md` (sticky routing, sua chave default e a precedência de `order` sobre ele).
 
@@ -104,4 +114,5 @@ Três regras derivam disso:
 ## 7. Questões em aberto
 
 1. **Hit-rate real pós-pin.** Rodar `DM_CACHE_SPIKE` e registrar aqui e na ADR 007 §3. Sem esse número, a §3 deste ADR é aritmética sobre premissa. → [US-104](../sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md), que também deriva o limiar de hit-rate abaixo do qual o pin deixa de se pagar.
-2. **`require_parameters` filtra mesmo por `structured_outputs`?** Deduzido da lista `supported_parameters` de cada endpoint e do exemplo de formatação JSON na doc de provider routing, **não observado em produção**. Confirmar no primeiro `generateObject` pós-deploy, consultando qual endpoint serviu. Se não filtrar, a alternativa 5 volta à mesa. → [US-103](../sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md), que constrói o log sem o qual essa observação não existe.
+2. ~~**`require_parameters` filtra mesmo por `structured_outputs`?**~~ **Fechada em 01/08/2026, com "a pergunta estava errada".** A dúvida pressupunha que os `generateObject` mandavam `json_schema`; eles mandam tool. Ver §3. Não custou medição: a resposta estava no SDK instalado, e a pergunta sobreviveu meio dia porque foi escrita a partir da lista `supported_parameters` do OpenRouter sem checar o que o cliente de fato envia — **capacidade do servidor não é o mesmo que conteúdo do request**.
+3. **Sticky routing: leitura (a) ou (b)?** A §1 registra as duas por não conseguir decidir pelo texto da doc. A decisão desta ADR não depende disso, mas a **conta do desperdício pré-pin** depende: sessão travada em cache-zero e sorteio por turno dão números diferentes. Resolvível por observação, não por leitura: com o log da [US-103](../sdlc/01-requisitos/US-103-proveniencia-do-endpoint-no-turno.md) ligado e o pin temporariamente removido, ver se o endpoint varia dentro de uma mesma conversa responde em uma sessão. Só vale o esforço se alguém precisar do contrafactual histórico.
