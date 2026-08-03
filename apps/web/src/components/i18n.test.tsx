@@ -16,6 +16,11 @@ const config = {
   attributes: [{ key: 'strength', label: 'Força', min: 8, max: 15, default: 8 }],
   startingKits: { default: [] },
   pointBuy: { budget: 2 },
+  // US-105: o catálogo de raça/classe vem do config do sistema, já no locale do dono (a API
+  // resolve isso na US-99). Aqui ele é fixo em EN de propósito: é o que a API devolveria a um
+  // jogador em inglês, e o teste abaixo separa o que é dicionário da UI do que é dado.
+  races: [{ key: 'elf', label: 'Elf' }, { key: 'dwarf', label: 'Dwarf' }],
+  classes: [{ key: 'wizard', label: 'Wizard' }, { key: 'fighter', label: 'Fighter' }],
 }
 
 beforeEach(() => {
@@ -77,16 +82,16 @@ describe('i18n da interface — dicionário ligado ao locale ativo (US-98)', () 
     expect(name.value).toBe('Lyra')
   })
 
-  it('o VALUE de classe continua em PT mesmo com a interface em inglês', async () => {
-    // O CLASS_SYNONYMS da API casa 'mag' e não 'wizard' (starting-inventory.ts):
-    // traduzir o value mandaria a classe para o kit `default` em silêncio.
+  // US-105: o value de classe é a CHAVE do catálogo, e o texto é o label que o config trouxe —
+  // não uma chave do dicionário da UI. Falha se alguém voltar a mandar o rótulo para a API.
+  it('o VALUE de classe é a chave do catálogo, e o texto vem do config', async () => {
     localStorage.setItem(LOCALE_STORAGE_KEY, 'en-US')
     renderWithLocale(<SetupWizard />)
 
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     const options = screen.getByLabelText('Class').querySelectorAll('option')
     const wizard = [...options].find(o => o.textContent === 'Wizard')
-    expect(wizard?.getAttribute('value')).toBe('Mago')
+    expect(wizard?.getAttribute('value')).toBe('wizard')
   })
 })
 

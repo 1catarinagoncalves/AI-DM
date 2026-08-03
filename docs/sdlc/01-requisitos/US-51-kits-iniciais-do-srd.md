@@ -50,7 +50,8 @@ Os kits de hoje **não são SRD** — são flavor autoral do MVP, alguns com ite
 - **Estender `scripts/srd/sync.ts`** para baixar também `5e-bits/5e-database` @ **`v5.10.0`**, **só** o arquivo `src/2024/en/5e-SRD-Classes.json` (o repo inteiro tem monstros/itens/SRD 5.1 — nada disso é consumido, e puxar tudo só amplia a superfície OGL).
 - **Estender `scripts/srd/ingest.ts`** para mapear `starting_equipment_options` → `config.startingKits` (`{ name, qty }`), aplicando o overlay pt-BR nos nomes de item.
 - **Bloco de kit no overlay** `scripts/srd/locale/pt-BR.json` — os **37 itens distintos** das 12 classes, em português.
-- **Alvo único `system-dnd5e`** (mesma regra da US-47): o kit derivado **não** entra no `system-free`. Isso exige **desacoplar `startingKits` do `freeConfig`** — a US-47 já desacoplou os outros campos; esta story fecha o último (hoje `freeConfig.startingKits` referencia `dnd5eKits`).
+- **Alvo único `system-dnd5e`**: o kit derivado **não** entra no `system-free`. Isso exige **desacoplar `startingKits` do `freeConfig`** (hoje `freeConfig.startingKits` referencia `dnd5eKits`).
+  > **Nota de 02/08/2026.** A justificativa mudou de dono: a US-47 desacoplou os outros 4 campos para o Free não herdar o SRD, mas o [ADR 004 §3.1](../../adr/004-origem-do-dado-de-sistema.md) reverteu isso — o Free **passa a herdar** o artefato por seleção de chaves. O kit continua fora por outro motivo, mais forte: a fonte dele é **OGL 1.0a**, e a fronteira do ADR 004 (decisão 4, mantida na 6c) é "regra do SRD numa fonte **CC**". Herança de conteúdo CC não abre a porta para conteúdo OGL.
 - **Licença OGL 1.0a versionada:** texto integral + Section 15 (cadeia de atribuição: nossa + `5e-database` + WotC), ao lado do artefato, **identificando que só os `startingKits` derivam de material OGL** — o resto do `config` segue CC-BY-4.0.
 
 ### Fora do escopo

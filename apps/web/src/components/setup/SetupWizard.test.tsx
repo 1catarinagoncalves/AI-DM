@@ -16,6 +16,10 @@ const configWithBudget = (budget: number) => ({
   attributes: [{ key: 'strength', label: 'Força', min: 8, max: 15, default: 8 }],
   startingKits: { default: [] },
   pointBuy: { budget },
+  // US-105: raça e classe são catálogo do sistema, não lista literal no componente. Sem elas
+  // no config, os dois selects nascem vazios e a etapa nunca libera.
+  races: [{ key: 'elf', label: 'Elfo' }, { key: 'dwarf', label: 'Anão' }],
+  classes: [{ key: 'wizard', label: 'Mago' }, { key: 'fighter', label: 'Guerreiro' }],
 })
 
 // US-27: config com perícias e orçamento de 2 proficiências.
@@ -60,8 +64,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
-    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'Elfo' } })
-    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'Mago' } })
+    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'elf' } })
+    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'wizard' } })
   }
 
   it('navegação ida-e-volta preserva o preenchimento e marca estados na trilha', async () => {
@@ -78,7 +82,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     // volta para Raça/Classe e avança de novo — valores mantidos
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ }))
     expect((screen.getByLabelText('Nome do personagem') as HTMLInputElement).value).toBe('Lyra')
-    expect((screen.getByLabelText('Classe') as HTMLSelectElement).value).toBe('Mago')
+    expect((screen.getByLabelText('Classe') as HTMLSelectElement).value).toBe('wizard')
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(screen.getByRole('heading', { name: 'Atributos' })).toBeTruthy()
   })
@@ -234,6 +238,51 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     expect(screen.getByRole('heading', { name: 'Revisão' })).toBeTruthy()
     expect(screen.getByText('Solariel')).toBeTruthy()
+  })
+
+  // US-105: o select é o catálogo do config — opção rotulada, `value` = chave — e é a CHAVE
+  // que viaja para a API. Falha se alguém voltar a mandar o rótulo (o defeito que a story fecha).
+  it('as opções vêm do catálogo do config e a CHAVE é o que vai para a API', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+
+    const races = [...screen.getByLabelText('Raça').querySelectorAll('option')]
+      .filter(o => o.getAttribute('value'))
+    expect(races.map(o => [o.getAttribute('value'), o.textContent])).toEqual([['elf', 'Elfo'], ['dwarf', 'Anão']])
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    // Na revisão o jogador lê o RÓTULO, nunca a chave.
+    expect(screen.getByText('Mago')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'elf', class: 'wizard' }))
+  })
+
+  // US-105: o catálogo passou a depender do sistema. Trocar de sistema com raça/classe já
+  // escolhidas deixaria uma chave que o catálogo novo não tem — o `Próximo` tem de barrar.
+  it('trocar de sistema limpa raça e classe', async () => {
+    listSystems.mockResolvedValue([
+      { id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithBudget(2) },
+      { id: 'sys-2', name: 'Free', sourceType: 'FREE', config: configWithBudget(2) },
+    ])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'elf' } })
+    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'wizard' } })
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+
+    fireEvent.click(screen.getByRole('button', { name: /Sistema/ })) // volta à etapa 1
+    fireEvent.click(screen.getByText('Free'))
+    expect((screen.getByLabelText('Raça') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByLabelText('Classe') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(true)
   })
 
   // US-28: depois de Confirmar, o jogador vê a etapa "Aventura inicial" e a inicia.

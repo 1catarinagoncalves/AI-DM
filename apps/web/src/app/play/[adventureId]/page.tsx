@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { GameView } from '@/components/game/GameView'
-import { buildSkillSheet, type SystemConfig } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, type SystemConfig } from '@ai-dm/shared'
 import { apiAuthHeader } from '@/lib/server-auth'
 import { LOCALE_COOKIE, localeFromCookie } from '@/lib/locale-cookie'
 import { messagesFor } from '@/messages'
@@ -44,13 +44,18 @@ export default async function PlayPage({ params, searchParams }: Props) {
     ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
     : []
 
+  // US-105: a ficha guarda a CHAVE (`dwarf`); o rótulo sai do catálogo do config, que a API já
+  // serve no locale do dono — a mesma ficha diz "Anão" ou "Dwarf" sem tocar no banco.
+  const className = catalogLabel(config?.classes, character.class)
+  const raceName = catalogLabel(config?.races, character.race)
+
   return (
     <GameView
       adventureId={adventureId}
       characterId={characterId}
       characterName={character.name}
-      characterClass={character.class}
-      characterRace={character.race}
+      characterClass={className}
+      characterRace={raceName}
       hp={state?.hp ?? 10}
       maxHp={state?.maxHp ?? 10}
       attributes={character.baseAttributes}

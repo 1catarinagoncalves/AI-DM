@@ -13,10 +13,19 @@ export const TAG = 'v2.1.0'
 
 const RAW = `https://raw.githubusercontent.com/open5e/open5e-api/${TAG}/data/v2`
 const SRD = `${RAW}/wizards-of-the-coast/srd-2024`
+// ADR 009: o SRD 5.1 é IRMÃO do 5.2 no mesmo repositório, no mesmo tag — não é outra
+// dependência nem outra licença (dual CC-BY-4.0 / OGL 1.0a; usamos a via CC-BY).
+// A fusão (com o 5.2 vencendo) acontece no ingest.
+const SRD_2014 = `${RAW}/wizards-of-the-coast/srd-2014`
 const CORE = `${RAW}/open5e/core`
 
 // [url, nome local]. A âncora de perícia (`ability`) só existe no doc `core`/Skill.json;
 // a srd-2024/SkillDescription não a traz (só `describes` + desc). Ver ingest.mjs.
+//
+// US-105: só `Species` baixa o par 2014 — é o único domínio ingerido em que a união rende
+// conteúdo (half-elf, half-orc). As 12 classes base são idênticas nas duas edições (ADR 009 §4),
+// e feature/magia entram quando a story delas passar pela fusão. Cada arquivo do 5.1 sai com
+// sufixo `.2014` porque o nome do arquivo é o mesmo nos dois documentos.
 const FILES = [
   [`${SRD}/AbilityDescription.json`, 'AbilityDescription.json'],
   [`${CORE}/Skill.json`, 'Skill.json'],
@@ -24,6 +33,8 @@ const FILES = [
   [`${SRD}/ClassFeature.json`, 'ClassFeature.json'],
   [`${SRD}/ClassFeatureItem.json`, 'ClassFeatureItem.json'],
   [`${SRD}/Spell.json`, 'Spell.json'],
+  [`${SRD}/Species.json`, 'Species.json'],
+  [`${SRD_2014}/Species.json`, 'Species.2014.json'],
 ]
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '_data')
@@ -39,7 +50,7 @@ async function main() {
     await writeFile(join(OUT, name), text)
     console.log(`  ${name}  (${text.length} bytes)`)
   }
-  await writeFile(join(OUT, '.source'), `open5e/open5e-api ${TAG}\nCC-BY-4.0 (WotC / SRD 5.2)\n`)
+  await writeFile(join(OUT, '.source'), `open5e/open5e-api ${TAG}\nCC-BY-4.0 (WotC / SRD 5.2 + SRD 5.1)\n`)
   console.log('OK. Rode: node scripts/srd/ingest.mjs')
 }
 

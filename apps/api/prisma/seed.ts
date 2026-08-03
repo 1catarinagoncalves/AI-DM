@@ -371,10 +371,19 @@ const freeClassSpells: SystemConfig['classSpells'] = {
   default: [],
 }
 
+// US-105: o Free NUNCA teve catálogo próprio de raça e de classe — as listas viviam dentro do
+// SetupWizard e valiam para todo sistema. Agora que o wizard as lê do config, o Free precisa de
+// um: herda os dois do artefato pt-BR, que é o idioma do snapshot dele. Não é a herança geral
+// (features e magias curadas continuam próprias) — isso é a US-106; aqui são só rótulos, e
+// duplicar 23 literais no seed seria recriar no dado o problema que a story tirou do componente.
+const { races: srdRaces, classes: srdClasses } = readSrdArtifact('pt-BR')
+
 // Free: literais próprias (congeladas). NÃO referencia mais nada que o ingest substitui no D&D.
 const freeConfig: SystemConfig = {
   attributes: freeAttributes,
   skills: freeSkills,
+  races: srdRaces,
+  classes: srdClasses,
   proficiency: dnd5eProficiency,
   startingKits: dnd5eKits,
   classFeatures: freeClassFeatures,
@@ -394,7 +403,7 @@ const freeConfig: SystemConfig = {
 function readSrdArtifact(locale: string) {
   return JSON.parse(
     readFileSync(join(__dirname, `../../../scripts/srd/srd-5e.config.${locale}.json`), 'utf8'),
-  ) as Pick<SystemConfig, 'attributes' | 'skills' | 'classFeatures' | 'classSpells'>
+  ) as Pick<SystemConfig, 'attributes' | 'skills' | 'races' | 'classes' | 'classFeatures' | 'classSpells'>
 }
 
 // Os campos de produto são os MESMOS nos dois locales: kits, point-buy, proficiência e

@@ -8,13 +8,16 @@ import type { AiService } from '../ai/ai.service'
 // preservando as asserções de texto abaixo). `opening` != null exercita o caminho IA.
 // `scene` (US-35) default null → extração falha/vazia, sceneState nulo (fallback).
 // `entities` (US-75) default null → ledger vazio, igual ao comportamento pré-US-75.
+// `seen` (US-105) recebe o input da geração — é como se afirma que o Mestre viu o RÓTULO
+// de raça/classe, e não a chave crua guardada na ficha.
 function fakeAi(
   opening: string | null = null,
   scene: Record<string, unknown> | null = null,
   entities: Record<string, unknown>[] | null = null,
+  seen: Record<string, unknown> = {},
 ): AiService {
   return {
-    generateOpeningNarration: async () => opening,
+    generateOpeningNarration: async (input: Record<string, unknown>) => { Object.assign(seen, input); return opening },
     extractOpeningScene: async () => scene,
     extractOpeningEntities: async () => entities,
   } as unknown as AiService
@@ -23,6 +26,9 @@ function fakeAi(
 const config: SystemConfig = {
   attributes: [{ key: 'constitution', label: 'Con', min: 1, max: 20, default: 10 }],
   startingKits: { fighter: [{ name: 'Espada longa', qty: 1 }], default: [{ name: 'Adaga', qty: 1 }] },
+  // US-105: a ficha guarda a chave; o catálogo é quem sabe o rótulo do locale.
+  races: [{ key: 'human', label: 'Humano' }],
+  classes: [{ key: 'wizard', label: 'Mago' }],
   initialAdventures: {
     hooks: [
       {
@@ -103,7 +109,7 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
 describe('AdventureService.createForCharacter', () => {
   it('classe conhecida: usa o gancho da classe para título, quest primária e narração', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
       baseAttributes: { constitution: 14 },
       system: { config },
     }
@@ -130,7 +136,7 @@ describe('AdventureService.createForCharacter', () => {
 
   it('caminho IA: quando a geração devolve texto, a abertura persiste esse texto, não o template estático', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
       baseAttributes: { constitution: 14 },
       system: { config },
     }
@@ -148,7 +154,7 @@ describe('AdventureService.createForCharacter', () => {
 
   it('US-35: extração devolve patch → CharacterState nasce com sceneState preenchido e coerente', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
       baseAttributes: { constitution: 14 },
       system: { config },
     }
@@ -172,7 +178,7 @@ describe('AdventureService.createForCharacter', () => {
 
   it('US-35: extração devolve null → CharacterState criado sem sceneState, sem erro (fallback US-34)', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
       baseAttributes: { constitution: 14 },
       system: { config },
     }
@@ -204,7 +210,7 @@ describe('AdventureService.createForCharacter', () => {
 
   it('rejeita um initialHookId que não corresponde à classe do personagem', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
       baseAttributes: { constitution: 10 }, system: { config },
     }
     const { prisma } = fakePrisma(character)
@@ -214,7 +220,7 @@ describe('AdventureService.createForCharacter', () => {
 
   it('numera order pela contagem de aventuras anteriores do personagem', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
       baseAttributes: { constitution: 10 },
       system: { config },
     }
@@ -224,6 +230,23 @@ describe('AdventureService.createForCharacter', () => {
     await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
 
     expect(recorded.adventureCreate).toMatchObject({ order: 3 })
+  })
+
+  // US-105: a chave vai ao lookup, o rótulo vai ao Mestre. Falha se a chave crua vazar
+  // para a primeira cena ("Elara, a wizard").
+  it('a abertura recebe o RÓTULO de raça e classe, não a chave', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      baseAttributes: { constitution: 10 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const seen: Record<string, unknown> = {}
+    const service = new AdventureService(prisma, fakeAi(null, null, null, seen))
+
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    expect(seen['characterClass']).toBe('Mago')
+    expect(seen['characterRace']).toBe('Humano')
   })
 
   it('rejeita quando o personagem não existe', async () => {
@@ -236,7 +259,7 @@ describe('AdventureService.createForCharacter', () => {
 describe('AdventureService.getInitialAdventure', () => {
   it('resolve o gancho da classe com placeholders aplicados', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'Mago',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
       baseAttributes: { constitution: 10 }, system: { config },
     }
     const { prisma } = fakePrisma(character)

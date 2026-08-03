@@ -13,25 +13,24 @@ const dnd5eConfig: SystemConfig = {
   },
 }
 
+// US-105: o argumento é a CHAVE canônica gravada no Character, não mais o texto do jogador.
+// O matcher de substring (CLASS_SYNONYMS) saiu daqui e vive só na migração — o teste dele
+// está em prisma/migrate-race-class-keys.test.ts.
 describe('getStartingInventory', () => {
-  it('mapeia classes da tabela (case/acento-insensível)', () => {
-    expect(getStartingInventory(dnd5eConfig, 'Guerreiro').some(i => i.name === 'Espada longa')).toBe(true)
-    expect(getStartingInventory(dnd5eConfig, 'maga').some(i => i.name === 'Grimório')).toBe(true)
-    expect(getStartingInventory(dnd5eConfig, 'Paladino').some(i => i.name === 'Símbolo sagrado')).toBe(true)
+  it('devolve o kit da chave da classe', () => {
+    expect(getStartingInventory(dnd5eConfig, 'fighter').some(i => i.name === 'Espada longa')).toBe(true)
+    expect(getStartingInventory(dnd5eConfig, 'wizard').some(i => i.name === 'Grimório')).toBe(true)
+    expect(getStartingInventory(dnd5eConfig, 'paladin').some(i => i.name === 'Símbolo sagrado')).toBe(true)
   })
 
-  it("'paladin' não é confundido com 'ladin'", () => {
-    expect(getStartingInventory(dnd5eConfig, 'Paladina').some(i => i.name === 'Escudo')).toBe(true)
-  })
-
-  it('mapeia arquétipos próximos (Patrulheira/Caçador/Ranger → ranger)', () => {
-    for (const c of ['Patrulheira', 'Caçador', 'Ranger', 'Arqueiro']) {
-      expect(getStartingInventory(dnd5eConfig, c).some(i => i.name === 'Arco longo')).toBe(true)
-    }
+  // O texto PT era o que chegava aqui até a US-105; se voltar a chegar, cai no default em
+  // silêncio — exatamente o defeito que a story fechou. Este teste marca a fronteira.
+  it('texto de jogador (não-chave) cai no default, não no kit da classe', () => {
+    expect(getStartingInventory(dnd5eConfig, 'Guerreiro')).toEqual([{ name: 'Adaga', qty: 1 }])
   })
 
   it('nunca devolve inventário vazio (fallback para classe desconhecida)', () => {
-    expect(getStartingInventory(dnd5eConfig, 'Inventor Steampunk').length).toBeGreaterThan(0)
+    expect(getStartingInventory(dnd5eConfig, 'inventor-steampunk').length).toBeGreaterThan(0)
     expect(getStartingInventory(dnd5eConfig, '').length).toBeGreaterThan(0)
   })
 
@@ -40,7 +39,7 @@ describe('getStartingInventory', () => {
       attributes: [{ key: 'sorte', label: 'Sorte', min: 1, max: 20, default: 10 }],
       startingKits: { default: [{ name: 'Mochila', qty: 1 }] },
     }
-    expect(getStartingInventory(freeConfig, 'Guerreiro')).toEqual([{ name: 'Mochila', qty: 1 }])
+    expect(getStartingInventory(freeConfig, 'fighter')).toEqual([{ name: 'Mochila', qty: 1 }])
   })
 })
 
@@ -58,34 +57,32 @@ describe('getClassSpells (US-42)', () => {
     },
   }
 
-  it('materializa os truques da classe conjuradora (clérigo → Chama Sagrada)', () => {
-    expect(getClassSpells(config, 'Clériga').map(s => s.name)).toContain('Chama Sagrada')
+  it('materializa os truques da classe conjuradora (cleric → Chama Sagrada)', () => {
+    expect(getClassSpells(config, 'cleric').map(s => s.name)).toContain('Chama Sagrada')
   })
 
-  it('Feiticeiro e Bruxo têm listas distintas (não colapsam)', () => {
-    expect(getClassSpells(config, 'Feiticeiro').map(s => s.name)).toEqual(['Raio de Fogo'])
-    expect(getClassSpells(config, 'Bruxo').map(s => s.name)).toEqual(['Rajada Mística'])
+  it('sorcerer e warlock têm listas distintas (não colapsam)', () => {
+    expect(getClassSpells(config, 'sorcerer').map(s => s.name)).toEqual(['Raio de Fogo'])
+    expect(getClassSpells(config, 'warlock').map(s => s.name)).toEqual(['Rajada Mística'])
   })
 
-  it('Patrulheiro/Ranger cai na chave própria (2 magias de nível 1)', () => {
-    for (const c of ['Patrulheiro', 'Ranger']) {
-      expect(getClassSpells(config, c).map(s => s.name)).toContain('Marca do Caçador')
-    }
+  it('ranger tem chave própria (2 magias de nível 1)', () => {
+    expect(getClassSpells(config, 'ranger').map(s => s.name)).toContain('Marca do Caçador')
   })
 
-  it('não-conjurador (guerreiro) → lista vazia', () => {
-    expect(getClassSpells(config, 'Guerreiro')).toEqual([])
+  it('não-conjurador (fighter) → lista vazia', () => {
+    expect(getClassSpells(config, 'fighter')).toEqual([])
   })
 
   it('sem classSpells no config → lista vazia (sem crash)', () => {
     const noSpells: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
-    expect(getClassSpells(noSpells, 'Clériga')).toEqual([])
+    expect(getClassSpells(noSpells, 'cleric')).toEqual([])
   })
 })
 
-// US-54: `classKey` é a chave canônica EN, mas Character.class continua sendo texto livre em PT.
-// Sem o match por CLASS_SYNONYMS, todo personagem PT cairia no gancho `default` em silêncio.
-describe('resolveInitialHook (US-28/US-54)', () => {
+// US-105: `classKey` do hook e `Character.class` são a MESMA chave canônica EN — comparação
+// direta. Antes, `Character.class` era texto PT e precisava do CLASS_SYNONYMS no meio.
+describe('resolveInitialHook (US-28/US-54/US-105)', () => {
   const hook = (id: string, classKey: string) => ({
     id, classKey, title: id, pitch: '', primaryQuestTitle: '', primaryQuestDescription: '',
     openingNarration: '', tags: [],
@@ -98,18 +95,18 @@ describe('resolveInitialHook (US-28/US-54)', () => {
     },
   }
 
-  it('classe digitada em PT resolve o gancho de classKey EN', () => {
-    expect(resolveInitialHook(config, 'Paladina')?.id).toBe('paladino-primeira-quebra')
-    expect(resolveInitialHook(config, 'Bruxo')?.id).toBe('bruxo-preco-do-pacto')
+  it('a chave da classe resolve o gancho de mesmo classKey', () => {
+    expect(resolveInitialHook(config, 'paladin')?.id).toBe('paladino-primeira-quebra')
+    expect(resolveInitialHook(config, 'warlock')?.id).toBe('bruxo-preco-do-pacto')
   })
 
   it('classe sem gancho próprio cai no default', () => {
-    expect(resolveInitialHook(config, 'Cartógrafa Estelar')?.id).toBe('default-primeiro-sinal')
-    expect(resolveInitialHook(config, 'Mago')?.id).toBe('default-primeiro-sinal')
+    expect(resolveInitialHook(config, 'cartografa-estelar')?.id).toBe('default-primeiro-sinal')
+    expect(resolveInitialHook(config, 'wizard')?.id).toBe('default-primeiro-sinal')
   })
 
   it('sistema sem catálogo → null (sem crash)', () => {
     const noHooks: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
-    expect(resolveInitialHook(noHooks, 'Paladina')).toBeNull()
+    expect(resolveInitialHook(noHooks, 'paladin')).toBeNull()
   })
 })

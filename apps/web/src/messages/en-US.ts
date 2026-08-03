@@ -76,30 +76,10 @@ export const enUS: Record<MessageKey, string> = {
 
   // Só o RÓTULO é traduzido — o `value` enviado à API continua sendo a chave PT
   // (ver o comentário gêmeo no pt-BR.ts e em SetupWizard).
+  // US-105: raça e classe não estão mais aqui; vêm do catálogo do sistema no locale ativo.
   'setup.gender.Feminino': 'Female',
   'setup.gender.Masculino': 'Male',
   'setup.gender.Não-binário': 'Non-binary',
-  'setup.race.Anão': 'Dwarf',
-  'setup.race.Meio-Orc': 'Half-Orc',
-  'setup.race.Elfo': 'Elf',
-  'setup.race.Halfling': 'Halfling',
-  'setup.race.Humano': 'Human',
-  'setup.race.Dragonborn': 'Dragonborn',
-  'setup.race.Gnomo': 'Gnome',
-  'setup.race.Meio-Elfo': 'Half-Elf',
-  'setup.race.Tiefling': 'Tiefling',
-  'setup.class.Bárbaro': 'Barbarian',
-  'setup.class.Bardo': 'Bard',
-  'setup.class.Clérigo': 'Cleric',
-  'setup.class.Druida': 'Druid',
-  'setup.class.Guerreiro': 'Fighter',
-  'setup.class.Monge': 'Monk',
-  'setup.class.Paladino': 'Paladin',
-  'setup.class.Patrulheiro': 'Ranger',
-  'setup.class.Ladino': 'Rogue',
-  'setup.class.Feiticeiro': 'Sorcerer',
-  'setup.class.Bruxo': 'Warlock',
-  'setup.class.Mago': 'Wizard',
 
   // ---- wizard: atributos ----
   'setup.attributes.titulo': 'Attributes',

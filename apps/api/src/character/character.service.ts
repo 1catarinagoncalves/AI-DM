@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, resolveLocale, type SystemConfig } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, type SystemCatalogEntry, type SystemConfig } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, localeOfUser } from '../system/system-locale'
 import { getClassFeatures, getClassSpells } from './starting-inventory'
@@ -26,12 +26,16 @@ export class CharacterService {
     const config = SystemConfigSchema.parse(configForLocale(system, locale))
     const baseAttributes = buildCharacterAttributesSchema(config.attributes).parse(dto.attributes)
     const skills = this.validateSkills(config, dto.skills ?? [])
+    // US-105: `race`/`class` são CHAVES do catálogo do sistema. A ficha guarda a chave; o
+    // rótulo é resolvido na leitura, no locale de quem lê.
+    const race = this.validateCatalogKey(config.races, dto.race, 'Raça')
+    const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
     // US-41: features de classe de nível 1, derivadas do kit da classe (mesmo caminho
     // do inventário inicial). Classe sem kit de features → [] (sem crash, sem seção).
-    const features = getClassFeatures(config, dto.class)
+    const features = getClassFeatures(config, charClass)
     // US-42: magias conhecidas (truques + exceção nível 1 de paladino/patrulheiro),
     // do mesmo kit da classe. Não-conjurador → [] (sem seção, sem crash).
-    const spells = getClassSpells(config, dto.class)
+    const spells = getClassSpells(config, charClass)
 
     return this.prisma.character.create({
       data: {
@@ -39,8 +43,8 @@ export class CharacterService {
         systemId: dto.systemId,
         name: dto.name,
         gender: dto.gender,
-        race: dto.race,
-        class: dto.class,
+        race,
+        class: charClass,
         level: 1,
         baseAttributes,
         skills,
@@ -72,6 +76,25 @@ export class CharacterService {
       out['deity'] = portfolio ? { name, portfolio } : { name }
     }
     return out
+  }
+
+  /**
+   * Valida a chave de raça/classe contra o catálogo do config (US-105), espelhando o
+   * `validateSkills`. O catálogo é FECHADO (US-105 → Questões em aberto #2): não há chave
+   * `custom` nem campo de escape, e chave desconhecida é rejeitada em vez de gravada.
+   *
+   * Sistema cujo config ainda não traz o catálogo (`races`/`classes` são opcionais, para não
+   * invalidar config legado) aceita o que vier — é o que impede um banco não re-semeado de
+   * parar de criar personagem. Some sozinho no primeiro `db:seed`.
+   */
+  private validateCatalogKey(catalog: SystemCatalogEntry[] | undefined, key: string, field: string): string {
+    if (!catalog || catalog.length === 0) return key
+    if (!catalog.some((e) => e.key === key)) {
+      throw new BadRequestException(
+        `${field} inválida: "${key}". Esperado uma chave do catálogo do sistema: ${catalog.map((e) => e.key).join(', ')}`,
+      )
+    }
+    return key
   }
 
   /**
@@ -108,9 +131,14 @@ export class CharacterService {
    * Uma query só (findMany com includes) — sem loop por personagem.
    */
   async findAllByUser(userId: string) {
+    // US-105: o hub exibe raça e classe, que agora são chave — precisa do config do sistema
+    // de cada ficha para resolver o rótulo. Vem no mesmo findMany (o include não custa uma
+    // query por personagem), e o locale é o do dono, lido uma vez.
+    const locale = await localeOfUser(this.prisma, userId)
     const characters = await this.prisma.character.findMany({
       where: { userId },
       include: {
+        system: true,
         // Estado mais recente → "último jogado" (CharacterState.updatedAt bumpa a cada turno).
         states: { orderBy: { updatedAt: 'desc' }, take: 1 },
         // Aventura em andamento: participação numa Adventure ACTIVE, a mais recente desempata.
@@ -124,16 +152,19 @@ export class CharacterService {
     })
 
     return characters
-      .map((c) => ({
-        id: c.id,
-        name: c.name,
-        race: c.race,
-        class: c.class,
-        level: c.level,
-        currentAdventure: c.participations[0]?.adventure ?? null,
-        // Chave de ordenação: último turno jogado; nunca jogou cai em createdAt.
-        _lastPlayed: c.states[0]?.updatedAt ?? c.createdAt,
-      }))
+      .map((c) => {
+        const config = configForLocale(c.system, locale)
+        return {
+          id: c.id,
+          name: c.name,
+          race: catalogLabel(config?.races, c.race),
+          class: catalogLabel(config?.classes, c.class),
+          level: c.level,
+          currentAdventure: c.participations[0]?.adventure ?? null,
+          // Chave de ordenação: último turno jogado; nunca jogou cai em createdAt.
+          _lastPlayed: c.states[0]?.updatedAt ?? c.createdAt,
+        }
+      })
       .sort((a, b) => b._lastPlayed.getTime() - a._lastPlayed.getTime())
       .map(({ _lastPlayed, ...rest }) => rest)
   }

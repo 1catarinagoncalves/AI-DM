@@ -78,33 +78,13 @@ export const ptBR = {
   'setup.raceClass.class': 'Classe',
   'setup.raceClass.select': 'Selecionar…',
 
-  // Rótulos de gênero/raça/classe. O VALOR enviado à API continua sendo o texto PT
-  // (ver SetupWizard) — traduzir o valor mandaria "Wizard" para o CLASS_SYNONYMS da
-  // API, que casa 'mag' e não 'wizard', e a classe cairia no kit `default` em silêncio.
+  // Rótulos de gênero. O VALOR enviado à API continua sendo o texto PT (ver SetupWizard):
+  // gênero não é dado de SRD, não tem catálogo de onde vir.
+  // US-105: `setup.race.*` e `setup.class.*` saíram daqui — o rótulo de raça e de classe
+  // agora vem do catálogo do sistema (config), já no locale ativo, e não do dicionário da UI.
   'setup.gender.Feminino': 'Feminino',
   'setup.gender.Masculino': 'Masculino',
   'setup.gender.Não-binário': 'Não-binário',
-  'setup.race.Anão': 'Anão',
-  'setup.race.Meio-Orc': 'Meio-Orc',
-  'setup.race.Elfo': 'Elfo',
-  'setup.race.Halfling': 'Halfling',
-  'setup.race.Humano': 'Humano',
-  'setup.race.Dragonborn': 'Dragonborn',
-  'setup.race.Gnomo': 'Gnomo',
-  'setup.race.Meio-Elfo': 'Meio-Elfo',
-  'setup.race.Tiefling': 'Tiefling',
-  'setup.class.Bárbaro': 'Bárbaro',
-  'setup.class.Bardo': 'Bardo',
-  'setup.class.Clérigo': 'Clérigo',
-  'setup.class.Druida': 'Druida',
-  'setup.class.Guerreiro': 'Guerreiro',
-  'setup.class.Monge': 'Monge',
-  'setup.class.Paladino': 'Paladino',
-  'setup.class.Patrulheiro': 'Patrulheiro',
-  'setup.class.Ladino': 'Ladino',
-  'setup.class.Feiticeiro': 'Feiticeiro',
-  'setup.class.Bruxo': 'Bruxo',
-  'setup.class.Mago': 'Mago',
 
   // ---- wizard: atributos ----
   'setup.attributes.titulo': 'Atributos',

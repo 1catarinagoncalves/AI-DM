@@ -62,6 +62,40 @@ const CLASS_MAP = {
   'srd-2024_wizard': 'wizard',
 }
 
+// --- ADR 009: a fonte é a UNIÃO do srd-2024 (5.2) e do srd-2014 (5.1), com o 5.2 vencendo ---
+
+// Normaliza o `pk` tirando o prefixo do documento: `srd-2024_dwarf` e `srd_dwarf` → `dwarf`.
+// É o que faz as 7 espécies comuns colapsarem na mesma chave sem caso especial nenhum.
+const stripDocument = (pk) => String(pk).replace(/^srd(-2024)?_/, '')
+
+// ADR 009 D3 — conceito idêntico que MUDOU DE SLUG entre as edições: chave 5.1 → chave 5.2.
+// Em espécie ele está vazio DE PROPÓSITO: as 7 comuns têm slug idêntico nos dois documentos
+// (medido em 02/08/2026), então a fusão delas funcionaria sem mapa nenhum. O mapa existe porque
+// o mecanismo nasce servindo Spell e ClassFeature também, onde 12 das 14 features de classe base
+// "exclusivas do 5.1" são só renomeação (`bard_cantrips-known` → `bard_cantrips`, ADR 009 §4):
+// sem ele, a precedência por chave crua DUPLICA o conceito em vez de deduplicá-lo.
+// Escrito à mão e explícito, como o CLASS_MAP — heurística de prefixo engole conteúdo em silêncio.
+const SRD_EQUIVALENTS = {}
+
+/**
+ * ADR 009 D2 — funde dois documentos do mesmo domínio com precedência do 5.2: carrega o 2024
+ * inteiro e do 2014 entra APENAS a chave que ainda não existe. Nunca o inverso, nunca merge
+ * campo a campo (isso produziria uma entrada que não existe em edição nenhuma).
+ * Devolve `[chave, registro][]` ordenado por chave — a ordenação é a idempotência do artefato.
+ *
+ * `equivalents` é parâmetro (e não só a const) para o teste conseguir exercitar o caso de
+ * renomeação enquanto o mapa de espécies está legitimamente vazio.
+ */
+export function mergeEditions(rows2024, rows2014, equivalents = SRD_EQUIVALENTS) {
+  const merged = new Map(rows2024.map((r) => [stripDocument(r.pk), r]))
+  for (const row of rows2014) {
+    const raw = stripDocument(row.pk)
+    const key = equivalents[raw] ?? raw
+    if (!merged.has(key)) merged.set(key, row)
+  }
+  return [...merged].sort((a, b) => a[0].localeCompare(b[0]))
+}
+
 // Atributo abreviado (dataset) → chave canônica. Ordem fixa = ordem do config (idempotência).
 const ABILITY_MAP = { str: 'strength', dex: 'dexterity', con: 'constitution', int: 'intelligence', wis: 'wisdom', cha: 'charisma' }
 const ATTR_ORDER = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
@@ -88,7 +122,7 @@ async function load(name) {
 function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), features: new Set(), spells: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), features: new Set(), spells: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -139,6 +173,32 @@ function buildSkills(overlay, skillsRaw, resolve) {
       if (!ability) throw new Error(`Perícia ${s.pk}: ability desconhecida "${s.fields.ability}"`)
       const label = resolve('skills', key, { name: overlay.skills?.[key] }, s.fields.name).name
       return { key, label, ability }
+    })
+    .sort((a, b) => a.key.localeCompare(b.key))
+}
+
+// --- races (11): união das RAÍZES dos dois SRD (ADR 009). US-105 ---
+// Subespécie fica fora (`subspecies_of !== null`): as 4 do 5.1 (high-elf, hill-dwarf, lightfoot,
+// rock-gnome) são escolha de produto, não consequência da fonte — mesmo filtro que
+// `buildClassFeatures` já aplica a subclasse. `Species.desc` vem VAZIO no dataset (a descrição
+// está no SpeciesTrait.json, fora do escopo), então o catálogo é só {key, label}.
+function buildRaces(overlay, species2024, species2014, resolve) {
+  const roots = (rows) => rows.filter((s) => s.fields.subspecies_of === null)
+  return mergeEditions(roots(species2024), roots(species2014)).map(([key, s]) => ({
+    key,
+    label: resolve('races', key, { name: overlay.races?.[key] }, s.fields.name).name,
+  }))
+}
+
+// --- classes (12): o CLASS_MAP já ERA o catálogo; aqui ele passa a ser emitido ---
+// Sem par 2014: as 12 classes base são idênticas nas duas edições (ADR 009 §4).
+function buildClasses(overlay, classes, resolve) {
+  return classes
+    .filter((c) => c.fields.subclass_of === null)
+    .map((c) => {
+      const key = CLASS_MAP[c.pk]
+      if (!key) throw new Error(`Classe base sem entrada no CLASS_MAP: ${c.pk}`)
+      return { key, label: resolve('classes', key, { name: overlay.classes?.[key] }, c.fields.name).name }
     })
     .sort((a, b) => a.key.localeCompare(b.key))
 }
@@ -197,6 +257,8 @@ function buildConfig(overlay, data) {
   const { resolve, fallbacks, orphans, usedOverlay, glossary } = makeResolver()
   const attributes = buildAttributes(overlay, data.abilities, resolve)
   const skills = buildSkills(overlay, data.skillsRaw, resolve)
+  const races = buildRaces(overlay, data.species, data.species2014, resolve)
+  const classes = buildClasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
 
@@ -208,21 +270,23 @@ function buildConfig(overlay, data) {
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  SystemConfigSchema.parse({ attributes, skills, classFeatures, classSpells, ...STUB })
-  return { artifact: { attributes, skills, classFeatures, classSpells }, fallbacks, orphans, glossary }
+  SystemConfigSchema.parse({ attributes, skills, races, classes, classFeatures, classSpells, ...STUB })
+  return { artifact: { attributes, skills, races, classes, classFeatures, classSpells }, fallbacks, orphans, glossary }
 }
 
 async function main() {
   const overlay = JSON.parse(await readFile(OVERLAY_PATH, 'utf8'))
-  const [abilities, skillsRaw, classes, features, featureItems, spells] = await Promise.all([
+  const [abilities, skillsRaw, classes, features, featureItems, spells, species, species2014] = await Promise.all([
     load('AbilityDescription.json'),
     load('Skill.json'),
     load('CharacterClass.json'),
     load('ClassFeature.json'),
     load('ClassFeatureItem.json'),
     load('Spell.json'),
+    load('Species.json'),
+    load('Species.2014.json'),
   ])
-  const data = { abilities, skillsRaw, classes, features, featureItems, spells }
+  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species, species2014 }
 
   const base = buildConfig({}, data)
   let localized = buildConfig(overlay, data)
@@ -370,9 +434,9 @@ function reportDrafts(drafted, overlay) {
   if (pending) console.log(`\n  ${pending} entrada(s) ainda marcada(s) "_mt" no overlay — revisar e remover a marca promove a curada.`)
 }
 
-function report({ fallbacks, orphans }, drafted, overlay) {
+function report({ fallbacks, orphans, artifact }, drafted, overlay) {
   console.log('ingest OK → scripts/srd/srd-5e.config.{en-US,pt-BR}.json')
-  console.log(`  attributes: 6 · skills: 18`)
+  console.log(`  attributes: 6 · skills: 18 · races: ${artifact.races.length} · classes: ${artifact.classes.length}`)
   reportDrafts(drafted, overlay)
   if (orphans.length) {
     console.log(`\n  ÓRFÃOS (${orphans.length}) — PT curado sem chave no SRD 5.2 (decidir: sumiu, mudou de nome, ou não é SRD):`)

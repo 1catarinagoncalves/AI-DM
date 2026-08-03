@@ -1,5 +1,5 @@
 {
-  "_comment": "Overlay pt-BR curado (US-47). Semeado do apps/api/prisma/seed.ts, religado por chave canônica. Chaves de feature: <classe canônica EN, US-54>_<slug EN estável> (sem prefixo srd-2024_). Chaves de spell: slug EN estável. Órfãos propositais (conteúdo curado sem chave no SRD 5.2) ficam aqui para o ingest RELATAR, não some em silêncio: features paladin_divine-sense / ranger_natural-explorer; spells friends, thorn-whip, toll-the-dead, mind-sliver, thunderclap, blade-ward, word-of-radiance. Entradas marcadas \"_mt\": true são RASCUNHO de máquina (US-52), gerados pelo ingest para o que o overlay curado não cobria — revise e remova a marca para promover a curada. Só entrada SEM marca vira termo de glossário. As 64 lacunas do 5.2 (Weapon Mastery, Ritual Adept, magias de nível 1) foram rascunhadas em 02/08/2026.",
+  "_comment": "Overlay pt-BR curado (US-47). Semeado do apps/api/prisma/seed.ts, religado por chave canônica. Chaves de feature: <classe canônica EN, US-54>_<slug EN estável> (sem prefixo srd-2024_). Chaves de spell: slug EN estável. Órfãos propositais (conteúdo curado sem chave no SRD 5.2) ficam aqui para o ingest RELATAR, não some em silêncio: features paladin_divine-sense / ranger_natural-explorer; spells friends, thorn-whip, toll-the-dead, mind-sliver, thunderclap, blade-ward, word-of-radiance. Entradas marcadas \"_mt\": true são RASCUNHO de máquina (US-52), gerados pelo ingest para o que o overlay curado não cobria — revise e remova a marca para promover a curada. Só entrada SEM marca vira termo de glossário. As 64 lacunas do 5.2 (Weapon Mastery, Ritual Adept, magias de nível 1) foram rascunhadas em 02/08/2026. US-105: races/classes são os rótulos do catálogo de espécie e de classe (string crua, como attributes/skills — sem lugar para a marca _mt, logo fora da tradução automática). Os PT vieram das listas literais que o SetupWizard tinha, de propósito: ficha legada migrada tem de resolver de volta para o MESMO texto que o jogador via.",
   "attributes": {
     "strength": "Força",
     "dexterity": "Destreza",
@@ -27,6 +27,33 @@
     "intimidation": "Intimidação",
     "performance": "Atuação",
     "persuasion": "Persuasão"
+  },
+  "races": {
+    "dragonborn": "Dragonborn",
+    "dwarf": "Anão",
+    "elf": "Elfo",
+    "gnome": "Gnomo",
+    "goliath": "Goliath",
+    "half-elf": "Meio-Elfo",
+    "half-orc": "Meio-Orc",
+    "halfling": "Halfling",
+    "human": "Humano",
+    "orc": "Orc",
+    "tiefling": "Tiefling"
+  },
+  "classes": {
+    "barbarian": "Bárbaro",
+    "bard": "Bardo",
+    "cleric": "Clérigo",
+    "druid": "Druida",
+    "fighter": "Guerreiro",
+    "monk": "Monge",
+    "paladin": "Paladino",
+    "ranger": "Patrulheiro",
+    "rogue": "Ladino",
+    "sorcerer": "Feiticeiro",
+    "warlock": "Bruxo",
+    "wizard": "Mago"
   },
   "features": {
     "barbarian_rage": { "name": "Fúria", "description": "Entra em fúria, ganhando ímpeto e resistência no combate." },

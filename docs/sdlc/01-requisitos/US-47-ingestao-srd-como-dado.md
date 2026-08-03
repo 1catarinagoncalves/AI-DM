@@ -64,6 +64,8 @@ Pipeline em dois passos, zero código de app novo:
 
 **O artefato do ingest popula exclusivamente o `System` `system-dnd5e`.** O sistema **`system-free` fica congelado nas regras de hoje** — mesmos atributos, perícias, features, magias e ganchos. Nenhum dado do SRD entra nele.
 
+> **Valeu até 02/08/2026.** O [ADR 004 §3.1](../../adr/004-origem-do-dado-de-sistema.md) reviu a decisão 6: o Free **passa a herdar** o artefato, por seleção de chaves. Ver a nota nos critérios de aceite.
+
 Motivo: o Free existe justamente para narrar **sem** seguir sistema oficial. Puxar o SRD para dentro dele seria trocar a natureza do sistema por efeito colateral de um pipeline de ingestão. Cada `System` é dado independente — é essa a promessa do [ADR 003](../../adr/003-sistemas-como-dado.md).
 
 #### ⚠️ Armadilha: hoje o Free **compartilha as constantes** do D&D
@@ -210,6 +212,14 @@ Até a US-52, a lacuna de um bump é preenchida à mão (adicionar a chave ao ov
 - [ ] **`startingKits` intocado pela US-47** — continua exatamente como hoje no `seed.ts` (kits autorais manuais). Sua derivação é a [US-51](./US-51-kits-iniciais-do-srd.md); nenhum personagem muda de inventário por causa desta story.
 - [ ] **O sistema Free não muda em nada.** O `config` do `system-free` **não contém nenhum dado derivado do SRD** — verificável comparando o `System.config` do Free antes e depois do ingest: **idêntico**.
 - [ ] `freeConfig` **não referencia mais** as constantes `dnd5e*` que o ingest substitui (`attributes`, `skills`, `classFeatures`, `classSpells`) no [seed.ts](../../../apps/api/prisma/seed.ts) — passa a ter literais próprias. Os dois sistemas viram dados independentes de fato, não por coincidência.
+
+> **Superado em 02/08/2026 pela revisão da decisão 6 do [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) (§3.1).**
+> Os dois critérios acima valeram e foram entregues — o desacoplamento era necessário para o Free não
+> herdar o SRD *por acidente*. A herança agora é **decidida**: o Free passa a montar `classFeatures`/
+> `classSpells` por **seleção de chaves** contra o artefato, ganha `configLocales['pt-BR']` e deixa de
+> ter literais de texto. O motivo é a [US-100](./US-100-ficha-do-personagem-no-locale-ativo.md): sem
+> chave no `config` do Free, a ficha dele nunca acompanharia o idioma. Kits e ganchos do Free seguem
+> literais (decisão 6c), então o critério da [US-51](./US-51-kits-iniciais-do-srd.md) continua de pé.
 - [ ] `System.version` do D&D passa a **`'5.2'`** (hoje `'5.1'`); o Free segue `'1.0'`.
 - [ ] O mapa de classes cobre as 12 classes do SRD; classe do dataset sem entrada no mapa **falha o ingest** (não é silenciosamente descartada).
 - [ ] O aviso de **licença CC-BY-4.0** (WotC / SRD 5.2, via Open5e) está versionado junto ao artefato derivado. **Licença única — nenhum material OGL.**

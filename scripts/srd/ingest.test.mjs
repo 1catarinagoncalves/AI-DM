@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions } from './ingest.mjs'
 
 const OVERLAY_PATH = join(import.meta.dirname, 'locale', 'pt-BR.json')
 
@@ -33,6 +33,33 @@ test('formatOverlay grava o rascunho como uma linha com a marca _mt', () => {
     out,
     '{\n  "features": {\n    "wizard_arcane_recovery": { "name": "Recuperação Arcana", "description": "Recupera.", "_mt": true }\n  }\n}\n',
   )
+})
+
+// --- US-105 / ADR 009 — a fusão dos dois SRD ---
+
+const row = (pk, name) => ({ pk, fields: { name } })
+
+// D2: o jogador recebe o texto da EDIÇÃO CORRENTE onde as duas descrevem a mesma coisa.
+// Este teste falha se a precedência inverter — que é o modo silencioso de errar, porque a
+// chave continua certa e só o conteúdo volta a ser o de 2014.
+test('mergeEditions: onde as duas edições têm a chave, vence o 5.2', () => {
+  const merged = new Map(mergeEditions([row('srd-2024_dwarf', 'Dwarf')], [row('srd_dwarf', 'Dwarf 5.1')]))
+  assert.equal(merged.size, 1)
+  assert.equal(merged.get('dwarf').fields.name, 'Dwarf')
+})
+
+test('mergeEditions: chave que só o 5.1 tem entra na união', () => {
+  const merged = mergeEditions([row('srd-2024_orc', 'Orc')], [row('srd_half-elf', 'Half-Elf')])
+  assert.deepEqual(merged.map(([k]) => k), ['half-elf', 'orc']) // ordenado por chave
+})
+
+// D3: sem o mapa, conceito renomeado entre as edições vira DUAS entradas do mesmo conceito.
+test('mergeEditions: o SRD_EQUIVALENTS deduplica o conceito que mudou de slug', () => {
+  const rows2024 = [row('srd-2024_bard_cantrips', 'Cantrips')]
+  const rows2014 = [row('srd_bard_cantrips-known', 'Cantrips Known')]
+  assert.equal(mergeEditions(rows2024, rows2014, {}).length, 2, 'sem mapa, duplica')
+  const deduped = mergeEditions(rows2024, rows2014, { 'bard_cantrips-known': 'bard_cantrips' })
+  assert.deepEqual(deduped.map(([k]) => k), ['bard_cantrips'])
 })
 
 const RAGE = { en: 'Rage', pt: 'Fúria' }

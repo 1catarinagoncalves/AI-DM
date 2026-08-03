@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, buildSkillSheet, resolveLocale, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
@@ -56,7 +56,9 @@ export class AdventureService {
     const hook = resolveInitialHook(config, character.class)
     if (!hook) throw new BadRequestException('O sistema deste personagem não tem aventuras iniciais configuradas')
 
-    return this.resolveHook(hook, character.name, character.class)
+    // US-105: `character.class` é a CHAVE; o placeholder {characterClass} é texto narrativo,
+    // e leva o rótulo no locale do dono — nunca a chave crua.
+    return this.resolveHook(hook, character.name, catalogLabel(config.classes, character.class))
   }
 
   private resolveHook(hook: InitialAdventureHook, name: string, charClass: string): InitialAdventureHook {
@@ -84,12 +86,17 @@ export class AdventureService {
 
     // A classe é a fonte de verdade do gancho: resolvemos server-side e só usamos
     // o initialHookId do cliente para validar que ele não escolheu outro (US-28).
+    // US-105: a chave vai para o lookup (hook, kit); o rótulo, para todo texto que uma
+    // pessoa lê — mensagem de erro, placeholder do gancho e prompt do Mestre.
+    const className = catalogLabel(config.classes, character.class)
+    const raceName = catalogLabel(config.races, character.race)
+
     const rawHook = resolveInitialHook(config, character.class)
     if (!rawHook) throw new BadRequestException('O sistema deste personagem não tem aventuras iniciais configuradas')
     if (dto.initialHookId !== rawHook.id) {
-      throw new BadRequestException(`Gancho inicial "${dto.initialHookId}" não é válido para a classe ${character.class}`)
+      throw new BadRequestException(`Gancho inicial "${dto.initialHookId}" não é válido para a classe ${className}`)
     }
-    const hook = this.resolveHook(rawHook, character.name, character.class)
+    const hook = this.resolveHook(rawHook, character.name, className)
 
     const attrs = character.baseAttributes as Record<string, number>
     const conMod = Math.floor(((attrs['constitution'] ?? 10) - 10) / 2)
@@ -111,8 +118,8 @@ export class AdventureService {
       systemName: character.system.name,
       characterName: character.name,
       characterGender: character.gender,
-      characterClass: character.class,
-      characterRace: character.race,
+      characterClass: className,
+      characterRace: raceName,
       mainQuest: `${hook.primaryQuestTitle}\n${hook.primaryQuestDescription}`,
       inventory: startingInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
       sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },

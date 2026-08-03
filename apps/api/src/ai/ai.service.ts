@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
-import { buildSkillSheet, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -314,8 +314,10 @@ export class AiService {
       systemName,
       characterName: character.name,
       characterGender: character.gender,
-      characterClass: character.class,
-      characterRace: character.race,
+      // US-105: a ficha guarda a CHAVE (`wizard`); o Mestre recebe o rótulo do locale ativo
+      // ("Mago"/"Wizard"). Sistema sem catálogo no config → a própria chave, nunca vazio.
+      characterClass: catalogLabel(config?.classes, character.class),
+      characterRace: catalogLabel(config?.races, character.race),
       sheet,
       attributeLabels,
       background: (character.background ?? {}) as unknown as CharacterBackground,

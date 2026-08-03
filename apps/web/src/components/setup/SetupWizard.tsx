@@ -12,14 +12,14 @@ import type { MessageKey } from '@/messages'
 type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'background' | 'review'
 const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'background', 'review']
 
-// US-98: os rótulos de gênero/raça/classe saíram destas listas para o dicionário,
-// mas as listas FICAM em pt-BR — elas são o `value` que viaja para a API, não o
-// texto da tela. O CLASS_SYNONYMS da API (starting-inventory.ts) casa por palavra
-// portuguesa ('mag' → wizard) e não conhece 'wizard' nem 'fighter': mandar o rótulo
-// traduzido faria a classe cair no kit `default` sem erro nenhum à vista.
+// US-98: os rótulos de gênero saíram desta lista para o dicionário, mas a lista FICA em
+// pt-BR — ela é o `value` que viaja para a API, não o texto da tela.
+//
+// US-105: raça e classe saíram daqui de vez. Eram listas literais em PT pelo mesmo motivo
+// (o CLASS_SYNONYMS da API casava palavra portuguesa), e agora vêm do catálogo do SRD no
+// `config` do sistema, já no locale ativo: o `value` é a CHAVE, o texto é o `label`.
+// Gênero fica porque não é dado de SRD — não tem catálogo de onde vir.
 const GENDERS = ['Feminino', 'Masculino', 'Não-binário'] as const
-const RACES = ['Anão', 'Meio-Orc', 'Elfo', 'Halfling', 'Humano', 'Dragonborn', 'Gnomo', 'Meio-Elfo', 'Tiefling'] as const
-const CLASSES = ['Bárbaro', 'Bardo', 'Clérigo', 'Druida', 'Guerreiro', 'Monge', 'Paladino', 'Patrulheiro', 'Ladino', 'Feiticeiro', 'Bruxo', 'Mago'] as const
 
 // Custo acumulado por valor (point-buy 5e). Não é linear: 13→14 e 14→15 custam 2 cada.
 const POINT_COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9, 16: 11, 17: 13, 18: 15 }
@@ -101,6 +101,14 @@ export function SetupWizard() {
   // US-27: catálogo de perícias e nº de proficiências a escolher, vindos do config.
   const skillCatalog = system?.config?.skills ?? []
   const skillChoices = system?.config?.proficiency?.choices ?? 0
+  // US-105: catálogos de raça e classe do sistema escolhido, no locale ativo. O `value` do
+  // select é `key`; o texto é `label`. Catálogo fechado: sem opção "outra" e sem campo livre.
+  const raceCatalog = system?.config?.races ?? []
+  const classCatalog = system?.config?.classes ?? []
+  // Rótulo da escolha atual, para a revisão e para o subtítulo do gancho — a chave nunca
+  // aparece na tela.
+  const raceLabel = raceCatalog.find(r => r.key === charData.race)?.label ?? ''
+  const classLabel = classCatalog.find(c => c.key === charData.class)?.label ?? ''
   const attrLabel = Object.fromEntries(attributes.map(a => [a.key, a.label]))
   // Custo é relativo ao default: o valor inicial de cada atributo é grátis (começa 27/27).
   const spent = attributes.reduce((s, a) => s + ((POINT_COST[attrs[a.key] ?? a.default] ?? 0) - (POINT_COST[a.default] ?? 0)), 0)
@@ -109,6 +117,10 @@ export function SetupWizard() {
   function handleSelectSystem(s: SystemOption) {
     setSystem(s)
     setAttrs(Object.fromEntries((s.config?.attributes ?? []).map(a => [a.key, a.default])))
+    // US-105: raça e classe passaram a depender do sistema (o catálogo vem do config dele).
+    // Voltar e trocar de sistema tem de limpá-las, senão fica selecionada uma chave que o
+    // catálogo novo não tem — e o `canAdvance` deixaria passar o que a API vai rejeitar.
+    setCharData(p => ({ ...p, race: '', class: '' }))
     setStep('race-class')
   }
 
@@ -118,8 +130,8 @@ export function SetupWizard() {
       case 'race-class':
         return charData.name.trim() !== ''
           && (GENDERS as readonly string[]).includes(charData.gender)
-          && (RACES as readonly string[]).includes(charData.race)
-          && (CLASSES as readonly string[]).includes(charData.class)
+          && raceCatalog.some(r => r.key === charData.race)
+          && classCatalog.some(c => c.key === charData.class)
       case 'attributes': return budget === undefined || remaining === 0
       // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`.
       case 'skills': return skillChoices === 0 || skills.length === skillChoices
@@ -230,7 +242,7 @@ export function SetupWizard() {
             ) : (
               <>
                 <SectionTitle className="mt-3 sm:text-4xl">{hook.title}</SectionTitle>
-                <p className="mt-2 text-sm text-muted-foreground">{t('hook.subtitle', { name: charData.name, class: charData.class })}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{t('hook.subtitle', { name: charData.name, class: classLabel })}</p>
                 <div className="mt-6 space-y-4 text-[15px] leading-relaxed text-foreground">
                   <p>{hook.pitch}</p>
                   <p className="whitespace-pre-wrap italic text-muted-foreground">{hook.openingNarration}</p>
@@ -332,7 +344,7 @@ export function SetupWizard() {
                         onChange={e => setCharData(p => ({ ...p, race: e.target.value }))}
                         className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                         <option value="">{t('setup.raceClass.select')}</option>
-                        {RACES.map(r => <option key={r} value={r}>{t(`setup.race.${r}`)}</option>)}
+                        {raceCatalog.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
                       </select>
                     </div>
                     <div>
@@ -341,7 +353,7 @@ export function SetupWizard() {
                         onChange={e => setCharData(p => ({ ...p, class: e.target.value }))}
                         className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                         <option value="">{t('setup.raceClass.select')}</option>
-                        {CLASSES.map(c => <option key={c} value={c}>{t(`setup.class.${c}`)}</option>)}
+                        {classCatalog.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                       </select>
                     </div>
                   </div>
@@ -455,13 +467,14 @@ export function SetupWizard() {
                 <SectionTitle>{t('setup.review.titulo')}</SectionTitle>
                 <p className="mt-2 text-sm text-muted-foreground">{t('setup.review.subtitulo')}</p>
                 <dl className="mt-6 divide-y divide-border">
-                  {/* US-98: o VALOR de gênero/raça/classe é a chave PT guardada no estado,
-                      então a revisão o traduz para exibir — sem tocar no que vai à API. */}
+                  {/* US-98: o VALOR de gênero é a chave PT guardada no estado, então a revisão
+                      o traduz para exibir — sem tocar no que vai à API.
+                      US-105: raça e classe já vêm rotuladas do catálogo, no locale ativo. */}
                   {[
                     [t('setup.review.name'), charData.name],
                     [t('setup.review.gender'), charData.gender && t(`setup.gender.${charData.gender as typeof GENDERS[number]}`)],
-                    [t('setup.review.race'), charData.race && t(`setup.race.${charData.race as typeof RACES[number]}`)],
-                    [t('setup.review.class'), charData.class && t(`setup.class.${charData.class as typeof CLASSES[number]}`)],
+                    [t('setup.review.race'), raceLabel],
+                    [t('setup.review.class'), classLabel],
                     [t('setup.review.level'), '1'],
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-start justify-between gap-6 py-2.5">

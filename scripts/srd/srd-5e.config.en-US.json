@@ -1240,6 +1240,102 @@
       }
     ]
   },
+  "classes": [
+    {
+      "key": "barbarian",
+      "label": "Barbarian"
+    },
+    {
+      "key": "bard",
+      "label": "Bard"
+    },
+    {
+      "key": "cleric",
+      "label": "Cleric"
+    },
+    {
+      "key": "druid",
+      "label": "Druid"
+    },
+    {
+      "key": "fighter",
+      "label": "Fighter"
+    },
+    {
+      "key": "monk",
+      "label": "Monk"
+    },
+    {
+      "key": "paladin",
+      "label": "Paladin"
+    },
+    {
+      "key": "ranger",
+      "label": "Ranger"
+    },
+    {
+      "key": "rogue",
+      "label": "Rogue"
+    },
+    {
+      "key": "sorcerer",
+      "label": "Sorcerer"
+    },
+    {
+      "key": "warlock",
+      "label": "Warlock"
+    },
+    {
+      "key": "wizard",
+      "label": "Wizard"
+    }
+  ],
+  "races": [
+    {
+      "key": "dragonborn",
+      "label": "Dragonborn"
+    },
+    {
+      "key": "dwarf",
+      "label": "Dwarf"
+    },
+    {
+      "key": "elf",
+      "label": "Elf"
+    },
+    {
+      "key": "gnome",
+      "label": "Gnome"
+    },
+    {
+      "key": "goliath",
+      "label": "Goliath"
+    },
+    {
+      "key": "half-elf",
+      "label": "Half-Elf"
+    },
+    {
+      "key": "half-orc",
+      "label": "Half-Orc"
+    },
+    {
+      "key": "halfling",
+      "label": "Halfling"
+    },
+    {
+      "key": "human",
+      "label": "Human"
+    },
+    {
+      "key": "orc",
+      "label": "Orc"
+    },
+    {
+      "key": "tiefling",
+      "label": "Tiefling"
+    }
+  ],
   "skills": [
     {
       "ability": "dexterity",

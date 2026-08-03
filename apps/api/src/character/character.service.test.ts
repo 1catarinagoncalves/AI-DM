@@ -25,22 +25,39 @@ const config: SystemConfig = {
 }
 
 // Double do Prisma para findAllByUser: devolve os personagens que a query "encontraria".
-function fakePrismaList(characters: unknown[]): PrismaService {
+// US-105: o hub resolve o rótulo de raça/classe, logo precisa do locale do dono e do config.
+function fakePrismaList(characters: unknown[], locale = 'pt-BR'): PrismaService {
   return {
+    user: { findUnique: async () => ({ locale }) },
     character: { findMany: async () => characters },
   } as unknown as PrismaService
 }
+
+// US-105: catálogo do sistema nos dois locales — a base é EN, a localização vive em configLocales.
+const catalogEn: SystemConfig = {
+  ...config,
+  races: [{ key: 'dwarf', label: 'Dwarf' }, { key: 'elf', label: 'Elf' }],
+  classes: [{ key: 'fighter', label: 'Fighter' }, { key: 'wizard', label: 'Wizard' }],
+}
+const catalogPt: SystemConfig = {
+  ...config,
+  races: [{ key: 'dwarf', label: 'Anão' }, { key: 'elf', label: 'Elfo' }],
+  classes: [{ key: 'fighter', label: 'Guerreiro' }, { key: 'wizard', label: 'Mago' }],
+}
+const systemRow = { config: catalogEn, configLocales: { 'pt-BR': catalogPt } }
 
 describe('CharacterService.findAllByUser (US-25)', () => {
   it('embute currentAdventure da participação ACTIVE e ordena por último jogado', async () => {
     const service = new CharacterService(fakePrismaList([
       {
-        id: 'char-old', name: 'Antigo', race: 'Anão', class: 'Guerreiro', level: 2, createdAt: new Date('2020-01-01'),
+        id: 'char-old', name: 'Antigo', race: 'dwarf', class: 'fighter', level: 2, createdAt: new Date('2020-01-01'),
+        system: systemRow,
         states: [{ updatedAt: new Date('2026-01-01') }],
         participations: [],
       },
       {
-        id: 'char-new', name: 'Lyra', race: 'Elfa', class: 'Maga', level: 1, createdAt: new Date('2020-02-01'),
+        id: 'char-new', name: 'Lyra', race: 'elf', class: 'wizard', level: 1, createdAt: new Date('2020-02-01'),
+        system: systemRow,
         states: [{ updatedAt: new Date('2026-06-01') }],
         participations: [{ adventure: { id: 'adv-1', title: 'A Mina Perdida' } }],
       },
@@ -55,6 +72,20 @@ describe('CharacterService.findAllByUser (US-25)', () => {
     expect(second!.currentAdventure).toBeNull()
     // não vaza a chave interna de ordenação
     expect('_lastPlayed' in first!).toBe(false)
+  })
+
+  // US-105: o hub guarda chave e exibe rótulo. O par de testes falha se ele voltar a servir
+  // a chave crua, ou se ignorar o locale do dono.
+  it('o hub devolve o rótulo no locale do dono, não a chave', async () => {
+    const rows = [{
+      id: 'c1', name: 'Lyra', race: 'dwarf', class: 'wizard', level: 1, createdAt: new Date('2020-01-01'),
+      system: systemRow, states: [], participations: [],
+    }]
+    const ptList = await new CharacterService(fakePrismaList(rows, 'pt-BR')).findAllByUser('u1')
+    expect([ptList[0]!.race, ptList[0]!.class]).toEqual(['Anão', 'Mago'])
+
+    const enList = await new CharacterService(fakePrismaList(rows, 'en-US')).findAllByUser('u1')
+    expect([enList[0]!.race, enList[0]!.class]).toEqual(['Dwarf', 'Wizard'])
   })
 
   it('devolve [] para usuário sem personagens', async () => {
@@ -208,10 +239,10 @@ describe('CharacterService.create', () => {
     },
   }
 
-  it('materializa as features de nível 1 da classe (match tolerante a acento/caixa)', async () => {
+  it('materializa as features de nível 1 da classe (lookup pela chave)', async () => {
     const service = new CharacterService(fakePrisma(configWithFeatures))
     const char = await service.create({
-      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'Paladina',
+      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'paladin',
       attributes: { cool: 5, hard: 5 },
     })
     expect(char.features).toEqual([
@@ -226,7 +257,7 @@ describe('CharacterService.create', () => {
   it('locale en-US materializa a feature com o texto da base EN', async () => {
     const service = new CharacterService(fakePrisma(configWithFeaturesEn, 'en-US', { 'pt-BR': configWithFeatures }))
     const char = await service.create({
-      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Human', class: 'Paladina',
+      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Human', class: 'paladin',
       attributes: { cool: 5, hard: 5 },
     })
     expect(char.features).toEqual([
@@ -238,7 +269,7 @@ describe('CharacterService.create', () => {
   it('locale pt-BR materializa a feature da localização, não da base EN', async () => {
     const service = new CharacterService(fakePrisma(configWithFeaturesEn, 'pt-BR', { 'pt-BR': configWithFeatures }))
     const char = await service.create({
-      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'Paladina',
+      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'paladin',
       attributes: { cool: 5, hard: 5 },
     })
     expect(char.features).toEqual([
@@ -256,10 +287,42 @@ describe('CharacterService.create', () => {
     expect(char.features).toEqual([])
   })
 
+  // --- US-105: raça e classe são CHAVE do catálogo, e o catálogo é FECHADO ---
+
+  it('persiste a CHAVE de raça e classe, não o texto', async () => {
+    const service = new CharacterService(fakePrisma(catalogPt))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Lyra', gender: 'x', race: 'dwarf', class: 'wizard',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect([char.race, char.class]).toEqual(['dwarf', 'wizard'])
+  })
+
+  // Questões em aberto #2: não existe escape. Rótulo, chave inventada e texto legado são
+  // todos "fora do catálogo" — e nenhum é gravado.
+  it('rejeita raça ou classe fora do catálogo (sem chave `custom`, sem gravação)', async () => {
+    const service = new CharacterService(fakePrisma(catalogPt))
+    const base = { userId: 'u1', systemId: 'sys-test', name: 'Lyra', gender: 'x', attributes: { cool: 5, hard: 5 } }
+    await expect(service.create({ ...base, race: 'Anão', class: 'wizard' })).rejects.toThrow('Raça inválida')
+    await expect(service.create({ ...base, race: 'dwarf', class: 'Mago' })).rejects.toThrow('Classe inválida')
+    await expect(service.create({ ...base, race: 'meio-elfo-do-norte', class: 'wizard' })).rejects.toThrow('Raça inválida')
+  })
+
+  // `races`/`classes` são opcionais no schema para não invalidar config legado — e um banco
+  // ainda não re-semeado tem de continuar criando personagem.
+  it('config sem catálogo aceita o valor como veio (compatibilidade)', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'Anão', class: 'Mago',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect([char.race, char.class]).toEqual(['Anão', 'Mago'])
+  })
+
   it('sistema sem classFeatures no config → features [] (sem crash)', async () => {
     const service = new CharacterService(fakePrisma(config))
     const char = await service.create({
-      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'Paladina',
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'paladin',
       attributes: { cool: 5, hard: 5 },
     })
     expect(char.features).toEqual([])

@@ -1240,6 +1240,102 @@
       }
     ]
   },
+  "classes": [
+    {
+      "key": "barbarian",
+      "label": "Bárbaro"
+    },
+    {
+      "key": "bard",
+      "label": "Bardo"
+    },
+    {
+      "key": "cleric",
+      "label": "Clérigo"
+    },
+    {
+      "key": "druid",
+      "label": "Druida"
+    },
+    {
+      "key": "fighter",
+      "label": "Guerreiro"
+    },
+    {
+      "key": "monk",
+      "label": "Monge"
+    },
+    {
+      "key": "paladin",
+      "label": "Paladino"
+    },
+    {
+      "key": "ranger",
+      "label": "Patrulheiro"
+    },
+    {
+      "key": "rogue",
+      "label": "Ladino"
+    },
+    {
+      "key": "sorcerer",
+      "label": "Feiticeiro"
+    },
+    {
+      "key": "warlock",
+      "label": "Bruxo"
+    },
+    {
+      "key": "wizard",
+      "label": "Mago"
+    }
+  ],
+  "races": [
+    {
+      "key": "dragonborn",
+      "label": "Dragonborn"
+    },
+    {
+      "key": "dwarf",
+      "label": "Anão"
+    },
+    {
+      "key": "elf",
+      "label": "Elfo"
+    },
+    {
+      "key": "gnome",
+      "label": "Gnomo"
+    },
+    {
+      "key": "goliath",
+      "label": "Goliath"
+    },
+    {
+      "key": "half-elf",
+      "label": "Meio-Elfo"
+    },
+    {
+      "key": "half-orc",
+      "label": "Meio-Orc"
+    },
+    {
+      "key": "halfling",
+      "label": "Halfling"
+    },
+    {
+      "key": "human",
+      "label": "Humano"
+    },
+    {
+      "key": "orc",
+      "label": "Orc"
+    },
+    {
+      "key": "tiefling",
+      "label": "Tiefling"
+    }
+  ],
   "skills": [
     {
       "ability": "dexterity",
