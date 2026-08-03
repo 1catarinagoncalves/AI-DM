@@ -78,11 +78,13 @@ O AI DM atualiza o inventário via mecanismo interno — metadados brutos (ex.: 
 >
 > Ela definiu os kits do MVP e foi transcrita para `config.startingKits` no [seed.ts](../../../apps/api/prisma/seed.ts) pela [US-21](./US-21-sistemas-como-dado.md). Mas **estes kits nunca foram SRD** — são flavor autoral, e alguns itens não existem em D&D 5e ("Poção de mana", "Pele de urso (armadura)").
 >
-> A [US-51](./US-51-kits-iniciais-do-srd.md) passa a **derivar os kits do SRD 2024** (dataset `5e-bits/5e-database`, `starting_equipment_options`, opção *a*), traduzidos por overlay pt-BR. O mago deixa de ter Poção de mana e passa a ter 2 adagas, bordão, robe, grimório e mochila de erudito. (Kit é story própria porque a fonte é OGL 1.0a — a [US-47](./US-47-ingestao-srd-como-dado.md), que deriva o resto do `config`, é CC-BY puro e não toca em kit.)
+> A [US-51](./US-51-kits-iniciais-do-srd.md) passa a **derivar os kits do SRD 2024** (Open5e, `ClassFeature` / `CORE_TRAITS_TABLE`, sempre a opção A), traduzidos por overlay pt-BR. O mago deixa de ter Poção de mana e passa a ter 2 adagas, foco arcano (bordão), túnica, grimório e mochila de erudito.
+>
+> *(Correção de 03/08/2026: esta nota dizia que o kit vinha do `5e-bits/5e-database` e que era story própria por causa da OGL 1.0a. O dado está no mesmo Open5e CC-BY-4.0 da [US-47](./US-47-ingestao-srd-como-dado.md) — nenhuma segunda fonte entrou. Ver [ADR 004 §3.2](../../adr/004-origem-do-dado-de-sistema.md).)*
 >
 > **O que continua valendo desta US:** o *mecanismo* — kit resolvido por classe na criação, com fallback tolerante para classe desconhecida (hoje `getStartingInventory` + `CLASS_SYNONYMS` + chave `default`). O que muda é só o **conteúdo** da tabela, e ele deixa de morar aqui: a fonte passa a ser o dataset.
 >
-> **Personagens já criados não mudam** — o inventário é materializado no `Character` na criação.
+> **Aventuras já iniciadas não mudam** — o inventário é materializado em `CharacterState.inventory` quando a **aventura** começa (`AdventureService.create`), não no `Character`. Personagem antigo que iniciar uma aventura nova recebe o kit novo. *(Correção de 03/08/2026: esta linha dizia "materializado no `Character` na criação"; `Character` não tem coluna `inventory`.)*
 
 | Classe (histórico) | Equipamentos iniciais (MVP, substituídos pela US-51)                          |
 | ------------- | ------------------------------------------------------------------------------ |

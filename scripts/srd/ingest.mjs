@@ -105,7 +105,24 @@ const ATTR_ORDER = ['strength', 'dexterity', 'constitution', 'intelligence', 'wi
 const ATTR_RANGE = { min: 10, max: 18, default: 10 }
 
 // Stub dos campos que o ingest não deriva (o schema os exige; o valor real vive no seed).
-const STUB = { startingKits: { default: [{ name: '—', qty: 1 }] }, pointBuy: { budget: 27 } }
+// US-51: `startingKits` SAIU daqui — passou a ser derivado, ver buildStartingKits.
+const STUB = { pointBuy: { budget: 27 } }
+
+// US-51 — palavras que a extração de PDF do dataset partiu no meio ("Leather Ar mor").
+// Mapa EXPLÍCITO, não heurística de "junta letra solta": heurística engole nome legítimo em
+// silêncio num bump; o mapa erra alto (o item vira órfão no overlay ou cai no fallback EN).
+const PDF_SPLITS = { 'Ar mor': 'Armor', 'Ar rows': 'Arrows', 'Ar cane': 'Arcane' }
+
+// US-51 — fallback de classe fora do catálogo (sistema custom, classe que o config não tem).
+// NÃO vem do SRD: o dataset não tem "classe padrão". Mora aqui, em EN, para atravessar o
+// mesmo overlay dos outros itens — no seed ele seria PT nos dois locales, que é o defeito
+// que esta story conserta. Nunca devolvemos inventário vazio.
+const DEFAULT_KIT = [
+  { name: 'Dagger', qty: 1 },
+  { name: 'Leather Armor', qty: 1 },
+  { name: 'Backpack', qty: 1 },
+  { name: 'Waterskin', qty: 1 },
+]
 
 const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -122,7 +139,7 @@ async function load(name) {
 function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), features: new Set(), spells: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), features: new Set(), spells: new Set(), kitItems: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -255,6 +272,68 @@ function buildClassSpells(overlay, spells, resolve) {
   return classSpells
 }
 
+// --- startingKits (12 + default): opção A da tabela de traços da classe (US-51) ---
+//
+// Único campo que sai de TEXTO LIVRE: o Open5e guarda o equipamento inicial como uma linha de
+// tabela markdown dentro do `desc` da feature `CORE_TRAITS_TABLE`, não como campo estruturado.
+// A alternativa era o 5e-database (`starting_equipment_options` em árvore), que é OGL 1.0a —
+// segunda licença no repo para evitar o parser abaixo. Ver US-51 → "Decisão de arquitetura".
+//
+// "(A) itens e N PO; ou (B) M PO": sem modelo de dinheiro no jogo, só a opção A existe aqui —
+// a alternativa em ouro e as moedas soltas da própria A são descartadas.
+export function parseStartingKit(cell) {
+  let text = String(cell)
+  for (const [broken, whole] of Object.entries(PDF_SPLITS)) text = text.replaceAll(broken, whole)
+  const optionA = text
+    .replace(/^Choose[^:]*:\s*/, '') // "Choose A or B:" — e o "Choose A, B, or C:" do guerreiro
+    .split(';')[0] // corta B (e C) fora
+    .replace(/^\(A\)\s*/, '')
+  return optionA
+    .split(',')
+    .map((part) => norm(part).replace(/^and\s+/, ''))
+    .filter((part) => part && !/^\d+\s*GP$/i.test(part))
+    .map(toKitItem)
+}
+
+// "8 Javelins" → { name: 'Javelin', qty: 8 }. Singulariza SÓ quando havia numeral: "Thieves'
+// Tools" e "Artisan's Tools" são plural no singular e viram "Tool" se a regra for cega.
+function toKitItem(part) {
+  // Escolha em prosa dentro da própria opção A ("Artisan's Tools or Musical Instrument…",
+  // "Musical Instrument of your choice"): a PRIMEIRA alternativa vence, mesma regra do "sempre A".
+  const name = part.replace(/\s+(or|of your choice|chosen for)\b.*$/, '')
+  const counted = name.match(/^(\d+)\s+(.+)$/)
+  if (!counted) return { name, qty: 1 }
+  return { name: counted[2].replace(/s$/, ''), qty: Number(counted[1]) }
+}
+
+function startingEquipmentCell(feature) {
+  const line = String(feature.fields.desc).split('\n').find((l) => l.startsWith('|Starting Equipment'))
+  if (!line) {
+    throw new Error(`${feature.pk}: tabela de traços sem a linha "|Starting Equipment|…|" (desc: ${norm(feature.fields.desc).slice(0, 80)}…)`)
+  }
+  return line.split('|')[2]
+}
+
+function buildStartingKits(overlay, features, resolve) {
+  // A chave do overlay é o NOME EN do item ("Chain Shirt"), como em attributes/skills: item só
+  // tem nome, não tem descrição — não há onde pendurar a marca `_mt` (por isso fora de MT_DOMAINS).
+  const localize = (item) => ({
+    name: resolve('kitItems', item.name, { name: overlay.kitItems?.[item.name] }, item.name).name,
+    qty: item.qty,
+  })
+  const startingKits = { default: DEFAULT_KIT.map(localize) }
+  for (const f of features) {
+    if (f.fields.feature_type !== 'CORE_TRAITS_TABLE') continue
+    const canon = CLASS_MAP[f.fields.parent]
+    if (!canon) continue // subclasse/documento fora do mapa: o loop abaixo é quem cobra a base
+    startingKits[canon] = parseStartingKit(startingEquipmentCell(f)).map(localize)
+  }
+  for (const canon of Object.values(CLASS_MAP)) {
+    if (!startingKits[canon]) throw new Error(`Classe sem kit inicial: ${canon} (nenhuma feature CORE_TRAITS_TABLE em ClassFeature.json)`)
+  }
+  return startingKits
+}
+
 // Monta um artefato completo a partir do dataset + um overlay. Overlay `{}` = base EN crua.
 function buildConfig(overlay, data) {
   const { resolve, fallbacks, orphans, usedOverlay, glossary } = makeResolver()
@@ -264,17 +343,18 @@ function buildConfig(overlay, data) {
   const classes = buildClasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
+  const startingKits = buildStartingKits(overlay, data.features, resolve)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
-  for (const domain of ['features', 'spells']) {
+  for (const domain of ['features', 'spells', 'kitItems']) {
     for (const key of Object.keys(overlay[domain] || {})) {
       if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
     }
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  SystemConfigSchema.parse({ attributes, skills, races, classes, classFeatures, classSpells, ...STUB })
-  return { artifact: { attributes, skills, races, classes, classFeatures, classSpells }, fallbacks, orphans, glossary }
+  SystemConfigSchema.parse({ attributes, skills, races, classes, classFeatures, classSpells, startingKits, ...STUB })
+  return { artifact: { attributes, skills, races, classes, classFeatures, classSpells, startingKits }, fallbacks, orphans, glossary }
 }
 
 async function main() {

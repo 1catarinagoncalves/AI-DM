@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-106](./US-106-catalogo-com-chave-e-free-herdando-o-srd.md) (**obrigatória e anterior**: é ela que põe `key` no artefato e faz o Free herdar o SRD — sem chave no `config` a ficha não tem o que guardar) · [US-97](./US-97-seletor-de-idioma-pt-br-en.md) (é de `User.locale` que sai o idioma) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (**obrigatória e anterior**: a ficha resolve a label a partir do `config` do locale — sem `config` por locale não há de onde resolver) · [US-54](./US-54-chaves-canonicas-em-ingles.md) ✅ (as chaves de classe já são EN — o ADR 005 exigia essa ordem) · [US-52](./US-52-traducao-automatica-do-srd.md) ✅ (o pipeline de tradução que esta story reusa para o conteúdo aposentado)
 **Relacionada a:** [US-41](./US-41-features-traits-de-classe.md) e [US-42](./US-42-magias-conhecidas.md) (foram elas que materializaram feature/magia como texto) · [US-27](./US-27-pericias-do-personagem.md) (as perícias **já** fazem certo — é o modelo a copiar) · [US-47](./US-47-ingestao-srd-como-dado.md) (é o `ingest` que calcula e descarta a chave) · [ADR 005](../../adr/005-locale-como-dimensao.md) (D2 e fase "Ficha") · [ADR 004 §3.1](../../adr/004-origem-do-dado-de-sistema.md) (**revisão de 02/08/2026**: o Free herda o SRD — é o que traz o `system-free` para dentro desta story) · [ADR 002](../../adr/002-memoria-de-sessao.md) (o `EventLog` congela por decisão, não entra aqui)
 **Criada em:** 2026-07-30 · **Reescrita em:** 2026-08-02

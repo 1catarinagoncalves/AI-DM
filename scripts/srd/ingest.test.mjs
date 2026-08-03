@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit } from './ingest.mjs'
 
 const OVERLAY_PATH = join(import.meta.dirname, 'locale', 'pt-BR.json')
 
@@ -106,6 +106,121 @@ for (const locale of ['en-US', 'pt-BR']) {
     }
   })
 }
+
+// --- US-51 — o kit inicial sai de TEXTO LIVRE, então cada armadilha do dataset vira teste ---
+//
+// As células abaixo são o texto CRU de `ClassFeature.CORE_TRAITS_TABLE` (Open5e v2.1.0),
+// copiado sem correção — inclusive as palavras que a extração de PDF partiu no meio.
+
+test('parseStartingKit: opção A do clérigo, sem o ouro', () => {
+  const cell = "Choose A or B: (A) Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack, and 7 GP; or (B) 110 GP"
+  assert.deepEqual(parseStartingKit(cell), [
+    { name: 'Chain Shirt', qty: 1 },
+    { name: 'Shield', qty: 1 },
+    { name: 'Mace', qty: 1 },
+    { name: 'Holy Symbol', qty: 1 },
+    { name: "Priest's Pack", qty: 1 },
+  ])
+})
+
+// O guerreiro é a única classe com TRÊS opções. Cortar em "; " (e não no último ";") é o que
+// impede a opção B de entrar no kit como se fosse continuação da A.
+test('parseStartingKit: guerreiro para na opção A, sem B nem C', () => {
+  const cell =
+    "Choose A, B, or C: (A) Chain Mail, Greatsword, Flail, 8 Javelins, Dungeoneer's Pack, and 4 GP; (B) Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Dungeoneer's Pack, and 11 GP; or (C) 155 GP"
+  assert.deepEqual(parseStartingKit(cell), [
+    { name: 'Chain Mail', qty: 1 },
+    { name: 'Greatsword', qty: 1 },
+    { name: 'Flail', qty: 1 },
+    { name: 'Javelin', qty: 8 },
+    { name: "Dungeoneer's Pack", qty: 1 },
+  ])
+})
+
+// `Leather Ar mor` é o dataset, não erro de digitação daqui. Sem o reparo, o item vira uma
+// chave de overlay que nunca casa e o kit sai com "Ar mor" na ficha do jogador.
+test('parseStartingKit: repara a palavra partida pela extração de PDF', () => {
+  const cell =
+    "Choose A or B: (A) Leather Ar mor, Shield, Sickle, Druidic Focus (Quarterstaff), Explorer's Pack, Herbalism Kit, and 9 GP; or (B) 50 GP"
+  assert.deepEqual(parseStartingKit(cell).map((i) => i.name), [
+    'Leather Armor',
+    'Shield',
+    'Sickle',
+    'Druidic Focus (Quarterstaff)',
+    "Explorer's Pack",
+    'Herbalism Kit',
+  ])
+})
+
+// Singularizar cego transforma "Thieves' Tools" (plural no singular) em "Thieves' Tool".
+// A regra é: só singulariza o que TINHA numeral.
+test('parseStartingKit: numeral singulariza, plural sem numeral fica intacto', () => {
+  const cell =
+    "Choose A or B: (A) Leather Armor, 2 Daggers, Shortsword, Shortbow, 20 Arrows, Quiver, Thieves' Tools, Burglar's Pack, and 8 GP; or (B) 100 GP"
+  assert.deepEqual(parseStartingKit(cell), [
+    { name: 'Leather Armor', qty: 1 },
+    { name: 'Dagger', qty: 2 },
+    { name: 'Shortsword', qty: 1 },
+    { name: 'Shortbow', qty: 1 },
+    { name: 'Arrow', qty: 20 },
+    { name: 'Quiver', qty: 1 },
+    { name: "Thieves' Tools", qty: 1 },
+    { name: "Burglar's Pack", qty: 1 },
+  ])
+})
+
+// Escolha em prosa DENTRO da opção A: a primeira alternativa vence, mesma regra do "sempre A".
+test('parseStartingKit: corta a escolha em prosa do monge e do bardo', () => {
+  const monk =
+    "Choose A or B: (A) Spear, 5 Daggers, Artisan's Tools or Musical Instrument chosen for the tool proficiency above, Explorer's Pack, and 11 GP; or (B) 50 GP"
+  assert.deepEqual(parseStartingKit(monk).map((i) => i.name), ['Spear', 'Dagger', "Artisan's Tools", "Explorer's Pack"])
+
+  const bard =
+    "Choose A or B: (A) Leather Armor, 2 Daggers, Musical Instrument of your choice, Entertainer's Pack, and 19 GP; or (B) 90 GP"
+  assert.deepEqual(parseStartingKit(bard).map((i) => i.name), [
+    'Leather Armor',
+    'Dagger',
+    'Musical Instrument',
+    "Entertainer's Pack",
+  ])
+})
+
+// --- US-51 — os kits nos DOIS artefatos ---
+//
+// O defeito que esta story conserta era invisível no PT: o kit vinha do seed, em português,
+// e o config en-US servia "Cajado arcano" para quem joga em inglês. Testar os dois lados.
+test('artefato: os kits têm as mesmas classes e as mesmas quantidades nos dois locales', () => {
+  const read = (locale) =>
+    JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8')).startingKits
+  const en = read('en-US')
+  const pt = read('pt-BR')
+
+  assert.deepEqual(Object.keys(en).sort(), Object.keys(pt).sort())
+  assert.equal(Object.keys(en).length, 13, '12 classes + default')
+  for (const [classKey, items] of Object.entries(en)) {
+    assert.ok(items.length > 0, `kit vazio: ${classKey}`)
+    assert.deepEqual(items.map((i) => i.qty), pt[classKey].map((i) => i.qty), `quantidades divergem em ${classKey}`)
+  }
+})
+
+test('artefato: en-US traz o kit em inglês e pt-BR em português', () => {
+  const read = (locale) =>
+    JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8')).startingKits
+  assert.deepEqual(read('en-US').wizard, [
+    { name: 'Dagger', qty: 2 },
+    { name: 'Arcane Focus (Quarterstaff)', qty: 1 },
+    { name: 'Robe', qty: 1 },
+    { name: 'Spellbook', qty: 1 },
+    { name: "Scholar's Pack", qty: 1 },
+  ])
+  // Nenhum nome do kit PT pode ter sobrado igual ao EN por falta de overlay (kit misto).
+  const pt = read('pt-BR')
+  const en = read('en-US')
+  const untranslated = Object.keys(en).flatMap((k) =>
+    en[k].map((item, i) => (item.name === pt[k][i].name ? `${k}: ${item.name}` : null)).filter(Boolean),
+  )
+  assert.deepEqual(untranslated, [], 'item sem entrada em kitItems — kit sai misto EN/PT')
+})
 
 // A chave de feature é prefixada pela classe (duas classes têm "Defesa sem Armadura"); a de
 // magia não (a mesma `light` serve mago e clérigo). Trocar isso quebra o casamento com o overlay.

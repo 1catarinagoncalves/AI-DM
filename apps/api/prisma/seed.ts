@@ -24,96 +24,6 @@ const prisma = new PrismaClient({
 // Nível 1: escolhe 2 proficientes, cada uma soma +2 ao modificador do atributo.
 const dnd5eProficiency: SystemConfig['proficiency'] = { choices: 2, bonus: 2 }
 
-// Transportada de starting-inventory.ts (era a constante KITS hardcoded).
-const dnd5eKits: SystemConfig['startingKits'] = {
-  fighter: [
-    { name: 'Espada longa', qty: 1 },
-    { name: 'Escudo', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Mochila', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  wizard: [
-    { name: 'Cajado arcano', qty: 1 },
-    { name: 'Grimório', qty: 1 },
-    { name: 'Vestes de mago', qty: 1 },
-    { name: 'Poção de mana', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  // US-42: chave própria do Ranger (antes colapsava em 'arqueiro'); US-54: canônica em EN.
-  // O match tolerante (CLASS_SYNONYMS) ainda cobre "arqueiro"/"caçador"/"patrulheiro".
-  ranger: [
-    { name: 'Arco longo', qty: 1 },
-    { name: 'Aljava (20 flechas)', qty: 1 },
-    { name: 'Adaga', qty: 1 },
-    { name: 'Armadura de couro leve', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  rogue: [
-    { name: 'Adaga', qty: 2 },
-    { name: 'Ferramentas de ladrão', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Corda', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  cleric: [
-    { name: 'Martelo', qty: 1 },
-    { name: 'Símbolo sagrado', qty: 1 },
-    { name: 'Armadura de malha', qty: 1 },
-    { name: 'Kit de primeiros socorros', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  paladin: [
-    { name: 'Espada longa', qty: 1 },
-    { name: 'Escudo', qty: 1 },
-    { name: 'Armadura de malha', qty: 1 },
-    { name: 'Símbolo sagrado', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  barbarian: [
-    { name: 'Machado grande', qty: 1 },
-    { name: 'Pele de urso (armadura)', qty: 1 },
-    { name: 'Adaga', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  druid: [
-    { name: 'Cajado de carvalho', qty: 1 },
-    { name: 'Símbolo druídico', qty: 1 },
-    { name: 'Túnica de couro', qty: 1 },
-    { name: 'Kit de ervas', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  bard: [
-    { name: 'Espada curta', qty: 1 },
-    { name: 'Instrumento musical', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  sorcerer: [
-    { name: 'Cajado', qty: 1 },
-    { name: 'Foco arcano (cristal)', qty: 1 },
-    { name: 'Vestes ornamentadas', qty: 1 },
-    { name: 'Poção de mana', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  // US-42: `bruxo` deixou de colapsar em `feiticeiro` (CLASS_SYNONYMS) e precisa de kit próprio,
-  // senão cairia no `default` e regrediria o inventário inicial (US-28).
-  warlock: [
-    { name: 'Adaga', qty: 2 },
-    { name: 'Foco arcano (talismã do pacto)', qty: 1 },
-    { name: 'Grimório de invocações', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-  // Fallback: aventureiro genérico para classes fora da tabela. Nunca devolvemos inventário vazio.
-  default: [
-    { name: 'Adaga', qty: 1 },
-    { name: 'Armadura de couro', qty: 1 },
-    { name: 'Mochila', qty: 1 },
-    { name: 'Cantil', qty: 1 },
-  ],
-}
-
 // Catálogo de aventuras iniciais por classe (US-28). classKey é a chave canônica da classe
 // (EN desde a US-54), resolvida a partir do texto livre de Character.class pelo mesmo match
 // tolerante do inventário (CLASS_SYNONYMS, ver resolveInitialHook); `default` cobre classes
@@ -236,8 +146,12 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
 // `classSpells`. A chave canônica de classe é a mesma do inventário (ver getClassFeatures).
 
 
-// D&D 5e SRD: os 4 campos SRD-derivados vêm do artefato (US-47); kits/point-buy/proficiência/
-// aventuras são decisão de produto e seguem no seed. startingKits fica manual até a US-51.
+// D&D 5e SRD: os campos SRD-derivados vêm do artefato (US-47); point-buy/proficiência/
+// aventuras são decisão de produto e seguem no seed.
+//
+// US-51: `startingKits` MUDOU DE LADO — passou a ser derivado (opção A da tabela de traços da
+// classe, no mesmo Open5e CC-BY). Enquanto era autoral ele vivia em dnd5eProductFields, o mesmo
+// objeto nos dois locales, e o config en-US servia kit em português.
 //
 // Lido em runtime (fs), NÃO por `import` de JSON: o artefato mora em scripts/srd/, fora de
 // apps/api. Um import o traria para o programa do tsc, o rootDir inferido viraria a raiz do repo
@@ -247,14 +161,13 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
 function readSrdArtifact(locale: string) {
   return JSON.parse(
     readFileSync(join(__dirname, `../../../scripts/srd/srd-5e.config.${locale}.json`), 'utf8'),
-  ) as Pick<SystemConfig, 'attributes' | 'skills' | 'races' | 'classes' | 'classFeatures' | 'classSpells'>
+  ) as Pick<SystemConfig, 'attributes' | 'skills' | 'races' | 'classes' | 'classFeatures' | 'classSpells' | 'startingKits'>
 }
 
-// Os campos de produto são os MESMOS nos dois locales: kits, point-buy, proficiência e
+// Os campos de produto que SOBRARAM são os mesmos nos dois locales: point-buy, proficiência e
 // ganchos de aventura seguem em PT (US-99 "Fora do escopo"; os ganchos são a US-101).
 const dnd5eProductFields = {
   proficiency: dnd5eProficiency,
-  startingKits: dnd5eKits,
   pointBuy: { budget: 27 },
   initialAdventures: dnd5eInitialAdventures,
 }
@@ -274,8 +187,13 @@ function buildFreeConfig(locale: Locale): SystemConfig {
     ...srd,
     classFeatures: buildFreeClassFeatures(srd, locale),
     classSpells: buildFreeClassSpells(srd, locale),
-    // Kits, ganchos, point-buy e proficiência são decisão de PRODUTO, não regra de SRD (ADR 004,
-    // decisões 4 e 6c) — e os kits do SRD são OGL, fora da fronteira CC. Seguem os do D&D.
+    // Ganchos, point-buy e proficiência são decisão de PRODUTO, não regra de SRD (ADR 004,
+    // decisões 4 e 6c). Seguem os do D&D.
+    //
+    // US-51: o kit NÃO está mais nesta lista — ele vem do `...srd` acima. A versão anterior
+    // desta linha dizia que os kits do SRD eram OGL e por isso ficavam fora da fronteira CC;
+    // eram, na fonte que a story previa (5e-database). O Open5e traz o mesmo dado sob CC-BY,
+    // então o kit é conteúdo herdável como os outros (ADR 004 §3.1).
     ...dnd5eProductFields,
   }
 }

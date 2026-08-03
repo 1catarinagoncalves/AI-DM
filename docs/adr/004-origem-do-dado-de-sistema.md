@@ -61,7 +61,7 @@ que barra qualquer chave só-EN.
 | 1 | **Open5e**, não `5e-database` | O `5e-database` **não tem** spells 2024 (só SRD 5.1) e é **OGL 1.0a** (copyleft, contamina o repo). O Open5e tem as magias 2024 nativas e é CC-BY-4.0. |
 | 2 | Tag pinada (`v2.1.0`), não `main` | Reprodutível. Bump vira PR com diff do artefato mostrando exatamente o que mudou. |
 | 3 | Artefato versionado (`srd-5e.config.<locale>.json`), não submodule | O `seed` não depende de rede; o diff do artefato é a revisão de cada bump. |
-| 4 | Ingest deriva **4 campos**; kits/point-buy/proficiência/aventuras ficam no seed | A fronteira é "regra do SRD numa fonte CC". Orçamento de point-buy e faixa de atributo são decisão de produto; kit inicial é regra, mas a fonte é OGL (US-51). |
+| 4 | Ingest deriva **4 campos**; ~~kits~~/point-buy/proficiência/aventuras ficam no seed → **kit revisto em 03/08/2026, ver §3.2** | A fronteira é "regra do SRD numa fonte CC". Orçamento de point-buy e faixa de atributo são decisão de produto; ~~kit inicial é regra, mas a fonte é OGL (US-51)~~ — a premissa da fonte estava errada, ver §3.2. |
 | 5 | Overlay por **chave canônica**, não pela chave do Open5e | Desamarra o overlay do formato `srd-2024_*` da fonte; trocar dataset reescreve só o mapper, não o `pt-BR.json`. |
 | 6 | ~~**Desacoplar o `freeConfig`** dos 4 campos substituídos~~ → **revista em 02/08/2026: o Free herda o artefato, por seleção de chaves** | Ver §3.1. |
 | 7 | **Fidelidade ao 5.2 vence** onde o dataset diverge do seed curado | Ver §4 — o objetivo da US é derivar do SRD versionado; órfãos e lacunas são **relatados**, não escondidos. |
@@ -95,7 +95,7 @@ a consumidora é a [US-100](../sdlc/01-requisitos/US-100-ficha-do-personagem-no-
 |---|---|---|
 | 6a | O Free define o catálogo por **lista de chaves** (`freeFeatureKeys`, `freeSpellKeys`), resolvida contra o artefato no `seed.ts`. Texto (`name`, `description`) vem do artefato; **quais** itens entram continua sendo curadoria do Free | Preserva o que o Free é — um 5e enxuto — sem manter um segundo texto. A curadoria vira dado revisável (uma lista de chaves), não prosa duplicada. |
 | 6b | O Free ganha `configLocales['pt-BR']`; `config` passa a ser a **base EN**, como o D&D | Corrige a violação da ADR 005 (PT na coluna da base EN). O Free passa a acompanhar o idioma sem código novo. |
-| 6c | Campos **não-SRD** do Free (kits, ganchos, point-buy, proficiência) **seguem literais próprios** | A decisão 4 não muda: a fronteira continua sendo "regra do SRD numa fonte CC". Kit inicial é OGL (US-51) e não entra por esta porta. |
+| 6c | Campos **não-SRD** do Free (~~kits~~, ganchos, point-buy, proficiência) **seguem literais próprios** → **kit revisto em 03/08/2026, ver §3.2** | A decisão 4 não muda: a fronteira continua sendo "regra do SRD numa fonte CC". ~~Kit inicial é OGL (US-51) e não entra por esta porta.~~ O kit **está** numa fonte CC — entra pela mesma porta dos outros campos herdados. |
 | 6d | **Chave selecionada que sumir do artefato falha o `seed`** | Substitui o guarda-costas perdido (ver §6). Um bump que retire conteúdo usado pelo Free passa a ser erro alto, não descoberta em produção. |
 | 6e | A atribuição CC-BY-4.0 ([NOTICE](../../scripts/srd/NOTICE-open5e.md)) passa a cobrir **o produto inteiro**, não só o `system-dnd5e` | Licença única continua valendo; muda o alcance, não a regra. Nenhuma marca da WotC entra junto (§6). |
 | 6f | **Herdar não é depender só.** A entrada do catálogo declara **procedência** (`source`), e o catálogo de um sistema é montado de **referências ao artefato + entradas próprias**. A guard da 6d vale só para referência | Medido em 02/08/2026: **7 dos 34 truques do Free não estão no 5.1 nem no 5.2** (`friends`, `thorn-whip`, `toll-the-dead`, `mind-sliver`, `thunderclap`, `blade-ward`, `word-of-radiance` — os mesmos órfãos que o [ADR 009 §4](./009-uniao-dos-srd-5-1-e-5-2.md) verificou um a um). Uma seleção que só sabe apontar para o artefato ou perde esses 7, ou os deixa congelados ao lado dos herdados — reencenando o defeito que a 6b conserta. O campo de origem é o que o [ADR 009 D5](./009-uniao-dos-srd-5-1-e-5-2.md) já previa, e é o que torna a licença auditável **por entrada** num catálogo de fontes misturadas. Somam-se a elas **2 features** (`paladin_divine-sense`, `ranger_natural-explorer`), que existem no 5.1 mas ainda não no artefato: a união do ADR 009 foi aplicada só ao domínio `races` (`buildRaces` no [`ingest.mjs`](../../scripts/srd/ingest.mjs)). São autorais por ora e viram referência quando a união alcançar feature — **9 entradas próprias no total**. |
@@ -109,6 +109,37 @@ texto de regra cru do dataset, mediana **426**. Em pt-BR o Free recebe de volta 
 que já exibia hoje; em en-US ele estreia com texto longo. Os dois locales do artefato **não estão no
 mesmo registro** — assimetria que este ADR só registra; equilibrá-la é decisão de conteúdo, não de
 procedência.
+
+---
+
+## 3.2 Correção de procedência (03/08/2026): o kit inicial é CC-BY, não OGL
+
+**O que estava errado.** As decisões 4 e 6c mantinham o kit inicial fora da fronteira "regra do SRD
+numa fonte CC" apoiadas num fato medido: o modelo `CharacterClass` do Open5e não tem campo de
+equipamento (traz `caster_type`, `document`, `hit_dice`, `name`, `primary_abilities`,
+`saving_throws`, `subclass_of`). A conclusão tirada dali — *"a única fonte estruturada é o
+`5e-bits/5e-database`, que é OGL 1.0a"* — **não seguia**: a medição cobria um modelo, não o dataset.
+
+**Onde o dado estava o tempo todo.** No modelo `ClassFeature`, nas 12 entradas de
+`feature_type: "CORE_TRAITS_TABLE"` (uma por classe base), como uma linha de tabela markdown dentro
+do `desc`: `|Starting Equipment|Choose A or B: (A) Chain Shirt, Shield, Mace, …; or (B) 110 GP|`.
+O arquivo já era baixado pela US-47 — a fonte nunca precisou mudar.
+
+**Consequências para este ADR:**
+
+| # | Decisão | Por quê |
+|---|---|---|
+| 9 | O ingest deriva **`startingKits`** também; o `seed.ts` para de declarar `dnd5eKits` | Kit inicial é regra do SRD, e a fonte é a mesma CC-BY-4.0 do resto. O motivo de excluí-lo era a licença da segunda fonte, e não há segunda fonte. |
+| 10 | **Nenhuma dependência nova, nenhuma licença nova.** A decisão 1 (Open5e, não `5e-database`) e a §2 (licença única, sem OGL 1.0a) valem **sem exceção** | Era esta a exceção que a US-51 ia abrir. Ela não existe mais: o repo segue CC-BY puro. |
+| 11 | O kit sai do **artefato por locale**, com overlay `kitItems` (42 itens) — e o Free o **herda**, como herda os outros campos CC | Enquanto era autoral, o kit vivia num objeto compartilhado pelos dois locales: o `config` en-US servia *"Cajado arcano"*. Derivar corrige o locale de graça, e a 6c deixa de valer para ele. |
+| 12 | O kit `default` (classe fora do catálogo) é literal **em EN dentro do `ingest.mjs`**, não no seed | Não vem do SRD — o dataset não tem "classe padrão" —, mas precisa atravessar o mesmo overlay: no seed ele seria PT nos dois locales, reencenando o defeito da 11. |
+
+**Preço aceito:** este é o único campo derivado de **texto livre**. O parser está isolado em
+`parseStartingKit` ([`ingest.mjs`](../../scripts/srd/ingest.mjs)), com as armadilhas do dataset
+cobertas por teste — inclusive palavras que a extração de PDF partiu no meio (`Leather Ar mor`),
+reparadas por mapa explícito. A alternativa era importar a OGL para evitar ~10 linhas de parsing.
+
+Implementada pela [US-51](../sdlc/01-requisitos/US-51-kits-iniciais-do-srd.md).
 
 ---
 

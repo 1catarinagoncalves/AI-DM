@@ -1897,5 +1897,305 @@
       "key": "survival",
       "label": "Sobrevivência"
     }
-  ]
+  ],
+  "startingKits": {
+    "barbarian": [
+      {
+        "name": "Machado Grande",
+        "qty": 1
+      },
+      {
+        "name": "Machadinha",
+        "qty": 4
+      },
+      {
+        "name": "Mochila de Explorador",
+        "qty": 1
+      }
+    ],
+    "bard": [
+      {
+        "name": "Armadura de Couro",
+        "qty": 1
+      },
+      {
+        "name": "Adaga",
+        "qty": 2
+      },
+      {
+        "name": "Instrumento Musical",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Artista",
+        "qty": 1
+      }
+    ],
+    "cleric": [
+      {
+        "name": "Camisa de Malha",
+        "qty": 1
+      },
+      {
+        "name": "Escudo",
+        "qty": 1
+      },
+      {
+        "name": "Maça",
+        "qty": 1
+      },
+      {
+        "name": "Símbolo Sagrado",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Sacerdote",
+        "qty": 1
+      }
+    ],
+    "default": [
+      {
+        "name": "Adaga",
+        "qty": 1
+      },
+      {
+        "name": "Armadura de Couro",
+        "qty": 1
+      },
+      {
+        "name": "Mochila",
+        "qty": 1
+      },
+      {
+        "name": "Cantil",
+        "qty": 1
+      }
+    ],
+    "druid": [
+      {
+        "name": "Armadura de Couro",
+        "qty": 1
+      },
+      {
+        "name": "Escudo",
+        "qty": 1
+      },
+      {
+        "name": "Foice",
+        "qty": 1
+      },
+      {
+        "name": "Foco Druídico (Bordão)",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Explorador",
+        "qty": 1
+      },
+      {
+        "name": "Kit de Herbalismo",
+        "qty": 1
+      }
+    ],
+    "fighter": [
+      {
+        "name": "Cota de Malha",
+        "qty": 1
+      },
+      {
+        "name": "Espada Grande",
+        "qty": 1
+      },
+      {
+        "name": "Mangual",
+        "qty": 1
+      },
+      {
+        "name": "Azagaia",
+        "qty": 8
+      },
+      {
+        "name": "Mochila de Masmorra",
+        "qty": 1
+      }
+    ],
+    "monk": [
+      {
+        "name": "Lança",
+        "qty": 1
+      },
+      {
+        "name": "Adaga",
+        "qty": 5
+      },
+      {
+        "name": "Ferramentas de Artesão",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Explorador",
+        "qty": 1
+      }
+    ],
+    "paladin": [
+      {
+        "name": "Cota de Malha",
+        "qty": 1
+      },
+      {
+        "name": "Escudo",
+        "qty": 1
+      },
+      {
+        "name": "Espada Longa",
+        "qty": 1
+      },
+      {
+        "name": "Azagaia",
+        "qty": 6
+      },
+      {
+        "name": "Símbolo Sagrado",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Sacerdote",
+        "qty": 1
+      }
+    ],
+    "ranger": [
+      {
+        "name": "Armadura de Couro Batido",
+        "qty": 1
+      },
+      {
+        "name": "Cimitarra",
+        "qty": 1
+      },
+      {
+        "name": "Espada Curta",
+        "qty": 1
+      },
+      {
+        "name": "Arco Longo",
+        "qty": 1
+      },
+      {
+        "name": "Flecha",
+        "qty": 20
+      },
+      {
+        "name": "Aljava",
+        "qty": 1
+      },
+      {
+        "name": "Foco Druídico (ramo de visco)",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Explorador",
+        "qty": 1
+      }
+    ],
+    "rogue": [
+      {
+        "name": "Armadura de Couro",
+        "qty": 1
+      },
+      {
+        "name": "Adaga",
+        "qty": 2
+      },
+      {
+        "name": "Espada Curta",
+        "qty": 1
+      },
+      {
+        "name": "Arco Curto",
+        "qty": 1
+      },
+      {
+        "name": "Flecha",
+        "qty": 20
+      },
+      {
+        "name": "Aljava",
+        "qty": 1
+      },
+      {
+        "name": "Ferramentas de Ladrão",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Ladrão",
+        "qty": 1
+      }
+    ],
+    "sorcerer": [
+      {
+        "name": "Lança",
+        "qty": 1
+      },
+      {
+        "name": "Adaga",
+        "qty": 2
+      },
+      {
+        "name": "Foco Arcano (cristal)",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Masmorra",
+        "qty": 1
+      }
+    ],
+    "warlock": [
+      {
+        "name": "Armadura de Couro",
+        "qty": 1
+      },
+      {
+        "name": "Foice",
+        "qty": 1
+      },
+      {
+        "name": "Adaga",
+        "qty": 2
+      },
+      {
+        "name": "Foco Arcano (orbe)",
+        "qty": 1
+      },
+      {
+        "name": "Livro (saber oculto)",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Erudito",
+        "qty": 1
+      }
+    ],
+    "wizard": [
+      {
+        "name": "Adaga",
+        "qty": 2
+      },
+      {
+        "name": "Foco Arcano (Bordão)",
+        "qty": 1
+      },
+      {
+        "name": "Túnica",
+        "qty": 1
+      },
+      {
+        "name": "Grimório",
+        "qty": 1
+      },
+      {
+        "name": "Mochila de Erudito",
+        "qty": 1
+      }
+    ]
+  }
 }

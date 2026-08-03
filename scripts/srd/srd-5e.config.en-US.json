@@ -1897,5 +1897,305 @@
       "key": "survival",
       "label": "Survival"
     }
-  ]
+  ],
+  "startingKits": {
+    "barbarian": [
+      {
+        "name": "Greataxe",
+        "qty": 1
+      },
+      {
+        "name": "Handaxe",
+        "qty": 4
+      },
+      {
+        "name": "Explorer's Pack",
+        "qty": 1
+      }
+    ],
+    "bard": [
+      {
+        "name": "Leather Armor",
+        "qty": 1
+      },
+      {
+        "name": "Dagger",
+        "qty": 2
+      },
+      {
+        "name": "Musical Instrument",
+        "qty": 1
+      },
+      {
+        "name": "Entertainer's Pack",
+        "qty": 1
+      }
+    ],
+    "cleric": [
+      {
+        "name": "Chain Shirt",
+        "qty": 1
+      },
+      {
+        "name": "Shield",
+        "qty": 1
+      },
+      {
+        "name": "Mace",
+        "qty": 1
+      },
+      {
+        "name": "Holy Symbol",
+        "qty": 1
+      },
+      {
+        "name": "Priest's Pack",
+        "qty": 1
+      }
+    ],
+    "default": [
+      {
+        "name": "Dagger",
+        "qty": 1
+      },
+      {
+        "name": "Leather Armor",
+        "qty": 1
+      },
+      {
+        "name": "Backpack",
+        "qty": 1
+      },
+      {
+        "name": "Waterskin",
+        "qty": 1
+      }
+    ],
+    "druid": [
+      {
+        "name": "Leather Armor",
+        "qty": 1
+      },
+      {
+        "name": "Shield",
+        "qty": 1
+      },
+      {
+        "name": "Sickle",
+        "qty": 1
+      },
+      {
+        "name": "Druidic Focus (Quarterstaff)",
+        "qty": 1
+      },
+      {
+        "name": "Explorer's Pack",
+        "qty": 1
+      },
+      {
+        "name": "Herbalism Kit",
+        "qty": 1
+      }
+    ],
+    "fighter": [
+      {
+        "name": "Chain Mail",
+        "qty": 1
+      },
+      {
+        "name": "Greatsword",
+        "qty": 1
+      },
+      {
+        "name": "Flail",
+        "qty": 1
+      },
+      {
+        "name": "Javelin",
+        "qty": 8
+      },
+      {
+        "name": "Dungeoneer's Pack",
+        "qty": 1
+      }
+    ],
+    "monk": [
+      {
+        "name": "Spear",
+        "qty": 1
+      },
+      {
+        "name": "Dagger",
+        "qty": 5
+      },
+      {
+        "name": "Artisan's Tools",
+        "qty": 1
+      },
+      {
+        "name": "Explorer's Pack",
+        "qty": 1
+      }
+    ],
+    "paladin": [
+      {
+        "name": "Chain Mail",
+        "qty": 1
+      },
+      {
+        "name": "Shield",
+        "qty": 1
+      },
+      {
+        "name": "Longsword",
+        "qty": 1
+      },
+      {
+        "name": "Javelin",
+        "qty": 6
+      },
+      {
+        "name": "Holy Symbol",
+        "qty": 1
+      },
+      {
+        "name": "Priest's Pack",
+        "qty": 1
+      }
+    ],
+    "ranger": [
+      {
+        "name": "Studded Leather Armor",
+        "qty": 1
+      },
+      {
+        "name": "Scimitar",
+        "qty": 1
+      },
+      {
+        "name": "Shortsword",
+        "qty": 1
+      },
+      {
+        "name": "Longbow",
+        "qty": 1
+      },
+      {
+        "name": "Arrow",
+        "qty": 20
+      },
+      {
+        "name": "Quiver",
+        "qty": 1
+      },
+      {
+        "name": "Druidic Focus (sprig of mistletoe)",
+        "qty": 1
+      },
+      {
+        "name": "Explorer's Pack",
+        "qty": 1
+      }
+    ],
+    "rogue": [
+      {
+        "name": "Leather Armor",
+        "qty": 1
+      },
+      {
+        "name": "Dagger",
+        "qty": 2
+      },
+      {
+        "name": "Shortsword",
+        "qty": 1
+      },
+      {
+        "name": "Shortbow",
+        "qty": 1
+      },
+      {
+        "name": "Arrow",
+        "qty": 20
+      },
+      {
+        "name": "Quiver",
+        "qty": 1
+      },
+      {
+        "name": "Thieves' Tools",
+        "qty": 1
+      },
+      {
+        "name": "Burglar's Pack",
+        "qty": 1
+      }
+    ],
+    "sorcerer": [
+      {
+        "name": "Spear",
+        "qty": 1
+      },
+      {
+        "name": "Dagger",
+        "qty": 2
+      },
+      {
+        "name": "Arcane Focus (crystal)",
+        "qty": 1
+      },
+      {
+        "name": "Dungeoneer's Pack",
+        "qty": 1
+      }
+    ],
+    "warlock": [
+      {
+        "name": "Leather Armor",
+        "qty": 1
+      },
+      {
+        "name": "Sickle",
+        "qty": 1
+      },
+      {
+        "name": "Dagger",
+        "qty": 2
+      },
+      {
+        "name": "Arcane Focus (orb)",
+        "qty": 1
+      },
+      {
+        "name": "Book (occult lore)",
+        "qty": 1
+      },
+      {
+        "name": "Scholar's Pack",
+        "qty": 1
+      }
+    ],
+    "wizard": [
+      {
+        "name": "Dagger",
+        "qty": 2
+      },
+      {
+        "name": "Arcane Focus (Quarterstaff)",
+        "qty": 1
+      },
+      {
+        "name": "Robe",
+        "qty": 1
+      },
+      {
+        "name": "Spellbook",
+        "qty": 1
+      },
+      {
+        "name": "Scholar's Pack",
+        "qty": 1
+      }
+    ]
+  }
 }
