@@ -32,19 +32,33 @@ export const SystemCatalogEntrySchema = z.object({
 // Feature de classe (US-41): o que o personagem SABE FAZER de especial (Sentido
 // Divino, Fúria, Ataque Furtivo…). Awareness apenas — sem usos/custo/mecânica.
 // NÃO é atributo (`ability`) nem perícia (`skill`): é uma terceira coisa.
+//
+// US-106: `key` é a chave canônica EN do catálogo (`<classe>_<slug>`, ex. `paladin_lay-on-hands`),
+// calculada pelo ingest e agora PRESERVADA — é onde a resolução por locale se pendura (US-100).
+// `source` diz de onde veio ESTE texto (ADR 004, 6f): 'srd' = derivado do artefato, 'authored' =
+// escrito por nós. É por entrada, não por sistema: o Free mistura as duas (7 truques + 2 features
+// não existem em SRD nenhum). `z.string()` e não enum de propósito — dois valores bastam hoje, e
+// o dia em que houver UPLOAD o valor novo é uma linha, não uma taxonomia inventada antes da hora.
 export const SystemClassFeatureSchema = z.object({
+  key: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
+  source: z.string().min(1),
 })
 
 // Magia conhecida (US-42): truque/magia que o personagem SABE conjurar — awareness
 // apenas. `name` (+ `level`) vai ao prompt para o mestre OFERECER; `description` volta
 // sob demanda via tool getSpell. `level: 0` = truque. Sem slots/preparação/componentes
 // (motor de spellcasting fica fora). Sistema irmão do SystemClassFeature.
+// US-106: `key` e `source` pelo mesmo motivo do SystemClassFeature acima. A chave de magia
+// NÃO é prefixada por classe (`light` é a mesma no mago e no clérigo) — quem repete é a lista
+// da classe, não a chave.
 export const SystemSpellSchema = z.object({
+  key: z.string().min(1),
   name: z.string().min(1),
   level: z.number().int().min(0).optional(),
   description: z.string().min(1).optional(),
+  source: z.string().min(1),
 })
 
 // Gancho de aventura inicial por classe (US-28). Textos podem conter placeholders

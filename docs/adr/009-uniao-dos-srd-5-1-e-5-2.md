@@ -27,6 +27,8 @@ Falta uma regra geral. "Ler o 5.1 também" precisa valer para todo domínio, nã
 
 O `sync` baixa os dois documentos; o `ingest` os funde antes de derivar qualquer campo do `SystemConfig`. A regra é geral por princípio: uma decisão "vale para espécie mas não para magia" vira exceção que ninguém lembra no próximo bump.
 
+**A regra é geral; a instalação é por domínio.** Cada domínio entra na fusão quando uma story o liga — baixando o par 2014 daquele arquivo no `sync` e preenchendo o `SRD_EQUIVALENTS` do domínio. Hoje só `races` está ligado (US-105, ver §7). Ler este ADR não diz o que está no catálogo; isso se lê no artefato.
+
 ### D2 — Precedência: 2024 primeiro, 2014 só preenche buraco
 
 Carrega-se o `srd-2024` inteiro; do `srd-2014` entra **apenas a chave que ainda não existe**. Nunca o inverso, nunca merge campo a campo. Consequência direta: onde as duas edições têm o mesmo conceito, o jogador recebe o texto e as regras da **edição corrente**, e o 5.1 é invisível.
@@ -60,12 +62,14 @@ O mapa é escrito à mão e falha alto: como o `CLASS_MAP` ([ADR 004](./004-orig
 
 ## 4. O que a medição mostrou
 
-Medido em 02/08/2026 no tag `v2.1.0`, comparando por slug sem o prefixo do documento (`srd_x` vs `srd-2024_x`):
+Medido em 02/08/2026 no tag `v2.1.0`, comparando por slug sem o prefixo do documento (`srd_x` vs `srd-2024_x`).
+
+**A tabela mede o dataset, não o artefato.** O `ingest` deriva uma fatia dele (magia só até o 1º nível, feature só de classe base e nível 1), então ganho aqui não é ganho no `config` — a coluna da direita marca onde os dois números divergem. Quem quiser saber o que está no catálogo lê o artefato.
 
 | Domínio | 5.1 | 5.2 | comuns | só 5.1 | só 5.2 | **ganho real da união** |
 |---|---:|---:|---:|---:|---:|---|
 | `Species` (raiz) | 9 | 9 | 7 | 2 | 2 | **+2** — `half-elf`, `half-orc` |
-| `Spell` | 319 | 339 | 317 | 2 | 22 | **+2** — `branding-smite`, `feeblemind` |
+| `Spell` | 319 | 339 | 317 | 2 | 22 | **+2** no dataset — `branding-smite` (nível 2), `feeblemind` (nível 8); **0 no artefato**, porque o `ingest` corta em `level > 1` (confirmado em 03/08/2026) |
 | `CharacterClass` (base) | 12 | 12 | 12 | 0 | 0 | **0** — idênticas |
 | `CharacterClass` (subclasse) | 12 | 12 | 8 | 4 | 4 | **0** — são as mesmas 4, renomeadas |
 | `ClassFeature` nível 1 | 62 | 77 | 41 | 21 | 36 | **negativo sem o `SRD_EQUIVALENTS`** |
@@ -102,8 +106,8 @@ E os 2 que sobram fecham o círculo do §1: são as duas órfãs do overlay pt-B
 
 **Positivas**
 - Meio-Elfo e Meio-Orc voltam com fonte citável; Goliath e Orc entram. 11 espécies contra as 9 de qualquer edição isolada.
-- As duas features órfãs do overlay pt-BR ganham dono, com a tradução curada que já existe.
-- Uma regra escrita para todo domínio futuro, em vez de uma decisão por story.
+- As duas features órfãs do overlay pt-BR ganham dono, com a tradução curada que já existe — **quando o domínio de feature for ligado à fusão**, que não é a US-105 (ver §7). Até lá elas seguem fora do artefato, e quem precisar delas as trata como autorais ([ADR 004 §3.1](./004-origem-do-dado-de-sistema.md), 6f).
+- Uma regra escrita para todo domínio futuro, em vez de uma decisão por story. **Escrita, não instalada:** cada domínio passa a valer no dia em que uma story ligar a fusão a ele. Consequência de ADR descreve o mundo depois da implementação; o que está no catálogo hoje se lê no artefato, não aqui.
 - Custo de dependência: **zero**. Mesmo repositório, mesmo tag, mesma licença.
 
 **Negativas / riscos**
@@ -119,5 +123,5 @@ E os 2 que sobram fecham o círculo do §1: são as duas órfãs do overlay pt-B
 - [`scripts/srd/sync.mjs`](../../scripts/srd/sync.mjs) — a lista `FILES` ganha o par `srd-2014` de cada arquivo ingerido; `TAG` continua uma só, para os dois.
 - [`scripts/srd/ingest.mjs`](../../scripts/srd/ingest.mjs) — normalização do `pk` por documento, `SRD_EQUIVALENTS`, e a fusão com precedência antes das funções `build*`. O `CLASS_MAP` existente é o precedente de estilo: mapa explícito que falha alto.
 - [`scripts/srd/NOTICE-open5e.md`](../../scripts/srd/NOTICE-open5e.md) — atribuição dos dois documentos, pela via CC-BY-4.0 dos dois.
-- [`scripts/srd/locale/pt-BR.json`](../../scripts/srd/locale/pt-BR.json) — as duas features órfãs deixam de ser órfãs; o `_comment` registra a mudança.
-- [US-105](../sdlc/01-requisitos/US-105-raca-e-classe-por-chave-do-srd.md) — primeiro cliente da regra (espécies). É ela que constrói a fusão; os demais domínios a herdam.
+- [`scripts/srd/locale/pt-BR.json`](../../scripts/srd/locale/pt-BR.json) — as duas features órfãs deixam de ser órfãs **na story que ligar `classFeatures` à fusão**; é ela que atualiza o `_comment`.
+- [US-105](../sdlc/01-requisitos/US-105-raca-e-classe-por-chave-do-srd.md) — primeiro cliente da regra. Construiu o mecanismo e o aplicou **só a `races`** (`buildRaces`, com `species2014`): `sync` baixa o par 2014 apenas de `Species.json`, e `buildClassFeatures`/`buildClassSpells` continuam lendo só o 5.2. Domínio não herda a fusão sozinho — **é ligado um a um, por uma story**, e ligar `classFeatures` custa mais que uma linha: exige baixar o par 2014 de feature **e** preencher o `SRD_EQUIVALENTS`, porque 12 das 14 features "exclusivas do 5.1" são renomeação (§4) e fundir sem o mapa duplica em vez de deduplicar. Estado de hoje, medido em 03/08/2026: 11 espécies vindas da união; `classFeatures` com 24 entradas, todas 5.2.

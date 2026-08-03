@@ -48,11 +48,11 @@ describe('getClassSpells (US-42)', () => {
     attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
     startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
     classSpells: {
-      cleric: [{ name: 'Chama Sagrada', level: 0, description: 'luz sagrada.' }],
-      sorcerer: [{ name: 'Raio de Fogo', level: 0, description: 'dardo de fogo.' }],
-      warlock: [{ name: 'Rajada Mística', level: 0, description: 'feixe crepitante.' }],
-      paladin: [{ name: 'Curar Ferimentos', level: 1, description: 'cura pelo toque.' }],
-      ranger: [{ name: 'Marca do Caçador', level: 1, description: 'marca a presa.' }],
+      cleric: [{ key: 'sacred-flame', source: 'srd', name: 'Chama Sagrada', level: 0, description: 'luz sagrada.' }],
+      sorcerer: [{ key: 'fire-bolt', source: 'srd', name: 'Raio de Fogo', level: 0, description: 'dardo de fogo.' }],
+      warlock: [{ key: 'eldritch-blast', source: 'srd', name: 'Rajada Mística', level: 0, description: 'feixe crepitante.' }],
+      paladin: [{ key: 'cure-wounds', source: 'srd', name: 'Curar Ferimentos', level: 1, description: 'cura pelo toque.' }],
+      ranger: [{ key: 'hunters-mark', source: 'srd', name: 'Marca do Caçador', level: 1, description: 'marca a presa.' }],
       default: [],
     },
   }

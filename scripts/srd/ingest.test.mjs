@@ -90,3 +90,30 @@ test('flagMissingGlossaryTerms exige palavra inteira', () => {
   const draft = { name: 'Sorte Escandalosa', description: 'Um golpe escandaloso de fortuna.' }
   assert.deepEqual(flagMissingGlossaryTerms(source, draft, [RAGE]), [])
 })
+
+// --- US-106 — a chave e a origem sobrevivem à gravação ---
+//
+// Contra os ARTEFATOS versionados, não contra o dataset: é o arquivo gravado que a ficha e o
+// seed consomem, e era exatamente na gravação que o `_slug` era descartado antes desta story.
+for (const locale of ['en-US', 'pt-BR']) {
+  test(`artefato ${locale}: toda feature e magia tem key e source`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    const entries = [...Object.values(artifact.classFeatures).flat(), ...Object.values(artifact.classSpells).flat()]
+    assert.ok(entries.length > 0, 'artefato sem entradas — ingest não rodou?')
+    for (const entry of entries) {
+      assert.ok(entry.key, `entrada sem key: ${entry.name}`)
+      assert.equal(entry.source, 'srd', `entrada derivada do dataset com source errado: ${entry.key}`)
+    }
+  })
+}
+
+// A chave de feature é prefixada pela classe (duas classes têm "Defesa sem Armadura"); a de
+// magia não (a mesma `light` serve mago e clérigo). Trocar isso quebra o casamento com o overlay.
+test('artefato: chave de feature é prefixada pela classe, a de magia não', () => {
+  const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
+  for (const [classKey, entries] of Object.entries(artifact.classFeatures)) {
+    for (const entry of entries) assert.ok(entry.key.startsWith(`${classKey}_`), `${entry.key} fora da classe ${classKey}`)
+  }
+  assert.equal(artifact.classSpells.wizard.find((s) => s.name === 'Light').key, 'light')
+  assert.equal(artifact.classSpells.cleric.find((s) => s.name === 'Light').key, 'light')
+})

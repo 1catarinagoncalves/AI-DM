@@ -220,8 +220,8 @@ describe('CharacterService.create', () => {
     ...config,
     classFeatures: {
       paladin: [
-        { name: 'Sentido Divino', description: 'Sente o mal por perto.' },
-        { name: 'Impor as Mãos', description: 'Cura ao toque.' },
+        { key: 'paladin_divine-sense', source: 'authored', name: 'Sentido Divino', description: 'Sente o mal por perto.' },
+        { key: 'paladin_lay-on-hands', source: 'srd', name: 'Impor as Mãos', description: 'Cura ao toque.' },
       ],
       default: [],
     },
@@ -232,8 +232,8 @@ describe('CharacterService.create', () => {
     ...config,
     classFeatures: {
       paladin: [
-        { name: 'Divine Sense', description: 'Senses evil nearby.' },
-        { name: 'Lay On Hands', description: 'Heals by touch.' },
+        { key: 'paladin_divine-sense', source: 'authored', name: 'Divine Sense', description: 'Senses evil nearby.' },
+        { key: 'paladin_lay-on-hands', source: 'srd', name: 'Lay On Hands', description: 'Heals by touch.' },
       ],
       default: [],
     },
@@ -246,8 +246,8 @@ describe('CharacterService.create', () => {
       attributes: { cool: 5, hard: 5 },
     })
     expect(char.features).toEqual([
-      { name: 'Sentido Divino', description: 'Sente o mal por perto.' },
-      { name: 'Impor as Mãos', description: 'Cura ao toque.' },
+      { key: 'paladin_divine-sense', source: 'authored', name: 'Sentido Divino', description: 'Sente o mal por perto.' },
+      { key: 'paladin_lay-on-hands', source: 'srd', name: 'Impor as Mãos', description: 'Cura ao toque.' },
     ])
   })
 
@@ -261,8 +261,8 @@ describe('CharacterService.create', () => {
       attributes: { cool: 5, hard: 5 },
     })
     expect(char.features).toEqual([
-      { name: 'Divine Sense', description: 'Senses evil nearby.' },
-      { name: 'Lay On Hands', description: 'Heals by touch.' },
+      { key: 'paladin_divine-sense', source: 'authored', name: 'Divine Sense', description: 'Senses evil nearby.' },
+      { key: 'paladin_lay-on-hands', source: 'srd', name: 'Lay On Hands', description: 'Heals by touch.' },
     ])
   })
 
@@ -273,8 +273,8 @@ describe('CharacterService.create', () => {
       attributes: { cool: 5, hard: 5 },
     })
     expect(char.features).toEqual([
-      { name: 'Sentido Divino', description: 'Sente o mal por perto.' },
-      { name: 'Impor as Mãos', description: 'Cura ao toque.' },
+      { key: 'paladin_divine-sense', source: 'authored', name: 'Sentido Divino', description: 'Sente o mal por perto.' },
+      { key: 'paladin_lay-on-hands', source: 'srd', name: 'Impor as Mãos', description: 'Cura ao toque.' },
     ])
   })
 

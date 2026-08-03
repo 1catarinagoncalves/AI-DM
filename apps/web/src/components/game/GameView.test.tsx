@@ -142,8 +142,8 @@ describe('GameView — abas na ficha (US-45)', () => {
         {...baseProps}
         features={[{ name: 'Conjuração', description: 'Lança magias.' }]}
         spells={[
-          { name: 'Curar Ferimentos', level: 1, description: 'Cura HP ao toque.' },
-          { name: 'Chama Sagrada', level: 0, description: 'Fogo radiante desce sobre o alvo.' },
+          { key: 'cure-wounds', source: 'srd', name: 'Curar Ferimentos', level: 1, description: 'Cura HP ao toque.' },
+          { key: 'sacred-flame', source: 'srd', name: 'Chama Sagrada', level: 0, description: 'Fogo radiante desce sobre o alvo.' },
         ]}
       />,
     )
@@ -166,9 +166,9 @@ describe('GameView — abas na ficha (US-45)', () => {
       <GameView
         {...baseProps}
         spells={[
-          { name: 'Curar Ferimentos', level: 1 },
-          { name: 'Orientação', level: 0 },
-          { name: 'Chama Sagrada', level: 0 },
+          { key: 'cure-wounds', source: 'srd', name: 'Curar Ferimentos', level: 1 },
+          { key: 'guidance', source: 'srd', name: 'Orientação', level: 0 },
+          { key: 'sacred-flame', source: 'srd', name: 'Chama Sagrada', level: 0 },
         ]}
       />,
     )

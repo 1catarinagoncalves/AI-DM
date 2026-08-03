@@ -220,12 +220,15 @@ function buildClassFeatures(overlay, { classes, features, featureItems }, resolv
     const slug = String(f.pk).slice(String(f.fields.parent).length + 1) // srd-2024_paladin_lay-on-hands → lay-on-hands
     const featKey = `${canon}_${slug}`
     const entry = resolve('features', featKey, overlay.features?.[featKey], f.fields.name, norm(f.fields.desc))
-    ;(classFeatures[canon] ??= []).push({ _slug: slug, ...entry })
+    // US-106: a chave DEIXA de ser campo temporário e vira campo do artefato. Ela já era
+    // calculada aqui (para casar overlay, detectar órfão e ordenar) e era jogada fora na
+    // gravação — é o que impedia a ficha de acompanhar o locale (US-100).
+    ;(classFeatures[canon] ??= []).push({ key: featKey, ...entry, source: 'srd' })
   }
   for (const k of Object.keys(classFeatures)) {
-    classFeatures[k] = classFeatures[k]
-      .sort((a, b) => a._slug.localeCompare(b._slug))
-      .map(({ _slug, ...e }) => e)
+    // Ordenar por `key` em vez de pelo slug nu dá a MESMA ordem (dentro de uma classe o prefixo
+    // é constante) e mantém a idempotência byte-a-byte do artefato, critério da US-47.
+    classFeatures[k] = classFeatures[k].sort((a, b) => a.key.localeCompare(b.key))
   }
   return classFeatures
 }
@@ -237,7 +240,9 @@ function buildClassSpells(overlay, spells, resolve) {
     if (s.fields.level > 1) continue
     const slug = String(s.pk).replace(/^srd-2024_/, '')
     const entry = resolve('spells', slug, overlay.spells?.[slug], s.fields.name, norm(s.fields.desc))
-    const row = { _slug: slug, name: entry.name, level: s.fields.level, description: entry.description }
+    // US-106: `key` sobrevive (ver buildClassFeatures). Aqui ela é o slug nu — magia não é
+    // prefixada por classe, e é por isso que a MESMA linha entra em várias listas.
+    const row = { key: slug, name: entry.name, level: s.fields.level, description: entry.description, source: 'srd' }
     for (const cls of s.fields.classes || []) {
       const canon = CLASS_MAP[cls]
       if (!canon) throw new Error(`Magia ${s.pk}: classe "${cls}" sem entrada no CLASS_MAP`)
@@ -245,9 +250,7 @@ function buildClassSpells(overlay, spells, resolve) {
     }
   }
   for (const k of Object.keys(classSpells)) {
-    classSpells[k] = classSpells[k]
-      .sort((a, b) => a.level - b.level || a._slug.localeCompare(b._slug))
-      .map(({ _slug, ...e }) => e)
+    classSpells[k] = classSpells[k].sort((a, b) => a.level - b.level || a.key.localeCompare(b.key))
   }
   return classSpells
 }
