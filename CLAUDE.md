@@ -45,10 +45,14 @@ pnpm docs:links           # links quebrados em docs/ + .md da raiz (--list, --on
 - Nunca use `any` sem um comentário explicando por quê é necessário.
 - Prefira editar arquivos existentes a criar novos.
 - Não adicione dependências sem verificar se já existe algo equivalente no projeto.
-- Commits seguem Conventional Commits. Exemplos:
-  - `feat(ai-engine): add rollDice tool`
-  - `fix(game): correct HP calculation on damage`
-  - `chore(deps): update @ai-sdk/groq`
+- Commits feitos **por agente** usam `US-NN — título`, copiado do histórico (US-96):
+  - `US-89 — Export que ninguém importa para de sobreviver no repo`
+  - `US-51 — Kits iniciais derivados do SRD (equipamento de classe)`
+  - Mudança sem story (typo, CI, build): assunto livre em português, imperativo ou substantivo
+    (`Correções CI`, `Remover rollDiceTool morto do ai-engine`).
+- Commits feitos **pela mantenedora** são manuais e livres — não normalize, não reescreva,
+  não sugira renomear. **Não há gate automático de mensagem de commit** (US-96): a regra acima
+  vale para o agente e não é verificada por CI.
 - Antes de escrever "coloque em `.env`" numa spec/US, **verifique no código** como aquele env var é lido (`grep process.env`, checar ConfigModule/dotenv/wrapper). Não assuma auto-load.
 
 ## Padrões de código

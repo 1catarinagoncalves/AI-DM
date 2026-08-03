@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída (03/08/2026)
+**Status:** ✅ Implementada
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, artefato, overlay pt-BR) · [US-21](./US-21-sistemas-como-dado.md) (`config.startingKits` + `StartingKitItemSchema`) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (dois artefatos, um por locale)
 **Relacionado:** [US-02](./US-02-inventario-do-personagem.md) (tabela de kits autorais, superada por esta story) · [US-38](./US-38-rolagens-ancoradas-na-ficha.md) (rolagens ancoradas no inventário) · [ADR 004](../../adr/004-origem-do-dado-de-sistema.md)
 **Gera ADR:** não. Só uma **nota** no [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) registrando que o kit passou a caber na fronteira CC-BY (ver §Decisão de arquitetura).

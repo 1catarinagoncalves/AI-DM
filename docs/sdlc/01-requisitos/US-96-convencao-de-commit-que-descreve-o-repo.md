@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Ferramentas de projeto / SDLC
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** nenhuma
 **Criada em:** 2026-07-30
 
@@ -29,7 +29,16 @@ Medido no histórico em 30/07/2026, contra o padrão `tipo(escopo)?: assunto`:
 | Total | 108 |
 | Conformes a Conventional Commits | **4** (3,7%) |
 
-Os 104 restantes seguem, na maioria, **outra** convenção — coerente e legível, só que não a que está escrita:
+Remedido em 03/08/2026, com as três categorias separadas:
+
+| | commits | |
+|---|---:|---:|
+| Total | 124 | |
+| Conformes a Conventional Commits | 11 | 8,9% |
+| `US-NN …` | 37 | 29,8% |
+| Nenhuma das duas | **76** | **61,3%** |
+
+Uma parte segue **outra** convenção — coerente e legível, só que não a que está escrita:
 
 ```
 US-89 — Export que ninguém importa para de sobreviver no repo
@@ -37,7 +46,7 @@ US-90 — README de evals com o mapa do subsistema
 US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
 ```
 
-E uma minoria não segue nenhuma (`Correções CI`, `Redesign AI DM`, `Atualizações US 88`, `Update README.md`).
+E a maior parte não segue nenhuma (`Correções CI`, `Redesign AI DM`, `Atualizações US 88`, `Update README.md`) — 61,3% na remedição acima. São os commits manuais.
 
 ### Por que isto importa mais do que parece
 
@@ -48,6 +57,18 @@ Não é higiene cosmética. O `CLAUDE.md` é lido por agente a cada sessão como
 ### A proposta
 
 Escolher **uma** das duas convenções e deixar as duas metades do repo — doc e histórico — dizerem a mesma coisa. Recomendação: adotar o padrão que já é praticado (`US-NN — título`, com fallback para mudanças sem story), porque ele descreve o trabalho real deste projeto (uma story por commit, rastreável até o arquivo em `docs/sdlc/01-requisitos/`), enquanto Conventional Commits só ganharia sentido com changelog ou versionamento automático — nenhum dos quais existe aqui, nem está no roadmap da Fase 1.
+
+### Decisão (03/08/2026)
+
+A remedição desfez a premissa: o repo não segue *uma* outra convenção. Ele tem **dois autores com dois comportamentos**. Os `US-NN — título` são commits do agente; os 76 sem padrão (`Correções mobile`, `Atualizações prompt`, `MVP`) são commits manuais da mantenedora, que commita à mão por preferência — não por esquecimento de uma regra.
+
+Uma convenção única, portanto, ou é ignorada pela metade humana ou impõe fricção onde ela não é desejada. A regra escrita passa a **descrever as duas metades**:
+
+- commit de agente: `US-NN — título`, com assunto livre para mudança sem story;
+- commit manual: livre, e o agente não normaliza nem sugere renomear;
+- **sem gate.** O `CLAUDE.md` diz isso explicitamente, como manda o 4º critério de aceite.
+
+Conventional Commits fica descartado (11/124, e nada no roadmap consome changelog gerado). Gate fica descartado enquanto a maioria dos commits for manual e intencionalmente livre: um gate aqui reprovaria a autora do repo. Se um dia houver mais de uma pessoa committando, ou changelog automático, a questão #2 reabre com dados novos.
 
 ---
 
@@ -69,11 +90,11 @@ Escolher **uma** das duas convenções e deixar as duas metades do repo — doc 
 
 ## Critérios de aceite
 
-- [ ] O `CLAUDE.md` descreve a convenção que o `git log` mostra, com pelo menos dois exemplos **copiados** do histórico.
-- [ ] A taxa de aderência dos commits **posteriores** a esta story é medida com o mesmo comando desta seção e registrada aqui — a linha de base é 3,7% (4/108, 30/07/2026).
-- [ ] Se houver gate: ele valida só o intervalo do push, e **teste de regressão** — um commit fora do padrão numa branch descartável deixa o passo vermelho, nomeando a mensagem ofensora (mensagem de exceção com o valor ofensor e o formato esperado, como manda o `AGENTS.md`).
-- [ ] Se **não** houver gate: o `CLAUDE.md` diz explicitamente que a convenção não é verificada automaticamente. Regra sem gate pode existir; regra sem gate que **finge** ter gate, não.
-- [ ] Nenhum commit do histórico foi reescrito (`git log --format=%H | tail -1` inalterado).
+- [x] O `CLAUDE.md` descreve a convenção que o `git log` mostra, com pelo menos dois exemplos **copiados** do histórico (`US-89 — …`, `US-51 — …`, mais os exemplos de commit sem story).
+- [x] A taxa de aderência dos commits **posteriores** a esta story é medida com o mesmo comando desta seção e registrada aqui — a linha de base é 3,7% (4/108, 30/07/2026). **Substituída pela medição de três categorias de 03/08/2026** (ver *Contexto*): a taxa Conventional deixa de ser a métrica, porque a convenção adotada não é essa. A métrica que fica é a do commit de agente — `US-NN — título` —, aferível com `git log --format=%s <sha-desta-story>..HEAD | grep -cE '^US-[0-9]+[a-z]? — .+'`.
+- [x] ~~Se houver gate~~ — não há gate. Ver *Decisão*.
+- [x] Se **não** houver gate: o `CLAUDE.md` diz explicitamente que a convenção não é verificada automaticamente. Regra sem gate pode existir; regra sem gate que **finge** ter gate, não.
+- [x] Nenhum commit do histórico foi reescrito (`git log --format=%H | tail -1` inalterado).
 
 ---
 
@@ -93,8 +114,8 @@ Escolher **uma** das duas convenções e deixar as duas metades do repo — doc 
 
 ## Questões em aberto
 
-1. **Qual convenção fica?** É a única decisão desta story, e é sua. Conventional Commits ganha se um dia houver changelog gerado ou release automatizado; `US-NN — título` ganha hoje, porque é o que o trabalho realmente é e porque já tem 100 exemplos. Escolher uma; manter as duas escritas em lugares diferentes é o estado atual.
-2. **Vale gate?** Com uma pessoa committando, o gate corrige quem já sabe a regra. O argumento a favor é outro: o gate é o que impede a regra de voltar a divergir sem ninguém notar — foi assim que ela chegou a 3,7%.
+1. ~~**Qual convenção fica?**~~ Respondida em 03/08/2026: `US-NN — título` para o agente, livre para o commit manual. Ver *Decisão*.
+2. ~~**Vale gate?**~~ Não, enquanto a maioria dos commits for manual e livre por escolha. Reabre se entrar segunda pessoa no repo ou changelog automático.
 
 ---
 

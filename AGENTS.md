@@ -51,7 +51,8 @@ Roadmap incremental (fase atual: MVP single-player):
 - Exceção nova no `knip.jsonc` exige comentário com o motivo ao lado. Símbolo exportado e
   usado só dentro do próprio arquivo NÃO é achado (`ignoreExportsUsedInFile`); em
   `packages/shared`, tipo sem consumidor ou é apagado ou ganha comentário com a US que vai usá-lo.
-- Commits: Conventional Commits (`feat:`, `fix:`, `chore:`, etc.)
+- Commits: mensagem de agente é `US-NN — título` (travessão em dash), assunto livre quando não
+  há story. Commit manual da mantenedora é livre. Sem gate automático — ver `CLAUDE.md` e US-96.
 
 ### Frontend (`apps/web`)
 - Next.js 15 App Router, React Server Components onde possível
