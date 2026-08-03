@@ -19,9 +19,9 @@ export class CharacterService {
       throw new BadRequestException(`Sistema ${dto.systemId} não tem configuração de regras (config ausente)`)
     }
 
-    // US-99: feature e magia são MATERIALIZADAS como texto aqui — logo a ficha nasce no
-    // idioma do jogador, não na base EN. Trocar de idioma depois não reescreve nada: isso
-    // é a US-100 (fase "Ficha" do ADR 005).
+    // US-100: nada de texto é materializado na ficha — feature e magia entram por CHAVE, como
+    // as perícias (US-27). O locale segue sendo lido aqui porque a VALIDAÇÃO (raça, classe,
+    // perícia) acontece contra o catálogo, e a mensagem de erro sai no idioma de quem cria.
     const locale = await localeOfUser(this.prisma, dto.userId)
     const config = SystemConfigSchema.parse(configForLocale(system, locale))
     const baseAttributes = buildCharacterAttributesSchema(config.attributes).parse(dto.attributes)
@@ -32,6 +32,7 @@ export class CharacterService {
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
     // US-41: features de classe de nível 1, derivadas do kit da classe (mesmo caminho
     // do inventário inicial). Classe sem kit de features → [] (sem crash, sem seção).
+    // US-100: são CHAVES (`barbarian_rage`), resolvidas para nome/descrição na leitura.
     const features = getClassFeatures(config, charClass)
     // US-42: magias conhecidas (truques + exceção nível 1 de paladino/patrulheiro),
     // do mesmo kit da classe. Não-conjurador → [] (sem seção, sem crash).

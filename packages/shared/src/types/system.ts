@@ -102,6 +102,13 @@ export const SystemConfigSchema = z.object({
   // canônica de classe + fallback opcional. Materializadas em Character.spells na
   // criação. Ausente → personagem sem magias (sem seção, sem crash).
   classSpells: z.record(z.string(), z.array(SystemSpellSchema)).optional(),
+  // US-100: conteúdo APOSENTADO — chave que existia no bump anterior e saiu do catálogo vivo,
+  // transportada pelo ingest com o texto do locale que ela já tinha. Serve só a RESOLUÇÃO de
+  // ficha antiga (`resolveSheetEntries`): sem esta rede, um bump que retire conteúdo apaga a
+  // linha da ficha de quem o tinha, em silêncio. Personagem NOVO nunca nasce com ela — quem lê
+  // isto é o resolvedor, nunca o `getClassFeatures`/`getClassSpells` da criação.
+  retiredFeatures: z.record(z.string(), SystemClassFeatureSchema).optional(),
+  retiredSpells: z.record(z.string(), SystemSpellSchema).optional(),
   // Catálogo de aventuras iniciais (US-28). Opcional para não invalidar configs legados;
   // quando presente, precisa de um hook classKey 'default' obrigatório.
   initialAdventures: z.object({
@@ -127,6 +134,35 @@ export type SystemConfig = z.infer<typeof SystemConfigSchema>
  */
 export function catalogLabel(catalog: SystemCatalogEntry[] | undefined, key: string): string {
   return catalog?.find(e => e.key === key)?.label ?? key
+}
+
+/**
+ * Resolve as CHAVES que a ficha guarda (US-100) contra o catálogo do locale ativo — irmão do
+ * `catalogLabel` acima e do `buildSkillSheet`, e a razão de a ficha acompanhar o idioma: a mesma
+ * `barbarian_rage` devolve "Fúria" ou "Rage" conforme o config que chega aqui, sem tocar no banco.
+ *
+ * Serve features e magias (mesma forma `{key, name, …}`); a lista da classe cai no `default` como
+ * na criação, e chave fora dela procura no catálogo aposentado (`retired*`) antes de desistir.
+ *
+ * Fonte ÚNICA de resolução: a usam a ficha da web, o prompt do Mestre e a tool `getSpell` — duas
+ * cópias divergiriam, e a `getSpell` casa por NOME contra a lista que o prompt mostrou.
+ */
+export function resolveSheetEntries<T extends { key: string }>(
+  byClass: Record<string, T[]> | undefined,
+  retired: Record<string, T> | undefined,
+  classKey: string,
+  keys: string[],
+): T[] {
+  const live = byClass?.[classKey] ?? byClass?.['default'] ?? []
+  return keys.map((key) =>
+    live.find((e) => e.key === key)
+      ?? retired?.[key]
+      // Chave sem dono em lugar nenhum vira entrada mínima com o nome = a própria chave, mesma
+      // escolha do `catalogLabel`: a linha continua na ficha em vez de sumir sem erro. O cast é
+      // porque a entrada mínima não tem `description`/`source` — é fallback de EXIBIÇÃO, não
+      // dado de catálogo (e o config de onde ela viria é justamente o que não a tem).
+      ?? ({ key, name: key } as unknown as T),
+  )
 }
 
 /** Zod dinâmico: um campo por atributo do sistema, min/max do próprio config. Rejeita chaves fora do config. */

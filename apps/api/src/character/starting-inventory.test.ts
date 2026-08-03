@@ -57,17 +57,18 @@ describe('getClassSpells (US-42)', () => {
     },
   }
 
-  it('materializa os truques da classe conjuradora (cleric → Chama Sagrada)', () => {
-    expect(getClassSpells(config, 'cleric').map(s => s.name)).toContain('Chama Sagrada')
+  // US-100: devolve CHAVES, não os objetos do config — é o que a ficha grava.
+  it('devolve as chaves dos truques da classe conjuradora (cleric → sacred-flame)', () => {
+    expect(getClassSpells(config, 'cleric')).toEqual(['sacred-flame'])
   })
 
   it('sorcerer e warlock têm listas distintas (não colapsam)', () => {
-    expect(getClassSpells(config, 'sorcerer').map(s => s.name)).toEqual(['Raio de Fogo'])
-    expect(getClassSpells(config, 'warlock').map(s => s.name)).toEqual(['Rajada Mística'])
+    expect(getClassSpells(config, 'sorcerer')).toEqual(['fire-bolt'])
+    expect(getClassSpells(config, 'warlock')).toEqual(['eldritch-blast'])
   })
 
   it('ranger tem chave própria (2 magias de nível 1)', () => {
-    expect(getClassSpells(config, 'ranger').map(s => s.name)).toContain('Marca do Caçador')
+    expect(getClassSpells(config, 'ranger')).toContain('hunters-mark')
   })
 
   it('não-conjurador (fighter) → lista vazia', () => {

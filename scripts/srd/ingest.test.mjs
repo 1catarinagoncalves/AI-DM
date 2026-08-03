@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired } from './ingest.mjs'
 
 const OVERLAY_PATH = join(import.meta.dirname, 'locale', 'pt-BR.json')
 
@@ -231,4 +231,38 @@ test('artefato: chave de feature é prefixada pela classe, a de magia não', () 
   }
   assert.equal(artifact.classSpells.wizard.find((s) => s.name === 'Light').key, 'light')
   assert.equal(artifact.classSpells.cleric.find((s) => s.name === 'Light').key, 'light')
+})
+
+// --- US-100: carry-over do conteúdo aposentado -------------------------------------------------
+// A rede que impede um bump de apagar, sem erro nenhum, a linha da ficha de quem tinha a chave.
+// O `withRetired` é puro: recebe o artefato novo e o anterior, devolve o novo + `retired*`.
+
+test('withRetired: chave que sumiu do bump é transportada com o texto que ela tinha', () => {
+  const prev = {
+    classFeatures: { ranger: [{ key: 'ranger_natural-explorer', name: 'Explorador Nato', description: 'Maestria no terreno.', source: 'srd' }] },
+    classSpells: { wizard: [{ key: 'friends', name: 'Amizade', level: 0, description: 'Influencia alguém.', source: 'srd' }] },
+  }
+  const next = { classFeatures: { ranger: [] }, classSpells: { wizard: [] } }
+  const out = withRetired(next, prev)
+  assert.equal(out.retiredFeatures['ranger_natural-explorer'].name, 'Explorador Nato')
+  assert.equal(out.retiredSpells.friends.name, 'Amizade')
+})
+
+test('withRetired: chave viva NÃO entra no retired, e a que volta ao catálogo sai dele', () => {
+  const viva = { key: 'barbarian_rage', name: 'Fúria', description: 'Entra em fúria.', source: 'srd' }
+  const prev = { classFeatures: { barbarian: [viva] }, retiredFeatures: { 'paladin_divine-sense': { key: 'paladin_divine-sense', name: 'Sentido Divino', source: 'srd' } } }
+  const next = { classFeatures: { barbarian: [viva], paladin: [{ key: 'paladin_divine-sense', name: 'Sentido Divino', source: 'srd' }] } }
+  assert.equal(withRetired(next, prev).retiredFeatures, undefined)
+})
+
+test('withRetired: o retired anterior sobrevive ao bump seguinte (não evapora no terceiro)', () => {
+  const prev = { classFeatures: {}, retiredFeatures: { 'ranger_natural-explorer': { key: 'ranger_natural-explorer', name: 'Explorador Nato', source: 'srd' } } }
+  const out = withRetired({ classFeatures: { ranger: [] } }, prev)
+  assert.equal(out.retiredFeatures['ranger_natural-explorer'].name, 'Explorador Nato')
+})
+
+test('withRetired: sem artefato anterior (1ª geração) e sem nada aposentado → campo ausente', () => {
+  const artifact = { classFeatures: { barbarian: [{ key: 'barbarian_rage', name: 'Fúria', source: 'srd' }] }, classSpells: {} }
+  assert.deepEqual(withRetired(artifact, null), artifact)
+  assert.deepEqual(withRetired(artifact, artifact), artifact)
 })

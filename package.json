@@ -12,6 +12,7 @@
     "db:studio": "dotenv -e .env -- pnpm --fail-if-no-match --filter api db:studio",
     "db:seed": "dotenv -e .env -- pnpm --fail-if-no-match --filter api db:seed",
     "db:migrate:race-class": "dotenv -e .env -- pnpm --fail-if-no-match --filter api db:migrate:race-class",
+    "db:migrate:feature-spell": "dotenv -e .env -- pnpm --fail-if-no-match --filter api db:migrate:feature-spell",
     "dead": "knip",
     "docs:links": "node scripts/check-doc-links.mjs",
     "docs:links:test": "node --test scripts/check-doc-links.test.mjs",

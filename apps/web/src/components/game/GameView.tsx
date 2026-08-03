@@ -164,6 +164,9 @@ function BackgroundPanel({ background }: { background?: CharacterBackground }) {
 // é só o que o personagem PODE fazer. Sem slots/preparação — não existem no modelo.
 function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells?: SystemSpell[] }) {
   const t = useT()
+  // US-100: o nome da magia chega já resolvido no locale (a página resolve a chave da ficha);
+  // o rótulo de nível é o único texto desta lista que se monta aqui — e acompanha.
+  const { locale } = useLocale()
   const featureList = (features ?? []).filter(f => f?.name?.trim())
   // Ordem estável por nível e depois nome (os 20 truques do mago não podem sair
   // arbitrários). Cópia — a prop não é mutada.
@@ -204,7 +207,7 @@ function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells
             {spellList.map((s, i) => {
               // Rótulo vindo de @ai-dm/shared — a MESMA regra que o prompt do mestre usa
               // (US-42), para a ficha e o prompt nunca divergirem ("truque" vs "nível 0").
-              const label = spellLevelLabel(s.level)
+              const label = spellLevelLabel(s.level, locale)
               return (
                 <li key={i} className="rounded-md border border-border bg-background/40 p-3">
                   <p data-testid="spell-name" className="text-sm font-semibold text-parchment">

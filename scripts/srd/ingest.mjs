@@ -382,8 +382,14 @@ async function main() {
   }
 
   // --- grava artefatos (chaves ordenadas → idempotente byte-a-byte) ---
-  await write('srd-5e.config.en-US.json', base.artifact)
-  await write('srd-5e.config.pt-BR.json', localized.artifact)
+  // US-100: o artefato ANTERIOR (o que está prestes a ser sobrescrito) é a única fonte do texto
+  // que este bump retirou — por isso a leitura vem antes das duas escritas.
+  const [prevEn, prevPtBr] = await Promise.all([
+    readArtifactIfAny('srd-5e.config.en-US.json'),
+    readArtifactIfAny('srd-5e.config.pt-BR.json'),
+  ])
+  await write('srd-5e.config.en-US.json', withRetired(base.artifact, prevEn))
+  await write('srd-5e.config.pt-BR.json', withRetired(localized.artifact, prevPtBr))
 
   // Relatórios só da localização: na base EN toda chave "cai no fallback" por definição
   // (não há overlay), e avisar de tradução faltante ali seria ruído garantido. US-99.
@@ -461,6 +467,49 @@ export function flagMissingGlossaryTerms(source, draft, terms) {
 
 async function write(name, artifact) {
   await writeFile(join(HERE, name), stableStringify(artifact) + '\n')
+}
+
+/** Artefato da rodada anterior, ou null na primeira geração (ou se o arquivo sumiu). */
+async function readArtifactIfAny(name) {
+  try {
+    return JSON.parse(await readFile(join(HERE, name), 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+/**
+ * US-100 — CARRY-OVER do conteúdo aposentado. Chave que existia no artefato anterior e não está
+ * neste bump é transportada para `retired*` com o texto do MESMO locale que ela já tinha (cada
+ * artefato carrega do seu par), e o `retired*` anterior vem junto — conteúdo retirado há dois
+ * bumps não evapora no terceiro.
+ *
+ * Por quê: a ficha guarda a CHAVE. Sem esta rede, um bump que retire conteúdo faz a linha sumir
+ * da ficha de quem o tinha, sem erro nenhum. Hoje a lista sai VAZIA (o `retired*` nem chega ao
+ * arquivo) — a última retirada foi resgatada pela união do ADR 009, e é sorte, não desenho.
+ *
+ * Chave que VOLTA ao catálogo vivo sai do `retired*` sozinha: quem manda é o `live` do bump novo.
+ */
+export function withRetired(artifact, prev) {
+  const retiredFeatures = retireMissing(prev?.classFeatures, prev?.retiredFeatures, artifact.classFeatures)
+  const retiredSpells = retireMissing(prev?.classSpells, prev?.retiredSpells, artifact.classSpells)
+  return {
+    ...artifact,
+    // Só entra no arquivo quando há o que aposentar: mapa vazio seria ruído no diff de todo bump.
+    ...(Object.keys(retiredFeatures).length ? { retiredFeatures } : {}),
+    ...(Object.keys(retiredSpells).length ? { retiredSpells } : {}),
+  }
+}
+
+/** Entradas do catálogo anterior (vivas ou já aposentadas) que o catálogo novo não tem. */
+function retireMissing(prevByClass, prevRetired, nextByClass) {
+  const live = new Set(Object.values(nextByClass ?? {}).flat().map((e) => e.key))
+  const previous = [...Object.values(prevByClass ?? {}).flat(), ...Object.values(prevRetired ?? {})]
+  const retired = {}
+  for (const entry of previous) {
+    if (!live.has(entry.key)) retired[entry.key] = entry
+  }
+  return retired
 }
 
 // Serializa com chaves ordenadas recursivamente (arrays preservam a ordem já definida).

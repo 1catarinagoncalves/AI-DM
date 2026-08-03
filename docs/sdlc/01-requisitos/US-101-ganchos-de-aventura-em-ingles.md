@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-97](./US-97-seletor-de-idioma-pt-br-en.md) (é de `User.locale` que sai o idioma) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (**dá o transporte**: `configLocales` carrega o `SystemConfig` inteiro, e `initialAdventures` faz parte dele — esta story não inventa mecanismo, escreve conteúdo)
 **Relacionada a:** [US-28](./US-28-aventura-inicial-baseada-na-classe.md) ✅ (criou os 13 ganchos, todos autorais em PT) · [US-98](./US-98-i18n-da-interface-web.md) (a tela que exibe o gancho; sem esta story, moldura EN com miolo PT) · [US-52](./US-52-traducao-automatica-do-srd.md) (traduz o **dataset**, não conteúdo autoral — mecanismo diferente, ver *Por que não cabe na US-52*) · [Direção Visual Anti-Slop](../02-design/direcao-visual-anti-slop.md) e [US-68](./US-68-nomes-de-fantasia-originais.md) (a barra de qualidade que a prosa EN tem de passar)
 **Criada em:** 2026-07-30

@@ -181,7 +181,8 @@ export function buildDmSystemPrompt(params: {
   locale?: Locale
 }): string {
   const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells } = params
-  const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
+  const locale = params.locale ?? DEFAULT_LOCALE
+  const targetLanguage = localeNameForPrompt(locale)
 
   const attributesLine = Object.entries(sheet.attributes)
     .map(([key, value]) => `${attributeLabels?.[key] ?? key} ${value} (${formatModifier(abilityModifier(value))})`)
@@ -250,7 +251,9 @@ ${featureLines}
     .map((s) => {
       const name = s.name?.trim()
       if (!name) return ''
-      const label = spellLevelLabel(s.level)
+      // US-100: o nome já vem no locale ativo (resolvido da chave da ficha); o sufixo de nível
+      // acompanha, senão a mesa em inglês lê "Sacred Flame (truque)".
+      const label = spellLevelLabel(s.level, locale)
       return label ? `- ${name} (${label})` : `- ${name}`
     })
     .filter(Boolean)

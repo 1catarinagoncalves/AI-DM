@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import type { InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
-import { buildSkillSheet, catalogLabel, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, resolveSheetEntries, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -297,6 +297,11 @@ export class AiService {
       ? buildSkillSheet(config.skills, attributes, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
       : undefined
     const skills = resolvedSkills?.map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
+    // US-100: a ficha guarda CHAVES de feature/magia; o catálogo do locale devolve o texto.
+    // Resolvido UMA vez por turno e compartilhado com a tool `getSpell` abaixo — é o que
+    // mantém a busca por nome na MESMA língua da lista que o prompt mostrou.
+    const features = resolveSheetEntries(config?.classFeatures, config?.retiredFeatures, character.class, (character.features ?? []) as string[])
+    const knownSpells = resolveSheetEntries(config?.classSpells, config?.retiredSpells, character.class, (character.spells ?? []) as string[])
     const sheet = {
       level: character.level,
       hp: characterState?.hp ?? 0,
@@ -321,10 +326,10 @@ export class AiService {
       sheet,
       attributeLabels,
       background: (character.background ?? {}) as unknown as CharacterBackground,
-      // US-41: features de classe materializadas no personagem (awareness read-only).
-      features: (character.features ?? []) as unknown as ClassFeature[],
+      // US-41: features de classe do kit (awareness read-only), no locale ativo (US-100).
+      features,
       // US-42: magias conhecidas — SÓ os nomes vão ao prompt; a descrição vem via getSpell.
-      spells: ((character.spells ?? []) as unknown as KnownSpell[]).map((s) => ({ name: s.name, level: s.level })),
+      spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
       // US-97: camada 1 do prompt (estável por usuário) — trocar de idioma invalida o
       // cache do prefixo uma vez, e é evento raro (ADR 007).
       locale,
@@ -596,9 +601,13 @@ export class AiService {
       }),
 
       // US-42: descrição da magia sob demanda. Awareness apenas — NÃO resolve slot,
-      // dano, cura ou preparação. Fonte de verdade = Character.spells (materializado
-      // do kit da classe na criação). Match tolerante a acento/caixa. Magia fora da
-      // lista → { known: false } e o mestre NÃO inventa o efeito.
+      // dano, cura ou preparação. Fonte de verdade = Character.spells (as chaves do kit
+      // da classe), resolvida no locale ativo. Match tolerante a acento/caixa. Magia fora
+      // da lista → { known: false } e o mestre NÃO inventa o efeito.
+      //
+      // US-100: casa contra `knownSpells` (o MESMO array que virou a lista do prompt), não
+      // contra a coluna crua — que hoje é chave. Fosse a coluna, o mestre pediria "Fúria" e
+      // receberia known:false, porque lá está `barbarian_rage`.
       getSpell: tool({
         description:
           'Look up a spell the character knows to get its effect BEFORE narrating a casting. Pass the spell NAME exactly as shown in the "Known spells" list. Returns { known, level, description }. If it returns known:false, the character does NOT know that spell — do NOT invent its effect. This is awareness only: it does NOT spend slots, roll damage/healing, or track preparation.',
@@ -606,7 +615,7 @@ export class AiService {
           name: z.string().describe('Spell name as shown in the "Known spells" list, e.g. "Chama Sagrada".'),
         }),
         execute: async ({ name }: { name: string }) => {
-          return resolveKnownSpell((character.spells ?? []) as unknown as KnownSpell[], name)
+          return resolveKnownSpell(knownSpells, name)
         },
       }),
     }

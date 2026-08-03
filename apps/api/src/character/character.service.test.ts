@@ -239,43 +239,32 @@ describe('CharacterService.create', () => {
     },
   }
 
-  it('materializa as features de nível 1 da classe (lookup pela chave)', async () => {
+  // US-100: a criação grava CHAVES. Nenhum `{name, description}` sai daqui — era o texto
+  // materializado que prendia a ficha ao idioma de quem a criou.
+  it('grava as CHAVES das features de nível 1 da classe, não o texto', async () => {
     const service = new CharacterService(fakePrisma(configWithFeatures))
     const char = await service.create({
       userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'paladin',
       attributes: { cool: 5, hard: 5 },
     })
-    expect(char.features).toEqual([
-      { key: 'paladin_divine-sense', source: 'authored', name: 'Sentido Divino', description: 'Sente o mal por perto.' },
-      { key: 'paladin_lay-on-hands', source: 'srd', name: 'Impor as Mãos', description: 'Cura ao toque.' },
-    ])
+    expect(char.features).toEqual(['paladin_divine-sense', 'paladin_lay-on-hands'])
   })
 
-  // US-99: o `config` do sistema é a BASE EN; a ficha nasce no idioma do DONO. O par
-  // dos dois testes falha se a criação parar de resolver o locale — em qualquer direção:
-  // servir EN a um jogador pt-BR, ou continuar servindo PT a um jogador en-US.
-  it('locale en-US materializa a feature com o texto da base EN', async () => {
-    const service = new CharacterService(fakePrisma(configWithFeaturesEn, 'en-US', { 'pt-BR': configWithFeatures }))
-    const char = await service.create({
-      userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Human', class: 'paladin',
-      attributes: { cool: 5, hard: 5 },
-    })
-    expect(char.features).toEqual([
-      { key: 'paladin_divine-sense', source: 'authored', name: 'Divine Sense', description: 'Senses evil nearby.' },
-      { key: 'paladin_lay-on-hands', source: 'srd', name: 'Lay On Hands', description: 'Heals by touch.' },
-    ])
-  })
-
-  it('locale pt-BR materializa a feature da localização, não da base EN', async () => {
-    const service = new CharacterService(fakePrisma(configWithFeaturesEn, 'pt-BR', { 'pt-BR': configWithFeatures }))
-    const char = await service.create({
+  // US-99 tinha aqui um par de testes afirmando que a ficha NASCIA no idioma do dono (a criação
+  // resolvia o locale e copiava o texto). A US-100 tirou o texto do meio: o que a ficha guarda é
+  // idêntico nos dois locales, e quem escolhe o idioma é a LEITURA (resolveSheetEntries — o par
+  // 'Fúria'/'Rage' vive em packages/shared/src/sheet.test.ts). Este teste é o inverso do antigo:
+  // falha se a criação voltar a depender do locale.
+  it('a ficha nasce IGUAL nos dois locales — a chave não tem idioma', async () => {
+    const enService = new CharacterService(fakePrisma(configWithFeaturesEn, 'en-US', { 'pt-BR': configWithFeatures }))
+    const ptService = new CharacterService(fakePrisma(configWithFeaturesEn, 'pt-BR', { 'pt-BR': configWithFeatures }))
+    const dto = {
       userId: 'u1', systemId: 'sys-test', name: 'Seraphine', gender: 'feminino', race: 'Humana', class: 'paladin',
       attributes: { cool: 5, hard: 5 },
-    })
-    expect(char.features).toEqual([
-      { key: 'paladin_divine-sense', source: 'authored', name: 'Sentido Divino', description: 'Sente o mal por perto.' },
-      { key: 'paladin_lay-on-hands', source: 'srd', name: 'Impor as Mãos', description: 'Cura ao toque.' },
-    ])
+    }
+    const [en, pt] = await Promise.all([enService.create(dto), ptService.create(dto)])
+    expect(en.features).toEqual(['paladin_divine-sense', 'paladin_lay-on-hands'])
+    expect(pt.features).toEqual(en.features)
   })
 
   it('classe sem kit de features → [] (sem crash)', async () => {

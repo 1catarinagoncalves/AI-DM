@@ -2,8 +2,8 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
-**Depende de:** [US-106](./US-106-catalogo-com-chave-e-free-herdando-o-srd.md) (**obrigatória e anterior**: é ela que põe `key` no artefato e faz o Free herdar o SRD — sem chave no `config` a ficha não tem o que guardar) · [US-97](./US-97-seletor-de-idioma-pt-br-en.md) (é de `User.locale` que sai o idioma) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (**obrigatória e anterior**: a ficha resolve a label a partir do `config` do locale — sem `config` por locale não há de onde resolver) · [US-54](./US-54-chaves-canonicas-em-ingles.md) ✅ (as chaves de classe já são EN — o ADR 005 exigia essa ordem) · [US-52](./US-52-traducao-automatica-do-srd.md) ✅ (o pipeline de tradução que esta story reusa para o conteúdo aposentado)
+**Status:** ✅ Implementada
+**Depende de:** [US-106](./US-106-catalogo-com-chave-e-free-herdando-o-srd.md) ✅ (**obrigatória e anterior**: é ela que põe `key` no artefato e faz o Free herdar o SRD — sem chave no `config` a ficha não tem o que guardar) · [US-97](./US-97-seletor-de-idioma-pt-br-en.md) (é de `User.locale` que sai o idioma) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (**obrigatória e anterior**: a ficha resolve a label a partir do `config` do locale — sem `config` por locale não há de onde resolver) · [US-54](./US-54-chaves-canonicas-em-ingles.md) ✅ (as chaves de classe já são EN — o ADR 005 exigia essa ordem) · [US-52](./US-52-traducao-automatica-do-srd.md) ✅ (o pipeline de tradução que esta story reusa para o conteúdo aposentado)
 **Relacionada a:** [US-41](./US-41-features-traits-de-classe.md) e [US-42](./US-42-magias-conhecidas.md) (foram elas que materializaram feature/magia como texto) · [US-27](./US-27-pericias-do-personagem.md) (as perícias **já** fazem certo — é o modelo a copiar) · [US-47](./US-47-ingestao-srd-como-dado.md) (é o `ingest` que calcula e descarta a chave) · [ADR 005](../../adr/005-locale-como-dimensao.md) (D2 e fase "Ficha") · [ADR 004 §3.1](../../adr/004-origem-do-dado-de-sistema.md) (**revisão de 02/08/2026**: o Free herda o SRD — é o que traz o `system-free` para dentro desta story) · [ADR 002](../../adr/002-memoria-de-sessao.md) (o `EventLog` congela por decisão, não entra aqui)
 **Criada em:** 2026-07-30 · **Reescrita em:** 2026-08-02
 
@@ -145,15 +145,15 @@ Contar quantos itens casam e quantos não, **por classe e por origem** (locale d
 
 ## Critérios de aceite
 
-- [ ] Personagem novo grava **chaves** em `features`/`spells`; nenhum `{name, description}` é escrito na criação.
-- [ ] A mesma ficha, lida com `locale = 'pt-BR'` e com `locale = 'en-US'`, mostra `'Fúria'` e `'Rage'` — sem tocar no banco entre as duas leituras.
-- [ ] Trocar o idioma com o jogo aberto atualiza os nomes de feature/magia na ficha; `name`, `background` e o histórico de narração **não** mudam.
-- [ ] **Vale para os dois sistemas:** ficha do `system-free` acompanha o idioma pelo mesmo caminho e pelo mesmo código, sem ramo próprio — com o Free já montado pela [US-106](./US-106-catalogo-com-chave-e-free-herdando-o-srd.md).
-- [ ] Fichas existentes migram e **nenhuma perde feature ou magia**: item com texto EM INGLÊS numa ficha pt-BR casa (índice dos dois locales); item de classe ambígua casa na classe certa (escopo por classe); os 9 itens legados de origem incomum casam nos destinos da *Migração* §3 (`Sentido Divino`/`Explorador Nato` no catálogo vivo pela união; os 7 truques nas entradas autorais do Free).
-- [ ] **Carry-over do `retired`:** simulando um bump que retire uma chave que alguma ficha tem, a chave é transportada para `retiredFeatures`/`retiredSpells` com os dois locales e a ficha continua exibindo o item — em vez de perder a linha em silêncio.
-- [ ] O prompt do Mestre recebe os nomes no locale ativo, e `getSpell` encontra a magia pelo nome que a lista mostra — nos dois idiomas.
-- [ ] Chave sem tradução no overlay do locale exibe o texto EN em vez de campo vazio.
-- [ ] **Eval / teste de regressão:** ficha com uma feature e uma magia lida nos dois locales, afirmando os dois pares de nomes; ficha PT legada e ficha com fallback EN passadas pela migração, afirmando que viraram chave e resolvem de volta para o texto do locale certo; ficha apontando para chave transportada pelo carry-over, afirmando que resolve pelo `retired` nos dois idiomas. Falha se o texto voltar a ser materializado ou se a migração perder itens.
+- [x] Personagem novo grava **chaves** em `features`/`spells`; nenhum `{name, description}` é escrito na criação.
+- [x] A mesma ficha, lida com `locale = 'pt-BR'` e com `locale = 'en-US'`, mostra `'Fúria'` e `'Rage'` — sem tocar no banco entre as duas leituras.
+- [x] Trocar o idioma com o jogo aberto atualiza os nomes de feature/magia na ficha; `name`, `background` e o histórico de narração **não** mudam.
+- [x] **Vale para os dois sistemas:** ficha do `system-free` acompanha o idioma pelo mesmo caminho e pelo mesmo código, sem ramo próprio — com o Free já montado pela [US-106](./US-106-catalogo-com-chave-e-free-herdando-o-srd.md).
+- [x] Fichas existentes migram e **nenhuma perde feature ou magia**: item com texto EM INGLÊS numa ficha pt-BR casa (índice dos dois locales); item de classe ambígua casa na classe certa (escopo por classe); os 9 itens legados de origem incomum casam nos destinos da *Migração* §3 (`Sentido Divino`/`Explorador Nato` no catálogo vivo pela união; os 7 truques nas entradas autorais do Free).
+- [x] **Carry-over do `retired`:** simulando um bump que retire uma chave que alguma ficha tem, a chave é transportada para `retiredFeatures`/`retiredSpells` com os dois locales e a ficha continua exibindo o item — em vez de perder a linha em silêncio.
+- [x] O prompt do Mestre recebe os nomes no locale ativo, e `getSpell` encontra a magia pelo nome que a lista mostra — nos dois idiomas.
+- [x] Chave sem tradução no overlay do locale exibe o texto EN em vez de campo vazio.
+- [x] **Eval / teste de regressão:** ficha com uma feature e uma magia lida nos dois locales, afirmando os dois pares de nomes; ficha PT legada e ficha com fallback EN passadas pela migração, afirmando que viraram chave e resolvem de volta para o texto do locale certo; ficha apontando para chave transportada pelo carry-over, afirmando que resolve pelo `retired` nos dois idiomas. Falha se o texto voltar a ser materializado ou se a migração perder itens.
 
 ---
 
@@ -168,6 +168,15 @@ Contar quantos itens casam e quantos não, **por classe e por origem** (locale d
 - **O `retired` não entra na criação:** `getClassFeatures` lê `classFeatures`, nunca `retiredFeatures`. Personagem novo não nasce com conteúdo aposentado.
 - **Os dois locales não estão no mesmo registro:** medido em 02/08/2026, a descrição de feature tem mediana de **57 caracteres em pt-BR** (a paráfrase curta herdada do seed) e **426 em en-US** (o texto de regra cru do dataset). Trocar para EN aumenta a ficha e o prompt. É assimetria de conteúdo, registrada no [ADR 004 §3.1](../../adr/004-origem-do-dado-de-sistema.md); não tente resolvê-la aqui.
 - Lembre do `dist`: mexeu em `packages/shared` ou `packages/ai-engine`, rebuild antes de testar pela API.
+
+### O que a implementação fez diferente (03/08/2026)
+
+- **Um resolvedor só, genérico**, em vez de um para feature e outro para magia: `resolveSheetEntries(byClass, retired, classKey, keys)` em [`types/system.ts`](../../../packages/shared/src/types/system.ts), ao lado do `catalogLabel` — as duas formas são `{key, name, …}` e duas funções divergiriam. Consumido por 4 chamadores: ficha da web, prompt do turno, prompt da abertura e a tool `getSpell`.
+- **`getSpell` casa contra o MESMO array que virou a lista do prompt**, não contra a coluna. É a ligação que faz a busca por nome funcionar nos dois idiomas — está guardada por eval em [`us-42-magias.ts`](../../../evals/cases/us-42-magias.ts).
+- **O passo 3 da *Migração* §2 não foi implementado** (decidir a classe pelas outras features da ficha). Desde a US-105 `Character.class` é chave VALIDADA contra o catálogo, então "nome ambíguo **e** classe irresolúvel" não acontece numa ficha migrada; o script reporta em vez de adivinhar. O motivo está no comentário do `toEntryKey`.
+- **Migração aplicada no banco de dev em 03/08/2026:** 3 fichas, **0 itens sem destino**. O caso do §1 apareceu de verdade — a mesma base tinha `"Healing Word"`/`"Ice Knife"` (fallback EN) e `"Luz"`/`"Mão Mágica"` (PT) em fichas do mesmo locale. Segunda rodada: `0 ficha(s) migrariam` (idempotente).
+- **O `retired` saiu vazio, como a story previa**, e por isso os dois artefatos ficaram byte-idênticos depois do `srd:ingest`: o `withRetired` só emite o campo quando há o que transportar. O mecanismo tem teste próprio em [`ingest.test.mjs`](../../../scripts/srd/ingest.test.mjs) (chave que sumiu, chave que volta, `retired` que sobrevive ao bump seguinte).
+- **Fronteira encostada e depois fechada:** o rótulo de nível da magia (`"(truque)"`) era hard-coded em PT no `spellLevelLabel` da US-42 — com o nome já vindo do locale, uma mesa em inglês lia `Sacred Flame (truque)`, linha meio traduzida. Como é a **mesma linha** que esta story move, e a função é fonte única para prompt e ficha, ela passou a receber `locale` (`cantrip`/`level N`). Os dois chamadores o passam explicitamente; o default segue `DEFAULT_LOCALE`. O mapa é `Record<Locale, …>`: locale novo não compila até ter as duas palavras.
 
 ---
 

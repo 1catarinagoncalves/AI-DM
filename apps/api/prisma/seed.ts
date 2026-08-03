@@ -158,10 +158,13 @@ const dnd5eInitialAdventures: SystemConfig['initialAdventures'] = {
 // e o emit sairia em dist/apps/api/src/main.js — quebrando `nest start` (que roda dist/main).
 //
 // US-99: são DOIS artefatos, um por locale. O mesmo caminho de leitura serve os dois.
+// US-100: `retiredFeatures`/`retiredSpells` entram no Pick — é o que faz a ficha de quem tinha
+// conteúdo retirado por um bump continuar resolvendo. Ausentes do arquivo enquanto nada foi
+// aposentado (o ingest só os emite quando há o que transportar).
 function readSrdArtifact(locale: string) {
   return JSON.parse(
     readFileSync(join(__dirname, `../../../scripts/srd/srd-5e.config.${locale}.json`), 'utf8'),
-  ) as Pick<SystemConfig, 'attributes' | 'skills' | 'races' | 'classes' | 'classFeatures' | 'classSpells' | 'startingKits'>
+  ) as Pick<SystemConfig, 'attributes' | 'skills' | 'races' | 'classes' | 'classFeatures' | 'classSpells' | 'startingKits' | 'retiredFeatures' | 'retiredSpells'>
 }
 
 // Os campos de produto que SOBRARAM são os mesmos nos dois locales: point-buy, proficiência e
@@ -176,7 +179,9 @@ const dnd5eConfigPtBr: SystemConfig = { ...readSrdArtifact('pt-BR'), ...dnd5ePro
 
 // US-106: o config do Free é o artefato do locale FILTRADO pela curadoria dele. `attributes`,
 // `skills`, `races` e `classes` entram inteiros (o Free sempre ofereceu os mesmos); features e
-// magias passam pela seleção de chaves + entradas próprias do free-catalog.ts.
+// magias passam pela seleção de chaves + entradas próprias do free-catalog.ts. O `retired*` do
+// artefato entra inteiro pelo `...srd` (US-100): é rede de LEITURA de ficha antiga, e filtrá-lo
+// pela curadoria só apagaria o texto de quem já tem a chave gravada.
 //
 // A US-105 tinha dado ao Free os catálogos de raça e classe herdando o artefato **pt-BR** dentro
 // da coluna da base EN — remendo consciente, porque o Free ainda não tinha `configLocales` e um

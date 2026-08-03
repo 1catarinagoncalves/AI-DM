@@ -1,4 +1,4 @@
-import type { InitialAdventureHook, InventoryItem, SystemClassFeature, SystemConfig, SystemSpell } from '@ai-dm/shared'
+import type { InitialAdventureHook, InventoryItem, SystemConfig } from '@ai-dm/shared'
 
 // US-105: `classKey` é a CHAVE canônica gravada no Character (`wizard`, `paladin`), validada
 // contra `config.classes` na criação — não é mais o texto livre que o jogador digitava. Por isso
@@ -21,22 +21,28 @@ export function getStartingInventory(config: SystemConfig, classKey: string): In
  * Features de classe de nível 1 do kit (US-41), pela chave canônica da classe. Classe sem
  * entrada cai no `default` do config; sem `classFeatures` no config → []. Nunca inventa
  * feature: personagem sem kit fica com lista vazia (sem crash, sem seção).
+ *
+ * US-100: devolve as CHAVES, não os objetos. A ficha guarda a pergunta ("qual feature?"), não a
+ * resposta no idioma de quem criou — quem devolve nome e descrição é o `resolveSheetEntries`, na
+ * LEITURA, com o config do locale ativo. Lê só `classFeatures`: conteúdo aposentado
+ * (`retiredFeatures`) resolve ficha antiga e nunca entra em personagem novo.
  */
-export function getClassFeatures(config: SystemConfig, classKey: string): SystemClassFeature[] {
+export function getClassFeatures(config: SystemConfig, classKey: string): string[] {
   const map = config.classFeatures
   if (!map) return []
-  return map[classKey] ?? map.default ?? []
+  return (map[classKey] ?? map.default ?? []).map((f) => f.key)
 }
 
 /**
  * Magias conhecidas do kit da classe (US-42). Espelha `getClassFeatures`: lookup pela chave
  * canônica; classe sem entrada cai no `default`; sem `classSpells` no config → [].
  * Não-conjurador (ou classe sem truques) → lista vazia, sem crash e sem seção no prompt.
+ * US-100: também devolve chaves (aqui o slug nu do dataset, não prefixado por classe).
  */
-export function getClassSpells(config: SystemConfig, classKey: string): SystemSpell[] {
+export function getClassSpells(config: SystemConfig, classKey: string): string[] {
   const map = config.classSpells
   if (!map) return []
-  return map[classKey] ?? map.default ?? []
+  return (map[classKey] ?? map.default ?? []).map((s) => s.key)
 }
 
 /**

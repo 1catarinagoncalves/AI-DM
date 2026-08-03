@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { GameView } from '@/components/game/GameView'
-import { buildSkillSheet, catalogLabel, type SystemConfig } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, resolveSheetEntries, type SystemConfig } from '@ai-dm/shared'
 import { apiAuthHeader } from '@/lib/server-auth'
 import { LOCALE_COOKIE, localeFromCookie } from '@/lib/locale-cookie'
 import { messagesFor } from '@/messages'
@@ -49,6 +49,12 @@ export default async function PlayPage({ params, searchParams }: Props) {
   const className = catalogLabel(config?.classes, character.class)
   const raceName = catalogLabel(config?.races, character.race)
 
+  // US-100: feature e magia também são chave — o mesmo padrão das perícias, agora na aba
+  // Features. A ficha do banco não muda ao trocar de idioma; muda o config que chega aqui.
+  const charClass = character.class as string
+  const features = resolveSheetEntries(config?.classFeatures, config?.retiredFeatures, charClass, (character.features ?? []) as string[])
+  const spells = resolveSheetEntries(config?.classSpells, config?.retiredSpells, charClass, (character.spells ?? []) as string[])
+
   return (
     <GameView
       adventureId={adventureId}
@@ -63,8 +69,8 @@ export default async function PlayPage({ params, searchParams }: Props) {
       conditions={state?.conditions ?? []}
       skills={skills}
       background={character.background}
-      features={character.features}
-      spells={character.spells}
+      features={features}
+      spells={spells}
     />
   )
 }

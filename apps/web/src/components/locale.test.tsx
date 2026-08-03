@@ -85,6 +85,18 @@ describe('GameView — aviso de troca de idioma no chat (US-97)', () => {
     expect(await screen.findByText('Language changed to English')).toBeTruthy()
   })
 
+  // US-100: o NOME da magia chega resolvido do servidor (a página resolve a chave no locale do
+  // dono); o rótulo de nível é o único texto da lista montado no cliente. Este teste guarda a
+  // ligação `useLocale()` → `spellLevelLabel` — com ela quebrada a linha sai meio traduzida
+  // ("Sacred Flame (truque)") e nenhum teste de unidade pega, porque a função em si está certa.
+  it('a lista de magias sai INTEIRA no idioma ativo (nome + rótulo de nível)', async () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'en-US')
+    renderWithLocale(<GameView {...gameProps} spells={[{ key: 'sacred-flame', name: 'Sacred Flame', level: 0, description: 'Radiance descends.', source: 'srd' }]} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Features' }))
+    expect((await screen.findByTestId('spell-name')).textContent).toBe('Sacred Flame (cantrip)')
+  })
+
   it('a pílula NÃO entra no cache do histórico — é marcador de sessão, não turno', async () => {
     localStorage.setItem(LOCALE_STORAGE_KEY, 'pt-BR')
     renderWithLocale(<GameView {...gameProps} />)

@@ -12,7 +12,8 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "ts-node prisma/seed.ts",
-    "db:migrate:race-class": "ts-node prisma/migrate-race-class-keys.ts"
+    "db:migrate:race-class": "ts-node prisma/migrate-race-class-keys.ts",
+    "db:migrate:feature-spell": "ts-node prisma/migrate-feature-spell-keys.ts"
   },
   "dependencies": {
     "@ai-dm/ai-engine": "workspace:*",

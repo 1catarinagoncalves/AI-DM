@@ -1,9 +1,9 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
-import { mergeSceneState, type CharacterBackground, type ClassFeature, type KnownSpell } from '@ai-dm/ai-engine'
+import { mergeSceneState, type CharacterBackground } from '@ai-dm/ai-engine'
 import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 
 export interface CreateAdventureDto {
@@ -114,6 +114,8 @@ export class AdventureService {
       ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
         .map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
       : undefined
+    const features = resolveSheetEntries(config.classFeatures, config.retiredFeatures, character.class, (character.features ?? []) as string[])
+    const knownSpells = resolveSheetEntries(config.classSpells, config.retiredSpells, character.class, (character.spells ?? []) as string[])
     const generatedOpening = await this.ai.generateOpeningNarration({
       systemName: character.system.name,
       characterName: character.name,
@@ -126,10 +128,11 @@ export class AdventureService {
       hookSeed: hook.openingNarration,
       attributeLabels: Object.fromEntries(labelPairs),
       background: (character.background ?? {}) as unknown as CharacterBackground,
-      // US-41: features de classe materializadas no personagem (o DM já as conhece na 1ª cena).
-      features: (character.features ?? []) as unknown as ClassFeature[],
+      // US-41: features de classe do kit (o DM já as conhece na 1ª cena). US-100: a ficha guarda
+      // a chave; o texto sai do `config` — que aqui já é o do locale do dono (`configForLocale`).
+      features,
       // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
-      spells: ((character.spells ?? []) as unknown as KnownSpell[]).map((s) => ({ name: s.name, level: s.level })),
+      spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
       locale: resolveLocale(character.user?.locale),
     })
     // ponytail: o fallback estático continua PT (o gancho é autoral, US-101). Numa mesa
