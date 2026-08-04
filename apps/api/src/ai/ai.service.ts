@@ -9,6 +9,7 @@ import {
   narrationModels,
   NARRATION_PROVIDER_OPTIONS,
   EXTRACTION_PROVIDER_OPTIONS,
+  formatProvenance,
   summaryModel,
   buildDmSystemPrompt,
   buildTurnStateBlock,
@@ -133,6 +134,16 @@ export function scenePatchFromExtraction(object: ExtractedScene, playerName?: st
   if (object.ambiente) patch.ambiente = object.ambiente
   if (object.periodo.trim()) patch.periodo = object.periodo.trim()
   return patch
+}
+
+/**
+ * US-103: proveniência das três extrações estruturadas, no mesmo formato da linha do
+ * turno. As três usam `summaryModel` e o MESMO pin de rota da narração — a ADR 008 §3
+ * afirma que caem no mesmo endpoint dela, e esta linha é o que permite conferir por
+ * observação. Endpoint diferente do turno = a §3 está errada.
+ */
+function logExtractionEndpoint(label: string, providerMetadata: unknown): void {
+  console.log(`[AiService][${label}] model=${summaryModel.modelId ?? 'unknown'} ${formatProvenance(providerMetadata)}`)
 }
 
 @Injectable()
@@ -673,17 +684,25 @@ export class AiService {
         // DIAGNÓSTICO corte de narração: 'length' = estourou maxTokens (raciocínio
         // oculto do deepseek conta no orçamento); 'stop' com prosa incompleta =
         // provider dropou upstream; 'error' = ver logs acima.
-        console.log(`[AiService] onFinish finishReason=${finishReason} tokens=${JSON.stringify(usage)} steps=${steps.length}`)
-        // US-69 PASSO 0: loga SEMPRE o provider upstream que o OpenRouter roteou +
-        // a contagem nativa de tokens (raciocínio incluso) — vive em providerMetadata.
-        // Na próxima ocorrência do embaralhamento de whitespace (2º modo) isto
-        // desambigua backend ruim (hipótese principal) de frequencyPenalty×raciocínio.
-        // Barato; o dump pesado de response.body continua atrás da flag abaixo.
-        console.log('[AiService] providerMetadata=', JSON.stringify(providerMetadata))
+        // US-69 PASSO 0: a intenção era logar SEMPRE o provider upstream que o OpenRouter
+        // roteou, para a próxima ocorrência do embaralhamento de whitespace (2º modo)
+        // desambiguar backend ruim (hipótese principal) de frequencyPenalty×raciocínio.
+        // O dump cru de `providerMetadata` que morava aqui NÃO entregava isso — o nome do
+        // endpoint não sobrevive à normalização do SDK. US-103 põe o nome na linha abaixo
+        // (via metadataExtractor, em model.ts) e o dump saiu: uma linha a menos por turno.
+        // `model=` nomeia o nível da escada que serviu (flash / pro / Groq).
+        console.log(
+          `[AiService] onFinish finishReason=${finishReason} model=${model.modelId ?? 'unknown'}` +
+            ` ${formatProvenance(providerMetadata)} tokens=${JSON.stringify(usage)} steps=${steps.length}`,
+        )
         // US-55 spike de cache: o pin @ai-sdk/openai-compatible@0.2.16 não
         // normaliza cached tokens no `usage` (só promptTokens/completionTokens); o
         // OpenRouter/DeepSeek reporta em prompt_tokens_details.cached_tokens +
         // cache_discount no corpo bruto, que sai em providerMetadata/response.body.
+        // US-103, medido no dist do SDK: no STREAMING `response.body` é `undefined`
+        // (doStream devolve só headers) — aqui o número útil é
+        // `providerMetadata.openrouter.cachedPromptTokens`, que o SDK preenche a partir
+        // de prompt_tokens_details. O dump do corpo só tem conteúdo nas extrações.
         // Gate por env pra logar SÓ quando estamos medindo — sem ruído em prod.
         // ponytail: dump completo atrás de flag; remover a flag quando a Q1 fechar.
         if (process.env.DM_CACHE_SPIKE) {
@@ -952,7 +971,7 @@ export class AiService {
       const exclusion = carriedInventory.length > 0
         ? `\n\nNÃO liste como objeto de cena o que a personagem CARREGA no inventário: ${carriedInventory.join(', ')}.`
         : ''
-      const { object } = await generateObject({
+      const { object, providerMetadata } = await generateObject({
         model: summaryModel,
         schema: OPENING_SCENE_SCHEMA,
         system:
@@ -962,6 +981,7 @@ export class AiService {
         // nasce nula sempre (medido 04/08/2026 — ver EXTRACTION_PROVIDER_OPTIONS).
         providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
+      logExtractionEndpoint('extractOpeningScene', providerMetadata)
       // Snapshot vazio (prosa sem cena discernível) = tratamos como nulo: nada a ancorar.
       const empty = !object.local.trim() && object.presentes.length === 0 && object.objetos_em_cena.length === 0
       return empty ? null : object
@@ -989,7 +1009,7 @@ export class AiService {
     const text = openingText.trim()
     if (text.length === 0) return null
     try {
-      const { object } = await generateObject({
+      const { object, providerMetadata } = await generateObject({
         model: summaryModel,
         schema: OPENING_ENTITIES_SCHEMA,
         system:
@@ -997,6 +1017,7 @@ export class AiService {
         prompt: `Abertura:\n"""\n${text}\n"""${questContext ? `\n\nGancho da aventura (contexto):\n"""\n${questContext}\n"""` : ''}`,
         providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
+      logExtractionEndpoint('extractOpeningEntities', providerMetadata)
       const seeded = object.entidades
         .filter((e) => e.nome?.trim())
         // A abertura É pública e já vivida: força os dois eixos, não deixa ao extrator.
@@ -1033,7 +1054,7 @@ export class AiService {
       })
       const current = (state?.sceneState ?? null) as SceneState | null
       const baseText = (current && formatSceneState(current)) || '(nenhuma cena registrada ainda)'
-      const { object } = await generateObject({
+      const { object, providerMetadata } = await generateObject({
         model: summaryModel,
         schema: OPENING_SCENE_SCHEMA,
         system:
@@ -1041,6 +1062,7 @@ export class AiService {
         prompt: `CENA ATUAL:\n"""\n${baseText}\n"""\n\nNARRAÇÃO MAIS RECENTE:\n"""\n${text}\n"""`,
         providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
+      logExtractionEndpoint('reconcileScene', providerMetadata)
       const next = mergeSceneState(current, scenePatchFromExtraction(object, playerName))
 
       await this.prisma.characterState.update({

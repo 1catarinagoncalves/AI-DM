@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Implementada (04/08/2026) — código e conteúdo completos e verdes; falta rodar `pnpm db:seed` para gravar o `configLocales` novo no banco
+**Status:** ✅ Implementada (04/08/2026). `pnpm db:seed` rodado no mesmo dia e conferido no banco: 13 ganchos em `config` (EN) e 13 em `configLocales['pt-BR']`, nos dois sistemas — `Rise Among the Tribe` / `A Ascensão na Tribo`
 **Depende de:** [US-97](./US-97-seletor-de-idioma-pt-br-en.md) (é de `User.locale` que sai o idioma) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (**dá o transporte**: `configLocales` carrega o `SystemConfig` inteiro, e `initialAdventures` faz parte dele — esta story não inventa mecanismo, escreve conteúdo)
 **Relacionada a:** [US-28](./US-28-aventura-inicial-baseada-na-classe.md) ✅ (criou os 13 ganchos, todos autorais em PT) · [US-98](./US-98-i18n-da-interface-web.md) (a tela que exibe o gancho; sem esta story, moldura EN com miolo PT) · [US-52](./US-52-traducao-automatica-do-srd.md) (traduz o **dataset**, não conteúdo autoral — mecanismo diferente, ver *Por que não cabe na US-52*) · [Direção Visual Anti-Slop](../02-design/direcao-visual-anti-slop.md) e [US-68](./US-68-nomes-de-fantasia-originais.md) (a barra de qualidade que a prosa EN tem de passar)
 **Criada em:** 2026-07-30
@@ -86,7 +86,7 @@ Escrever a versão inglesa dos 13 ganchos e servi-la pelo locale ativo, usando o
 - [x] A prosa EN passa pela mesma barra da versão PT: nada de nome genérico de fantasia ([US-68](./US-68-nomes-de-fantasia-originais.md)), nada de abertura que soe a tradução literal.
 - [x] **Eval / teste de regressão:** buscar o gancho inicial do mesmo personagem nos dois locales e afirmar (a) mesmo `id`, (b) textos diferentes, (c) zero placeholder remanescente. Falha se o locale for ignorado ou se a tradução quebrar os placeholders. → [`initial-adventures.test.ts`](../../../apps/api/prisma/initial-adventures.test.ts), 5 casos.
 
-> **Pendente de re-seed.** Os quatro primeiros critérios são sobre o que o jogador vê, e o que ele vê sai do `System.configLocales` gravado no banco. Enquanto `pnpm db:seed` não rodar, a base continua servindo o gancho PT nos dois idiomas — o mesmo passo obrigatório da [US-54](./US-54-chaves-canonicas-em-ingles.md).
+> **Re-seed feito em 04/08/2026.** Os quatro primeiros critérios são sobre o que o jogador vê, e o que ele vê sai do `System.configLocales` gravado no banco — o mesmo passo obrigatório da [US-54](./US-54-chaves-canonicas-em-ingles.md). Conferido no banco: 13 ganchos em `config` (EN) e 13 em `configLocales['pt-BR']`, nos dois sistemas. Não precisava de passo manual: o [`render.yaml:36`](../../../render.yaml) roda `db:seed` em todo deploy, e o próximo teria feito o mesmo.
 
 ---
 

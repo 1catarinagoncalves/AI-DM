@@ -219,6 +219,13 @@ comportamento é o antigo.
   provider `2.x` (AI SDK v5) e o `tsc` quebra com *"Property 'defaultObjectGenerationMode'
   is missing"*. Slug de modelo **não** se documenta aqui: muda com frequência, a fonte viva
   é `packages/ai-engine/src/model.ts`.
+- **`pnpm db:migrate` não funciona contra a Neon, e o erro mente.** O script é
+  `prisma migrate dev`, que cria um **shadow database** para detectar drift; a Neon derruba a
+  conexão nisso e o Prisma devolve `P1017 Server has closed the connection` — que se lê como
+  "banco fora do ar" e faz perder a sessão a acordar compute (04/08/2026: falhou duas vezes
+  seguidas com o compute comprovadamente ativo). Contra banco hospedado: `prisma migrate status`
+  para ler (é o que responde "Database schema is up to date!") e `prisma migrate deploy` para
+  aplicar — sem shadow, sem checagem de drift. É o que o `render.yaml:35` já usa.
 - **Instalar dependência nova pode travar todos os comandos pnpm.** O pnpm acrescenta
   pacotes com build script ao `allowBuilds:` do `pnpm-workspace.yaml` com um placeholder
   literal (`'@scarf/scarf': set this to true or false`), e isso derruba o preflight de
@@ -270,6 +277,16 @@ comportamento é o antigo.
    corolário da camada 1. Se um dia o `ai.service.ts` for dividido, a regra volta com a story que o fizer.)
 5. **Ao alterar o schema do banco:** crie uma migração Prisma versionada; nunca edite
    migrações existentes.
+   - **`Status` de US não carrega estado de banco.** Nada de "falta rodar `db:migrate`/`db:seed`":
+     o `render.yaml:35-36` roda `prisma migrate deploy && db:seed` — os dois idempotentes — em
+     **todo** deploy, então a pendência se resolve sozinha e a frase fica mentindo num arquivo que
+     ninguém revisita. Medido em 04/08/2026: a US-97 anunciava uma migração pendente que a US-99
+     já tinha aplicado semanas antes (o Prisma aplica em ordem — a migração da US-99 não entraria
+     sem a da US-97 antes), e a US-101 tinha duas linhas de "pendente de re-seed". A informação
+     certa já existia em US-59, sem ninguém a ler. Se algo precisa acontecer **antes** do próximo
+     deploy, isso é ação daquele dia, não linha de documento.
+     Nenhum gate pega isto: o CI usa `DATABASE_URL` fictícia (`ci.yml:16`) e nenhum teste toca
+     banco — verificar estado de banco em CI é impossível aqui, de propósito.
 6. **Antes de abrir a PR:** mexeu em módulo de `apps/api/src/`, pasta de topo, tool do Mestre
    ou topologia de produção → atualize a seção **Arquitetura** do `README.md` na MESMA PR.
    O `pnpm docs:shape` (US-83, camada 3) falha até alguém reolhar o diagrama e colar o hash

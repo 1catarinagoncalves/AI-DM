@@ -76,6 +76,18 @@ jobs:
       - name: Teste do gate de docs
         run: pnpm docs:links:test
 
+      # Gate de string literal de interface (US-102): texto visível escrito direto
+      # no código em vez de passar pelo dicionário da US-98. Ligou com o corpus a
+      # zero (medido em 04/08/2026) — gate que nasce vermelho vira continue-on-error
+      # em duas semanas, foi a lição do docs:links.
+      - name: Gate de i18n do front
+        run: pnpm i18n:literals
+
+      # Idem docs:links:test — o teste do próprio gate mora na raiz e o `pnpm test`
+      # recursivo pelos workspaces não alcança scripts/.
+      - name: Teste do gate de i18n
+        run: pnpm i18n:literals:test
+
       # Guard de drift da forma do sistema (US-83): módulo/pasta nova sem revisão
       # da seção Arquitetura do README. Também mora na raiz, fora do `pnpm test`.
       - name: Guard de drift do README

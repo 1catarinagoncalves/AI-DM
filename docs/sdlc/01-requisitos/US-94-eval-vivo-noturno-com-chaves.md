@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-80](./US-80-ci-typecheck-testes-e-evals.md) (workflow), [US-36](./US-36-eval-de-qualidade-da-narracao.md) (rubrica e juiz), [US-70](./US-70-piso-por-dimensao-e-robustez-do-eval.md) (pisos, reps, anchor set)
 **Criada em:** 2026-07-30
 

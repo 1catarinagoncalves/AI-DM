@@ -106,6 +106,19 @@ describe('dicionários — paridade entre os dois idiomas (US-98)', () => {
     )
     expect(divergentes).toEqual([])
   })
+
+  // US-102: o gate de literal não varre src/messages/ — é onde o texto DEVE estar.
+  // O que sobra sem dono ali é traduzir esquecido: copiar a linha do pt-BR para o
+  // en-US e não traduzir compila, passa no tipo e sai português na tela inglesa.
+  // Medido em 04/08/2026: 143 chaves em cada, 9 valores idênticos, todos jargão.
+  const IDENTICO_OK = new Set(['Background', 'Features', 'HP', 'CON', 'INT'])
+  it('valor idêntico nos dois idiomas é jargão declarado, não tradução esquecida', () => {
+    const naoTraduzidos = Object.keys(ptBR).filter((key) => {
+      const k = key as keyof typeof ptBR
+      return ptBR[k] === enUS[k] && !IDENTICO_OK.has(ptBR[k])
+    })
+    expect(naoTraduzidos).toEqual([])
+  })
 })
 
 describe('locale do servidor a partir do cookie (US-98)', () => {

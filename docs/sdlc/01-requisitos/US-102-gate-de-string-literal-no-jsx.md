@@ -2,7 +2,7 @@
 
 **Épico:** 0 — Infra e documentação
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-98](./US-98-i18n-da-interface-web.md) — **obrigatória e anterior, já satisfeita** (a US-98 está implementada; medição de 04/08/2026 na *Questão em aberto* #1 confirma corpus a zero). O bloqueio existia porque, enquanto o dicionário não existisse, o gate nasceria com 126 achados legítimos, e gate que nasce vermelho vira `continue-on-error` em duas semanas (foi a lição do `docs:links`, que só apertou de `--only-md` para gate completo quando a [US-79](./US-79-consertar-links-quebrados-na-documentacao.md) zerou a baseline).
 **Nasceu de:** *Questões em aberto* #1 da [US-98](./US-98-i18n-da-interface-web.md) — *"vale um gate mecânico contra string literal no JSX, para a próxima tela nascer traduzida?"*.
 **Relacionada a:** [US-82](./US-82-gate-de-convencao-de-nomes-de-arquivo-nos-docs.md) e [US-88](./US-88-gate-de-identificadores-inexistentes-nos-docs-normativos.md) (mesma família: gate mecânico barato sobre uma convenção que a revisão humana não segura), [US-89](./US-89-gate-de-codigo-morto-com-knip.md) (o outro gate que roda sobre código, não sobre doc), [US-80](./US-80-ci-typecheck-testes-e-evals.md) (é lá que o gate ganha dentes), [US-99](./US-99-config-do-sistema-no-locale-ativo.md) e [US-100](./US-100-ficha-do-personagem-no-locale-ativo.md) (o texto que **não** vem do front e por isso o gate não vê).
@@ -60,12 +60,12 @@ Um gate sobre nó JSX não vê texto visível que não é nó JSX. Em 31/07 eram
 
 O modo de falha da periferia é **pior** que o do corpo do componente, não menor: JSX vê-se na tela enquanto se desenvolve, mas a confirmação de apagar só dispara ao apagar, `setError` só na falha e `metadata` só na aba do navegador. Quem escreve e revisa em PT nunca tropeça neles.
 
-**E a conta de cobri-la virou.** O argumento de 31/07 era que a periferia exige "qualquer `StringLiteral` com espaço em `apps/web/src`" e que isso traz 48 falsos positivos de Tailwind de volta. O teste de letra (`\p{L}`) que o bucket `expressão` passou a exigir mata esses 48. Medido em 04/08/2026 sobre `apps/web/src/**/*.{ts,tsx}`, literal com letra **e** espaço, fora de JSX: **168 achados, dos quais 164 são os dois dicionários** — `src/messages/pt-BR.ts` e `src/messages/en-US.ts`, exclusão por caminho. Restam **dois**, e nenhum é Tailwind:
+**E a conta de cobri-la virou.** O argumento de 31/07 era que a periferia exige "qualquer `StringLiteral` com espaço em `apps/web/src`" e que isso traz 48 falsos positivos de Tailwind de volta. O teste de letra (`\p{L}`) que o bucket `expressão` passou a exigir mata esses 48. Medido em 04/08/2026 sobre `apps/web/src/**/*.{ts,tsx}`, literal com letra **e** espaço, fora de JSX: **168 achados, dos quais 166 são os dois dicionários** — `src/messages/pt-BR.ts` e `src/messages/en-US.ts`, exclusão por caminho. Restam **dois**, e nenhum é Tailwind:
 
-| Achado | Por que é falso positivo |
-|---|---|
-| `'AUTH_SECRET ausente no web'` ([`auth.ts:22`](../../../apps/web/src/auth.ts)) | mensagem de `throw` para quem opera, não texto de interface |
-| `url("data:image/svg+xml,…")` ([`SetupWizard.tsx:41`](../../../apps/web/src/components/setup/SetupWizard.tsx)) | SVG inline em CSS; tem letra e espaço por acidente de sintaxe |
+| Achado | Por que é falso positivo | Como saiu |
+|---|---|---|
+| `'AUTH_SECRET ausente no web'` ([`auth.ts:22`](../../../apps/web/src/auth.ts)) | mensagem de `throw` para quem opera, não texto de interface | **entrada do `LITERAL_ALLOW`** — é prosa de verdade, só não é de interface |
+| `url("data:image/svg+xml,…")` ([`SetupWizard.tsx:41`](../../../apps/web/src/components/setup/SetupWizard.tsx)) | SVG inline em CSS; tem letra e espaço por acidente de sintaxe | **filtro estrutural** `isDataUri`, decidido na implementação: a chave do allowlist seria a URI inteira (250+ caracteres) e fossilizaria no primeiro ajuste do ícone. Mesma família do filtro de Tailwind |
 
 Duas entradas de `LITERAL_ALLOW` compram a periferia inteira. Bem dentro do teto de ~15 que a *Questão em aberto* #3 usa como cláusula de morte. Por isso a periferia **entrou** no escopo.
 
@@ -103,20 +103,20 @@ Um script `.mjs` na raiz, no molde dos gates que já existem ([`check-doc-links.
 
 ## Critérios de aceite
 
-- [ ] `pnpm i18n:literals` reporta cada achado com `arquivo:linha`, o texto e o bucket (`jsx-text` / `atributo` / `expressão`), e sai ≠ 0 quando houver.
-- [ ] **Zero achados no corpus depois da US-98**, com o `LITERAL_ALLOW` inicial. Rodar o gate na branch de entrega da US-98 sai verde.
-- [ ] **Zero falso positivo nos três buckets não cobrados da baseline:** as 48 classes Tailwind em `{…}`, os 46 tokens curtos (`'primary'`, `'tab'`, `'pt-BR'`) e os 15 `JsxText` de pontuação (`·`, `—`) não aparecem no relatório.
-- [ ] Um `<p>Texto novo em português</p>` acrescentado a qualquer `.tsx` do corpus **reprova** o gate.
-- [ ] Um `aria-label="Fechar"` acrescentado a qualquer `.tsx` do corpus **reprova** o gate; um `className="flex gap-2"` **não**.
-- [ ] **Os dois falsos positivos medidos em 04/08/2026 não aparecem** (ver *Questões em aberto* #1): `alt=""` de imagem decorativa com `aria-hidden` ([`dm.tsx:126`](../../../apps/web/src/components/ui/dm.tsx)) e o separador `' · '` de `.join()` dentro de `{…}` ([`SetupWizard.tsx:488,495`](../../../apps/web/src/components/setup/SetupWizard.tsx)). Reprovar o primeiro empurra quem escreve a inventar um `alt` que o leitor de tela não deveria ouvir.
-- [ ] **A periferia reprova:** um `window.confirm('Apagar?')`, um `setError('Erro ao salvar')` ou um `title: 'Ficha'` em `generateMetadata` acrescentados a qualquer arquivo do corpus derrubam o gate, no bucket `periferia`.
-- [ ] **Texto por traduzir reprova o `pnpm test`:** uma chave nova com o mesmo valor nos dois dicionários e fora da lista de jargão derruba o teste de paridade. Os 9 idênticos de hoje (`Background`, `Features`, `HP`, `CON`, `INT`) continuam verdes.
-- [ ] **`src/messages/` não é varrido:** os 164 literais dos dois dicionários não aparecem, e o `LITERAL_ALLOW` da periferia tem **duas** entradas (`auth.ts:22` e o `url("data:image/svg+xml,…")`), não 166.
-- [ ] Entrada do `LITERAL_ALLOW` que não casa mais com nenhum texto do corpus aparece como **aviso**, não derruba o gate (a tela está certa; o allowlist é que envelheceu).
-- [ ] `.test.tsx` não é varrido: a suíte atual continua verde sem alteração.
-- [ ] **Nenhuma reescrita.** `git status` limpo depois de rodar o gate.
-- [ ] O gate roda no CI como passo próprio e nomeado, e a falha dele identifica o arquivo sem abrir o log.
-- [ ] **Eval / teste de regressão:** fixture `.tsx` temporária com um `JsxText`, um `aria-label` e um `className` — as duas primeiras reprovam, a terceira não; fixture só com `t('chave')` e `className` passa. Fixture apagada no `finally`, como a da US-79.
+- [x] `pnpm i18n:literals` reporta cada achado com `arquivo:linha`, o texto e o bucket (`jsx-text` / `atributo` / `expressão` / `periferia`), e sai ≠ 0 quando houver.
+- [x] **Zero achados no corpus depois da US-98**, com o `LITERAL_ALLOW` inicial. Verificado em 04/08/2026: 24 arquivos, `Achados: 0` nos quatro buckets.
+- [x] **Zero falso positivo nos três buckets não cobrados da baseline:** as 48 classes Tailwind em `{…}`, os 46 tokens curtos (`'primary'`, `'tab'`, `'pt-BR'`) e os 15 `JsxText` de pontuação (`·`, `—`) não aparecem no relatório.
+- [x] Um `<p>Texto novo em português</p>` acrescentado a qualquer `.tsx` do corpus **reprova** o gate.
+- [x] Um `aria-label="Fechar"` acrescentado a qualquer `.tsx` do corpus **reprova** o gate; um `className="flex gap-2"` **não**.
+- [x] **Os dois falsos positivos medidos em 04/08/2026 não aparecem** (ver *Questões em aberto* #1): `alt=""` de imagem decorativa com `aria-hidden` ([`dm.tsx:126`](../../../apps/web/src/components/ui/dm.tsx)) e o separador `' · '` de `.join()` dentro de `{…}` ([`SetupWizard.tsx:488,495`](../../../apps/web/src/components/setup/SetupWizard.tsx)). Reprovar o primeiro empurra quem escreve a inventar um `alt` que o leitor de tela não deveria ouvir.
+- [x] **A periferia reprova:** um `window.confirm('Apagar?')`, um `setError('Erro ao salvar')` ou um `title: 'Ficha'` em `generateMetadata` acrescentados a qualquer arquivo do corpus derrubam o gate, no bucket `periferia`.
+- [x] **Texto por traduzir reprova o `pnpm test`:** uma chave nova com o mesmo valor nos dois dicionários e fora da lista de jargão derruba o teste de paridade. Os 9 idênticos de hoje (`Background`, `Features`, `HP`, `CON`, `INT`) continuam verdes.
+- [x] **`src/messages/` não é varrido:** os 166 literais dos dois dicionários não aparecem, e o `LITERAL_ALLOW` tem **uma** entrada (`auth.ts:22`) — o data URI saiu por filtro estrutural, não por allowlist.
+- [x] Entrada do `LITERAL_ALLOW` que não casa mais com nenhum texto do corpus aparece como **aviso**, não derruba o gate (a tela está certa; o allowlist é que envelheceu). Implementado; **sem teste de propósito** — o aviso só corre na varredura completa, porque com argumento posicional nenhuma entrada casaria e ele acenderia a cada execução do próprio teste.
+- [x] `.test.tsx` não é varrido: a suíte atual continua verde sem alteração (58 testes em 7 arquivos, 04/08/2026).
+- [x] **Nenhuma reescrita.** `git status` limpo depois de rodar o gate.
+- [x] O gate roda no CI como passo próprio e nomeado (*Gate de i18n do front*), e a falha dele identifica o arquivo sem abrir o log.
+- [x] **Eval / teste de regressão:** [`scripts/check-jsx-literals.test.mjs`](../../../scripts/check-jsx-literals.test.mjs), 5 casos — fixture suja reprova nos quatro buckets, fixture limpa (dicionário, Tailwind, token curto, separador, `alt=""`) passa, `.ts` de periferia reprova, literal sem espaço não, e o corpus do repo sai zero. Fixture em `os.tmpdir()`, apagada no `finally`.
 
 ---
 

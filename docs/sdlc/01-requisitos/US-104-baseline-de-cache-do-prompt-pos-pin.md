@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-103](./US-103-proveniencia-do-endpoint-no-turno.md) — **recomendada e anterior, não obrigatória**. O hit-rate se mede sem ela; um hit-rate *ruim* não se explica sem ela (foi rota errada ou desenho errado?).
 **Nasceu de:** [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) §3 — *"o número medido neste repo não está registrado aqui… quem rodar o spike registra o antes/depois neste ADR"* — e da *Questão em aberto* #1 da [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md).
 **Relacionada a:** [US-55](./US-55-prompt-caching-do-dm.md) e [US-56](./US-56-estado-do-turno-na-mensagem.md) (o trabalho cujo retorno esta story mede), [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) (o desenho), [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) (a rota que torna o desenho possível)

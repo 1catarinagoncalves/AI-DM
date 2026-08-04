@@ -2,7 +2,7 @@
 
 **Épico:** 4 — Onboarding e navegação
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Implementada (30/07/2026) — código completo e verde; falta rodar `pnpm db:migrate` para aplicar a coluna `User.locale` no banco
+**Status:** ✅ Implementada (30/07/2026). Banco em dia desde 04/08/2026: `prisma migrate status` responde "Database schema is up to date!" com as 13 migrações aplicadas, incluindo `20260730120000_us97_user_locale`
 **Depende de:** [ADR 005](../../adr/005-locale-como-dimensao.md) (fixa a forma: preferência mutável no `User`, EN nativo, guardrail parametrizado) · [US-61](./US-61-login-do-jogador.md) (existe `User` no banco e guard que deriva `userId` do token — é onde a preferência passa a morar)
 **Relacionada a:** [US-47](./US-47-ingestao-srd-como-dado.md) (o overlay `locale/pt-BR.json` é a localização de *um* locale sobre a base EN) · [US-55](./US-55-prompt-caching-do-dm.md) / [US-85](./US-85-fronteira-de-camadas-do-prompt.md) (onde a instrução de idioma entra no prompt sem quebrar o cache) · [US-17](./US-17-comparacao-modelos-eval.md) (o guardrail de idioma nasceu lá, cravado em PT)
 **Criada em:** 2026-07-30

@@ -1,5 +1,5 @@
 import { createGroq } from '@ai-sdk/groq'
-import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+import { createOpenAICompatible, type MetadataExtractor } from '@ai-sdk/openai-compatible'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import type { LanguageModelV1 } from 'ai'
 
@@ -80,15 +80,84 @@ export const resolveModel = (id: string): LanguageModelV1 =>
         ? openaiJudge(id.slice('openai:'.length))
         : nvidia(id)
 
+/**
+ * US-103 — proveniência: QUAL endpoint do OpenRouter serviu a chamada. O slug
+ * `deepseek/deepseek-v4-flash` é servido por 22 endpoints (ADR 008) e o pin abaixo
+ * só DECLARA a rota: sem isto, "backend ruim" fica sendo hipótese sem teste (foi o
+ * que travou o diagnóstico da US-69).
+ *
+ * O OpenRouter devolve `provider` e `system_fingerprint` no TOPO do corpo, fora do
+ * formato OpenAI — o @ai-sdk/openai-compatible@0.2.16 não os normaliza. Medido no
+ * dist em 04/08/2026: `doGenerate` expõe o corpo bruto (`rawResponse.body`), mas
+ * `doStream` NÃO (só headers) — no streaming o único acesso ao campo é este
+ * `metadataExtractor`, que o SDK chama por chunk (index.mjs:543). Por isso a leitura
+ * vive aqui e não num `?.` dentro do onFinish: um só código serve narração e extrações.
+ *
+ * Corpo real capturado em 04/08/2026 (o mesmo que o teste usa de fixture):
+ *   "provider": "DeepSeek",
+ *   "system_fingerprint": "fp_a18b46594c_prod0820_fp8_kvcache_20260402"
+ * O `provider` nomeia só o provedor; a quantização (metade do valor diagnóstico) vem
+ * de carona no fingerprint, que é do upstream e pode sumir sem aviso — daí ser opcional.
+ */
+type Provenance = { endpoint: string; fingerprint?: string }
+
+const readProvenance = (payload: unknown): Provenance | undefined => {
+  const body = payload as { provider?: unknown; system_fingerprint?: unknown } | null
+  const endpoint = typeof body?.provider === 'string' ? body.provider.trim() : ''
+  if (!endpoint) return undefined
+  const fingerprint = typeof body?.system_fingerprint === 'string' ? body.system_fingerprint : undefined
+  return fingerprint ? { endpoint, fingerprint } : { endpoint }
+}
+
+/**
+ * Põe a proveniência em `providerMetadata.openrouter` — a mesma chave onde o SDK já
+ * escreve `cachedPromptTokens`/`reasoningTokens`, e onde o log do turno já olha.
+ */
+export const OPENROUTER_PROVENANCE: MetadataExtractor = {
+  extractMetadata: ({ parsedBody }) => {
+    const provenance = readProvenance(parsedBody)
+    return provenance ? { openrouter: { ...provenance } } : undefined
+  },
+  createStreamExtractor: () => {
+    // Todo chunk repete os campos; guardamos o PRIMEIRO — o roteamento não muda no
+    // meio do stream, e o chunk final às vezes vem só com usage.
+    let seen: Provenance | undefined
+    return {
+      processChunk(parsedChunk) {
+        if (!seen) seen = readProvenance(parsedChunk)
+      },
+      buildMetadata: () => (seen ? { openrouter: { ...seen } } : undefined),
+    }
+  },
+}
+
+/**
+ * Formata a proveniência para UMA linha de log (US-103). Nunca lança e nunca some:
+ * ausência do campo vira `desconhecido`, que é sinal — turno servido pelo Groq (3º
+ * nível da escada, outro provider) ou endpoint que parou de mandar `provider`.
+ */
+export const formatProvenance = (metadata: unknown): string => {
+  const openrouter = (metadata as Record<string, Partial<Provenance>> | null)?.['openrouter']
+  const endpoint = typeof openrouter?.endpoint === 'string' ? openrouter.endpoint : 'desconhecido'
+  const fingerprint = typeof openrouter?.fingerprint === 'string' ? ` fp=${openrouter.fingerprint}` : ''
+  return `endpoint=${endpoint}${fingerprint}`
+}
+
+// O 3º argumento é config PARCIAL do modelo de chat: a factory espalha os defaults
+// dela (url, headers com a OPENROUTER_API_KEY, `defaultObjectGenerationMode: 'tool'`)
+// ANTES do que passamos, então só o `metadataExtractor` muda. Ele não é aceito no
+// `createOpenAICompatible` acima — só aqui, por modelo (index.d.ts:284).
+const WITH_PROVENANCE = { metadataExtractor: OPENROUTER_PROVENANCE }
+
 // Narração: deepseek-v4-flash (DeepSeek) como primário, via OpenRouter. O id é o
 // slug do openrouter.ai. Se emitir raciocínio, o `exclude` em
 // NARRATION_PROVIDER_OPTIONS corta antes de vazar na prosa.
-export const primaryModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-flash')
+export const primaryModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-flash', {}, WITH_PROVENANCE)
 // Fallback: deepseek-v4-pro via OpenRouter. Mesma família do primário (tool
 // calling + raciocínio ok), modelo maior para o dia em que o flash falhar.
 // Nota: primário e fallback no MESMO provider — um outage do OpenRouter derruba
 // os dois (o antigo fallback Groq cobria esse caso).
-export const fallbackModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-pro')
+export const fallbackModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-pro', {}, WITH_PROVENANCE)
 // 3º nível: llama-3.3-70b via Groq. OUTRO provider → sobrevive a um outage do
 // OpenRouter, que derrubaria os dois deepseek de uma vez.
 export const groqFallbackModel: LanguageModelV1 = groq('llama-3.3-70b-versatile')

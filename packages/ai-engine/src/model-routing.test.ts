@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { NARRATION_PROVIDER_OPTIONS, EXTRACTION_PROVIDER_OPTIONS } from './model'
+import { NARRATION_PROVIDER_OPTIONS, EXTRACTION_PROVIDER_OPTIONS, OPENROUTER_PROVENANCE, formatProvenance } from './model'
 
 // Guard do pin de roteamento do OpenRouter. O mesmo slug
 // `deepseek/deepseek-v4-flash` é servido por 22 endpoints e só o first-party da
@@ -43,5 +43,56 @@ describe('opções das extrações estruturadas', () => {
 
   it('mantém o mesmo pin de rota da narração', () => {
     expect(openrouter.provider).toBe(NARRATION_PROVIDER_OPTIONS.openrouter.provider)
+  })
+})
+
+// US-103: os testes acima guardam a DECLARAÇÃO da rota; estes guardam a leitura do
+// que de fato serviu. Fixtures capturados do OpenRouter em 04/08/2026 (corpo real,
+// recortado no que o extrator lê) — se o campo mudar de lugar, é aqui que quebra.
+describe('proveniência do endpoint (US-103)', () => {
+  const CORPO = {
+    id: 'gen-1785861907-pfdOh5DqHkzmPn7fjvB2',
+    model: 'deepseek/deepseek-v4-flash',
+    provider: 'DeepSeek',
+    system_fingerprint: 'fp_a18b46594c_prod0820_fp8_kvcache_20260402',
+    choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: 'ok' } }],
+  }
+  const CHUNK = {
+    id: 'gen-1785861909-gpIPwT3rq82pAI2XW2p2',
+    object: 'chat.completion.chunk',
+    model: 'deepseek/deepseek-v4-flash',
+    provider: 'DeepSeek',
+    system_fingerprint: 'fp_a18b46594c_prod0820_fp8_kvcache_20260402',
+    choices: [{ index: 0, delta: { content: 'ok', role: 'assistant' }, finish_reason: null }],
+  }
+  const CHUNK_FINAL = { ...CHUNK, provider: undefined, system_fingerprint: undefined, usage: { prompt_tokens: 9 } }
+
+  it('lê o endpoint do corpo não-streaming (`generateObject`)', () => {
+    expect(OPENROUTER_PROVENANCE.extractMetadata({ parsedBody: CORPO })).toEqual({
+      openrouter: { endpoint: 'DeepSeek', fingerprint: 'fp_a18b46594c_prod0820_fp8_kvcache_20260402' },
+    })
+  })
+
+  it('lê o endpoint dos chunks do stream (narração do turno)', () => {
+    const stream = OPENROUTER_PROVENANCE.createStreamExtractor()
+    stream.processChunk(CHUNK)
+    stream.processChunk(CHUNK_FINAL) // último chunk vem só com usage — não pode apagar o já visto
+    expect(stream.buildMetadata()).toEqual({
+      openrouter: { endpoint: 'DeepSeek', fingerprint: 'fp_a18b46594c_prod0820_fp8_kvcache_20260402' },
+    })
+  })
+
+  it('devolve undefined quando o campo não vem — nada a mesclar, turno segue', () => {
+    expect(OPENROUTER_PROVENANCE.extractMetadata({ parsedBody: { choices: [] } })).toBeUndefined()
+    const stream = OPENROUTER_PROVENANCE.createStreamExtractor()
+    stream.processChunk(CHUNK_FINAL)
+    expect(stream.buildMetadata()).toBeUndefined()
+  })
+
+  it('formata uma linha só, e degrada para `desconhecido` sem derrubar o turno', () => {
+    expect(formatProvenance({ openrouter: { endpoint: 'DeepSeek', fingerprint: 'fp_x' } })).toBe('endpoint=DeepSeek fp=fp_x')
+    // Groq (3º nível da escada) não escreve nessa chave; ausência é sinal, não erro.
+    expect(formatProvenance({ groq: {} })).toBe('endpoint=desconhecido')
+    expect(formatProvenance(undefined)).toBe('endpoint=desconhecido')
   })
 })
