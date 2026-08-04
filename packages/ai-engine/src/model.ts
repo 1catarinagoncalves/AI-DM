@@ -152,7 +152,18 @@ const WITH_PROVENANCE = { metadataExtractor: OPENROUTER_PROVENANCE }
 // Narração: deepseek-v4-flash (DeepSeek) como primário, via OpenRouter. O id é o
 // slug do openrouter.ai. Se emitir raciocínio, o `exclude` em
 // NARRATION_PROVIDER_OPTIONS corta antes de vazar na prosa.
-export const primaryModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-flash', {}, WITH_PROVENANCE)
+//
+// O `~` do slug não é typo: `~deepseek/deepseek-v4-flash-latest` é um ROUTER alias
+// ("always redirects to the latest model in the DeepSeek V4 Flash family"), não um
+// modelo — `GET /models/~deepseek/deepseek-v4-flash-latest/endpoints` devolve
+// `endpoints: []` e `tokenizer: "Router"`. Medido em 04/08/2026: o alias serviu
+// `deepseek/deepseek-v4-flash-0731`, enquanto o slug antigo (`deepseek-v4-flash`)
+// serviu a si mesmo — são snapshots diferentes, a troca não é cosmética.
+// O pin de rota abaixo continua valendo: os dois probes (reasoning medium/exclude e
+// enabled:false) voltaram 200 com `provider: "DeepSeek"` e `require_parameters: true`.
+// Contrapartida aceita: o alias troca de modelo sozinho — a versão passa a mudar
+// debaixo do prompt, que é justo o que a ADR 008 tirou uma camada abaixo (endpoint).
+export const primaryModel: LanguageModelV1 = openrouter('~deepseek/deepseek-v4-flash-latest', {}, WITH_PROVENANCE)
 // Fallback: deepseek-v4-pro via OpenRouter. Mesma família do primário (tool
 // calling + raciocínio ok), modelo maior para o dia em que o flash falhar.
 // Nota: primário e fallback no MESMO provider — um outage do OpenRouter derruba
