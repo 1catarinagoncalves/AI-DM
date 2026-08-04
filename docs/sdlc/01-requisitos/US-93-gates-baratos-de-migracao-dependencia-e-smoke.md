@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Ferramentas de projeto / SDLC
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-80](./US-80-ci-typecheck-testes-e-evals.md) (o workflow). O smoke depende também da [US-92](./US-92-deploy-espera-o-ci-verde.md), que cria o job `deploy` onde ele mora.
 **Criada em:** 2026-07-30
 

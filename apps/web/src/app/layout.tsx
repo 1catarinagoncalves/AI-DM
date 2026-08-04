@@ -31,11 +31,12 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('meta.title'),
     description: t('meta.description'),
     icons: {
-      icon: [
-        { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-        { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-        { url: '/icon.svg', type: 'image/svg+xml' },
-      ],
+      // Só o SVG, e é o mesmo desenho de espadas do <Logo>. Os PNG 32x32 eram
+      // a marca do scaffold. O nome não é `icon.svg` de propósito: o Chrome
+      // guarda favicon num banco à parte do cache HTTP e não revalida por
+      // ETag, então quem já visitou o site continuaria vendo o ícone velho.
+      // URL nova = sem histórico. Renomeie de novo se o desenho mudar.
+      icon: [{ url: '/icon-swords.svg', type: 'image/svg+xml' }],
       apple: '/apple-icon.png',
     },
   }
