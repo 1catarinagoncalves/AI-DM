@@ -63,6 +63,16 @@ Roadmap incremental (fase atual: MVP single-player):
   (`res.body.getReader()`, `apps/web/src/components/game/GameView.tsx:311`) — **não** pelo hook
   useChat: `@ai-sdk/react` está no `package.json` do `apps/web` e nunca é importado.
   Verificado em 28/07/2026 (US-88).
+- **Mensagem de erro da API nunca vai para a tela.** O cliente propaga o corpo cru
+  (`throw new Error(await res.text())`, `apps/web/src/lib/api.ts:24`) e a API lança em
+  português (`apps/api/src/adventure/adventure.service.ts:39`) — esse texto é para quem
+  opera, não para quem joga. Todo `catch` do front **descarta** o erro e mostra uma chave do
+  dicionário: `setError(t('setup.error.create'))`
+  (`apps/web/src/components/setup/SetupWizard.tsx:170`),
+  `t('game.error.connect')` (`apps/web/src/components/game/GameView.tsx:458`).
+  Um `catch (e) { setError(String(e)) }` põe português na tela de um jogador inglês, e
+  **nenhum gate pega**: não há literal, é variável (US-102 → *Notas de implementação*).
+  Verificado em 04/08/2026.
 
 ### Backend (`apps/api`)
 - NestJS com um módulo por domínio. **A lista viva são as pastas de `apps/api/src/`** — leia a

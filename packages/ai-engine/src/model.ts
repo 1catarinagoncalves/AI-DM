@@ -157,9 +157,18 @@ const DEEPSEEK_ALLOWED_PROVIDERS = [
  * Para mudar isso seria preciso `supportsStructuredOutputs: true` no
  * `createOpenAICompatible` acima (default do SDK é `false`, dist/index.mjs:246).
  *
+ * CORREÇÃO 04/08/2026: "não afeta" era verdade sobre roteamento e FALSO sobre o
+ * request. O `tool_choice` que aquele modo tool envia é incompatível com o thinking
+ * do DeepSeek — 400 `Thinking mode does not support this tool_choice`. Por isso as
+ * extrações passaram a usar EXTRACTION_PROVIDER_OPTIONS (abaixo).
+ *
  * ponytail: o raciocínio ainda é gerado e cobrado, só não volta. Se o custo/TTFT
  * pesar, o próximo passo é `reasoning: { effort: 'low' }`.
  */
+// O pin de rota é o MESMO da narração e das extrações: o motivo dele (cache implícito,
+// fp4 fora, falha fechado) não muda com o tipo da chamada. Só o raciocínio difere.
+const DEEPSEEK_ROUTE = { order: DEEPSEEK_ROUTE_ORDER, only: DEEPSEEK_ALLOWED_PROVIDERS, require_parameters: true }
+
 export const NARRATION_PROVIDER_OPTIONS = {
   // exclude: raciocínio gerado mas NÃO retornado (não vaza na prosa). SEM cortar
   // effort: `effort:'low'` fez o modelo raciocinar de menos e desrespeitar as
@@ -167,7 +176,33 @@ export const NARRATION_PROVIDER_OPTIONS = {
   // se voltar a inventar regras, subir para 'high'. Teto de corte no maxTokens (4000).
   openrouter: {
     reasoning: { effort: 'medium', exclude: true },
-    provider: { order: DEEPSEEK_ROUTE_ORDER, only: DEEPSEEK_ALLOWED_PROVIDERS, require_parameters: true },
+    provider: DEEPSEEK_ROUTE,
+  },
+} as const
+
+/**
+ * Opções das EXTRAÇÕES estruturadas (`generateObject`: cena da abertura, entidades,
+ * reconciliação de cena). Mesma rota da narração, thinking DESLIGADO.
+ *
+ * Medido em 04/08/2026 contra o first-party da DeepSeek, com o mesmo `tool_choice`
+ * que o modo tool do SDK envia:
+ *   reasoning {effort:'medium', exclude:true} → 400 "Thinking mode does not support
+ *                                                    this tool_choice"
+ *   SEM a chave `reasoning`                   → 400, o MESMO erro (thinking é o
+ *                                                    default do modelo — omitir não desliga)
+ *   reasoning {enabled:false}                 → 200, tool call correto
+ *
+ * É o `enabled: false` que faz a extração funcionar; trocar por `exclude`/`effort`
+ * volta a derrubar as três chamadas — e elas falham em SILÊNCIO (cada `catch`
+ * devolve null e a aventura segue sem cena/ledger).
+ *
+ * Extrair não é tarefa de raciocínio: o schema é fechado e a instrução é copiar do
+ * texto. Desligar o thinking também tira o custo e a latência que ele cobrava aqui.
+ */
+export const EXTRACTION_PROVIDER_OPTIONS = {
+  openrouter: {
+    reasoning: { enabled: false },
+    provider: DEEPSEEK_ROUTE,
   },
 } as const
 

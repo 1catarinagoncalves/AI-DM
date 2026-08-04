@@ -1,12 +1,14 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
+import { logLlmFailure } from './llm-error'
 import type { InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
 import { buildSkillSheet, catalogLabel, resolveSheetEntries, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
   NARRATION_PROVIDER_OPTIONS,
+  EXTRACTION_PROVIDER_OPTIONS,
   summaryModel,
   buildDmSystemPrompt,
   buildTurnStateBlock,
@@ -821,7 +823,7 @@ export class AiService {
       // Mesma cadeia de saneadores do onFinish: o fecho volta ao histórico como contexto.
       closure = stripWorldStateTags(stripFabricatedRolls(stripReasoningLeak(text).clean).clean).clean.trim()
     } catch (err) {
-      console.error('[AiService] completeTruncatedTurn: geração do fecho falhou; usando fecho estático:', err)
+      logLlmFailure('completeTruncatedTurn: geração do fecho', 'usa o fecho estático', err)
     }
 
     // Garante o contrato de fecho: sem opções (falha, vazio, ou o modelo ignorou) → anexa
@@ -921,12 +923,12 @@ export class AiService {
           const trimmed = text.trim()
           if (trimmed.length > 0) return trimmed
         } catch (err) {
-          console.error(`[AiService] Abertura falhou no modelo ${model.modelId ?? 'unknown'}, tentando próximo:`, err)
+          logLlmFailure(`abertura no modelo ${model.modelId ?? 'unknown'}`, 'desce para o próximo modelo da escada', err)
         }
       }
       return null
     } catch (err) {
-      console.error('[AiService] Falha ao gerar abertura por IA, usando fallback estático:', err)
+      logLlmFailure('geração da abertura por IA', 'usa o openingNarration estático do gancho', err)
       return null
     }
   }
@@ -956,13 +958,15 @@ export class AiService {
         system:
           'Extraia o estado de cena atual desta narração de abertura de RPG. Use APENAS o que está no texto — não invente local, NPC nem objeto. `ambiente`: interno = coberto/abrigado, externo = aberto. `presentes`: só NPCs/personagens na cena (NUNCA a própria personagem-jogadora). `objetos_em_cena`: objetos e elementos notáveis do ambiente, incluindo atmosféricos (névoa, cheiro), NUNCA itens que a personagem carrega. Deixe um campo vazio só se o texto realmente não o revelar.',
         prompt: `Narração de abertura:\n"""\n${text}\n"""${exclusion}`,
-        providerOptions: NARRATION_PROVIDER_OPTIONS,
+        // Thinking desligado: com ele, o `tool_choice` do modo tool leva 400 e a cena
+        // nasce nula sempre (medido 04/08/2026 — ver EXTRACTION_PROVIDER_OPTIONS).
+        providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
       // Snapshot vazio (prosa sem cena discernível) = tratamos como nulo: nada a ancorar.
       const empty = !object.local.trim() && object.presentes.length === 0 && object.objetos_em_cena.length === 0
       return empty ? null : object
     } catch (err) {
-      console.error('[AiService] Falha ao extrair cena da abertura, sceneState fica nulo:', err)
+      logLlmFailure('extração da cena da abertura', 'sceneState fica nulo e o turno 1 nasce sem âncora (US-35)', err)
       return null
     }
   }
@@ -991,7 +995,7 @@ export class AiService {
         system:
           'Extraia as entidades DURÁVEIS que esta abertura de RPG estabelece — NPCs nomeados, locais, objetos notáveis, facções — e ONDE cada um está, usando APENAS o texto. Não invente e NÃO INFIRA vínculos que o texto não afirma explicitamente (dono, identidade secreta, parentesco): se a prosa mostra um arboreto sem dizer de quem é, extraia só "arboreto" (local), sem dono. Tudo aqui é conhecimento comum que o jogador já viu. Não inclua a própria personagem-jogadora. Se a abertura não estabelece nenhuma entidade durável, devolva a lista vazia.',
         prompt: `Abertura:\n"""\n${text}\n"""${questContext ? `\n\nGancho da aventura (contexto):\n"""\n${questContext}\n"""` : ''}`,
-        providerOptions: NARRATION_PROVIDER_OPTIONS,
+        providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
       const seeded = object.entidades
         .filter((e) => e.nome?.trim())
@@ -999,7 +1003,7 @@ export class AiService {
         .map((e): WorldEntity => ({ ...e, sabido: 'publico', revelado: true, atualizadoEm: new Date().toISOString() }))
       return seeded.length > 0 ? seeded : null
     } catch (err) {
-      console.error('[AiService] Falha ao semear entidades da abertura, ledger fica vazio:', err)
+      logLlmFailure('semeadura de entidades da abertura', 'o ledger nasce vazio e o Mestre pode contradizer a abertura (US-75)', err)
       return null
     }
   }
@@ -1035,7 +1039,7 @@ export class AiService {
         system:
           'Você reconcilia o estado ESTRUTURADO da cena de um RPG com a narração mais recente. Dada a CENA ATUAL e a NARRAÇÃO, produza o estado da cena como está no FIM da narração. Use APENAS o que a narração e a cena atual revelam — não invente. Se a personagem SE MOVEU para um lugar novo na narração, `local` é o lugar NOVO (fim do trajeto), não o de partida. `presentes`: só NPCs/personagens presentes no FIM (inclua quem apareceu, remova quem saiu; NUNCA a própria personagem-jogadora). `objetos_em_cena`: elementos notáveis do ambiente no fim (incl. atmosféricos), NUNCA itens carregados. Se a narração NÃO muda um campo, repita o valor da cena atual. Deixe um campo vazio só se nem a cena atual nem a narração o revelarem.',
         prompt: `CENA ATUAL:\n"""\n${baseText}\n"""\n\nNARRAÇÃO MAIS RECENTE:\n"""\n${text}\n"""`,
-        providerOptions: NARRATION_PROVIDER_OPTIONS,
+        providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
       const next = mergeSceneState(current, scenePatchFromExtraction(object, playerName))
 
@@ -1045,7 +1049,7 @@ export class AiService {
       })
       console.log(`[AiService][reconcile] cena sincronizada: local="${next.local}" presentes=[${next.presentes.join(', ')}]`)
     } catch (err) {
-      console.error('[AiService] reconcileScene falhou (turno não afetado):', err)
+      logLlmFailure('reconcileScene', 'a cena não sincroniza com a narração deste turno', err)
     }
   }
 
@@ -1144,7 +1148,7 @@ export class AiService {
       ])
     } catch (err) {
       // Não propaga: a narração já foi entregue ao jogador.
-      console.error('[AiService] Falha ao sumarizar memória da sessão:', err)
+      logLlmFailure('sumarização da memória da sessão', 'o resumo não avança e os turnos seguem por incorporar', err)
     }
   }
 }
