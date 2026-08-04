@@ -218,7 +218,7 @@ export function SetupWizard() {
   // US-28: etapa "Aventura inicial" — personagem já criado, escolhemos o gancho da classe.
   if (charId) {
     return (
-      <SceneFrame scene="/scenes/arboretum-moonlit.png" dim="heavy">
+      <SceneFrame scene="/scenes/arboretum-moonlit.png" dim="heavy" localeToggle={false}>
         <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-8 sm:px-6">
           <Panel className="p-6 sm:p-9">
             <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-accent">
@@ -258,8 +258,9 @@ export function SetupWizard() {
     )
   }
 
+  // Sem seletor de idioma: a criação herda o idioma já ativo no hub de personagens.
   return (
-    <SceneFrame scene="/scenes/tavern.png" dim="heavy">
+    <SceneFrame scene="/scenes/tavern.png" dim="heavy" localeToggle={false}>
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6 sm:px-6">
 
         {/* Trilha de progresso navegável: etapas concluídas são clicáveis.

@@ -111,11 +111,18 @@ export function SceneFrame({
   dim = 'medium',
   children,
   className,
+  localeToggle = true,
 }: {
   scene: string
   dim?: keyof typeof DIM_CLASS
   children: ReactNode
   className?: string
+  /**
+   * Mostra o seletor de idioma no cabeçalho. A criação de personagem o desliga: o
+   * idioma da mesa é o que já estava escolhido no hub de personagens, e trocá-lo a
+   * meio do wizard só confunde (as etapas re-renderizam sob o jogador).
+   */
+  localeToggle?: boolean
 }) {
   return (
     <div className="dm-vignette relative flex min-h-dvh w-full flex-col overflow-hidden">
@@ -143,10 +150,11 @@ export function SceneFrame({
         <BrandName className="hidden font-serif text-sm font-semibold tracking-wide text-parchment sm:inline" />
         {/* US-97: o seletor de idioma vive AQUI, no fluxo do cabeçalho da marca — e não
             como mais um `fixed` no canto, onde tema e Sair já dividem a largura por
-            offset calculado à mão (US-66). Um `ml-auto` serve as quatro telas com
-            SceneFrame: login, home, wizard e gancho. A folga à direita (`sm:mr-32`)
-            é a faixa dos dois controlos fixos, que flutuam sobre esta mesma banda. */}
-        <LocaleToggle className="ml-auto mr-24 sm:mr-32" />
+            offset calculado à mão (US-66). Um `ml-auto` serve as telas com SceneFrame
+            que ainda o mostram: login e home (o wizard e o gancho passam
+            `localeToggle={false}`). A folga à direita (`sm:mr-32`) é a faixa dos dois
+            controlos fixos, que flutuam sobre esta mesma banda. */}
+        {localeToggle && <LocaleToggle className="ml-auto mr-24 sm:mr-32" />}
       </header>
 
       <div className={cn('relative z-10 flex flex-1 flex-col', className)}>{children}</div>

@@ -1,16 +1,16 @@
 # Graph Report - AI DM  (2026-08-04)
 
 ## Corpus Check
-- 325 files · ~649,468 words
+- 325 files · ~649,520 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1887 nodes · 2487 edges · 184 communities (129 shown, 55 thin omitted)
+- 1887 nodes · 2484 edges · 184 communities (129 shown, 55 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e52d05ff`
+- Built from commit: `21ef0d99`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -22,7 +22,7 @@
 - system.ts
 - Location Bake-off Script
 - Bake-off Runner Script
-- layout.tsx
+- [adventureId]/page.tsx
 - narrative-bakeoff.test.ts
 - rubric.ts
 - check-doc-links.mjs
@@ -156,7 +156,7 @@
 - US-102-gate-de-string-literal-no-jsx.md
 - Injectable
 - ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
-- LocaleProvider.tsx
+- layout.tsx
 - ApiBearerAuth
 - ApiOperation
 - ApiTags
@@ -172,7 +172,7 @@
 - Modelo de Dados — AI Dungeon Master
 - ai-engine/src/index.ts
 - character.service.ts
-- SetupWizard.test.tsx
+- LocaleProvider.tsx
 - api/package.json
 - @ai-dm/ai-engine
 - @ai-dm/shared
@@ -250,9 +250,9 @@ Nodes (25): system, turnState, ARMS, body, dir, EXEMPLAR, genOnce(), judge (+17 
 Cohesion: 0.07
 Nodes (26): accum, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, dir, EX, genTurn(), guardrailHits (+18 more)
 
-### Community 7 - "layout.tsx"
-Cohesion: 0.12
-Nodes (17): POST(), activeLocale(), cinzel, geist, generateMetadata(), RootLayout(), viewport, Props (+9 more)
+### Community 7 - "[adventureId]/page.tsx"
+Cohesion: 0.15
+Nodes (10): POST(), Props, { handlers, auth }, secretKey(), signApiToken(), localeFromCookie(), apiAuthHeader(), messagesFor() (+2 more)
 
 ### Community 8 - "narrative-bakeoff.test.ts"
 Cohesion: 0.09
@@ -287,8 +287,8 @@ Cohesion: 0.05
 Nodes (40): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+32 more)
 
 ### Community 16 - "GameView.tsx"
-Cohesion: 0.10
-Nodes (21): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), LocaleTurn (+13 more)
+Cohesion: 0.13
+Nodes (16): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), LocaleTurn (+8 more)
 
 ### Community 17 - "migrate-feature-spell-keys.test.ts"
 Cohesion: 0.09
@@ -535,8 +535,8 @@ Cohesion: 0.15
 Nodes (13): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. O que a medição mostrou, 5. Alternativas rejeitadas, 6. Consequências, 7. Implementação (referência), ADR 009 — Regra de uso do SRD: união do 5.1 e do 5.2, com o 5.2 vencendo (+5 more)
 
 ### Community 86 - "SetupWizard.tsx"
-Cohesion: 0.12
-Nodes (22): LoginPage(), GENDERS, optionCardClass(), parseDeity(), POINT_COST, SetupWizard(), SOURCE_TYPE_HINT, Step (+14 more)
+Cohesion: 0.10
+Nodes (25): LoginPage(), GENDERS, optionCardClass(), parseDeity(), POINT_COST, SetupWizard(), SOURCE_TYPE_HINT, Step (+17 more)
 
 ### Community 90 - "ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo"
 Cohesion: 0.05
@@ -626,9 +626,9 @@ Nodes (3): US-86 — Árvore de diretórios na documentação deixa de mentir so
 Cohesion: 0.20
 Nodes (10): 1. Contexto, 2. Decisão, 3.1 Revisão da decisão 6 (02/08/2026): o Free herda o SRD, 3.2 Correção de procedência (03/08/2026): o kit inicial é CC-BY, não OGL, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset, 5. Alternativas rejeitadas, 6. Consequências (+2 more)
 
-### Community 162 - "LocaleProvider.tsx"
-Cohesion: 0.26
-Nodes (9): AuthNav(), BrandName(), LocaleContext, LocaleContextValue, LocaleProvider(), rememberLocale(), storedLocale(), useT() (+1 more)
+### Community 162 - "layout.tsx"
+Cohesion: 0.20
+Nodes (11): activeLocale(), cinzel, geist, generateMetadata(), RootLayout(), viewport, AuthNav(), BrandName() (+3 more)
 
 ### Community 169 - "entities.ts"
 Cohesion: 0.48
@@ -646,16 +646,16 @@ Nodes (4): overlapRatio(), tokens(), trigrams(), SummaryTurn
 Cohesion: 0.31
 Nodes (5): base, CharacterModule, Module, CreateCharacterDto, CreateCharacterSchema
 
-### Community 179 - "SetupWizard.test.tsx"
-Cohesion: 0.50
-Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacter, getInitialAdventure, createAdventure }
+### Community 178 - "LocaleProvider.tsx"
+Cohesion: 0.22
+Nodes (10): gameProps, { getTurns, setLocale }, LOCALE_STORAGE_KEY, LocaleContext, LocaleContextValue, LocaleProvider(), rememberLocale(), storedLocale() (+2 more)
 
 ### Community 180 - "api/package.json"
 Cohesion: 0.50
 Nodes (3): name, private, version
 
 ## Knowledge Gaps
-- **934 isolated node(s):** `ChatInput`, `AnchoredRoll`, `OPENING_SCENE_SCHEMA`, `ExtractedScene`, `OPENING_ENTITIES_SCHEMA` (+929 more)
+- **934 isolated node(s):** `cinzel`, `geist`, `viewport`, `História`, `O problema observado` (+929 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **55 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -664,11 +664,11 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `SystemConfigSchema` connect `system.ts` to `ingest.mjs`, `AuthUser`?**
   _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `buildConfig()` connect `ingest.mjs` to `system.ts`?**
-  _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **Why does `US-36 — Eval de qualidade da narração do DM` connect `ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo` to `US-94-eval-vivo-noturno-com-chaves.md`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **What connects `ChatInput`, `AnchoredRoll`, `OPENING_SCENE_SCHEMA` to the rest of the system?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-99-config-do-sistema-no-locale-ativo.md` to `US-95-camada-de-integracao-com-banco-efemero.md`, `US-98-i18n-da-interface-web.md`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **What connects `cinzel`, `geist`, `viewport` to the rest of the system?**
   _934 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.06787330316742081 - nodes in this community are weakly interconnected._

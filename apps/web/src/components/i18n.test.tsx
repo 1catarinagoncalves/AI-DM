@@ -7,6 +7,7 @@ vi.mock('@/lib/api', () => ({ api: { listSystems, setLocale } }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 import { LocaleProvider, LOCALE_STORAGE_KEY } from './LocaleProvider'
+import { LocaleToggle } from './LocaleToggle'
 import { SetupWizard } from './setup/SetupWizard'
 import { ptBR } from '@/messages/pt-BR'
 import { enUS } from '@/messages/en-US'
@@ -68,9 +69,10 @@ describe('i18n da interface — dicionário ligado ao locale ativo (US-98)', () 
 
   it('trocar de idioma re-renderiza sem perder a etapa nem o texto já digitado', async () => {
     localStorage.setItem(LOCALE_STORAGE_KEY, 'pt-BR')
-    // O seletor já vem no cabeçalho do SceneFrame que o wizard usa — renderizar um
-    // segundo LocaleToggle daria dois botões "English" e a query ficaria ambígua.
-    renderWithLocale(<SetupWizard />)
+    // O wizard já não traz seletor (o idioma vem do hub de personagens), então o
+    // teste monta um ao lado para provocar a troca — é o LocaleProvider partilhado
+    // que a propaga, que é o que este caso verifica.
+    renderWithLocale(<><LocaleToggle /><SetupWizard /></>)
 
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
