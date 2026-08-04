@@ -27,6 +27,34 @@ const baseProps = {
   inventory: [],
 }
 
+// US-107: a mesa não tinha navegação nenhuma (zero `Link`/`useRouter` no arquivo).
+// A saída para o hub existe em duas posições — cabeçalho da ficha (desktop) e barra
+// de toggle (mobile) — e as duas têm de estar FORA do painel recolhível.
+describe('GameView — saída para o hub (US-107)', () => {
+  it('tem saída para / no desktop e no mobile, com a ficha fechada', async () => {
+    render(<GameView {...baseProps} />)
+    await screen.findByText('Atributos')
+
+    const exits = screen.getAllByRole('link', { name: /Voltar aos personagens/ })
+    expect(exits.length).toBe(2) // P2 (cabeçalho da ficha) + P3 (barra de toggle)
+    expect(exits.every(a => a.getAttribute('href') === '/')).toBe(true)
+
+    // Nenhuma das duas vive dentro do painel que o toggle abre — senão a saída do
+    // mobile só apareceria depois de abrir a ficha.
+    const sheet = document.getElementById('character-sheet')!
+    expect(exits.some(a => sheet.contains(a))).toBe(false)
+  })
+
+  it('a saída do mobile é irmã do toggle, não filha (button dentro de button é inválido)', async () => {
+    render(<GameView {...baseProps} />)
+    await screen.findByText('Atributos')
+
+    const toggle = screen.getByRole('button', { name: /Ficha — Lyra Silvermoon/ })
+    const exits = screen.getAllByRole('link', { name: /Voltar aos personagens/ })
+    expect(exits.some(a => toggle.contains(a))).toBe(false)
+  })
+})
+
 describe('GameView — abas na ficha (US-45)', () => {
   it('abre na aba Ficha (mecânica) e não mostra o background antes de trocar de aba', async () => {
     render(

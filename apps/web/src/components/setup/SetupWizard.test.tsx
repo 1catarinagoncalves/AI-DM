@@ -285,6 +285,24 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(true)
   })
 
+  // US-107: o wizard era beco sem saída — o rodapé "Voltar" some na etapa 1
+  // (`step !== 'system'`) e anda entre etapas, nunca sai da tela. O controlo de
+  // saída fica ACIMA da trilha, com lugar fixo nas seis etapas.
+  it('oferece saída para o hub na primeira etapa e nas seguintes, sem mexer no rodapé', async () => {
+    await pickSystemAndFillRaceClass()
+    // A etapa 1 já passou (pickSystem avança), então voltamos a ela pela trilha.
+    fireEvent.click(screen.getByRole('button', { name: /Sistema/ }))
+    const exit = screen.getByRole('link', { name: /Voltar aos personagens/ })
+    expect(exit.getAttribute('href')).toBe('/')
+    // Etapa 1 não tem "Voltar" de rodapé: o único caminho para trás é a saída.
+    expect(screen.queryByRole('button', { name: /^Voltar$/ })).toBeNull()
+
+    // Etapa 2: a saída continua lá e o rodapé volta ao normal.
+    fireEvent.click(screen.getByText('D&D 5e SRD'))
+    expect(screen.getByRole('link', { name: /Voltar aos personagens/ }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('button', { name: /Voltar/ })).toBeTruthy()
+  })
+
   // US-28: depois de Confirmar, o jogador vê a etapa "Aventura inicial" e a inicia.
   it('mostra a aventura inicial da classe e inicia-a ao confirmar', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })

@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Minus, Plus, Sparkles } from 'lucide-react'
 import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
 import { api } from '@/lib/api'
-import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, cn, fieldClass } from '@/components/ui/dm'
+import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, cn, dmButtonClass, fieldClass } from '@/components/ui/dm'
 import { useT } from '@/components/LocaleProvider'
 import type { MessageKey } from '@/messages'
 
@@ -215,11 +216,26 @@ export function SetupWizard() {
 
   const idx = steps.indexOf(step)
 
+  // US-107: saída da criação, em TODAS as etapas — inclusive a primeira, onde o
+  // rodapé "Voltar" nem existe. Fica acima da trilha e não no slot esquerdo do
+  // rodapé de propósito: lá o mesmo pixel alternaria entre "voltar uma etapa" e
+  // "sair da tela", que são destinos diferentes. `<Link>` e não `router.push` — dá
+  // meio-clique, abrir noutro separador e foco de teclado sem código. Nada por
+  // gravar se perde: o wizard só cria no `handleConfirm`.
+  const exitToHub = (
+    <Link href="/" className={dmButtonClass('ghost', 'mb-4 self-start px-3 text-xs')}>
+      <ArrowLeft className="size-4" aria-hidden />
+      {t('setup.exit')}
+    </Link>
+  )
+
   // US-28: etapa "Aventura inicial" — personagem já criado, escolhemos o gancho da classe.
   if (charId) {
     return (
       <SceneFrame scene="/scenes/arboretum-moonlit.png" dim="heavy" localeToggle={false}>
         <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-8 sm:px-6">
+          {/* US-107: aqui o personagem JÁ existe (está no hub); sair só adia a aventura. */}
+          {exitToHub}
           <Panel className="p-6 sm:p-9">
             <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-accent">
               <Sparkles className="size-3.5" aria-hidden />
@@ -262,6 +278,8 @@ export function SetupWizard() {
   return (
     <SceneFrame scene="/scenes/tavern.png" dim="heavy" localeToggle={false}>
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6 sm:px-6">
+
+        {exitToHub}
 
         {/* Trilha de progresso navegável: etapas concluídas são clicáveis.
             US-66: no mobile as 7 barras ficam, mas os rótulos escondem (`hidden sm:block`)

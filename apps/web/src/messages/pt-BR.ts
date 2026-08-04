@@ -55,6 +55,9 @@ export const ptBR = {
   'setup.step.background': 'Background',
   'setup.step.review': 'Revisão',
   'setup.back': 'Voltar',
+  // US-107: saída da criação. "Voltar" (rodapé) anda uma etapa; este sai da tela —
+  // por isso o rótulo nomeia o DESTINO, e não repete o verbo sozinho.
+  'setup.exit': 'Voltar aos personagens',
   'setup.next': 'Próximo',
   'setup.confirm': 'Confirmar personagem',
   'setup.confirming': 'A criar...',
@@ -141,6 +144,9 @@ export const ptBR = {
   // ---- mesa de jogo ----
   'game.notFound': 'Personagem não encontrado.',
   'game.restart': 'Recomeçar',
+  // US-107: no mobile é o nome acessível de um controlo só-ícone — tem de dizer para
+  // onde vai sozinho, sem depender da seta.
+  'game.exit': 'Voltar aos personagens',
   'game.sheetToggle': 'Ficha — {name}',
   'game.sheetTabs': 'Ficha do personagem',
   'game.tab.ficha': 'Ficha',

@@ -51,6 +51,9 @@ export const enUS: Record<MessageKey, string> = {
   'setup.step.background': 'Background',
   'setup.step.review': 'Review',
   'setup.back': 'Back',
+  // US-107: saída da criação. "Voltar" (rodapé) anda uma etapa; este sai da tela —
+  // por isso o rótulo nomeia o DESTINO, e não repete o verbo sozinho.
+  'setup.exit': 'Back to characters',
   'setup.next': 'Next',
   'setup.confirm': 'Confirm character',
   'setup.confirming': 'Creating...',
@@ -136,6 +139,9 @@ export const enUS: Record<MessageKey, string> = {
   // ---- mesa de jogo ----
   'game.notFound': 'Character not found.',
   'game.restart': 'Start over',
+  // US-107: no mobile é o nome acessível de um controlo só-ícone — tem de dizer para
+  // onde vai sozinho, sem depender da seta.
+  'game.exit': 'Back to characters',
   'game.sheetToggle': 'Sheet — {name}',
   'game.sheetTabs': 'Character sheet',
   'game.tab.ficha': 'Sheet',

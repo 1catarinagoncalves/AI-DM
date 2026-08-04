@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Dices, Languages, Pencil, Send } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowLeft, ChevronDown, Dices, Languages, Pencil, Send } from 'lucide-react'
 import { abilityModifier, formatModifier, stripFabricatedRolls, stripWorldStateTags, formatDiceBreakdown, spellLevelLabel } from '@ai-dm/shared'
 import type { ChatTurn, Locale, RollTurn, SystemSpell } from '@ai-dm/shared'
 import { api } from '@/lib/api'
-import { DmButton, Logo, SheetHeading, fieldClass } from '@/components/ui/dm'
+import { DmButton, Logo, SheetHeading, dmButtonClass, fieldClass } from '@/components/ui/dm'
 import { LocaleToggle } from '@/components/LocaleToggle'
 import { useLocale, useT } from '@/components/LocaleProvider'
 import { messagesFor, type MessageKey } from '@/messages'
@@ -485,26 +486,46 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
       {/* Ficha do personagem — sidebar no desktop; painel recolhível no mobile (US-66, D1). */}
       <aside className="flex min-h-0 shrink-0 flex-col border-b border-border bg-sidebar md:w-72 md:border-b-0 md:border-r lg:w-80">
-        {/* Toggle da ficha — só no mobile; no desktop a coluna está sempre aberta. */}
-        <button
-          type="button"
-          onClick={() => setSheetOpen(o => !o)}
-          aria-expanded={sheetOpen}
-          aria-controls="character-sheet"
-          className="flex min-h-[76px] min-w-0 items-center justify-between gap-2 py-4 pl-4 pr-40 font-serif font-semibold text-parchment md:hidden"
-        >
-          {/* US-66: a barra hospeda os controlos fixos (Sair em right-16 + tema em
-              right-4), que ocupam 16px→60px na vertical. `min-h-[76px]` fecha-os
-              DENTRO dela (16px de folga em baixo, igual à de cima) em vez de os
-              deixar transbordar sobre a narração; `pr-40` reserva a largura deles
-              para não taparem o nome/chevron. */}
-          <span className="truncate">{t('game.sheetToggle', { name: characterName })}</span>
-          <ChevronDown aria-hidden className={`size-4 text-primary transition-transform ${sheetOpen ? 'rotate-180' : ''}`} />
-        </button>
+        {/* US-66: a barra hospeda os controlos fixos (Sair em right-16 + tema em
+            right-4), que ocupam 16px→60px na vertical. `min-h-[76px]` fecha-os
+            DENTRO dela (16px de folga em baixo, igual à de cima) em vez de os
+            deixar transbordar sobre a narração; `pr-40` reserva a largura deles
+            para não taparem o nome/chevron.
+            US-107: a saída é IRMÃ do toggle, não filha — `<a>` dentro de `<button>`
+            é inválido e o clique fica ambíguo. Por isso a barra virou wrapper e as
+            duas medidas (`min-h-[76px]`, `pr-40`) mudaram de casa para cá. */}
+        <div className="flex min-h-[76px] min-w-0 items-center gap-1 pl-1 pr-40 md:hidden">
+          <Link
+            href="/"
+            aria-label={t('game.exit')}
+            className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-primary"
+          >
+            <ArrowLeft className="size-5" aria-hidden />
+          </Link>
+          {/* Toggle da ficha — só no mobile; no desktop a coluna está sempre aberta. */}
+          <button
+            type="button"
+            onClick={() => setSheetOpen(o => !o)}
+            aria-expanded={sheetOpen}
+            aria-controls="character-sheet"
+            className="flex min-h-[44px] min-w-0 flex-1 items-center justify-between gap-2 py-4 font-serif font-semibold text-parchment"
+          >
+            <span className="truncate">{t('game.sheetToggle', { name: characterName })}</span>
+            <ChevronDown aria-hidden className={`size-4 text-primary transition-transform ${sheetOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
 
         {/* Cabeçalho da ficha: marca + identidade + HP. Só no desktop — no mobile
             o nome já está no toggle acima. */}
         <div className="hidden border-b border-border p-4 md:block">
+          {/* US-107: linha própria acima da identidade — ao lado do Logo o nome do
+              personagem truncaria nos 288px da coluna. Fora do `#character-sheet`
+              (o painel recolhível) de propósito: no mobile a saída não pode exigir
+              abrir a ficha, e aqui a coluna nem tem toggle. */}
+          <Link href="/" className={dmButtonClass('ghost', 'mb-3 w-full justify-start px-3 text-xs')}>
+            <ArrowLeft className="size-4" aria-hidden />
+            {t('game.exit')}
+          </Link>
           <div className="flex items-center gap-2.5">
             <Logo className="size-8 shrink-0" />
             <div className="min-w-0">

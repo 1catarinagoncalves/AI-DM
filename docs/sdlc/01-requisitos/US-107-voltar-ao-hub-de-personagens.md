@@ -2,7 +2,7 @@
 
 **Épico:** 4 — Onboarding e navegação
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-98](./US-98-i18n-da-interface-web.md) — texto novo nasce no dicionário, não no JSX; o gate da [US-102](./US-102-gate-de-string-literal-no-jsx.md) reprova o contrário.
 **Relacionada a:** [US-26](./US-26-criacao-personagem-em-etapas.md) (é ela que desenha a trilha e o rodapé *Voltar/Próximo* do wizard), [US-30](./US-30-deletar-personagem.md) e [US-61](./US-61-login-do-jogador.md) (o hub que é o destino), [US-66](./US-66-telas-mobile-friendly.md) (alvo de toque de 44px e a faixa de controlos fixos no topo direito, que restringe onde o controlo pode ficar no mobile), [US-46](./US-46-acessibilidade-wcag-aa.md) (nome acessível do controlo).
 **Criada em:** 2026-08-04
@@ -105,17 +105,18 @@ P3 — /play mobile (375px)
 
 ## Critérios de aceite
 
-- [ ] **P1:** em `/setup`, nas **seis** etapas (incluindo `system`), existe acima da trilha um controlo com rótulo visível que leva a `/`.
-- [ ] O rodapé do wizard não muda: *Voltar* continua a andar uma etapa para trás e continua ausente na etapa `system`.
-- [ ] **P2:** em `/play/[adventureId]` a ≥768px, o cabeçalho da ficha mostra o controlo com rótulo visível, e o nome do personagem continua sem truncar.
-- [ ] **P3:** a 375px, o controlo aparece à esquerda da barra de toggle e leva a `/` **com a ficha fechada** — sem abrir o painel.
-- [ ] O controlo da mesa não se sobrepõe aos controlos fixos do topo direito (*Sair* em `right-16`, tema em `right-4`) nem ao nome/chevron do toggle, em 375px.
-- [ ] Nenhum `<button>` aninhado dentro de outro `<button>` na barra de toggle (o controlo é irmão, não filho).
-- [ ] Todo controlo novo tem alvo de toque ≥44px e nome acessível (texto visível ou `aria-label`) — ícone sozinho sem rótulo reprova.
-- [ ] Sair da mesa e voltar a entrar pelo hub reabre a aventura com o histórico intacto (a persistência é da API; o critério é não haver perda **por causa** da saída).
-- [ ] Sair do wizard a meio **não** cria personagem nem aventura: o hub mostra exatamente a mesma lista de antes.
-- [ ] Texto novo vem do dicionário nos dois idiomas: `pnpm i18n:literals` sai zero e o teste de paridade dos dicionários ([`i18n.test.tsx`](../../../apps/web/src/components/i18n.test.tsx)) passa.
-- [ ] **Eval / teste de regressão:** em `SetupWizard.test.tsx`, renderizar na etapa `system` e afirmar que existe um link/botão para `/`; em `GameView.test.tsx`, afirmar o mesmo com a ficha **fechada**. Os dois falham hoje, antes da implementação.
+- [x] **P1:** em `/setup`, nas **seis** etapas (incluindo `system`), existe acima da trilha um controlo com rótulo visível que leva a `/`. Entregue também na 7ª tela do wizard (o gancho pós-criação, `charId`) — ver *Notas*.
+- [x] O rodapé do wizard não muda: *Voltar* continua a andar uma etapa para trás e continua ausente na etapa `system`. O bloco `step !== 'system'` não foi tocado.
+- [x] **P2:** em `/play/[adventureId]` a ≥768px, o cabeçalho da ficha mostra o controlo com rótulo visível, e o nome do personagem continua sem truncar (linha própria, não disputa os 288px com o nome).
+- [x] **P3:** a 375px, o controlo aparece à esquerda da barra de toggle e leva a `/` **com a ficha fechada** — o teste afirma que nenhuma das duas saídas está dentro de `#character-sheet`.
+- [x] O controlo da mesa não se sobrepõe aos controlos fixos do topo direito (*Sair* em `right-16`, tema em `right-4`) nem ao nome/chevron do toggle: `pr-40` e `min-h-[76px]` mudaram do botão para a barra e continuam medidos em [`responsive.test.tsx`](../../../apps/web/src/components/responsive.test.tsx).
+- [x] Nenhum `<button>` aninhado dentro de outro `<button>` na barra de toggle (o controlo é irmão, não filho) — e é `<a>`, não `<button>`, com teste dedicado.
+- [x] Todo controlo novo tem alvo de toque ≥44px e nome acessível: P1/P2 herdam `min-h-[44px]` do `dmButtonClass`; o P3 traz `min-h-[44px] min-w-[44px]` + `aria-label`. `axe` sobre `GameView` e `SetupWizard` ([`a11y.test.tsx`](../../../apps/web/src/components/a11y.test.tsx)) continua sem violações.
+- [x] Sair da mesa e voltar a entrar pelo hub reabre a aventura com o histórico intacto — a saída é navegação pura, não toca em nada da persistência (ver *Questões em aberto* #1).
+- [x] Sair do wizard a meio **não** cria personagem nem aventura: `handleConfirm` continua o único ponto que chama `createCharacter`, coberto pelo teste *"cria o personagem uma única vez ao Confirmar"*.
+- [x] Texto novo vem do dicionário nos dois idiomas: `pnpm i18n:literals` sai **0 achados nos quatro buckets** e o teste de paridade passa (`Voltar aos personagens` ≠ `Back to characters`, sem entrada de jargão).
+- [x] **Eval / teste de regressão:** 3 casos novos — um em [`SetupWizard.test.tsx`](../../../apps/web/src/components/setup/SetupWizard.test.tsx) (saída na etapa 1, onde não há *Voltar*, e na etapa 2, onde há) e dois em [`GameView.test.tsx`](../../../apps/web/src/components/game/GameView.test.tsx) (as duas saídas com `href="/"` fora do painel recolhível; a do mobile irmã do toggle). Os três falharam antes da implementação; suíte do `apps/web` passou de 58 para **61 testes, todos verdes**.
+- [ ] **Não verificado no navegador.** Todas as páginas estão atrás do `middleware` do Auth.js e o login é Google — não consigo abrir `/setup` nem `/play` sem a sessão da mantenedora. As três posições estão verificadas por teste (DOM + classes), não por captura de ecrã.
 
 ---
 
@@ -124,14 +125,23 @@ P3 — /play mobile (375px)
 - **P1 é uma linha nova, não uma edição do rodapé.** `<Link href="/">` com `dmButtonClass('ghost')` — o padrão do [`HomeHero.tsx:137`](../../../apps/web/src/components/HomeHero.tsx). `<Link>` e não `router.push` (o `useRouter` do wizard, `:4`/`:70`, é para a navegação pós-criação): link dá meio-clique, *abrir noutro separador* e foco de teclado de graça. Nada no rodapé (`:521`) nem no `back()` (`:154`) é tocado, então nenhuma etapa muda de comportamento.
 - **P3, o aninhamento é a armadilha.** O toggle da ficha é um `<button>` ([`:489`](../../../apps/web/src/components/game/GameView.tsx)); o controlo de saída tem de ser **irmão** dele. `<button>` dentro de `<button>` é HTML inválido e o clique fica ambíguo. A barra passa a ser um wrapper `flex` com dois filhos, e o `min-h-[76px]`/`pr-40` do comentário de `:496` (que existe por causa dos controlos fixos da direita, US-66) muda de lugar para o wrapper — não some.
 - **`ArrowLeft` já está importado** no wizard (`:524`); no `GameView` verificar o import de `lucide-react` antes de acrescentar.
-- **Chaves sugeridas:** `setup.exit` e `game.exit`. Escrever a de PT e a de EN no mesmo commit — valor idêntico nos dois dicionários derruba o teste de paridade da [US-102](./US-102-gate-de-string-literal-no-jsx.md), e "Voltar ao hub"/"Back to characters" não são idênticos, então não há entrada de jargão a declarar.
+- **Chaves:** `setup.exit` e `game.exit`. Escrever a de PT e a de EN no mesmo commit — valor idêntico nos dois dicionários derruba o teste de paridade da [US-102](./US-102-gate-de-string-literal-no-jsx.md).
+
+### Como ficou (04/08/2026)
+
+- **O rótulo não é "Voltar ao hub".** *Hub* é vocabulário interno: aparece em comentário nos dois dicionários e em **nenhum** texto de jogador (verificado por `grep`). Entregue como `Voltar aos personagens` / `Back to characters` — nomeia o destino, que é o que distingue esta saída do *Voltar* de rodapé. Os esboços acima mantêm a etiqueta curta por serem esboços.
+- **P1 é uma expressão reutilizada, não duas cópias.** `const exitToHub = (…)` acima dos returns, usado no wizard **e** na 7ª tela (o gancho pós-criação, sob `if (charId)`). Essa tela não estava no levantamento inicial e é o mesmo beco: personagem já criado, e a única saída era *Iniciar aventura*. Custo de a cobrir: uma linha.
+- **A barra do mobile virou wrapper e levou as medidas da US-66 consigo.** `md:hidden`, `min-h-[76px]` e `pr-40` saíram do `<button>` do toggle para o `<div>` que agora o contém junto com a saída. Isso reancorou **dois testes da [US-66](./US-66-telas-mobile-friendly.md)** em `responsive.test.tsx`, que afirmavam sobre `toggle.className`: passaram a afirmar sobre `toggle.parentElement`. A intenção (barra só-mobile, ≥60px de altura, `pr-40` de reserva) ficou intacta — nenhuma asserção foi relaxada.
+- **P2 e P3 têm o mesmo nome acessível**, então `getAllByRole('link', …)` devolve 2 na árvore de teste (happy-dom não aplica CSS, logo `hidden`/`md:hidden` não escondem nada dele). O teste conta 2 de propósito: 1 significa que uma das posições se perdeu.
 - **Não mexer no `AuthNav`.** *Sair da conta* e *sair da tela* são ações diferentes; juntá-las no mesmo canto é o que faz o jogador clicar em `signOut` para trocar de personagem — exatamente o defeito desta story.
 
 ---
 
 ## Questões em aberto
 
-1. **Sair a meio do streaming perde o turno?** Não medido. O `onFinish` persiste a ação do jogador **e** a narração ([`ai.service.ts:161`](../../../apps/api/src/ai/ai.service.ts)), então um turno abortado no meio pode não deixar rasto nenhum — e o `GameView` já bloqueia o envio durante `streaming` (`:322`), mas nada bloqueia a navegação. Medir antes de decidir: iniciar um turno, navegar para `/` a meio, voltar a entrar e ver se a ação aparece no histórico. Se aparecer, não fazer nada. Se não aparecer, o mínimo é desativar o controlo enquanto `streaming || warming` — a mesma condição que já gateia os outros controlos (`:829`, `:841`) — e não um diálogo de confirmação.
+1. **Sair a meio do streaming perde o turno?** **Decidido por leitura do código, não por medição viva: não perde — e o controlo NÃO foi gateado por `streaming`.** A geração não está atada à ligação do cliente em nenhum ponto: `streamText` é chamada sem `abortSignal` (nenhuma ocorrência em [`ai.service.ts`](../../../apps/api/src/ai/ai.service.ts)), quem consome o `fullStream` é o laço do próprio servidor ([`ai.controller.ts:121`](../../../apps/api/src/ai/ai.controller.ts)), e `res.write` depois de o cliente desligar descarta em silêncio em vez de lançar. O `onFinish` corre e persiste ação + narração; ao voltar, o `getTurns` traz o turno. O que se perde é a **visualização** dos tokens, não o turno.
+
+   **Ressalva honesta:** isto é o caminho de código, não um teste de ponta a ponta em produção (Vercel → Render), que exigiria uma sessão autenticada e uma chamada real ao provedor. Se algum dia se observar um turno desaparecido depois de sair a meio, o remédio mínimo continua a ser desativar a saída sob `streaming || warming` — a condição que já gateia os outros controlos ([`:829`, `:841`](../../../apps/web/src/components/game/GameView.tsx)) — e não um diálogo de confirmação.
 2. **O `game.exit` do P3 precisa de rótulo curto próprio?** O P2 e o P3 partilham a chave, mas o P3 usa-a só como `aria-label` — se o texto do P2 crescer na tradução (*"Back to characters"*), continua a servir de nome acessível sem problema. Só vira questão se o desktop passar a querer um rótulo longo (*"Voltar à seleção de personagens"*): aí separam-se em duas chaves. Não separar antes disso.
 
 ---

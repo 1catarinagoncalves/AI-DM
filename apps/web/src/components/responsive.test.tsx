@@ -57,10 +57,12 @@ describe('US-66 — ficha na mesa é painel recolhível no mobile, não faixa ho
     const { container } = render(<GameView {...props} />)
     await screen.findByText('Atributos')
 
-    // Toggle recolhível (D1): botão só-mobile controlando o painel da ficha.
+    // Toggle recolhível (D1): botão controlando o painel da ficha, dentro de uma
+    // barra só-mobile. US-107: o `md:hidden` mudou de casa do botão para a barra,
+    // que passou a ter dois filhos (saída para o hub + toggle).
     const toggle = screen.getByRole('button', { name: /Ficha — Lyra/ })
     expect(toggle.getAttribute('aria-controls')).toBe('character-sheet')
-    expect(toggle.className).toContain('md:hidden')
+    expect(toggle.parentElement!.className).toContain('md:hidden')
 
     // O painel existe e NÃO volta à tira horizontal (`overflow-x-auto`).
     const sheet = container.querySelector('#character-sheet')
@@ -100,12 +102,14 @@ describe('US-66 — ficha na mesa é painel recolhível no mobile, não faixa ho
     render(<GameView {...props} />)
     await screen.findByText('Atributos')
 
-    const toggle = screen.getByRole('button', { name: /Ficha — Lyra/ })
-    const minH = /min-h-\[(\d+)px\]/.exec(toggle.className)
+    // US-107: as duas medidas são da BARRA, não do botão — o botão deixou de a
+    // ocupar sozinho quando a saída para o hub entrou à esquerda dele.
+    const bar = screen.getByRole('button', { name: /Ficha — Lyra/ }).parentElement!
+    const minH = /min-h-\[(\d+)px\]/.exec(bar.className)
     expect(minH).not.toBeNull()
     expect(Number(minH![1])).toBeGreaterThanOrEqual(60)
     // Reserva de largura para os mesmos controlos não taparem o nome.
-    expect(toggle.className).toContain('pr-40')
+    expect(bar.className).toContain('pr-40')
   })
 
   // Regressão: no turno normal o enviar caía numa linha própria abaixo do textarea

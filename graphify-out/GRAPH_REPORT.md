@@ -1,16 +1,16 @@
 # Graph Report - AI DM  (2026-08-04)
 
 ## Corpus Check
-- 325 files · ~649,620 words
+- 326 files · ~651,842 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1887 nodes · 2489 edges · 185 communities (130 shown, 55 thin omitted)
+- 1902 nodes · 2507 edges · 190 communities (134 shown, 56 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7cb9bc01`
+- Built from commit: `d95a3ed8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -30,7 +30,7 @@
 - Prompt A/B Bake-off Script
 - Onomastics Bake-off Script
 - PrismaService
-- AuthUser
+- AdventureService
 - GameView.tsx
 - migrate-feature-spell-keys.test.ts
 - US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)
@@ -146,14 +146,14 @@
 - api.ts
 - 2. Decisão
 - Camadas de teste
-- US-95-camada-de-integracao-com-banco-efemero.md
-- AppModule
 - US-94-eval-vivo-noturno-com-chaves.md
+- AppModule
+- Checklist de Deploy — AI Dungeon Master
 - ai.service.test.ts
 - US-99-config-do-sistema-no-locale-ativo.md
 - US-98 — Interface web em inglês (i18n das strings do front)
 - ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma
-- US-102-gate-de-string-literal-no-jsx.md
+- CharacterController
 - Injectable
 - ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
 - layout.tsx
@@ -169,9 +169,9 @@
 - Controller
 - Get
 - Injectable
-- Modelo de Dados — AI Dungeon Master
+- US-107 — Sair da criação ou da mesa e voltar ao hub de personagens
 - ai-engine/src/index.ts
-- character.service.ts
+- AuthUser
 - LocaleProvider.tsx
 - SetupWizard.test.tsx
 - api/package.json
@@ -179,6 +179,11 @@
 - @ai-dm/shared
 - @nestjs/common
 - @prisma/adapter-pg
+- CharacterService
+- AiController
+- jwt.ts
+- adventure.service.test.ts
+- auth.service.test.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `PrismaService` - 24 edges
@@ -221,7 +226,7 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (185 total, 55 thin omitted)
+## Communities (190 total, 56 thin omitted)
 
 ### Community 0 - "ingest.mjs"
 Cohesion: 0.07
@@ -280,12 +285,12 @@ Cohesion: 0.11
 Nodes (15): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODELS, PACE_MS (+7 more)
 
 ### Community 14 - "PrismaService"
-Cohesion: 0.12
-Nodes (18): AdventureModule, Module, AiModule, Module, AuthModule, Module, A, C (+10 more)
+Cohesion: 0.13
+Nodes (17): AdventureModule, Module, AiModule, Module, AuthModule, Module, ADR-0005, CharacterModule (+9 more)
 
-### Community 15 - "AuthUser"
-Cohesion: 0.05
-Nodes (40): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+32 more)
+### Community 15 - "AdventureService"
+Cohesion: 0.13
+Nodes (13): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+5 more)
 
 ### Community 16 - "GameView.tsx"
 Cohesion: 0.14
@@ -313,15 +318,15 @@ Nodes (31): AUTHORED_FEATURES, AUTHORED_SPELLS, AuthoredEntry, authoredIn(), bui
 
 ### Community 22 - "adventure.service.ts"
 Cohesion: 0.19
-Nodes (9): CreateAdventureDto, config, Recorded, getClassSpells(), getStartingInventory(), resolveHookTemplate(), resolveInitialHook(), dnd5eConfig (+1 more)
+Nodes (11): CreateAdventureDto, base, CreateCharacterDto, CreateCharacterSchema, getClassFeatures(), getClassSpells(), getStartingInventory(), resolveHookTemplate() (+3 more)
 
 ### Community 23 - "ai.service.ts"
-Cohesion: 0.12
-Nodes (12): AnchoredRoll, ChatInput, ExtractedScene, logExtractionEndpoint(), normName(), OPENING_ENTITIES_SCHEMA, OPENING_SCENE_SCHEMA, SALVAGE_PROVIDER_OPTIONS (+4 more)
+Cohesion: 0.14
+Nodes (12): AnchoredRoll, ChatInput, ExtractedScene, normName(), OPENING_ENTITIES_SCHEMA, OPENING_SCENE_SCHEMA, RollTurnState, SALVAGE_PROVIDER_OPTIONS (+4 more)
 
 ### Community 24 - "AiService"
-Cohesion: 0.10
-Nodes (13): AiController, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller, Post (+5 more)
+Cohesion: 0.13
+Nodes (10): ChatBodySchema, ApiBody, ApiOperation, Body, Post, AiService, logExtractionEndpoint(), HttpCode (+2 more)
 
 ### Community 25 - "check-jsx-literals.mjs"
 Cohesion: 0.19
@@ -392,7 +397,7 @@ Cohesion: 0.18
 Nodes (10): 1. Declaração do problema, 2. Objetivos e critério de aceite, 3. Usuários alvo, 4.1 Personagens e campanhas, 4.2 Multiplayer, 4.3 Sistemas e aventuras, 4. Casos de uso, 5. Fora do escopo (v1) (+2 more)
 
 ### Community 42 - "Endpoints (Fase 1 — MVP)"
-Cohesion: 0.18
+Cohesion: 0.20
 Nodes (10): Aventuras, Contratos de API — AI Dungeon Master, Convenções, DM Agent (streaming), Endpoints (Fase 1 — MVP), Multiplayer (Fase 4), Personagens — dono derivado do token, Sistemas — público (+2 more)
 
 ### Community 43 - "UserController"
@@ -544,8 +549,8 @@ Cohesion: 0.05
 Nodes (41): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), 7. Questões em aberto, ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo (+33 more)
 
 ### Community 92 - "US-98-i18n-da-interface-web.md"
-Cohesion: 0.54
-Nodes (3): US-46 — Acessibilidade da aplicação web (WCAG 2.2 AA), US-66 — Todas as telas mobile-friendly, US-68 — Nomes de fantasia originais
+Cohesion: 0.22
+Nodes (7): US-46 — Acessibilidade da aplicação web (WCAG 2.2 AA), US-66 — Todas as telas mobile-friendly, US-68 — Nomes de fantasia originais, US-83 — README com arquitetura de alto nível, US-86 — Árvore de diretórios na documentação deixa de mentir sobre onde o arquivo está, US-88 — Doc que ordena deixa de citar API que não existe, US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
 
 ### Community 112 - "US-101 — Ganchos de aventura inicial em inglês"
 Cohesion: 0.14
@@ -599,9 +604,13 @@ Nodes (14): 1. Contexto, 2.1 Topologia, 2. Decisão, 3. Decisões-chave e justif
 Cohesion: 0.17
 Nodes (12): 1. Testes unitários (todos os workspaces), 2. Testes de integração — não existem ainda, 3. Testes de componente (apps/web), 4. Evals do DM Agent (evals/), Camadas de teste, Estratégia de Testes e Evals — AI Dungeon Master, Estrutura de um eval case (evals/cases/), Flywheel de qualidade (após MVP) (+4 more)
 
-### Community 154 - "US-94-eval-vivo-noturno-com-chaves.md"
-Cohesion: 0.14
-Nodes (10): US-70 — Piso por dimensão e robustez do eval, US-72 — Evals de prompt resistentes à reescrita, US-83 — README com arquitetura de alto nível, US-89 — Export que ninguém importa para de sobreviver no repo, Antes de abrir PR, Antes de merge para main, Checklist de Deploy — AI Dungeon Master, Deploy (+2 more)
+### Community 152 - "US-94-eval-vivo-noturno-com-chaves.md"
+Cohesion: 0.22
+Nodes (4): US-38 — Rolagens ancoradas na ficha, US-70 — Piso por dimensão e robustez do eval, US-72 — Evals de prompt resistentes à reescrita, US-87 — O prompt para de afirmar que existe um bloco de entidades que o turn-state não emitiu
+
+### Community 154 - "Checklist de Deploy — AI Dungeon Master"
+Cohesion: 0.13
+Nodes (11): US-89 — Export que ninguém importa para de sobreviver no repo, Diagrama de entidades (núcleo), Modelo de Dados — AI Dungeon Master, Notas de design, Índices e constraints principais, Antes de abrir PR, Antes de merge para main, Checklist de Deploy — AI Dungeon Master (+3 more)
 
 ### Community 155 - "ai.service.test.ts"
 Cohesion: 0.21
@@ -619,9 +628,9 @@ Nodes (13): A proposta, Contexto e motivação, Critérios de aceite, Dentro do 
 Cohesion: 0.17
 Nodes (12): 1. Contexto, 2.1 Faseamento, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma (+4 more)
 
-### Community 159 - "US-102-gate-de-string-literal-no-jsx.md"
-Cohesion: 0.40
-Nodes (3): US-86 — Árvore de diretórios na documentação deixa de mentir sobre onde o arquivo está, US-88 — Doc que ordena deixa de citar API que não existe, US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
+### Community 159 - "CharacterController"
+Cohesion: 0.17
+Nodes (12): CharacterController, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller, Get (+4 more)
 
 ### Community 161 - "ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado"
 Cohesion: 0.20
@@ -635,17 +644,17 @@ Nodes (11): activeLocale(), cinzel, geist, generateMetadata(), RootLayout(), vie
 Cohesion: 0.48
 Nodes (5): EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL
 
-### Community 175 - "Modelo de Dados — AI Dungeon Master"
-Cohesion: 0.40
-Nodes (4): Diagrama de entidades (núcleo), Modelo de Dados — AI Dungeon Master, Notas de design, Índices e constraints principais
+### Community 175 - "US-107 — Sair da criação ou da mesa e voltar ao hub de personagens"
+Cohesion: 0.14
+Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação (+6 more)
 
 ### Community 176 - "ai-engine/src/index.ts"
 Cohesion: 0.32
 Nodes (4): overlapRatio(), tokens(), trigrams(), SummaryTurn
 
-### Community 177 - "character.service.ts"
-Cohesion: 0.31
-Nodes (5): base, CharacterModule, Module, CreateCharacterDto, CreateCharacterSchema
+### Community 177 - "AuthUser"
+Cohesion: 0.27
+Nodes (7): AuthGuard, OptionalAuthGuard, Injectable, AuthUser, CurrentUser, payloadToUser(), zodBody()
 
 ### Community 178 - "LocaleProvider.tsx"
 Cohesion: 0.22
@@ -659,22 +668,34 @@ Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacte
 Cohesion: 0.50
 Nodes (3): name, private, version
 
+### Community 186 - "AiController"
+Cohesion: 0.22
+Nodes (5): AiController, ApiBearerAuth, ApiTags, Controller, UseGuards
+
+### Community 187 - "jwt.ts"
+Cohesion: 0.47
+Nodes (3): b64urlToBuffer(), JwtPayload, verifyJwt()
+
+### Community 189 - "auth.service.test.ts"
+Cohesion: 0.40
+Nodes (3): A, C, U
+
 ## Knowledge Gaps
-- **934 isolated node(s):** `{ listSystems, setLocale }`, `config`, `steps`, `GENDERS`, `POINT_COST` (+929 more)
+- **945 isolated node(s):** `DmVariant`, `VARIANT_CLASS`, `BtnProps`, `DIM_CLASS`, `História` (+940 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **55 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **56 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `SystemConfigSchema` connect `system.ts` to `ingest.mjs`, `AuthUser`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-99-config-do-sistema-no-locale-ativo.md` to `US-95-camada-de-integracao-com-banco-efemero.md`, `US-98-i18n-da-interface-web.md`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **Why does `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` connect `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` to `US-98-i18n-da-interface-web.md`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
-- **What connects `{ listSystems, setLocale }`, `config`, `steps` to the rest of the system?**
-  _934 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `SystemConfigSchema` connect `system.ts` to `ingest.mjs`, `CharacterService`?**
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-99-config-do-sistema-no-locale-ativo.md` to `US-94-eval-vivo-noturno-com-chaves.md`, `US-98-i18n-da-interface-web.md`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+- **Why does `US-36 — Eval de qualidade da narração do DM` connect `ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo` to `US-94-eval-vivo-noturno-com-chaves.md`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **What connects `DmVariant`, `VARIANT_CLASS`, `BtnProps` to the rest of the system?**
+  _945 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.06787330316742081 - nodes in this community are weakly interconnected._
 - **Should `devDependencies` be split into smaller, more focused modules?**
