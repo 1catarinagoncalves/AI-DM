@@ -152,9 +152,12 @@ export function SceneFrame({
             como mais um `fixed` no canto, onde tema e Sair já dividem a largura por
             offset calculado à mão (US-66). Um `ml-auto` serve as telas com SceneFrame
             que ainda o mostram: login e home (o wizard e o gancho passam
-            `localeToggle={false}`). A folga à direita (`sm:mr-32`) é a faixa dos dois
-            controlos fixos, que flutuam sobre esta mesma banda. */}
-        {localeToggle && <LocaleToggle className="ml-auto mr-24 sm:mr-32" />}
+            `localeToggle={false}`). A folga à direita (`mr-44` = 11rem) é a faixa dos
+            dois controlos fixos, que flutuam sobre esta mesma banda: Sair (right-16 +
+            ~5.75rem) e o tema. Medida pelo rótulo INGLÊS ("Sign out"), o mais largo —
+            com a folga antiga (8rem, dimensionada em "Sair") o seletor ficava por baixo
+            do botão Sair na home em en-US. */}
+        {localeToggle && <LocaleToggle className="ml-auto mr-44" />}
       </header>
 
       <div className={cn('relative z-10 flex flex-1 flex-col', className)}>{children}</div>

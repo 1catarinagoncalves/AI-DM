@@ -1,16 +1,16 @@
 # Graph Report - AI DM  (2026-08-04)
 
 ## Corpus Check
-- 325 files · ~649,520 words
+- 325 files · ~649,620 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1887 nodes · 2484 edges · 184 communities (129 shown, 55 thin omitted)
+- 1887 nodes · 2489 edges · 185 communities (130 shown, 55 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `21ef0d99`
+- Built from commit: `7cb9bc01`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -173,6 +173,7 @@
 - ai-engine/src/index.ts
 - character.service.ts
 - LocaleProvider.tsx
+- SetupWizard.test.tsx
 - api/package.json
 - @ai-dm/ai-engine
 - @ai-dm/shared
@@ -188,8 +189,8 @@
 6. `CharacterService` - 14 edges
 7. `CurrentUser` - 14 edges
 8. `CharacterController` - 13 edges
-9. `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` - 12 edges
-10. `AdventureService` - 12 edges
+9. `cn()` - 12 edges
+10. `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `buildConfig()` --references--> `SystemConfigSchema`  [EXTRACTED]
@@ -200,8 +201,8 @@
   apps/web/src/app/login/page.tsx → apps/web/src/components/LocaleProvider.tsx
 - `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
   docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
-- `build()` --calls--> `buildDmSystemPrompt()`  [EXTRACTED]
-  packages/ai-engine/src/prompts/dm-system.test.ts → packages/ai-engine/src/prompts/dm-system.ts
+- `LocaleToggle()` --calls--> `cn()`  [EXTRACTED]
+  apps/web/src/components/LocaleToggle.tsx → apps/web/src/components/ui/dm.tsx
 
 ## Import Cycles
 - None detected.
@@ -220,7 +221,7 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (184 total, 55 thin omitted)
+## Communities (185 total, 55 thin omitted)
 
 ### Community 0 - "ingest.mjs"
 Cohesion: 0.07
@@ -287,8 +288,8 @@ Cohesion: 0.05
 Nodes (40): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+32 more)
 
 ### Community 16 - "GameView.tsx"
-Cohesion: 0.13
-Nodes (16): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), LocaleTurn (+8 more)
+Cohesion: 0.14
+Nodes (15): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), LocaleTurn (+7 more)
 
 ### Community 17 - "migrate-feature-spell-keys.test.ts"
 Cohesion: 0.09
@@ -535,8 +536,8 @@ Cohesion: 0.15
 Nodes (13): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. O que a medição mostrou, 5. Alternativas rejeitadas, 6. Consequências, 7. Implementação (referência), ADR 009 — Regra de uso do SRD: união do 5.1 e do 5.2, com o 5.2 vencendo (+5 more)
 
 ### Community 86 - "SetupWizard.tsx"
-Cohesion: 0.10
-Nodes (25): LoginPage(), GENDERS, optionCardClass(), parseDeity(), POINT_COST, SetupWizard(), SOURCE_TYPE_HINT, Step (+17 more)
+Cohesion: 0.12
+Nodes (23): LoginPage(), { listSystems, getTurns }, GENDERS, optionCardClass(), parseDeity(), POINT_COST, SetupWizard(), SOURCE_TYPE_HINT (+15 more)
 
 ### Community 90 - "ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo"
 Cohesion: 0.05
@@ -650,12 +651,16 @@ Nodes (5): base, CharacterModule, Module, CreateCharacterDto, CreateCharacterSch
 Cohesion: 0.22
 Nodes (10): gameProps, { getTurns, setLocale }, LOCALE_STORAGE_KEY, LocaleContext, LocaleContextValue, LocaleProvider(), rememberLocale(), storedLocale() (+2 more)
 
+### Community 179 - "SetupWizard.test.tsx"
+Cohesion: 0.50
+Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacter, getInitialAdventure, createAdventure }
+
 ### Community 180 - "api/package.json"
 Cohesion: 0.50
 Nodes (3): name, private, version
 
 ## Knowledge Gaps
-- **934 isolated node(s):** `cinzel`, `geist`, `viewport`, `História`, `O problema observado` (+929 more)
+- **934 isolated node(s):** `{ listSystems, setLocale }`, `config`, `steps`, `GENDERS`, `POINT_COST` (+929 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **55 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -663,12 +668,12 @@ Nodes (3): name, private, version
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `SystemConfigSchema` connect `system.ts` to `ingest.mjs`, `AuthUser`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `US-36 — Eval de qualidade da narração do DM` connect `ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo` to `US-94-eval-vivo-noturno-com-chaves.md`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-99-config-do-sistema-no-locale-ativo.md` to `US-95-camada-de-integracao-com-banco-efemero.md`, `US-98-i18n-da-interface-web.md`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
-- **What connects `cinzel`, `geist`, `viewport` to the rest of the system?**
+  _High betweenness centrality (0.010) - this node is a cross-community bridge._
+- **Why does `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` connect `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` to `US-98-i18n-da-interface-web.md`?**
+  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+- **What connects `{ listSystems, setLocale }`, `config`, `steps` to the rest of the system?**
   _934 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.06787330316742081 - nodes in this community are weakly interconnected._
