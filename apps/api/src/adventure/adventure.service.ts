@@ -135,8 +135,9 @@ export class AdventureService {
       spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
       locale: resolveLocale(character.user?.locale),
     })
-    // ponytail: o fallback estático continua PT (o gancho é autoral, US-101). Numa mesa
-    // em inglês ele só aparece se a geração falhar — não vale um segundo caminho aqui.
+    // US-101: o fallback estático já sai no idioma certo — `hook` veio do `config` do locale
+    // (linha 85), e o gancho passou a ter versão por idioma. Antes ele era o único PT que
+    // sobrava numa mesa em inglês, e só aparecia quando a geração falhava.
     const openingText = generatedOpening ?? hook.openingNarration
 
     // US-35: extrai a cena estruturada da abertura ANTES da transação (é LLM). Sem
