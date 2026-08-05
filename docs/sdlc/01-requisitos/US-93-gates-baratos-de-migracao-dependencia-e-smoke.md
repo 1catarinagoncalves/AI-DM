@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Ferramentas de projeto / SDLC
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-80](./US-80-ci-typecheck-testes-e-evals.md) (o workflow). O smoke depende também da [US-92](./US-92-deploy-espera-o-ci-verde.md) — mas **não** do jeito que esta story supunha quando foi escrita: a US-92 fechou com `autoDeployTrigger: checksPass` e descartou o job `deploy` do desenho original, então o smoke ganhou workflow próprio (ver *Notas de implementação*).
 **Criada em:** 2026-07-30
 
@@ -69,16 +69,27 @@ Exit 2 = há diferença = schema editado sem migração. **Isto exige um Postgre
 
 ## Critérios de aceite
 
-Medidos em 05/08/2026 nos commits `130fc51` (primeiro push) e `167862e` (smoke manual, depois do deadlock). **5 dos 7 fecharam.** Os dois que sobram são os testes de regressão intencionais — provar que cada gate fica vermelho quando deve, e não só verde quando tudo está bem.
+Todos medidos em 05/08/2026, nos commits `130fc51` (primeiro push), `167862e` (smoke manual, depois do deadlock) e `5cdfd85` (branch descartável do teste de drift). **7 de 7 fecharam**, sendo que o do gate 3 morder teve a redação trocada — está dito no próprio item.
 
 - [x] O job `ci` tem um serviço Postgres e um passo de `migrate diff` que sai 0 na `main` de hoje. — Run `31029216684`, 21 passos verdes, `Gate de drift de migração: success` em 2 s (17:17:16 → 17:17:18). É a primeira execução do `--from-migrations` contra um Postgres de verdade; o que a *Questão* #3 tinha medido era o `--from-config-datasource` contra a Neon, outra fonte e outro caminho de código.
-- [ ] **Teste de regressão (gate 1 morde):** adicionar um campo em `schema.prisma` **sem** criar migração deixa o passo vermelho, nomeando a diferença. Campo removido depois (`git diff` limpo), com a saída colada aqui.
-  **Falta inteiro.** Agora é fazível — o critério acima está verde, então dá para distinguir "mordeu" de "quebrou".
+- [x] **Teste de regressão (gate 1 morde):** adicionar um campo em `schema.prisma` **sem** criar migração deixa o passo vermelho, nomeando a diferença. — Feito em 05/08/2026 no commit `5cdfd85`, campo `campoDeTesteDrift String?` no model `User`. Run `31038359160`, passo 8 `failure` e os passos 9-20 `skipped`:
+
+  ```
+  [*] Changed the `User` table
+    [+] Added column `campoDeTesteDrift`
+  ##[error]Process completed with exit code 2.
+  ```
+
+  Exit **2**, que é "há diferença", não 1, que seria erro do próprio comando — a distinção que as *Notas de implementação* avisam ser fácil de confundir no log. Rodou em **branch descartável** (`teste/us93-gate1-drift`, apagada local e remota depois), e não na `main` como fez a US-92: aqui o que se mede é o passo do CI, que roda em qualquer branch, então não há motivo para pôr um commit vermelho na branch default. `main` intocada, `schema.prisma` restaurado.
 - [x] Existe `.github/dependabot.yml` com `npm` e `github-actions`, e os dois ecossistemas estão ativos. — Prova mais forte que o painel: em ~20 min o Dependabot abriu **3 PRs**, um por grupo declarado. E o gate 2 já mordeu de verdade, com o CI reprovando dois deles: [#4](https://github.com/1catarinagoncalves/AI-DM/pull/4) (grupo `producao`, 18 updates) sobe o AI SDK para v5 e quebra em `'"ai"' has no exported member named 'LanguageModelV1'` + `promptTokens`/`completionTokens` fora de `LanguageModelUsage`; [#5](https://github.com/1catarinagoncalves/AI-DM/pull/5) (grupo `desenvolvimento`, 8 updates) sobe TypeScript para 6 e quebra em `Option 'moduleResolution=node10' has been removed`. Ou seja: o gate encontrou duas atualizações incompatíveis que o lockfile congelado escondia, e o CI as segurou — exatamente o desenho de "abre PR, não reprova build".
 - [x] `/api/v1/systems` de produção responde o header `X-Commit` com o SHA do deploy vivo, sem mudar o corpo tipado de `packages/shared`. — Medido em 05/08/2026 no `167862e`: produção respondeu `X-Commit: 167862e7f7ac7f5201e6401401e2a320b336a3ac`. **É a resposta da *Questão* #2: `RENDER_GIT_COMMIT` existe em runtime.** Antes disso, local em `localhost:3001`: `HTTP/1.1 200` + `X-Commit: dev`, provando o fallback. `packages/shared` não foi tocado.
 - [x] O workflow `smoke` só fica verde depois de o `X-Commit` de produção bater com o SHA pedido — não basta `200`. — Run `31038030320`, disparado à mão com o deploy já live: verde na **tentativa 1/40**, `X-Commit=167862e7f7ac… esperado=167862e7f7ac…`.
-- [ ] **Teste de regressão (gate 3 morde):** o smoke fica vermelho por timeout em vez de verde por omissão.
-  **Meio-feito por acidente, em 05/08/2026:** o run `31029412396` fez as 40 tentativas contra uma API que estava no ar mas era o **processo antigo**, sem o header, e ficou vermelho por timeout — `X-Commit=<sem resposta> esperado=130fc51…`. Prova que o passo não fica verde por omissão. **Falta** a versão intencional (serviço suspenso à mão), que testa o caso "sem resposta nenhuma" em vez de "resposta sem o header".
+- [x] **Teste de regressão (gate 3 morde):** o smoke fica vermelho por timeout em vez de verde por omissão. — Fechado em 05/08/2026 com duas evidências, e **sem** suspender produção. A redação original pedia o serviço do Render suspenso à mão; foi trocada de propósito, porque um serviço suspenso responde uma página 503 e cairia no primeiro caso abaixo, custando ~10 min de produção fora do ar para medir o que já estava medido.
+
+  1. **API no ar, sem o header** — run `31029412396`, o do deadlock: 40 tentativas, todas `X-Commit=<sem resposta> esperado=130fc51…`, vermelho por timeout. Aconteceu por acidente, contra o serviço real, com o processo antigo (sem o middleware) respondendo `200`.
+  2. **Conexão recusada** — a mesma linha do workflow, rodada local sob `bash -e` contra uma porta morta: as 3 tentativas imprimiram `<sem resposta>` e o loop sobreviveu. Importa porque o step do GitHub roda em `bash -e`: se o `curl` com erro abortasse o script, o passo morreria na primeira tentativa com outra mensagem, em vez de fazer o poll até o timeout.
+
+  **O que não foi testado:** o serviço de produção genuinamente fora do ar. As duas provas cobrem os dois desfechos do parse (resposta sem o header; nenhuma resposta), que é o que o passo tem de distinguir — mas nenhuma delas derrubou a API real.
 - [x] O acréscimo de tempo de cada gate está medido e registrado — o `services: postgres` é o único com custo real de startup. — Job `ci` de **1m50s** (`59b6f57`, sem Postgres) para **2m15s** (`130fc51`): **+25s**, sendo 22s de `Initialize containers` e 2s do `migrate diff`. Gates 2 e 3 não tocam o job `ci` e custam 0. Ver *Questão* #1 para a consequência.
 
 ### Já verificado no repo (não é critério de aceite, mas evita remedir)
