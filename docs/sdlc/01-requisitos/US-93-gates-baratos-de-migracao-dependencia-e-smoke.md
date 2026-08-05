@@ -56,7 +56,7 @@ Exit 2 = há diferença = schema editado sem migração. **Isto exige um Postgre
 - `npm` na raiz (o pnpm workspace é lido pelo Dependabot como npm), semanal, PRs agrupados;
 - `github-actions`, semanal — as actions do workflow também envelhecem.
 
-**Gate 3 — smoke pós-deploy.** Workflow `.github/workflows/smoke.yml`, disparado por `workflow_run` do CI concluído com sucesso na `main`: poll no `/api/v1/systems` público até o header `X-Commit` bater com o SHA do run, com timeout, falhando se estourar. Inclui as 3 linhas em `apps/api/src/main.ts` que emitem o header — o único código de produção desta story, absorvido aqui pela decisão da *Questões em aberto* #2. **Não** é um job do `ci.yml`: o porquê está nas *Notas de implementação*, e é um deadlock, não estilo.
+**Gate 3 — smoke pós-deploy.** Workflow `.github/workflows/smoke.yml`, disparo **manual** (`workflow_dispatch`, com input `sha` opcional): poll no `/api/v1/systems` público até o header `X-Commit` bater com o SHA pedido, com timeout, falhando se estourar. Inclui as 3 linhas em `apps/api/src/main.ts` que emitem o header — o único código de produção desta story, absorvido aqui pela decisão da *Questões em aberto* #2. Manual e não automático porque **qualquer** gatilho automático trava o deploy sob `autoDeployTrigger: checksPass`: o porquê e a medição estão nas *Notas de implementação*.
 
 ### Fora do escopo
 
@@ -69,30 +69,25 @@ Exit 2 = há diferença = schema editado sem migração. **Isto exige um Postgre
 
 ## Critérios de aceite
 
-Código escrito em 05/08/2026 e ainda **não commitado** quando esta seção foi atualizada. Nenhum critério fecha antes do primeiro push: todos medem comportamento de runner ou de produção, não a existência do arquivo. Cada item abaixo diz o que já foi medido e o que falta, para o próximo passe não remedir o que já está de pé.
+Medidos no commit `130fc51`, pushado em 05/08/2026. Os gates 1 e 2 fecharam; o gate 3 travou o deploy e teve que ser redesenhado no meio (ver *Notas de implementação*), então os critérios dele continuam abertos.
 
-- [ ] O job `ci` tem um serviço Postgres e um passo de `migrate diff` que sai 0 na `main` de hoje.
-  **Feito:** `services: postgres:16-alpine` com health check `pg_isready`, `SHADOW_DATABASE_URL` no `env:` do job e o passo *Gate de drift de migração* com `working-directory: apps/api` (`ci.yml`); `datasource.shadowDatabaseUrl` no `prisma.config.ts`.
-  **Falta:** rodar. Não há Docker na máquina de desenvolvimento, então o `--from-migrations` nunca executou contra um Postgres de verdade. O que a *Questão* #3 mediu foi o `--from-config-datasource` contra a Neon — outra fonte, outro caminho de código.
+- [x] O job `ci` tem um serviço Postgres e um passo de `migrate diff` que sai 0 na `main` de hoje. — Run `31029216684`, 21 passos verdes, `Gate de drift de migração: success` em 2 s (17:17:16 → 17:17:18). É a primeira execução do `--from-migrations` contra um Postgres de verdade; o que a *Questão* #3 tinha medido era o `--from-config-datasource` contra a Neon, outra fonte e outro caminho de código.
 - [ ] **Teste de regressão (gate 1 morde):** adicionar um campo em `schema.prisma` **sem** criar migração deixa o passo vermelho, nomeando a diferença. Campo removido depois (`git diff` limpo), com a saída colada aqui.
-  **Falta inteiro** — depende do critério acima estar verde primeiro, senão não dá para distinguir "mordeu" de "quebrou".
-- [ ] Existe `.github/dependabot.yml` com `npm` e `github-actions`, e o painel *Insights → Dependency graph → Dependabot* mostra os dois ecossistemas ativos.
-  **Feito:** o arquivo, com os dois ecossistemas, semanais, agrupados por `dependency-type` (`producao`/`desenvolvimento`) e `patterns: ['*']` nas actions.
-  **Falta:** o painel. O GitHub só lê o arquivo depois de ele existir na branch default.
+  **Falta inteiro.** Agora é fazível — o critério acima está verde, então dá para distinguir "mordeu" de "quebrou".
+- [x] Existe `.github/dependabot.yml` com `npm` e `github-actions`, e os dois ecossistemas estão ativos. — Prova mais forte que o painel: em ~20 min o Dependabot abriu **3 PRs**, um por grupo declarado. E o gate 2 já mordeu de verdade, com o CI reprovando dois deles: [#4](https://github.com/1catarinagoncalves/AI-DM/pull/4) (grupo `producao`, 18 updates) sobe o AI SDK para v5 e quebra em `'"ai"' has no exported member named 'LanguageModelV1'` + `promptTokens`/`completionTokens` fora de `LanguageModelUsage`; [#5](https://github.com/1catarinagoncalves/AI-DM/pull/5) (grupo `desenvolvimento`, 8 updates) sobe TypeScript para 6 e quebra em `Option 'moduleResolution=node10' has been removed`. Ou seja: o gate encontrou duas atualizações incompatíveis que o lockfile congelado escondia, e o CI as segurou — exatamente o desenho de "abre PR, não reprova build".
 - [ ] `/api/v1/systems` de produção responde o header `X-Commit` com o SHA do deploy vivo, sem mudar o corpo tipado de `packages/shared`.
-  **Feito, metade:** medido em 05/08/2026 com a API em `localhost:3001` — `HTTP/1.1 200` + `X-Commit: dev`, e o mesmo `curl -sS -o /dev/null -D - | tr -d '\r' | awk` do `smoke.yml` extraiu `dev`. Ou seja: o middleware registra, o header sai, e o parse do workflow funciona contra uma resposta real. `packages/shared` não foi tocado.
-  **Falta:** a metade que só produção responde — se `RENDER_GIT_COMMIT` existe em runtime. É o experimento da *Questão* #2.
-- [ ] O workflow `smoke` só fica verde depois de o `X-Commit` de produção bater com o SHA do run — não basta `200`.
-  **Feito:** `.github/workflows/smoke.yml`, `on: workflow_run` do CI concluído com sucesso na `main`, poll de 40 × 15 s (10 min, cobre build do Render + cold start), comparando com `github.event.workflow_run.head_sha`.
-  **Falta:** rodar uma vez. E, junto com ele, o risco do `workflow_run` descrito nas *Notas de implementação* — se o Render parar de deployar, o problema é este arquivo.
-- [ ] **Teste de regressão (gate 3 morde):** com o serviço do Render suspenso à mão, o passo de smoke fica vermelho por timeout em vez de verde por omissão.
-  **Falta inteiro.** Custa 10 min de espera do timeout; fazer depois do caminho feliz.
-- [ ] O acréscimo de tempo de cada gate está medido e registrado — o `services: postgres` é o único com custo real de startup.
-  **Falta inteiro**, e é o que decide a *Questão* #1: acima de 30 s de acréscimo, o `migrate diff` sai para um job `db` paralelo.
+  **Feito, metade:** medido em 05/08/2026 com a API em `localhost:3001` — `HTTP/1.1 200` + `X-Commit: dev`, e o mesmo `curl -sS -o /dev/null -D - | tr -d '\r' | awk` do `smoke.yml` extraiu `dev`. O middleware registra, o header sai, o parse funciona contra resposta real. `packages/shared` não foi tocado.
+  **Falta:** a metade que só produção responde — se `RENDER_GIT_COMMIT` existe em runtime. O `130fc51` não chegou a deployar por causa do deadlock, então o experimento da *Questão* #2 segue sem resultado.
+- [ ] O workflow `smoke` só fica verde depois de o `X-Commit` de produção bater com o SHA pedido — não basta `200`.
+  **Feito:** `.github/workflows/smoke.yml` com poll de 40 × 15 s comparando o header com o SHA.
+  **Falta:** uma execução do desenho manual. A do desenho automático rodou e foi vermelha, mas por deadlock, não por medida do gate.
+- [ ] **Teste de regressão (gate 3 morde):** o smoke fica vermelho por timeout em vez de verde por omissão.
+  **Meio-feito por acidente, em 05/08/2026:** o run `31029412396` fez as 40 tentativas contra uma API que estava no ar mas era o **processo antigo**, sem o header, e ficou vermelho por timeout — `X-Commit=<sem resposta> esperado=130fc51…`. Prova que o passo não fica verde por omissão. **Falta** a versão intencional (serviço suspenso à mão), que testa o caso "sem resposta nenhuma" em vez de "resposta sem o header".
+- [x] O acréscimo de tempo de cada gate está medido e registrado — o `services: postgres` é o único com custo real de startup. — Job `ci` de **1m50s** (`59b6f57`, sem Postgres) para **2m15s** (`130fc51`): **+25s**, sendo 22s de `Initialize containers` e 2s do `migrate diff`. Gates 2 e 3 não tocam o job `ci` e custam 0. Ver *Questão* #1 para a consequência.
 
 ### Já verificado no repo (não é critério de aceite, mas evita remedir)
 
-Em 05/08/2026, com todas as mudanças aplicadas: `pnpm typecheck` verde nos 4 projetos, `pnpm test` com 142 testes em 16 arquivos passando, `pnpm docs:links` (gate completo, sem `--only-md`) com `Quebrados: 0`.
+Em 05/08/2026, com todas as mudanças aplicadas: `pnpm typecheck` verde nos 4 projetos, `pnpm test` com 142 testes em 16 arquivos passando, `pnpm docs:links` (gate completo, sem `--only-md`) com `Quebrados: 0`. No `130fc51` o status do Vercel é `success` — os builds vermelhos do Vercel naquele dia são previews dos PRs do Dependabot, não da `main`.
 
 ---
 
@@ -113,7 +108,9 @@ Em 05/08/2026, com todas as mudanças aplicadas: `pnpm typecheck` verde nos 4 pr
 - **`--shadow-database-url` não existe mais no Prisma 7.** A flag saiu junto com as outras; o `migrate diff --help` do 7.8.0 lista só `--from-*`/`--to-*`, `--script`, `--exit-code`, `--config` e `-o`. O valor passou a vir do `prisma.config.ts`, em `datasource.shadowDatabaseUrl`. Lá foi escrito como `process.env['SHADOW_DATABASE_URL']` cru e **não** com o helper `env()`: a assinatura é `env(name: string): string`, ou seja, exige a variável — e todo comando Prisma local, onde o shadow não existe, quebraria no carregamento do config.
 - **`SHADOW_DATABASE_URL` não é secret:** aponta para o serviço do próprio runner (`postgresql://postgres:postgres@localhost:5432/shadow`). O job `ci` continua sem secret, como a US-80 exige. O `POSTGRES_DB: shadow` do `services:` existe para casar com o nome no fim dessa URL.
 - **O smoke não pode ser um job do `ci.yml` — é deadlock.** O GitHub cria um check run **por job**, e a US-92 pôs o Render em `autoDeployTrigger: checksPass`, que espera *todos* os checks do commit. Um job `smoke` com `needs: ci` ficaria pendente esperando o deploy, e o Render esperaria o smoke concluir para deployar. Resultado: nenhum dos dois anda e a `main` para de deployar em silêncio — exatamente a armadilha "falha fechada por ausência de check" que a US-92 já documentou. Daí o workflow separado com `on: workflow_run`, que roda **depois** do run que o Render observa.
-- **Risco assumido do `workflow_run` (medir no primeiro push):** se o GitHub anexar o check run do `smoke` ao mesmo commit, o Render pode voltar a esperá-lo e o deadlock reaparece por outro caminho. A corrida é favorável — o smoke só nasce depois de o CI concluir, quando o Render já avaliou os checks — mas não foi medida. Sinal de que deu errado: push verde na `main` e nenhum deploy criado no Render. Conserto: apagar `.github/workflows/smoke.yml` (diff de 1 arquivo, reversível), e o plano B é o smoke virar disparo manual (`workflow_dispatch`) ou consultar a API do Render em vez de depender de check.
+- **O `workflow_run` também trava — medido no `130fc51` (05/08/2026).** O risco estava anotado aqui como "corrida favorável, não medida". Não é favorável: **o check run do `workflow_run` conta para o `checksPass`**. Sequência do commit `130fc51` — CI verde às 17:18:31, smoke rodando de 17:19 a 17:29 com as 40 tentativas em `X-Commit=<sem resposta>` (o código no ar era o antigo, sem o header), vermelho por timeout, e a lista de deploys do Render **parada em `dep-d9p3igufulvc73arftn0`**, do commit anterior. O smoke esperava o deploy; o Render esperava o smoke. Produção ficou servindo o código do dia anterior até o conserto.
+- **Por isso o smoke é `workflow_dispatch`, disparo manual.** Foi a opção escolhida sobre as outras duas: apagar o `smoke.yml` (mata o gate e deixa o header sem consumidor) e voltar atrás no `checksPass` da US-92 (desfaz a garantia de que commit vermelho não chega em produção — reabrir story fechada para salvar um gate novo é a troca errada). Manual destrava o deploy, preserva o header e o poll, e ainda responde à *Questão* #2. **Armadilha que fica:** rodar o smoke **antes** de o deploy aparecer como live recria o deadlock, porque o run manual também vira check do commit. Está escrito no cabeçalho do workflow.
+- **Custo do gate 1, medido no `130fc51`:** job `ci` foi de 1m50s (`59b6f57`, sem Postgres) para 2m15s — **+25s**, dos quais 22s são o `Initialize containers` e 2s o `migrate diff` em si. Abaixo do gatilho de 30s da *Questão* #1, então o passo fica no job `ci` e não sai para um job `db` paralelo.
 - **A `DATABASE_URL` fictícia de `ci.yml:16` continua fictícia.** O shadow é uma variável à parte; nada nesta story faz teste tocar banco.
 - **Dependabot e o pnpm workspace:** o Dependabot lê `pnpm-lock.yaml`, mas a granularidade dos PRs em monorepo é irritante sem `groups:`. Agrupar por `dependency-type` desde o começo.
 
@@ -121,7 +118,9 @@ Em 05/08/2026, com todas as mudanças aplicadas: `pnpm typecheck` verde nos 4 pr
 
 ## Questões em aberto
 
-1. **O gate 1 justifica um serviço Postgres no job?** É o único item desta story com custo de infraestrutura, e a US-80 tirou banco do runner de propósito.
+1. ~~**O gate 1 justifica um serviço Postgres no job?**~~ **Respondida em 05/08/2026: sim, e o split não é necessário.** Medido no `130fc51`: +25s no job `ci` (22s de `Initialize containers`, 2s do `migrate diff`), contra um gatilho de saída de 30s. O `migrate diff` fica onde está. O texto original do gatilho segue abaixo porque a régua continua valendo se o tempo subir.
+
+   É o único item desta story com custo de infraestrutura, e a US-80 tirou banco do runner de propósito.
 
    **Decisão: nasce dentro do job `ci`, com gatilho de saída escrito** — se o `services:` somar **mais de 30s** ao tempo do job, o `migrate diff` sai para um job paralelo `db` com `needs: []`. Usar `postgres:16-alpine`, não `postgres:16`: o container de serviço sobe *antes* do primeiro step, então o pull está no caminho crítico de verdade.
 
