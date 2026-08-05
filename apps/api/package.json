@@ -31,11 +31,11 @@
     "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
-    "@nestjs/cli": "^10.4.9",
+    "@nestjs/cli": "^11.0.24",
     "@types/express": "^5.0.3",
-    "prisma": "^7.8.0",
+    "prisma": "^7.9.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
   }
 }
