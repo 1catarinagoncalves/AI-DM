@@ -43,7 +43,7 @@ jobs:
       # fetch-depth: 0 por causa do guard do grafo lá embaixo: ele faz
       # `git log -- graphify-out/graph.json`, e o checkout raso (depth 1) não
       # traz histórico nenhum — o comando devolveria vazio e o guard calaria.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -51,9 +51,9 @@ jobs:
       # Sem `version:` de propósito — o action lê `packageManager` do package.json
       # (pnpm@11.9.0). Declarar os dois faz o action falhar com "Multiple versions
       # of pnpm specified", e duplicar o pin convida à divergência.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.23.0 # casa com NODE_VERSION do render.yaml
           cache: pnpm
