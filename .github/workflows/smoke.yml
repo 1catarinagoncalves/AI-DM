@@ -1,0 +1,49 @@
+# US-93 gate 3 — smoke pós-deploy. Sem isto o CI termina verde sem saber se o que
+# ele liberou para produção respondeu alguma coisa: o healthCheckPath do render.yaml
+# é do Render, e o resultado dessa decisão mora no painel, não na aba de checks.
+name: Smoke
+
+# Workflow separado, NÃO um job do ci.yml — e o motivo é um deadlock, não estilo.
+# Com autoDeployTrigger: checksPass (US-92) o Render só deploya quando todos os
+# checks do commit passam, e o GitHub cria um check run por JOB. Um job `smoke` com
+# `needs: ci` ficaria pendente esperando o deploy que o Render está esperando o smoke
+# terminar para fazer — e a main pararia de deployar em silêncio, exatamente a
+# armadilha "falha fechada por ausência de check" das notas da US-92.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  smoke:
+    # CI vermelho não gera deploy (US-92), então não há o que medir.
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Poll com retry, nunca um curl seco: o Render Free hiberna por inatividade e o
+      # primeiro request paga cold start (é a razão de existir da US-57). Um curl único
+      # falharia por cold start e ensinaria que o passo é flaky.
+      #
+      # Compara o header X-Commit (apps/api/src/main.ts) com o SHA que acabou de passar
+      # no CI. É o que separa "há uma API viva" de "a API NOVA está viva": o deploy do
+      # Render é assíncrono e o processo antigo continua respondendo 200 durante o build.
+      - name: Esperar a API nova responder
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          URL: https://ai-dm-api.onrender.com/api/v1/systems
+        run: |
+          # 40 x 15s = 10 min: cobre build do Render (~2 min) + cold start com folga.
+          for i in $(seq 1 40); do
+            got=$(curl -sS -o /dev/null -D - --max-time 30 "$URL" \
+              | tr -d '\r' | awk 'tolower($1) == "x-commit:" { print $2 }')
+            echo "tentativa $i/40: X-Commit=${got:-<sem resposta>} esperado=$SHA"
+            if [ "$got" = "$SHA" ]; then
+              echo "API nova no ar."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::timeout de 10 min: $URL nunca respondeu X-Commit=$SHA"
+          exit 1

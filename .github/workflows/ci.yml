@@ -14,6 +14,30 @@ jobs:
       # não conecta ao banco, mas o config precisa da variável resolver.
       # Nenhum teste toca banco (US-80, Questões em aberto #2) — daí a URL fictícia.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      # US-93: variável à parte, e NÃO é secret — aponta para o serviço do próprio
+      # runner logo abaixo. A DATABASE_URL acima continua fictícia; nada aqui faz
+      # teste tocar banco.
+      SHADOW_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/shadow
+
+    # US-93 gate 1: `migrate diff --from-migrations` exige um Postgres de verdade —
+    # ele replica as migrações num shadow database para comparar com o schema.
+    # postgres:16-alpine e não postgres:16: o container de serviço sobe ANTES do
+    # primeiro step, então o pull está no caminho crítico do job.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shadow
+        ports:
+          - 5432:5432
+        # Sem health check o primeiro comando Prisma corre contra um Postgres que
+        # ainda está inicializando e falha por conexão recusada, não por drift.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       # fetch-depth: 0 por causa do guard do grafo lá embaixo: ele faz
@@ -43,6 +67,20 @@ jobs:
       # sem ter rodado nada. Pego em 29/07/2026 no `pnpm build` da raiz.
       - name: Gerar client Prisma
         run: pnpm --fail-if-no-match --filter api exec prisma generate
+
+      # US-93 gate 1: schema.prisma editado sem a migração correspondente. O `prisma
+      # generate` acima lê SÓ o schema — ele gera um client feliz para um banco que a
+      # migração nunca vai produzir, então não vê drift. Sem este passo, o erro aparece
+      # no `prisma migrate deploy` do render.yaml, em produção.
+      #
+      # working-directory apps/api porque prisma.config.ts mora lá e faz
+      # schema: path.join('prisma', 'schema.prisma'), relativo a si mesmo.
+      # --exit-code: 0 = igual, 2 = há diferença, 1 = erro do próprio comando.
+      # As flags de Prisma 6 (--from-schema-datasource, --to-schema-datamodel) foram
+      # REMOVIDAS no 7 e saem com usage error — vermelho por sintaxe, não por drift.
+      - name: Gate de drift de migração
+        working-directory: apps/api
+        run: pnpm exec prisma migrate diff --from-migrations prisma/migrations --to-schema prisma/schema.prisma --exit-code
 
       # Antes do typecheck: apps/api importa @ai-dm/shared e @ai-dm/ai-engine, cujos
       # `types` apontam para dist/. Sem build, tsc dá TS2307 "Cannot find module

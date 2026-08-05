@@ -1,0 +1,35 @@
+# US-93 gate 2. Antes disto não havia varredura de dependência nenhuma no repo:
+# lockfile congelado é ótimo para reprodutibilidade e péssimo para atualização —
+# uma dependência com CVE fica pinada indefinidamente porque nada avisa.
+#
+# Só abre PR; não reprova build. `pnpm audit` bloqueante ficou de fora de propósito
+# (US-93, Fora do escopo): audit em monorepo com transitivas nasce vermelho e treina
+# a pessoa a ignorar vermelho. Merge é manual — auto-merge exigiria branch protection,
+# que a US-92 (Fora do escopo) respondeu como "não".
+version: 2
+
+updates:
+  # O pnpm workspace é lido pelo Dependabot como npm, a partir da raiz — não há uma
+  # entrada por app/pacote.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Sem groups, um monorepo abre um PR por pacote por semana e a fila vira ruído
+    # que ninguém lê. Agrupado por dependency-type desde o começo.
+    groups:
+      producao:
+        dependency-type: production
+      desenvolvimento:
+        dependency-type: development
+
+  # As actions do ci.yml também envelhecem, e uma action abandonada é superfície de
+  # ataque no runner que tem acesso ao repo.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - '*'
