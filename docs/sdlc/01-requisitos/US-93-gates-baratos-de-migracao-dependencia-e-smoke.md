@@ -69,18 +69,14 @@ Exit 2 = há diferença = schema editado sem migração. **Isto exige um Postgre
 
 ## Critérios de aceite
 
-Medidos no commit `130fc51`, pushado em 05/08/2026. Os gates 1 e 2 fecharam; o gate 3 travou o deploy e teve que ser redesenhado no meio (ver *Notas de implementação*), então os critérios dele continuam abertos.
+Medidos em 05/08/2026 nos commits `130fc51` (primeiro push) e `167862e` (smoke manual, depois do deadlock). **5 dos 7 fecharam.** Os dois que sobram são os testes de regressão intencionais — provar que cada gate fica vermelho quando deve, e não só verde quando tudo está bem.
 
 - [x] O job `ci` tem um serviço Postgres e um passo de `migrate diff` que sai 0 na `main` de hoje. — Run `31029216684`, 21 passos verdes, `Gate de drift de migração: success` em 2 s (17:17:16 → 17:17:18). É a primeira execução do `--from-migrations` contra um Postgres de verdade; o que a *Questão* #3 tinha medido era o `--from-config-datasource` contra a Neon, outra fonte e outro caminho de código.
 - [ ] **Teste de regressão (gate 1 morde):** adicionar um campo em `schema.prisma` **sem** criar migração deixa o passo vermelho, nomeando a diferença. Campo removido depois (`git diff` limpo), com a saída colada aqui.
   **Falta inteiro.** Agora é fazível — o critério acima está verde, então dá para distinguir "mordeu" de "quebrou".
 - [x] Existe `.github/dependabot.yml` com `npm` e `github-actions`, e os dois ecossistemas estão ativos. — Prova mais forte que o painel: em ~20 min o Dependabot abriu **3 PRs**, um por grupo declarado. E o gate 2 já mordeu de verdade, com o CI reprovando dois deles: [#4](https://github.com/1catarinagoncalves/AI-DM/pull/4) (grupo `producao`, 18 updates) sobe o AI SDK para v5 e quebra em `'"ai"' has no exported member named 'LanguageModelV1'` + `promptTokens`/`completionTokens` fora de `LanguageModelUsage`; [#5](https://github.com/1catarinagoncalves/AI-DM/pull/5) (grupo `desenvolvimento`, 8 updates) sobe TypeScript para 6 e quebra em `Option 'moduleResolution=node10' has been removed`. Ou seja: o gate encontrou duas atualizações incompatíveis que o lockfile congelado escondia, e o CI as segurou — exatamente o desenho de "abre PR, não reprova build".
-- [ ] `/api/v1/systems` de produção responde o header `X-Commit` com o SHA do deploy vivo, sem mudar o corpo tipado de `packages/shared`.
-  **Feito, metade:** medido em 05/08/2026 com a API em `localhost:3001` — `HTTP/1.1 200` + `X-Commit: dev`, e o mesmo `curl -sS -o /dev/null -D - | tr -d '\r' | awk` do `smoke.yml` extraiu `dev`. O middleware registra, o header sai, o parse funciona contra resposta real. `packages/shared` não foi tocado.
-  **Falta:** a metade que só produção responde — se `RENDER_GIT_COMMIT` existe em runtime. O `130fc51` não chegou a deployar por causa do deadlock, então o experimento da *Questão* #2 segue sem resultado.
-- [ ] O workflow `smoke` só fica verde depois de o `X-Commit` de produção bater com o SHA pedido — não basta `200`.
-  **Feito:** `.github/workflows/smoke.yml` com poll de 40 × 15 s comparando o header com o SHA.
-  **Falta:** uma execução do desenho manual. A do desenho automático rodou e foi vermelha, mas por deadlock, não por medida do gate.
+- [x] `/api/v1/systems` de produção responde o header `X-Commit` com o SHA do deploy vivo, sem mudar o corpo tipado de `packages/shared`. — Medido em 05/08/2026 no `167862e`: produção respondeu `X-Commit: 167862e7f7ac7f5201e6401401e2a320b336a3ac`. **É a resposta da *Questão* #2: `RENDER_GIT_COMMIT` existe em runtime.** Antes disso, local em `localhost:3001`: `HTTP/1.1 200` + `X-Commit: dev`, provando o fallback. `packages/shared` não foi tocado.
+- [x] O workflow `smoke` só fica verde depois de o `X-Commit` de produção bater com o SHA pedido — não basta `200`. — Run `31038030320`, disparado à mão com o deploy já live: verde na **tentativa 1/40**, `X-Commit=167862e7f7ac… esperado=167862e7f7ac…`.
 - [ ] **Teste de regressão (gate 3 morde):** o smoke fica vermelho por timeout em vez de verde por omissão.
   **Meio-feito por acidente, em 05/08/2026:** o run `31029412396` fez as 40 tentativas contra uma API que estava no ar mas era o **processo antigo**, sem o header, e ficou vermelho por timeout — `X-Commit=<sem resposta> esperado=130fc51…`. Prova que o passo não fica verde por omissão. **Falta** a versão intencional (serviço suspenso à mão), que testa o caso "sem resposta nenhuma" em vez de "resposta sem o header".
 - [x] O acréscimo de tempo de cada gate está medido e registrado — o `services: postgres` é o único com custo real de startup. — Job `ci` de **1m50s** (`59b6f57`, sem Postgres) para **2m15s** (`130fc51`): **+25s**, sendo 22s de `Initialize containers` e 2s do `migrate diff`. Gates 2 e 3 não tocam o job `ci` e custam 0. Ver *Questão* #1 para a consequência.
@@ -148,7 +144,9 @@ Em 05/08/2026, com todas as mudanças aplicadas: `pnpm typecheck` verde nos 4 pr
    - **SSH não é opção no plano Free.** `render ssh srv-d9f50kjrjlhs73dimceg -- printenv RENDER_GIT_COMMIT` sai com `Failed to SSH (...) exit status 255`. A tabela de compatibilidade de <https://render.com/docs/ssh> marca `Free web service ❌ ❌` para shell e para SSH; só instance type pago abre. O picker de instância do CLI abrir **não** é sinal de que dá — ele lista antes de tentar conectar.
    - **`echo` no `buildCommand` prova a coisa errada.** Confirmaria a var no ambiente de *build*, e o header lê em *runtime*.
 
-   O `?? 'dev'` do snippet é o próprio experimento, e é por isso que implementar direto é seguro: se a var não existir em runtime, o header responde `X-Commit: dev`, nada quebra, e a resposta aparece no primeiro `curl -sI`. Consequência: o critério de aceite do header pode falhar na primeira execução — isso é o resultado da medição, não um bug a esconder.
+   O `?? 'dev'` do snippet é o próprio experimento, e é por isso que implementar direto é seguro: se a var não existir em runtime, o header responde `X-Commit: dev`, nada quebra, e a resposta aparece no primeiro `curl -sI`.
+
+   **Resultado do experimento, 05/08/2026: `RENDER_GIT_COMMIT` existe em runtime.** Com o `167862e` live, `https://ai-dm-api.onrender.com/api/v1/systems` responde `X-Commit: 167862e7f7ac7f5201e6401401e2a320b336a3ac` — o SHA exato do commit deployado, não o fallback `dev`. A documentação do Render estava certa, e o caminho que sobrou (deployar e olhar) custou menos que os três que não existiam.
 
 3. ~~**Existe migração pendente hoje?**~~ **Respondida em 05/08/2026: não há. O gate 1 nasce verde, liga direto.**
 
