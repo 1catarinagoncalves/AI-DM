@@ -22,7 +22,7 @@
 
 O CI cobre bem o que é código-fonte e documentação: `typecheck`, `test`, `eval`, `knip`, links, forma do README. Sobraram três lacunas de natureza diferente — nenhuma é sobre o TypeScript compilar.
 
-**1. Schema Prisma pode divergir das migrações sem ninguém notar.** `apps/api/prisma/schema.prisma` e `apps/api/prisma/migrations/` são dois arquivos que precisam contar a mesma história, e nada compara os dois. O `prisma generate` do CI (`ci.yml:45`) lê **só o schema** — ele gera um client feliz para um banco que a migração nunca vai produzir. O erro aparece em produção, no `prisma migrate deploy` do `buildCommand` do `render.yaml`, ou pior: não aparece, e o client tipado promete uma coluna que o Postgres não tem.
+**1. Schema Prisma pode divergir das migrações sem ninguém notar.** `apps/api/prisma/schema.prisma` e `apps/api/prisma/migrations/` são dois arquivos que precisam contar a mesma história, e nada compara os dois. O `prisma generate` do CI (`ci.yml:69`) lê **só o schema** — ele gera um client feliz para um banco que a migração nunca vai produzir. O erro aparece em produção, no `prisma migrate deploy` do `buildCommand` do `render.yaml`, ou pior: não aparece, e o client tipado promete uma coluna que o Postgres não tem.
 
 **2. Nenhuma varredura de dependência.** Não existe `.github/dependabot.yml` (verificado em 30/07/2026) e nenhum passo roda `pnpm audit`. O repo tem lockfile congelado, o que é ótimo para reprodutibilidade e péssimo para atualização: uma dependência com CVE fica pinada indefinidamente, porque nada avisa.
 
@@ -175,7 +175,7 @@ Em 05/08/2026, com todas as mudanças aplicadas: `pnpm typecheck` verde nos 4 pr
 ## Referências no código
 
 - `apps/api/prisma/schema.prisma` e `apps/api/prisma/migrations/` — os dois lados que o gate 1 compara.
-- `.github/workflows/ci.yml` (`:44-45`) — o `prisma generate`, que lê só o schema e por isso não detecta drift.
+- `.github/workflows/ci.yml` (`:68-69`) — o `prisma generate`, que lê só o schema e por isso não detecta drift; o gate 1 entrou logo depois dele.
 - `render.yaml` (`buildCommand`) — o `prisma migrate deploy`, hoje o primeiro lugar onde o drift aparece; e `healthCheckPath: /api/v1/systems`, o endpoint que o smoke reusa.
 - `apps/api/src/main.ts` (depois do `enableCors`) — onde entram as 3 linhas do header `X-Commit` (questão #2).
 - **Ausência de `.github/dependabot.yml`** — a lacuna do gate 2.

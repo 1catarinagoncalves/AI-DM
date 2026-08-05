@@ -47,7 +47,7 @@ Corrigir as 6 linhas acima ainda deixa o problema principal. **A pipeline de eva
 3. **Raiz de [`packages/ai-engine/`](../../../packages/ai-engine)** — **6 runners `.mjs` standalone** (`run-bakeoff.mjs`, `onomastica-bakeoff.mjs`, `prompt-ab-bakeoff.mjs`, `location-ab-bakeoff.mjs`, `location-scene.mjs`, `capture-old-location.mjs`), 5 `.bat` de bake-off, dois snapshots, e um segundo README ([`README-bakeoff.md`](../../../packages/ai-engine/README-bakeoff.md)). **Nada disso roda por `pnpm eval`** e nada disso é citado no README de evals.
 4. **[`apps/api/src/ai/ai.service.ts`](../../../apps/api/src/ai/ai.service.ts)** — o `liveEvalTurn` (`:1026`), que pontua turnos reais em dev atrás de `DM_LIVE_EVAL`. É o único ponto da pipeline que roda dentro do produto.
 
-Um agente que precise responder *"o que reprova meu PR se eu mexer no prompt?"* tem hoje que abrir os quatro. A resposta real — [`ci.yml:50`](../../../.github/workflows/ci.yml) roda `pnpm eval`, que é vitest sobre `evals/cases/**`, mais o `pnpm test` que carrega o drift guard da rubrica — não está escrita em lugar nenhum.
+Um agente que precise responder *"o que reprova meu PR se eu mexer no prompt?"* tem hoje que abrir os quatro. A resposta real — [`ci.yml:103`](../../../.github/workflows/ci.yml) roda `pnpm eval`, que é vitest sobre `evals/cases/**`, mais o `pnpm test` que carrega o drift guard da rubrica — não está escrita em lugar nenhum.
 
 ### Por que a solução atual não basta
 
@@ -133,7 +133,7 @@ Mesma lógica da camada 2 da US-83: caminho escrito como link é caminho verific
 
   | Modo | Comando | Gateia? | Chaves |
   |---|---|---|---|
-  | Suite de eval cases | `pnpm eval` | **sim**, no CI ([`ci.yml:50`](../../../.github/workflows/ci.yml)) | maioria não usa; us-36 exige `OPENROUTER_API_KEY` + `GEMINI_API_KEY`, senão **pula** |
+  | Suite de eval cases | `pnpm eval` | **sim**, no CI ([`ci.yml:103`](../../../.github/workflows/ci.yml)) | maioria não usa; us-36 exige `OPENROUTER_API_KEY` + `GEMINI_API_KEY`, senão **pula** |
   | Guard de drift da rubrica | `pnpm test` | **sim** | nenhuma (hash puro) |
   | Bake-off / A-B | `node --env-file=..\..\.env run-bakeoff.mjs` | não | varia por runner |
   | Live eval em dev | `DM_LIVE_EVAL` ligado, turno normal | não | `GEMINI_API_KEY` |

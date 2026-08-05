@@ -20,7 +20,7 @@
 
 ### O problema observado
 
-`pnpm eval` roda no CI (`ci.yml:65`). Mas o job roda **sem nenhum secret** — é critério de aceite #3 da [US-80](./US-80-ci-typecheck-testes-e-evals.md), e é uma decisão boa para o job de PR. O efeito colateral é que todo caso que depende de LLM se auto-pula: `evals/cases/us-36-qualidade-narracao.ts` é gated por `OPENROUTER_API_KEY` + `GEMINI_API_KEY`, e sem elas o Vitest marca `skip` e a suíte fica verde.
+`pnpm eval` roda no CI (`ci.yml:103`). Mas o job roda **sem nenhum secret** — é critério de aceite #3 da [US-80](./US-80-ci-typecheck-testes-e-evals.md), e é uma decisão boa para o job de PR. O efeito colateral é que todo caso que depende de LLM se auto-pula: `evals/cases/us-36-qualidade-narracao.ts` é gated por `OPENROUTER_API_KEY` + `GEMINI_API_KEY`, e sem elas o Vitest marca `skip` e a suíte fica verde.
 
 Logo: o `QUALITY_THRESHOLD` (≥ 3.5) e os `DIMENSION_FLOORS` (≥ 3 por dimensão-chave) de `packages/ai-engine/src/rubric.ts` — o gate mais caro de construir do repo, três stories de trabalho ([US-36](./US-36-eval-de-qualidade-da-narracao.md), [US-70](./US-70-piso-por-dimensao-e-robustez-do-eval.md), [US-72](./US-72-evals-de-prompt-resistentes-a-reescrita.md)) — **nunca foram avaliados por nenhuma execução automática**. A própria estratégia de testes registra isso sem rodeio: *"o portão só vale no CI quando o job exporta as duas chaves"* ([estratégia de testes](../04-testes/estrategia-de-testes.md), seção *Threshold de qualidade (CI)*).
 
@@ -94,5 +94,5 @@ Um workflow separado, agendado uma vez por dia e disparável à mão, com as dua
 - `packages/ai-engine/src/rubric.ts` — `DIMENSIONS`, `QUALITY_THRESHOLD`, `DIMENSION_FLOORS`, `gateQuality()`, `aggregateReps`.
 - `evals/cases/us-36-qualidade-narracao.ts` — o caso gated pelas duas chaves.
 - `packages/ai-engine/vitest.eval.config.ts` — alias dos pacotes para o `src`; é por isso que este job não precisa do `prisma generate`.
-- `.github/workflows/ci.yml` (`:65`) — o `pnpm eval` sem secret, que continua como está.
+- `.github/workflows/ci.yml` (`:103`) — o `pnpm eval` sem secret, que continua como está.
 - [Estratégia de testes](../04-testes/estrategia-de-testes.md), seção *Threshold de qualidade (CI)* — a tabela cujo enforcement esta story liga.
