@@ -1,16 +1,16 @@
-# Graph Report - AI DM  (2026-08-04)
+# Graph Report - AI DM  (2026-08-05)
 
 ## Corpus Check
-- 326 files · ~653,049 words
+- 326 files · ~656,229 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1903 nodes · 2507 edges · 188 communities (133 shown, 55 thin omitted)
+- 1897 nodes · 2582 edges · 172 communities (130 shown, 42 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `817d33bb`
+- Built from commit: `6e4c03aa`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -18,19 +18,19 @@
 - ingest.mjs
 - dm-system.ts
 - devDependencies
-- locale.ts
+- narration.ts
 - system.ts
 - Location Bake-off Script
 - Bake-off Runner Script
-- [adventureId]/page.tsx
+- layout.tsx
 - narrative-bakeoff.test.ts
 - rubric.ts
 - check-doc-links.mjs
 - US-36 Eval Cases
 - Prompt A/B Bake-off Script
 - Onomastics Bake-off Script
-- PrismaService
-- AdventureService
+- app.module.ts
+- AdventureController
 - GameView.tsx
 - migrate-feature-spell-keys.test.ts
 - US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)
@@ -38,28 +38,28 @@
 - HomeHero.tsx
 - seed.ts
 - adventure.service.ts
-- ai.service.ts
+- SetupWizard.test.tsx
 - AiService
 - check-jsx-literals.mjs
-- messages/index.ts
+- i18n.test.tsx
 - scripts
 - guardrails.ts
 - devDependencies
 - shared/package.json
 - US-11b Scene State Spec
-- ability.ts
+- jwt.ts
 - ai-engine/package.json
 - User Story Template
 - US-102 — Tela nova nasce traduzida
 - Web TSConfig
-- character.service.ts
+- PrismaService
 - compilerOptions
 - compilerOptions
 - Root TSConfig
 - PRD Doc
 - Endpoints (Fase 1 — MVP)
-- UserController
-- narration.ts
+- user.controller.ts
+- ai
 - API Build TSConfig
 - US-01 Attributes Spec
 - System Catalog User Stories
@@ -134,7 +134,7 @@
 - US-71 Character Location Simplification
 - US-94 — O gate de qualidade da narração passa a rodar de verdade, num job noturno
 - US-73 Background Scene Reconciler
-- shared/src/index.ts
+- rxjs
 - US-76 US-75 Test Fake Fix
 - US-96 — A convenção de mensagem de commit passa a descrever este repo
 - scripts
@@ -146,65 +146,50 @@
 - api.ts
 - 2. Decisão
 - Camadas de teste
-- AppModule
 - US-94-eval-vivo-noturno-com-chaves.md
-- ai.service.test.ts
+- Checklist de Deploy — AI Dungeon Master
+- ai.service.ts
 - US-99-config-do-sistema-no-locale-ativo.md
 - US-98 — Interface web em inglês (i18n das strings do front)
 - ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma
-- CharacterService
-- Injectable
+- AuthUser
 - ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
-- layout.tsx
-- ApiBearerAuth
-- ApiOperation
-- ApiTags
-- Controller
-- Post
-- UseGuards
 - entities.ts
-- ApiOperation
-- ApiTags
-- Controller
-- Get
-- Injectable
+- SystemController
 - US-107 — Sair da criação ou da mesa e voltar ao hub de personagens
 - ai-engine/src/index.ts
-- AuthUser
+- CurrentUser
 - LocaleProvider.tsx
 - character.schema.ts
 - api/package.json
-- @ai-dm/ai-engine
 - @ai-dm/shared
-- @nestjs/common
 - @prisma/adapter-pg
 - AiController
-- jwt.ts
-- adventure.service.test.ts
+- AdventureService
 
 ## God Nodes (most connected - your core abstractions)
-1. `PrismaService` - 24 edges
-2. `AiService` - 21 edges
-3. `scripts` - 20 edges
-4. `AuthUser` - 18 edges
-5. `useT()` - 16 edges
-6. `CharacterService` - 14 edges
-7. `CurrentUser` - 14 edges
-8. `CharacterController` - 13 edges
-9. `US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)` - 12 edges
-10. `AdventureService` - 12 edges
+1. `PrismaService` - 33 edges
+2. `AiService` - 22 edges
+3. `AuthUser` - 21 edges
+4. `useT()` - 20 edges
+5. `scripts` - 20 edges
+6. `CurrentUser` - 17 edges
+7. `CharacterService` - 14 edges
+8. `GameView()` - 14 edges
+9. `CharacterController` - 13 edges
+10. `SetupWizard()` - 13 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `buildConfig()` --references--> `SystemConfigSchema`  [EXTRACTED]
   scripts/srd/ingest.mjs → packages/shared/src/types/system.ts
-- `mergeEditions()` --indirect_call--> `row()`  [INFERRED]
-  scripts/srd/ingest.mjs → scripts/srd/ingest.test.mjs
 - `LoginPage()` --calls--> `useT()`  [EXTRACTED]
   apps/web/src/app/login/page.tsx → apps/web/src/components/LocaleProvider.tsx
+- `BackgroundPanel()` --calls--> `useT()`  [EXTRACTED]
+  apps/web/src/components/game/GameView.tsx → apps/web/src/components/LocaleProvider.tsx
+- `mergeEditions()` --indirect_call--> `row()`  [INFERRED]
+  scripts/srd/ingest.mjs → scripts/srd/ingest.test.mjs
 - `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
   docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
-- `LocaleToggle()` --calls--> `cn()`  [EXTRACTED]
-  apps/web/src/components/LocaleToggle.tsx → apps/web/src/components/ui/dm.tsx
 
 ## Import Cycles
 - None detected.
@@ -223,27 +208,27 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (188 total, 55 thin omitted)
+## Communities (172 total, 42 thin omitted)
 
 ### Community 0 - "ingest.mjs"
 Cohesion: 0.07
 Nodes (50): ABILITY_MAP, applyDrafts(), ATTR_ORDER, ATTR_RANGE, buildAttributes(), buildClasses(), buildClassFeatures(), buildClassSpells() (+42 more)
 
 ### Community 1 - "dm-system.ts"
-Cohesion: 0.16
-Nodes (15): BACKGROUND_LABELS, backgroundFieldText(), buildDmSystemPrompt(), buildOpeningInstruction(), buildTurnStateBlock(), CharacterBackground, ClassFeature, DmCharacterSheet (+7 more)
+Cohesion: 0.13
+Nodes (18): BACKGROUND_LABELS, backgroundFieldText(), buildDmSystemPrompt(), buildOpeningInstruction(), buildTurnStateBlock(), CharacterBackground, ClassFeature, DmCharacterSheet (+10 more)
 
 ### Community 2 - "devDependencies"
 Cohesion: 0.04
 Nodes (45): dependencies, @ai-dm/shared, jose, lucide-react, next, next-auth, react, react-dom (+37 more)
 
-### Community 3 - "locale.ts"
-Cohesion: 0.23
-Nodes (8): isLocale(), Locale, localeLabel(), LOCALES, resolveLocale(), ADR-0005, SPELL_LEVEL_WORDS, spellLevelLabel()
+### Community 3 - "narration.ts"
+Cohesion: 0.07
+Nodes (32): abilityModifier(), buildSkillSheet(), formatModifier(), ResolvedSkill, skillModifier(), isLocale(), Locale, localeLabel() (+24 more)
 
 ### Community 4 - "system.ts"
 Cohesion: 0.10
-Nodes (21): featuresEn, featuresPtBr, spellsEn, spellsPtBr, buildCharacterAttributesSchema(), InitialAdventureHook, InitialAdventureHookSchema, resolveSheetEntries() (+13 more)
+Nodes (20): featuresEn, featuresPtBr, spellsEn, spellsPtBr, buildCharacterAttributesSchema(), InitialAdventureHook, InitialAdventureHookSchema, resolveSheetEntries() (+12 more)
 
 ### Community 5 - "Location Bake-off Script"
 Cohesion: 0.07
@@ -253,17 +238,17 @@ Nodes (25): system, turnState, ARMS, body, dir, EXEMPLAR, genOnce(), judge (+17 
 Cohesion: 0.07
 Nodes (26): accum, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, dir, EX, genTurn(), guardrailHits (+18 more)
 
-### Community 7 - "[adventureId]/page.tsx"
-Cohesion: 0.15
-Nodes (10): POST(), Props, { handlers, auth }, secretKey(), signApiToken(), localeFromCookie(), apiAuthHeader(), messagesFor() (+2 more)
+### Community 7 - "layout.tsx"
+Cohesion: 0.13
+Nodes (18): POST(), activeLocale(), cinzel, geist, generateMetadata(), RootLayout(), viewport, PlayPage() (+10 more)
 
 ### Community 8 - "narrative-bakeoff.test.ts"
 Cohesion: 0.09
-Nodes (20): AMNESIA_ENTITIES, AMNESIA_TURN_STATE, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, EX_AMNESIA, EX_COHERENCE, EX_COMBAT (+12 more)
+Nodes (23): AMNESIA_ENTITIES, AMNESIA_TURN_STATE, CHARACTER, COHERENCE_TURN_STATE, DEFAULT_MODELS, EX_AMNESIA, EX_COHERENCE, EX_COMBAT (+15 more)
 
 ### Community 9 - "rubric.ts"
 Cohesion: 0.08
-Nodes (34): aggregateReps(), batchItemSchema, batchSchema, buildBatchPrompt(), buildJudgePrompt(), Dimension, DIMENSION_FLOORS, DIMENSIONS (+26 more)
+Nodes (31): aggregateReps(), batchItemSchema, batchSchema, buildBatchPrompt(), buildJudgePrompt(), Dimension, DIMENSION_FLOORS, DIMENSIONS (+23 more)
 
 ### Community 10 - "check-doc-links.mjs"
 Cohesion: 0.08
@@ -281,17 +266,17 @@ Nodes (17): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODEL, PACE_MS (+9 mor
 Cohesion: 0.11
 Nodes (15): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODELS, PACE_MS (+7 more)
 
-### Community 14 - "PrismaService"
-Cohesion: 0.12
-Nodes (18): AdventureModule, Module, AiModule, Module, AuthModule, Module, A, C (+10 more)
+### Community 14 - "app.module.ts"
+Cohesion: 0.16
+Nodes (12): AdventureModule, Module, AiModule, Module, AppModule, Module, CharacterModule, Module (+4 more)
 
-### Community 15 - "AdventureService"
-Cohesion: 0.13
-Nodes (13): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+5 more)
+### Community 15 - "AdventureController"
+Cohesion: 0.18
+Nodes (12): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+4 more)
 
 ### Community 16 - "GameView.tsx"
-Cohesion: 0.13
-Nodes (16): ATTR_LABELS, CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory(), LocaleTurn (+8 more)
+Cohesion: 0.15
+Nodes (16): ATTR_LABELS, BackgroundPanel(), CharacterBackground, ClassFeature, GameView(), historyKey(), InventoryItem, loadHistory() (+8 more)
 
 ### Community 17 - "migrate-feature-spell-keys.test.ts"
 Cohesion: 0.09
@@ -314,28 +299,28 @@ Cohesion: 0.07
 Nodes (31): AUTHORED_FEATURES, AUTHORED_SPELLS, AuthoredEntry, authoredIn(), buildFreeClassFeatures(), buildFreeClassSpells(), classKeys(), freeFeatureRefs (+23 more)
 
 ### Community 22 - "adventure.service.ts"
-Cohesion: 0.33
-Nodes (7): CreateAdventureDto, getClassSpells(), getStartingInventory(), resolveHookTemplate(), resolveInitialHook(), dnd5eConfig, ADR-0002
+Cohesion: 0.12
+Nodes (16): CreateAdventureDto, CreateCharacterDto, CharacterService, Injectable, getClassFeatures(), getClassSpells(), getStartingInventory(), resolveHookTemplate() (+8 more)
 
-### Community 23 - "ai.service.ts"
-Cohesion: 0.14
-Nodes (12): AnchoredRoll, ChatInput, ExtractedScene, normName(), OPENING_ENTITIES_SCHEMA, OPENING_SCENE_SCHEMA, RollTurnState, SALVAGE_PROVIDER_OPTIONS (+4 more)
+### Community 23 - "SetupWizard.test.tsx"
+Cohesion: 0.50
+Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacter, getInitialAdventure, createAdventure }
 
 ### Community 24 - "AiService"
-Cohesion: 0.13
-Nodes (10): ChatBodySchema, ApiBody, ApiOperation, Body, Post, AiService, logExtractionEndpoint(), HttpCode (+2 more)
+Cohesion: 0.12
+Nodes (11): ChatBodySchema, ApiBody, ApiOperation, Body, Post, AiService, logExtractionEndpoint(), Injectable (+3 more)
 
 ### Community 25 - "check-jsx-literals.mjs"
 Cohesion: 0.19
 Nodes (15): bucketOf(), files, hasLetter(), hits, isCharged(), isDataUri(), isProse(), isTailwind() (+7 more)
 
-### Community 26 - "messages/index.ts"
-Cohesion: 0.27
-Nodes (8): config, { listSystems, setLocale }, enUS, DICTIONARIES, fill(), translate, MessageKey, ptBR
+### Community 26 - "i18n.test.tsx"
+Cohesion: 0.24
+Nodes (9): config, { listSystems, setLocale }, enUS, DICTIONARIES, fill(), translate, ADR-0005, MessageKey (+1 more)
 
 ### Community 27 - "scripts"
 Cohesion: 0.06
-Nodes (30): dotenv-cli, knip, devDependencies, dotenv-cli, knip, typescript, name, packageManager (+22 more)
+Nodes (30): dotenv-cli, knip, devDependencies, dotenv-cli, knip, typescript, typescript, name (+22 more)
 
 ### Community 28 - "guardrails.ts"
 Cohesion: 0.23
@@ -353,9 +338,9 @@ Nodes (18): dependencies, zod, devDependencies, typescript, vitest, typescript, 
 Cohesion: 0.12
 Nodes (16): A proposta, Como o `sceneState` é alimentado (determinístico), Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História (+8 more)
 
-### Community 32 - "ability.ts"
-Cohesion: 0.36
-Nodes (8): abilityModifier(), buildSkillSheet(), formatModifier(), ResolvedSkill, skillModifier(), norm(), normalizeDie(), resolveRollModifier()
+### Community 32 - "jwt.ts"
+Cohesion: 0.47
+Nodes (3): b64urlToBuffer(), JwtPayload, verifyJwt()
 
 ### Community 33 - "ai-engine/package.json"
 Cohesion: 0.06
@@ -373,9 +358,9 @@ Nodes (15): A periferia: medida em 31/07, remedida em 04/08, A proposta, Baselin
 Cohesion: 0.09
 Nodes (22): compilerOptions, allowJs, incremental, isolatedModules, jsx, lib, module, moduleResolution (+14 more)
 
-### Community 37 - "character.service.ts"
-Cohesion: 0.18
-Nodes (8): configForLocale(), LocaleMap, localeOfUser(), SystemRow, SystemService, enBase, ptBR, Injectable
+### Community 37 - "PrismaService"
+Cohesion: 0.12
+Nodes (14): AuthModule, Module, AuthService, A, C, U, ADR-0005, Injectable (+6 more)
 
 ### Community 38 - "compilerOptions"
 Cohesion: 0.15
@@ -394,16 +379,12 @@ Cohesion: 0.18
 Nodes (10): 1. Declaração do problema, 2. Objetivos e critério de aceite, 3. Usuários alvo, 4.1 Personagens e campanhas, 4.2 Multiplayer, 4.3 Sistemas e aventuras, 4. Casos de uso, 5. Fora do escopo (v1) (+2 more)
 
 ### Community 42 - "Endpoints (Fase 1 — MVP)"
-Cohesion: 0.18
+Cohesion: 0.20
 Nodes (10): Aventuras, Contratos de API — AI Dungeon Master, Convenções, DM Agent (streaming), Endpoints (Fase 1 — MVP), Multiplayer (Fase 4), Personagens — dono derivado do token, Sistemas — público (+2 more)
 
-### Community 43 - "UserController"
-Cohesion: 0.20
-Nodes (8): CreateUserSchema, ApiBody, ApiOperation, ApiTags, Body, Controller, Post, UserController
-
-### Community 44 - "narration.ts"
-Cohesion: 0.27
-Nodes (10): detectDegeneration(), formatDiceBreakdown(), hasOptionsList(), NUM, ROLL_CUES, ROLL_SENTENCE, stripFabricatedRolls(), stripReasoningLeak() (+2 more)
+### Community 43 - "user.controller.ts"
+Cohesion: 0.16
+Nodes (10): CreateUserSchema, ApiBody, ApiOperation, ApiTags, Body, Controller, Post, UserController (+2 more)
 
 ### Community 45 - "API Build TSConfig"
 Cohesion: 0.22
@@ -430,8 +411,8 @@ Cohesion: 0.20
 Nodes (9): Critérios de Aceite — AI Dungeon Master, Critérios de aceite transversais (todos os stories), US-01 — Criar personagem, US-02 — Ver ficha do personagem, US-03 — Personagem persiste entre aventuras, US-08 — Narração em streaming, US-09 — Rolagem de dados transparente, US-10 — Consulta de regras (+1 more)
 
 ### Community 51 - "model.ts"
-Cohesion: 0.09
-Nodes (31): DEEPSEEK_ALLOWED_PROVIDERS, DEEPSEEK_ROUTE, DEEPSEEK_ROUTE_ORDER, EXTRACTION_PROVIDER_OPTIONS, fallbackModel, formatProvenance(), google, groq (+23 more)
+Cohesion: 0.08
+Nodes (32): DEEPSEEK_ALLOWED_PROVIDERS, DEEPSEEK_ROUTE, DEEPSEEK_ROUTE_ORDER, EXTRACTION_PROVIDER_OPTIONS, fallbackModel, formatProvenance(), google, groq (+24 more)
 
 ### Community 52 - "Deploy Infra User Stories"
 Cohesion: 0.29
@@ -483,11 +464,11 @@ Nodes (4): setup-mcp.sh script, add_neon(), add_render(), add_vercel()
 
 ### Community 64 - "dependencies"
 Cohesion: 0.12
-Nodes (17): ai, dependencies, ai, @nestjs/core, @nestjs/platform-express, @nestjs/swagger, reflect-metadata, rxjs (+9 more)
+Nodes (17): @ai-dm/ai-engine, dependencies, @ai-dm/ai-engine, @nestjs/common, @nestjs/core, @nestjs/platform-express, @nestjs/swagger, reflect-metadata (+9 more)
 
 ### Community 65 - "AuthController"
-Cohesion: 0.12
-Nodes (17): ApiBearerAuth, ApiBody, ApiOperation, ApiTags, AuthController, SetLocaleSchema, SyncSchema, AuthService (+9 more)
+Cohesion: 0.15
+Nodes (12): AuthController, SetLocaleSchema, SyncSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body (+4 more)
 
 ### Community 67 - "Bake-off README"
 Cohesion: 0.33
@@ -538,15 +519,15 @@ Cohesion: 0.15
 Nodes (13): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. O que a medição mostrou, 5. Alternativas rejeitadas, 6. Consequências, 7. Implementação (referência), ADR 009 — Regra de uso do SRD: união do 5.1 e do 5.2, com o 5.2 vencendo (+5 more)
 
 ### Community 86 - "SetupWizard.tsx"
-Cohesion: 0.10
-Nodes (25): LoginPage(), GENDERS, optionCardClass(), parseDeity(), POINT_COST, SetupWizard(), SOURCE_TYPE_HINT, Step (+17 more)
+Cohesion: 0.12
+Nodes (23): LoginPage(), { listSystems, getTurns }, GENDERS, optionCardClass(), parseDeity(), POINT_COST, SetupWizard(), SOURCE_TYPE_HINT (+15 more)
 
 ### Community 90 - "ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo"
 Cohesion: 0.05
 Nodes (41): 1. Contexto, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), 7. Questões em aberto, ADR 008 — Pin de roteamento no OpenRouter: o endpoint faz parte do modelo (+33 more)
 
 ### Community 92 - "US-98-i18n-da-interface-web.md"
-Cohesion: 0.20
+Cohesion: 0.22
 Nodes (7): US-46 — Acessibilidade da aplicação web (WCAG 2.2 AA), US-66 — Todas as telas mobile-friendly, US-68 — Nomes de fantasia originais, US-83 — README com arquitetura de alto nível, US-86 — Árvore de diretórios na documentação deixa de mentir sobre onde o arquivo está, US-88 — Doc que ordena deixa de citar API que não existe, US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
 
 ### Community 112 - "US-101 — Ganchos de aventura inicial em inglês"
@@ -569,10 +550,6 @@ Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do 
 Cohesion: 0.15
 Nodes (13): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação (+5 more)
 
-### Community 126 - "shared/src/index.ts"
-Cohesion: 0.25
-Nodes (6): InventoryItem, SceneState, WorldEntity, ChatTurn, DiceResult, RollTurn
-
 ### Community 128 - "US-96 — A convenção de mensagem de commit passa a descrever este repo"
 Cohesion: 0.14
 Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Decisão (03/08/2026), Dentro do escopo, Escopo, Fora do escopo, História (+6 more)
@@ -582,8 +559,8 @@ Cohesion: 0.17
 Nodes (12): scripts, build, db:migrate, db:migrate:deploy, db:migrate:feature-spell, db:migrate:race-class, db:seed, db:studio (+4 more)
 
 ### Community 145 - "US-93 — Três gates baratos: drift de migração, dependência vulnerável e smoke pós-deploy"
-Cohesion: 0.17
-Nodes (12): Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação, O problema observado (+4 more)
+Cohesion: 0.15
+Nodes (13): Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Já verificado no repo (não é critério de aceite, mas evita remedir), Notas de implementação (+5 more)
 
 ### Community 146 - "Design System "Grimório Vivo" — AI Dungeon Master"
 Cohesion: 0.17
@@ -601,13 +578,17 @@ Nodes (14): 1. Contexto, 2.1 Topologia, 2. Decisão, 3. Decisões-chave e justif
 Cohesion: 0.17
 Nodes (12): 1. Testes unitários (todos os workspaces), 2. Testes de integração — não existem ainda, 3. Testes de componente (apps/web), 4. Evals do DM Agent (evals/), Camadas de teste, Estratégia de Testes e Evals — AI Dungeon Master, Estrutura de um eval case (evals/cases/), Flywheel de qualidade (após MVP) (+4 more)
 
-### Community 154 - "US-94-eval-vivo-noturno-com-chaves.md"
-Cohesion: 0.11
-Nodes (15): US-38 — Rolagens ancoradas na ficha, US-70 — Piso por dimensão e robustez do eval, US-72 — Evals de prompt resistentes à reescrita, US-87 — O prompt para de afirmar que existe um bloco de entidades que o turn-state não emitiu, US-89 — Export que ninguém importa para de sobreviver no repo, Diagrama de entidades (núcleo), Modelo de Dados — AI Dungeon Master, Notas de design (+7 more)
+### Community 152 - "US-94-eval-vivo-noturno-com-chaves.md"
+Cohesion: 0.22
+Nodes (4): US-38 — Rolagens ancoradas na ficha, US-70 — Piso por dimensão e robustez do eval, US-72 — Evals de prompt resistentes à reescrita, US-87 — O prompt para de afirmar que existe um bloco de entidades que o turn-state não emitiu
 
-### Community 155 - "ai.service.test.ts"
-Cohesion: 0.17
-Nodes (9): Evt, fakePrisma(), { salvage }, service(), DiceService, dice, Injectable, GameModule (+1 more)
+### Community 154 - "Checklist de Deploy — AI Dungeon Master"
+Cohesion: 0.13
+Nodes (11): US-89 — Export que ninguém importa para de sobreviver no repo, Diagrama de entidades (núcleo), Modelo de Dados — AI Dungeon Master, Notas de design, Índices e constraints principais, Antes de abrir PR, Antes de merge para main, Checklist de Deploy — AI Dungeon Master (+3 more)
+
+### Community 155 - "ai.service.ts"
+Cohesion: 0.10
+Nodes (18): AnchoredRoll, ChatInput, ExtractedScene, normName(), OPENING_ENTITIES_SCHEMA, OPENING_SCENE_SCHEMA, RollTurnState, SALVAGE_PROVIDER_OPTIONS (+10 more)
 
 ### Community 156 - "US-99-config-do-sistema-no-locale-ativo.md"
 Cohesion: 0.59
@@ -621,41 +602,37 @@ Nodes (13): A proposta, Contexto e motivação, Critérios de aceite, Dentro do 
 Cohesion: 0.17
 Nodes (12): 1. Contexto, 2.1 Faseamento, 2. Decisão, 3. Decisões-chave e justificativas, 4. Alternativas rejeitadas, 5. Consequências, 6. Implementação (referência), ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma (+4 more)
 
-### Community 159 - "CharacterService"
-Cohesion: 0.11
-Nodes (15): CharacterController, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller, Get (+7 more)
+### Community 159 - "AuthUser"
+Cohesion: 0.18
+Nodes (13): AuthUser, CharacterController, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+5 more)
 
 ### Community 161 - "ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado"
 Cohesion: 0.20
 Nodes (10): 1. Contexto, 2. Decisão, 3.1 Revisão da decisão 6 (02/08/2026): o Free herda o SRD, 3.2 Correção de procedência (03/08/2026): o kit inicial é CC-BY, não OGL, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset, 5. Alternativas rejeitadas, 6. Consequências (+2 more)
 
-### Community 162 - "layout.tsx"
-Cohesion: 0.20
-Nodes (11): activeLocale(), cinzel, geist, generateMetadata(), RootLayout(), viewport, AuthNav(), BrandName() (+3 more)
-
 ### Community 169 - "entities.ts"
-Cohesion: 0.48
-Nodes (5): EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL
+Cohesion: 0.39
+Nodes (6): EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL, resolveKnownSpell()
+
+### Community 170 - "SystemController"
+Cohesion: 0.25
+Nodes (6): SystemController, ApiOperation, ApiTags, Controller, Get, UseGuards
 
 ### Community 175 - "US-107 — Sair da criação ou da mesa e voltar ao hub de personagens"
 Cohesion: 0.13
 Nodes (15): A proposta, Como ficou (04/08/2026), Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História (+7 more)
 
 ### Community 176 - "ai-engine/src/index.ts"
-Cohesion: 0.18
-Nodes (7): overlapRatio(), tokens(), trigrams(), SummaryTurn, EMPTY, formatSceneState(), ScenePatch
+Cohesion: 0.32
+Nodes (4): overlapRatio(), tokens(), trigrams(), SummaryTurn
 
-### Community 177 - "AuthUser"
+### Community 177 - "CurrentUser"
 Cohesion: 0.27
-Nodes (7): AuthGuard, OptionalAuthGuard, Injectable, AuthUser, CurrentUser, payloadToUser(), zodBody()
+Nodes (6): AuthGuard, OptionalAuthGuard, Injectable, CurrentUser, payloadToUser(), zodBody()
 
 ### Community 178 - "LocaleProvider.tsx"
-Cohesion: 0.22
-Nodes (10): gameProps, { getTurns, setLocale }, LOCALE_STORAGE_KEY, LocaleContext, LocaleContextValue, LocaleProvider(), rememberLocale(), storedLocale() (+2 more)
-
-### Community 179 - "character.schema.ts"
-Cohesion: 0.50
-Nodes (3): base, CreateCharacterDto, CreateCharacterSchema
+Cohesion: 0.16
+Nodes (15): AuthNav(), BrandName(), FeaturesPanel(), gameProps, { getTurns, setLocale }, LOCALE_STORAGE_KEY, LocaleContext, LocaleContextValue (+7 more)
 
 ### Community 180 - "api/package.json"
 Cohesion: 0.50
@@ -665,29 +642,29 @@ Nodes (3): name, private, version
 Cohesion: 0.22
 Nodes (5): AiController, ApiBearerAuth, ApiTags, Controller, UseGuards
 
-### Community 187 - "jwt.ts"
-Cohesion: 0.47
-Nodes (3): b64urlToBuffer(), JwtPayload, verifyJwt()
+### Community 188 - "AdventureService"
+Cohesion: 0.20
+Nodes (4): AdventureService, config, Recorded, Injectable
 
 ## Knowledge Gaps
-- **945 isolated node(s):** `{ getTurns }`, `baseProps`, `LocaleTurn`, `Message`, `ATTR_LABELS` (+940 more)
+- **943 isolated node(s):** `História`, `O problema observado`, `Por que estão numa story só`, `Dentro do escopo`, `Fora do escopo` (+938 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **55 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **42 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `SystemConfigSchema` connect `system.ts` to `ingest.mjs`, `CharacterService`?**
-  _High betweenness centrality (0.025) - this node is a cross-community bridge._
-- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-99-config-do-sistema-no-locale-ativo.md` to `US-94-eval-vivo-noturno-com-chaves.md`, `US-98-i18n-da-interface-web.md`?**
+- **Why does `SystemConfigSchema` connect `adventure.service.ts` to `AiService`, `ingest.mjs`, `system.ts`?**
+  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+- **Why does `PrismaService` connect `PrismaService` to `character.service.test.ts`, `user.controller.ts`, `app.module.ts`, `adventure.service.ts`, `AiService`, `ai.service.ts`, `AdventureService`?**
   _High betweenness centrality (0.015) - this node is a cross-community bridge._
-- **Why does `buildConfig()` connect `ingest.mjs` to `system.ts`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
-- **What connects `{ getTurns }`, `baseProps`, `LocaleTurn` to the rest of the system?**
-  _945 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-99-config-do-sistema-no-locale-ativo.md` to `US-94-eval-vivo-noturno-com-chaves.md`, `US-98-i18n-da-interface-web.md`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **What connects `História`, `O problema observado`, `Por que estão numa story só` to the rest of the system?**
+  _943 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.06787330316742081 - nodes in this community are weakly interconnected._
+- **Should `dm-system.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.12987012987012986 - nodes in this community are weakly interconnected._
 - **Should `devDependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
-- **Should `system.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.09666666666666666 - nodes in this community are weakly interconnected._

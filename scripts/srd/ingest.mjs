@@ -20,17 +20,28 @@
 // Requer shared e ai-engine buildados (dist): pnpm --filter @ai-dm/ai-engine... build
 import { readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 // ponytail: import relativo ao dist do @ai-dm/shared (o root node_modules não simlinka o
 // workspace). Precisa do shared buildado. Uma troca de resolução vira uma linha aqui.
 import { SystemConfigSchema } from '../../packages/shared/dist/index.js'
 // US-52: a chamada de LLM vive no ai-engine porque só lá `ai` e `@ai-sdk/google` resolvem
 // (o node_modules da raiz não os tem). Mesmo motivo do narration-gen.ts na US-36.
 import { translateSrdToPtBr } from '../../packages/ai-engine/dist/index.js'
+// US-108: a tabela de modificadores do SRD 2024 vira artefato próprio (oráculo de teste, não
+// campo do config). `TAG` vem do sync porque a procedência do artefato tem que ser a MESMA
+// tag que baixou o dado — duas constantes divergiriam no primeiro bump.
+import { parseAbilityModifiers } from './ability-modifiers.mjs'
+// US-110: as tabelas de exemplo do d20 test — estas SIM têm consumidor de runtime (o system
+// prompt do Mestre), por isso o artefato é gravado dentro do pacote que o importa.
+import { parseD20Tests } from './d20-tests.mjs'
+import { TAG } from './sync.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const DATA = join(HERE, '_data')
 const OVERLAY_PATH = join(HERE, 'locale', 'pt-BR.json')
+// US-110: único derivado que NÃO mora aqui. Ele é importado como JSON pelo builder do
+// prompt, e importar de fora do pacote arrastaria o `rootDir` do tsc (armadilha da US-108).
+const D20_TESTS_PATH = join(HERE, '..', '..', 'packages', 'ai-engine', 'src', 'prompts', 'd20-tests.srd-2024.json')
 const STRICT = process.argv.includes('--strict')
 const NO_MT = process.argv.includes('--no-mt')
 
@@ -359,8 +370,9 @@ function buildConfig(overlay, data) {
 
 async function main() {
   const overlay = JSON.parse(await readFile(OVERLAY_PATH, 'utf8'))
-  const [abilities, skillsRaw, classes, features, featureItems, spells, species, species2014] = await Promise.all([
+  const [abilities, rules, skillsRaw, classes, features, featureItems, spells, species, species2014] = await Promise.all([
     load('AbilityDescription.json'),
+    load('Rule.json'),
     load('Skill.json'),
     load('CharacterClass.json'),
     load('ClassFeature.json'),
@@ -390,6 +402,18 @@ async function main() {
   ])
   await write('srd-5e.config.en-US.json', withRetired(base.artifact, prevEn))
   await write('srd-5e.config.pt-BR.json', withRetired(localized.artifact, prevPtBr))
+
+  // US-108 — a tabela é numérica e atravessa locale sem tradução: um artefato só, sem overlay.
+  const abilityModifiers = parseAbilityModifiers(rules, TAG)
+  await write('ability-modifiers.srd-2024.json', abilityModifiers)
+  console.log(`\n  ability-modifiers.srd-2024.json: ${abilityModifiers.rows.length} faixas, pontuação ${abilityModifiers.range.min}–${abilityModifiers.range.max} (US-108)`)
+
+  // US-110 — as tabelas de exemplo do d20 test. As chaves de habilidade são conferidas
+  // contra os atributos que ESTE bump construiu: tabela e catálogo discordando falha aqui,
+  // não no prompt. Vai para dentro do ai-engine porque o builder do prompt o importa.
+  const d20Tests = parseD20Tests(rules, TAG, base.artifact.attributes.map((a) => a.key))
+  await writeFile(D20_TESTS_PATH, stableStringify(d20Tests) + '\n')
+  console.log(`  ${relative(join(HERE, '..', '..'), D20_TESTS_PATH).replace(/\\/g, '/')}: ${d20Tests.abilityChecks.length} exemplos de teste, ${d20Tests.difficultyClasses.length} CDs (US-110)`)
 
   // Relatórios só da localização: na base EN toda chave "cai no fallback" por definição
   // (não há overlay), e avisar de tradução faltante ali seria ruído garantido. US-99.

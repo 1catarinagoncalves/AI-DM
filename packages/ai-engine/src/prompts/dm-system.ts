@@ -2,6 +2,11 @@ import type { Locale, SceneState, WorldEntity } from '@ai-dm/shared'
 import { abilityModifier, DEFAULT_LOCALE, formatModifier, localeNameForPrompt, spellLevelLabel } from '@ai-dm/shared'
 import { formatSceneState } from '../scene'
 import { formatEntities } from '../entities'
+// US-110: tabelas de exemplo do ruleset `srd-2024_d20-tests`, geradas do texto do SRD por
+// `pnpm srd:ingest` (scripts/srd/d20-tests.mjs). O arquivo mora AQUI, e não junto dos outros
+// derivados em scripts/srd/, porque é importado como módulo: JSON de fora do pacote
+// arrastaria o `rootDir` do tsc. Editar à mão é perder o conteúdo no próximo bump de tag.
+import D20_TESTS from './d20-tests.srd-2024.json'
 
 /**
  * US-84: NOME de cada bloco do turn-state que a prosa do system prompt CITA. Existem
@@ -162,6 +167,27 @@ Register cheat-sheet — a starting point for the SOUND, calibrate it, never cop
 
 OPEN PALETTE, not a closed list: when a scene needs a culture the cheat-sheet skips, INVENT a coherent register of its own and keep it consistent across every name from that people/place. Draw on a sound "in the spirit of" a language — never lift a real religious/historical figure's actual name, never caricature a real culture. The only boundary is slop: it is a FAILURE to fall back on generic default names, or to give NPCs from different cultures the same generic sound.`
 
+/**
+ * US-110 — a régua de QUAL teste a situação chama, vinda do texto do SRD 2024
+ * (`srd-2024_d20-tests_ability-checks`, tabela *Ability Check Examples*).
+ *
+ * Antes disto a única orientação era "pick the single most relevant skill": relevante
+ * segundo a memória do modelo, que é justamente a memória que o ADR 003 tirou de todo o
+ * resto do sistema. Empurrar a mesma porta virava Atletismo num turno e Força cru no outro.
+ *
+ * Rótulo do config (`attributeLabels`), não a chave: a ficha imprime `FOR 16` e o modelo
+ * precisa ligar a linha da tabela ao atributo que ele vê. Sem rótulo, cai na chave crua.
+ *
+ * Camada 1/2 do prompt (ADR 007): estático por sistema+locale, dentro do prefixo cacheável.
+ */
+function abilityCheckTable(attributeLabels?: Record<string, string>): string {
+  const rows = D20_TESTS.abilityChecks.map((r) => `- ${attributeLabels?.[r.ability] ?? r.ability} — ${r.example}`).join('\n')
+  return `### Which check the situation calls for (SRD 2024)
+Once a roll IS warranted, the SITUATION decides which ability is tested — never habit or the first skill that comes to mind. Match what the character is DOING to the closest example, then test the skill from the "${SKILLS_LINE}" line anchored to that ability (or the ability itself when no skill fits):
+${rows}
+This table says WHICH check, never WHETHER to roll: an action that matches an example but is trivial or already resolved still does NOT roll.`
+}
+
 export function buildDmSystemPrompt(params: {
   systemName: string
   characterName: string
@@ -277,7 +303,9 @@ You are not bound to any official RPG system. Narrate freely and creatively.
     : `## Rules
 - Apply the rules of ${systemName} correctly and consistently.
 - NEVER invent rules, modifiers, or stats. The character sheet is the source of truth for every modifier; if a rule is genuinely unclear, resolve it conservatively and coherently with the sheet and scene — never fabricate a specific number.
-- Narrate AFTER all mechanical tools have resolved. The story follows the dice.`
+- Narrate AFTER all mechanical tools have resolved. The story follows the dice.
+
+${abilityCheckTable(attributeLabels)}`
 
   return `You are the Dungeon Master for a roleplaying game session${isFree ? '' : ` using the ${systemName} system`}.
 

@@ -1,10 +1,22 @@
 # Atribuição — dado de sistema D&D 5e (SRD 5.2 + SRD 5.1)
 
-Os artefatos [`srd-5e.config.en-US.json`](./srd-5e.config.en-US.json) e
-[`srd-5e.config.pt-BR.json`](./srd-5e.config.pt-BR.json) são **derivados** do System Reference
-Document 5.2 ("SRD 5.2") e do System Reference Document 5.1 ("SRD 5.1"), publicados por
-**Wizards of the Coast LLC**, obtidos a partir do projeto **Open5e**
+Os artefatos [`srd-5e.config.en-US.json`](./srd-5e.config.en-US.json),
+[`srd-5e.config.pt-BR.json`](./srd-5e.config.pt-BR.json),
+[`ability-modifiers.srd-2024.json`](./ability-modifiers.srd-2024.json) e
+[`d20-tests.srd-2024.json`](../../packages/ai-engine/src/prompts/d20-tests.srd-2024.json) são
+**derivados** do System Reference Document 5.2 ("SRD 5.2") e do System Reference Document 5.1
+("SRD 5.1"), publicados por **Wizards of the Coast LLC**, obtidos a partir do projeto **Open5e**
 (`open5e/open5e-api`, tag `v2.1.0`).
+
+O `ability-modifiers.srd-2024.json` (US-108) é a tabela de modificadores de habilidade extraída do
+texto normativo (`Rule.json`, regras `srd-2024_the-six-abilities_*`) — só SRD 5.2, sem 5.1 e sem
+localização: a tabela é numérica e atravessa locale sem tradução.
+
+O `d20-tests.srd-2024.json` (US-110) traz as tabelas de exemplo do ruleset `srd-2024_d20-tests`
+(qual habilidade a situação chama, em teste/salvaguarda/ataque, mais as Classes de Dificuldade) —
+também só SRD 5.2. É o único derivado que **não** mora nesta pasta: ele é importado como módulo
+pelo builder do system prompt, e JSON de fora do pacote arrastaria o `rootDir` do tsc. O texto dos
+exemplos fica em inglês, como o resto do system prompt.
 
 O SRD 5.1 entra por decisão do [ADR 009](../../docs/adr/009-uniao-dos-srd-5-1-e-5-2.md): a fonte é a
 **união** dos dois documentos do mesmo tag, com o 5.2 vencendo onde os dois descrevem a mesma coisa.

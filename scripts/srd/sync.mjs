@@ -26,8 +26,13 @@ const CORE = `${RAW}/open5e/core`
 // conteúdo (half-elf, half-orc). As 12 classes base são idênticas nas duas edições (ADR 009 §4),
 // e feature/magia entram quando a story delas passar pela fusão. Cada arquivo do 5.1 sai com
 // sufixo `.2014` porque o nome do arquivo é o mesmo nos dois documentos.
+//
+// US-108: `Rule.json` traz o TEXTO normativo das regras (56 no v2.1.0), entre elas a tabela
+// de modificadores de habilidade. Ele não alimenta o `config` — só o artefato derivado
+// `ability-modifiers.srd-2024.json`, que é oráculo de teste, não caminho de execução.
 const FILES = [
   [`${SRD}/AbilityDescription.json`, 'AbilityDescription.json'],
+  [`${SRD}/Rule.json`, 'Rule.json'],
   [`${CORE}/Skill.json`, 'Skill.json'],
   [`${SRD}/CharacterClass.json`, 'CharacterClass.json'],
   [`${SRD}/ClassFeature.json`, 'ClassFeature.json'],
@@ -54,7 +59,11 @@ async function main() {
   console.log('OK. Rode: node scripts/srd/ingest.mjs')
 }
 
-main().catch((e) => {
-  console.error('sync falhou:', e.message)
-  process.exit(1)
-})
+// Guard de entrypoint (US-108): o ingest.mjs importa `TAG` daqui para gravar a procedência
+// do artefato derivado. Sem isto, o import baixaria o dataset inteiro como efeito colateral.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((e) => {
+    console.error('sync falhou:', e.message)
+    process.exit(1)
+  })
+}

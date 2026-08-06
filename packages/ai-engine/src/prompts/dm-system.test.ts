@@ -11,6 +11,10 @@ import {
   SKILLS_LINE,
   type DmCharacterSheet,
 } from './dm-system'
+// US-110: o teste lê o MESMO artefato que o prompt importa — é o que torna a assertiva
+// resistente a bump de tag (o texto muda nos dois lados ao mesmo tempo) e ao mesmo tempo
+// capaz de flagrar tabela fixada à mão no prompt.
+import D20_TESTS from './d20-tests.srd-2024.json'
 
 const baseSheet: DmCharacterSheet = {
   level: 3,
@@ -510,5 +514,45 @@ describe('US-85 — fronteira das camadas: todo bloco da camada 3 é declarado',
     for (const name of DECLARED) {
       expect(emitted, `bloco declarado "${name}" não saiu do fixture — preencha a seção que o produz`).toContain(name)
     }
+  })
+})
+
+describe('US-110 — tabela de testes de habilidade do SRD 2024', () => {
+  const LABELS = {
+    strength: 'Força',
+    dexterity: 'Destreza',
+    constitution: 'Constituição',
+    intelligence: 'Inteligência',
+    wisdom: 'Sabedoria',
+    charisma: 'Carisma',
+  }
+
+  // Âncora = o DADO do artefato (PROMPT-ANCHORS.md): a prosa que introduz a tabela pode ser
+  // reescrita, mas cada linha renderizada tem de continuar saindo do JSON. Se um bump de tag
+  // mudar o texto do SRD e alguém tiver fixado a tabela à mão no prompt, isto fica vermelho.
+  it('as 6 linhas da tabela vêm do artefato, com o rótulo de atributo do config', () => {
+    const p = build({ attributeLabels: LABELS })
+    expect(D20_TESTS.abilityChecks).toHaveLength(6)
+    for (const row of D20_TESTS.abilityChecks) {
+      expect(p).toContain(`- ${LABELS[row.ability as keyof typeof LABELS]} — ${row.example}`)
+    }
+  })
+
+  it('sem rótulo no config, cai na chave canônica em vez de sumir com a linha', () => {
+    const p = build()
+    expect(p).toContain(`- strength — ${D20_TESTS.abilityChecks[0]!.example}`)
+  })
+
+  // A tabela responde QUAL teste; a ordem de resolução do turno responde SE rola. Fundir as
+  // duas faz o modelo rolar mais — o efeito colateral que a US-110 mandou evitar.
+  it('diz que a tabela não decide SE rola', () => {
+    expect(build()).toMatch(/WHICH check[^.]{0,40}never WHETHER to roll/i)
+  })
+
+  // Decisão de 06/08/2026 (questão 1 da US-110): o Free é deliberadamente antimecânico.
+  it('o sistema Free NÃO recebe a tabela', () => {
+    const free = build({ systemName: 'Free' })
+    for (const row of D20_TESTS.abilityChecks) expect(free).not.toContain(row.example)
+    expect(free).not.toContain('Which check the situation calls for')
   })
 })

@@ -1,0 +1,97 @@
+{
+  "range": {
+    "max": 30,
+    "min": 1
+  },
+  "rows": [
+    {
+      "modifier": -5,
+      "scoreMax": 1,
+      "scoreMin": 1
+    },
+    {
+      "modifier": -4,
+      "scoreMax": 3,
+      "scoreMin": 2
+    },
+    {
+      "modifier": -3,
+      "scoreMax": 5,
+      "scoreMin": 4
+    },
+    {
+      "modifier": -2,
+      "scoreMax": 7,
+      "scoreMin": 6
+    },
+    {
+      "modifier": -1,
+      "scoreMax": 9,
+      "scoreMin": 8
+    },
+    {
+      "modifier": 0,
+      "scoreMax": 11,
+      "scoreMin": 10
+    },
+    {
+      "modifier": 1,
+      "scoreMax": 13,
+      "scoreMin": 12
+    },
+    {
+      "modifier": 2,
+      "scoreMax": 15,
+      "scoreMin": 14
+    },
+    {
+      "modifier": 3,
+      "scoreMax": 17,
+      "scoreMin": 16
+    },
+    {
+      "modifier": 4,
+      "scoreMax": 19,
+      "scoreMin": 18
+    },
+    {
+      "modifier": 5,
+      "scoreMax": 21,
+      "scoreMin": 20
+    },
+    {
+      "modifier": 6,
+      "scoreMax": 23,
+      "scoreMin": 22
+    },
+    {
+      "modifier": 7,
+      "scoreMax": 25,
+      "scoreMin": 24
+    },
+    {
+      "modifier": 8,
+      "scoreMax": 27,
+      "scoreMin": 26
+    },
+    {
+      "modifier": 9,
+      "scoreMax": 29,
+      "scoreMin": 28
+    },
+    {
+      "modifier": 10,
+      "scoreMax": 30,
+      "scoreMin": 30
+    }
+  ],
+  "source": {
+    "document": "srd-2024",
+    "license": "CC-BY-4.0",
+    "rules": [
+      "srd-2024_the-six-abilities_ability-modifiers",
+      "srd-2024_the-six-abilities_ability-scores"
+    ],
+    "tag": "v2.1.0"
+  }
+}

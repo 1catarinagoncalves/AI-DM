@@ -1,0 +1,105 @@
+{
+  "abilityChecks": [
+    {
+      "ability": "strength",
+      "example": "Lift, push, pull, or break something"
+    },
+    {
+      "ability": "dexterity",
+      "example": "Move nimbly, quickly, or quietly"
+    },
+    {
+      "ability": "constitution",
+      "example": "Push your body beyond normal limits"
+    },
+    {
+      "ability": "intelligence",
+      "example": "Reason or remember"
+    },
+    {
+      "ability": "wisdom",
+      "example": "Notice things in the environment or in creatures’ behavior"
+    },
+    {
+      "ability": "charisma",
+      "example": "Influence, entertain, or deceive"
+    }
+  ],
+  "attackRolls": [
+    {
+      "ability": "strength",
+      "example": "Melee attack with a weapon or an Unarmed Strike (see “Rules Glossary”)"
+    },
+    {
+      "ability": "dexterity",
+      "example": "Ranged attack with a weapon"
+    },
+    {
+      "ability": null,
+      "example": "Spell attack (the ability used is determined by the spellcaster’s spellcasting feature, as explained in “Spells”)"
+    }
+  ],
+  "difficultyClasses": [
+    {
+      "dc": 5,
+      "task": "Very easy"
+    },
+    {
+      "dc": 10,
+      "task": "Easy"
+    },
+    {
+      "dc": 15,
+      "task": "Medium"
+    },
+    {
+      "dc": 20,
+      "task": "Hard"
+    },
+    {
+      "dc": 25,
+      "task": "Very hard"
+    },
+    {
+      "dc": 30,
+      "task": "Nearly impossible"
+    }
+  ],
+  "savingThrows": [
+    {
+      "ability": "strength",
+      "example": "Physically resist direct force"
+    },
+    {
+      "ability": "dexterity",
+      "example": "Dodge out of harm’s way"
+    },
+    {
+      "ability": "constitution",
+      "example": "Endure a toxic hazard"
+    },
+    {
+      "ability": "intelligence",
+      "example": "Recognize an illusion as fake"
+    },
+    {
+      "ability": "wisdom",
+      "example": "Resist a mental assault"
+    },
+    {
+      "ability": "charisma",
+      "example": "Assert your identity"
+    }
+  ],
+  "source": {
+    "document": "srd-2024",
+    "license": "CC-BY-4.0",
+    "rules": [
+      "srd-2024_d20-tests_ability-checks",
+      "srd-2024_d20-tests_saving-throw",
+      "srd-2024_d20-tests_attack-rolls"
+    ],
+    "ruleset": "srd-2024_d20-tests",
+    "tag": "v2.1.0"
+  }
+}

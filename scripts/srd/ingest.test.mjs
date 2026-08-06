@@ -10,6 +10,10 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired } from './ingest.mjs'
+// US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
+// linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
+import { parseAbilityModifiers } from './ability-modifiers.mjs'
+import { parseD20Tests } from './d20-tests.mjs'
 
 const OVERLAY_PATH = join(import.meta.dirname, 'locale', 'pt-BR.json')
 
@@ -265,4 +269,198 @@ test('withRetired: sem artefato anterior (1ª geração) e sem nada aposentado �
   const artifact = { classFeatures: { barbarian: [{ key: 'barbarian_rage', name: 'Fúria', source: 'srd' }] }, classSpells: {} }
   assert.deepEqual(withRetired(artifact, null), artifact)
   assert.deepEqual(withRetired(artifact, artifact), artifact)
+})
+
+// --- US-108 — a tabela de modificadores de habilidade do SRD 2024 ---
+//
+// Os `desc` abaixo são o texto CRU do Open5e v2.1.0 (`Rule.json`), copiado sem correção —
+// inclusive os sinais que NÃO são ASCII: `−` é U+2212 MINUS SIGN e `–` é U+2013 EN DASH.
+// É a armadilha da story: `Number('−5')` devolve NaN.
+
+const SCORES_DESC = [
+  'Each ability has a score from 1 to 20, although some monsters have a score as high as 30.',
+  '',
+  '|Score|Meaning|',
+  '|---|---|',
+  '|1| This is the lowest a score can normally go. |',
+  '|2–9| This represents a weak capability.|',
+  '|10–11| This represents the human average.|',
+  '|12–19| This represents a strong capability.|',
+  "|20| This is the highest an adventurer's score can go unless a feature says otherwise. |",
+  '|21–29| This represents an extraordinary capability. |',
+  '|30| This is the highest a score can go.|',
+].join('\n')
+
+const MOD_ROWS = [
+  ['1', '−5'], ['2–3', '−4'], ['4–5', '−3'], ['6–7', '−2'], ['8–9', '−1'], ['10–11', '+0'],
+  ['12–13', '+1'], ['14–15', '+2'], ['16–17', '+3'], ['18–19', '+4'], ['20–21', '+5'],
+  ['22–23', '+6'], ['24–25', '+7'], ['26–27', '+8'], ['28–29', '+9'], ['30', '+10'],
+]
+
+const modifiersDesc = (rows = MOD_ROWS) =>
+  ['An ability modifier is derived from its score.', '', '|Score|Modifier|', '|---|---|']
+    .concat(rows.map(([score, mod]) => `|${score}|${mod}|`))
+    .join('\n')
+
+const rules = (modRows) => [
+  { pk: 'srd-2024_the-six-abilities_ability-scores', fields: { desc: SCORES_DESC, ruleset: 'srd-2024_the-six-abilities' } },
+  { pk: 'srd-2024_the-six-abilities_ability-modifiers', fields: { desc: modifiersDesc(modRows), ruleset: 'srd-2024_the-six-abilities' } },
+  { pk: 'srd-2024_d20-tests_ability-checks', fields: { desc: 'Not this one.', ruleset: 'srd-2024_d20-tests' } },
+]
+
+test('parseAbilityModifiers: lê as 16 faixas com MINUS SIGN e EN DASH', () => {
+  const { rows } = parseAbilityModifiers(rules(), 'v2.1.0')
+  assert.equal(rows.length, 16)
+  assert.deepEqual(rows[0], { scoreMin: 1, scoreMax: 1, modifier: -5 })
+  assert.deepEqual(rows[5], { scoreMin: 10, scoreMax: 11, modifier: 0 })
+  assert.deepEqual(rows.at(-1), { scoreMin: 30, scoreMax: 30, modifier: 10 })
+})
+
+// A faixa sai da tabela de SIGNIFICADO (`_ability-scores`), não de constante daqui: é ela
+// que diz que 30 é o teto absoluto, e é ela que muda se uma edição mudar o teto.
+test('parseAbilityModifiers: a faixa 1–30 vem do dado, e a procedência vai junto', () => {
+  const table = parseAbilityModifiers(rules(), 'v2.1.0')
+  assert.deepEqual(table.range, { min: 1, max: 30 })
+  assert.equal(table.source.tag, 'v2.1.0')
+  assert.equal(table.source.document, 'srd-2024')
+  assert.equal(table.source.license, 'CC-BY-4.0')
+  assert.ok(table.source.rules.includes('srd-2024_the-six-abilities_ability-modifiers'))
+})
+
+// Bump que renomeie ou remova a regra não pode gerar artefato vazio em silêncio: a tabela
+// vira oráculo do teste do `abilityModifier`, e oráculo vazio aprova qualquer fórmula.
+test('parseAbilityModifiers: regra ausente no bump falha alto', () => {
+  const semModificadores = rules().filter((r) => !r.pk.endsWith('_ability-modifiers'))
+  assert.throws(() => parseAbilityModifiers(semModificadores, 'v2.1.0'), /srd-2024_the-six-abilities_ability-modifiers/)
+})
+
+// Buraco = parser quebrado ou tabela mudada. Sem esta checagem, uma faixa perdida some sem
+// erro e o `abilityModifier` deixa de ser conferido justamente naqueles valores.
+test('parseAbilityModifiers: buraco na cobertura da faixa falha alto', () => {
+  const comBuraco = MOD_ROWS.filter(([score]) => score !== '12–13')
+  assert.throws(() => parseAbilityModifiers(rules(comBuraco), 'v2.1.0'), /12/)
+})
+
+test('parseAbilityModifiers: modificador ilegível falha com o valor ofensor', () => {
+  const corrompida = MOD_ROWS.map(([score, mod]) => (score === '4–5' ? [score, 'menos três'] : [score, mod]))
+  assert.throws(() => parseAbilityModifiers(rules(corrompida), 'v2.1.0'), /menos três/)
+})
+
+// --- US-110 — as tabelas de exemplo do ruleset `srd-2024_d20-tests` ---
+//
+// Mesma disciplina do bloco acima: os `desc` são o texto CRU do Open5e v2.1.0, com a
+// tipografia dele (aspas curvas, reticências `…`). O que muda aqui é que UM `desc` traz
+// DUAS tabelas (exemplos de teste + Classes de Dificuldade) — por isso o leitor separa
+// tabelas em vez de achatar todas as linhas `|…|` do campo numa lista só.
+
+const CHECKS_DESC = [
+  'An ability check represents a creature using talent and training.',
+  '',
+  '|Ability|Make a Check To …|',
+  '|---|---|',
+  '|Strength|Lift, push, pull, or break something|',
+  '|Dexterity|Move nimbly, quickly, or quietly|',
+  '|Constitution|Push your body beyond normal limits|',
+  '|Intelligence|Reason or remember|',
+  '|Wisdom|Notice things in the environment or in creatures’ behavior|',
+  '|Charisma|Influence, entertain, or deceive|',
+  '',
+  'Table: Typical Difficulty Classes',
+  '',
+  '|Task Difficulty|DC|',
+  '|---|---|',
+  '|Very easy|5|',
+  '|Easy|10|',
+  '|Medium|15|',
+  '|Hard|20|',
+  '|Very hard|25|',
+  '|Nearly impossible|30|',
+].join('\n')
+
+const SAVES_DESC = [
+  'A saving throw represents an attempt to evade or resist a threat.',
+  '',
+  '|Ability|Make a Save To …|',
+  '|---|---|',
+  '|Strength|Physically resist direct force|',
+  '|Dexterity|Dodge out of harm’s way|',
+  '|Constitution|Endure a toxic hazard|',
+  '|Intelligence|Recognize an illusion as fake|',
+  '|Wisdom|Resist a mental assault|',
+  '|Charisma|Assert your identity|',
+].join('\n')
+
+const ATTACKS_DESC = [
+  'An attack roll determines whether an attack hits a target.',
+  '',
+  '|Ability|Attack Type|',
+  '|---|---|',
+  '|Strength|Melee attack with a weapon or an Unarmed Strike|',
+  '|Dexterity|Ranged attack with a weapon|',
+  '|Varies|Spell attack (determined by the spellcaster’s spellcasting feature)|',
+].join('\n')
+
+const ATTR_KEYS = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
+
+const d20Rules = ({ checks = CHECKS_DESC, saves = SAVES_DESC, attacks = ATTACKS_DESC } = {}) =>
+  [
+    { pk: 'srd-2024_d20-tests_ability-checks', fields: { desc: checks, ruleset: 'srd-2024_d20-tests' } },
+    { pk: 'srd-2024_d20-tests_saving-throw', fields: { desc: saves, ruleset: 'srd-2024_d20-tests' } },
+    { pk: 'srd-2024_d20-tests_attack-rolls', fields: { desc: attacks, ruleset: 'srd-2024_d20-tests' } },
+    // Uma regra de OUTRO ruleset no meio: o parser tem de achar as suas por `pk`, não por posição.
+    { pk: 'srd-2024_the-six-abilities_ability-modifiers', fields: { desc: modifiersDesc(), ruleset: 'srd-2024_the-six-abilities' } },
+  ]
+
+test('parseD20Tests: as 6 linhas de exemplo de teste saem com a chave canônica do catálogo', () => {
+  const { abilityChecks } = parseD20Tests(d20Rules(), 'v2.1.0', ATTR_KEYS)
+  assert.equal(abilityChecks.length, 6)
+  assert.deepEqual(abilityChecks[0], { ability: 'strength', example: 'Lift, push, pull, or break something' })
+  assert.deepEqual(abilityChecks.at(-1), { ability: 'charisma', example: 'Influence, entertain, or deceive' })
+})
+
+// A regra do `desc` de exemplos traz DUAS tabelas. Achatar as duas numa lista só daria 12
+// "exemplos", metade deles Classe de Dificuldade — e o prompt exibiria "Very easy — 5".
+test('parseD20Tests: a segunda tabela do mesmo desc vira difficultyClasses, não exemplo', () => {
+  const { abilityChecks, difficultyClasses } = parseD20Tests(d20Rules(), 'v2.1.0', ATTR_KEYS)
+  assert.equal(abilityChecks.length, 6)
+  assert.deepEqual(difficultyClasses[0], { task: 'Very easy', dc: 5 })
+  assert.deepEqual(difficultyClasses.at(-1), { task: 'Nearly impossible', dc: 30 })
+})
+
+test('parseD20Tests: saves e ataques saem no artefato, e `Varies` não vira atributo', () => {
+  const { savingThrows, attackRolls } = parseD20Tests(d20Rules(), 'v2.1.0', ATTR_KEYS)
+  assert.equal(savingThrows.length, 6)
+  assert.deepEqual(savingThrows[1], { ability: 'dexterity', example: 'Dodge out of harm’s way' })
+  assert.equal(attackRolls.length, 3)
+  assert.equal(attackRolls.at(-1).ability, null)
+})
+
+test('parseD20Tests: a procedência vai junto', () => {
+  const { source } = parseD20Tests(d20Rules(), 'v2.1.0', ATTR_KEYS)
+  assert.equal(source.tag, 'v2.1.0')
+  assert.equal(source.document, 'srd-2024')
+  assert.equal(source.license, 'CC-BY-4.0')
+  assert.equal(source.ruleset, 'srd-2024_d20-tests')
+  assert.ok(source.rules.includes('srd-2024_d20-tests_ability-checks'))
+})
+
+// Bump que renomeie a regra não pode gerar bloco vazio: o prompt perderia a régua de
+// escolha sem ninguém perceber (o prompt continua válido, só volta a ser palpite).
+test('parseD20Tests: regra ausente no bump falha alto', () => {
+  const semExemplos = d20Rules().filter((r) => r.pk !== 'srd-2024_d20-tests_ability-checks')
+  assert.throws(() => parseD20Tests(semExemplos, 'v2.1.0', ATTR_KEYS), /srd-2024_d20-tests_ability-checks/)
+})
+
+// Uma linha perdida deixaria uma habilidade sem exemplo — e o modelo sem régua justamente
+// naquela. Cobertura das 6 é a checagem, não a contagem: ela pega troca também.
+test('parseD20Tests: exemplo faltando para uma habilidade falha alto', () => {
+  const semSabedoria = CHECKS_DESC.split('\n').filter((l) => !l.startsWith('|Wisdom|')).join('\n')
+  assert.throws(() => parseD20Tests(d20Rules({ checks: semSabedoria }), 'v2.1.0', ATTR_KEYS), /wisdom/i)
+})
+
+// Habilidade que o config não tem = tabela e catálogo discordando. Sem esta checagem o
+// prompt renderiza a chave crua ("bravery — …") como se fosse atributo da ficha.
+test('parseD20Tests: habilidade fora do catálogo falha com o valor ofensor', () => {
+  const inventada = CHECKS_DESC.replace('|Wisdom|', '|Bravery|')
+  assert.throws(() => parseD20Tests(d20Rules({ checks: inventada }), 'v2.1.0', ATTR_KEYS), /Bravery/)
 })

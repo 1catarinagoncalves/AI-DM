@@ -1,47 +1,83 @@
-Em D&D, existem 6 atributos que definem o seu personagem. Os valores brutos (geralmente entre 3 e 20) determinam seus **modificadores** (bônus ou penalidades de -5 a +5). Você soma esses modificadores às rolagens de dado (d20) para determinar se suas ações, ataques ou magias são bem-sucedidas. [[1](https://www.youtube.com/watch?v=2gk7PKKgnw8&t=18), [2](https://translate.google.com/translate?u=https://roll20.net/compendium/dnd5e/Ability%2520Scores&hl=pt&sl=en&tl=pt&client=sge), [3](https://www.youtube.com/watch?v=5jMXcR4WMHw&t=2), [4](https://jogaod20.com/2020/06/01/entendendo-ficha-dnd-1/), [5](https://www.reddit.com/r/DnD/comments/1ka9yyw/can_someone_explain_ability_scores/?tl=pt-br)]
+# Modificadores de atributo — tabela do SRD 2024
 
-* * *
+**Fonte:** System Reference Document 5.2 ("SRD 2024"), Wizards of the Coast LLC, obtido do
+**Open5e** (`open5e/open5e-api`, tag `v2.1.0`), regras `srd-2024_the-six-abilities_ability-scores`
+e `srd-2024_the-six-abilities_ability-modifiers`. Licença **CC-BY-4.0** — ver
+[NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md).
 
-Os 6 Atributos Principais
+**Versão legível por máquina:** `scripts/srd/ability-modifiers.srd-2024.json`, gerado do mesmo
+texto por `pnpm srd:ingest` ([US-108](./US-108-tabela-de-modificadores-do-srd-2024.md)). Esta
+página é para gente ler; o artefato é o que o teste confere. Os dois saem da mesma origem, e
+divergência entre eles reprova em `packages/shared/src/ability.test.ts`.
 
-* **Força (FOR):** Mede o poder físico. Usado em ataques corpo a corpo, dano e capacidade de carga.
-* **Destreza (DES):** Mede a agilidade, reflexos e equilíbrio. Define sua Classe de Armadura (CA) e iniciativa em combate.
-* **Constituição (CON):** Mede a saúde e o vigor. Determina seus Pontos de Vida (PV) e resistência a venenos ou magias.
-* **Inteligência (INT):** Mede o raciocínio e a memória. Essencial para magos e para perícias de conhecimento.
-* **Sabedoria (SAB):** Mede a intuição e a percepção. Importante para perceber ameaças e resistir a efeitos mentais.
-* **Carisma (CAR):** Mede a força da personalidade. Rege interações sociais, blefes e magias de encantamento. [[1](https://critical20.com.br/blog/dnd5/regras/atributos-e-modificadores), [2](https://translate.google.com/translate?u=https://harpscorp.com/what-is-constitution-in-dnd-guide/&hl=pt&sl=en&tl=pt&client=sge), [3](https://www.youtube.com/watch?v=5jMXcR4WMHw&t=2), [5](https://pt.scribd.com/document/688212421/Guia-ordinario-para-preenchimento-de-ficha-dnd-5e-parte-2)]
+> Esta página substituiu (06/08/2026) uma compilação de blog e vídeo que parava em 20-21 e não
+> tinha procedência — era a única referência normativa por trás da regra que o jogo aplica.
 
-* * *
+---
 
-Como Calcular os Modificadores
+## Regra de cálculo
 
-O valor do atributo em si raramente é usado no jogo; o que importa é o seu **modificador**. O cálculo básico é subtrair 10 do valor do atributo e dividir o resultado por 2, sempre arredondando para baixo. [[1](https://rpg.charlescorrea.com.br/mestre-charles-correa/regras-para-a-distribuicao-de-pontos-de-atributos-para-dd5e/), [2](https://www.youtube.com/watch?v=5jMXcR4WMHw&t=2), [3](https://jogaod20.com/2020/06/01/entendendo-ficha-dnd-1/)]
+Modificador = `floor((pontuação - 10) / 2)`.
 
-A fórmula é: \(\frac{\text{Atributo}-10}{2}\) (arredondando para baixo). [[1](https://rpg.charlescorrea.com.br/mestre-charles-correa/regras-para-a-distribuicao-de-pontos-de-atributos-para-dd5e/)]
+O arredondamento para baixo não é escolha de implementação: o SRD 2024 traz o *callout*
+**"Round Down"**, que manda arredondar para baixo em toda divisão ou multiplicação do jogo,
+*"mesmo se a fração for metade ou mais"*, salvo regra que diga o contrário.
 
-Exemplos de Conversão:
+No código, a regra é uma linha em [`ability.ts`](../../../packages/shared/src/ability.ts)
+(`abilityModifier`) — a tabela abaixo **não** é consultada em runtime: ela é o oráculo que
+prova que a fórmula continua reproduzindo o SRD, valor a valor, de 1 a 30.
 
-* **Atributo 10 ou 11:** Modificador 0 (Média humana).
-* **Atributo 14:** \(\frac{14 - 10}{2} = +2\)
-* **Atributo 15:** \(\frac{15 - 10}{2} = 2 \div 2 = 1.5\) (arredondado para baixo = +2).
-* **Atributo 8:** \(\frac{8 - 10}{2} = -1\) [[1](https://translate.google.com/translate?u=https://roll20.net/compendium/dnd5e/Ability%2520Scores&hl=pt&sl=en&tl=pt&client=sge), [2](https://rpg.charlescorrea.com.br/mestre-charles-correa/regras-para-a-distribuicao-de-pontos-de-atributos-para-dd5e/), [3](https://www.reddit.com/r/DnD/comments/vojsa7/how_do_you_roll_stats/?tl=pt-br), [4](https://www.reddit.com/r/DnD/comments/z4ovxe/completely_new_and_dk_how_to_ability_score/?tl=pt-br)]
+---
 
-* * *
+## Tabela de modificadores (SRD 2024)
 
-Tabela Rápida de Valores e Modificadores
+| Pontuação | Modificador | Pontuação | Modificador |
+|---|---|---|---|
+| 1 | -5 | 16-17 | +3 |
+| 2-3 | -4 | 18-19 | +4 |
+| 4-5 | -3 | 20-21 | +5 |
+| 6-7 | -2 | 22-23 | +6 |
+| 8-9 | -1 | 24-25 | +7 |
+| 10-11 | +0 | 26-27 | +8 |
+| 12-13 | +1 | 28-29 | +9 |
+| 14-15 | +2 | 30 | +10 |
 
-| Valor do Atributo | Modificador |
-| ----------------- | ----------- |
-| **1**             | -5          |
-| **2-3**           | -4          |
-| **4-5**           | -3          |
-| **6-7**           | -2          |
-| **8-9**           | -1          |
-| **10-11**         | 0           |
-| **12-13**         | +1          |
-| **14-15**         | +2          |
-| **16-17**         | +3          |
-| **18-19**         | +4          |
-| **20-21**         | +5          |
+São as 16 faixas do SRD, cobrindo a pontuação inteira sem buraco. As edições anteriores paravam
+em +5 (pontuação 21): as faixas de 22 a 30 existem porque **monstro** chega lá.
 
-_Dica:_ Em regras oficiais (como em D&D 5ª Edição), os modificadores mudam a cada 2 pontos pares. Por isso, sempre que você ganha pontos para gastar em atributos, priorize deixá-los em valores pares para aproveitar o bônus superior imediato! [[1](https://www.youtube.com/watch?v=5jMXcR4WMHw&t=2)]
+> **Cuidado ao copiar do dataset:** o texto do Open5e usa tipografia, não ASCII — o modificador
+> vem com U+2212 MINUS SIGN (`−5`) e a faixa com U+2013 EN DASH (`2–3`). `Number('−5')` devolve
+> `NaN`. A tabela acima já está normalizada em ASCII.
+
+---
+
+## O que cada faixa de pontuação significa (SRD 2024)
+
+| Pontuação | Significado |
+|---|---|
+| 1 | O mínimo a que uma pontuação normalmente chega. Efeito que a reduza a 0 explica o que acontece. |
+| 2-9 | Capacidade fraca. |
+| 10-11 | A média humana. |
+| 12-19 | Capacidade forte. |
+| 20 | O máximo de um aventureiro, salvo característica que diga o contrário. |
+| 21-29 | Capacidade extraordinária. |
+| 30 | O máximo absoluto. |
+
+É esta tabela que fixa o **domínio 1–30** de `abilityModifier`: fora dele a função lança, em vez
+de devolver um número plausível para um estado impossível ([US-108](./US-108-tabela-de-modificadores-do-srd-2024.md)).
+
+**Não confundir com a faixa da ficha.** Os `min`/`max` do `System.config` (10–18 no artefato do
+SRD) são decisão de **produto** — o point-buy da criação de personagem, não regra do SRD. As duas
+convivem: o Zod valida 10–18 na criação, `abilityModifier` valida 1–30 no cálculo.
+
+---
+
+## Onde isto é usado
+
+- `abilityModifier` / `skillModifier` / `buildSkillSheet` em `packages/shared/src/ability.ts` — o
+  cálculo único, reusado pela web, pela API e pelo ai-engine.
+- A ficha na página de chat mostra o modificador em destaque com a pontuação bruta embaixo
+  ([US-32](./US-32-modificadores-de-atributo.md)).
+- O bloco de estado do turno entrega ao mestre `Força 14 (+2)`, nunca só o valor bruto.
+- Teste de perícia e de atributo resolvem o modificador **da ficha**, nunca um número dado pelo
+  modelo ([US-38](./US-38-rolagens-ancoradas-na-ficha.md)).
