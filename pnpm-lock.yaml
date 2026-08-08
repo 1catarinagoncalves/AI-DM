@@ -62,7 +62,10 @@ importers:
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.4.9
-        version: 10.4.9(lightningcss@1.32.0)
+        version: 10.4.9(@swc/core@1.15.47)(lightningcss@1.32.0)
+      '@swc/core':
+        specifier: ^1.15.47
+        version: 1.15.47
       '@types/express':
         specifier: ^5.0.3
         version: 5.0.6
@@ -71,10 +74,13 @@ importers:
         version: 7.8.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.9.3)
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@22.20.0)(typescript@5.9.3)
+        version: 10.9.2(@swc/core@1.15.47)(@types/node@22.20.0)(typescript@5.9.3)
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
+      unplugin-swc:
+        specifier: ^1.5.10
+        version: 1.5.10(@swc/core@1.15.47)(rollup@4.62.2)
       vitest:
         specifier: ^3.2.4
         version: 3.2.6(@types/node@22.20.0)(happy-dom@20.10.6)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0)
@@ -1215,6 +1221,15 @@ packages:
       '@types/react':
         optional: true
 
+  '@rollup/pluginutils@5.4.0':
+    resolution: {integrity: sha512-MfPp06CjRLfXQ3wY0R8vJDYBy/MvVcc9OulEfR0B8Iv9ko+GCNaRZ+EpJYFl27LhKsZK0o420sYCRHCjfCgeUg==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+
   '@rollup/rollup-android-arm-eabi@4.62.2':
     resolution: {integrity: sha512-6o7ZLZK+BeenkZCFNDXqpbjw9bD6nuWonvS/lwQJp7NoVVxm6p3qE7qQ5jGuBjiFsgvqjD8mZAU5oWxTmbOeOg==}
     cpu: [arm]
@@ -1362,8 +1377,101 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
+  '@swc/core-darwin-arm64@1.15.47':
+    resolution: {integrity: sha512-GsoMtan3ojGGMGFbl31mmRu5ctZ56re8grGE8mO/OHJ8O+JRkzod02fe7X6ZQ8JvamA3imkEkx/h3u+vsOgPgA==}
+    engines: {node: '>=10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@swc/core-darwin-x64@1.15.47':
+    resolution: {integrity: sha512-leTi7Rx3KF4zcC637iqWgk9SoV8VXAD8ppQYXsep63px5A/UftOcxLN1pmr8Z1si/YvX90ompP/rHgpYkgwXWg==}
+    engines: {node: '>=10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@swc/core-linux-arm-gnueabihf@1.15.47':
+    resolution: {integrity: sha512-hBqHuoWKKIsKmDBn9qVeWqj5GWZhtlcczVaqQmNRXsDfq+voR5CxKRfamA367QjJXtceYuliLFfEL8QsskRM2g==}
+    engines: {node: '>=10'}
+    cpu: [arm]
+    os: [linux]
+
+  '@swc/core-linux-arm64-gnu@1.15.47':
+    resolution: {integrity: sha512-TBxvRz+B4K205TWHHZxWVxkC2RFNP/Mz3PNcECBos5PsKwxjg3QSJzdoebr0VCf0Bfh8HOPldKxAP/8XkFe9gA==}
+    engines: {node: '>=10'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@swc/core-linux-arm64-musl@1.15.47':
+    resolution: {integrity: sha512-3Yu3Uq/VgytqsPjTMbkPU1ExADytbdWbruJYhA584E9jrpE2Ki+R6VVPoZCeAVk1Cb7QxcRTgblw6bSa6a/R+w==}
+    engines: {node: '>=10'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@swc/core-linux-ppc64-gnu@1.15.47':
+    resolution: {integrity: sha512-wfdMi5IaOaNtmh2/6geRoxIdNfqylUZFdtzTKS655y1axWfIWyx7As74vv0wVdjeCIZ3WmCI9odDd4rUttXOSQ==}
+    engines: {node: '>=10'}
+    cpu: [ppc64]
+    os: [linux]
+    libc: [glibc]
+
+  '@swc/core-linux-s390x-gnu@1.15.47':
+    resolution: {integrity: sha512-3hHYBY0yx8Ez7GMRrkhXHQzMdR5IZA6Wq5Ee4svlgwvSECLpnAJ9+0AimEGUFDvuLwE7nV/2+PYe8+Nm4rvNcQ==}
+    engines: {node: '>=10'}
+    cpu: [s390x]
+    os: [linux]
+    libc: [glibc]
+
+  '@swc/core-linux-x64-gnu@1.15.47':
+    resolution: {integrity: sha512-TjfhjgP/jGCfFHYC3JQPhJA1HwErbIJ9JfREDc1KNkvY6P0LodCgKVIlQ5deeTbkG7ih3bF5PHJLuLpaZjdRyQ==}
+    engines: {node: '>=10'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@swc/core-linux-x64-musl@1.15.47':
+    resolution: {integrity: sha512-CQpS8Ge/avfjZd0UEwG/sds83Uu32deQXcV1Jo3jD0mmvQQqtYAjpsDZXugmheeAwmt+YIuoVtVHro8LMYHqsQ==}
+    engines: {node: '>=10'}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@swc/core-win32-arm64-msvc@1.15.47':
+    resolution: {integrity: sha512-0W8IKHsUTYiT7G2RqtOoVWk+89yzZikIiDUb/sCK6BmQDBhN91hQSfyUtW12jhEWLzYgcfmisfsZrmZE+84U1A==}
+    engines: {node: '>=10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@swc/core-win32-ia32-msvc@1.15.47':
+    resolution: {integrity: sha512-ZIp49d2Z4/ka2jO9otOg4hDvTdPmp86kVOgS2M5FCPI7eKKZ1W0boxWn+8XeZrfERtFGW0AlMRm4JhlJa7l3NA==}
+    engines: {node: '>=10'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@swc/core-win32-x64-msvc@1.15.47':
+    resolution: {integrity: sha512-2h8Iek95vnixkBRCo+H8p09+Q5ll2NgSMFrWTy0iKt7+/t+8/T5mBpiT6c0ZxSS7wcWjwZ9sGZkK70tTSYHdDw==}
+    engines: {node: '>=10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@swc/core@1.15.47':
+    resolution: {integrity: sha512-FbsO5JcfOjfH38W/rohBRBweJeERsAuIP4f377lmkmxTcq9exjtx4SkRuZY5CdfhR2CBVwDIJegBpJDffwNsOg==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      '@swc/helpers': '>=0.5.17'
+    peerDependenciesMeta:
+      '@swc/helpers':
+        optional: true
+
+  '@swc/counter@0.1.3':
+    resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
+
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
+
+  '@swc/types@0.1.28':
+    resolution: {integrity: sha512-V6Mnml8v09QALx6K0elJ7o9K/MkVDtW3t6L+7Ou/JcWtb3xwId2AH4FeOceySd2JaO87IMw4+6vSZxLm34LPbw==}
 
   '@tailwindcss/node@4.3.1':
     resolution: {integrity: sha512-6NDaqRoAMSXD1mr/RXu0HBvNE9a2n5tHPsxu9XHLws8o4Twes5rBM2205SUUiJ9goAtadrN6xTGX0UDEwp/N4A==}
@@ -2201,6 +2309,9 @@ packages:
     resolution: {integrity: sha512-MMdARuVEQziNTeJD8DgMqmhwR11BRQ/cBP+pLtYdSTnf3MIO8fFeiINEbX36ZdNlfU/7A9f3gUw49B3oQsvwBA==}
     engines: {node: '>=4.0'}
 
+  estree-walker@2.0.2:
+    resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
+
   estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
@@ -2607,6 +2718,10 @@ packages:
 
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
+
+  load-tsconfig@0.2.5:
+    resolution: {integrity: sha512-IXO6OCs9yg8tMKzfPZ1YmheJbZCiEsnBdcB03l0OcfK9prKnJb96siuHCr5Fl37/yo9DnKU+TLpxzTUspw9shg==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   loader-runner@4.3.2:
     resolution: {integrity: sha512-DFEqQ3ihfS9blba08cLfYf1NRAIEm+dDjic073DRDc3/JspI/8wYmtDsHwd3+4hwvdxSK7PGaElfTmm0awWJ4w==}
@@ -3486,6 +3601,15 @@ packages:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
 
+  unplugin-swc@1.5.10:
+    resolution: {integrity: sha512-aNvKH601KYzc/fXyDQJPAk8obNPzA4GdGqx+qSjQoyweMLDMLs5VRbunjL4skIv/hyyAnSgrbxMwXHdRTzhmew==}
+    peerDependencies:
+      '@swc/core': ^1.2.108
+
+  unplugin@2.3.11:
+    resolution: {integrity: sha512-5uKD0nqiYVzlmCRs01Fhs2BdkEgBS3SAVP6ndrBsuK42iC2+JHyxM05Rm9G8+5mkmRtzMZGY8Ct5+mliZxU/Ww==}
+    engines: {node: '>=18.12.0'}
+
   update-browserslist-db@1.2.3:
     resolution: {integrity: sha512-Js0m9cx+qOgDxo0eMiFGEueWztz+d4+M3rGlmKPT+T4IS/jP4ylw3Nwpu6cpTTP8R1MAC1kF4VbdLt3ARf209w==}
     hasBin: true
@@ -3616,6 +3740,9 @@ packages:
   webpack-sources@3.5.0:
     resolution: {integrity: sha512-HPuy+uuoTCaaoEoI1LQ3JN9+vrPBvEesnnX1jADHy728cHSMlq4wUc4afYqahq2B1mhQVZxCXOkNTnXltr+2vQ==}
     engines: {node: '>=10.13.0'}
+
+  webpack-virtual-modules@0.6.2:
+    resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
   webpack@5.97.1:
     resolution: {integrity: sha512-EksG6gFY3L1eFMROS/7Wzgrii5mBAFe4rIr3r2BTfo7bcc+DWwFZ4OJ/miOuHJO/A85HwyI4eQ0F6IKXesO7Fg==}
@@ -4073,7 +4200,7 @@ snapshots:
       '@tybys/wasm-util': 0.10.3
     optional: true
 
-  '@nestjs/cli@10.4.9(lightningcss@1.32.0)':
+  '@nestjs/cli@10.4.9(@swc/core@1.15.47)(lightningcss@1.32.0)':
     dependencies:
       '@angular-devkit/core': 17.3.11(chokidar@3.6.0)
       '@angular-devkit/schematics': 17.3.11(chokidar@3.6.0)
@@ -4083,7 +4210,7 @@ snapshots:
       chokidar: 3.6.0
       cli-table3: 0.6.5
       commander: 4.1.1
-      fork-ts-checker-webpack-plugin: 9.0.2(typescript@5.7.2)(webpack@5.97.1(lightningcss@1.32.0))
+      fork-ts-checker-webpack-plugin: 9.0.2(typescript@5.7.2)(webpack@5.97.1(@swc/core@1.15.47)(lightningcss@1.32.0))
       glob: 10.4.5
       inquirer: 8.2.6
       node-emoji: 1.11.0
@@ -4092,8 +4219,10 @@ snapshots:
       tsconfig-paths: 4.2.0
       tsconfig-paths-webpack-plugin: 4.2.0
       typescript: 5.7.2
-      webpack: 5.97.1(lightningcss@1.32.0)
+      webpack: 5.97.1(@swc/core@1.15.47)(lightningcss@1.32.0)
       webpack-node-externals: 3.0.0
+    optionalDependencies:
+      '@swc/core': 1.15.47
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/css'
@@ -4525,6 +4654,14 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
 
+  '@rollup/pluginutils@5.4.0(rollup@4.62.2)':
+    dependencies:
+      '@types/estree': 1.0.9
+      estree-walker: 2.0.2
+      picomatch: 4.0.5
+    optionalDependencies:
+      rollup: 4.62.2
+
   '@rollup/rollup-android-arm-eabi@4.62.2':
     optional: true
 
@@ -4607,9 +4744,69 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
+  '@swc/core-darwin-arm64@1.15.47':
+    optional: true
+
+  '@swc/core-darwin-x64@1.15.47':
+    optional: true
+
+  '@swc/core-linux-arm-gnueabihf@1.15.47':
+    optional: true
+
+  '@swc/core-linux-arm64-gnu@1.15.47':
+    optional: true
+
+  '@swc/core-linux-arm64-musl@1.15.47':
+    optional: true
+
+  '@swc/core-linux-ppc64-gnu@1.15.47':
+    optional: true
+
+  '@swc/core-linux-s390x-gnu@1.15.47':
+    optional: true
+
+  '@swc/core-linux-x64-gnu@1.15.47':
+    optional: true
+
+  '@swc/core-linux-x64-musl@1.15.47':
+    optional: true
+
+  '@swc/core-win32-arm64-msvc@1.15.47':
+    optional: true
+
+  '@swc/core-win32-ia32-msvc@1.15.47':
+    optional: true
+
+  '@swc/core-win32-x64-msvc@1.15.47':
+    optional: true
+
+  '@swc/core@1.15.47':
+    dependencies:
+      '@swc/counter': 0.1.3
+      '@swc/types': 0.1.28
+    optionalDependencies:
+      '@swc/core-darwin-arm64': 1.15.47
+      '@swc/core-darwin-x64': 1.15.47
+      '@swc/core-linux-arm-gnueabihf': 1.15.47
+      '@swc/core-linux-arm64-gnu': 1.15.47
+      '@swc/core-linux-arm64-musl': 1.15.47
+      '@swc/core-linux-ppc64-gnu': 1.15.47
+      '@swc/core-linux-s390x-gnu': 1.15.47
+      '@swc/core-linux-x64-gnu': 1.15.47
+      '@swc/core-linux-x64-musl': 1.15.47
+      '@swc/core-win32-arm64-msvc': 1.15.47
+      '@swc/core-win32-ia32-msvc': 1.15.47
+      '@swc/core-win32-x64-msvc': 1.15.47
+
+  '@swc/counter@0.1.3': {}
+
   '@swc/helpers@0.5.15':
     dependencies:
       tslib: 2.8.1
+
+  '@swc/types@0.1.28':
+    dependencies:
+      '@swc/counter': 0.1.3
 
   '@tailwindcss/node@4.3.1':
     dependencies:
@@ -5475,6 +5672,8 @@ snapshots:
 
   estraverse@5.3.0: {}
 
+  estree-walker@2.0.2: {}
+
   estree-walker@3.0.3:
     dependencies:
       '@types/estree': 1.0.9
@@ -5589,7 +5788,7 @@ snapshots:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
 
-  fork-ts-checker-webpack-plugin@9.0.2(typescript@5.7.2)(webpack@5.97.1(lightningcss@1.32.0)):
+  fork-ts-checker-webpack-plugin@9.0.2(typescript@5.7.2)(webpack@5.97.1(@swc/core@1.15.47)(lightningcss@1.32.0)):
     dependencies:
       '@babel/code-frame': 7.29.7
       chalk: 4.1.2
@@ -5604,7 +5803,7 @@ snapshots:
       semver: 7.8.5
       tapable: 2.3.3
       typescript: 5.7.2
-      webpack: 5.97.1(lightningcss@1.32.0)
+      webpack: 5.97.1(@swc/core@1.15.47)(lightningcss@1.32.0)
 
   formatly@0.3.0:
     dependencies:
@@ -5922,6 +6121,8 @@ snapshots:
       lightningcss-win32-x64-msvc: 1.32.0
 
   lines-and-columns@1.2.4: {}
+
+  load-tsconfig@0.2.5: {}
 
   loader-runner@4.3.2: {}
 
@@ -6678,14 +6879,15 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  terser-webpack-plugin@5.6.1(lightningcss@1.32.0)(webpack@5.97.1(lightningcss@1.32.0)):
+  terser-webpack-plugin@5.6.1(@swc/core@1.15.47)(lightningcss@1.32.0)(webpack@5.97.1(@swc/core@1.15.47)(lightningcss@1.32.0)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.48.0
-      webpack: 5.97.1(lightningcss@1.32.0)
+      webpack: 5.97.1(@swc/core@1.15.47)(lightningcss@1.32.0)
     optionalDependencies:
+      '@swc/core': 1.15.47
       lightningcss: 1.32.0
 
   terser@5.48.0:
@@ -6734,7 +6936,7 @@ snapshots:
 
   tree-kill@1.2.2: {}
 
-  ts-node@10.9.2(@types/node@22.20.0)(typescript@5.9.3):
+  ts-node@10.9.2(@swc/core@1.15.47)(@types/node@22.20.0)(typescript@5.9.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.12
@@ -6751,6 +6953,8 @@ snapshots:
       typescript: 5.9.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    optionalDependencies:
+      '@swc/core': 1.15.47
 
   tsconfig-paths-webpack-plugin@4.2.0:
     dependencies:
@@ -6793,6 +6997,22 @@ snapshots:
   universalify@2.0.1: {}
 
   unpipe@1.0.0: {}
+
+  unplugin-swc@1.5.10(@swc/core@1.15.47)(rollup@4.62.2):
+    dependencies:
+      '@rollup/pluginutils': 5.4.0(rollup@4.62.2)
+      '@swc/core': 1.15.47
+      load-tsconfig: 0.2.5
+      unplugin: 2.3.11
+    transitivePeerDependencies:
+      - rollup
+
+  unplugin@2.3.11:
+    dependencies:
+      '@jridgewell/remapping': 2.3.5
+      acorn: 8.17.0
+      picomatch: 4.0.5
+      webpack-virtual-modules: 0.6.2
 
   update-browserslist-db@1.2.3(browserslist@4.28.4):
     dependencies:
@@ -6915,7 +7135,9 @@ snapshots:
 
   webpack-sources@3.5.0: {}
 
-  webpack@5.97.1(lightningcss@1.32.0):
+  webpack-virtual-modules@0.6.2: {}
+
+  webpack@5.97.1(@swc/core@1.15.47)(lightningcss@1.32.0):
     dependencies:
       '@types/eslint-scope': 3.7.7
       '@types/estree': 1.0.9
@@ -6937,7 +7159,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 3.3.0
       tapable: 2.3.3
-      terser-webpack-plugin: 5.6.1(lightningcss@1.32.0)(webpack@5.97.1(lightningcss@1.32.0))
+      terser-webpack-plugin: 5.6.1(@swc/core@1.15.47)(lightningcss@1.32.0)(webpack@5.97.1(@swc/core@1.15.47)(lightningcss@1.32.0))
       watchpack: 2.5.2
       webpack-sources: 3.5.0
     transitivePeerDependencies:

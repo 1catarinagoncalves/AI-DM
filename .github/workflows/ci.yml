@@ -93,6 +93,22 @@ jobs:
 
       - run: pnpm test
 
+      # US-95: a costura HTTP → serviço → Prisma → Postgres, contra o MESMO serviço
+      # que o gate de drift usa. Passo à parte do `pnpm test` de propósito: a aba de
+      # checks diz qual camada caiu sem abrir o log.
+      #
+      # `TEST_DATABASE_URL` vive AQUI, no passo, e não no `env:` do job. A DATABASE_URL
+      # do job continua fictícia, e é ela que faz o `pnpm test` acima provar que roda
+      # sem banco (US-80, Questão #2) — promovê-la a real mataria essa prova em silêncio.
+      #
+      # Database `postgres`, NÃO `shadow`: o `migrate diff --from-migrations` derruba e
+      # recria o shadow, então compartilhá-lo seria corrida. A imagem oficial sempre cria
+      # o database `postgres`, o que dispensa um passo de `createdb`.
+      - name: Testes de integração com banco
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: pnpm test:int
+
       # Gate de código morto (US-89): arquivo sem importador, dep declarada e
       # nunca importada, export de contrato sem consumidor. Reprova de verdade —
       # se um tipo de achado precisar ser parcado, é `--exclude <tipo>` no

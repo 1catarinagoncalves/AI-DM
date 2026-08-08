@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-38](./US-38-rolagens-ancoradas-na-ficha.md) (é a resolução do modificador dela que ganha um termo a mais) · [US-108](./US-108-tabela-de-modificadores-do-srd-2024.md) (o `Rule.json` do SRD 2024 já entrou no `sync`; o texto normativo do d20 test já está baixado)
 **Relacionado:** [US-27](./US-27-pericias-do-personagem.md) (o modificador da ficha, que continua sendo o outro termo) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (o bloco de rolagem exibido antes da narração) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (proveniência no ledger — é a mesma disciplina aplicada à rolagem) · [US-48](./US-48-getrule-corpus-de-regras.md) (o corpus que um dia dará vocabulário fechado de circunstância) · [ADR 003](../../adr/003-sistemas-como-dado.md) (sistema como dado)
 **Criada em:** 2026-08-06

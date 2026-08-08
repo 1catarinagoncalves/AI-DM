@@ -7,6 +7,7 @@
     "build": "pnpm --fail-if-no-match --filter \"./packages/*\" build && pnpm --fail-if-no-match --filter \"./apps/*\" build",
     "typecheck": "pnpm --recursive typecheck",
     "test": "pnpm --recursive test",
+    "test:int": "pnpm --fail-if-no-match --filter api test:int",
     "eval": "pnpm --fail-if-no-match --filter ai-engine eval",
     "db:migrate": "dotenv -e .env -- pnpm --fail-if-no-match --filter api db:migrate",
     "db:studio": "dotenv -e .env -- pnpm --fail-if-no-match --filter api db:studio",
