@@ -391,7 +391,7 @@ export class AiService {
           // US-38: um teste por ação — 2º teste ancorado no turno (inclusive numa
           // tentativa de fallback) reusa o 1º.
           if (isAnchored && rolls.first) {
-            console.warn(`[AiService] rollDice: teste repetido no mesmo turno (skill=${skill} ability=${ability}) — reusando o 1º (um teste por ação)`)
+            console.log(JSON.stringify({ event: 'roll_dedup', turnId, timestamp: new Date().toISOString(), skill, ability }))
             return rolls.first
           }
 
@@ -400,7 +400,7 @@ export class AiService {
           // rótulo canônico da perícia/atributo, exibido no bloco.
           const { modifier, unresolved, label: skillLabel } = resolveRollModifier({ skill, ability, skills: resolvedSkills, attributes, attributeLabels })
           if (unresolved) {
-            console.warn(`[AiService] rollDice sem perícia/atributo resolvível (skill=${skill} ability=${ability}) → +0. reason="${reason}"`)
+            console.log(JSON.stringify({ event: 'roll_unresolved_skill', turnId, timestamp: new Date().toISOString(), skill, ability, reason }))
           }
           const base = normalizeDie(dice)
           const formula = `${base}${modifier >= 0 ? '+' : ''}${modifier}`
@@ -692,8 +692,16 @@ export class AiService {
         // (via metadataExtractor, em model.ts) e o dump saiu: uma linha a menos por turno.
         // `model=` nomeia o nível da escada que serviu (flash / pro / Groq).
         console.log(
-          `[AiService] onFinish finishReason=${finishReason} model=${model.modelId ?? 'unknown'}` +
-            ` ${formatProvenance(providerMetadata)} tokens=${JSON.stringify(usage)} steps=${steps.length}`,
+          JSON.stringify({
+            event: 'turn_summary',
+            turnId,
+            timestamp: new Date().toISOString(),
+            finishReason,
+            model: model.modelId ?? 'unknown',
+            provenance: formatProvenance(providerMetadata),
+            tokens: usage,
+            steps: steps.length,
+          }),
         )
         // US-55 spike de cache: o pin @ai-sdk/openai-compatible@0.2.16 não
         // normaliza cached tokens no `usage` (só promptTokens/completionTokens); o
@@ -737,9 +745,13 @@ export class AiService {
         // canais no content.
         const { clean: withoutReasoning, removed: leaked } = stripReasoningLeak((shown || text).trim())
         if (leaked.length > 0) {
-          console.warn(
-            `[AiService] saneador removeu raciocínio vazado da narração (${leaked.length} trecho(s)):`,
-            leaked.map((l) => l.slice(0, 120)),
+          console.log(
+            JSON.stringify({
+              event: 'leak_reasoning_stripped',
+              turnId,
+              timestamp: new Date().toISOString(),
+              leaked: leaked.map((l) => l.slice(0, 120)),
+            }),
           )
         }
         // US-29: rede de segurança — remove da narração qualquer resultado de
@@ -748,7 +760,7 @@ export class AiService {
         // histórico e o resumo (US-18) nunca realimentam a alucinação.
         const { clean: withoutRolls, removed } = stripFabricatedRolls(withoutReasoning)
         if (removed.length > 0) {
-          console.warn(`[AiService] saneador removeu ${removed.length} rolagem(ns) fictícia(s) da narração:`, removed)
+          console.log(JSON.stringify({ event: 'leak_fake_roll_stripped', turnId, timestamp: new Date().toISOString(), removed }))
         }
         // Rede de segurança — remove tags de control-plane (`[WORLD_STATE_UPDATE:...]`)
         // que o modelo tenha cravado na prosa apesar do prompt. É sink legado que
@@ -756,14 +768,21 @@ export class AiService {
         // histórico/resumo e realimenta o vazamento nos próximos turnos.
         const { clean: finalText, removed: stateTags } = stripWorldStateTags(withoutRolls)
         if (stateTags.length > 0) {
-          console.warn(`[AiService] saneador removeu ${stateTags.length} tag(s) de estado vazada(s) da narração:`, stateTags)
+          console.log(JSON.stringify({ event: 'leak_state_tag_stripped', turnId, timestamp: new Date().toISOString(), stateTags }))
         }
         // US-69: turno cortado pelo guard anti-degeneração (loop de repetição
         // detectado mid-stream). O jogador já teve o parcial descartado no cliente e
         // o turno vai ser reescrito — NÃO persistir o lixo nem sumarizar em cima dele.
         // (Sai depois dos saneadores/log só para o diagnóstico continuar visível.)
         if (turnGuard.degenerated) {
-          console.warn('[AiService] turno degenerado descartado pelo guard (US-69) — não persistido')
+          console.log(
+            JSON.stringify({
+              event: 'turn_discarded_degenerate',
+              turnId,
+              timestamp: new Date().toISOString(),
+              reason: 'guard anti-degeneração (US-69)',
+            }),
+          )
           return
         }
         // US-74: turno truncado — narração sem a lista de opções obrigatória (o modelo
@@ -772,7 +791,14 @@ export class AiService {
         // (predicado puro idêntico) e re-amostra. Só quando HÁ prosa — um turno vazio já
         // cai no guard `finalText.length > 0` abaixo (fallback/erro antes de emitir texto).
         if (turnGuard.incomplete || (finalText.length > 0 && !hasOptionsList(finalText))) {
-          console.warn('[AiService] turno truncado sem lista de opções (US-74) — não persistido; controller re-amostra')
+          console.log(
+            JSON.stringify({
+              event: 'turn_discarded_truncated',
+              turnId,
+              timestamp: new Date().toISOString(),
+              reason: 'sem lista de opções (US-74); controller re-amostra',
+            }),
+          )
           turnGuard.incomplete = true
           return
         }
@@ -790,11 +816,11 @@ export class AiService {
           // custo zero, NÃO regenera — só loga quando um nome clichê passa. Dá a
           // métrica de prod pra decidir enforcement (regeneração) com dado depois.
           const slop = detectSlopName(finalText)
-          if (slop.slop) console.warn(`[AiService][slop] nome clichê na narração: "${slop.match}" (observabilidade; não regenera)`)
+          if (slop.slop) console.log(JSON.stringify({ event: 'slop_name', turnId, timestamp: new Date().toISOString(), match: slop.match }))
           // US-36: avaliação de qualidade AO VIVO em dev (async, fire-and-forget).
           // NÃO dar await — o jogador já recebeu o stream; a nota chega ao log
           // depois. Só roda atrás de DM_LIVE_EVAL (nunca em produção).
-          void this.liveEvalTurn(message, finalText)
+          void this.liveEvalTurn(message, finalText, turnId)
           // US-73: rede de segurança contra o sceneState apodrecer. Se o modelo NÃO
           // manteve a cena via `updateScene` neste turno (comum em turnos de
           // viagem→chegada), reconcilia o sceneState com a narração em background —
@@ -1044,8 +1070,7 @@ export class AiService {
    * US-67 desativaria a edição de turnos de conversa). Fire-and-forget: nunca lança —
    * o turno já foi entregue ao jogador.
    */
-  // `turnId` (US-117/ADR 011): recebido e ainda não consumido aqui — fica pronto
-  // para o `arc_signal` (US-116) e para quando este log migrar para JSON (US-118).
+  // `turnId` (US-117/ADR 011) consumido no `scene_reconciled` abaixo (US-119).
   private async reconcileScene(adventureId: string, characterId: string, narration: string, playerName: string, turnId?: string): Promise<void> {
     const text = narration.trim()
     if (text.length === 0) return
@@ -1071,7 +1096,9 @@ export class AiService {
         where: { characterId_adventureId: { characterId, adventureId } },
         data: { sceneState: next as unknown as object },
       })
-      console.log(`[AiService][reconcile] cena sincronizada: local="${next.local}" presentes=[${next.presentes.join(', ')}]`)
+      console.log(
+        JSON.stringify({ event: 'scene_reconciled', turnId, timestamp: new Date().toISOString(), local: next.local, presentes: next.presentes }),
+      )
     } catch (err) {
       logLlmFailure('reconcileScene', 'a cena não sincroniza com a narração deste turno', err)
     }
@@ -1090,7 +1117,7 @@ export class AiService {
    * - Reuso total: `judgeModel()` + `judgeTurn` sem exemplar (turno real não tem
    *   âncora) — zero lógica de pontuação nova.
    */
-  private async liveEvalTurn(playerAction: string, narration: string): Promise<void> {
+  private async liveEvalTurn(playerAction: string, narration: string, turnId?: string): Promise<void> {
     if (!process.env.DM_LIVE_EVAL) return
     try {
       const { score } = await judgeTurn({
@@ -1104,7 +1131,9 @@ export class AiService {
       )
     } catch (err) {
       // Fire-and-forget: o turno já foi entregue. O juiz é opcional.
-      console.warn('[AiService][live-eval] juiz falhou (ignorado):', (err as Error).message)
+      console.log(
+        JSON.stringify({ event: 'live_eval_judge_failed', turnId, timestamp: new Date().toISOString(), error: (err as Error).message }),
+      )
     }
   }
 

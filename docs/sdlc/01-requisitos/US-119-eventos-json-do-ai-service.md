@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (observabilidade) — [ADR 011](../../adr/011-observabilidade-em-camadas.md)
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Concluída
 **Depende de:** [US-117](./US-117-turnid-por-turno.md) — `turnId` por turno, campo obrigatório em toda linha desta US
 **Relacionada a:** [ADR 011](../../adr/011-observabilidade-em-camadas.md) — Camada 2, Grupos A e C do inventário · [US-116](./US-116-observabilidade-da-cena-nao-avancada.md) — mesmo formato JSON, `arc_signal` no mesmo arquivo · Camada 4 do ADR 011 (persistência de custo/duração), que depende do campo `turn_summary` desta US antes de poder ser decidida
 
@@ -56,11 +56,11 @@ Todas as linhas carregam os campos fixos da Camada 0: `event`, `turnId` (US-117)
 
 ## Critérios de aceite
 
-- [ ] As 11 linhas emitem `console.log`/`warn`(`JSON.stringify({ event, turnId, timestamp, ...campos }))`, parseável.
-- [ ] Nenhum array hoje logado (`removed`, `leaked`, `stateTags`, `presentes`) vira string concatenada no JSON — permanece array.
-- [ ] `tokens=${JSON.stringify(usage)}` (`:694`) vira campo `tokens` como objeto real dentro do JSON da linha, não string aninhada duas vezes serializada.
-- [ ] Nenhuma mudança de comportamento — guards, saneador e reconciliação continuam agindo igual; testes existentes de `ai.service.ts` passam sem alteração de asserção sobre a lógica.
-- [ ] `pnpm typecheck` passa.
+- [x] As 11 linhas emitem `console.log`(`JSON.stringify({ event, turnId, timestamp, ...campos }))`, parseável.
+- [x] Nenhum array hoje logado (`removed`, `leaked`, `stateTags`, `presentes`) vira string concatenada no JSON — permanece array.
+- [x] `tokens=${JSON.stringify(usage)}` (`:694`) vira campo `tokens` como objeto real dentro do JSON da linha, não string aninhada duas vezes serializada.
+- [x] Nenhuma mudança de comportamento — guards, saneador e reconciliação continuam agindo igual; testes existentes de `ai.service.ts` passam sem alteração de asserção sobre a lógica.
+- [x] `pnpm typecheck` passa.
 
 ---
 
@@ -72,6 +72,8 @@ Todas as linhas carregam os campos fixos da Camada 0: `event`, `turnId` (US-117)
 - `:694` hoje serializa `tokens=${JSON.stringify(usage)}` **dentro** de uma template string — ao migrar para JSON, `usage` vira campo direto do objeto (`tokens: usage`), não precisa de `JSON.stringify` aninhado (o `JSON.stringify` externo já cobre).
 - `:1072` hoje já faz `next.presentes.join(', ')` para caber na string de texto — a migração é a oportunidade de voltar a mandar o array (`presentes: next.presentes`), sem perda de estrutura.
 - Se esta US rodar **depois** da US-118, seguir exatamente o mesmo formato de campo já estabelecido lá (`event`/`turnId`/`timestamp` como chaves, nessa ordem, por consistência de leitura — não é requisito técnico, é legibilidade).
+- `liveEvalTurn` não recebia `turnId` (só `playerAction`/`narration`); precisou de um 3º parâmetro opcional para o call site do `onFinish` repassar o `turnId` que já estava no closure.
+- `:694` preserva também `formatProvenance(providerMetadata)`, hoje concatenado na mesma linha de texto — virou campo `provenance` no JSON em vez de ser descartado.
 
 ---
 
