@@ -868,7 +868,7 @@ export class AiService {
       // Mesma cadeia de saneadores do onFinish: o fecho volta ao histórico como contexto.
       closure = stripWorldStateTags(stripFabricatedRolls(stripReasoningLeak(text).clean).clean).clean.trim()
     } catch (err) {
-      logLlmFailure('completeTruncatedTurn: geração do fecho', 'usa o fecho estático', err)
+      logLlmFailure('completeTruncatedTurn: geração do fecho', 'usa o fecho estático', err, turnId)
     }
 
     // Garante o contrato de fecho: sem opções (falha, vazio, ou o modelo ignorou) → anexa
@@ -1100,7 +1100,7 @@ export class AiService {
         JSON.stringify({ event: 'scene_reconciled', turnId, timestamp: new Date().toISOString(), local: next.local, presentes: next.presentes }),
       )
     } catch (err) {
-      logLlmFailure('reconcileScene', 'a cena não sincroniza com a narração deste turno', err)
+      logLlmFailure('reconcileScene', 'a cena não sincroniza com a narração deste turno', err, turnId)
     }
   }
 

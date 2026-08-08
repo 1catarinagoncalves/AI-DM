@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (observabilidade) — [ADR 011](../../adr/011-observabilidade-em-camadas.md)
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída
+**Status:** ✅ Implementada
 **Depende de:** [US-117](./US-117-turnid-por-turno.md) — `turnId` por turno, campo obrigatório em toda linha desta US
 **Relacionada a:** [ADR 011](../../adr/011-observabilidade-em-camadas.md) — Camada 2, Grupos A e C do inventário · [US-116](./US-116-observabilidade-da-cena-nao-avancada.md) — mesmo formato JSON, `arc_signal` no mesmo arquivo · Camada 4 do ADR 011 (persistência de custo/duração), que depende do campo `turn_summary` desta US antes de poder ser decidida
 

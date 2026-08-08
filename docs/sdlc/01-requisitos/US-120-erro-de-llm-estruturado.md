@@ -2,8 +2,8 @@
 
 **Épico:** Deploy e operação (observabilidade) — [ADR 011](../../adr/011-observabilidade-em-camadas.md)
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-117](./US-117-turnid-por-turno.md) — `turnId`, opcional aqui (ver *Questões em aberto*)
+**Status:** ✅ Implementada
+**Depende de:** [US-117](./US-117-turnid-por-turno.md) — ✅ implementada. `turnId` chega pronto (como parâmetro opcional já em escopo) em 2 dos 7 call sites de `logLlmFailure` (ver *Questões em aberto*, resolvida)
 **Relacionada a:** [ADR 011](../../adr/011-observabilidade-em-camadas.md) — Camada 2, Grupo B do inventário · Camada 4 do ADR 011 (`errorOccurred` por turno depende de um sinal estruturado de erro)
 **Criada em:** 2026-08-08
 
@@ -19,7 +19,7 @@
 
 ## Contexto e motivação
 
-`logLlmFailure` (`llm-error.ts`) é chamada por 7 pontos de `ai.service.ts` (`:845`, `:945`, `:950`, `:989`, `:1027`, `:1074`, `:1173`) — abertura de aventura, turno em andamento e reconciliação de cena. As duas chamadas de `console.error` vivem **dentro da função**, não em cada `catch`: migrar a função por si só já cobre todos os 7 call sites, sem tocar em nenhum deles. É o caso do inventário do [ADR 011](../../adr/011-observabilidade-em-camadas.md) onde a regra "conserta na raiz, não em cada sintoma" (`AGENTS.md`/ponytail) se aplica direto — 1 edição, 7 pontos corrigidos.
+`logLlmFailure` (`llm-error.ts`) é chamada por 7 pontos de `ai.service.ts` (`:871`, `:971`, `:976`, `:1015`, `:1053`, `:1103`, `:1204` — linhas pós US-117/118/119, deslocadas das originais) — abertura de aventura, turno em andamento e reconciliação de cena. As duas chamadas de `console.error` vivem **dentro da função**, não em cada `catch`: migrar a função por si só já cobre todos os 7 call sites, sem tocar em nenhum deles. É o caso do inventário do [ADR 011](../../adr/011-observabilidade-em-camadas.md) onde a regra "conserta na raiz, não em cada sintoma" (`AGENTS.md`/ponytail) se aplica direto — 1 edição, 7 pontos corrigidos.
 
 A função já distingue 4xx (bug nosso, recusa do provider, não-transitório) de 5xx/rede (degradação esperada, fallback existe) — essa distinção vira campo (`recoverable`), não se perde na migração.
 
@@ -38,19 +38,19 @@ A função já distingue 4xx (bug nosso, recusa do provider, não-transitório) 
 ### Fora do escopo
 
 - Mudar a lógica de distinção 4xx/5xx ou o que cada `scope` faz — só o formato do log.
-- Os 7 call sites em `ai.service.ts` que chamam `logLlmFailure` — nenhum precisa mudar, é o ponto central da US.
+- Os 7 call sites em `ai.service.ts` que chamam `logLlmFailure` — 5 não precisam mudar (é o ponto central da US); `:871` e `:1103` ganham 1 argumento a mais (`turnId`, já em escopo na função) — ver *Questões em aberto*.
 - Decidir a Camada 4 (persistir `errorOccurred` no banco) — esta US só deixa o sinal em JSON, pronto para quando/se a Camada 4 for priorizada.
 
 ---
 
 ## Critérios de aceite
 
-- [ ] As 2 chamadas de `console.error` em `llm-error.ts` emitem JSON parseável com `event: 'llm_call_failed'`.
-- [ ] Campo `recoverable` reflete corretamente o ramo (4xx → `false`; 5xx/rede → `true`).
-- [ ] `scope` e `consequence` (parâmetros já existentes da função) aparecem como campos, não interpolados em string.
-- [ ] Nenhum dos 7 call sites em `ai.service.ts` precisa de alteração — a assinatura de `logLlmFailure(scope, consequence, err)` não muda (ou, se `turnId` opcional entrar — ver *Questões em aberto* — é o único parâmetro novo, com default).
-- [ ] `llm-error.test.ts` atualizado e passando com o novo formato.
-- [ ] `pnpm typecheck` passa.
+- [x] As 2 chamadas de `console.error` em `llm-error.ts` emitem JSON parseável com `event: 'llm_call_failed'`.
+- [x] Campo `recoverable` reflete corretamente o ramo (4xx → `false`; 5xx/rede → `true`).
+- [x] `scope` e `consequence` (parâmetros já existentes da função) aparecem como campos, não interpolados em string.
+- [x] `logLlmFailure` ganha 4º parâmetro opcional `turnId?: string`. Só 2 dos 7 call sites precisam de alteração para passá-lo — `:871` (`completeTruncatedTurn`, já recebe `turnId` no parâmetro da função) e `:1103` (`reconcileScene`, idem) — os outros 5 seguem sem passar nada (ver *Questões em aberto*, resolvida).
+- [x] `llm-error.test.ts` atualizado e passando com o novo formato.
+- [x] `pnpm typecheck` passa.
 
 ---
 
@@ -65,9 +65,18 @@ A função já distingue 4xx (bug nosso, recusa do provider, não-transitório) 
 
 ## Questões em aberto
 
-1. **`turnId` (US-117) entra aqui ou fica de fora?** `logLlmFailure` é chamada tanto durante a abertura de aventura (`:945`, `:950`, `:989`, `:1027` — sem turno, sem `turnId`) quanto durante turnos reais (`:845`, `:1074`, `:1173` — com `turnId`, se US-117 já estiver implementada).
+1. ~~**`turnId` (US-117) entra aqui ou fica de fora?**~~ — **Resolvida.** US-117 implementada; conferido no código atual (`ai.service.ts`) quais dos 7 call sites têm `turnId` em escopo:
 
-   **Encaminhamento:** `turnId` vira parâmetro **opcional** (`turnId?: string`) de `logLlmFailure`, `undefined` nos call sites de abertura. Os 3 call sites de turno passam o valor quando a US-117 já existir; os 4 de abertura seguem sem passar nada. Não bloqueia esta US esperar a US-117 terminar primeiro — o campo pode nascer opcional e ser preenchido depois nos 3 call sites de turno, em PR separado se for mais simples.
+   | Call site (linha atual) | Função | `turnId` em escopo? |
+   |---|---|---|
+   | `:871` | `completeTruncatedTurn` | Sim — parâmetro `turnId?: string` já existe |
+   | `:971`, `:976` | abertura de aventura (loop de modelo) | Não — abertura não tem `turnId` (US-117 §Fora do escopo) |
+   | `:1015` | extração da cena da abertura | Não — idem |
+   | `:1053` | semeadura de entidades da abertura | Não — idem |
+   | `:1103` | `reconcileScene` | Sim — parâmetro `turnId?: string` já existe (US-119 já usa no `scene_reconciled`, mas não repassa a `logLlmFailure`) |
+   | `:1204` | `summarizeOldTurns` | Não — função fire-and-forget, não recebe `turnId` mesmo rodando após um turno |
+
+   **Encaminhamento:** `turnId` vira parâmetro **opcional** (`turnId?: string`) de `logLlmFailure`. Só `:871` e `:1103` passam o valor (já o têm em mãos); os outros 5 seguem sem passar nada — não é hipótese, é o estado real do código pós-US-117.
 
 ---
 
@@ -75,5 +84,6 @@ A função já distingue 4xx (bug nosso, recusa do provider, não-transitório) 
 
 - [`apps/api/src/ai/llm-error.ts`](../../../apps/api/src/ai/llm-error.ts) — a função inteira, os 2 call sites internos desta US.
 - [`apps/api/src/ai/llm-error.test.ts`](../../../apps/api/src/ai/llm-error.test.ts) — testes a atualizar.
-- [`apps/api/src/ai/ai.service.ts:845,945,950,989,1027,1074,1173`](../../../apps/api/src/ai/ai.service.ts) — os 7 chamadores, nenhum precisa mudar.
+- [`apps/api/src/ai/ai.service.ts:871,971,976,1015,1053,1103,1204`](../../../apps/api/src/ai/ai.service.ts) — os 7 chamadores; só `:871` e `:1103` mudam (passam `turnId`).
+- [US-117](./US-117-turnid-por-turno.md) — `turnId` por turno, implementada; `completeTruncatedTurn` e `reconcileScene` já recebem `turnId?: string` como parâmetro, pronto para repassar a `logLlmFailure`.
 - [ADR 011](../../adr/011-observabilidade-em-camadas.md) — Camada 2, Grupo B do inventário, decisão que esta US implementa.

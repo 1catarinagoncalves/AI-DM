@@ -21,20 +21,42 @@ import { APICallError } from 'ai'
  *
  * @param scope o que falhou, em uma frase ('extração da cena da abertura')
  * @param consequence o que o jogador perde com a degradação ('sceneState fica nulo')
+ * @param turnId turno que originou a chamada (US-117); ausente em chamadas de abertura de aventura
  */
-export function logLlmFailure(scope: string, consequence: string, err: unknown): void {
+export function logLlmFailure(scope: string, consequence: string, err: unknown, turnId?: string): void {
   const status = APICallError.isInstance(err) ? err.statusCode : undefined
 
   if (status !== undefined && status >= 400 && status < 500) {
     const call = err as APICallError
     const model = (call.requestBodyValues as { model?: string } | undefined)?.model ?? 'desconhecido'
     console.error(
-      `[AiService] ALERTA — ${scope}: o provider RECUSOU o request (HTTP ${status}). ` +
-        `Não é transitório: esta chamada falha SEMPRE até o request mudar. ${consequence}. ` +
-        `modelo=${model} resposta=${(call.responseBody ?? call.message).slice(0, 400)}`,
+      JSON.stringify({
+        event: 'llm_call_failed',
+        turnId,
+        timestamp: new Date().toISOString(),
+        scope,
+        consequence,
+        statusCode: status,
+        recoverable: false,
+        model,
+        errorMessage: (call.responseBody ?? call.message).slice(0, 400),
+      }),
     )
     return
   }
 
-  console.error(`[AiService] ${scope} falhou${status ? ` (HTTP ${status})` : ''}, degradando: ${consequence}:`, err)
+  // Erro inteiro (stack) passa à parte, fora do JSON: é o que se tem para investigar 5xx/rede.
+  console.error(
+    JSON.stringify({
+      event: 'llm_call_failed',
+      turnId,
+      timestamp: new Date().toISOString(),
+      scope,
+      consequence,
+      statusCode: status,
+      recoverable: true,
+      errorMessage: err instanceof Error ? err.message : String(err),
+    }),
+    err,
+  )
 }

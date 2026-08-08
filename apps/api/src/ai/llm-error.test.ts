@@ -19,27 +19,31 @@ const captureError = () => vi.spyOn(console, 'error').mockImplementation(() => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('log de falha de LLM', () => {
-  it('400 vira ALERTA, nomeia modelo e resposta, e não passa o erro adiante', () => {
+  it('400 vira evento não-recuperável, com model/statusCode/errorMessage, sem stack', () => {
     const spy = captureError()
     logLlmFailure('extração da cena', 'sceneState fica nulo', apiError(400, 'Thinking mode does not support this tool_choice'))
 
     const [linha, ...resto] = spy.mock.calls[0]!
-    expect(linha).toContain('ALERTA')
-    expect(linha).toContain('falha SEMPRE')
-    expect(linha).toContain('deepseek/deepseek-v4-flash')
-    expect(linha).toContain('Thinking mode does not support this tool_choice')
+    const evento = JSON.parse(linha as string)
+    expect(evento.event).toBe('llm_call_failed')
+    expect(evento.recoverable).toBe(false)
+    expect(evento.statusCode).toBe(400)
+    expect(evento.model).toBe('deepseek/deepseek-v4-flash')
+    expect(evento.errorMessage).toContain('Thinking mode does not support this tool_choice')
     // Sem o objeto de erro: em 4xx o stack do SDK não diz nada e é ele que enterra a linha.
     expect(resto).toHaveLength(0)
   })
 
-  it('5xx é degradação esperada: sem ALERTA e com o erro inteiro para investigar', () => {
+  it('5xx é degradação esperada: recoverable=true e o erro inteiro passado à parte para investigar', () => {
     const spy = captureError()
     const err = apiError(520, 'error code: 520')
     logLlmFailure('semeadura de entidades', 'ledger fica vazio', err)
 
     const [linha, passado] = spy.mock.calls[0]!
-    expect(linha).not.toContain('ALERTA')
-    expect(linha).toContain('degradando')
+    const evento = JSON.parse(linha as string)
+    expect(evento.event).toBe('llm_call_failed')
+    expect(evento.recoverable).toBe(true)
+    expect(evento.statusCode).toBe(520)
     expect(passado).toBe(err)
   })
 
@@ -49,8 +53,18 @@ describe('log de falha de LLM', () => {
     logLlmFailure('resumo da memória', 'resumo não avança', err)
 
     const [linha, passado] = spy.mock.calls[0]!
-    expect(linha).not.toContain('ALERTA')
-    expect(linha).not.toContain('HTTP')
+    const evento = JSON.parse(linha as string)
+    expect(evento.recoverable).toBe(true)
+    expect(evento.statusCode).toBeUndefined()
     expect(passado).toBe(err)
+  })
+
+  it('turnId, quando passado, entra no evento; ausente vira undefined (serializado fora do JSON)', () => {
+    const spy = captureError()
+    logLlmFailure('reconcileScene', 'cena não sincroniza', new Error('boom'), 'turn-abc')
+
+    const [linha] = spy.mock.calls[0]!
+    const evento = JSON.parse(linha as string)
+    expect(evento.turnId).toBe('turn-abc')
   })
 })
