@@ -146,9 +146,9 @@ describe('AiService.completeTruncatedTurn (US-74)', () => {
     // `reconcileScene` é privado e é LLM + DB — a US-73 já o cobre por dentro.
     // O que falta cobrir é a CHAMADA a partir do salvamento, então aqui ele é
     // substituído por um gravador.
-    const reconciled: Array<{ narration: string; playerName: string }> = []
-    const spy = async (_adventureId: string, _characterId: string, narration: string, playerName: string) => {
-      reconciled.push({ narration, playerName })
+    const reconciled: Array<{ narration: string; playerName: string; turnId?: string }> = []
+    const spy = async (_adventureId: string, _characterId: string, narration: string, playerName: string, turnId?: string) => {
+      reconciled.push({ narration, playerName, turnId })
     }
     ;(svc as unknown as { reconcileScene: typeof spy }).reconcileScene = spy
 
@@ -194,6 +194,28 @@ describe('AiService.completeTruncatedTurn (US-74)', () => {
 
     expect(closure).toContain('- 💬 Continuar.')
     expect(narrations[0]).toContain('- 💬 Continuar.')
+  })
+
+  // US-117 (ADR 011): turnId é parâmetro opcional propagado ao reconciliador — aqui
+  // é a função "chamada dentro do mesmo turno" mais barata de testar (a outra,
+  // `streamChat`, exige montar personagem/aventura/quests inteiros pro onFinish rodar).
+  it('US-117: propaga o turnId recebido para reconcileScene', async () => {
+    const { svc, reconciled } = salvageService()
+    salvage.text = 'A grade cede.\n\n- 🗡️ Descer.'
+
+    await svc.completeTruncatedTurn(INPUT, 'O beco engole o som dos seus passos.', 'turn-abc-123')
+
+    expect(reconciled).toHaveLength(1)
+    expect(reconciled[0]!.turnId).toBe('turn-abc-123')
+  })
+
+  it('US-117: sem turnId (chamador não passou) → reconcileScene recebe undefined, não quebra', async () => {
+    const { svc, reconciled } = salvageService()
+    salvage.text = 'A grade cede.\n\n- 🗡️ Descer.'
+
+    await svc.completeTruncatedTurn(INPUT, 'O beco engole o som dos seus passos.')
+
+    expect(reconciled[0]!.turnId).toBeUndefined()
   })
 })
 

@@ -244,7 +244,7 @@ export class AiService {
     })
   }
 
-  async streamChat(input: ChatInput, attempt = 0, rollState?: RollTurnState) {
+  async streamChat(input: ChatInput, attempt = 0, rollState?: RollTurnState, turnId?: string) {
     const { adventureId, characterId, message } = input
 
     // Carrega contexto do banco
@@ -802,7 +802,7 @@ export class AiService {
           // apontar para trás, alimentando o replay (bug de `erro narração 2`). Roda
           // SÓ quando o modelo negligenciou a cena → custo zero nos turnos disciplinados.
           const cenaTocada = steps.some((s) => (s.toolCalls ?? []).some((tc) => tc.toolName === 'updateScene'))
-          if (!cenaTocada) void this.reconcileScene(adventureId, characterId, finalText, character.name)
+          if (!cenaTocada) void this.reconcileScene(adventureId, characterId, finalText, character.name, turnId)
         }
         await this.summarizeOldTurns(adventureId, characterId)
       },
@@ -825,7 +825,7 @@ export class AiService {
    * já mostrou. Nunca lança: falha/vazio devolve um fecho estático — o jogador nunca fica
    * sem saída.
    */
-  async completeTruncatedTurn(input: ChatInput, narration: string): Promise<string> {
+  async completeTruncatedTurn(input: ChatInput, narration: string, turnId?: string): Promise<string> {
     const { adventureId, characterId, message } = input
     const base = narration.trimEnd()
 
@@ -874,7 +874,7 @@ export class AiService {
       where: { id: characterId },
       select: { name: true },
     })
-    void this.reconcileScene(adventureId, characterId, finalText, character?.name ?? '')
+    void this.reconcileScene(adventureId, characterId, finalText, character?.name ?? '', turnId)
 
     await this.summarizeOldTurns(adventureId, characterId)
 
@@ -1044,7 +1044,9 @@ export class AiService {
    * US-67 desativaria a edição de turnos de conversa). Fire-and-forget: nunca lança —
    * o turno já foi entregue ao jogador.
    */
-  private async reconcileScene(adventureId: string, characterId: string, narration: string, playerName: string): Promise<void> {
+  // `turnId` (US-117/ADR 011): recebido e ainda não consumido aqui — fica pronto
+  // para o `arc_signal` (US-116) e para quando este log migrar para JSON (US-118).
+  private async reconcileScene(adventureId: string, characterId: string, narration: string, playerName: string, turnId?: string): Promise<void> {
     const text = narration.trim()
     if (text.length === 0) return
     try {

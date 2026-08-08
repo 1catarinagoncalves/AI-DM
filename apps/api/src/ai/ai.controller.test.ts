@@ -190,6 +190,40 @@ describe('AiController.chat — guard de turno truncado (US-74, salvamento)', ()
   })
 })
 
+describe('AiController.chat — turnId por turno (US-117)', () => {
+  it('reroll do mesmo turno reusa o turnId; um 2º turno gera um turnId diferente', async () => {
+    const craParts = () => Array.from({ length: 30 }, () => ({ type: 'text-delta', textDelta: 'cra ' }))
+    const cleanParts = [{ type: 'text-delta', textDelta: 'A erva se chama valeriana-da-noite.\n\n- 🌿 Colher a erva.' }]
+    let call = 0
+    const turnIdsSeen: string[] = []
+    const svc = {
+      assertCharacterOwner: async () => {},
+      streamChat: async (_input: unknown, _modelIndex: number, _rollState: unknown, turnId: string) => {
+        turnIdsSeen.push(turnId)
+        const turnGuard = { degenerated: false }
+        // 1ª chamada de cada turno degenera (força o reroll); a 2ª sai limpa.
+        const parts = call++ % 2 === 0 ? craParts() : cleanParts
+        return {
+          result: { fullStream: (async function* () { for (const p of parts) yield p })() },
+          hasFallback: false, // sem escada: prova o reroll no MESMO modelo
+          turnGuard,
+        }
+      },
+    } as unknown as AiService
+    const controller = new AiController(svc)
+
+    const { res: res1 } = fakeRes()
+    await controller.chat({ adventureId: 'a1', characterId: 'c1', message: 'como se chama a erva' }, res1, { userId: 'u1' })
+    const { res: res2 } = fakeRes()
+    await controller.chat({ adventureId: 'a1', characterId: 'c1', message: 'como se chama a erva' }, res2, { userId: 'u1' })
+
+    expect(turnIdsSeen).toHaveLength(4) // 2 chamadas (degenera + reroll) por turno × 2 turnos
+    expect(turnIdsSeen[0]).toBe(turnIdsSeen[1]) // reroll do 1º turno reusa o turnId
+    expect(turnIdsSeen[2]).toBe(turnIdsSeen[3]) // reroll do 2º turno reusa o turnId
+    expect(turnIdsSeen[0]).not.toBe(turnIdsSeen[2]) // turnos diferentes → turnId diferente
+  })
+})
+
 describe('AiController.chat — edição do último turno (US-67)', () => {
   it('edição: limpa o rastro do último turno antes de streamar', async () => {
     let cleared = false

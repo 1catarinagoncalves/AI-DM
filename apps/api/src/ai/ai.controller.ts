@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Res, HttpCode, UseGuards, ForbiddenException } from '@nestjs/common'
 import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { Response } from 'express'
+import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import { detectDegeneration, hasOptionsList } from '@ai-dm/shared'
 import { AiService, type RollTurnState } from './ai.service'
@@ -98,11 +99,18 @@ export class AiController {
     const MAX_SAME_MODEL_REROLLS = 2
     let sameModelRerolls = 0
 
+    // US-117 (ADR 011): um turnId por turno, gerado UMA vez aqui — onde o turno
+    // começa — e reusado por qualquer reroll/escalação abaixo (mesmo modelIndex ou
+    // modelIndex++): é a mesma ação do jogador sendo tentada de novo, não um turno
+    // novo. Correlaciona os logs que este turno emite (guard, onFinish, reconcileScene).
+    const turnId = randomUUID()
+
     for (let modelIndex = 0; ; ) {
       const { result, hasFallback, turnGuard } = await this.aiService.streamChat(
         { adventureId, characterId, message },
         modelIndex,
         rollState,
+        turnId,
       )
 
       let prevStepText = ''
@@ -237,7 +245,7 @@ export class AiController {
         // da ordem onFinish×loop.
         turnGuard.incomplete = true
         console.warn(`[AiController] turno truncado (sem opções) no attempt=${modelIndex}; completando o fecho sem re-rodar o turno`)
-        const closure = await this.aiService.completeTruncatedTurn({ adventureId, characterId, message }, shownText)
+        const closure = await this.aiService.completeTruncatedTurn({ adventureId, characterId, message }, shownText, turnId)
         res.write('0:' + JSON.stringify(closure) + '\n')
         break
       }

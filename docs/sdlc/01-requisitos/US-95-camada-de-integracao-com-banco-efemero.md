@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-93](./US-93-gates-baratos-de-migracao-dependencia-e-smoke.md) — o serviço Postgres no job de CI nasce lá; esta story o reusa em vez de criar outro.
 **Criada em:** 2026-07-30
 

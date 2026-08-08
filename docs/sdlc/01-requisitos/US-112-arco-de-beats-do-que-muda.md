@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-35](./US-35-cena-estruturada-na-abertura.md) (extração estruturada da abertura — o padrão reusado para semear o arco) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (o ledger de entidades que o arco referencia)
 **Relacionada a:** [US-71](./US-71-simplificar-localizacao-do-personagem.md) e [US-73](./US-73-reconciliador-de-cena-em-background.md) (as duas tentativas anteriores no mesmo sintoma, por outro eixo) · [backlog-aventuras-autorais-lazygm.md](./backlog-aventuras-autorais-lazygm.md) (aventura AUTORAL com conteúdo pronto; esta US é o arco GERADO da aventura improvisada — ver *Fora do escopo*)
 **Criada em:** 2026-08-07
@@ -153,8 +153,16 @@ export interface StoryBeat {
 ## Questões em aberto
 
 1. **A hipótese causal está certa?** "Sem alvo de mudança o modelo redescreve o presente" é raciocínio, não medição. O dado que existe é o sintoma (9/24 viagens sem `updateScene`), não a causa. O A/B do critério de aceite é o que responde — e se responder que não, a US morre com um achado, o que já vale mais que o fix não-reproduzido de 28/07/2026.
+
+   **Encaminhamento:** medir antes de construir o resto da US. `reconcileScene` (`ai.service.ts:1047`) já é o sinal de que `updateScene` falhou — instrumentar sua taxa de disparo em prod (log ou contador simples) por um período curto, **antes** de escrever `extractOpeningArc`. Se a taxa já caiu sozinha desde o fix de 28/07/2026, a hipótese enfraquece e a US pode ser repriorizada sem custo de implementação. Se não caiu, o A/B do critério de aceite segue como planejado, agora com baseline melhor que o "9/24" datado.
+
 2. **Seis beats é o número certo?** Três atos × dois é o que o material de origem usa. Para uma aventura de MVP pode ser demais (arco nunca fecha) ou de menos (arco fecha e sobra sessão). Medir em sessão real antes de fixar.
+
+   **Encaminhamento:** não parametrizar agora — não há segunda contagem testada para justificar um valor configurável. Fixar 6 (3 atos × 2) na v1, com comentário no código apontando o teto e a condição de revisão (`// 6 beats fixo — revisar após medir 1+ sessão real, US-112 #2`). Ajustar para configurável só se uma sessão real medida confirmar o problema (arco fecha cedo ou nunca fecha).
+
 3. **`advanceBeat` precisa de gate determinístico?** Se o Mestre nunca chamar a tool, o beat ativo congela e o bloco vira ruído — exatamente como `updateScene` foi ignorada em 9/24 turnos, que é o precedente ruim. O anteparo análogo ao da US-73 seria reconciliar o arco pós-turno a partir da narração. Não construir antes de medir a taxa de chamada.
+
+   **Encaminhamento:** não construir o reconciler nesta US (mantém o *Fora do escopo*). Em vez disso, logar quando um turno termina com beat `ativo` pendente e `advanceBeat` não foi chamado — mesma métrica que a US-71 já mediu para `updateScene` (9/24), aplicada ao beat. Dá dado real para decidir #3 numa US futura sem escrever reconciliação às cegas.
 4. **Colisão com `advanceQuest` (AV-5 do backlog do Lazy GM) — decidido em 07/08/2026: NÃO fundir as tools.** As duas avançam progressão, mas **a autoridade de decidir o avanço é de dono diferente**, e é essa a fronteira que este repo protege em toda tool (`rollDice`: *"o modelo diz **o quê** testar; o modificador vem da ficha, nunca do LLM"*, AGENTS.md → *Tools disponíveis*).
    - **`advanceBeat` é juízo do modelo.** Se a ficção realizou *"o comprador revela-se um interessado"* só o narrador sabe; não há regra de servidor que decida.
    - **`advanceQuest` é decisão do servidor.** A AV-5 já traz o gatilho determinístico (Lazy Solo 5e: rola ao entrar em câmara, 4–7 avançam, 4º avanço traz o desafio final) e diz textualmente *"roda no servidor, o modelo só narra o que ela decidiu"*.
