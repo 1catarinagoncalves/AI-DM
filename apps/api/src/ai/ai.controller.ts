@@ -199,7 +199,7 @@ export class AiController {
       }
 
       if (failedBeforeOutput) {
-        console.warn(`[AiController] modelo attempt=${modelIndex} falhou antes de emitir texto; caindo para fallback`)
+        console.log(JSON.stringify({ event: 'model_fallback', turnId, timestamp: new Date().toISOString(), modelIndex }))
         modelIndex++
         continue // tenta o próximo provedor
       }
@@ -215,12 +215,12 @@ export class AiController {
 
         if (sameModelRerolls < MAX_SAME_MODEL_REROLLS) {
           sameModelRerolls++
-          console.warn(`[AiController] degeneração (modelo attempt=${modelIndex}); re-amostrando o mesmo modelo (reroll ${sameModelRerolls}/${MAX_SAME_MODEL_REROLLS})`)
+          console.log(JSON.stringify({ event: 'degeneration_reroll', turnId, timestamp: new Date().toISOString(), modelIndex, sameModelRerolls, maxSameModelRerolls: MAX_SAME_MODEL_REROLLS }))
           continue // MESMO modelIndex
         }
 
         // Escalona: re-rolls no mesmo modelo esgotados — desce a escada.
-        console.warn(`[AiController] degeneração persistente no modelo attempt=${modelIndex} após ${sameModelRerolls} re-rolls; escalando`)
+        console.log(JSON.stringify({ event: 'degeneration_escalate', turnId, timestamp: new Date().toISOString(), modelIndex, sameModelRerolls }))
         sameModelRerolls = 0
         if (hasFallback) {
           modelIndex++
@@ -244,7 +244,7 @@ export class AiController {
         // o completeTruncatedTurn. O serviço também computa o mesmo predicado, sem depender
         // da ordem onFinish×loop.
         turnGuard.incomplete = true
-        console.warn(`[AiController] turno truncado (sem opções) no attempt=${modelIndex}; completando o fecho sem re-rodar o turno`)
+        console.log(JSON.stringify({ event: 'turn_truncated_recovered', turnId, timestamp: new Date().toISOString(), modelIndex }))
         const closure = await this.aiService.completeTruncatedTurn({ adventureId, characterId, message }, shownText, turnId)
         res.write('0:' + JSON.stringify(closure) + '\n')
         break

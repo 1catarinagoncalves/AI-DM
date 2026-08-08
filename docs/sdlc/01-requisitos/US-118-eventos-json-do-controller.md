@@ -2,7 +2,7 @@
 
 **Épico:** Deploy e operação (observabilidade) — [ADR 011](../../adr/011-observabilidade-em-camadas.md)
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Concluída
 **Depende de:** [US-117](./US-117-turnid-por-turno.md) — `turnId` por turno, campo obrigatório em toda linha desta US
 **Relacionada a:** [ADR 011](../../adr/011-observabilidade-em-camadas.md) — Camada 2, Grupo A, inventário completo · [US-116](./US-116-observabilidade-da-cena-nao-avancada.md) — mesmo formato JSON, primeiro exemplo
 **Criada em:** 2026-08-08
@@ -47,9 +47,9 @@ Todas as linhas carregam os campos fixos da Camada 0: `event`, `turnId` (US-117)
 
 ## Critérios de aceite
 
-- [ ] As 4 linhas de `ai.controller.ts` emitem `console.log(JSON.stringify({ event, turnId, timestamp, ...campos }))`, parseável (`JSON.parse` direto, sem regex).
-- [ ] Nenhuma mudança de comportamento — os testes existentes do controller continuam passando sem alteração de asserção sobre a lógica (só sobre o formato do log, se houver).
-- [ ] `pnpm typecheck` passa.
+- [x] As 4 linhas de `ai.controller.ts` emitem `console.log(JSON.stringify({ event, turnId, timestamp, ...campos }))`, parseável (`JSON.parse` direto, sem regex).
+- [x] Nenhuma mudança de comportamento — os testes existentes do controller continuam passando sem alteração de asserção sobre a lógica (só sobre o formato do log, se houver).
+- [x] `pnpm typecheck` passa.
 
 ---
 
