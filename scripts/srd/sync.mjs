@@ -18,6 +18,10 @@ const SRD = `${RAW}/wizards-of-the-coast/srd-2024`
 // A fusão (com o 5.2 vencendo) acontece no ingest.
 const SRD_2014 = `${RAW}/wizards-of-the-coast/srd-2014`
 const CORE = `${RAW}/open5e/core`
+// US-121: primeiro documento fora de wizards-of-the-coast/*. Publisher EN Publishing, dual
+// CC-BY-4.0/OGL 1.0a — usado pela via CC-BY-4.0 (mesmo padrão do SRD 5.1, ADR 009), mesmo
+// repositório Open5e e mesmo TAG pinado. Ver NOTICE-open5e.md e ADR 004 §3.3.
+const A5E_AG = `${RAW}/en-publishing/a5e-ag`
 
 // [url, nome local]. A âncora de perícia (`ability`) só existe no doc `core`/Skill.json;
 // a srd-2024/SkillDescription não a traz (só `describes` + desc). Ver ingest.mjs.
@@ -40,6 +44,8 @@ const FILES = [
   [`${SRD}/Spell.json`, 'Spell.json'],
   [`${SRD}/Species.json`, 'Species.json'],
   [`${SRD_2014}/Species.json`, 'Species.2014.json'],
+  [`${A5E_AG}/Background.json`, 'Background.json'],
+  [`${A5E_AG}/BackgroundBenefit.json`, 'BackgroundBenefit.json'],
 ]
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '_data')

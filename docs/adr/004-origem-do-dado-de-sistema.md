@@ -1,9 +1,9 @@
 # ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
 
-**Status:** Aceito (implementado — US-47) · **decisão 6 revista em 02/08/2026** (o Free herda o SRD — ver §3.1)
+**Status:** Aceito (implementado — US-47) · **decisão 6 revista em 02/08/2026** (o Free herda o SRD — ver §3.1) · **nota §3.3 em 09/08/2026** (segundo publisher — US-121)
 **Data:** 2026-07-15
 **Decisores:** Time de Produto e Engenharia
-**Relacionado:** [ADR 003 — Sistemas como dado](./003-sistemas-como-dado.md) (o `config` como **destino**; segue inteiro) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (o overlay pt-BR é **um locale**) · [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) · [US-51](../sdlc/01-requisitos/US-51-kits-iniciais-do-srd.md) (kits, fonte/licença próprias) · [US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md) (tradução automática do conteúdo novo)
+**Relacionado:** [ADR 003 — Sistemas como dado](./003-sistemas-como-dado.md) (o `config` como **destino**; segue inteiro) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (o overlay pt-BR é **um locale**) · [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) · [US-51](../sdlc/01-requisitos/US-51-kits-iniciais-do-srd.md) (kits, fonte/licença próprias) · [US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md) (tradução automática do conteúdo novo) · [US-121](../sdlc/01-requisitos/US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (segundo publisher, `a5e-ag`, ver §3.3)
 
 ---
 
@@ -140,6 +140,32 @@ cobertas por teste — inclusive palavras que a extração de PDF partiu no meio
 reparadas por mapa explícito. A alternativa era importar a OGL para evitar ~10 linhas de parsing.
 
 Implementada pela [US-51](../sdlc/01-requisitos/US-51-kits-iniciais-do-srd.md).
+
+---
+
+## 3.3 Segundo publisher no config (09/08/2026): `a5e-ag` entra sob a mesma regra de licença única
+
+**O que muda.** A [US-121](../sdlc/01-requisitos/US-121-catalogo-backgrounds-a5e-adventurers-guide.md)
+deriva `backgrounds` de *Level Up: Advanced 5th Edition — Adventurer's Guide* (`a5e-ag`), publicado
+por **EN Publishing** — o primeiro dado do `SystemConfig` que não vem de `wizards-of-the-coast/`.
+O SRD 5.2 da WotC só libera 4 backgrounds como CC-BY; o `a5e-ag` cobre o mesmo papel de "background
+genérico de fantasia" com 21.
+
+**Por que não é exceção.** A fonte continua sendo **a mesma**: `open5e/open5e-api`, mesmo `TAG`
+pinado (decisão 2). Muda só o *documento* dentro do repositório (`en-publishing/a5e-ag/` em vez de
+`wizards-of-the-coast/srd-2024`), exatamente como o SRD 5.1 (ADR 009) já é um documento irmão no
+mesmo repo. O `a5e-ag` é publicado sob **licença dupla** (CC-BY-4.0 ou OGL 1.0a) — entra pela via
+**CC-BY-4.0**, o mesmo precedente que o ADR 009 já aplicou ao 5.1: licença única (§2) continua sem
+exceção, sem OGL, sem dependência nova. Nenhuma marca **"Advanced 5th Edition"**, **"A5E"** ou do
+publisher entra no produto (mesma regra de marca da decisão 6e/§6, agora valendo para um segundo
+publisher). Atribuição em [NOTICE-open5e.md](../../scripts/srd/NOTICE-open5e.md).
+
+**Fronteira do dado.** Só o catálogo mecânico (texto: nome, benefícios) — aplicar os benefícios de
+fato num personagem (`ability_score`, `skill_proficiency`…) fica fora, mesma fronteira da decisão 4.
+Os 4 backgrounds nativos do `srd-2024` não entram (colidiriam em nome sem ganho): `a5e-ag` é a
+**única** fonte de background, não uma união como o ADR 009 fez com espécie.
+
+Implementada pela [US-121](../sdlc/01-requisitos/US-121-catalogo-backgrounds-a5e-adventurers-guide.md).
 
 ---
 

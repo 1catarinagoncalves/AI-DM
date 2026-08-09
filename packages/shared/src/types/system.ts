@@ -61,6 +61,26 @@ export const SystemSpellSchema = z.object({
   source: z.string().min(1),
 })
 
+// Background do A5E Adventurer's Guide (US-121). Catálogo MECÂNICO (texto), não efeito —
+// aplicar `benefits[].type` (ex. `ability_score`) num personagem de fato é fora do escopo.
+// `type` é string livre (não enum): 8 valores observados no dataset, mesmo raciocínio do
+// `source` acima — taxonomia fechada cedo demais quebra no primeiro valor novo de um bump.
+export const SystemBackgroundBenefitSchema = z.object({
+  type: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().min(1),
+})
+
+// `key` é o pk cru do dataset (`a5e-ag_acolyte`), sem mapa explícito tipo CLASS_MAP: background
+// não tem consumidor cruzado ainda (US-121). Sem `description` própria — o `Background.desc` do
+// dataset vem vazio nas 21 entradas; toda a prosa está em `benefits`.
+export const SystemBackgroundSchema = z.object({
+  key: z.string().min(1),
+  name: z.string().min(1),
+  benefits: z.array(SystemBackgroundBenefitSchema),
+  source: z.string().min(1),
+})
+
 // Gancho de aventura inicial por classe (US-28). Textos podem conter placeholders
 // {characterName} e {characterClass}, resolvidos no backend antes de persistir.
 export const InitialAdventureHookSchema = z.object({
@@ -90,6 +110,9 @@ export const SystemConfigSchema = z.object({
   // valida a chave da ficha contra catálogo ou aceita o que vier (ver character.service).
   races: z.array(SystemCatalogEntrySchema).optional(),
   classes: z.array(SystemCatalogEntrySchema).optional(),
+  // Catálogo de backgrounds do a5e-ag (US-121), derivado pelo ingest. Opcional como races/classes:
+  // config legado sem ele não fica inválido. Mecânico apenas — escolha na criação é story separada.
+  backgrounds: z.array(SystemBackgroundSchema).optional(),
   proficiency: z.object({
     choices: z.number().int().min(0),
     bonus: z.number().int(),
@@ -123,6 +146,8 @@ export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
 export type SystemCatalogEntry = z.infer<typeof SystemCatalogEntrySchema>
 export type SystemClassFeature = z.infer<typeof SystemClassFeatureSchema>
 export type SystemSpell = z.infer<typeof SystemSpellSchema>
+export type SystemBackgroundBenefit = z.infer<typeof SystemBackgroundBenefitSchema>
+export type SystemBackground = z.infer<typeof SystemBackgroundSchema>
 export type InitialAdventureHook = z.infer<typeof InitialAdventureHookSchema>
 export type SystemConfig = z.infer<typeof SystemConfigSchema>
 

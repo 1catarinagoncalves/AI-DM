@@ -43,6 +43,870 @@
       "min": 10
     }
   ],
+  "backgrounds": [
+    {
+      "benefits": [
+        {
+          "description": "+1 to Wisdom and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "In small settlements without other resources, your authority may extend to such matters as settling disputes and punishing criminals. You might also be expected to deal with local outbreaks of supernatural dangers such as fiendish possessions, cults, and the unquiet dead. If you solve several problems brought to you by members of your faith, you may be promoted (or reinstated) within the hierarchy of your order. You gain the free service of up to 4 acolytes, and direct access to your order’s leaders.",
+          "name": "Adventures and Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Acolyte Connections |d10|Connection| |---|---| |1|A beloved high priest or priestess awaiting your return to the temple once you resolve your crisis of faith.| |2|A former priest—exposed by you as a heretic—who swore revenge before fleeing.| |3|The wandering herald who rescued you as an orphan and sponsored your entry into your temple.| |4|The inquisitor who rooted out your heresy (or framed you) and had you banished from your temple.| |5|The fugitive charlatan or cult leader whom you once revered as a holy person.| |6|Your scandalous friend, a fellow acolyte who fled the temple in search of worldly pleasures.| |7|The high priest who discredited your temple and punished the others of your order.| |8|The wandering adventurer whose tales of glory enticed you from your temple.| |9|The leader of your order, a former adventurer who sends you on quests to battle your god's enemies.| |10|The former leader of your order who inexplicably retired to a life of isolation and penance.| ### Acolyte Memento |d10|Memento| |---|---| |1|The timeworn holy symbol bequeathed to you by your beloved mentor on their deathbed.| |2|A precious holy relic secretly passed on to you in a moment of great danger.| |3|A prayer book which contains strange and sinister deviations from the accepted liturgy.| |4|A half-complete book of prophecies which seems to hint at danger for your faith—if only the other half could be found!| |5|A gift from a mentor: a book of complex theology which you don't yet understand.| |6|Your only possession when you entered the temple as a child: a signet ring bearing a coat of arms.| |7|A strange candle which never burns down.| |8|The true name of a devil that you glimpsed while tidying up papers for a sinister visitor.| |9|A weapon (which seems to exhibit no magical properties) given to you with great solemnity by your mentor.| |10|A much-thumbed and heavily underlined prayer book given to you by the fellow acolyte you admire most.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Holy symbol (amulet or reliquary), common clothes, robe, and a prayer book, prayer wheel, or prayer beads.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "One of your choice.",
+          "name": "Languages",
+          "type": "language"
+        },
+        {
+          "description": "Religion, and either Insight or Persuasion.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_acolyte",
+      "name": "Acolyte",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Intelligence and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "If you participate in the creation of a magic item (a “master work”), you will gain the services of up to 8 commoner apprentices with the appropriate tool proficiency.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Artisan Connections |d10|Connection| |---|---| |1|The cruel master who worked you nearly to death and now does the same to other apprentices.| |2|The kind master who taught you the trade.| |3|The powerful figure who refused to pay for your finest work.| |4|The jealous rival who made a fortune after stealing your secret technique.| |5|The corrupt rival who framed and imprisoned your mentor.| |6|The bandit leader who destroyed your mentor's shop and livelihood.| |7|The crime boss who bankrupted your mentor.| |8|The shady alchemist who always needs dangerous ingredients to advance the state of your art.| |9|Your apprentice who went missing.| |10|The patron who supports your work.| ### Artisan Mementos |d10|Memento| |---|---| |1|*Jeweler:* A 10,000 gold commission for a ruby ring (now all you need is a ruby worth 5,000 gold).| |2|*Smith:* Your blacksmith's hammer (treat as a light hammer).| |3|*Cook:* A well-seasoned skillet (treat as a mace).| |4|*Alchemist:* A formula with exotic ingredients that will produce...something.| |5|*Leatherworker:* An exotic monster hide which could be turned into striking-looking leather armor.| |6|*Mason:* Your trusty sledgehammer (treat as a warhammer).| |7|*Potter:* Your secret technique for vivid colors which is sure to disrupt Big Pottery.| |8|*Weaver:* A set of fine clothes (your own work).| |9|*Woodcarver:* A longbow, shortbow, or crossbow (your own work).| |10|*Calligrapher:* Strange notes you copied from a rambling manifesto. Do they mean something?|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "One set of artisan's tools, traveler's clothes.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Persuasion, and either Insight or History.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "One type of artisan’s tools or smith’s tools.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        },
+        {
+          "description": "When in a city or town, you have access to a fully-stocked workshop with everything you need to ply your trade. Furthermore, you can expect to earn full price when you sell items you have crafted (though there is no guarantee of a buyer).",
+          "name": "Trade Mark",
+          "type": "feature"
+        }
+      ],
+      "key": "a5e-ag_artisan",
+      "name": "Artisan",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Charisma and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "If you pull off a long-standing impersonation or false identity with exceptional success, you may eventually legally become that person. If you’re impersonating a real person, they might be considered the impostor. You gain any property and servants associated with your identity.",
+          "name": "Adventures and Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Charlatan Connections |d10|Connection| |---|---| |1|A relentless pursuer: an inspector who you once made a fool of.| |2|A relentless pursuer: a mark you once cheated.| |3|A relentless pursuer: a former partner just out of jail who blames you for everything.| |4|A former partner now gone straight who couldn't possibly be coaxed out of retirement.| |5|A respected priest or tavernkeeper who tips you off about rich potential marks.| |6|The elusive former partner who ratted you out and sent you to jail.| |7|A famous noble or politician who through sheer luck happens to bear a striking resemblance to you.| |8|The crook who taught you everything and just can't stay out of trouble.| |9|A gullible noble who knows you by one of your former aliases, and who always seems to pop up at inconvenient times.| |10|A prominent noble who knows you only under your assumed name and who trusts you as their spiritual advisor, tutor, long-lost relative, or the like.| #### Charlatan Mementos |d10|Memento| |---|---| |1|A die that always comes up 6.| |2|A dozen brightly-colored \"potions\".| |3|A magical staff that emits a harmless shower of sparks when vigorously thumped.| |4|A set of fine clothes suitable for nobility.| |5|A genuine document allowing its holder one free release from prison for a non-capital crime.| |6|A genuine deed to a valuable property that is, unfortunately, quite haunted.| |7|An ornate harlequin mask.| |8|Counterfeit gold coins or costume jewelry apparently worth 100 gold (DC 15 Investigation check to notice they're fake).| |9|A sword that appears more magical than it really is (its blade is enchanted with continual flame and it is a mundane weapon).| |10|A nonmagical crystal ball.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "You have a bundle of forged papers of all kinds—property deeds, identification papers, love letters, arrest warrants, and letters of recommendation—all requiring only a few signatures and flourishes to meet the current need. When you encounter a new document or letter, you can add a forged and modified copy to your bundle. If your bundle is lost, you can recreate it with a forgery kit and a day’s work.",
+          "name": "Many Identities",
+          "type": "feature"
+        },
+        {
+          "description": "Deception, and either Culture, Insight, or Sleight of Hand.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Common clothes, disguise kit, forgery kit.",
+          "name": "Suggested Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Disguise kit, forgery kit.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_charlatan",
+      "name": "Charlatan",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Dexterity and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "If you pull off several successful jobs or heists, you may be promoted (or reinstated) as a leader in your gang. You may gain the free service of up to 8 **bandits** at any time.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Criminal Connections |d10|Connection| |---|---| |1|The master criminal who inducted you into your first gang.| |2|The cleric or herald who convinced you to use your skills for good (and who may be legally responsible for your continued good behavior).| |3|Your sibling or other relative—who also happens to be a representative of the law.| |4|The gang of rascals and pickpockets who once called you their leader.| |5|The bounty hunter who has sworn to bring you to justice.| |6|Your former partner who made off with all the loot after a big score.| |7|The masked courier who occasionally gives you jobs.| |8|The crime boss to whom you have sworn loyalty (or to whom you owe an enormous debt).| |9|The master thief who once stole something precious from you.| |10|The corrupt noble who ruined your once-wealthy family.| #### Criminal Mementos |d10|Memento| |---|---| |1|A golden key to which you haven't discovered the lock.| |2|A brand that was burned into your shoulder as punishment for a crime.| |3|A scar for which you have sworn revenge.| |4|The distinctive mask that gives you your nickname (for instance, the Black Mask or the Red Fox).| |5|A gold coin which reappears in your possession a week after you've gotten rid of it.| |6|The stolen symbol of a sinister organization; not even your fence will take it off your hands.| |7|Documents that incriminate a dangerous noble or politician.| |8|The floor plan of a palace.| |9|The calling cards you leave after (or before) you strike.| |10|A manuscript written by your mentor: *Secret Exits of the World's Most Secure Prisons*.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Common clothes, dark cloak, thieves' tools.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Stealth, and either Deception or Intimidation.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "You know thieves' cant: a set of slang, hand signals, and code terms used by professional criminals. A creature that knows thieves' cant can hide a short message within a seemingly innocent statement. A listener who knows thieves' cant understands the message.",
+          "name": "Thieves' Cant",
+          "type": "feature"
+        },
+        {
+          "description": "Gaming set, thieves' tools.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_criminal",
+      "name": "Criminal",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Intelligence and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Members of your former order may be hunting you for reenlistment, punishment, or both. Additionally, your cult still seeks to open a portal, effect an apotheosis, or otherwise cause catastrophe. Eventually you may have to face the leader of your cult and perhaps even the being you once worshiped.",
+          "name": "Adventures and Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Cultist Connections |d10|Connection| |---|---| |1|The cult leader whom you left for dead.| |2|The cleric or herald who showed you the error of your ways.| |3|The voice which still speaks to you in dreams.| |4|The charismatic cultist whose honeyed words and promises first tempted you.| |5|The friend or loved one still in the cult.| |6|Your former best friend who now hunts you for your desertion of the cult.| |7|The relentless inquisitor who hunts you for your past heresy.| |8|The demon which you and your compatriots accidentally unleashed.| |9|The self-proclaimed deity who barely escaped from their angry disciples after their magic tricks and fakeries were revealed.| |10|The masked cult leader whose identity you never learned, but whose cruel voice you would recognize anywhere.| #### Cultist Mementos |d10|Memento| |---|---| |1|The sinister tattoo which occasionally speaks to you.| |2|The cursed holy symbol which appears in your possession each morning no matter how you try to rid yourself of it.| |3|The scar on your palm which aches with pain when you disobey the will of your former master.| |4|The curved dagger that carries a secret enchantment able only to destroy the being you once worshiped.| |5|The amulet which is said to grant command of a powerful construct.| |6|A forbidden tome which your cult would kill to retrieve.| |7|An incriminating letter to your cult leader from their master (a noted noble or politician).| |8|A compass which points to some distant location or object.| |9|A talisman which is said to open a gateway to the realm of a forgotten god.| |10|The birthmark which distinguishes you as the chosen vessel of a reborn god.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Holy symbol (amulet or reliquary), common clothes, robes, 5 torches.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "When you fail an Arcana or Religion check, you know what being or book holds the knowledge you seek finding the book or paying the being’s price is another matter.",
+          "name": "Forbidden Lore",
+          "type": "feature"
+        },
+        {
+          "description": "One of your choice.",
+          "name": "Languages",
+          "type": "language"
+        },
+        {
+          "description": "Religion, and either Arcana or Deception.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_cultist",
+      "name": "Cultist",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Charisma and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Some of your admirers will pay you to plead a cause or smear an enemy. If you succeed at several such quests, your fame will grow. You will be welcome at royal courts, which will support you at a rich lifestyle.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Entertainer Connections |d10|Connection| |---|---| |1|Your rival, an equally talented performer.| |2|The cruel ringleader of the sinister circus where you learned your trade.| |3|A noble who wants vengeance for the song you wrote about him.| |4|The actor who says that there's always room in their troupe for you and your companions.| |5|The noble who owes you a favor for penning the love poems that won their spouse.| |6|Your former partner, a slumming noble with a good ear and bad judgment.| |7|The rival who became successful and famous by taking credit for your best work.| |8|The highly-placed courtier who is always trying to further your career.| |9|A jilted lover who wants revenge.| |10|The many tavernkeepers and tailors to whom you owe surprisingly large sums.| #### Entertainer Mementos |d10|Memento| |---|---| |1|Your unfinished masterpiece—if you can find inspiration to overcome your writer's block.| |2|Fine clothing suitable for a noble and some reasonably convincing costume jewelry.| |3|A love letter from a rich admirer.| |4|A broken instrument of masterwork quality—if repaired, what music you could make on it!| |5|A stack of slim poetry volumes you just can't sell.| |6|Jingling jester's motley.| |7|A disguise kit.| |8|Water-squirting wands, knotted scarves, trick handcuffs, and other tools of a bizarre new entertainment trend: a nonmagical magic show.| |9|A stage dagger.| |10|A letter of recommendation from your mentor to a noble or royal court.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Lute or other musical instrument, costume.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "In any settlement in which you haven't made yourself unpopular, your performances can earn enough money to support yourself and your companions: the bigger the settlement, the higher your standard of living, up to a moderate lifestyle in a city.",
+          "name": "Pay the Piper",
+          "type": "feature"
+        },
+        {
+          "description": "Performance, and either Acrobatics, Culture, or Persuasion.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_entertainer",
+      "name": "Entertainer",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Wisdom and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "You may occasionally meet others from your native land. Some may be friends, and some dire enemies; few will be indifferent to you. After a few such encounters, you may become the leader of a faction of exiles. Your followers include up to three NPCs of Challenge Rating ½ or less, such as scouts.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Exile Connections |d10|Connection| |---|---| |1|The companions who shared your exile.| |2|The kindly local who taught you Common.| |3|The shopkeeper or innkeeper who took you in and gave you work.| |4|The hunters from your native land who pursue you.| |5|The distant ruler who banished you until you redeem yourself.| |6|The community of fellow exiles who have banded together in a city neighborhood.| |7|The acting or carnival troupe which took you in.| |8|The suspicious authorities who were convinced you were a spy.| |9|Your first friend after your exile: a grizzled adventurer who traveled with you.| |10|A well-connected and unscrupulous celebrity who hails from your homeland.| #### Exile Mementos |d10|Memento| |---|---| |1|A musical instrument which was common in your homeland.| |2|A memorized collection of poems or sagas.| |3|A locket containing a picture of your betrothed from whom you are separated.| |4|Trade, state, or culinary secrets from your native land.| |5|A piece of jewelry given to you by someone you will never see again.| |6|An inaccurate, ancient map of the land you now live in.| |7|Your incomplete travel journals.| |8|A letter from a relative directing you to someone who might be able to help you.| |9|A precious cultural artifact you must protect.| |10|An arrow meant for the heart of your betrayer.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Traveler's clothes, 10 days rations.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "You gain an expertise die on Persuasion checks against others who are away from their land of birth.",
+          "name": "Fellow Traveler",
+          "type": "feature"
+        },
+        {
+          "description": "Survival, and either History or Performance.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_exile",
+      "name": "Exile",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Wisdom and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "You left the farm for a reason but you still have an eye for land. If you acquire farming property, estates, or domains, you can earn twice as much as you otherwise would from their harvests, or be supported by your lands at a lifestyle one level higher than you otherwise would be.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "You know how to stow and transport food. You and one animal under your care can each carry additional Supply equal to your proficiency bonus.",
+          "name": "Bit and Bridle",
+          "type": "feature"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Farmer Connections |d10|Connection| |---|---| |1|The landowner who foreclosed on your family land.| |2|The thugs who burned your village.| |3|The parents who wait for your return.| |4|The strange witch to whom your family owes a debt.| |5|The retired adventurer who trained you.| |6|The druid who—according to the villagers—laid a drought curse on your land.| |7|The village bully who threatened to kill you if you ever returned.| |8|The evil wizard who will stop at nothing to take your family heirloom.| |9|Your elder sibling who left searching for adventure before you did.| |10|The dragon whose foul reek has spoiled your countryside.| #### Farmer Mementos |d10|Memento| |---|---| |1|A strange item you dug up in a field: a key, a lump of unmeltable metal, a glass dagger.| |2|The bag of beans your mother warned you not to plant.| |3|The shovel, pickaxe, pitchfork, or other tool you used for labor. For you it's a one-handed simple melee weapon that deals 1d6 piercing, slashing, or bludgeoning damage.| |4|A debt you must pay.| |5|A **mastiff**.| |6|Your trusty fishing pole.| |7|A corncob pipe.| |8|A dried flower from your family garden.| |9|Half of a locket given to you by a missing sweetheart.| |10|A family weapon said to have magic powers, though it exhibits none at the moment.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Common clothes, shovel, mule with saddlebags, 5 Supply (rations).",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Nature, and either Animal Handling or Survival.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Land vehicles.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_farmer",
+      "name": "Farmer",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Constitution and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Common folk come to you with all sorts of problems. If you fought an oppressive regime, they bring you tales of injustice. If you fought a monster, they seek you out with monster problems. If you solve many such predicaments, you become universally famous, gaining the benefits of your Local Fame feature in every settled land.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Folk Hero Connections |d10|Connection| |---|---| |1|The bard whose song made you legendary and who wants a sequel.| |2|Your friend, a traveling merchant whose caravan spreads your fame.| |3|A deadly enemy: the heir of the oppressive noble you killed.| |4|A deadly enemy: the mother of the monster you killed.| |5|A deadly enemy: the leader of the bandits you defeated.| |6|A deadly enemy: the tyrant you robbed.| |7|A kid who wants to follow your footsteps into danger.| |8|The jealous rival who wants to best your monster-slaying prowess, daring deeds, prize pie recipe, or whatever else made your famous.| |9|A secret admirer: the heir or heiress of the oppressive noble you defeated.| |10|The retired adventurer who trained you and is now in a bit of trouble.| #### Folk Hero Mementos |d10|Memento| |---|---| |1|The mask you used to conceal your identity while fighting oppression (you are only recognized as a folk hero while wearing the mask).| |2|A necklace bearing a horn, tooth, or claw from the monster you defeated.| |3|A ring given to you by the dead relative whose death you avenged.| |4|The weapon you wrestled from the leader of the raid on your village.| |5|The trophy, wrestling belt, silver pie plate, or other prize marking you as the county champion.| |6|The famous scar you earned in your struggle against your foe.| |7|The signature weapon which provides you with your nickname.| |8|The injury or physical difference by which your admirers and foes recognize you.| |9|The signal whistle or instrument which you used to summon allies and spook enemies.| |10|Copies of the ballads and poems written in your honor.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Any artisan's tools except alchemist's supplies, common clothes.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Unless you conceal your identity, you're universally recognized and admired near the site of your exploits. You and your companions are treated to a moderate lifestyle in any settlement within 100 miles of your Prestige Center.",
+          "name": "Local Fame",
+          "type": "feature"
+        },
+        {
+          "description": "Survival, and either Animal Handling or Nature.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "One type of artisan’s tools, one vehicle.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_folk-hero",
+      "name": "Folk Hero",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Charisma and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Once you've had more than your fair share of lucky throws, you attract the attention of richer opponents. You add +1 to all your lucky throws. Additionally, you and your friends may be invited to exclusive games with more at stake than money.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Gambler Connections 1. The mentor you have now surpassed. 2. The duelist who will never forgive you for fleecing them. 3. The legendary gambler you aspire to beat. 4. The friendly rival who always keeps you on your toes. 5. The noble who publicly accused you of cheating. 6. An ink-stained academic who wants you to test a risky theory about how to beat the house. 7. The gang leader who would rather kill you than pay up. 8. The kid who strives to emulate you. 9. The cardsharp rival who cheats to win. 10. The rival who won something from you that you want back. #### Gambler Mementos 1. Gambling debts owed you by someone who's gone missing. 2. Your lucky coin that you've always won back after gambling it away. 3. The deeds to a monster-infested copper mine, a castle on another plane of existence, and several other valueless properties. 4. A pawn shop ticket for a valuable item—if you can gather enough money to redeem it. 5. The hard-to-sell heirloom that someone really wants back. 6. Loaded dice or marked cards. They grant advantage on gambling checks when used, but can be discovered when carefully examined by someone with the appropriate tool proficiency (dice or cards). 7. An invitation to an annual high-stakes game to which you can't even afford the ante. 8. A two-faced coin. 9. A torn half of a card—a long-lost relative is said to hold the other half. 10. An ugly trinket that its former owner claimed had hidden magical powers.",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Fine clothes, dice set, playing card set.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Each week you may attempt a “lucky throw” to support yourself by gambling. Roll a d6 to determine the lifestyle you can afford with your week's winnings (1–2: poor, 3–5: moderate, 6: rich).",
+          "name": "Lady Luck",
+          "type": "feature"
+        },
+        {
+          "description": "Deception, and either Insight or Sleight of Hand.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_gambler",
+      "name": "Gambler",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Strength and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "When you visit the city or countryside you once patrolled you’re sure to get embroiled in the same politics that drove you out. Should you stick around righting wrongs, you might accidentally find yourself in a position of responsibility.",
+          "name": "Adventures and Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Guard Connections |d10|Connection| |---|---| |1|The corrupt guard captain who framed you.| |2|The by-the-book guard captain who found you in violation of a regulation.| |3|The mighty guard captain who taught you all you know.| |4|The informant who tipped you off about criminal activity.| |5|The noble or merchant you protected.| |6|The comrade or superior officer you admired.| |7|The villain who kidnapped the person you were charged to protect.| |8|Your betrayer, the one person you didn't think to mistrust.| |9|The noble or merchant who had everyone in their pocket.| |10|The diviner wizard who could usually provide you with the missing piece of a puzzle.| #### Guard Mementos |d10|Memento| |---|---| |1|Your badge of office, a symbol of an ideal few could live up to.| |2|Your badge of office, a symbol of a corrupt system you could no longer stomach.| |3|The arrow-damaged prayer book or playing card deck that saved your life.| |4|The whiskey flask that stood you in good stead on many cold patrols.| |5|Notes about a series of disappearances you would have liked to put a stop to.| |6|A broken sword, torn insignia, or other symbol of your disgrace and banishment.| |7|A tattoo or insignia marking you as part of an organization of which you are the last member.| |8|The fellow guard's last words which you will never forget.| |9|A letter you were asked to deliver.| |10|A bloodstained duty roster.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Common clothes, halberd, uniform.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "One of your choice.",
+          "name": "Languages",
+          "type": "language"
+        },
+        {
+          "description": "Commoners and civilians sometimes assume you are part of a local constabulary force and defer to you.",
+          "name": "Natural Authority",
+          "type": "feature"
+        },
+        {
+          "description": "Intimidation, and either Athletics or Investigation.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_guard",
+      "name": "Guard",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Constitution and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Once you have completed several quests or endeavors advancing guild business, you may be promoted to guild officer. You gain access to more lucrative contracts. In addition, the guild supports you at a moderate lifestyle without you having to work.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Guildmember Connections |d10|Connection| |---|---| |1|Your guild master who occasionally has secret missions for groups which can keep their mouths shut.| |2|Members of a rival guild who might or might not stoop to violence.| |3|The master who, recognizing your talent, risked all to teach you dangerous guild secrets.| |4|The agent of a rival guild who is trying to steal secrets.| |5|The jealous teacher who took credit for your work and got you expelled from the guild.| |6|The guild quartermaster who stocks goods of dubious legality.| |7|The friendly guild officer who always saves you the most interesting assignments.| |8|The rivals who always compete for the same guild jobs.| |9|The noble who owes you big.| |10|Your guild master's ambitious second-in-command who is recruiting allies for a coup.| #### Guildmember Mementos |d10|Memento| |---|---| |1|*Artisans Guild:* An incomplete masterpiece which your mentor never finished.| |2|*Entertainers Guild:* An incomplete masterpiece which your mentor never finished.| |3|*Explorers Guild:* A roll of incomplete maps each with a reward for completion.| |4|*Laborers Guild:* A badge entitling you to a free round of drinks at most inns and taverns.| |5|*Adventurers Guild:* A request from a circus to obtain live exotic animals.| |6|*Bounty Hunters Guild:* A set of manacles and a bounty on a fugitive who has already eluded you once.| |7|*Mages Guild:* The name of a wizard who has created a rare version of a spell that the guild covets.| |8|*Monster Hunters Guild:* A bounty, with no time limit, on a monster far beyond your capability.| |9|*Archaeologists Guild:* A map marking the entrance of a distant dungeon.| |10|*Thieves Guild:* Blueprints of a bank, casino, mint, or other rich locale.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "One set of artisan's tools or one instrument, traveler's clothes, guild badge.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "While in a city or town, you can maintain a moderate lifestyle by plying your trade. Furthermore, the guild occasionally informs you of jobs that need doing. Completing such a job might require performing a downtime activity, or it might require a full adventure. The guild provides a modest reward if you're successful.",
+          "name": "Guild Business",
+          "type": "feature"
+        },
+        {
+          "description": "Two of your choice.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Either one type of artisan’s tools, musical instrument, or vehicle.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_guildmember",
+      "name": "Guildmember",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Wisdom and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Your inner voice may occasionally prompt you to accept certain adventure opportunities or to avoid certain actions. You are free to obey or disobey this voice. Eventually however it may lead you to a special revelation, adventure, or treasure.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Hermit Connections |d10|Connection| |---|---| |1|The high priest who banished you to the wilderness until you repent your heresy.| |2|The inquisitor who hunts you even through the most solitary wildlands.| |3|The supernatural patron whose temptations and gifts you seek to reject.| |4|The inner voice you only hear in solitude.| |5|The mentor who trained you in silent contemplation—until they mysteriously turned their back on their own teachings.| |6|The villain who destroyed the shreds of your original, worldly life.| |7|The noble relatives who seek to return you to the life you rejected.| |8|The religious superior whose blasphemies scandalized you into fleeing your religious order.| |9|The angel who delivered you a prophecy.| |10|The mysterious person you glimpsed several times from a distance—unless it was a hallucination.| #### Hermit Mementos |d10|Memento| |---|---| |1|The (possibly unhinged) manifesto, encyclopedia, or theoretical work that you spent so much time on.| |2|The faded set of fine clothes you preserved for so many years.| |3|The signet ring bearing the family crest that you were ashamed of for so long.| |4|The book of forbidden secrets that led you to your isolated refuge.| |5|The beetle, mouse, or other small creature which was your only companion for so long.| |6|The seemingly nonmagical item that your inner voice says is important.| |7|The magic-defying clay tablets you spent years translating.| |8|The holy relic you were duty bound to protect.| |9|The meteor metal you found in a crater the day you first heard your inner voice.| |10|Your ridiculous-looking sun hat.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Healer's satchel, herbalism kit, common clothes, 7 days rations, and a prayer book, prayer wheel, or prayer beads.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "You occasionally hear a voice—perhaps your conscience, perhaps a higher power—which you have come to trust. It told you to go into seclusion, and then it advised you when to rejoin the world. You think it is leading you to your destiny (consult with your Narrator about this feature.)",
+          "name": "Inner Voice",
+          "type": "feature"
+        },
+        {
+          "description": "Religion, and either Medicine or Survival.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Herbalism kit.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_hermit",
+      "name": "Hermit",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Dexterity and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Allies and informants occasionally give you tips about the whereabouts of poorly-guarded loot. After a few such scores, you may gain the free service of up to 8",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Marauder Connections |d10|Connection| |---|---| |1|Your nemesis: a naval captain or captain of the guard who thwarted you on several occasions.| |2|Your mentor: a charismatic pirate captain.| |3|The stylish highway robber who taught you the trade.| |4|The local noble who pursues you obsessively.| |5|The three outlaws who hold the other three pieces of your treasure map.| |6|The marauder chief who betrayed you and the rest of the gang in exchange for freedom.| |7|The child you became an outlaw to protect.| |8|The cleric who converted you to a life of law and faith.| |9|The scholarly old bandit whose inventions gave you an edge against the pursuing authorities.| |10|Your best friend—who is serving a life sentence for your shared crime.| #### Marauder Mementos |d10|Memento| |---|---| |1|The eerie mask by which your victims know you.| |2|The one item that you wish you hadn't stolen.| |3|A signet ring marking you as heir to a seized estate.| |4|A locket containing a picture of the one who betrayed you.| |5|A broken compass.| |6|A love token from the young heir to a fortune.| |7|Half of a torn officer's insignia.| |8|The hunter's horn which members of your band use to call allies.| |9|A wanted poster bearing your face.| |10|Your unfinished thesis from your previous life as an honest scholar.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Traveler's clothes, signal whistle, tent (one person).",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "When you navigate while traveling, pursuers have disadvantage on checks made to track your group. Additionally, you can travel stealthily at a normal pace.",
+          "name": "Secret Ways",
+          "type": "feature"
+        },
+        {
+          "description": "Survival, and either Intimidation or Stealth.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "One type of artisan’s tools or vehicle.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_marauder",
+      "name": "Marauder",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Strength and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Your family may ask you for one or two little favors: convince this relative to marry a family-approved spouse, slay that family foe in a duel, serve under a liege lord in a battle. If you advance your family’s fortunes, you may earn a knighthood along with the free service of a retinue of servants and up to 8 **guards**.",
+          "name": "Adventures and Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Noble Connections |d10|Connection| |---|---| |1|Your perfect elder sibling to whom you never seem to measure up.| |2|The treacherous noble who slaughtered or scattered your family and is now living in your ancestral home.| |3|Your family servant, a retired adventurer who taught you more about battle than any fancy dueling master.| |4|The foppish friend you carouse with.| |5|The common-born sweetheart that your family forbid you from seeing again.| |6|The fugitive head of your family whose rebellion caused your family’s lands to be seized and titles to be redistributed.| |7|Your foe, the heir of a rival house, with whom you have dueled twice.| |8|The crime boss to whom your family is in massive debt.| |9|The scion of an allied family to whom you were betrothed from birth.| |10|The eccentric knight for whom you trained as a squire or page.| #### Noble Mementos |d10|Momento| |---|---| |1|A shield or tabard bearing your coat of arms.| |2|A keepsake or love letter from a high-born sweetheart.| |3|An heirloom weapon—though it’s not magical, it has a name and was used for mighty deeds.| |4|A letter of recommendation to a royal court.| |5|Perfumed handkerchiefs suitable for blocking the smell of commoners.| |6|An extremely fashionable and excessively large hat.| |7|A visible scar earned in battle or in a duel.| |8|A set of common clothes and a secret commoner identity.| |9|IOUs of dubious value that were earned in games of chance against other nobles.| |10|A letter from a friend begging for help.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Fine clothes, signet ring, writ detailing your family tree.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "You know of—or personally know—most of the noble families for hundreds of miles. In most settled areas you (and possibly your companions, if well-behaved) can find a noble host who will feed you, shelter you, and offer you a rich lifestyle.",
+          "name": "High Society",
+          "type": "feature"
+        },
+        {
+          "description": "One of your choice.",
+          "name": "Languages",
+          "type": "language"
+        },
+        {
+          "description": "Culture, History, and either Animal Handling or Persuasion.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "One gaming set.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_noble",
+      "name": "Noble",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Constitution and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "During your travels, wilderness dwellers may come to you for help battling monsters and other dangers. If you succeed in several such adventures, you may earn the freely given aid of up to 8 **warriors**.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Outlander Connections |d10|Connection| |---|---| |1|A tribal chief who owes a favor.| |2|The chief of a band of marauders who has a grudge against you.| |3|A hag to whom you owe a favor.| |4|An alchemist or wizard who frequently gives you requests for rare herbs or trophies.| |5|A unicorn you’ve glimpsed but never been able to approach.| |6|Another outlander: your former best friend who is now a bitter rival.| |7|A wise oracle who knows most of what happens in the wilderness and will reveal it for a price.| |8|A zany prospector who knows the wild lands almost as well as you.| |9|A circus or arena owner who will pay for live animals not yet in their menagerie.| |10|A highly civilized poet or painter who has paid you to guide them to wild and inspiring locales.| #### Outlander Mementos |d10|Momento| |---|---| |1|A trophy from the hunt of a mighty beast, such as an phase monster-horn helmet.| |2|A trophy from a battle against a fierce monster, such as a still-wriggling troll finger.| |3|A stone from a holy druidic shrine.| |4|Tools appropriate to your home terrain, such as pitons or snowshoes.| |5|Hand-crafted leather armor, hide armor, or clothing.| |6|The handaxe you made yourself.| |7|A gift from a dryad or faun.| |8|Trading goods worth 30 gold, such as furs or rare herbs.| |9|A tiny whistle given to you by a sprite.| |10|An incomplete map.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Traveler's clothes, waterskin, healer's kit, 7 days rations.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Survival, and either Athletics or Intimidation.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "If you're in or near the wilderness and have a trading relationship with a tribe, settlement, or other nearby group, you can maintain a moderate lifestyle for yourself and your companions by trading the products of your hunting and gathering.",
+          "name": "Trader",
+          "type": "feature"
+        }
+      ],
+      "key": "a5e-ag_outlander",
+      "name": "Outlander",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Intelligence and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "When you visit libraries and universities you tend to be asked for help in your role as a comparatively rough-and-tumble adventurer. After fetching a few bits of esoteric knowledge and settling a few academic disputes, you may be granted access to the restricted areas of the library (which contain darker secrets and deeper mysteries, such as those answerable with a DC 25 Arcana, Culture, Engineering, History, Nature, or Religion check).",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Sage Connections |d10|Connection| |---|---| |1|Your rival who always seems to be one step ahead of you in the research race.| |2|The college dean who banished you for conduct unbefitting a research fellow.| |3|A former student of yours who has become a dangerous wizard.| |4|The professor who took credit for your research.| |5|The rival sage whose cruel nickname for you has made you a laughingstock.| |6|The alchemist who will pay for bizarre monster trophies and other ingredients—no questions asked.| |7|The peer with a competing cosmological theory that causes endless friendly bickering.| |8|The noble who recognized your intelligence at a young age and sponsored your entrance into academia.| |9|A talented apprentice who ran away after mastering magical power but not the theoretical foundation to control it.| |10|The invading general who burned the library that was once your home.| #### Sage Mementos |d10|Memento| |---|---| |1|A letter from a colleague asking for research help.| |2|Your incomplete manuscript.| |3|An ancient scroll in a language that no magic can decipher.| |4|A copy of your highly unorthodox theoretical work that got you in so much trouble.| |5|A list of the forbidden books that may answer your equally forbidden question.| |6|A formula for a legendary magic item for which you have no ingredients.| |7|An ancient manuscript of a famous literary work believed to have been lost; only you believe that it is genuine.| |8|Your mentor's incomplete bestiary, encyclopedia, or other work that you vowed to complete.| |9|Your prize possession: a magic quill pen that takes dictation.| |10|The name of a book you need for your research that seems to be missing from every library you've visited.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Bottle of ink, pen, 50 sheets of parchment, common clothes.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "As a fellow or friend of several universities you have visiting access to the great libraries, most of which are off-limits to the general public. With enough time spent in a library, you can uncover most of the answers you seek (any question answerable with a DC 20 Arcana, Culture, Engineering, History, Nature, or Religion check).",
+          "name": "Library Privileges",
+          "type": "feature"
+        },
+        {
+          "description": "History, and either Arcana, Culture, Engineering, or Religion.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_sage",
+      "name": "Sage",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Constitution and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "You and your companions will be able to take passage for free on nearly any commercial ship in exchange for occasional ship duties when all hands are called. In addition, after you have a few naval exploits under your belt your fame makes sailors eager to sail under you. You can hire a ship's crew at half the usual price.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Sailor Mementos |d10|Memento| |---|---| |1|A dagger with a handle carved from a dragon turtle's tooth.| |2|A scroll tube filled with nautical charts.| |3|A harpoon (treat as a javelin with its butt end fastened to a rope).| |4|A scar with a famous tale behind it.| |5|A treasure map.| |6|A codebook which lets you decipher a certain faction's signal flags.| |7|A necklace bearing a scale, shell, tooth, or other nautical trinket.| |8|Several bottles of alcohol.| |9|A tale of an eerie encounter with a strange monster, a ghost ship, or other mystery.| |10|A half-finished manuscript outlining an untested theory about how to rerig a ship to maximize speed.| #### Sailor Mementos |d10|Memento| |---|---| |1|A dagger with a handle carved from a dragon turtle's tooth.| |2|A scroll tube filled with nautical charts.| |3|A harpoon (treat as a javelin with its butt end fastened to a rope).| |4|A scar with a famous tale behind it.| |5|A treasure map.| |6|A codebook which lets you decipher a certain faction's signal flags.| |7|A necklace bearing a scale, shell, tooth, or other nautical trinket.| |8|Several bottles of alcohol.| |9|A tale of an eerie encounter with a strange monster, a ghost ship, or other mystery.| |10|A half-finished manuscript outlining an untested theory about how to rerig a ship to maximize speed.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Common clothes, navigator's tools, 50 feet of rope.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Your nautical jargon and rolling gait mark you unmistakably as a mariner. You can easily enter into shop talk with any sailors that are not hostile to you, learning nautical gossip and ships' comings and goings. You also recognize most large ships by sight and by name, and can make a History orCulturecheck to recall their most recent captain and allegiance.",
+          "name": "Sea Salt",
+          "type": "feature"
+        },
+        {
+          "description": "Athletics, and either Acrobatics or Perception.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Navigator’s tools, water vehicles.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_sailor",
+      "name": "Sailor",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Strength and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "You will occasionally run into old comrades, some of whom may need favors. If you perform a few celebrated martial deeds your old military outfit (or a new one) is likely to offer you an officer’s rank. You gain the free service of up to 8 guards. Your new commanders will occasionally give you objectives: you will be expected to act independently in order to achieve these objectives.",
+          "name": "Adventures and Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Soldier Connections |d10|Connection| |---|---| |1|Your old commanding officer who still wants you to rejoin.| |2|The commander who callously sent your unit into a slaughter.| |3|Your shady war buddy who can get their hands on anything with no questions asked.| |4|Your best friend who went missing on the battlefield.| |5|The comrade who saved your life at the risk of their own.| |6|The ghost who haunts you.| |7|The superior officer you punched (for abusing civilians? For insulting your honor? For preventing you from looting?)| |8|The scary experimental war construct you accompanied on a dangerous mission.| |9|The golden-armored knight with ridiculously good teeth who was always giving inspiring speeches.| |10|The enemy officer who captured you.| #### Soldier Mementos |d10|Memento| |---|---| |1|A broken horn, tooth, or other trophy salvaged from a monster's corpse.| |2|A trophy won in a battle (a tattered banner, a ceremonial sword, or similar).| |3|A gaming set.| |4|A letter from your sweetheart.| |5|An old wound that twinges in bad weather.| |6|A letter you're supposed to deliver to a dead comrade's family.| |7|A horrifying memory you can't escape.| |8|A horned or plumed helmet.| |9|The sword you broke over your knee rather than fight for those bastards another day.| |10|A medal for valor.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "One of your choice.",
+          "name": "Languages",
+          "type": "language"
+        },
+        {
+          "description": "Soldiers recognize their own. Off duty soldiers are usually willing to trade tales and gossip with you. On duty soldiers, while not obeying your orders, are likely to answer your questions and treat you respectfully on the off chance that you’re an unfamiliar officer who can get them in trouble.",
+          "name": "Military Bearing",
+          "type": "feature"
+        },
+        {
+          "description": "Athletics, and either Animal Handling or Intimidation.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Uniform, common clothes, 7 days rations.",
+          "name": "Suggested Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "One type of gaming set.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_soldier",
+      "name": "Soldier",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Charisma and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Because of your commercial contacts you may be offered money to lead or escort trade caravans. You'll receive a fee from each trader that reaches their destination safely.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Roll 1d10, choose, or make up your own. #### Trader Connections |d10|Connection| |---|---| |1|The parent or relative who wants you to carry on the family business.| |2|The sibling who inherited the other half of the family business.| |3|The trading company to which you are indentured until you pay off a debt.| |4|The powerful merchant who will never forgive the business coup you pulled off.| |5|The noble whose horse trampled your poor family's vegetable stall, injuring or killing a relative you dearly loved.| |6|The parent or elder sibling who squandered your family fortune.| |7|The business partner who cheated you.| |8|The customs agent who has sworn to catch you red-handed with illicit goods.| |9|The crime boss to whom you wouldn't pay protection money.| |10|The smuggler who will pay well for certain commodities.| #### Trader Mementos |d10|Memento| |---|---| |1|The first gold piece you earned.| |2|Thousands of shares in a failed venture.| |3|A letter of introduction to a rich merchant in a distant city.| |4|A sample of an improved version of a common tool.| |5|Scars from a wound sustained when you tried to collect a debt from a vicious noble.| |6|A love letter from the heir of a rival trading family.| |7|A signet ring bearing your family crest, which is famous in the mercantile world.| |8|A contract binding you to a particular trading company for the next few years.| |9|A letter from a friend imploring you to invest in an opportunity that can't miss.| |10|A trusted family member's travel journals that mix useful geographical knowledge with tall tales.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Traveler's clothes, abacus, merchant's scale.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "Persuasion, and either Culture, Deception, or Insight.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "When you buy a trade good and sell it elsewhere to a community in need of that good, you gain a 10% bonus to its sale price for every 100 miles between the buy and sell location (maximum of 50%).",
+          "name": "Supply and Demand",
+          "type": "feature"
+        },
+        {
+          "description": "One vehicle.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_trader",
+      "name": "Trader",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 to Dexterity and one other ability score.",
+          "name": "Ability Score Increases",
+          "type": "ability_score"
+        },
+        {
+          "description": "Street kids are among a settlement's most vulnerable people, especially in cities with lycanthropes, vampires, and other supernatural threats. After you help out a few urchins in trouble, word gets out and you'll be able to consult the street network to gather information. If you roll lower than a 15 on an Investigation check to gather information in a city or town, your roll is treated as a 15.",
+          "name": "Adventures And Advancement",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "#### Urchin Connections |d10|Connection| |---|---| |1|The disreputable thief who taught you thieving skills.| |2|The saintly orphanage matron who's so proud of how you've grown.| |3|The misery and cruel orphanage administrator who rounds up urchins and runaways.| |4|The drunken thief who shared with you what little they could steal.| |5|The fellow urchin who has some power to make \"bad stuff\" happen to their enemies.| |6|The thieves' guild contact who will pay well for small folk to wriggle through a window or chimney to unlock a front door.| |7|The philanthropist (or charlatan?) who took you in, dressed you properly, and tried to teach you upper-class manners.| |8|The spymaster or detective who sent you on investigation missions.| |9|The noble whose horse trampled you or a friend.| |10|The rich family you ran away from.| #### Urchin Mementos |d10|Memento| |---|---| |1|A locket containing pictures of your parents.| |2|A set of (stolen?) fine clothes.| |3|A small trained animal, such as a mouse, parrot, or monkey.| |4|A map of the sewers.| |5|The key or signet ring that was around your neck when you were discovered as a foundling.| |6|A battered one-eyed doll.| |7|A portfolio of papers given to you by a fleeing, wounded courier.| |8|A gold tooth (not yours, and not in your mouth).| |9|The flowers or trinkets that you sell.| |10|A dangerous secret overheard while at play.|",
+          "name": "Connection and Memento",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Common clothes, disguise kit.",
+          "name": "Equipment",
+          "type": "equipment"
+        },
+        {
+          "description": "When you're in a town or city, you can provide a poor lifestyle for yourself and your companions. Also, you know how to get anywhere in town without being spotted by gangs, gossips, or guard patrols.",
+          "name": "Guttersnipe",
+          "type": "feature"
+        },
+        {
+          "description": "Sleight of Hand, and either Deception or Stealth.",
+          "name": "Skill Proficiencies",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Disguise kit, thieves’ tools.",
+          "name": "Tool Proficiencies",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_urchin",
+      "name": "Urchin",
+      "source": "a5e-ag"
+    }
+  ],
   "classFeatures": {
     "barbarian": [
       {

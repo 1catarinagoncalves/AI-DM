@@ -46,7 +46,7 @@ Adicionar, na etapa `background`, uma seção separada — rotulada **"Origem"**
 ### Dentro do escopo
 
 - **Cartões de escolha** numa seção "Origem" dentro da etapa `background`, um por entrada de `config.backgrounds` (US-121): nome em destaque + lista curta dos `benefits[].name` (não o `description` inteiro — cartão, não página). Mesmo componente visual `optionCardClass` que a etapa `skills` já usa.
-- **Seleção é opcional**: continua válido avançar sem escolher nenhuma (`canAdvance('background')` **não muda** — já retorna `true` incondicionalmente, US-39). Sem catálogo no `config` (sistema sem `backgrounds`, ex. Free) a seção "Origem" **não aparece** — mesmo padrão condicional de `skillCatalog`/`raceCatalog` (`?? []` já cobre isso).
+- **Seleção é obrigatória quando há catálogo**: `canAdvance('background')` passa a exigir `origin.key` preenchido se `config.backgrounds` existir — mesmo padrão de bloqueio que race/classe já têm (US-105). Sem catálogo no `config` (sistema sem `backgrounds`, ex. Free) a seção "Origem" **não aparece** e a etapa segue liberada como hoje — mesmo padrão condicional de `skillCatalog`/`raceCatalog` (`?? []` já cobre isso).
 - **`CreateCharacterSchema`** ganha um campo **irmão** de `background`, não aninhado nele: `origin: z.object({ key: z.string().max(80).optional() }).optional()`.
 - **`CharacterService.create`** valida a chave com o `validateCatalogKey` que já existe (US-105), contra `config.backgrounds` — mesmo tratamento de race/class, mas o campo continua opcional (chave ausente não valida nada).
 - **`normalizeOrigin`** (nova função, espelha `normalizeBackground` mas para o objeto separado) persiste `{ key }` no campo `Character.origin`.
@@ -96,7 +96,7 @@ origin  Json  @default("{}")  // US-122: {key?} — origem escolhida do catálog
 - [ ] Etapa `background` do wizard mostra, numa seção rotulada **"Origem"**, cartões dos `config.backgrounds` (quando o sistema tiver o campo) — nome + benefícios resumidos, mesmo estilo visual da etapa `skills`.
 - [ ] Sistema sem `config.backgrounds` (ex. Free) **não mostra** a seção "Origem" — etapa continua só os 4 campos de texto de `background`, exatamente como é hoje.
 - [ ] Selecionar um cartão marca a origem; selecionar de novo o mesmo cartão desmarca (toggle, não é multi-escolha).
-- [ ] `canAdvance('background')` continua `true` sempre — escolher uma origem do catálogo **não é obrigatório**.
+- [ ] `canAdvance('background')` passa a exigir `origin.key` preenchido quando `config.backgrounds` existir — escolher uma origem do catálogo é **obrigatório** nesse caso (bloqueia avanço sem seleção, mesmo padrão de race/classe); sem catálogo no sistema, etapa segue liberada como hoje.
 - [ ] `CreateCharacterSchema.origin.key` aceito e validado no service: chave que não bate em `config.backgrounds` **rejeita a criação** com `BadRequestException` (mesmo comportamento de `validateCatalogKey` para raça/classe); chave ausente não dispara validação nenhuma.
 - [ ] `Character.origin` persistido **separado** de `Character.background`; um personagem criado sem escolher origem grava `origin: {}` e `background` como hoje — nenhum dos dois afeta o outro.
 - [ ] Etapa de revisão mostra o nome da origem escolhida (resolvido no locale ativo) numa linha própria, distinta da linha de `background`.
@@ -108,7 +108,7 @@ origin  Json  @default("{}")  // US-122: {key?} — origem escolhida do catálog
 
 ## Notas de implementação
 
-- **Toggle, não `<select>`.** Race/classe (US-105) usam `<select>` porque são obrigatórios e mutuamente exclusivos por natureza. Origem é **opcional** — cartão com `aria-pressed` (mesmo padrão de `toggleSkill`) deixa claro que dá para não escolher nenhuma, sem precisar de uma opção "nenhuma" artificial no meio da lista.
+- **Toggle, não `<select>`.** Race/classe (US-105) usam `<select>` porque são obrigatórios e mutuamente exclusivos por natureza. Origem também é obrigatória quando há catálogo, mas mantém o cartão com toggle (`aria-pressed`, mesmo padrão de `toggleSkill`) em vez de `<select>` — formato cartão (nome + benefícios) não cabe bem num `<option>` de texto puro. Quem bloqueia o avanço sem seleção é `canAdvance('background')`, não o componente do cartão.
 - **Resumo do cartão:** `benefits.map(b => b.name).join(' · ')` já basta (nomes curtos: "Ability Score Increases", "Skill Proficiencies"…) — não renderizar `description` no cartão (é prosa longa, `adventures_and_advancement` chega a parágrafo). Descrição completa fica para uma story de detalhe/tooltip, se a UX pedir depois.
 - **`validateCatalogKey` já existe e é genérico** ([character.service.ts:91](../../../apps/api/src/character/character.service.ts:91)) — reusar direto, não escrever validação nova. A chamada fica **condicional** (`dto.origin?.key ? validateCatalogKey(...) : undefined`), porque o campo é opcional.
 - **`catalogLabel`** ([system.ts:135](../../../packages/shared/src/types/system.ts:135)) resolve o rótulo na revisão e em qualquer outro lugar que precise mostrar o nome a partir da chave — mesmo caminho de `raceLabel`/`classLabel` no `SetupWizard.tsx`.

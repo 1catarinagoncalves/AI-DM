@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -269,6 +269,60 @@ test('withRetired: sem artefato anterior (1ª geração) e sem nada aposentado �
   const artifact = { classFeatures: { barbarian: [{ key: 'barbarian_rage', name: 'Fúria', source: 'srd' }] }, classSpells: {} }
   assert.deepEqual(withRetired(artifact, null), artifact)
   assert.deepEqual(withRetired(artifact, artifact), artifact)
+})
+
+// --- US-121 — os 21 backgrounds nos DOIS artefatos, cada um com source a5e-ag ---
+for (const locale of ['en-US', 'pt-BR']) {
+  test(`artefato ${locale}: 21 backgrounds do a5e-ag, cada um com key/name/benefits/source`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    assert.equal(artifact.backgrounds.length, 21)
+    for (const bg of artifact.backgrounds) {
+      assert.ok(bg.key.startsWith('a5e-ag_'), `key fora do namespace a5e-ag: ${bg.key}`)
+      assert.ok(bg.name, `background sem name: ${bg.key}`)
+      assert.equal(bg.source, 'a5e-ag', `source errado: ${bg.key}`)
+      for (const benefit of bg.benefits) {
+        assert.ok(benefit.type, `benefit sem type: ${bg.key}`)
+        assert.ok(benefit.name, `benefit sem name: ${bg.key}`)
+        assert.ok(benefit.description, `benefit sem description: ${bg.key}`)
+      }
+    }
+  })
+}
+
+// --- US-121 — backgrounds do a5e-ag: join Background + BackgroundBenefit por parent → pk ---
+
+const identityResolve = (_domain, _key, _entry, enName, enDesc) => ({
+  name: enName,
+  ...(enDesc !== undefined ? { description: enDesc } : {}),
+})
+
+const background = (pk, name) => ({ pk, fields: { name, desc: '', document: 'a5e-ag' } })
+const benefit = (pk, parent, name, desc, type) => ({ pk, fields: { parent, name, desc, type } })
+
+test('buildBackgrounds: agrupa benefícios por parent; type cru sobrevive sem normalização', () => {
+  const backgrounds = [background('a5e-ag_acolyte', 'Acolyte'), background('a5e-ag_criminal', 'Criminal')]
+  const benefits = [
+    benefit('a5e-ag_acolyte_ability-scores', 'a5e-ag_acolyte', 'Ability Score Increases', 'Wisdom, Intelligence, or Charisma.', 'ability_score'),
+    benefit('a5e-ag_acolyte_skills', 'a5e-ag_acolyte', 'Skill Proficiencies', 'Religion and Insight.', 'skill_proficiency'),
+  ]
+  const result = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  assert.deepEqual(result.map((b) => b.key), ['a5e-ag_acolyte', 'a5e-ag_criminal'])
+  const acolyte = result.find((b) => b.key === 'a5e-ag_acolyte')
+  assert.equal(acolyte.source, 'a5e-ag')
+  assert.equal(acolyte.benefits.length, 2)
+  assert.equal(acolyte.benefits[0].type, 'ability_score')
+})
+
+test('buildBackgrounds: background sem benefit correspondente aparece com benefits: []', () => {
+  const backgrounds = [background('a5e-ag_urchin', 'Urchin')]
+  const result = buildBackgrounds({}, backgrounds, [], identityResolve)
+  assert.deepEqual(result, [{ key: 'a5e-ag_urchin', name: 'Urchin', benefits: [], source: 'a5e-ag' }])
+})
+
+test('buildBackgrounds: benefit com parent órfão falha alto', () => {
+  const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
+  const benefits = [benefit('a5e-ag_ghost_trait', 'a5e-ag_ghost', 'Trait', 'Texto.', 'feature')]
+  assert.throws(() => buildBackgrounds({}, backgrounds, benefits, identityResolve), /a5e-ag_ghost/)
 })
 
 // --- US-108 — a tabela de modificadores de habilidade do SRD 2024 ---

@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** 🗂️ Backlog
 **Depende de:** [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (o ledger, os eixos `sabido`/`revelado`, `mergeEntities` e a semeadura da abertura — esta story é a continuação que aquela deixou fora por escrito)
 **Relacionada a:** [US-73](./US-73-reconciliador-de-cena-em-background.md) (**o molde exato**: mesma arquitetura de extração pós-turno em background, aplicada à cena; esta aplica ao ledger) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (o modelo barato que esta extração deveria usar) · [US-113](./US-113-vinculos-ancorados-na-fonte-no-ledger.md) (vínculos ficam **fora** desta rede — ver *Fora do escopo*)
 **Criada em:** 2026-08-07

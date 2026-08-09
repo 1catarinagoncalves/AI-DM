@@ -43,6 +43,870 @@
       "min": 10
     }
   ],
+  "backgrounds": [
+    {
+      "benefits": [
+        {
+          "description": "+1 em Sabedoria e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Em pequenos assentamentos sem outros recursos, sua autoridade pode se estender a assuntos como resolver disputas e punir criminosos. Você também pode ser incumbido de lidar com surtos locais de perigos sobrenaturais, como possessões demoníacas, cultos e mortos inquietos. Se você resolver vários problemas trazidos a você por membros de sua fé, você pode ser promovido (ou reintegrado) dentro da hierarquia de sua ordem. Você ganha o serviço gratuito de até 4 acólitos e acesso direto aos líderes de sua ordem.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Acólito |d10|Conexão| |---|---| |1|Um sumo sacerdote ou sacerdotisa amado que aguarda seu retorno ao templo assim que você resolver sua crise de fé.| |2|Um ex-sacerdote—exposto por você como um herege—que jurou vingança antes de fugir.| |3|O arauto errante que o resgatou quando órfão e patrocinou sua entrada no templo.| |4|O inquisidor que descobriu sua heresia (ou o incriminou) e fez com que você fosse banido do templo.| |5|O charlatão fugitivo ou líder de culto a quem você um dia reverenciou como uma pessoa santa.| |6|Seu amigo escandaloso, um colega acólito que fugiu do templo em busca de prazeres mundanos.| |7|O sumo sacerdote que desacreditou seu templo e puniu os outros membros de sua ordem.| |8|O aventureiro errante cujos contos de glória o atraíram para fora do templo.| |9|O líder de sua ordem, um ex-aventureiro que o envia em missões para combater os inimigos de seu deus.| |10|O antigo líder de sua ordem que inexplicavelmente se aposentou para uma vida de isolamento e penitência.| ### Lembranças de Acólito |d10|Lembrança| |---|---| |1|O símbolo sagrado gasto pelo tempo, legado a você por seu amado mentor em seu leito de morte.| |2|Uma preciosa relíquia sagrada passada secretamente a você em um momento de grande perigo.| |3|Um livro de orações que contém desvios estranhos e sinistros da liturgia aceita.| |4|Um livro de profecias incompleto que parece sugerir perigo para sua fé—se ao menos a outra metade pudesse ser encontrada!| |5|Um presente de um mentor: um livro de teologia complexa que você ainda não compreende.| |6|Sua única posse quando entrou no templo ainda criança: um anel de sinete ostentando um brasão.| |7|Uma vela estranha que nunca se consome.| |8|O nome verdadeiro de um diabo que você vislumbrou enquanto organizava papéis para um visitante sinistro.| |9|Uma arma (que parece não exibir propriedades mágicas) entregue a você com grande solenidade por seu mentor.| |10|Um livro de orações muito manuseado e fortemente sublinhado, dado a você pelo colega acólito que você mais admira.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Símbolo sagrado (amuleto ou relicário), roupas comuns, túnica e um livro de orações, roda de orações ou contas de oração.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Um à sua escolha.",
+          "name": "Idiomas",
+          "type": "language"
+        },
+        {
+          "description": "Religião e uma entre Intuição ou Persuasão.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_acolyte",
+      "name": "Acólito",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Inteligência e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Se você participar da criação de um item mágico (uma \"obra-prima\"), você ganhará os serviços de até 8 aprendizes plebeus com a proficiência em ferramentas apropriada.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Artesão |d10|Conexão| |---|---| |1|O mestre cruel que o fez trabalhar quase até a morte e agora faz o mesmo com outros aprendizes.| |2|O mestre bondoso que lhe ensinou o ofício.| |3|A figura poderosa que se recusou a pagar pelo seu melhor trabalho.| |4|O rival invejoso que fez fortuna após roubar sua técnica secreta.| |5|O rival corrupto que incriminou e prendeu seu mentor.| |6|O líder de bandidos que destruiu a oficina e o sustento de seu mentor.| |7|O chefe do crime que levou seu mentor à falência.| |8|O alquimista obscuro que sempre precisa de ingredientes perigosos para avançar o estado de sua arte.| |9|Seu aprendiz que desapareceu.| |10|O patrono que apoia seu trabalho.| ### Lembranças de Artesão |d10|Lembrança| |---|---| |1|*Joalheiro:* Uma comissão de 10.000 peças de ouro por um anel de rubi (agora tudo o que você precisa é de um rubi que valha 5.000 peças de ouro).| |2|*Ferreiro:* Seu martelo de ferreiro (trate como uma martelo leve).| |3|*Cozinheiro:* Uma frigideira bem temperada (trate como uma maça).| |4|*Alquimista:* Uma fórmula com ingredientes exóticos que produzirá... algo.| |5|*Coureiro:* Uma pele de monstro exótico que poderia ser transformada em uma armadura de couro de aparência impressionante.| |6|*Pedreiro:* Sua marreta de confiança (trate como um martelo de guerra).| |7|*Oleiro:* Sua técnica secreta para cores vivas que certamente perturbará a Grande Olaria.| |8|*Tecelão:* Um conjunto de roupas finas (seu próprio trabalho).| |9|*Entalhador:* Um arco longo, arco curto ou besta (seu próprio trabalho).| |10|*Calígrafo:* Notas estranhas que você copiou de um manifesto desconexo. Será que significam algo?|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Um conjunto de ferramentas de artesão, roupas de viajante.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Persuasão, e Intuição ou História.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Um tipo de ferramentas de artesão ou ferramentas de ferreiro.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        },
+        {
+          "description": "Quando em uma cidade ou vila, você tem acesso a uma oficina totalmente equipada com tudo o que precisa para exercer seu ofício. Além disso, você pode esperar receber o preço total ao vender itens que você fabricou (embora não haja garantia de um comprador).",
+          "name": "Marca Comercial",
+          "type": "feature"
+        }
+      ],
+      "key": "a5e-ag_artisan",
+      "name": "Artesão",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Carisma e em outro valor de habilidade.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Se você realizar uma personificação ou identidade falsa de longa data com sucesso excepcional, você pode eventualmente se tornar legalmente essa pessoa. Se você estiver personificando uma pessoa real, ela pode ser considerada a impostora. Você ganha qualquer propriedade e servos associados à sua identidade.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou invente a sua própria. #### Conexões de Charlatão |d10|Conexão| |---|---| |1|Um perseguidor implacável: um inspetor de quem você já fez de bobo.| |2|Um perseguidor implacável: um alvo que você já enganou.| |3|Um perseguidor implacável: um ex-parceiro recém-saído da cadeia que culpa você por tudo.| |4|Um ex-parceiro que agora vive honestamente e que não poderia ser convencido a sair da aposentadoria.| |5|Um padre ou dono de taverna respeitado que lhe dá dicas sobre alvos ricos em potencial.| |6|O esquivo ex-parceiro que o denunciou e o enviou para a cadeia.| |7|Um nobre ou político famoso que, por pura sorte, se parece muito com você.| |8|O vigarista que lhe ensinou tudo e simplesmente não consegue ficar longe de problemas.| |9|Um nobre ingênuo que o conhece por um de seus antigos pseudônimos e que sempre parece aparecer em momentos inconvenientes.| |10|Um nobre proeminente que o conhece apenas pelo seu nome assumido e que confia em você como seu conselheiro espiritual, tutor, parente perdido há muito tempo ou algo do tipo.| #### Lembranças de Charlatão |d10|Lembrança| |---|---| |1|Um dado que sempre cai no 6.| |2|Uma dúzia de \"poções\" de cores vivas.| |3|Um cajado mágico que emite uma chuva inofensiva de faíscas quando batido vigorosamente.| |4|Um conjunto de roupas finas adequadas para a nobreza.| |5|Um documento genuíno permitindo ao seu portador uma liberação gratuita da prisão por um crime não capital.| |6|Uma escritura genuína de uma propriedade valiosa que, infelizmente, é bastante assombrada.| |7|Uma máscara de arlequim ornamentada.| |8|Moedas de ouro falsificadas ou joias de fantasia aparentemente valendo 100 de ouro (teste de Investigação CD 15 para notar que são falsas).| |9|Uma espada que parece mais mágica do que realmente é (sua lâmina é encantada com chama contínua e é uma arma mundana).| |10|Uma bola de cristal não mágica.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Você tem um pacote de papéis falsificados de todos os tipos—escrituras de propriedade, documentos de identificação, cartas de amor, mandados de prisão e cartas de recomendação—todos exigindo apenas algumas assinaturas e floreios para atender à necessidade atual. Quando você encontra um novo documento ou carta, pode adicionar uma cópia falsificada e modificada ao seu pacote. Se seu pacote for perdido, você pode recriá-lo com um kit de falsificação e um dia de trabalho.",
+          "name": "Muitas Identidades",
+          "type": "feature"
+        },
+        {
+          "description": "Enganação, e Cultura, Intuição ou Prestidigitação.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Roupas comuns, kit de disfarce, kit de falsificação.",
+          "name": "Equipamento Sugerido",
+          "type": "equipment"
+        },
+        {
+          "description": "Kit de disfarce, kit de falsificação.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_charlatan",
+      "name": "Charlatão",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Destreza e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Se você realizar vários trabalhos ou assaltos bem-sucedidos, você pode ser promovido (ou reintegrado) como um líder em sua gangue. Você pode obter o serviço gratuito de até 8 **bandidos** a qualquer momento.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões Criminosas |d10|Conexão| |---|---| |1|O mestre criminoso que o introduziu em sua primeira gangue.| |2|O clérigo ou arauto que o convenceu a usar suas habilidades para o bem (e que pode ser legalmente responsável pelo seu bom comportamento contínuo).| |3|Seu irmão ou outro parente—que também é um representante da lei.| |4|A gangue de patifes e batedores de carteira que um dia o chamaram de líder.| |5|O caçador de recompensas que jurou levá-lo à justiça.| |6|Seu antigo parceiro que fugiu com todo o espólio após um grande golpe.| |7|O mensageiro mascarado que ocasionalmente lhe dá trabalhos.| |8|O chefe do crime a quem você jurou lealdade (ou a quem você deve uma dívida enorme).| |9|O mestre ladrão que um dia roubou algo precioso de você.| |10|O nobre corrupto que arruinou sua família outrora rica.| #### Recordações Criminosas |d10|Recordação| |---|---| |1|Uma chave dourada para a qual você não descobriu a fechadura.| |2|Uma marca que foi queimada em seu ombro como punição por um crime.| |3|Uma cicatriz pela qual você jurou vingança.| |4|A máscara distinta que lhe dá seu apelido (por exemplo, a Máscara Negra ou a Raposa Vermelha).| |5|Uma moeda de ouro que reaparece em sua posse uma semana depois de você ter se livrado dela.| |6|O símbolo roubado de uma organização sinistra; nem mesmo seu receptador aceitará isso de você.| |7|Documentos que incriminam um nobre ou político perigoso.| |8|A planta baixa de um palácio.| |9|Os cartões de visita que você deixa após (ou antes) de atacar.| |10|Um manuscrito escrito por seu mentor: *Saídas Secretas das Prisões Mais Seguras do Mundo*.",
+          "name": "Conexão e Recordação",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas comuns, capa escura, ferramentas de ladrão.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Furtividade e ou Enganação ou Intimidação.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Você conhece a Gíria de Ladrão: um conjunto de gírias, sinais manuais e termos codificados usados por criminosos profissionais. Uma criatura que conhece a Gíria de Ladrão pode esconder uma mensagem curta dentro de uma declaração aparentemente inocente. Um ouvinte que conhece a Gíria de Ladrão entende a mensagem.",
+          "name": "Gíria de Ladrão",
+          "type": "feature"
+        },
+        {
+          "description": "Conjunto de jogos, ferramentas de ladrão.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_criminal",
+      "name": "Criminoso",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Inteligência e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Membros da sua antiga ordem podem estar caçando você para reengajamento, punição ou ambos. Além disso, seu culto ainda busca abrir um portal, efetuar uma apoteose ou causar uma catástrofe de outra forma. Eventualmente, você pode ter que enfrentar o líder do seu culto e talvez até mesmo o ser que você um dia adorou.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Cultista |d10|Conexão| |---|---| |1|O líder do culto que você deixou para morrer.| |2|O clérigo ou arauto que lhe mostrou o erro dos seus caminhos.| |3|A voz que ainda fala com você em sonhos.| |4|O cultista carismático cujas palavras doces e promessas o tentaram pela primeira vez.| |5|O amigo ou ente querido que ainda está no culto.| |6|Seu antigo melhor amigo que agora o caça por sua deserção do culto.| |7|O inquisidor implacável que o caça por sua heresia passada.| |8|O demônio que você e seus compatriotas acidentalmente libertaram.| |9|A divindade autoproclamada que mal escapou de seus discípulos furiosos após seus truques de mágica e falsidades serem revelados.| |10|O líder de culto mascarado cuja identidade você nunca aprendeu, mas cuja voz cruel você reconheceria em qualquer lugar.| #### Recordações de Cultista |d10|Recordação| |---|---| |1|A tatuagem sinistra que ocasionalmente fala com você.| |2|O símbolo sagrado amaldiçoado que aparece em sua posse todas as manhãs, não importa o quanto você tente se livrar dele.| |3|A cicatriz na palma da sua mão que dói quando você desobedece à vontade do seu antigo mestre.| |4|A adaga curva que carrega um encantamento secreto capaz apenas de destruir o ser que você um dia adorou.| |5|O amuleto que dizem conceder comando sobre um construto poderoso.| |6|Um tomo proibido que seu culto mataria para recuperar.| |7|Uma carta incriminatória para o seu líder de culto vinda do mestre deles (um nobre ou político notável).| |8|Uma bússola que aponta para algum local ou objeto distante.| |9|Um talismã que dizem abrir um portal para o reino de um deus esquecido.| |10|A marca de nascença que o distingue como o receptáculo escolhido de um deus renascido.",
+          "name": "Conexão e Recordação",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Símbolo sagrado (amuleto ou relicário), roupas comuns, túnicas, 5 tochas.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Quando você falha em um teste de Arcanismo ou Religião, você sabe qual ser ou livro detém o conhecimento que você busca; encontrar o livro ou pagar o preço do ser é outra história.",
+          "name": "Saber Proibido",
+          "type": "feature"
+        },
+        {
+          "description": "Um de sua escolha.",
+          "name": "Idiomas",
+          "type": "language"
+        },
+        {
+          "description": "Religião e ou Arcanismo ou Enganação.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_cultist",
+      "name": "Cultista",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Carisma e em outro valor de habilidade.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Alguns de seus admiradores pagarão para você defender uma causa ou difamar um inimigo. Se você tiver sucesso em várias dessas missões, sua fama crescerá. Você será bem-vindo em cortes reais, que o sustentarão com um estilo de vida rico.",
+          "name": "Aventuras e Avanço",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Artista |d10|Conexão| |---|---| |1|Seu rival, um artista igualmente talentoso.| |2|O cruel líder do circo sinistro onde você aprendeu seu ofício.| |3|Um nobre que quer vingança pela música que você escreveu sobre ele.| |4|O ator que diz que sempre há espaço em sua trupe para você e seus companheiros.| |5|O nobre que lhe deve um favor por ter escrito os poemas de amor que conquistaram seu cônjuge.| |6|Seu antigo parceiro, um nobre decadente com bom ouvido e mau julgamento.| |7|O rival que se tornou bem-sucedido e famoso ao levar o crédito pelo seu melhor trabalho.| |8|O cortesão de alto escalão que está sempre tentando promover sua carreira.| |9|Um amante rejeitado que quer vingança.| |10|Os muitos donos de taverna e alfaiates a quem você deve somas surpreendentemente grandes.| #### Lembranças de Artista |d10|Lembrança| |---|---| |1|Sua obra-prima inacabada—se você conseguir encontrar inspiração para superar seu bloqueio criativo.| |2|Roupas finas adequadas para um nobre e algumas joias de fantasia razoavelmente convincentes.| |3|Uma carta de amor de um admirador rico.| |4|Um instrumento quebrado de qualidade magistral—se consertado, que música você poderia fazer com ele!| |5|Uma pilha de pequenos volumes de poesia que você simplesmente não consegue vender.| |6|Traje de bobo da corte tilintante.| |7|Um kit de disfarce.| |8|Varinhas que esguicham água, lenços com nós, algemas de truque e outras ferramentas de uma nova tendência bizarra de entretenimento: um show de mágica não mágico.| |9|Uma adaga de palco.| |10|Uma carta de recomendação do seu mentor para um nobre ou corte real.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Alaúde ou outro instrumento musical, traje.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Em qualquer assentamento no qual você não tenha se tornado impopular, suas apresentações podem render dinheiro suficiente para sustentar a si mesmo e seus companheiros: quanto maior o assentamento, maior o seu padrão de vida, até um estilo de vida moderado em uma cidade.",
+          "name": "Pagar o Músico",
+          "type": "feature"
+        },
+        {
+          "description": "Atuação e ou Acrobacia, Cultura ou Persuasão.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_entertainer",
+      "name": "Artista",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Sabedoria e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Você pode encontrar ocasionalmente outros de sua terra natal. Alguns podem ser amigos, e outros inimigos mortais; poucos serão indiferentes a você. Após alguns desses encontros, você pode se tornar o líder de uma facção de exilados. Seus seguidores incluem até três NPCs de Desafio ½ ou menos, como batedores.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Exilado |d10|Conexão| |---|---| |1|Os companheiros que compartilharam seu exílio.| |2|O bondoso local que lhe ensinou o idioma Comum.| |3|O lojista ou estalajadeiro que o acolheu e lhe deu trabalho.| |4|Os caçadores de sua terra natal que o perseguem.| |5|O governante distante que o baniu até que você se redima.| |6|A comunidade de outros exilados que se uniram em um bairro da cidade.| |7|A trupe de teatro ou circo que o acolheu.| |8|As autoridades suspeitas que estavam convencidas de que você era um espião.| |9|Seu primeiro amigo após o exílio: um aventureiro grisalho que viajou com você.| |10|Uma celebridade bem relacionada e inescrupulosa que vem de sua terra natal.| #### Lembranças de Exilado |d10|Lembrança| |---|---| |1|Um instrumento musical que era comum em sua terra natal.| |2|Uma coleção memorizada de poemas ou sagas.| |3|Um medalhão contendo uma foto de seu noivo(a) de quem você está separado.| |4|Segredos comerciais, estatais ou culinários de sua terra natal.| |5|Uma joia dada a você por alguém que você nunca mais verá.| |6|Um mapa antigo e impreciso da terra onde você vive agora.| |7|Seus diários de viagem incompletos.| |8|Uma carta de um parente direcionando você a alguém que possa ajudá-lo.| |9|Um artefato cultural precioso que você deve proteger.| |10|Uma flecha destinada ao coração de quem o traiu.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas de viajante, 10 dias de rações.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Você ganha um dado de especialização em testes de Persuasão contra outros que estão longe de sua terra natal.",
+          "name": "Companheiro de Viagem",
+          "type": "feature"
+        },
+        {
+          "description": "Sobrevivência e ou História ou Atuação.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_exile",
+      "name": "Exilado",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Sabedoria e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Você deixou a fazenda por um motivo, mas ainda tem um olho para a terra. Se você adquirir propriedades agrícolas, propriedades ou domínios, você pode ganhar o dobro do que ganharia de outra forma com suas colheitas, ou ser sustentado por suas terras em um estilo de vida um nível acima do que teria normalmente.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Você sabe como guardar e transportar comida. Você e um animal sob seus cuidados podem carregar Suprimentos adicionais iguais ao seu bônus de proficiência.",
+          "name": "Freio e Rédea",
+          "type": "feature"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Fazendeiro |d10|Conexão| |---|---| |1|O proprietário de terras que executou a hipoteca da terra de sua família.| |2|Os bandidos que queimaram sua vila.| |3|Os pais que esperam pelo seu retorno.| |4|A bruxa estranha a quem sua família deve uma dívida.| |5|O aventureiro aposentado que o treinou.| |6|O druida que—de acordo com os aldeões—lançou uma maldição de seca em sua terra.| |7|O valentão da vila que ameaçou matá-lo se você voltasse.| |8|O mago maligno que não medirá esforços para pegar a herança de sua família.| |9|Seu irmão mais velho que partiu em busca de aventura antes de você.| |10|O dragão cujo fedor fétido estragou sua região.| #### Lembranças de Fazendeiro |d10|Lembrança| |---|---| |1|Um item estranho que você desenterrou em um campo: uma chave, um pedaço de metal inderretível, uma adaga de vidro.| |2|O saco de feijões que sua mãe o avisou para não plantar.| |3|A pá, picareta, forcado ou outra ferramenta que você usou para o trabalho. Para você, é uma arma corpo-a-corpo simples de uma mão que causa 1d6 de dano perfurante, cortante ou de concussão.| |4|Uma dívida que você deve pagar.| |5|Um **mastim**.| |6|Sua vara de pescar de confiança.| |7|Um cachimbo de sabugo de milho.| |8|Uma flor seca do jardim de sua família.| |9|Metade de um medalhão dado a você por um amor perdido.| |10|Uma arma de família que dizem ter poderes mágicos, embora não exiba nenhum no momento.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas comuns, pá, mula com alforjes, 5 Suprimentos (rações).",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Natureza e Adestrar Animais ou Sobrevivência.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Veículos terrestres.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_farmer",
+      "name": "Fazendeiro",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Constituição e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Pessoas comuns vêm até você com todo tipo de problema. Se você lutou contra um regime opressor, elas trazem contos de injustiça. Se você lutou contra um monstro, elas o procuram com problemas relacionados a monstros. Se você resolver muitos desses dilemas, você se torna universalmente famoso, ganhando os benefícios da sua característica Fama Local em todas as terras povoadas.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Herói do Povo |d10|Conexão| |---|---| |1|O bardo cuja canção o tornou lendário e que quer uma sequência.| |2|Seu amigo, um mercador viajante cuja caravana espalha sua fama.| |3|Um inimigo mortal: o herdeiro do nobre opressor que você matou.| |4|Um inimigo mortal: a mãe do monstro que você matou.| |5|Um inimigo mortal: o líder dos bandidos que você derrotou.| |6|Um inimigo mortal: o tirano que você roubou.| |7|Uma criança que quer seguir seus passos rumo ao perigo.| |8|O rival invejoso que quer superar sua proeza de caçador de monstros, feitos ousados, receita de torta premiada ou qualquer outra coisa que o tornou famoso.| |9|Um admirador secreto: o herdeiro ou herdeira do nobre opressor que você derrotou.| |10|O aventureiro aposentado que o treinou e agora está em apuros.| #### Lembranças de Herói do Povo |d10|Lembrança| |---|---| |1|A máscara que você usou para esconder sua identidade enquanto lutava contra a opressão (você só é reconhecido como um herói do povo enquanto usa a máscara).| |2|Um colar contendo um chifre, dente ou garra do monstro que você derrotou.| |3|Um anel dado a você pelo parente morto cuja morte você vingou.| |4|A arma que você arrancou do líder do ataque à sua vila.| |5|O troféu, cinturão de luta, prato de torta de prata ou outro prêmio que o marca como o campeão do condado.| |6|A cicatriz famosa que você ganhou em sua luta contra seu inimigo.| |7|A arma característica que lhe fornece seu apelido.| |8|O ferimento ou diferença física pela qual seus admiradores e inimigos o reconhecem.| |9|O apito de sinalização ou instrumento que você usou para convocar aliados e assustar inimigos.| |10|Cópias das baladas e poemas escritos em sua homenagem.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Quaisquer ferramentas de artesão, exceto suprimentos de alquimista, roupas comuns.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "A menos que você esconda sua identidade, você é universalmente reconhecido e admirado perto do local de seus feitos. Você e seus companheiros recebem um estilo de vida moderado em qualquer assentamento dentro de 160 km do seu Centro de Prestígio.",
+          "name": "Fama Local",
+          "type": "feature"
+        },
+        {
+          "description": "Sobrevivência e Adestrar Animais ou Natureza.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Um tipo de ferramentas de artesão, um veículo.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_folk-hero",
+      "name": "Herói do Povo",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Carisma e em outro valor de habilidade.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Uma vez que você tenha tido mais do que sua cota justa de lançamentos de sorte, você atrai a atenção de oponentes mais ricos. Você adiciona +1 a todos os seus lançamentos de sorte. Além disso, você e seus amigos podem ser convidados para jogos exclusivos com apostas maiores do que dinheiro.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Apostador 1. O mentor que você superou. 2. O duelista que nunca o perdoará por tê-lo depenado. 3. O apostador lendário que você aspira vencer. 4. O rival amigável que sempre o mantém alerta. 5. O nobre que o acusou publicamente de trapaça. 6. Um acadêmico manchado de tinta que quer que você teste uma teoria arriscada sobre como vencer a banca. 7. O líder de gangue que preferiria matá-lo a pagar o que deve. 8. A criança que se esforça para imitá-lo. 9. O rival trapaceiro que usa truques para vencer. 10. O rival que ganhou algo de você que você quer de volta. #### Lembranças de Apostador 1. Dívidas de jogo que alguém que desapareceu lhe deve. 2. Sua moeda da sorte que você sempre recuperou após perdê-la no jogo. 3. As escrituras de uma mina de cobre infestada de monstros, um castelo em outro plano de existência e várias outras propriedades sem valor. 4. Um bilhete de casa de penhores para um item valioso—se você conseguir juntar dinheiro suficiente para resgatá-lo. 5. A herança difícil de vender que alguém realmente quer de volta. 6. Dados viciados ou cartas marcadas. Eles concedem vantagem em testes de jogo quando usados, mas podem ser descobertos se examinados cuidadosamente por alguém com a proficiência em ferramenta apropriada (dados ou cartas). 7. Um convite para um jogo anual de apostas altas para o qual você nem consegue pagar a entrada. 8. Uma moeda de duas caras. 9. Metade de uma carta rasgada—dizem que um parente perdido há muito tempo possui a outra metade. 10. Um bibelô feio que seu antigo dono alegava ter poderes mágicos ocultos.",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas finas, conjunto de dados, conjunto de cartas de baralho.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Cada semana você pode tentar um “lançamento de sorte” para se sustentar através do jogo. Role 1d6 para determinar o estilo de vida que você pode pagar com os ganhos da sua semana (1–2: pobre, 3–5: moderado, 6: rico).",
+          "name": "Dama da Sorte",
+          "type": "feature"
+        },
+        {
+          "description": "Enganação e Intuição ou Prestidigitação.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_gambler",
+      "name": "Apostador",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Força e em outro valor de habilidade.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Quando você visita a cidade ou o campo que você patrulhou uma vez, você certamente se envolverá na mesma política que o expulsou. Se você ficar por perto corrigindo erros, pode acabar se encontrando acidentalmente em uma posição de responsabilidade.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Guarda |d10|Conexão| |---|---| |1|O capitão da guarda corrupto que o incriminou.| |2|O capitão da guarda que segue as regras e o encontrou violando um regulamento.| |3|O poderoso capitão da guarda que lhe ensinou tudo o que você sabe.| |4|O informante que lhe deu a dica sobre atividades criminosas.| |5|O nobre ou mercador que você protegeu.| |6|O camarada ou oficial superior que você admirava.| |7|O vilão que sequestrou a pessoa que você foi encarregado de proteger.| |8|Seu traidor, a única pessoa em quem você não pensou em desconfiar.| |9|O nobre ou mercador que tinha todos no bolso.| |10|O mago adivinho que geralmente conseguia lhe fornecer a peça que faltava no quebra-cabeça.| #### Lembranças de Guarda |d10|Lembrança| |---|---| |1|Seu distintivo de cargo, um símbolo de um ideal que poucos conseguiram alcançar.| |2|Seu distintivo de cargo, um símbolo de um sistema corrupto que você não conseguia mais suportar.| |3|O livro de orações ou baralho de cartas danificado por flecha que salvou sua vida.| |4|O cantil de uísque que lhe foi útil em muitas patrulhas frias.| |5|Notas sobre uma série de desaparecimentos que você gostaria de ter impedido.| |6|Uma espada quebrada, insígnia rasgada ou outro símbolo de sua desgraça e banimento.| |7|Uma tatuagem ou insígnia marcando você como parte de uma organização da qual você é o último membro.| |8|As últimas palavras do colega guarda que você nunca esquecerá.| |9|Uma carta que lhe pediram para entregar.| |10|Uma escala de serviço manchada de sangue.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas comuns, alabarda, uniforme.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Um de sua escolha.",
+          "name": "Idiomas",
+          "type": "language"
+        },
+        {
+          "description": "Plebeus e civis às vezes presumem que você faz parte de uma força policial local e cedem a você.",
+          "name": "Autoridade Natural",
+          "type": "feature"
+        },
+        {
+          "description": "Intimidação e ou Atletismo ou Investigação.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_guard",
+      "name": "Guarda",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Constituição e em outro valor de habilidade.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Uma vez que você tenha completado várias missões ou empreendimentos avançando os negócios da guilda, você pode ser promovido a oficial da guilda. Você ganha acesso a contratos mais lucrativos. Além disso, a guilda sustenta você em um estilo de vida moderado sem que você precise trabalhar.",
+          "name": "Aventuras e Avanço",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Membro de Guilda |d10|Conexão| |---|---| |1|Seu mestre de guilda que ocasionalmente tem missões secretas para grupos que conseguem manter a boca fechada.| |2|Membros de uma guilda rival que podem ou não recorrer à violência.| |3|O mestre que, reconhecendo seu talento, arriscou tudo para lhe ensinar segredos perigosos da guilda.| |4|O agente de uma guilda rival que está tentando roubar segredos.| |5|O professor ciumento que levou o crédito pelo seu trabalho e fez você ser expulso da guilda.| |6|O intendente da guilda que estoca mercadorias de legalidade duvidosa.| |7|O oficial amigável da guilda que sempre reserva para você as tarefas mais interessantes.| |8|Os rivais que sempre competem pelos mesmos trabalhos da guilda.| |9|O nobre que lhe deve muito.| |10|O ambicioso segundo em comando do seu mestre de guilda que está recrutando aliados para um golpe.| #### Lembranças de Membro de Guilda |d10|Lembrança| |---|---| |1|*Guilda de Artesãos:* Uma obra-prima incompleta que seu mentor nunca terminou.| |2|*Guilda de Artistas:* Uma obra-prima incompleta que seu mentor nunca terminou.| |3|*Guilda de Exploradores:* Um rolo de mapas incompletos, cada um com uma recompensa pela conclusão.| |4|*Guilda de Trabalhadores:* Um distintivo que lhe dá direito a uma rodada de bebidas grátis na maioria das estalagens e tavernas.| |5|*Guilda de Aventureiros:* Um pedido de um circo para obter animais exóticos vivos.| |6|*Guilda de Caçadores de Recompensa:* Um par de algemas e uma recompensa por um fugitivo que já lhe escapou uma vez.| |7|*Guilda de Magos:* O nome de um mago que criou uma versão rara de uma magia que a guilda cobiça.| |8|*Guilda de Caçadores de Monstros:* Uma recompensa, sem limite de tempo, por um monstro muito além da sua capacidade.| |9|*Guilda de Arqueólogos:* Um mapa marcando a entrada de uma masmorra distante.| |10|*Guilda de Ladrões:* Plantas de um banco, cassino, casa da moeda ou outro local rico.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Um conjunto de ferramentas de artesão ou um instrumento, roupas de viajante, distintivo da guilda.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Enquanto estiver em uma cidade ou vila, você pode manter um estilo de vida moderado exercendo seu ofício. Além disso, a guilda ocasionalmente informa você sobre trabalhos que precisam ser feitos. Completar tal trabalho pode exigir a realização de uma atividade de tempo livre, ou pode exigir uma aventura completa. A guilda fornece uma recompensa modesta se você for bem-sucedido.",
+          "name": "Negócios da Guilda",
+          "type": "feature"
+        },
+        {
+          "description": "Duas de sua escolha.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Ou um tipo de ferramentas de artesão, instrumento musical ou veículo.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_guildmember",
+      "name": "Membro de Guilda",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Sabedoria e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Sua voz interior pode ocasionalmente induzi-lo a aceitar certas oportunidades de aventura ou a evitar certas ações. Você é livre para obedecer ou desobedecer a essa voz. Eventualmente, no entanto, ela pode levá-lo a uma revelação especial, aventura ou tesouro.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Eremita |d10|Conexão| |---|---| |1|O sumo sacerdote que o baniu para a natureza selvagem até que você se arrependesse de sua heresia.| |2|O inquisidor que o caça mesmo através das terras selvagens mais solitárias.| |3|O patrono sobrenatural cujas tentações e presentes você busca rejeitar.| |4|A voz interior que você só ouve na solidão.| |5|O mentor que o treinou na contemplação silenciosa—até que ele misteriosamente virou as costas para seus próprios ensinamentos.| |6|O vilão que destruiu os fragmentos de sua vida mundana original.| |7|Os parentes nobres que buscam trazê-lo de volta à vida que você rejeitou.| |8|O superior religioso cujas blasfêmias o escandalizaram a ponto de você fugir de sua ordem religiosa.| |9|O anjo que lhe entregou uma profecia.| |10|A pessoa misteriosa que você vislumbrou várias vezes à distância—a menos que fosse uma alucinação.| #### Lembranças de Eremita |d10|Lembrança| |---|---| |1|O manifesto (possivelmente desequilibrado), enciclopédia ou obra teórica na qual você passou tanto tempo.| |2|O conjunto desbotado de roupas finas que você preservou por tantos anos.| |3|O anel de sinete com o brasão da família do qual você se envergonhou por tanto tempo.| |4|O livro de segredos proibidos que o levou ao seu refúgio isolado.| |5|O besouro, rato ou outra pequena criatura que foi sua única companhia por tanto tempo.| |6|O item aparentemente não mágico que sua voz interior diz ser importante.| |7|As tábuas de argila que desafiam a magia que você passou anos traduzindo.| |8|A relíquia sagrada que você tinha o dever de proteger.| |9|O metal de meteoro que você encontrou em uma cratera no dia em que ouviu sua voz interior pela primeira vez.| |10|Seu chapéu de sol de aparência ridícula.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Bolsa de curandeiro, Kit de Herbalismo, roupas comuns, 7 dias de rações e um livro de orações, roda de orações ou contas de oração.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Você ocasionalmente ouve uma voz—talvez sua consciência, talvez um poder superior—na qual você passou a confiar. Ela lhe disse para entrar em reclusão e, então, aconselhou-o sobre quando retornar ao mundo. Você acha que ela está guiando-o para o seu destino (consulte seu Narrador sobre esta característica).",
+          "name": "Voz Interior",
+          "type": "feature"
+        },
+        {
+          "description": "Religião e ou Medicina ou Sobrevivência.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Kit de Herbalismo.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_hermit",
+      "name": "Eremita",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Destreza e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos de Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Aliados e informantes ocasionalmente lhe dão dicas sobre o paradeiro de espólios mal guardados. Após alguns desses saques, você pode ganhar o serviço gratuito de até 8",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Saqueador |d10|Conexão| |---|---| |1|Seu nêmesis: um capitão naval ou capitão da guarda que o frustrou em várias ocasiões.| |2|Seu mentor: um capitão pirata carismático.| |3|O elegante ladrão de estrada que lhe ensinou o ofício.| |4|O nobre local que o persegue obsessivamente.| |5|Os três fora da lei que possuem as outras três partes do seu mapa do tesouro.| |6|O chefe saqueador que traiu você e o resto da gangue em troca de liberdade.| |7|A criança que você se tornou um fora da lei para proteger.| |8|O clérigo que o converteu a uma vida de lei e fé.| |9|O velho bandido erudito cujas invenções lhe deram uma vantagem contra as autoridades que o perseguiam.| |10|Seu melhor amigo—que está cumprindo pena de prisão perpétua pelo crime que cometeram juntos.| #### Lembranças de Saqueador |d10|Lembrança| |---|---| |1|A máscara sinistra pela qual suas vítimas o conhecem.| |2|O único item que você gostaria de não ter roubado.| |3|Um anel de sinete marcando você como herdeiro de uma propriedade confiscada.| |4|Um medalhão contendo uma foto daquele que o traiu.| |5|Uma bússola quebrada.| |6|Uma lembrança de amor do jovem herdeiro de uma fortuna.| |7|Metade de uma insígnia de oficial rasgada.| |8|A trompa de caçador que os membros do seu bando usam para chamar aliados.| |9|Um cartaz de procurado com o seu rosto.| |10|Sua tese inacabada de sua vida anterior como um estudioso honesto.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas de viajante, apito de sinalização, barraca (para uma pessoa).",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Quando você navega durante uma viagem, perseguidores têm desvantagem em testes feitos para rastrear seu grupo. Além disso, você pode viajar furtivamente em um ritmo normal.",
+          "name": "Caminhos Secretos",
+          "type": "feature"
+        },
+        {
+          "description": "Sobrevivência e ou Intimidação ou Furtividade.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Um tipo de ferramentas de artesão ou veículo.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_marauder",
+      "name": "Salteador",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Força e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Sua família pode lhe pedir um ou dois pequenos favores: convencer aquele parente a se casar com alguém aprovado pela família, matar aquele inimigo da família em um duelo, servir sob um suserano em uma batalha. Se você promover a fortuna da sua família, pode ganhar um título de cavaleiro junto com o serviço gratuito de uma comitiva de servos e até 8 **guardas**.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões Nobres |d10|Conexão| |---|---| |1|Seu irmão mais velho perfeito, com quem você nunca parece estar à altura.| |2|O nobre traiçoeiro que massacrou ou dispersou sua família e agora vive em seu lar ancestral.| |3|Seu servo da família, um aventureiro aposentado que lhe ensinou mais sobre batalha do que qualquer mestre de duelo sofisticado.| |4|O amigo afetado com quem você festeja.| |5|O amor de origem comum que sua família proibiu você de ver novamente.| |6|O chefe fugitivo da sua família, cuja rebelião causou a tomada das terras da sua família e a redistribuição dos títulos.| |7|Seu inimigo, o herdeiro de uma casa rival, com quem você duelou duas vezes.| |8|O chefe do crime a quem sua família deve uma quantia enorme.| |9|O descendente de uma família aliada com quem você foi prometido desde o nascimento.| |10|O cavaleiro excêntrico para quem você treinou como escudeiro ou pajem.| #### Lembranças Nobres |d10|Lembrança| |---|---| |1|Um escudo ou tabardo ostentando seu brasão.| |2|Uma recordação ou carta de amor de um pretendente de linhagem nobre.| |3|Uma arma de herança—embora não seja mágica, ela tem um nome e foi usada para grandes feitos.| |4|Uma carta de recomendação para uma corte real.| |5|Lenços perfumados adequados para bloquear o cheiro dos plebeus.| |6|Um chapéu extremamente elegante e excessivamente grande.| |7|Uma cicatriz visível ganha em batalha ou em um duelo.| |8|Um conjunto de roupas comuns e uma identidade secreta de plebeu.| |9|Notas promissórias de valor duvidoso ganhas em jogos de azar contra outros nobres.| |10|Uma carta de um amigo implorando por ajuda.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas finas, anel de sinete, documento detalhando sua árvore genealógica.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Você conhece—ou conhece pessoalmente—a maioria das famílias nobres por centenas de quilômetros. Na maioria das áreas povoadas, você (e possivelmente seus companheiros, se bem comportados) pode encontrar um anfitrião nobre que lhe dará comida, abrigo e oferecerá um estilo de vida rico.",
+          "name": "Alta Sociedade",
+          "type": "feature"
+        },
+        {
+          "description": "Um à sua escolha.",
+          "name": "Idiomas",
+          "type": "language"
+        },
+        {
+          "description": "Cultura, História e ou Adestrar Animais ou Persuasão.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Um conjunto de jogos.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_noble",
+      "name": "Nobre",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Constituição e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Durante suas viagens, habitantes das áreas selvagens podem recorrer a você em busca de ajuda para combater monstros e outros perigos. Se você tiver sucesso em várias dessas aventuras, poderá ganhar a ajuda voluntária de até 8 **guerreiros**.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Estrangeiro |d10|Conexão| |---|---| |1|Um chefe tribal que lhe deve um favor.| |2|O chefe de um bando de saqueadores que guarda rancor de você.| |3|Uma bruxa a quem você deve um favor.| |4|Um alquimista ou mago que frequentemente lhe faz pedidos de ervas raras ou troféus.| |5|Um unicórnio que você avistou, mas nunca conseguiu se aproximar.| |6|Outro estrangeiro: seu antigo melhor amigo que agora é um rival amargo.| |7|Um oráculo sábio que sabe a maior parte do que acontece na natureza e revelará por um preço.| |8|Um garimpeiro excêntrico que conhece as terras selvagens quase tão bem quanto você.| |9|Um dono de circo ou arena que pagará por animais vivos que ainda não estão em sua coleção.| |10|Um poeta ou pintor altamente civilizado que lhe pagou para guiá-lo a locais selvagens e inspiradores.| #### Lembranças de Estrangeiro |d10|Lembrança| |---|---| |1|Um troféu da caça de uma fera poderosa, como um elmo de chifre de monstro de fase.| |2|Um troféu de uma batalha contra um monstro feroz, como um dedo de troll ainda se contorcendo.| |3|Uma pedra de um santuário druídico sagrado.| |4|Ferramentas apropriadas ao seu terreno de origem, como pitões ou raquetes de neve.| |5|Armadura de couro, armadura de couro batido ou roupas feitas à mão.| |6|A machadinha que você mesmo fabricou.| |7|Um presente de uma dríade ou fauno.| |8|Mercadorias de troca no valor de 30 peças de ouro, como peles ou ervas raras.| |9|Um pequeno apito dado a você por uma fada.| |10|Um mapa incompleto.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas de viajante, cantil, kit de curandeiro, 7 dias de rações.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Sobrevivência e ou Atletismo ou Intimidação.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Se você estiver na natureza ou próximo a ela e tiver um relacionamento comercial com uma tribo, assentamento ou outro grupo próximo, você pode manter um estilo de vida moderado para si e seus companheiros negociando os produtos de sua caça e coleta.",
+          "name": "Comerciante",
+          "type": "feature"
+        }
+      ],
+      "key": "a5e-ag_outlander",
+      "name": "Forasteiro",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Inteligência e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Ao visitar bibliotecas e universidades, você tende a ser solicitado a ajudar em seu papel como um aventureiro comparativamente mais rústico. Depois de buscar algumas informações esotéricas e resolver algumas disputas acadêmicas, você pode receber acesso às áreas restritas da biblioteca (que contêm segredos mais sombrios e mistérios mais profundos, como aqueles que podem ser respondidos com um teste de Arcanismo, Cultura, Engenharia, História, Natureza ou Religião CD 25).",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Sábio |d10|Conexão| |---|---| |1|Seu rival que sempre parece estar um passo à frente de você na corrida pela pesquisa.| |2|O reitor da faculdade que o baniu por conduta imprópria para um pesquisador.| |3|Um ex-aluno seu que se tornou um mago perigoso.| |4|O professor que levou o crédito pela sua pesquisa.| |5|O sábio rival cujo apelido cruel para você o tornou motivo de chacota.| |6|O alquimista que pagará por troféus de monstros bizarros e outros ingredientes—sem fazer perguntas.| |7|O colega com uma teoria cosmológica concorrente que causa discussões amigáveis intermináveis.| |8|O nobre que reconheceu sua inteligência ainda jovem e patrocinou sua entrada na academia.| |9|Um aprendiz talentoso que fugiu após dominar o poder mágico, mas não a base teórica para controlá-lo.| |10|O general invasor que queimou a biblioteca que já foi seu lar.| #### Lembranças de Sábio |d10|Lembrança| |---|---| |1|Uma carta de um colega pedindo ajuda com uma pesquisa.| |2|Seu manuscrito incompleto.| |3|Um pergaminho antigo em um idioma que nenhuma magia pode decifrar.| |4|Uma cópia do seu trabalho teórico altamente heterodoxo que lhe causou tantos problemas.| |5|Uma lista dos livros proibidos que podem responder à sua pergunta igualmente proibida.| |6|Uma fórmula para um item mágico lendário para o qual você não tem ingredientes.| |7|Um manuscrito antigo de uma obra literária famosa que se acreditava perdida; apenas você acredita que é genuíno.| |8|O bestiário, enciclopédia ou outra obra incompleta do seu mentor que você jurou completar.| |9|Sua posse mais valiosa: uma pena mágica que escreve o que é ditado.| |10|O nome de um livro que você precisa para sua pesquisa que parece estar faltando em todas as bibliotecas que você visitou.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Frasco de tinta, pena, 50 folhas de pergaminho, roupas comuns.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Como membro ou amigo de várias universidades, você tem acesso de visitante às grandes bibliotecas, a maioria das quais é proibida ao público em geral. Com tempo suficiente gasto em uma biblioteca, você pode descobrir a maioria das respostas que procura (qualquer pergunta que possa ser respondida com um teste de CD 20 de Arcanismo, Cultura, Engenharia, História, Natureza ou Religião).",
+          "name": "Privilégios de Biblioteca",
+          "type": "feature"
+        },
+        {
+          "description": "História e uma entre Arcanismo, Cultura, Engenharia ou Religião.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        }
+      ],
+      "key": "a5e-ag_sage",
+      "name": "Sábio",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Constituição e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Você e seus companheiros poderão viajar de graça em quase qualquer navio comercial em troca de deveres ocasionais no navio quando todos forem chamados. Além disso, depois de ter algumas façanhas navais em seu currículo, sua fama faz com que os marinheiros fiquem ansiosos para navegar sob seu comando. Você pode contratar uma tripulação de navio pela metade do preço habitual.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Lembranças de Marinheiro |d10|Lembrança| |---|---| |1|Uma adaga com o cabo esculpido no dente de uma tartaruga-dragão.| |2|Um tubo de pergaminho cheio de cartas náuticas.| |3|Um arpão (trate como uma azagaia com a extremidade traseira presa a uma corda).| |4|Uma cicatriz com uma história famosa por trás dela.| |5|Um mapa do tesouro.| |6|Um livro de códigos que permite decifrar as bandeiras de sinalização de uma determinada facção.| |7|Um colar com uma escama, concha, dente ou outra bugiganga náutica.| |8|Várias garrafas de álcool.| |9|Um conto sobre um encontro estranho com um monstro bizarro, um navio fantasma ou outro mistério.| |10|Um manuscrito inacabado descrevendo uma teoria não testada sobre como reequipar um navio para maximizar a velocidade.| #### Lembranças de Marinheiro |d10|Lembrança| |---|---| |1|Uma adaga com o cabo esculpido no dente de uma tartaruga-dragão.| |2|Um tubo de pergaminho cheio de cartas náuticas.| |3|Um arpão (trate como uma azagaia com a extremidade traseira presa a uma corda).| |4|Uma cicatriz com uma história famosa por trás dela.| |5|Um mapa do tesouro.| |6|Um livro de códigos que permite decifrar as bandeiras de sinalização de uma determinada facção.| |7|Um colar com uma escama, concha, dente ou outra bugiganga náutica.| |8|Várias garrafas de álcool.| |9|Um conto sobre um encontro estranho com um monstro bizarro, um navio fantasma ou outro mistério.| |10|Um manuscrito inacabado descrevendo uma teoria não testada sobre como reequipar um navio para maximizar a velocidade.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas comuns, ferramentas de navegador, 15 metros de corda.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Seu jargão náutico e seu andar balançante o marcam inequivocamente como um marinheiro. Você pode facilmente entrar em conversas informais com qualquer marinheiro que não seja hostil a você, aprendendo fofocas náuticas e sobre a chegada e partida de navios. Você também reconhece a maioria dos grandes navios à vista e pelo nome, e pode fazer um teste de História ou Cultura para lembrar de seu capitão mais recente e sua lealdade.",
+          "name": "Salitre do Mar",
+          "type": "feature"
+        },
+        {
+          "description": "Atletismo e uma entre Acrobacia ou Percepção.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Ferramentas de navegador, veículos aquáticos.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_sailor",
+      "name": "Marinheiro",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Força e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Você ocasionalmente encontrará velhos camaradas, alguns dos quais podem precisar de favores. Se você realizar alguns feitos marciais célebres, sua antiga unidade militar (ou uma nova) provavelmente lhe oferecerá uma patente de oficial. Você ganha o serviço gratuito de até 8 guardas. Seus novos comandantes ocasionalmente lhe darão objetivos: espera-se que você aja de forma independente para alcançar esses objetivos.",
+          "name": "Aventuras e Avanço",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Soldado |d10|Conexão| |---|---| |1|Seu antigo oficial comandante que ainda quer que você retorne.| |2|O comandante que enviou sua unidade insensivelmente para um massacre.| |3|Seu camarada de guerra suspeito que consegue qualquer coisa sem fazer perguntas.| |4|Seu melhor amigo que desapareceu no campo de batalha.| |5|O camarada que salvou sua vida arriscando a dele.| |6|O fantasma que assombra você.| |7|O oficial superior que você esmurrou (por abusar de civis? Por insultar sua honra? Por impedir você de saquear?)| |8|O assustador constructo de guerra experimental que você acompanhou em uma missão perigosa.| |9|O cavaleiro de armadura dourada com dentes ridiculamente bonitos que sempre fazia discursos inspiradores.| |10|O oficial inimigo que capturou você.| #### Lembranças de Soldado |d10|Lembrança| |---|---| |1|Um chifre quebrado, dente ou outro troféu recuperado do cadáver de um monstro.| |2|Um troféu ganho em batalha (um estandarte esfarrapado, uma espada cerimonial ou similar).| |3|Um conjunto de jogo.| |4|Uma carta de seu amor.| |5|Uma ferida antiga que dói com o mau tempo.| |6|Uma carta que você deveria entregar à família de um camarada morto.| |7|Uma memória horrível da qual você não consegue escapar.| |8|Um elmo com chifres ou plumas.| |9|A espada que você quebrou no joelho em vez de lutar por aqueles bastardos mais um dia.| |10|Uma medalha de valor.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Um de sua escolha.",
+          "name": "Idiomas",
+          "type": "language"
+        },
+        {
+          "description": "Soldados reconhecem os seus. Soldados fora de serviço geralmente estão dispostos a trocar histórias e fofocas com você. Soldados em serviço, embora não obedeçam às suas ordens, provavelmente responderão às suas perguntas e o tratarão com respeito, na remota possibilidade de você ser um oficial desconhecido que pode causar problemas a eles.",
+          "name": "Postura Militar",
+          "type": "feature"
+        },
+        {
+          "description": "Atletismo e ou Adestrar Animais ou Intimidação.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Uniforme, roupas comuns, 7 dias de rações.",
+          "name": "Equipamento Sugerido",
+          "type": "equipment"
+        },
+        {
+          "description": "Um tipo de conjunto de jogo.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_soldier",
+      "name": "Soldado",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Carisma e em outro valor de habilidade à sua escolha.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Devido aos seus contatos comerciais, você pode receber ofertas de dinheiro para liderar ou escoltar caravanas comerciais. Você receberá uma taxa de cada comerciante que chegar ao seu destino em segurança.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "Role 1d10, escolha ou crie a sua própria. #### Conexões de Comerciante |d10|Conexão| |---|---| |1|O pai ou parente que quer que você continue o negócio da família.| |2|O irmão que herdou a outra metade do negócio da família.| |3|A companhia comercial à qual você está vinculado até pagar uma dívida.| |4|O mercador poderoso que nunca perdoará o golpe comercial que você aplicou.| |5|O nobre cujo cavalo atropelou a barraca de vegetais da sua pobre família, ferindo ou matando um parente que você amava profundamente.| |6|O pai ou irmão mais velho que desperdiçou a fortuna da sua família.| |7|O parceiro de negócios que te enganou.| |8|O agente alfandegário que jurou te pegar em flagrante com mercadorias ilícitas.| |9|O chefe do crime para quem você não quis pagar dinheiro de proteção.| |10|O contrabandista que pagará bem por certas mercadorias.| #### Lembranças de Comerciante |d10|Lembrança| |---|---| |1|A primeira peça de ouro que você ganhou.| |2|Milhares de ações em um empreendimento fracassado.| |3|Uma carta de apresentação para um mercador rico em uma cidade distante.| |4|Uma amostra de uma versão aprimorada de uma ferramenta comum.| |5|Cicatrizes de um ferimento sofrido quando você tentou cobrar uma dívida de um nobre cruel.| |6|Uma carta de amor do herdeiro de uma família comercial rival.| |7|Um anel de sinete com o brasão da sua família, famoso no mundo mercantil.| |8|Um contrato vinculando você a uma companhia comercial específica pelos próximos anos.| |9|Uma carta de um amigo implorando para você investir em uma oportunidade imperdível.| |10|Os diários de viagem de um membro confiável da família que misturam conhecimento geográfico útil com histórias fantásticas.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas de viajante, ábaco, balança de mercador.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Persuasão e Cultura, Enganação ou Intuição.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Quando você compra uma mercadoria e a vende em outro lugar para uma comunidade que precisa dela, você ganha um bônus de 10% no preço de venda para cada 160 quilômetros (100 milhas) entre o local de compra e venda (máximo de 50%).",
+          "name": "Oferta e Procura",
+          "type": "feature"
+        },
+        {
+          "description": "Um veículo.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_trader",
+      "name": "Mercador",
+      "source": "a5e-ag"
+    },
+    {
+      "benefits": [
+        {
+          "description": "+1 em Destreza e em outro valor de habilidade.",
+          "name": "Aumentos no Valor de Habilidade",
+          "type": "ability_score"
+        },
+        {
+          "description": "Crianças de rua estão entre as pessoas mais vulneráveis de um assentamento, especialmente em cidades com licantropos, vampiros e outras ameaças sobrenaturais. Depois de ajudar alguns órfãos em apuros, a notícia se espalha e você poderá consultar a rede de rua para obter informações. Se você rolar menos de 15 em um teste de Investigação para obter informações em uma cidade ou vila, seu resultado é tratado como 15.",
+          "name": "Aventuras e Progresso",
+          "type": "adventures_and_advancement"
+        },
+        {
+          "description": "#### Conexões de Órfão |d10|Conexão| |---|---| |1|O ladrão de má reputação que te ensinou habilidades de roubo.| |2|A santa diretora do orfanato que está muito orgulhosa de como você cresceu.| |3|O administrador de orfanato cruel e miserável que reúne órfãos e fugitivos.| |4|O ladrão bêbado que dividiu com você o pouco que conseguia roubar.| |5|O colega órfão que tem algum poder para fazer \"coisas ruins\" acontecerem com seus inimigos.| |6|O contato da guilda dos ladrões que pagará bem para pessoas pequenas se esgueirarem por uma janela ou chaminé para abrir uma porta da frente.| |7|O filantropo (ou charlatão?) que te acolheu, te vestiu adequadamente e tentou te ensinar modos da classe alta.| |8|O mestre de espionagem ou detetive que te enviou em missões de investigação.| |9|O nobre cujo cavalo atropelou você ou um amigo.| |10|A família rica da qual você fugiu.| #### Lembranças de Órfão |d10|Lembrança| |---|---| |1|Um medalhão contendo fotos dos seus pais.| |2|Um conjunto de roupas finas (roubadas?).| |3|Um pequeno animal treinado, como um rato, papagaio ou macaco.| |4|Um mapa dos esgotos.| |5|A chave ou anel de sinete que estava ao redor do seu pescoço quando você foi descoberto como um enjeitado.| |6|Uma boneca surrada de um olho só.| |7|Uma pasta de documentos entregue a você por um mensageiro ferido em fuga.| |8|Um dente de ouro (não seu, e não na sua boca).| |9|As flores ou bugigangas que você vende.| |10|Um segredo perigoso ouvido enquanto brincava.|",
+          "name": "Conexão e Lembrança",
+          "type": "connection_and_memento"
+        },
+        {
+          "description": "Roupas comuns, kit de disfarce.",
+          "name": "Equipamento",
+          "type": "equipment"
+        },
+        {
+          "description": "Quando você está em uma cidade ou vila, você pode prover um estilo de vida miserável para si mesmo e seus companheiros. Além disso, você sabe como chegar a qualquer lugar na cidade sem ser visto por gangues, fofoqueiros ou patrulhas da guarda.",
+          "name": "Moleque de Rua",
+          "type": "feature"
+        },
+        {
+          "description": "Prestidigitação e, à sua escolha, Enganação ou Furtividade.",
+          "name": "Proficiências em Perícias",
+          "type": "skill_proficiency"
+        },
+        {
+          "description": "Kit de disfarce, ferramentas de ladrão.",
+          "name": "Proficiências com Ferramentas",
+          "type": "tool_proficiency"
+        }
+      ],
+      "key": "a5e-ag_urchin",
+      "name": "Órfão de Rua",
+      "source": "a5e-ag"
+    }
+  ],
   "classFeatures": {
     "barbarian": [
       {

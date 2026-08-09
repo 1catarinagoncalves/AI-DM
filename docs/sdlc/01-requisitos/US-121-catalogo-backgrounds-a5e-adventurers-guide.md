@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, artefato por locale) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (dois artefatos, um por locale) · [US-52](./US-52-traducao-automatica-do-srd.md) (`MT_DOMAINS`, rascunho `_mt` + `--strict`)
 **Relacionado:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (`Character.background` texto livre — deixou o catálogo "fora do escopo, extensão futura"; esta story é essa extensão) · [US-51](./US-51-kits-iniciais-do-srd.md) (precedente de domínio derivado de dois arquivos do dataset, com parser próprio) · [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) (licença única) · [ADR 009](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (precedente de documento irmão dual-licenciado, entrando pela via CC-BY)
 **Gera ADR:** não. Nota no [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) §3 — é o primeiro dado do config que não vem de `wizards-of-the-coast/srd-2014`/`srd-2024`, e a regra de licença única precisa cobrir explicitamente por quê o `a5e-ag` (EN Publishing) entra sem abrir exceção.
@@ -110,17 +110,17 @@ backgrounds: z.array(SystemBackgroundSchema).optional(),
 
 ## Critérios de aceite
 
-- [ ] `sync.mjs` baixa `Background.json` e `BackgroundBenefit.json` de `en-publishing/a5e-ag/`, no `TAG` já pinado (`v2.1.0`) — sem tag nova, sem dependência nova.
-- [ ] `ingest.mjs` deriva `backgrounds`: 21 entradas, cada uma com `key`, `name`, `benefits` (144 benefícios distribuídos), `source: 'a5e-ag'`.
-- [ ] `Background` sem nenhum `BackgroundBenefit` correspondente ainda aparece no catálogo, com `benefits: []` (não falha o ingest).
-- [ ] `BackgroundBenefit` com `parent` que não bate em nenhum `Background` **falha o ingest alto** (mesmo tratamento de referência quebrada do `CLASS_MAP`/`buildStartingKits`).
-- [ ] `SystemConfigSchema` valida `backgrounds` opcional; config sem o campo continua válido (compatibilidade com artefato anterior a esta story).
-- [ ] `backgrounds` entra em `MT_DOMAINS`; `pnpm srd:ingest` (sem `--no-mt`) produz `pt-BR` com `benefits[].description` traduzido e marcado `_mt: true` onde não houver overlay curado.
-- [ ] `pnpm srd:ingest --strict` passa sem chave `backgrounds` no relatório de fallback EN pendente (ou o relatório é aceito conscientemente, como os demais domínios permitem hoje).
-- [ ] `NOTICE-open5e.md` traz a atribuição do `a5e-ag` (EN Publishing, dual CC-BY-4.0/OGL 1.0a, via CC-BY) — nenhum texto OGL entra no repo.
-- [ ] Nota registrada no [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) §3, explicando por que um segundo publisher entra sob a mesma regra de licença única.
-- [ ] Os dois artefatos seguem passando em `SystemConfigSchema.parse()` e byte-a-byte idênticos entre duas rodadas (idempotência), mesmo critério da US-51.
-- [ ] **Eval / teste de regressão:** `ingest.test.mjs` cobre `buildBackgrounds` com fixture sintética — background sem benefit, benefit com `parent` órfão, e um caso com `type: 'ability_score'` para garantir que o campo `type` cru sobrevive sem normalização.
+- [x] `sync.mjs` baixa `Background.json` e `BackgroundBenefit.json` de `en-publishing/a5e-ag/`, no `TAG` já pinado (`v2.1.0`) — sem tag nova, sem dependência nova.
+- [x] `ingest.mjs` deriva `backgrounds`: 21 entradas, cada uma com `key`, `name`, `benefits` (143 benefícios distribuídos, medido em 09/08/2026 — 1 a menos que a medição de 08/08/2026 no dataset real), `source: 'a5e-ag'`.
+- [x] `Background` sem nenhum `BackgroundBenefit` correspondente ainda aparece no catálogo, com `benefits: []` (não falha o ingest).
+- [x] `BackgroundBenefit` com `parent` que não bate em nenhum `Background` **falha o ingest alto** (mesmo tratamento de referência quebrada do `CLASS_MAP`/`buildStartingKits`).
+- [x] `SystemConfigSchema` valida `backgrounds` opcional; config sem o campo continua válido (compatibilidade com artefato anterior a esta story).
+- [x] `backgrounds` entra em `MT_DOMAINS`; `pnpm srd:ingest` (sem `--no-mt`) produz `pt-BR` com `benefits[].description` traduzido e marcado `_mt: true` onde não houver overlay curado.
+- [x] `pnpm srd:ingest --strict` passa sem chave `backgrounds` no relatório de fallback EN pendente. Os 21 nomes de background (sem `desc` no dataset, fora do alcance do rascunho automático) foram curados manualmente em `locale/pt-BR.json`, mesmo padrão de `races`/`classes`.
+- [x] `NOTICE-open5e.md` traz a atribuição do `a5e-ag` (EN Publishing, dual CC-BY-4.0/OGL 1.0a, via CC-BY) — nenhum texto OGL entra no repo.
+- [x] Nota registrada no [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) §3.3, explicando por que um segundo publisher entra sob a mesma regra de licença única.
+- [x] Os dois artefatos seguem passando em `SystemConfigSchema.parse()` e byte-a-byte idênticos entre duas rodadas (idempotência), mesmo critério da US-51.
+- [x] **Eval / teste de regressão:** `ingest.test.mjs` cobre `buildBackgrounds` com fixture sintética — background sem benefit, benefit com `parent` órfão, e um caso com `type: 'ability_score'` para garantir que o campo `type` cru sobrevive sem normalização.
 
 ---
 

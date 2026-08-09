@@ -49,7 +49,10 @@ const NO_MT = process.argv.includes('--no-mt')
 // propósito: o overlay os guarda como STRING crua (`"strength": "Força"`), sem lugar para
 // a marca `_mt`, e são os 6 atributos e as 18 perícias fixos do 5e — não é conteúdo que um
 // bump traga. Se um dia trouxer, ele cai no fallback EN e o `--strict` grita, como hoje.
-const MT_DOMAINS = ['features', 'spells']
+// US-121: `backgrounds` entra — `benefit.desc` é prosa (chega a parágrafo), mesmo tratamento
+// de `features`/`spells`. O nome do background em si (sem `desc` no dataset) fica de fora do
+// rascunho automático (a chamada exige enName+enDesc) e segue curadoria manual, como races/classes.
+const MT_DOMAINS = ['features', 'spells', 'backgrounds']
 
 // Mapa explícito das 12 classes do SRD → chave canônica do config. NÃO reusa o CLASS_SYNONYMS
 // de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte o slug do dataset.
@@ -150,7 +153,7 @@ async function load(name) {
 function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), features: new Set(), spells: new Set(), kitItems: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), features: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -345,6 +348,36 @@ function buildStartingKits(overlay, features, resolve) {
   return startingKits
 }
 
+// --- backgrounds (21 + benefícios): a5e-ag (EN Publishing), CC-BY-4.0 via dual-licenciamento
+// (ADR 004 §3.3) — join de Background + BackgroundBenefit por `parent → pk`, mesmo estilo de
+// Map que ClassFeature/ClassFeatureItem (US-47) e StartingKit (US-51) já usam.
+//
+// `Background.desc` vem VAZIO nas 21 entradas — só o `name` do background passa por resolve
+// (sem enDesc). Cada benefício é `resolve`ido por si (name+desc), com o próprio `pk` como
+// chave de overlay: não precisa de mapa tipo CLASS_MAP porque `parent` já referencia o pk do
+// Background diretamente (um nível só, não dois como classFeature/classFeatureItem).
+export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve) {
+  const bgKeys = new Set(backgroundsRaw.map((bg) => bg.pk))
+  const benefitsByParent = {}
+  for (const b of benefitsRaw) {
+    if (!bgKeys.has(b.fields.parent)) {
+      throw new Error(`BackgroundBenefit ${b.pk}: parent "${b.fields.parent}" sem Background correspondente`)
+    }
+    ;(benefitsByParent[b.fields.parent] ??= []).push(b)
+  }
+  return backgroundsRaw
+    .map((bg) => {
+      const key = bg.pk
+      const name = resolve('backgrounds', key, overlay.backgrounds?.[key], bg.fields.name).name
+      const benefits = (benefitsByParent[bg.pk] ?? []).map((b) => {
+        const entry = resolve('backgrounds', b.pk, overlay.backgrounds?.[b.pk], b.fields.name, norm(b.fields.desc))
+        return { type: b.fields.type, name: entry.name, description: entry.description }
+      })
+      return { key, name, benefits, source: 'a5e-ag' }
+    })
+    .sort((a, b) => a.key.localeCompare(b.key))
+}
+
 // Monta um artefato completo a partir do dataset + um overlay. Overlay `{}` = base EN crua.
 function buildConfig(overlay, data) {
   const { resolve, fallbacks, orphans, usedOverlay, glossary } = makeResolver()
@@ -355,22 +388,23 @@ function buildConfig(overlay, data) {
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
   const startingKits = buildStartingKits(overlay, data.features, resolve)
+  const backgrounds = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
-  for (const domain of ['features', 'spells', 'kitItems']) {
+  for (const domain of ['features', 'spells', 'kitItems', 'backgrounds']) {
     for (const key of Object.keys(overlay[domain] || {})) {
       if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
     }
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  SystemConfigSchema.parse({ attributes, skills, races, classes, classFeatures, classSpells, startingKits, ...STUB })
-  return { artifact: { attributes, skills, races, classes, classFeatures, classSpells, startingKits }, fallbacks, orphans, glossary }
+  SystemConfigSchema.parse({ attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds, ...STUB })
+  return { artifact: { attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds }, fallbacks, orphans, glossary }
 }
 
 async function main() {
   const overlay = JSON.parse(await readFile(OVERLAY_PATH, 'utf8'))
-  const [abilities, rules, skillsRaw, classes, features, featureItems, spells, species, species2014] = await Promise.all([
+  const [abilities, rules, skillsRaw, classes, features, featureItems, spells, species, species2014, backgrounds, backgroundBenefits] = await Promise.all([
     load('AbilityDescription.json'),
     load('Rule.json'),
     load('Skill.json'),
@@ -380,8 +414,10 @@ async function main() {
     load('Spell.json'),
     load('Species.json'),
     load('Species.2014.json'),
+    load('Background.json'),
+    load('BackgroundBenefit.json'),
   ])
-  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species, species2014 }
+  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species, species2014, backgrounds, backgroundBenefits }
 
   const base = buildConfig({}, data)
   let localized = buildConfig(overlay, data)
@@ -592,7 +628,7 @@ function reportDrafts(drafted, overlay) {
 
 function report({ fallbacks, orphans, artifact }, drafted, overlay) {
   console.log('ingest OK → scripts/srd/srd-5e.config.{en-US,pt-BR}.json')
-  console.log(`  attributes: 6 · skills: 18 · races: ${artifact.races.length} · classes: ${artifact.classes.length}`)
+  console.log(`  attributes: 6 · skills: 18 · races: ${artifact.races.length} · classes: ${artifact.classes.length} · backgrounds: ${artifact.backgrounds.length}`)
   reportDrafts(drafted, overlay)
   if (orphans.length) {
     console.log(`\n  ÓRFÃOS (${orphans.length}) — PT curado sem chave no SRD 5.2 (decidir: sumiu, mudou de nome, ou não é SRD):`)
