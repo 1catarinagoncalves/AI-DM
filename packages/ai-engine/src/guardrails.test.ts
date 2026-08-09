@@ -6,7 +6,9 @@ import {
   detectReasoningLeak,
   detectCanonDenial,
   detectSlopName,
+  detectUnledgeredName,
 } from './guardrails'
+import type { WorldEntity } from '@ai-dm/shared'
 
 // Guardrails do bake-off narrativo (US-17, slice 2). Detectores DETERMINÍSTICOS
 // que cortam um candidato antes de gastar juiz. São funções puras: rodam no
@@ -164,5 +166,53 @@ describe('detectSlopName — blocklist determinístico de onomástica (US-36)', 
     // "aria" dentro de "Mariana" não deve reprovar
     expect(detectSlopName('Mariana caminhou pela praça.').slop).toBe(false)
     expect(detectSlopName('Um nome original: Orphaion, o velho sábio.').slop).toBe(false)
+  })
+})
+
+describe('detectUnledgeredName — nome próprio na narração fora do ledger (US-115, fase A)', () => {
+  const entity = (nome: string): WorldEntity => ({ nome, atualizadoEm: new Date().toISOString() })
+  const LEDGER: WorldEntity[] = [entity('Vigia'), entity('Tobías')]
+  const JOGADOR = 'Anetra'
+
+  it('acusa nome próprio novo, apresentado no meio da frase, fora do ledger', () => {
+    const r = detectUnledgeredName('Você entra na taverna e encontra Marcus, o taverneiro.', LEDGER, JOGADOR)
+    expect(r.unledgered).toBe(true)
+    expect(r.match).toBe('Marcus')
+  })
+
+  it('NÃO acusa entidade já no ledger, mesmo com grafia diferente em acento/caixa', () => {
+    // "Vigia" no meio da frase — mesma grafia, testa o match direto.
+    expect(detectUnledgeredName('Você observa a Vigia parada na soleira.', LEDGER, JOGADOR).unledgered).toBe(false)
+    // "Tobias" sem acento no meio da frase — ledger tem "Tobías"; mesma tolerância do mergeEntities.
+    expect(detectUnledgeredName('O velho ri e chama Tobias para perto.', LEDGER, JOGADOR).unledgered).toBe(false)
+  })
+
+  it('NÃO acusa o nome da personagem-jogadora', () => {
+    expect(detectUnledgeredName('Anetra avança pelo corredor escuro.', LEDGER, JOGADOR).unledgered).toBe(false)
+  })
+
+  it('NÃO acusa palavra capitalizada só por iniciar frase', () => {
+    // "Marcus" aqui é início de frase — ruído dominante em PT-BR, não deve disparar.
+    const r = detectUnledgeredName('Marcus observa a chuva cair.', LEDGER, JOGADOR)
+    expect(r.unledgered).toBe(false)
+  })
+
+  it('acusa mesmo quando o nome novo aparece após travessão de diálogo', () => {
+    // "— Selene sabe do que fala" — Selene não é o 1º token da fala (fica logo após o
+    // travessão), então conta como início de segmento e é ignorada por design; o teste
+    // documenta esse limite conhecido (ver Notas de implementação / Questões em aberto).
+    const r = detectUnledgeredName('O velho ri. — Pergunte à Selene, ela sabe.', LEDGER, JOGADOR)
+    expect(r.unledgered).toBe(true)
+    expect(r.match).toBe('Selene')
+  })
+
+  it('passa quando não há nenhum nome próprio fora do ledger', () => {
+    expect(detectUnledgeredName('A Vigia cumprimenta Tobias com um aceno.', LEDGER, JOGADOR).unledgered).toBe(false)
+  })
+
+  it('sem ledger (aventura nova), ainda acusa nome próprio não sabido', () => {
+    const r = detectUnledgeredName('Você cruza com Rogerio no mercado.', null, JOGADOR)
+    expect(r.unledgered).toBe(true)
+    expect(r.match).toBe('Rogerio')
   })
 })

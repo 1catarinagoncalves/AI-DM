@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { WorldEntity } from '@ai-dm/shared'
+import type { WorldEntity, EntityEdge } from '@ai-dm/shared'
 import { mergeEntities, formatEntities } from './entities'
 
 describe('mergeEntities', () => {
@@ -64,6 +64,74 @@ describe('mergeEntities', () => {
     )
     expect(spread[0]).toMatchObject({ sabido: 'publico', revelado: true })
   })
+
+  // US-113: retrocompat — entidade gravada antes desta US não tem `relacoes`, e um
+  // patch que não toca `relacoes` não pode inventar a chave.
+  it('preserva entidade sem relacoes quando o patch não menciona relacoes', () => {
+    const current: WorldEntity[] = [{ nome: 'Vigia', estado: 'neutra', atualizadoEm: '2020-01-01' }]
+    const out = mergeEntities(current, [{ nome: 'Vigia', estado: 'aliada' }])
+    expect(out[0]!.relacoes).toBeUndefined()
+    expect(out[0]!.estado).toBe('aliada')
+  })
+
+  it('insere relacoes numa entidade que ainda não tinha nenhuma', () => {
+    const out = mergeEntities([], [
+      { nome: 'Marta', tipo: 'npc', relacoes: [{ relacao: 'irmã de', para: 'Morvath', fonte: 'abertura' }] },
+    ])
+    expect(out[0]!.relacoes).toHaveLength(1)
+    expect(out[0]!.relacoes![0]).toMatchObject({ relacao: 'irmã de', para: 'Morvath', fonte: 'abertura' })
+    expect(out[0]!.relacoes![0]!.atualizadoEm).toBeTruthy()
+  })
+
+  it('funde aresta por (relacao, para) tolerante a acento/caixa e faz merge PARCIAL', () => {
+    const current: WorldEntity[] = [
+      {
+        nome: 'Marta',
+        relacoes: [{ relacao: 'irmã de', para: 'Morvath', fonte: 'abertura', sabido: 'publico', revelado: true, atualizadoEm: '2020-01-01' }],
+        atualizadoEm: '2020-01-01',
+      },
+    ]
+    // mesma aresta, grafia com acento/caixa diferente, só muda revelado
+    const out = mergeEntities(current, [
+      { nome: 'Marta', relacoes: [{ relacao: 'IRMÃ DE', para: 'morvath', fonte: 'turno: clx8', revelado: false }] },
+    ])
+    expect(out[0]!.relacoes).toHaveLength(1)
+    expect(out[0]!.relacoes![0]).toMatchObject({
+      relacao: 'irmã de', // grafia original preservada
+      para: 'Morvath', // grafia original preservada
+      fonte: 'turno: clx8', // sobrescrito
+      sabido: 'publico', // preservado (patch não trouxe)
+      revelado: false, // sobrescrito
+    })
+  })
+
+  it('adiciona aresta nova sem afetar as existentes da mesma entidade', () => {
+    const current: WorldEntity[] = [
+      {
+        nome: 'Marta',
+        relacoes: [{ relacao: 'irmã de', para: 'Morvath', fonte: 'abertura', atualizadoEm: '2020-01-01' }],
+        atualizadoEm: '2020-01-01',
+      },
+    ]
+    const out = mergeEntities(current, [
+      { nome: 'Marta', relacoes: [{ relacao: 'deve dinheiro a', para: 'guilda dos moleiros', fonte: 'turno: clx9' }] },
+    ])
+    expect(out[0]!.relacoes).toHaveLength(2)
+    expect(out[0]!.relacoes!.map((r: EntityEdge) => r.relacao)).toEqual(['irmã de', 'deve dinheiro a'])
+  })
+
+  // US-113 Questões em aberto #1: a aresta é independente das pontas — as duas
+  // entidades podem estar reveladas e o VÍNCULO entre elas ser oculto.
+  it('aresta revelado:false é independente do revelado das pontas', () => {
+    const current: WorldEntity[] = [
+      { nome: 'Morvath', tipo: 'npc', local: 'arboreto', revelado: true, atualizadoEm: '2020-01-01' },
+    ]
+    const out = mergeEntities(current, [
+      { nome: 'Morvath', relacoes: [{ relacao: 'dono de', para: 'arboreto', fonte: 'turno: clx4', revelado: false }] },
+    ])
+    expect(out[0]!.revelado).toBe(true) // a entidade continua revelada
+    expect(out[0]!.relacoes![0]!.revelado).toBe(false) // só o vínculo é oculto
+  })
 })
 
 describe('formatEntities', () => {
@@ -103,5 +171,52 @@ describe('formatEntities', () => {
       .toBe('- [Entidade] capangas — (restrito — só quem viu); no moinho')
     expect(formatEntities([{ nome: 'Morvath', tipo: 'npc', local: 'arboreto', revelado: false, atualizadoEm: '' }]))
       .toBe('- [NPC] Morvath — ⚠ OCULTO — verdade do mundo, NÃO revele ao jogador ainda; em arboreto')
+  })
+
+  // US-113: entidade sem `relacoes` (retrocompat) não ganha linha extra.
+  it('não renderiza linha extra para entidade sem relacoes', () => {
+    expect(formatEntities([{ nome: 'Marta', tipo: 'npc', atualizadoEm: '' }]))
+      .toBe('- [NPC] Marta')
+  })
+
+  it('renderiza vínculo indentado com a fonte entre parênteses', () => {
+    const out = formatEntities([
+      {
+        nome: 'Marta',
+        tipo: 'npc',
+        relacoes: [{ relacao: 'irmã de', para: 'Morvath', fonte: 'abertura', atualizadoEm: '' }],
+        atualizadoEm: '',
+      },
+    ])
+    expect(out).toBe('- [NPC] Marta\n    → irmã de: Morvath (abertura)')
+  })
+
+  it('marca vínculo privado e oculto, independente dos marcadores da entidade', () => {
+    const out = formatEntities([
+      {
+        nome: 'Morvath',
+        tipo: 'npc',
+        local: 'arboreto',
+        revelado: true, // a entidade em si já foi revelada
+        relacoes: [
+          { relacao: 'dono de', para: 'arboreto', fonte: 'turno: clx4', revelado: false, atualizadoEm: '' },
+          { relacao: 'deve dinheiro a', para: 'guilda', fonte: 'turno: clx9', sabido: 'privado', atualizadoEm: '' },
+        ],
+        atualizadoEm: '',
+      },
+    ])
+    expect(out).toBe(
+      '- [NPC] Morvath — em arboreto\n' +
+        '    → dono de: arboreto (turno: clx4, ⚠ OCULTO — verdade do mundo, NÃO revele ao jogador ainda)\n' +
+        '    → deve dinheiro a: guilda (turno: clx9, restrito — só quem viu)',
+    )
+  })
+
+  // US-113: `para` é texto cru, sem lookup no ledger — entidade ausente não é erro.
+  it('aresta com para apontando para entidade ausente do ledger renderiza pelo nome cru', () => {
+    const out = formatEntities([
+      { nome: 'Marta', tipo: 'npc', relacoes: [{ relacao: 'conhece', para: 'alguém que não está no ledger', fonte: 'abertura', atualizadoEm: '' }], atualizadoEm: '' },
+    ])
+    expect(out).toBe('- [NPC] Marta\n    → conhece: alguém que não está no ledger (abertura)')
   })
 })

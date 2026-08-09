@@ -1,4 +1,4 @@
-import { stripReasoningLeak, type Locale } from '@ai-dm/shared'
+import { stripReasoningLeak, type Locale, type WorldEntity } from '@ai-dm/shared'
 
 // Guardrails determinísticos do bake-off narrativo (US-17, slice 2).
 //
@@ -204,4 +204,60 @@ export function detectCanonDenial(
     if (m) return { denied: true, match: m[0].trim() }
   }
   return { denied: false, match: '' }
+}
+
+// ─── Guardrail 6: nome fora do ledger (US-115, fase A) ───────────────────────
+
+// Início de segmento textual: começo do texto, ou logo após pontuação de
+// frase/quebra de linha/travessão de diálogo. Palavra capitalizada NESTA
+// posição é ruído dominante em PT-BR (maiúscula de início de frase), não
+// sinal de nome próprio — é o caso que o AC #3 manda excluir.
+const SEGMENT_BOUNDARY = /[.!?\n—]/
+
+function isSegmentStart(text: string, matchIndex: number): boolean {
+  let i = matchIndex - 1
+  while (i >= 0 && /\s/.test(text[i]!)) i--
+  return i < 0 || SEGMENT_BOUNDARY.test(text[i]!)
+}
+
+// Nome próprio candidato: maiúscula seguida de 1+ minúsculas (inclui
+// acentuadas). Exige a minúscula em seguida para não casar siglas/ALL-CAPS —
+// aquilo não é o alvo aqui (nome comum na narração vem em Title Case).
+const PROPER_NAME_RE = /\p{Lu}\p{Ll}+/gu
+
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
+
+/**
+ * A narração introduz um nome próprio que não está no ledger nem é a
+ * personagem-jogadora? Detector PURO, custo zero, no molde do `detectSlopName`/
+ * `detectCanonDenial` — mede a taxa de omissão do `recordEntity` (US-115 fase A),
+ * NÃO age. `ledger`/`playerName` casam por normalização acento/caixa, e por
+ * palavra (não só nome completo), mesma tolerância do `mergeEntities`.
+ *
+ * ponytail: heurística com teto conhecido (Questões em aberto #1 da US-115).
+ * Maiúscula de início de frase tem falso-positivo garantido em PT-BR sem
+ * análise sintática; a defesa aqui é só de POSIÇÃO (não é o 1º token do
+ * segmento). Falso-positivo custa uma extração desnecessária (fase B);
+ * falso-negativo custa uma entidade perdida para sempre — erra para o lado
+ * barato, ou seja, não tenta eliminar falso-positivo além disto.
+ */
+export function detectUnledgeredName(
+  narration: string,
+  ledger: WorldEntity[] | null | undefined,
+  playerName: string,
+): { unledgered: boolean; match: string } {
+  const known = new Set<string>()
+  for (const entity of ledger ?? []) {
+    known.add(norm(entity.nome))
+    for (const word of entity.nome.split(/\s+/)) known.add(norm(word))
+  }
+  known.add(norm(playerName))
+  for (const word of playerName.split(/\s+/)) known.add(norm(word))
+
+  for (const m of narration.matchAll(PROPER_NAME_RE)) {
+    if (isSegmentStart(narration, m.index)) continue
+    if (known.has(norm(m[0]))) continue
+    return { unledgered: true, match: m[0] }
+  }
+  return { unledgered: false, match: '' }
 }

@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-103](./US-103-proveniencia-do-endpoint-no-turno.md) (`logExtractionEndpoint` — o instrumento que mede para onde cada extração foi) · [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md) (a baseline de custo contra a qual o ganho é medido)
 **Relacionada a:** [US-73](./US-73-reconciliador-de-cena-em-background.md) e [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (as extrações que mudam de modelo) · [US-74](./US-74-guard-turno-truncado-narracao.md) (o fecho de salvamento, e o teto de 60s do proxy SSE que é a razão da latência importar)
 **Criada em:** 2026-08-07

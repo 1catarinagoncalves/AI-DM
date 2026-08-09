@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-110](./US-110-tabela-de-testes-de-habilidade-do-srd-2024.md) (a tabela *Typical Difficulty Classes* já sai extraída no artefato `d20-tests.srd-2024.json`, e o padrão de bloco derivado no prompt já existe) · [US-38](./US-38-rolagens-ancoradas-na-ficha.md) (o total do teste já vem da ficha; falta contra o quê comparar) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (o bloco de rolagem e o sanitizador que apagam número da prosa)
 **Relacionado:** [US-108](./US-108-tabela-de-modificadores-do-srd-2024.md) (o mesmo `Rule.json`, o mesmo pipeline) · [US-109](./US-109-bonus-circunstancial-no-teste-de-d20.md) (o outro termo da soma do d20 test) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (proveniência no ledger — a mesma disciplina aplicada ao número) · [US-55](./US-55-prompt-caching-do-dm.md) / [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) (camadas do prompt por volatilidade) · [ADR 003](../../adr/003-sistemas-como-dado.md) (sistema como dado)
 **Criada em:** 2026-08-06

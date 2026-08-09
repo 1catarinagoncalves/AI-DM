@@ -1,16 +1,16 @@
 # Graph Report - AI DM  (2026-08-08)
 
 ## Corpus Check
-- 353 files · ~711,310 words
+- 353 files · ~711,542 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2259 nodes · 3058 edges · 193 communities (147 shown, 46 thin omitted)
+- 2259 nodes · 3064 edges · 190 communities (143 shown, 47 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.64)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `53dd04a4`
+- Built from commit: `c6bd2619`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -18,7 +18,7 @@
 - ingest.mjs
 - dm-system.ts
 - devDependencies
-- ability.ts
+- narration.ts
 - system.ts
 - Location Bake-off Script
 - Bake-off Runner Script
@@ -29,8 +29,8 @@
 - US-36 Eval Cases
 - Prompt A/B Bake-off Script
 - Onomastics Bake-off Script
-- locale.ts
-- AdventureController
+- adventure.service.test.ts
+- AdventureService
 - GameView.tsx
 - ai.int.test.ts
 - US-97 — Jogador escolhe o idioma da partida (PT-BR ou inglês)
@@ -150,7 +150,6 @@
 - US-109 — Espaço para bônus/penalidade circunstancial no teste de d20
 - US-110 — Tabela de testes de habilidade do SRD 2024 escolhe o teste da situação
 - US-104 — O cache de prompt vira número
-- narration.ts
 - buildConfig
 - US-98 — Interface web em inglês (i18n das strings do front)
 - ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma
@@ -164,7 +163,6 @@
 - 2. Decisão
 - ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
 - entities.ts
-- shared/src/index.ts
 - US-117 — `turnId` por turno: correlação de log (ADR 011, Camada 1)
 - US-120 — `logLlmFailure` em JSON estruturado (ADR 011, Camada 2 — Grupo B)
 - US-118 — Sinais de `ai.controller.ts` em JSON estruturado (ADR 011, Camada 2 — Grupo A parte 1)
@@ -186,7 +184,6 @@
 - Injectable
 - PrismaService
 - AiService
-- ai.service.test.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `PrismaService` - 31 edges
@@ -229,7 +226,7 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (193 total, 46 thin omitted)
+## Communities (190 total, 47 thin omitted)
 
 ### Community 0 - "ingest.mjs"
 Cohesion: 0.09
@@ -243,9 +240,9 @@ Nodes (20): ADR-0003, abilityCheckTable(), BACKGROUND_LABELS, backgroundFieldTex
 Cohesion: 0.04
 Nodes (45): dependencies, @ai-dm/shared, jose, lucide-react, next, next-auth, react, react-dom (+37 more)
 
-### Community 3 - "ability.ts"
-Cohesion: 0.32
-Nodes (9): abilityModifier(), buildSkillSheet(), formatModifier(), ResolvedSkill, skillModifier(), SRD_TABLE, norm(), normalizeDie() (+1 more)
+### Community 3 - "narration.ts"
+Cohesion: 0.07
+Nodes (33): abilityModifier(), buildSkillSheet(), formatModifier(), ResolvedSkill, skillModifier(), SRD_TABLE, isLocale(), Locale (+25 more)
 
 ### Community 4 - "system.ts"
 Cohesion: 0.10
@@ -287,13 +284,9 @@ Nodes (17): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODEL, PACE_MS (+9 mor
 Cohesion: 0.11
 Nodes (15): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODELS, PACE_MS (+7 more)
 
-### Community 14 - "locale.ts"
-Cohesion: 0.23
-Nodes (8): isLocale(), Locale, localeLabel(), LOCALES, resolveLocale(), ADR-0005, SPELL_LEVEL_WORDS, spellLevelLabel()
-
-### Community 15 - "AdventureController"
-Cohesion: 0.15
-Nodes (12): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+4 more)
+### Community 15 - "AdventureService"
+Cohesion: 0.13
+Nodes (14): AdventureController, CreateAdventureSchema, ApiBearerAuth, ApiBody, ApiOperation, ApiTags, Body, Controller (+6 more)
 
 ### Community 16 - "GameView.tsx"
 Cohesion: 0.15
@@ -328,8 +321,8 @@ Cohesion: 0.50
 Nodes (3): configWithBudget(), configWithSkills(), { listSystems, createCharacter, getInitialAdventure, createAdventure }
 
 ### Community 24 - "ai.service.ts"
-Cohesion: 0.07
-Nodes (26): ApiBearerAuth, ApiBody, ApiOperation, ApiTags, AiController, ChatBodySchema, AnchoredRoll, ChatInput (+18 more)
+Cohesion: 0.06
+Nodes (33): ApiBearerAuth, ApiBody, ApiOperation, ApiTags, AiController, ChatBodySchema, AnchoredRoll, ChatInput (+25 more)
 
 ### Community 25 - "check-jsx-literals.mjs"
 Cohesion: 0.19
@@ -639,10 +632,6 @@ Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do 
 Cohesion: 0.15
 Nodes (13): Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação, O número que decide (+5 more)
 
-### Community 155 - "narration.ts"
-Cohesion: 0.27
-Nodes (10): detectDegeneration(), formatDiceBreakdown(), hasOptionsList(), NUM, ROLL_CUES, ROLL_SENTENCE, stripFabricatedRolls(), stripReasoningLeak() (+2 more)
-
 ### Community 156 - "buildConfig"
 Cohesion: 0.24
 Nodes (11): buildClasses(), buildClassFeatures(), buildClassSpells(), buildConfig(), buildSkills(), buildStartingKits(), makeResolver(), norm() (+3 more)
@@ -687,10 +676,6 @@ Nodes (10): 1. Contexto, 2. Decisão, 3.1 Revisão da decisão 6 (02/08/2026): o
 Cohesion: 0.48
 Nodes (5): EntityPatch, formatEntities(), mergeEntities(), norm(), TIPO_LABEL
 
-### Community 170 - "shared/src/index.ts"
-Cohesion: 0.25
-Nodes (6): InventoryItem, SceneState, WorldEntity, ChatTurn, DiceResult, RollTurn
-
 ### Community 171 - "US-117 — `turnId` por turno: correlação de log (ADR 011, Camada 1)"
 Cohesion: 0.20
 Nodes (10): Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação, Questões em aberto (+2 more)
@@ -728,24 +713,20 @@ Cohesion: 0.06
 Nodes (32): AdventureModule, Module, AiModule, Module, AppModule, Module, AuthModule, Module (+24 more)
 
 ### Community 192 - "AiService"
-Cohesion: 0.12
-Nodes (7): AdventureService, config, Recorded, Injectable, AiService, logExtractionEndpoint(), Injectable
-
-### Community 193 - "ai.service.test.ts"
-Cohesion: 0.19
-Nodes (8): Evt, fakePrisma(), { salvage }, service(), ADR-0011, DiceService, dice, Injectable
+Cohesion: 0.17
+Nodes (4): AiService, logExtractionEndpoint(), logLlmFailure(), Injectable
 
 ## Knowledge Gaps
 - **1164 isolated node(s):** `ChatInput`, `AnchoredRoll`, `OPENING_SCENE_SCHEMA`, `ExtractedScene`, `OPENING_ENTITIES_SCHEMA` (+1159 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **46 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **47 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Backlog — Aventuras autorais a partir do Lazy GM's Resource Document` connect `Backlog — Aventuras autorais a partir do Lazy GM's Resource Document` to `backlog-motor-de-geracao-de-aventuras.md`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `Backlog — Motor de geração de aventuras one-shot` connect `Backlog — Motor de geração de aventuras one-shot` to `backlog-motor-de-geracao-de-aventuras.md`?**
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+- **Why does `SystemConfigSchema` connect `system.ts` to `AiService`, `adventure.service.ts`, `AdventureService`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
 - **What connects `ChatInput`, `AnchoredRoll`, `OPENING_SCENE_SCHEMA` to the rest of the system?**
   _1164 weakly-connected nodes found - possible documentation gaps or missing edges._
@@ -755,5 +736,5 @@ _Questions this graph is uniquely positioned to answer:_
   _Cohesion score 0.11 - nodes in this community are weakly interconnected._
 - **Should `devDependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.043478260869565216 - nodes in this community are weakly interconnected._
-- **Should `system.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.09666666666666666 - nodes in this community are weakly interconnected._
+- **Should `narration.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.07123034227567067 - nodes in this community are weakly interconnected._

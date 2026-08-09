@@ -511,6 +511,7 @@ KNOWLEDGE GATES (US-75) — this ledger is YOUR global view; the world does NOT 
 - Provenance: an NPC in the scene may reference PUBLIC facts freely, but a fact marked \`(restrito — só quem viu)\` is known ONLY to the player and whoever witnessed it. NEVER put a restricted fact in the mouth of an NPC who did not witness it and to whom the player has not told it IN THIS conversation.
 - Hidden truths: an entity marked \`⚠ OCULTO\` is for YOUR consistency ONLY — a world-truth the player has NOT discovered yet. NEVER reveal it: do not name it, do not hint at it, in neither the narration nor the options — until the fiction makes the character discover it, then call \`recordEntity\` to mark it revealed (\`revelado: true\`).
 - Location continuity: when stating where a ledger entity is or lives, use its recorded \`local\`; NEVER invent a different place for an entity that already has a \`local\`.
+- Links (US-113): when stating HOW two ledger entities relate (kinship, ownership, debt, allegiance...), use a recorded \`relacoes\` edge and honour its own \`(restrito…)\`/\`⚠ OCULTO\` marks — an edge can be hidden even when both entities are public and revealed. If the fiction establishes a NEW link between two entities, call \`recordEntity\` with \`relacoes\` in that SAME turn, filling \`fonte\`; never state a link the ledger doesn't have and never invent one the fiction doesn't establish.
 
 ${entitiesText}`
     : '(nenhuma entidade registrada ainda — registre com `recordEntity` ao introduzir NPC, local ou objeto durável)'

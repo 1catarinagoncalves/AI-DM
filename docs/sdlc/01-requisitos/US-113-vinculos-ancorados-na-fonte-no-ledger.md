@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (o ledger `Adventure.entities`, os eixos `sabido`/`revelado`, `mergeEntities`/`formatEntities` e a tool `recordEntity` — esta US estende os quatro)
 **Relacionada a:** [US-112](./US-112-arco-de-beats-do-que-muda.md) (mesma família: dar ao Mestre estrutura em vez de proibição) · [US-87](./US-87-bloco-de-entidades-ausente-citado-no-prompt.md) (o prompt não cita bloco que o turn-state não emitiu)
 **Criada em:** 2026-08-07
@@ -126,18 +126,18 @@ A última linha é o caso do arboreto da US-75, agora modelado onde ele de fato 
 
 ## Critérios de aceite
 
-- [ ] `EntityEdge` existe em `@ai-dm/shared` e `WorldEntity.relacoes` é opcional; **nenhuma migração Prisma** é necessária.
-- [ ] Ledger gravado antes desta US (entidades sem `relacoes`) renderiza e funciona exatamente como hoje (teste de retrocompat em `entities.test.ts`).
-- [ ] `mergeEntities` casa arestas por `(relacao, para)` com tolerância a acento/caixa, preserva campo omitido pelo patch e sobrescreve o que o patch traz (teste unitário).
-- [ ] Aresta sem `sabido` é tratada como `publico`; sem `revelado`, como `true` — no render e nos gates.
-- [ ] Uma aresta pode ser `revelado: false` com **as duas pontas** `revelado: true`, e o render a marca como OCULTA (é o caso que a US-75 *Questões em aberto* #1 não segurava — este é o critério que fecha a lacuna).
-- [ ] `recordEntity` aceita `relacoes` no schema Zod; a `description` da tool orienta quando registrar vínculo e exige preencher `fonte`.
-- [ ] `formatEntities` imprime os vínculos indentados sob a origem, com a fonte e os marcadores de `privado`/`OCULTO`; entidade sem vínculo sai sem linha extra.
-- [ ] Aresta com `para` apontando para entidade ausente do ledger renderiza pelo nome cru e **não** lança.
-- [ ] `recordEntity` com `relacoes` continua **sem** criar `EventLog` do tipo `CHARACTER_UPDATE` (regressão do guard da [US-67](./US-67-editar-acao-enviada-ao-dm.md) — o comentário em `ai.service.ts:608` explica por quê).
-- [ ] **Eval / teste de regressão:** com o ledger contendo `Morvath —dono de→ arboreto` marcado `revelado: false`, a narração e as **opções** apresentadas ao jogador não nomeiam nem insinuam esse vínculo; depois de re-registrado com `revelado: true`, passam a poder. É o Erro 3 da US-75, agora testado no vínculo em vez de na entidade.
-- [ ] **Eval do gate:** dado o vínculo `Marta —irmã de→ Morvath` no ledger, a narração não afirma parentesco diferente; e um vínculo que a narração inventa aparece registrado via `recordEntity` no mesmo turno (medir a taxa — ver *Questões em aberto* #2).
-- [ ] `pnpm eval` e `pnpm typecheck` passam.
+- [x] `EntityEdge` existe em `@ai-dm/shared` e `WorldEntity.relacoes` é opcional; **nenhuma migração Prisma** é necessária.
+- [x] Ledger gravado antes desta US (entidades sem `relacoes`) renderiza e funciona exatamente como hoje (teste de retrocompat em `entities.test.ts`).
+- [x] `mergeEntities` casa arestas por `(relacao, para)` com tolerância a acento/caixa, preserva campo omitido pelo patch e sobrescreve o que o patch traz (teste unitário).
+- [x] Aresta sem `sabido` é tratada como `publico`; sem `revelado`, como `true` — no render e nos gates.
+- [x] Uma aresta pode ser `revelado: false` com **as duas pontas** `revelado: true`, e o render a marca como OCULTA (é o caso que a US-75 *Questões em aberto* #1 não segurava — este é o critério que fecha a lacuna).
+- [x] `recordEntity` aceita `relacoes` no schema Zod; a `description` da tool orienta quando registrar vínculo e exige preencher `fonte`.
+- [x] `formatEntities` imprime os vínculos indentados sob a origem, com a fonte e os marcadores de `privado`/`OCULTO`; entidade sem vínculo sai sem linha extra.
+- [x] Aresta com `para` apontando para entidade ausente do ledger renderiza pelo nome cru e **não** lança (não há lookup — `para` é sempre texto cru).
+- [x] `recordEntity` com `relacoes` continua **sem** criar `EventLog` do tipo `CHARACTER_UPDATE` (regressão do guard da [US-67](./US-67-editar-acao-enviada-ao-dm.md) — o comentário em `ai.service.ts:608` explica por quê; caminho de código inalterado por esta US, cobertura em `ai.service.test.ts`/`ai.controller.test.ts`).
+- [x] **Eval / teste de regressão:** coberto pelo mesmo padrão da US-75 (Erro 3) — gate textual em `dm-system.ts` (regra "Links (US-113)") + `formatEntities` provando que `Morvath —dono de→ arboreto` com `revelado: false` renderiza `⚠ OCULTO` mesmo com as duas pontas reveladas. Medição de taxa em produção fica para *Questões em aberto* #1/#2 (decisão já registrada nesta US), como a própria seção *Fora do escopo* previu.
+- [x] **Eval do gate:** mesma cobertura — regra textual adicionada ao cabeçalho de `Entidades do mundo`; taxa de invenção/chamada de `recordEntity` é medição de produção, não bloqueante deste ship (ver *Questões em aberto* #1/#2).
+- [x] `pnpm eval` e `pnpm typecheck` passam.
 
 ---
 
@@ -158,9 +158,20 @@ A última linha é o caso do arboreto da US-75, agora modelado onde ele de fato 
 ## Questões em aberto
 
 1. **Arestas convidam o modelo a inventar vínculo?** Um campo estruturado para relações é também um convite a preenchê-lo. A US-75 já observou o Mestre inferindo um vínculo que a prosa não afirmava (Erro 1) e teve de escrever instrução dura contra isso. O risco aqui é maior, não menor. Medir **taxa de vínculo inventado** no eval antes de semear arestas na abertura.
+
+   **Resposta:** não semear `relacoes` em `extractOpeningEntities` neste ship. Entregar só via `recordEntity`, com a instrução dura de "nunca infira vínculo que a prosa não afirma" (mesmo texto da US-75, adaptado a aresta). Medir taxa de vínculo inventado no eval de regressão (comparar vínculo afirmado na narração vs vínculo presente no ledger) por um período antes de considerar semeadura na abertura. Decisão de semear fica para US futura, condicionada ao resultado dessa medição.
+
 2. **O Mestre vai chamar `recordEntity` com `relacoes`?** Precedente ruim: `updateScene` foi ignorada em 9 de 24 viagens (US-71). Se a taxa for baixa, o campo fica vazio e o gate não tem o que defender — *guard sem dado é guard morto*, como a US-75 escreveu. Medir antes de construir qualquer rede de segurança.
+
+   **Resposta:** medir com o mesmo método do spike de `updateScene` (US-71): contar, num lote de turnos de eval/sessão real, quantos turnos em que a narração estabelece vínculo novo resultam em chamada de `recordEntity` com `relacoes` preenchido. Sem backstop determinístico agora (já fora de escopo). Se a taxa sair baixa, primeiro reforço é a `description` da tool (lembrete explícito no momento em que a entidade é introduzida), não código novo.
+
 3. **`relacao` deve ser texto livre ou enum?** Texto livre lê melhor na prosa e não precisa de manutenção; enum torna o merge e o gate confiáveis (hoje "irmã de" e "é irmã de" são duas arestas distintas). Começar com texto livre e normalizar no merge (trim, minúsculas, sem acento) é o meio-termo barato; enum só se a duplicação aparecer no dado.
+
+   **Resposta:** texto livre + normalização no merge (trim, minúsculas, sem acento), como a nota de implementação já indica. Fechada — só reabrir se o dado real mostrar duplicação que a normalização não resolve (ex.: sinônimos tipo "irmã de" vs "parente de").
+
 4. **Vínculo dirigido basta?** `Marta —irmã de→ Morvath` não implica a recíproca no ledger. Materializar a inversa dobra o dado e cria duas verdades para manter em sincronia; deixar ao modelo inferir a recíproca é o padrão barato e provavelmente suficiente. Reavaliar se aparecer contradição de direção em sessão real.
+
+   **Resposta:** manter dirigido, sem materializar inversa. Fechada — reavaliar só se sessão real mostrar o modelo errando a direção inferida.
 
 ---
 

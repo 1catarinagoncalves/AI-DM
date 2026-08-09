@@ -3,7 +3,7 @@ import { streamText, tool } from 'ai'
 import { z } from 'zod'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import type { DiceResult } from '@ai-dm/shared'
+import type { DiceResult, SceneState } from '@ai-dm/shared'
 import { buildDmSystemPrompt, buildTurnStateBlock } from './prompts/dm-system'
 import { resolveModel, judgeModel } from './model'
 import { checkNoSelfRoll, detectLanguageDrift, detectReasoningLeak, detectCanonDenial } from './guardrails'
@@ -233,6 +233,108 @@ const SCENARIOS: Scenario[] = [
   },
 ]
 
+// ─── US-116 (ADR 011): spike de A/B — bloco de arco muda a taxa de chegada em B? ──
+// Fora de `SCENARIOS`/do loop julgado por rubrica: a `Scenario` normal tem UM
+// `turnState`; aqui o que se mede são DUAS variantes do mesmo cenário. Critério
+// objetivo (Escopo da US-116), não nota de qualidade — sem juiz aqui.
+
+const VIAGEM_ORIGEM: SceneState = {
+  local: 'taverna do Porco Malhado, em Eldridge',
+  ambiente: 'interno',
+  periodo: 'noite',
+  presentes: [],
+  objetos_em_cena: [],
+  atualizadoEm: '2026-08-08T20:00:00Z',
+}
+const VIAGEM_DESTINO = 'Cripta Afundada'
+const VIAGEM_ACTION = `Saio da taverna e sigo a pé até a ${VIAGEM_DESTINO}, no bosque a norte de Eldridge, atrás dos rumores de saques.`
+
+// Variante (a): turnState de hoje — mesmo helper de produção (US-56/US-71), COM
+// sceneState (nenhum dos 6 cenários acima usa `local`; este é o primeiro a exercitar
+// a `continuityLine` que o fix de 28/07/2026 tocou).
+const VIAGEM_TURN_STATE_A = buildTurnStateBlock({ sheet: CHARACTER.sheet, ...VOLATILE, sceneState: VIAGEM_ORIGEM })
+
+// Variante (b): a MESMA base + 1 bloco "Arco da história" HARDCODED como string de
+// teste — sem `StoryBeat`, sem `extractOpeningArc`, sem coluna `arc` (isso é escopo da
+// US-112, ainda não construída). Só precisa ser plausível ao modelo para o spike.
+const ARC_BLOCK_HARDCODED = `\n\n## Arco da história\nMomento de virada: a jogadora está deixando «${VIAGEM_ORIGEM.local}» para trás, rumo a «${VIAGEM_DESTINO}». Esta cena deve mostrar a partida e a chegada ao novo destino — não prolongar a cena anterior.`
+const VIAGEM_TURN_STATE_B = VIAGEM_TURN_STATE_A + ARC_BLOCK_HARDCODED
+
+// Dublê de `updateScene` (schema espelha `ai.service.ts:517`, sem persistência —
+// só precisamos que a CHAMADA registre no `toolCalls`, mesmo raciocínio do `rollDiceStub`).
+const updateSceneStub = tool({
+  description:
+    'Update the structured scene state. Call BEFORE narrating whenever the scene CHANGES: the character moves to a new location, environment switches, time advances, or presence changes.',
+  parameters: z.object({
+    local: z.string().optional(),
+    ambiente: z.enum(['externo', 'interno']).optional(),
+    periodo: z.string().optional(),
+    presentes: z.array(z.string()).optional(),
+    objetos_em_cena: z.array(z.string()).optional(),
+  }),
+  execute: async (patch: { local?: string }) => patch,
+})
+
+interface ViagemTurnResult {
+  model: string
+  variant: 'a' | 'b'
+  narration: string
+  chamouUpdateScene: boolean
+  localAtualizado?: string
+  error?: string
+}
+
+async function runViagemTurn(modelId: string, turnState: string, variant: 'a' | 'b'): Promise<ViagemTurnResult> {
+  let narration = ''
+  try {
+    const result = streamText({
+      model: resolveModel(modelId),
+      system: SYSTEM,
+      prompt: `${turnState}\n\n${VIAGEM_ACTION}`,
+      tools: { updateScene: updateSceneStub },
+      maxSteps: 4,
+      maxRetries: 1,
+      abortSignal: AbortSignal.timeout(REQ_TIMEOUT_MS),
+    })
+    for await (const chunk of result.textStream) narration += chunk
+    const toolCalls = await result.toolCalls
+    const chamada = toolCalls.find((c) => c.toolName === 'updateScene')
+    return {
+      model: modelId,
+      variant,
+      narration,
+      chamouUpdateScene: !!chamada,
+      localAtualizado: (chamada?.args as { local?: string } | undefined)?.local,
+    }
+  } catch (e) {
+    return { model: modelId, variant, narration, chamouUpdateScene: false, error: (e as Error).message }
+  }
+}
+
+/**
+ * Critério objetivo de sucesso (Escopo da US-116): chegou em B se o turno chamou
+ * `updateScene` apontando pro destino — o caminho real de produção — OU a narração
+ * cita o destino pedido. Nunca por nota de qualidade: isto NÃO passa pelo juiz.
+ */
+function chegouEmB(r: ViagemTurnResult): boolean {
+  if (r.chamouUpdateScene && /cripta/i.test(r.localAtualizado ?? '')) return true
+  return /cripta afundada/i.test(r.narration)
+}
+
+// A pergunta da US-116 é sobre o modelo que RODA em produção, não sobre candidatos do
+// bake-off (esses respondem "qual candidato é melhor?", pergunta diferente). Default =
+// `primaryModel` de `model.ts:166` (deepseek-v4-flash via OpenRouter, mesmo slug),
+// roteado pelo prefixo `openrouter:` que `resolveModel` já reconhece (US-17 slice 2).
+// `VIAGEM_MODELS` é env separada de `MODELS` — os dois testes têm roster próprio.
+const VIAGEM_MODELS_DEFAULT = ['openrouter:~deepseek/deepseek-v4-flash-latest']
+function parseViagemModels(env: string | undefined): string[] {
+  const ids = (env ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  return ids.length ? ids : VIAGEM_MODELS_DEFAULT
+}
+
 // Stub da tool rollDice: a de produção delega ao Game Server e LANÇA fora dele.
 // Aqui devolvemos um DiceResult fixo — só precisamos que a CHAMADA registre no
 // `toolCalls` do stream (o guardrail lê a chamada, não o número).
@@ -420,5 +522,58 @@ describe('bake-off narrativo (US-17, slice 2: guardrails + juiz)', () => {
       console.log(`\n📄 relatório gravado em ${reportPath}`)
     },
     1_200_000, // 5 cenários × N modelos × REPS gerações (narração inteira, ~30s) + juiz
+  )
+})
+
+// US-116 (ADR 011) — spike de A/B: responde "um bloco de arco muda a taxa de chegada
+// em B?", separado do julgamento de qualidade acima (critério objetivo, sem juiz).
+describe('spike A/B viagem-pedida (US-116) — bloco de arco muda a taxa de chegada em B?', () => {
+  it.runIf(process.env['BAKEOFF'])(
+    'mede a taxa de chegada em B nas variantes (a) sem arco e (b) com bloco de arco',
+    async () => {
+      if (!process.env['OPENROUTER_API_KEY']) throw new Error('Falta OPENROUTER_API_KEY (modelo de produção, deepseek-v4-flash via OpenRouter)')
+      const models = parseViagemModels(process.env['VIAGEM_MODELS'])
+      const variantes: Array<{ id: 'a' | 'b'; turnState: string }> = [
+        { id: 'a', turnState: VIAGEM_TURN_STATE_A },
+        { id: 'b', turnState: VIAGEM_TURN_STATE_B },
+      ]
+
+      const linhas: string[] = []
+      for (const model of models) {
+        for (const variante of variantes) {
+          let chegadas = 0
+          for (let rep = 0; rep < REPS; rep++) {
+            const turn = await runViagemTurn(model, variante.turnState, variante.id)
+            if (rep === 0) {
+              console.log(`\n\n########## viagem-pedida · ${model} · variante ${variante.id} ##########`)
+              if (turn.error) console.log(`✗ erro: ${turn.error}`)
+              console.log(turn.narration || '(vazio)')
+              console.log(`updateScene chamado: ${turn.chamouUpdateScene} (local="${turn.localAtualizado ?? '-'}")`)
+            }
+            if (chegouEmB(turn)) chegadas++
+          }
+          linhas.push(`| ${model} | ${variante.id} | ${chegadas}/${REPS} |`)
+        }
+      }
+
+      console.log('\n\n===== VIAGEM-PEDIDA (US-116): taxa de chegada em B por variante =====')
+      console.log('| modelo | variante | chegou em B |')
+      console.log('|---|---|---|')
+      for (const l of linhas) console.log(l)
+      // Baseline pré-fixes de 28/07/2026 (US-71): 9/24 (37,5%) SEM chegar.
+      console.log('Baseline pré-fixes (US-71): 9/24 (37,5%) dos turnos de viagem NÃO chegavam ao destino.')
+
+      const reportsDir = resolve(process.cwd(), '../../evals/reports')
+      mkdirSync(reportsDir, { recursive: true })
+      const date = new Date().toISOString().slice(0, 10)
+      const reportPath = resolve(reportsDir, `${date}-viagem-pedida.md`)
+      writeFileSync(
+        reportPath,
+        `# viagem-pedida (US-116, ADR 011) — ${date}\n\nBaseline pré-fixes (US-71): 9/24 (37,5%) sem chegar ao destino.\n\n| modelo | variante | chegou em B |\n|---|---|---|\n${linhas.join('\n')}\n`,
+        'utf8',
+      )
+      console.log(`\n📄 relatório gravado em ${reportPath}`)
+    },
+    600_000, // N modelos × 2 variantes × REPS gerações, sem juiz (mais leve que o bake-off acima)
   )
 })

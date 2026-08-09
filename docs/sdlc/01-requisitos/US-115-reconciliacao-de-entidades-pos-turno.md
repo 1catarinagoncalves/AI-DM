@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (o ledger, os eixos `sabido`/`revelado`, `mergeEntities` e a semeadura da abertura — esta story é a continuação que aquela deixou fora por escrito)
 **Relacionada a:** [US-73](./US-73-reconciliador-de-cena-em-background.md) (**o molde exato**: mesma arquitetura de extração pós-turno em background, aplicada à cena; esta aplica ao ledger) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (o modelo barato que esta extração deveria usar) · [US-113](./US-113-vinculos-ancorados-na-fonte-no-ledger.md) (vínculos ficam **fora** desta rede — ver *Fora do escopo*)
 **Criada em:** 2026-08-07
@@ -85,10 +85,10 @@ Entrega em **duas fases**, e a fase A é o que decide se a fase B se constrói.
 
 **Fase A**
 
-- [ ] `detectUnledgeredName` existe em `guardrails.ts`, é função pura (sem API, sem custo) e roda no `pnpm test` normal, como os detectores vizinhos.
-- [ ] Não acusa o nome da personagem-jogadora, nem entidade já no ledger com grafia diferente em acento/caixa (mesma tolerância do `mergeEntities`).
-- [ ] Não acusa palavra capitalizada por ser início de frase — o alvo é nome próprio, e em narração PT-BR a maiúscula inicial é ruído dominante (ver *Questões em aberto* #1).
-- [ ] O `onFinish` loga a detecção **sem agir**, no molde do `detectSlopName` (`ai.service.ts:792`).
+- [x] `detectUnledgeredName` existe em `guardrails.ts`, é função pura (sem API, sem custo) e roda no `pnpm test` normal, como os detectores vizinhos.
+- [x] Não acusa o nome da personagem-jogadora, nem entidade já no ledger com grafia diferente em acento/caixa (mesma tolerância do `mergeEntities`).
+- [x] Não acusa palavra capitalizada por ser início de frase — o alvo é nome próprio, e em narração PT-BR a maiúscula inicial é ruído dominante (ver *Questões em aberto* #1).
+- [x] O `onFinish` loga a detecção **sem agir**, no molde do `detectSlopName` (`ai.service.ts:792`).
 - [ ] **A taxa medida está registrada na story antes de a fase B começar.** Se o Mestre registra quase sempre, a fase B não se constrói e a US fecha na fase A com um achado — que é resultado, não fracasso.
 
 **Fase B**
@@ -115,6 +115,7 @@ Entrega em **duas fases**, e a fase A é o que decide se a fase B se constrói.
 - **Ler do banco, não do closure.** `recordEntity` já faz isso (`ai.service.ts:596`) para acumular corretamente; a rede roda **depois** do turno, então o closure está garantidamente velho.
 - **`EXTRACTION_PROVIDER_OPTIONS` é obrigatório** (`model.ts:282`): `reasoning: { enabled: false }`. Trocar por `exclude`/`effort` derruba a chamada com 400 **em silêncio** — o `catch` devolve e a aventura segue sem ledger novo, sem ninguém notar.
 - **`ai-engine` roda de `dist`:** `guardrails.ts` exige `pnpm --filter @ai-dm/ai-engine build` para a API pegar. `ai.service.ts` roda TS direto.
+- **Fase A implementada (2026-08-09).** `detectUnledgeredName` em `guardrails.ts` (heurística: candidato = maiúscula+minúscula fora do início de segmento — início de texto/`.`/`!`/`?`/quebra de linha/travessão —, casado por palavra normalizada contra o ledger e o nome do jogador). Log no `onFinish` (`ai.service.ts`, evento `unledgered_name`) só quando o detector acusa (molde exato do `slop_name`), com o campo `calledRecordEntity` no payload — assim a taxa de omissão real (detector acusou **e** o modelo não registrou) sai de uma linha de log só, sem casar por `turnId`. O denominador (total de turnos salvos) já existe no `turn_summary`. **Taxa ainda não medida** — falta volume de turnos jogados em produção; o último AC da fase A (e a decisão sobre a fase B) ficam pendentes até essa medição.
 
 ---
 

@@ -24,9 +24,11 @@ import {
   meanOfScore,
   formatScoreLines,
   detectSlopName,
+  detectUnledgeredName,
   SUMMARY_SYSTEM_PROMPT,
   ENTITIES_BLOCK,
   type ScenePatch,
+  type EntityPatch,
   type DmCharacterSheet,
   type CharacterBackground,
   type ClassFeature,
@@ -568,7 +570,9 @@ export class AiService {
         // `buildTurnStateBlock` emite. Vem da constante do ai-engine, não escrito à mão:
         // renomear o bloco lá renomearia esta promessa aqui também.
         description:
-          `Record or update a DURABLE campaign entity (a named NPC, a place, a notable object, a faction) so it is never forgotten. Call this the moment you INTRODUCE such an entity, and again (with only the changed fields) whenever it moves or its state changes (an NPC wakes/dies/becomes an ally, a place is discovered/destroyed). Pass \`nome\` plus whatever is known: \`tipo\` (npc/local/objeto/faccao/outro), \`local\` (where it is now), \`estado\` (its current condition/relationship), \`nota\` (a short durable fact). Matching is by \`nome\` (accent/case tolerant); omitted fields keep their previous value. This ledger is re-shown to you in full every turn under "${ENTITIES_BLOCK}" — it is your permanent memory, unlike the scene (only the present) and the summary (lossy prose). Two independent knowledge axes (US-75): \`sabido\` = who in the WORLD may know this; \`revelado\` = whether the PLAYER has discovered it. Promote by re-recording: set \`revelado: true\` the moment the fiction reveals a hidden truth to the player, set \`sabido: "publico"\` when a private fact spreads through the world.`,
+          `Record or update a DURABLE campaign entity (a named NPC, a place, a notable object, a faction) so it is never forgotten. Call this the moment you INTRODUCE such an entity, and again (with only the changed fields) whenever it moves or its state changes (an NPC wakes/dies/becomes an ally, a place is discovered/destroyed). Pass \`nome\` plus whatever is known: \`tipo\` (npc/local/objeto/faccao/outro), \`local\` (where it is now), \`estado\` (its current condition/relationship), \`nota\` (a short durable fact). Matching is by \`nome\` (accent/case tolerant); omitted fields keep their previous value. This ledger is re-shown to you in full every turn under "${ENTITIES_BLOCK}" — it is your permanent memory, unlike the scene (only the present) and the summary (lossy prose). Two independent knowledge axes (US-75): \`sabido\` = who in the WORLD may know this; \`revelado\` = whether the PLAYER has discovered it. Promote by re-recording: set \`revelado: true\` the moment the fiction reveals a hidden truth to the player, set \`sabido: "publico"\` when a private fact spreads through the world.
+
+Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` — "Marta is Morvath's sister" is a fact about the EDGE between them, not about Marta alone. Call this with \`relacoes\` the moment the fiction ESTABLISHES a link between two entities you have already recorded (never invent one the fiction doesn't state). Each edge needs \`fonte\`: where this link came from — always fill it in, it is what lets you tell established canon from something you improvised. Edges merge by \`(relacao, para)\`, so re-recording the same edge updates it (e.g. to flip its \`revelado\`) instead of duplicating it.`,
         parameters: z.object({
           entidades: z
             .array(
@@ -586,11 +590,31 @@ export class AiService {
                   .boolean()
                   .optional()
                   .describe('Player-discovery. true (default) = the player character already knows this, narrate freely. false = a world-truth you PIN so you stay consistent but the player has NOT connected yet — keep it hidden from narration and options until the fiction reveals it, then re-record with revelado:true.'),
+                relacoes: z
+                  .array(
+                    z.object({
+                      relacao: z.string().describe('The link\'s verb, readable in prose: "irmã de", "deve dinheiro a", "serve", "fica dentro de".'),
+                      para: z.string().describe('`nome` of the target entity (accent/case tolerant match).'),
+                      fonte: z
+                        .string()
+                        .describe('REQUIRED. Where this edge was established: "abertura" if from the opening, or a short note of the scene/turn it came from. This is what separates canon from improvisation — never leave it out.'),
+                      sabido: z
+                        .enum(['publico', 'privado'])
+                        .optional()
+                        .describe('World-provenance of THIS EDGE — independent of the two entities\' own `sabido`. Ausente ⇒ publico.'),
+                      revelado: z
+                        .boolean()
+                        .optional()
+                        .describe('Player-discovery of THIS EDGE — independent of the two entities\' own `revelado`. Two revealed entities can still have a hidden link between them. Ausente ⇒ true.'),
+                    }),
+                  )
+                  .optional()
+                  .describe('Directed links FROM this entity to other ledger entities, established by the fiction this turn.'),
               }),
             )
             .describe('One or more entities to insert or update this turn.'),
         }),
-        execute: async ({ entidades }: { entidades: Omit<WorldEntity, 'atualizadoEm'>[] }) => {
+        execute: async ({ entidades }: { entidades: EntityPatch[] }) => {
           // Re-lê do banco (não do closure) para acumular corretamente quando o
           // modelo chama recordEntity mais de uma vez no mesmo turno.
           const fresh = await this.prisma.adventure.findUnique({
@@ -817,6 +841,24 @@ export class AiService {
           // métrica de prod pra decidir enforcement (regeneração) com dado depois.
           const slop = detectSlopName(finalText)
           if (slop.slop) console.log(JSON.stringify({ event: 'slop_name', turnId, timestamp: new Date().toISOString(), match: slop.match }))
+          // US-115 fase A: observabilidade PURA da omissão de `recordEntity` — detecta,
+          // loga, NÃO age (a fase B, condicionada ao resultado desta medição, é quem
+          // insere no ledger). `calledRecordEntity` vai no payload para o log já trazer
+          // a taxa real de omissão (detector acusou E o modelo não registrou), sem
+          // precisar casar linhas de log por turnId depois.
+          const calledRecordEntity = steps.some((s) => (s.toolCalls ?? []).some((tc) => tc.toolName === 'recordEntity'))
+          const unledgered = detectUnledgeredName(finalText, adventure.entities as WorldEntity[] | null, character.name)
+          if (unledgered.unledgered) {
+            console.log(
+              JSON.stringify({
+                event: 'unledgered_name',
+                turnId,
+                timestamp: new Date().toISOString(),
+                match: unledgered.match,
+                calledRecordEntity,
+              }),
+            )
+          }
           // US-36: avaliação de qualidade AO VIVO em dev (async, fire-and-forget).
           // NÃO dar await — o jogador já recebeu o stream; a nota chega ao log
           // depois. Só roda atrás de DM_LIVE_EVAL (nunca em produção).
@@ -828,6 +870,10 @@ export class AiService {
           // apontar para trás, alimentando o replay (bug de `erro narração 2`). Roda
           // SÓ quando o modelo negligenciou a cena → custo zero nos turnos disciplinados.
           const cenaTocada = steps.some((s) => (s.toolCalls ?? []).some((tc) => tc.toolName === 'updateScene'))
+          // US-116 (ADR 011, Camada 0): taxa observável de cenaTocada — o único sinal do
+          // inventário do ADR 011 que ainda faltava logar. Emite em TODO turno com
+          // narração (não só quando reconcileScene dispara), pra virar taxa, não só falha.
+          console.log(JSON.stringify({ event: 'arc_signal', turnId, timestamp: new Date().toISOString(), adventureId, characterId, cenaTocada }))
           if (!cenaTocada) void this.reconcileScene(adventureId, characterId, finalText, character.name, turnId)
         }
         await this.summarizeOldTurns(adventureId, characterId)

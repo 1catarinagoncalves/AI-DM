@@ -377,3 +377,47 @@ describe('US-95 fluxo 3 — a entidade sobrevive ao turno (US-87)', () => {
     expect(mutacoes).toBe(0)
   })
 })
+
+// US-116 (ADR 011, Camada 0): a taxa de `cenaTocada` só existe se a linha `arc_signal`
+// sair de verdade no `onFinish` real — o que os unitários com `fakePrisma()` não
+// alcançam (mesmo motivo do comentário em `ai.service.test.ts:201`).
+describe('US-116 (ADR 011) — sinal arc_signal', () => {
+  function sinaisArc(logSpy: ReturnType<typeof vi.spyOn>): Array<Record<string, unknown>> {
+    return logSpy.mock.calls
+      .map(([linha]) => {
+        try {
+          return JSON.parse(linha as string) as Record<string, unknown>
+        } catch {
+          return null
+        }
+      })
+      .filter((o): o is Record<string, unknown> => o?.['event'] === 'arc_signal')
+  }
+
+  it('turno que chama updateScene → cenaTocada true, sem acionar o reconciliador', async () => {
+    const mesa = await montarMesa()
+    dm.passos = turnoComTools([{ tool: 'updateScene', args: { local: 'pátio do posto avançado' } }])
+    const logSpy = vi.spyOn(console, 'log')
+
+    await jogarTurno(mesa, 'avanço até o pátio')
+    await esperarNarracaoPersistida(mesa, 2)
+
+    const [sinal] = sinaisArc(logSpy)
+    expect(sinal).toMatchObject({ adventureId: mesa.adventureId, characterId: mesa.characterId, cenaTocada: true })
+    expect(typeof sinal?.['turnId']).toBe('string')
+    logSpy.mockRestore()
+  })
+
+  it('turno sem updateScene → cenaTocada false (o mesmo turno que aciona o reconciliador da US-73)', async () => {
+    const mesa = await montarMesa()
+    dm.passos = turnoSoProsa()
+    const logSpy = vi.spyOn(console, 'log')
+
+    await jogarTurno(mesa, 'sigo andando')
+    await esperarNarracaoPersistida(mesa, 2)
+
+    const [sinal] = sinaisArc(logSpy)
+    expect(sinal).toMatchObject({ adventureId: mesa.adventureId, characterId: mesa.characterId, cenaTocada: false })
+    logSpy.mockRestore()
+  })
+})
