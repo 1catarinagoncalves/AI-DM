@@ -52,6 +52,8 @@ export const api = {
     attributes: Record<string, number>
     skills?: string[]
     background?: { story?: string; ideals?: string[]; bonds?: string[]; flaws?: string[]; deity?: { name: string; portfolio?: string } }
+    // US-122: origem do catálogo de backgrounds (US-121) — campo IRMÃO de `background`.
+    origin?: { key?: string }
   }) => post<{ id: string; name: string }>('/characters', data),
 
   listSystems: () =>

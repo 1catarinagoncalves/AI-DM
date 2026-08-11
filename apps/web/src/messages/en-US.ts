@@ -110,6 +110,9 @@ export const enUS: Record<MessageKey, string> = {
   'setup.background.deity': 'Deity/Patron — name, and what they stand for',
   'setup.background.deityPlaceholder': 'E.g.: Auril, goddess of winter',
 
+  // ---- wizard: origin (US-122) ----
+  'setup.origin.titulo': 'Origin',
+
   // ---- wizard: revisão ----
   'setup.review.titulo': 'Review',
   'setup.review.subtitulo': 'Check your character sheet before setting out.',
@@ -121,6 +124,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.attributes': 'Attributes',
   'setup.review.skills': 'Skills',
   'setup.review.background': 'Background',
+  'setup.review.origin': 'Origin',
   'setup.review.filled': 'Filled in',
   'setup.review.deity': 'Deity/Patron',
 

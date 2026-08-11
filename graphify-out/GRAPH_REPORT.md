@@ -1,16 +1,16 @@
 # Graph Report - AI DM  (2026-08-09)
 
 ## Corpus Check
-- 357 files · ~723,606 words
+- 358 files · ~754,870 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2341 nodes · 3157 edges · 206 communities (159 shown, 47 thin omitted)
+- 2366 nodes · 3191 edges · 201 communities (154 shown, 47 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.62)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c576be53`
+- Built from commit: `47b663c6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -29,7 +29,7 @@
 - US-36 Eval Cases
 - Prompt A/B Bake-off Script
 - Onomastics Bake-off Script
-- US-47 — Ingestão do SRD 5e (2024) como dado do sistema
+- backlog-motor-de-geracao-de-aventuras.md
 - AdventureController
 - GameView.tsx
 - ai.int.test.ts
@@ -105,7 +105,7 @@
 - Prompt Caching User Stories
 - US-103 — Saber qual endpoint serviu o turno
 - ingest.test.mjs
-- US-98-i18n-da-interface-web.md
+- US-125 — Benefícios não-mecanizados da origem conhecidos pelo mestre
 - Evals README User Story
 - Scene State Seed
 - Character Sheet Awareness Seed
@@ -150,7 +150,6 @@
 - US-109 — Espaço para bônus/penalidade circunstancial no teste de d20
 - US-110 — Tabela de testes de habilidade do SRD 2024 escolhe o teste da situação
 - US-104 — O cache de prompt vira número
-- backlog-motor-de-geracao-de-aventuras.md
 - buildConfig
 - US-98 — Interface web em inglês (i18n das strings do front)
 - ADR 005 — Locale como dimensão (PT-BR / EN): preferência mutável + ficha por idioma
@@ -164,13 +163,11 @@
 - 2. Decisão
 - ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
 - entities.ts
-- US-89 — Export que ninguém importa para de sobreviver no repo
 - US-117 — `turnId` por turno: correlação de log (ADR 011, Camada 1)
 - US-120 — `logLlmFailure` em JSON estruturado (ADR 011, Camada 2 — Grupo B)
 - US-118 — Sinais de `ai.controller.ts` em JSON estruturado (ADR 011, Camada 2 — Grupo A parte 1)
 - US-119 — Sinais de `ai.service.ts` em JSON estruturado (ADR 011, Camada 2 — Grupo A parte 2 + Grupo C)
 - US-107 — Sair da criação ou da mesa e voltar ao hub de personagens
-- US-110-tabela-de-testes-de-habilidade-do-srd-2024.md
 - AuthUser
 - LocaleProvider.tsx
 - ApiBody
@@ -196,7 +193,6 @@
 - translate-srd.ts
 - rubric.test.ts
 - ai-engine/src/index.ts
-- Modificadores de atributo — tabela do SRD 2024
 - scene.ts
 - character.schema.ts
 
@@ -213,16 +209,16 @@
 10. `CharacterService` - 14 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `resolveKnownSpell()` --calls--> `norm()`  [EXTRACTED]
-  packages/ai-engine/src/prompts/dm-system.ts → packages/ai-engine/src/entities.ts
+- `buildConfig()` --references--> `SystemConfigSchema`  [EXTRACTED]
+  scripts/srd/ingest.mjs → packages/shared/src/types/system.ts
 - `mergeEditions()` --indirect_call--> `row()`  [INFERRED]
   scripts/srd/ingest.mjs → scripts/srd/ingest.test.mjs
+- `resolveKnownSpell()` --calls--> `norm()`  [EXTRACTED]
+  packages/ai-engine/src/prompts/dm-system.ts → packages/ai-engine/src/entities.ts
 - `LoginPage()` --calls--> `useT()`  [EXTRACTED]
   apps/web/src/app/login/page.tsx → apps/web/src/components/LocaleProvider.tsx
 - `BackgroundPanel()` --calls--> `useT()`  [EXTRACTED]
   apps/web/src/components/game/GameView.tsx → apps/web/src/components/LocaleProvider.tsx
-- `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
-  docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
 
 ## Import Cycles
 - None detected.
@@ -241,7 +237,7 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (206 total, 47 thin omitted)
+## Communities (201 total, 47 thin omitted)
 
 ### Community 0 - "ingest.mjs"
 Cohesion: 0.09
@@ -260,8 +256,8 @@ Cohesion: 0.07
 Nodes (34): abilityModifier(), buildSkillSheet(), formatModifier(), ResolvedSkill, skillModifier(), SRD_TABLE, isLocale(), Locale (+26 more)
 
 ### Community 4 - "system.ts"
-Cohesion: 0.10
-Nodes (21): featuresEn, featuresPtBr, spellsEn, spellsPtBr, buildCharacterAttributesSchema(), InitialAdventureHook, InitialAdventureHookSchema, resolveSheetEntries() (+13 more)
+Cohesion: 0.08
+Nodes (25): featuresEn, featuresPtBr, spellsEn, spellsPtBr, buildCharacterAttributesSchema(), InitialAdventureHook, InitialAdventureHookSchema, resolveSheetEntries() (+17 more)
 
 ### Community 5 - "Location Bake-off Script"
 Cohesion: 0.07
@@ -299,9 +295,9 @@ Nodes (17): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODEL, PACE_MS (+9 mor
 Cohesion: 0.11
 Nodes (15): body, CHARACTER, dir, EXEMPLAR, judge, log(), MODELS, PACE_MS (+7 more)
 
-### Community 14 - "US-47 — Ingestão do SRD 5e (2024) como dado do sistema"
-Cohesion: 0.35
-Nodes (6): US-39 — Identidade narrativa do personagem, US-40 — Divindade / patrono do personagem, US-41 — Features de classe conhecidas pelo mestre, US-42 — Magias conhecidas pelo mestre, US-43 — Calibração do peso dos traços de identidade, US-47 — Ingestão do SRD 5e (2024) como dado do sistema
+### Community 14 - "backlog-motor-de-geracao-de-aventuras.md"
+Cohesion: 0.06
+Nodes (45): Modificadores de atributo — tabela do SRD 2024, O que cada faixa de pontuação significa (SRD 2024), Onde isto é usado, Regra de cálculo, Tabela de modificadores (SRD 2024), US-34 — Qualidade cinematográfica da narração do AI DM, US-35 — Estado de cena estruturado já na abertura da aventura, US-36 — Eval de qualidade da narração do DM (+37 more)
 
 ### Community 15 - "AdventureController"
 Cohesion: 0.15
@@ -524,8 +520,8 @@ Cohesion: 0.67
 Nodes (3): entries(), ROOT, shape()
 
 ### Community 71 - "sync.mjs"
-Cohesion: 0.40
-Nodes (3): FILES, ADR-0009, OUT
+Cohesion: 0.33
+Nodes (4): FILES, ADR-0004, ADR-0009, OUT
 
 ### Community 74 - "Prompt Layers ADR/US"
 Cohesion: 1.00
@@ -564,12 +560,12 @@ Cohesion: 0.15
 Nodes (13): Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação, O problema observado (+5 more)
 
 ### Community 91 - "ingest.test.mjs"
-Cohesion: 0.13
+Cohesion: 0.11
 Nodes (17): buildRaces(), mergeEditions(), stripDocument(), ATTACKS_DESC, ATTR_KEYS, CHECKS_DESC, d20Rules(), ADR-0009 (+9 more)
 
-### Community 92 - "US-98-i18n-da-interface-web.md"
-Cohesion: 0.22
-Nodes (7): US-46 — Acessibilidade da aplicação web (WCAG 2.2 AA), US-66 — Todas as telas mobile-friendly, US-68 — Nomes de fantasia originais, US-83 — README com arquitetura de alto nível, US-86 — Árvore de diretórios na documentação deixa de mentir sobre onde o arquivo está, US-88 — Doc que ordena deixa de citar API que não existe, US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
+### Community 92 - "US-125 — Benefícios não-mecanizados da origem conhecidos pelo mestre"
+Cohesion: 0.14
+Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Modelo de dados proposto (+6 more)
 
 ### Community 112 - "US-101 — Ganchos de aventura inicial em inglês"
 Cohesion: 0.14
@@ -651,13 +647,9 @@ Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do 
 Cohesion: 0.15
 Nodes (13): Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação, O número que decide (+5 more)
 
-### Community 155 - "backlog-motor-de-geracao-de-aventuras.md"
-Cohesion: 0.35
-Nodes (7): US-67 — Editar a ação enviada ao DM, US-69 — Guard anti-degeneração da narração, US-71 — Simplificar a localização do personagem, US-73 — Reconciliador de cena em background, US-74 — Guard de turno truncado, US-75 — Dimensões de conhecimento no ledger, US-87 — O prompt para de afirmar que existe um bloco de entidades que o turn-state não emitiu
-
 ### Community 156 - "buildConfig"
-Cohesion: 0.24
-Nodes (11): buildClasses(), buildClassFeatures(), buildClassSpells(), buildConfig(), buildSkills(), buildStartingKits(), makeResolver(), norm() (+3 more)
+Cohesion: 0.23
+Nodes (12): buildBackgrounds(), buildClasses(), buildClassFeatures(), buildClassSpells(), buildConfig(), buildSkills(), buildStartingKits(), makeResolver() (+4 more)
 
 ### Community 157 - "US-98 — Interface web em inglês (i18n das strings do front)"
 Cohesion: 0.15
@@ -692,16 +684,12 @@ Cohesion: 0.18
 Nodes (11): 1. Contexto, 2. Decisão, 3. Alternativas rejeitadas, 4. Consequências, 5. Próximos passos, ADR 011 — Observabilidade em camadas: convenção antes de infraestrutura, Camada 0 — Formato: JSON estruturado, zero lib, Camada 1 — Correlação: `turnId` por turno (+3 more)
 
 ### Community 168 - "ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado"
-Cohesion: 0.20
-Nodes (10): 1. Contexto, 2. Decisão, 3.1 Revisão da decisão 6 (02/08/2026): o Free herda o SRD, 3.2 Correção de procedência (03/08/2026): o kit inicial é CC-BY, não OGL, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset, 5. Alternativas rejeitadas, 6. Consequências (+2 more)
+Cohesion: 0.18
+Nodes (11): 1. Contexto, 2. Decisão, 3.1 Revisão da decisão 6 (02/08/2026): o Free herda o SRD, 3.2 Correção de procedência (03/08/2026): o kit inicial é CC-BY, não OGL, 3.3 Segundo publisher no config (09/08/2026): `a5e-ag` entra sob a mesma regra de licença única, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset, 5. Alternativas rejeitadas (+3 more)
 
 ### Community 169 - "entities.ts"
 Cohesion: 0.36
 Nodes (8): EdgePatch, EntityPatch, formatEdge(), formatEntities(), mergeEdges(), mergeEntities(), norm(), TIPO_LABEL
-
-### Community 170 - "US-89 — Export que ninguém importa para de sobreviver no repo"
-Cohesion: 0.13
-Nodes (11): US-89 — Export que ninguém importa para de sobreviver no repo, Diagrama de entidades (núcleo), Modelo de Dados — AI Dungeon Master, Notas de design, Índices e constraints principais, Antes de abrir PR, Antes de merge para main, Checklist de Deploy — AI Dungeon Master (+3 more)
 
 ### Community 171 - "US-117 — `turnId` por turno: correlação de log (ADR 011, Camada 1)"
 Cohesion: 0.20
@@ -722,10 +710,6 @@ Nodes (9): Contexto e motivação, Critérios de aceite, Dentro do escopo, Escop
 ### Community 175 - "US-107 — Sair da criação ou da mesa e voltar ao hub de personagens"
 Cohesion: 0.13
 Nodes (15): A proposta, Como ficou (04/08/2026), Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História (+7 more)
-
-### Community 176 - "US-110-tabela-de-testes-de-habilidade-do-srd-2024.md"
-Cohesion: 0.25
-Nodes (9): US-34 — Qualidade cinematográfica da narração do AI DM, US-35 — Estado de cena estruturado já na abertura da aventura, US-36 — Eval de qualidade da narração do DM, US-37 — Nível cinematográfico mantido em todos os turnos, US-38 — Rolagens ancoradas na ficha, US-70 — Piso por dimensão e robustez do eval, US-72 — Evals de prompt resistentes à reescrita, US-77 — Reancorar as assertivas de prompt restantes (+1 more)
 
 ### Community 177 - "AuthUser"
 Cohesion: 0.20
@@ -783,30 +767,26 @@ Nodes (7): DIMENSION_FLOORS, estimateCost(), gateQuality(), RubricScore, dims(),
 Cohesion: 0.32
 Nodes (4): overlapRatio(), tokens(), trigrams(), SummaryTurn
 
-### Community 203 - "Modificadores de atributo — tabela do SRD 2024"
-Cohesion: 0.40
-Nodes (5): Modificadores de atributo — tabela do SRD 2024, O que cada faixa de pontuação significa (SRD 2024), Onde isto é usado, Regra de cálculo, Tabela de modificadores (SRD 2024)
-
 ### Community 204 - "scene.ts"
 Cohesion: 0.40
 Nodes (3): EMPTY, formatSceneState(), ScenePatch
 
 ## Knowledge Gaps
-- **1225 isolated node(s):** `dm`, `Mesa`, `ADR-0011`, `ChatInput`, `AnchoredRoll` (+1220 more)
+- **1241 isolated node(s):** `1. Contexto`, `2. Decisão`, `3. Decisões-chave e justificativas`, `3.1 Revisão da decisão 6 (02/08/2026): o Free herda o SRD`, `3.2 Correção de procedência (03/08/2026): o kit inicial é CC-BY, não OGL` (+1236 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **47 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` to `US-110-tabela-de-testes-de-habilidade-do-srd-2024.md`, `backlog-motor-de-geracao-de-aventuras.md`, `US-98-i18n-da-interface-web.md`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **Why does `US-121 — Catálogo de backgrounds do A5E Adventurer's Guide (Open5e)` connect `US-121 — Catálogo de backgrounds do A5E Adventurer's Guide (Open5e)` to `US-47 — Ingestão do SRD 5e (2024) como dado do sistema`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
-- **Why does `SystemConfigSchema` connect `system.ts` to `adventure.service.ts`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **What connects `dm`, `Mesa`, `ADR-0011` to the rest of the system?**
-  _1225 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `SystemConfigSchema` connect `system.ts` to `buildConfig`, `adventure.service.ts`?**
+  _High betweenness centrality (0.053) - this node is a cross-community bridge._
+- **Why does `buildConfig()` connect `buildConfig` to `ingest.mjs`, `ingest.test.mjs`, `system.ts`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
+- **Why does `ADR-0005` connect `guardrails.ts` to `ingest.mjs`?**
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **What connects `1. Contexto`, `2. Decisão`, `3. Decisões-chave e justificativas` to the rest of the system?**
+  _1241 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.09090909090909091 - nodes in this community are weakly interconnected._
 - **Should `dm-system.ts` be split into smaller, more focused modules?**

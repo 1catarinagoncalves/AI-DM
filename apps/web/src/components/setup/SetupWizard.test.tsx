@@ -22,6 +22,15 @@ const configWithBudget = (budget: number) => ({
   classes: [{ key: 'wizard', label: 'Mago' }, { key: 'fighter', label: 'Guerreiro' }],
 })
 
+// US-122: config com catálogo de backgrounds (US-121) — origem escolhida na etapa `background`.
+const configWithBackgrounds = (budget: number) => ({
+  ...configWithBudget(budget),
+  backgrounds: [
+    { key: 'bg-acolyte', name: 'Acólito', source: 'a5e-ag', benefits: [{ type: 'skill_proficiency', name: 'Religião', description: 'x' }] },
+    { key: 'bg-sage', name: 'Sábio', source: 'a5e-ag', benefits: [{ type: 'skill_proficiency', name: 'Arcanismo', description: 'x' }] },
+  ],
+})
+
 // US-27: config com perícias e orçamento de 2 proficiências.
 const configWithSkills = (budget: number) => ({
   ...configWithBudget(budget),
@@ -164,6 +173,86 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: { story: 'Nobre caída', ideals: [], bonds: [], flaws: ['Não mente'] },
     }))
+  })
+
+  // US-122: campo "Origem" só aparece quando o sistema tem config.backgrounds; sem catálogo,
+  // etapa `background` continua livre (mesmo comportamento de hoje, sem seleção nenhuma).
+  it('sem config.backgrounds, não mostra o campo Origem e a etapa segue livre', async () => {
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    expect(screen.queryByLabelText('Origem')).toBeNull()
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  // US-122: com catálogo, "Origem" é um <select> (mesmo padrão de Raça/Classe, US-105) com só o
+  // nome de cada background — sem benefícios na opção — e bloqueia o avanço sem escolha.
+  it('com config.backgrounds, mostra select de Origem (só o nome) e exige escolha para avançar', async () => {
+    await pickSystemAndFillRaceClass(configWithBackgrounds(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    const select = screen.getByLabelText('Origem') as HTMLSelectElement
+    const options = [...select.querySelectorAll('option')].filter(o => o.getAttribute('value'))
+    expect(options.map(o => [o.getAttribute('value'), o.textContent])).toEqual([
+      ['bg-acolyte', 'Acólito'], ['bg-sage', 'Sábio'],
+    ])
+    expect(screen.queryByText('Religião')).toBeNull() // benefícios não aparecem na opção
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true) // nenhuma origem escolhida
+
+    fireEvent.change(select, { target: { value: 'bg-acolyte' } })
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.change(select, { target: { value: '' } }) // volta ao placeholder → bloqueia de novo
+    expect(nextBtn().disabled).toBe(true)
+  })
+
+  // US-122: a chave (não o nome) viaja para a API, como origin.key — campo IRMÃO de background.
+  it('envia origin.key na criação, distinto de background', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithBackgrounds(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
+    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      origin: { key: 'bg-acolyte' },
+      background: expect.objectContaining({ story: 'Nobre caída' }),
+    }))
+  })
+
+  // US-122: revisão mostra o nome da origem numa linha própria, distinta da linha de background.
+  it('revisão mostra o nome da origem, separado da linha de background', async () => {
+    await pickSystemAndFillRaceClass(configWithBackgrounds(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-sage' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    const originRow = screen.getByText('Origem').closest('div')
+    expect(within(originRow!).getByText('Sábio')).toBeTruthy()
+    // linha de background segue própria e presente, sem o nome da origem misturado nela
+    expect(screen.getAllByText('Background').length).toBeGreaterThan(0)
   })
 
   // US-40: campo "Divindade/Patrono" é parseado na 1ª vírgula → {name, portfolio}.

@@ -351,4 +351,44 @@ describe('CharacterService.create', () => {
     })
     expect(noName.background).toEqual({})
   })
+
+  // US-122: origem do catálogo de backgrounds (US-121) — campo IRMÃO de `background`,
+  // nunca aninhado nele (ver US-122 §Nomenclatura).
+  const configWithBackgrounds: SystemConfig = {
+    ...config,
+    backgrounds: [
+      { key: 'a5e-ag_acolyte', name: 'Acolyte', source: 'a5e-ag', benefits: [
+        { type: 'skill_proficiency', name: 'Religion', description: 'x' },
+      ] },
+    ],
+  }
+
+  it('persiste origin.key válido, sem tocar em background', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgrounds))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_acolyte' },
+      background: { story: 'Nobre caída' },
+    })
+    expect(char.origin).toEqual({ key: 'a5e-ag_acolyte' })
+    expect(char.background).toEqual({ story: 'Nobre caída' })
+  })
+
+  it('rejeita origin.key fora do catálogo', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgrounds))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'nope' },
+    })).rejects.toThrow('Origem inválida')
+  })
+
+  it('sem origin (ou sistema sem config.backgrounds) → origin {}', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.origin).toEqual({})
+  })
 })

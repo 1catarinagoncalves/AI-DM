@@ -40,6 +40,12 @@ export const CreateCharacterSchema = z.object({
       portfolio: z.string().max(500).optional(),
     }).optional(),
   }).optional(),
+  // Origem do catálogo de backgrounds (US-121/US-122): campo IRMÃO de `background`, não
+  // aninhado nele — os dois convivem sem se tocar (US-122 §Nomenclatura). Chave validada
+  // contra config.backgrounds no service; ausente = nenhuma origem escolhida.
+  origin: z.object({
+    key: z.string().max(80).optional(),
+  }).optional(),
 })
 
 /** Tipo do DTO do service, derivado do schema — nunca declarado à mão. */

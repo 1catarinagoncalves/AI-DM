@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, type SystemCatalogEntry, type SystemConfig } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, type SystemConfig } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, localeOfUser } from '../system/system-locale'
 import { getClassFeatures, getClassSpells } from './starting-inventory'
@@ -37,6 +37,12 @@ export class CharacterService {
     // US-42: magias conhecidas (truques + exceção nível 1 de paladino/patrulheiro),
     // do mesmo kit da classe. Não-conjurador → [] (sem seção, sem crash).
     const spells = getClassSpells(config, charClass)
+    // US-122: origem do catálogo de backgrounds (US-121) — campo IRMÃO de `background`,
+    // validado com o mesmo `validateCatalogKey` de raça/classe. Opcional: chave ausente
+    // não dispara validação nenhuma (sistema sem catálogo, ou jogador que não escolheu).
+    const originKey = dto.origin?.key
+      ? this.validateCatalogKey(config.backgrounds, dto.origin.key, 'Origem')
+      : undefined
 
     return this.prisma.character.create({
       data: {
@@ -52,8 +58,17 @@ export class CharacterService {
         features,
         spells,
         background: this.normalizeBackground(dto.background),
+        origin: this.normalizeOrigin(originKey),
       },
     })
+  }
+
+  /**
+   * US-122: normaliza a origem escolhida — mesma forma de `normalizeBackground`, mas em
+   * campo próprio e distinto (`Character.origin`), nunca dentro de `background`.
+   */
+  private normalizeOrigin(key?: string): { key?: string } {
+    return key ? { key } : {}
   }
 
   /**
@@ -88,7 +103,7 @@ export class CharacterService {
    * invalidar config legado) aceita o que vier — é o que impede um banco não re-semeado de
    * parar de criar personagem. Some sozinho no primeiro `db:seed`.
    */
-  private validateCatalogKey(catalog: SystemCatalogEntry[] | undefined, key: string, field: string): string {
+  private validateCatalogKey(catalog: Array<{ key: string }> | undefined, key: string, field: string): string {
     if (!catalog || catalog.length === 0) return key
     if (!catalog.some((e) => e.key === key)) {
       throw new BadRequestException(

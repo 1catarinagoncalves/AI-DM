@@ -37,6 +37,9 @@ model Character {
   features       Json                   @default("[]") // US-41: features de classe de nível 1 ({name, description}[])
   spells         Json                   @default("[]") // US-42: magias conhecidas ({name, level?, description?}[])
   background     Json                   @default("{}") // US-39/US-40: {story?, ideals?, bonds?, flaws?, deity?:{name,portfolio?}}
+  origin         Json                   @default("{}") // US-122: {key?} — origem escolhida do catálogo (US-121).
+                                                         // Distinto de `background` (US-39, prosa livre): os dois não se
+                                                         // alimentam um do outro, ver US-122 §Nomenclatura.
   states         CharacterState[]
   participations AdventureParticipant[]
   eventLogs      EventLog[]

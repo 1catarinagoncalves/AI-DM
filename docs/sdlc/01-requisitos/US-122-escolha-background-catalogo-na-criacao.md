@@ -2,9 +2,9 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `SystemConfig.backgrounds`, ainda não implementada) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (precedente: catálogo fechado por chave na criação, `validateCatalogKey`) · [US-26](./US-26-criacao-personagem-em-etapas.md) (etapa `background` do wizard)
-**Relacionado:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (`Character.background` — prosa livre; **não** é o campo que esta story mexe, ver §Nomenclatura) · [US-27](./US-27-pericias-do-personagem.md) (precedente de etapa com cartões de escolha múltipla, `optionCardClass`) · [US-41](./US-41-features-traits-de-classe.md) (precedente "awareness apenas, sem mecânica" — mesmo tratamento dado aqui aos benefícios do background)
+**Relacionado:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (`Character.background` — prosa livre; **não** é o campo que esta story mexe, ver §Nomenclatura) · [US-41](./US-41-features-traits-de-classe.md) (precedente "awareness apenas, sem mecânica" — mesmo tratamento dado aqui aos benefícios do background)
 **Criada em:** 2026-08-08
 
 ---
@@ -13,7 +13,7 @@
 
 > **Como** jogador,
 > **quero** escolher uma **origem** de uma lista, na etapa `background` da criação, em vez de só ter campos de texto livre,
-> **para que** eu veja as opções do sistema (nome + benefícios) antes de escrever minha identidade — e minha ficha guarde qual origem é a minha, não só a prosa que descrevo dela.
+> **para que** eu veja as opções do sistema (pelo nome) antes de escrever minha identidade — e minha ficha guarde qual origem é a minha, não só a prosa que descrevo dela.
 
 ---
 
@@ -37,7 +37,11 @@ A US-121 fecha a lacuna de dado (o catálogo passa a existir em `config.backgrou
 
 ### A proposta
 
-Adicionar, na etapa `background`, uma seção separada — rotulada **"Origem"** — com uma lista de cartões (mesmo padrão visual da etapa `skills`) para os backgrounds do `config.backgrounds`: nome + os benefícios como texto informativo. Selecionar um cartão grava a **chave** em `Character.origin.key`, campo novo e distinto; os quatro campos de texto livre de `Character.background` **continuam existindo, intactos, e independentes** da escolha — a story soma um dado novo (qual origem), não substitui o que já há (a prosa de identidade).
+Adicionar, na etapa `background`, um campo **`<select>`** rotulado **"Origem"** — mesmo padrão visual de Raça/Classe (US-105) — listando os backgrounds do `config.backgrounds` só pelo **nome** (sem benefícios na opção). Selecionar uma entrada grava a **chave** em `Character.origin.key`, campo novo e distinto; os quatro campos de texto livre de `Character.background` **continuam existindo, intactos, e independentes** da escolha — a story soma um dado novo (qual origem), não substitui o que já há (a prosa de identidade).
+
+**Decisão (11/08/2026):** a primeira versão desta story usava cartões (nome + benefícios resumidos, padrão da etapa `skills`); foi revertida para `<select>` — origem é escolha única e obrigatória quando há catálogo, o mesmo perfil de Raça/Classe, não o de perícias (múltiplas, contadas). Benefícios saem da tela de escolha; quem quiser vê-los faz parte de uma story de detalhe futura, se pedida.
+
+**Onde fica na tela:** dentro do mesmo bloco `step === 'background'` ([SetupWizard.tsx:445-482](../../../apps/web/src/components/setup/SetupWizard.tsx:445)), o campo "Origem" entra **logo abaixo do subtítulo e acima dos quatro campos de texto** (`bg-story`, `bg-ideals`, `bg-bonds`, `bg-flaws`, `bg-deity`) — mesma etapa do wizard, sem tela/rota nova. Ordem de leitura: título da etapa → subtítulo → `<select>` "Origem" (escolha estruturada) → textareas de identidade (prosa livre), reforçando visualmente que a origem é o ponto de partida e o texto livre vem depois, por cima dela.
 
 ---
 
@@ -45,7 +49,7 @@ Adicionar, na etapa `background`, uma seção separada — rotulada **"Origem"**
 
 ### Dentro do escopo
 
-- **Cartões de escolha** numa seção "Origem" dentro da etapa `background`, um por entrada de `config.backgrounds` (US-121): nome em destaque + lista curta dos `benefits[].name` (não o `description` inteiro — cartão, não página). Mesmo componente visual `optionCardClass` que a etapa `skills` já usa.
+- **`<select>` "Origem"** dentro da etapa `background`, uma `<option>` por entrada de `config.backgrounds` (US-121): só o `name`, sem `benefits` na opção. Mesmo componente/estilo dos selects de Raça/Classe (US-105) — `selectClass` + `SELECT_ARROW`, não `optionCardClass`.
 - **Seleção é obrigatória quando há catálogo**: `canAdvance('background')` passa a exigir `origin.key` preenchido se `config.backgrounds` existir — mesmo padrão de bloqueio que race/classe já têm (US-105). Sem catálogo no `config` (sistema sem `backgrounds`, ex. Free) a seção "Origem" **não aparece** e a etapa segue liberada como hoje — mesmo padrão condicional de `skillCatalog`/`raceCatalog` (`?? []` já cobre isso).
 - **`CreateCharacterSchema`** ganha um campo **irmão** de `background`, não aninhado nele: `origin: z.object({ key: z.string().max(80).optional() }).optional()`.
 - **`CharacterService.create`** valida a chave com o `validateCatalogKey` que já existe (US-105), contra `config.backgrounds` — mesmo tratamento de race/class, mas o campo continua opcional (chave ausente não valida nada).
@@ -92,24 +96,24 @@ origin  Json  @default("{}")  // US-122: {key?} — origem escolhida do catálog
 
 ## Critérios de aceite
 
-- [ ] Migração Prisma adiciona `Character.origin` (`Json @default("{}")`), coluna nova, sem afetar `Character.background`.
-- [ ] Etapa `background` do wizard mostra, numa seção rotulada **"Origem"**, cartões dos `config.backgrounds` (quando o sistema tiver o campo) — nome + benefícios resumidos, mesmo estilo visual da etapa `skills`.
-- [ ] Sistema sem `config.backgrounds` (ex. Free) **não mostra** a seção "Origem" — etapa continua só os 4 campos de texto de `background`, exatamente como é hoje.
-- [ ] Selecionar um cartão marca a origem; selecionar de novo o mesmo cartão desmarca (toggle, não é multi-escolha).
-- [ ] `canAdvance('background')` passa a exigir `origin.key` preenchido quando `config.backgrounds` existir — escolher uma origem do catálogo é **obrigatório** nesse caso (bloqueia avanço sem seleção, mesmo padrão de race/classe); sem catálogo no sistema, etapa segue liberada como hoje.
-- [ ] `CreateCharacterSchema.origin.key` aceito e validado no service: chave que não bate em `config.backgrounds` **rejeita a criação** com `BadRequestException` (mesmo comportamento de `validateCatalogKey` para raça/classe); chave ausente não dispara validação nenhuma.
-- [ ] `Character.origin` persistido **separado** de `Character.background`; um personagem criado sem escolher origem grava `origin: {}` e `background` como hoje — nenhum dos dois afeta o outro.
-- [ ] Etapa de revisão mostra o nome da origem escolhida (resolvido no locale ativo) numa linha própria, distinta da linha de `background`.
-- [ ] `apps/web/src/lib/api.ts` (`createCharacter`) espelha o campo `origin` (irmão de `background`) no tipo do payload — mesmo aviso do comentário do `character.schema.ts` ("o web é o único outro ponto e deve espelhar a forma").
-- [ ] Mensagens novas nos dois locales (`en-US.ts`, `pt-BR.ts`), namespace `setup.origin.*`; nenhuma string nova hardcoded no JSX (gate da US-102).
-- [ ] **Eval / teste de regressão:** `character.service.test.ts` cobre (a) criação com `origin.key` válido → persiste em `Character.origin`, `Character.background` intocado; (b) `origin.key` inexistente no catálogo → `BadRequestException`; (c) criação sem `origin` (ou sistema sem `config.backgrounds`) → `origin: {}`, comportamento de `background` idêntico a hoje.
+- [x] Migração Prisma adiciona `Character.origin` (`Json @default("{}")`), coluna nova, sem afetar `Character.background`.
+- [x] Etapa `background` do wizard mostra um `<select>` rotulado **"Origem"** com uma opção por entrada de `config.backgrounds` (quando o sistema tiver o campo) — só o nome, mesmo estilo visual dos selects de Raça/Classe.
+- [x] Sistema sem `config.backgrounds` (ex. Free) **não mostra** o campo "Origem" — etapa continua só os 4 campos de texto de `background`, exatamente como é hoje.
+- [x] Escolher uma opção grava a origem; voltar ao placeholder vazio limpa a seleção (mesmo padrão de Raça/Classe — não é toggle de cartão, nem multi-escolha).
+- [x] `canAdvance('background')` passa a exigir `origin.key` preenchido quando `config.backgrounds` existir — escolher uma origem do catálogo é **obrigatório** nesse caso (bloqueia avanço sem seleção, mesmo padrão de race/classe); sem catálogo no sistema, etapa segue liberada como hoje.
+- [x] `CreateCharacterSchema.origin.key` aceito e validado no service: chave que não bate em `config.backgrounds` **rejeita a criação** com `BadRequestException` (mesmo comportamento de `validateCatalogKey` para raça/classe); chave ausente não dispara validação nenhuma.
+- [x] `Character.origin` persistido **separado** de `Character.background`; um personagem criado sem escolher origem grava `origin: {}` e `background` como hoje — nenhum dos dois afeta o outro.
+- [x] Etapa de revisão mostra o nome da origem escolhida (resolvido no locale ativo) numa linha própria, distinta da linha de `background`.
+- [x] `apps/web/src/lib/api.ts` (`createCharacter`) espelha o campo `origin` (irmão de `background`) no tipo do payload — mesmo aviso do comentário do `character.schema.ts` ("o web é o único outro ponto e deve espelhar a forma").
+- [x] Mensagens novas nos dois locales (`en-US.ts`, `pt-BR.ts`), namespace `setup.origin.*`; nenhuma string nova hardcoded no JSX (gate da US-102).
+- [x] **Eval / teste de regressão:** `character.service.test.ts` cobre (a) criação com `origin.key` válido → persiste em `Character.origin`, `Character.background` intocado; (b) `origin.key` inexistente no catálogo → `BadRequestException`; (c) criação sem `origin` (ou sistema sem `config.backgrounds`) → `origin: {}`, comportamento de `background` idêntico a hoje.
 
 ---
 
 ## Notas de implementação
 
-- **Toggle, não `<select>`.** Race/classe (US-105) usam `<select>` porque são obrigatórios e mutuamente exclusivos por natureza. Origem também é obrigatória quando há catálogo, mas mantém o cartão com toggle (`aria-pressed`, mesmo padrão de `toggleSkill`) em vez de `<select>` — formato cartão (nome + benefícios) não cabe bem num `<option>` de texto puro. Quem bloqueia o avanço sem seleção é `canAdvance('background')`, não o componente do cartão.
-- **Resumo do cartão:** `benefits.map(b => b.name).join(' · ')` já basta (nomes curtos: "Ability Score Increases", "Skill Proficiencies"…) — não renderizar `description` no cartão (é prosa longa, `adventures_and_advancement` chega a parágrafo). Descrição completa fica para uma story de detalhe/tooltip, se a UX pedir depois.
+- **`<select>`, não cartão.** Origem é obrigatória quando há catálogo e é escolha única — mesmo perfil de Raça/Classe (US-105), que já usam `<select>` por isso. Perícias usam cartão porque são multi-escolha contada (`toggleSkill`, `skillChoices`); origem não é. `option value={key}` / texto `{name}`, igual a `raceCatalog.map`. Quem bloqueia o avanço sem seleção é `canAdvance('background')`, não o `<select>`.
+- **Sem benefícios na tela de escolha.** `<option>` é texto puro — não cabe a lista de `benefits[].name` que o cartão mostrava. Descrição/benefícios completos ficam para uma story de detalhe/tooltip, se a UX pedir depois.
 - **`validateCatalogKey` já existe e é genérico** ([character.service.ts:91](../../../apps/api/src/character/character.service.ts:91)) — reusar direto, não escrever validação nova. A chamada fica **condicional** (`dto.origin?.key ? validateCatalogKey(...) : undefined`), porque o campo é opcional.
 - **`catalogLabel`** ([system.ts:135](../../../packages/shared/src/types/system.ts:135)) resolve o rótulo na revisão e em qualquer outro lugar que precise mostrar o nome a partir da chave — mesmo caminho de `raceLabel`/`classLabel` no `SetupWizard.tsx`.
 - **Estado do wizard**: novo `useState` próprio (ex. `origin`), separado do `bg` que já guarda o texto livre — os dois não compartilham objeto, reforçando na própria implementação que são coisas distintas.
@@ -118,7 +122,7 @@ origin  Json  @default("{}")  // US-122: {key?} — origem escolhida do catálog
 
 ## Referências no código
 
-- [apps/web/src/components/setup/SetupWizard.tsx:445-482](../../../apps/web/src/components/setup/SetupWizard.tsx:445) — etapa `background` a estender com a seção "Origem"; `optionCardClass`/`toggleSkill` (linhas 46, 190) como modelo de cartão.
+- [apps/web/src/components/setup/SetupWizard.tsx:445-482](../../../apps/web/src/components/setup/SetupWizard.tsx:445) — etapa `background` estendida com o `<select>` "Origem"; selects de Raça/Classe ([SetupWizard.tsx:381-388](../../../apps/web/src/components/setup/SetupWizard.tsx:381)) como modelo.
 - [apps/api/src/character/character.schema.ts](../../../apps/api/src/character/character.schema.ts) — `CreateCharacterSchema`, campo `origin` novo (irmão de `background`).
 - [apps/api/src/character/character.service.ts:31-32,64,91](../../../apps/api/src/character/character.service.ts:31) — `validateCatalogKey` (reusar), `normalizeBackground` (modelo para a nova `normalizeOrigin`).
 - [apps/api/prisma/schema.prisma:39](../../../apps/api/prisma/schema.prisma:39) — `Character.background` (referência de vizinho), `Character.origin` a criar logo abaixo, migração nova.

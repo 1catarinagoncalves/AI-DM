@@ -84,6 +84,9 @@ export function SetupWizard() {
   // US-39: background narrativo. Textareas em string; ideais/vínculos/fraquezas = um por linha.
   // US-40: `deity` é um campo único de texto livre ("Divindade/Patrono"), parseado na 1ª vírgula.
   const [bg, setBg] = useState({ story: '', ideals: '', bonds: '', flaws: '', deity: '' })
+  // US-122: origem escolhida do catálogo (US-121) — estado PRÓPRIO, distinto de `bg`. Os
+  // dois não compartilham objeto de propósito (US-122 §Nomenclatura: campos que não se tocam).
+  const [origin, setOrigin] = useState<string | undefined>(undefined)
 
   // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
   const [charId, setCharId] = useState('')
@@ -106,10 +109,15 @@ export function SetupWizard() {
   // select é `key`; o texto é `label`. Catálogo fechado: sem opção "outra" e sem campo livre.
   const raceCatalog = system?.config?.races ?? []
   const classCatalog = system?.config?.classes ?? []
+  // US-122: catálogo de origens (backgrounds do A5E, US-121). Ausente → seção "Origem" não
+  // aparece e a etapa `background` segue livre, mesmo padrão condicional de skillCatalog acima.
+  const backgroundCatalog = system?.config?.backgrounds ?? []
   // Rótulo da escolha atual, para a revisão e para o subtítulo do gancho — a chave nunca
   // aparece na tela.
   const raceLabel = raceCatalog.find(r => r.key === charData.race)?.label ?? ''
   const classLabel = classCatalog.find(c => c.key === charData.class)?.label ?? ''
+  // Background usa `name`, não `label` (SystemBackgroundSchema, US-121) — catalogLabel não serve.
+  const originLabel = backgroundCatalog.find(o => o.key === origin)?.name ?? ''
   const attrLabel = Object.fromEntries(attributes.map(a => [a.key, a.label]))
   // Custo é relativo ao default: o valor inicial de cada atributo é grátis (começa 27/27).
   const spent = attributes.reduce((s, a) => s + ((POINT_COST[attrs[a.key] ?? a.default] ?? 0) - (POINT_COST[a.default] ?? 0)), 0)
@@ -122,6 +130,8 @@ export function SetupWizard() {
     // Voltar e trocar de sistema tem de limpá-las, senão fica selecionada uma chave que o
     // catálogo novo não tem — e o `canAdvance` deixaria passar o que a API vai rejeitar.
     setCharData(p => ({ ...p, race: '', class: '' }))
+    // US-122: origem também depende do catálogo do sistema — mesmo motivo do reset acima.
+    setOrigin(undefined)
     setStep('race-class')
   }
 
@@ -136,7 +146,9 @@ export function SetupWizard() {
       case 'attributes': return budget === undefined || remaining === 0
       // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`.
       case 'skills': return skillChoices === 0 || skills.length === skillChoices
-      case 'background': return true // opcional (US-39): pode seguir em branco
+      // US-122: origem é obrigatória SE o sistema tiver catálogo (mesmo padrão de bloqueio de
+      // race/classe); sem catálogo, a etapa segue livre como antes (US-39: texto é opcional).
+      case 'background': return backgroundCatalog.length === 0 || !!origin
       case 'review': return true
     }
   }
@@ -163,8 +175,10 @@ export function SetupWizard() {
       // US-39: uma linha por item em ideais/vínculos/fraquezas; vazios descartados (o backend também normaliza).
       const lines = (s: string) => s.split('\n').map(t => t.trim()).filter(Boolean)
       const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
+      // US-122: origem é campo IRMÃO de background, nunca aninhado nele — a chave viaja sozinha.
+      const originPayload = origin ? { key: origin } : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
-      const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background })
+      const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background, origin: originPayload })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
       setCharId(char.id)
       loadHook(char.id)
@@ -448,6 +462,20 @@ export function SetupWizard() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   {t('setup.background.subtitulo', { name: charData.name || t('setup.background.defaultName') })}
                 </p>
+                {/* US-122: select de origem do catálogo (US-121) — só o nome, mesmo padrão de
+                    Raça/Classe (US-105). Acima dos campos de texto livre. Sem catálogo no
+                    config, o campo nem renderiza. */}
+                {backgroundCatalog.length > 0 && (
+                  <div className="mt-6">
+                    <FieldLabel htmlFor="char-origin">{t('setup.origin.titulo')}</FieldLabel>
+                    <select id="char-origin" value={origin ?? ''}
+                      onChange={e => setOrigin(e.target.value || undefined)}
+                      className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                      <option value="">{t('setup.raceClass.select')}</option>
+                      {backgroundCatalog.map(o => <option key={o.key} value={o.key}>{o.name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="mt-6 space-y-4">
                   {/* US-46: cada textarea com rótulo visível persistente; placeholder vira só exemplo. */}
                   <div>
@@ -515,6 +543,14 @@ export function SetupWizard() {
                         : '—'}
                     </dd>
                   </div>
+                  {/* US-122: linha própria da origem, distinta da linha de background abaixo —
+                      só aparece quando o sistema tem catálogo (mesma condição da seção na etapa). */}
+                  {backgroundCatalog.length > 0 && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.origin')}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">{originLabel || '—'}</dd>
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-6 py-2.5">
                     <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.background')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">

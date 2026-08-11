@@ -115,6 +115,9 @@ export const ptBR = {
   'setup.background.deity': 'Divindade/Patrono — nome, e o que representa',
   'setup.background.deityPlaceholder': 'Ex.: Auril, deusa do inverno',
 
+  // ---- wizard: origem (US-122) ----
+  'setup.origin.titulo': 'Origem',
+
   // ---- wizard: revisão ----
   'setup.review.titulo': 'Revisão',
   'setup.review.subtitulo': 'Confira a sua ficha antes de embarcar na aventura.',
@@ -126,6 +129,7 @@ export const ptBR = {
   'setup.review.attributes': 'Atributos',
   'setup.review.skills': 'Perícias',
   'setup.review.background': 'Background',
+  'setup.review.origin': 'Origem',
   'setup.review.filled': 'Preenchido',
   'setup.review.deity': 'Divindade/Patrono',
 
