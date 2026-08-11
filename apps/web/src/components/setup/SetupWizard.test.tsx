@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
+import type { SystemConfig } from '@ai-dm/shared'
 
 const { listSystems, createCharacter, getInitialAdventure, createAdventure } = vi.hoisted(() => ({
   listSystems: vi.fn(),
@@ -42,6 +43,24 @@ const configWithSkills = (budget: number) => ({
   proficiency: { choices: 2, bonus: 2 },
 })
 
+// US-127: config com kit/features/magias por classe — `wizard` tem entrada própria,
+// `fighter` (também no catálogo de configWithBudget) cai no `default` das três.
+const configWithClassKit = (budget: number) => ({
+  ...configWithBudget(budget),
+  startingKits: {
+    wizard: [{ name: 'Grimório', qty: 1 }],
+    default: [{ name: 'Adaga', qty: 1 }],
+  },
+  classFeatures: {
+    wizard: [{ key: 'wizard_arcane-recovery', name: 'Recuperação Arcana', description: 'Recupera espaços de magia.', source: 'srd' }],
+    default: [],
+  },
+  classSpells: {
+    wizard: [{ key: 'fire-bolt', name: 'Raio de Fogo', level: 0, description: 'Dardo de fogo.', source: 'srd' }],
+    default: [],
+  },
+})
+
 describe('SetupWizard — catálogo de sistemas via API (US-20)', () => {
   beforeEach(() => listSystems.mockReset())
   afterEach(() => cleanup())
@@ -67,7 +86,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   })
   afterEach(() => cleanup())
 
-  async function pickSystemAndFillRaceClass(config = configWithBudget(2)) {
+  async function pickSystemAndFillRaceClass(config: SystemConfig = configWithBudget(2)) {
     listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
     render(<SetupWizard />)
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
@@ -312,8 +331,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     }))
   })
 
-  // US-40: com só a divindade preenchida, a revisão mostra o nome dela.
-  it('mostra o nome da divindade na revisão quando só ela é preenchida', async () => {
+  // US-40/US-127: com só a divindade preenchida, a revisão mostra nome + portfólio — via
+  // BackgroundPanel (US-45), o MESMO painel que a ficha em jogo usa.
+  it('mostra a divindade (nome + portfólio) na revisão quando só ela é preenchida', async () => {
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
@@ -326,7 +346,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     expect(screen.getByRole('heading', { name: 'Revisão' })).toBeTruthy()
-    expect(screen.getByText('Solariel')).toBeTruthy()
+    expect(screen.getByText('Solariel — Deus da justiça e da cura')).toBeTruthy()
   })
 
   // US-105: o select é o catálogo do config — opção rotulada, `value` = chave — e é a CHAVE
@@ -413,5 +433,103 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(start)
     expect(createAdventure).toHaveBeenCalledWith('char-1', 'hook-1')
+  })
+
+  // US-127: a revisão espelha o que a ficha vai mostrar depois — atributos e perícias com
+  // modificador, não só o valor cru.
+  it('revisão mostra atributos e perícias escolhidas com modificador', async () => {
+    await pickSystemAndFillRaceClass(configWithSkills(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc) // Força 8 → 10 (fecha o orçamento de 2)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    // Força 10 → modificador 0 (floor((10-10)/2)); perícia proficiente com bônus +2 → +2.
+    expect(screen.getByText(/Força 10 \(0\)/)).toBeTruthy()
+    expect(screen.getByText(/Atletismo \(\+2\)/)).toBeTruthy()
+    expect(screen.getByText(/Percepção \(\+2\)/)).toBeTruthy()
+    // Furtividade não foi escolhida — a revisão só lista as perícias marcadas.
+    expect(screen.queryByText(/Furtividade/)).toBeNull()
+  })
+
+  // US-127: PV inicial e kit da classe escolhida aparecem na revisão, calculados do mesmo
+  // config que a criação vai usar para persistir — sem chamada de API nova.
+  it('revisão mostra PV inicial e o kit da classe escolhida', async () => {
+    await pickSystemAndFillRaceClass(configWithClassKit(2)) // classe = wizard
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    // Sem atributo `constitution` no config de teste → cai no fallback (10) → PV = 10 + 0.
+    const hpRow = screen.getByText('PV inicial').closest('div')
+    expect(within(hpRow!).getByText('10')).toBeTruthy()
+    expect(screen.getByText('Grimório')).toBeTruthy() // kit do wizard, não o default
+  })
+
+  // US-127: classe sem entrada própria em startingKits/classFeatures/classSpells cai no
+  // `default` do config — mesmo padrão de fallback que a criação já usa para persistir.
+  it('classe sem kit/features/magias próprios cai no default do config', async () => {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithClassKit(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Bram' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Masculino' } })
+    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'dwarf' } })
+    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'fighter' } }) // sem entrada própria
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    expect(screen.getByText('Adaga')).toBeTruthy() // kit default
+    expect(screen.queryByText('Grimório')).toBeNull() // kit do wizard não vaza para o fighter
+    expect(screen.queryByText('Recuperação Arcana')).toBeNull()
+    expect(screen.queryByText(/Raio de Fogo/)).toBeNull()
+  })
+
+  // US-127: sistema sem classFeatures/classSpells no config não modela esse eixo — o bloco
+  // "Features"/"Magias" nem aparece na revisão (mesmo padrão condicional de Origem/perícias).
+  it('sistema sem classFeatures/classSpells não mostra bloco de features e magias', async () => {
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    expect(screen.queryByText('Features')).toBeNull()
+    expect(screen.queryByText('Magias')).toBeNull()
+  })
+
+  // US-127: o background por extenso (não mais "Preenchido"/"—") vem do mesmo BackgroundPanel
+  // que a ficha em jogo usa (US-45) — história, ideais, vínculos e fraquezas visíveis antes de confirmar.
+  it('revisão mostra o background por extenso via BackgroundPanel', async () => {
+    await pickSystemAndFillRaceClass(configWithBudget(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
+    fireEvent.change(screen.getByLabelText(/Ideais/), { target: { value: 'Justiça acima de tudo' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    expect(screen.getByText('Nobre caída')).toBeTruthy()
+    expect(screen.getByText('Justiça acima de tudo')).toBeTruthy()
+    expect(screen.queryByText('Preenchido')).toBeNull()
   })
 })

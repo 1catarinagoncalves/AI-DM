@@ -121,12 +121,12 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.race': 'Race',
   'setup.review.class': 'Class',
   'setup.review.level': 'Level',
+  'setup.review.hp': 'Starting HP',
   'setup.review.attributes': 'Attributes',
   'setup.review.skills': 'Skills',
+  'setup.review.kit': 'Starting kit',
   'setup.review.background': 'Background',
   'setup.review.origin': 'Origin',
-  'setup.review.filled': 'Filled in',
-  'setup.review.deity': 'Deity/Patron',
 
   // ---- wizard: erros ----
   'setup.error.create': 'Something went wrong creating the character. Try again.',
@@ -165,6 +165,7 @@ export const enUS: Record<MessageKey, string> = {
   'game.inventory': 'Inventory ({n})',
   'game.inventoryEmpty': 'No items',
   'game.background.empty': "This character doesn't have a story yet.",
+  'game.background.origin': 'Origin',
   'game.background.story': 'Story',
   'game.background.deity': 'Deity/Patron',
   'game.background.ideals': 'Ideals',

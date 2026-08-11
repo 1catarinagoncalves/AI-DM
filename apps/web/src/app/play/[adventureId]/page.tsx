@@ -48,6 +48,10 @@ export default async function PlayPage({ params, searchParams }: Props) {
   // serve no locale do dono — a mesma ficha diz "Anão" ou "Dwarf" sem tocar no banco.
   const className = catalogLabel(config?.classes, character.class)
   const raceName = catalogLabel(config?.races, character.race)
+  // US-122: origem do catálogo de backgrounds (US-121) — campo IRMÃO de `background`.
+  // `catalogLabel` não serve (backgrounds usam `name`, não `label`); resolve-se aqui.
+  const originKey = character.origin?.key as string | undefined
+  const originName = originKey ? config?.backgrounds?.find((b) => b.key === originKey)?.name : undefined
 
   // US-100: feature e magia também são chave — o mesmo padrão das perícias, agora na aba
   // Features. A ficha do banco não muda ao trocar de idioma; muda o config que chega aqui.
@@ -69,6 +73,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       conditions={state?.conditions ?? []}
       skills={skills}
       background={character.background}
+      characterOrigin={originName}
       features={features}
       spells={spells}
     />

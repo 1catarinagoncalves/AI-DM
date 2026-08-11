@@ -126,12 +126,12 @@ export const ptBR = {
   'setup.review.race': 'Raça',
   'setup.review.class': 'Classe',
   'setup.review.level': 'Nível',
+  'setup.review.hp': 'PV inicial',
   'setup.review.attributes': 'Atributos',
   'setup.review.skills': 'Perícias',
+  'setup.review.kit': 'Kit inicial',
   'setup.review.background': 'Background',
   'setup.review.origin': 'Origem',
-  'setup.review.filled': 'Preenchido',
-  'setup.review.deity': 'Divindade/Patrono',
 
   // ---- wizard: erros ----
   'setup.error.create': 'Erro ao criar personagem. Tente novamente.',
@@ -175,6 +175,7 @@ export const ptBR = {
   'game.inventory': 'Inventário ({n})',
   'game.inventoryEmpty': 'Nenhum item',
   'game.background.empty': 'Este personagem ainda não tem história.',
+  'game.background.origin': 'Origem',
   'game.background.story': 'História',
   'game.background.deity': 'Divindade/Patrono',
   'game.background.ideals': 'Ideais',

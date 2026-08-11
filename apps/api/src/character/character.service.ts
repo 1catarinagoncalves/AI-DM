@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, type SystemConfig } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, type SystemConfig } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, localeOfUser } from '../system/system-locale'
-import { getClassFeatures, getClassSpells } from './starting-inventory'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
 // Reexporta para quem importava o tipo daqui.
 export type { CreateCharacterDto } from './character.schema'

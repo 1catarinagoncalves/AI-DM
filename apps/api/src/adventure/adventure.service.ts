@@ -1,10 +1,10 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, type CharacterBackground } from '@ai-dm/ai-engine'
-import { getStartingInventory, resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
+import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 
 export interface CreateAdventureDto {
   initialHookId: string

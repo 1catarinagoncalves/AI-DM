@@ -4,11 +4,17 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Minus, Plus, Sparkles } from 'lucide-react'
-import type { InitialAdventureHook, SystemConfig } from '@ai-dm/shared'
+import {
+  abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
+  getStartingInventory, resolveSheetEntries,
+  type InitialAdventureHook, type SystemConfig,
+} from '@ai-dm/shared'
 import { api } from '@/lib/api'
-import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, cn, dmButtonClass, fieldClass } from '@/components/ui/dm'
+import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, SheetHeading, cn, dmButtonClass, fieldClass } from '@/components/ui/dm'
 import { useT } from '@/components/LocaleProvider'
 import type { MessageKey } from '@/messages'
+import { BackgroundPanel, type CharacterBackground } from '@/components/character/BackgroundPanel'
+import { FeaturesPanel } from '@/components/character/FeaturesPanel'
 
 type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'background' | 'review'
 const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'background', 'review']
@@ -64,6 +70,13 @@ function parseDeity(raw: string): { name: string; portfolio?: string } | undefin
   if (!name) return undefined
   const portfolio = text.slice(comma + 1).trim()
   return portfolio ? { name, portfolio } : { name }
+}
+
+// US-39: uma linha por item em ideais/vínculos/fraquezas; vazios descartados (o backend
+// também normaliza). Módulo (não local a `handleConfirm`) porque o preview da revisão
+// (US-127) precisa do mesmo split para montar o `CharacterBackground` do `BackgroundPanel`.
+function lines(s: string): string[] {
+  return s.split('\n').map(t => t.trim()).filter(Boolean)
 }
 
 export function SetupWizard() {
@@ -123,6 +136,40 @@ export function SetupWizard() {
   const spent = attributes.reduce((s, a) => s + ((POINT_COST[attrs[a.key] ?? a.default] ?? 0) - (POINT_COST[a.default] ?? 0)), 0)
   const remaining = budget !== undefined ? budget - spent : 0
 
+  // US-127: preview do que a ficha vai mostrar depois de confirmar — as MESMAS funções de
+  // @ai-dm/shared que a criação usa para persistir (`getStartingInventory`/`getClassFeatures`/
+  // `getClassSpells`) e que a leitura usa para resolver (`resolveSheetEntries`), para o preview
+  // nunca divergir do que a API salva e do que a GameView mostra depois (US-45/US-41).
+  const previewKit = system?.config ? getStartingInventory(system.config, charData.class) : []
+  const previewFeatureKeys = system?.config ? getClassFeatures(system.config, charData.class) : []
+  const previewFeatures = system?.config
+    ? resolveSheetEntries(system.config.classFeatures, system.config.retiredFeatures, charData.class, previewFeatureKeys)
+    : []
+  const previewSpellKeys = system?.config ? getClassSpells(system.config, charData.class) : []
+  const previewSpells = system?.config
+    ? resolveSheetEntries(system.config.classSpells, system.config.retiredSpells, charData.class, previewSpellKeys)
+    : []
+  // Bloco "Features e magias" só existe se o config modela esse eixo — mesmo padrão
+  // condicional de `backgroundCatalog.length > 0` para a linha "Origem".
+  const hasClassAwareness = Boolean(system?.config?.classFeatures || system?.config?.classSpells)
+  // PV inicial: mesma conta de adventure.service.ts (10 + mod de Constituição) — a Fase 1 não
+  // tem dado de vida por classe, então a fórmula é igual para qualquer classe.
+  const conMod = abilityModifier(attrs['constitution'] ?? 10)
+  const previewHp = 10 + conMod
+  // Só as perícias ESCOLHIDAS, com modificador já resolvido — mesmo `buildSkillSheet` da
+  // ficha, filtrado ao que o jogador marcou (a revisão não lista o catálogo inteiro).
+  const reviewSkills = buildSkillSheet(skillCatalog, attrs, skills, system?.config?.proficiency?.bonus ?? 2)
+    .filter(sk => sk.proficient)
+  // Mesma forma que `handleConfirm` envia à API — reaproveitada aqui para o `BackgroundPanel`
+  // (US-45) mostrar por extenso o que vai ser salvo, em vez de "Preenchido"/"—".
+  const reviewBackground: CharacterBackground = {
+    story: bg.story.trim() || undefined,
+    ideals: lines(bg.ideals),
+    bonds: lines(bg.bonds),
+    flaws: lines(bg.flaws),
+    deity: parseDeity(bg.deity),
+  }
+
   function handleSelectSystem(s: SystemOption) {
     setSystem(s)
     setAttrs(Object.fromEntries((s.config?.attributes ?? []).map(a => [a.key, a.default])))
@@ -172,8 +219,6 @@ export function SetupWizard() {
     if (!system) return
     setLoading(true); setError('')
     try {
-      // US-39: uma linha por item em ideais/vínculos/fraquezas; vazios descartados (o backend também normaliza).
-      const lines = (s: string) => s.split('\n').map(t => t.trim()).filter(Boolean)
       const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
       // US-122: origem é campo IRMÃO de background, nunca aninhado nele — a chave viaja sozinha.
       const originPayload = origin ? { key: origin } : undefined
@@ -523,6 +568,7 @@ export function SetupWizard() {
                     [t('setup.review.race'), raceLabel],
                     [t('setup.review.class'), classLabel],
                     [t('setup.review.level'), '1'],
+                    [t('setup.review.hp'), String(previewHp)],
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{k}</dt>
@@ -532,41 +578,50 @@ export function SetupWizard() {
                   <div className="flex items-start justify-between gap-6 py-2.5">
                     <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.attributes')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">
-                      {attributes.map(a => `${a.label} ${attrs[a.key] ?? a.default}`).join(' · ')}
+                      {attributes.map(a => `${a.label} ${attrs[a.key] ?? a.default} (${formatModifier(abilityModifier(attrs[a.key] ?? a.default))})`).join(' · ')}
                     </dd>
                   </div>
                   <div className="flex items-start justify-between gap-6 py-2.5">
                     <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.skills')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">
-                      {skills.length > 0
-                        ? skills.map(k => skillCatalog.find(s => s.key === k)?.label ?? k).join(' · ')
+                      {reviewSkills.length > 0
+                        ? reviewSkills.map(sk => `${sk.label} (${formatModifier(sk.modifier)})`).join(' · ')
                         : '—'}
                     </dd>
                   </div>
-                  {/* US-122: linha própria da origem, distinta da linha de background abaixo —
-                      só aparece quando o sistema tem catálogo (mesma condição da seção na etapa). */}
+                  <div className="flex items-start justify-between gap-6 py-2.5">
+                    <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.kit')}</dt>
+                    <dd className="text-right text-sm font-medium text-parchment">
+                      {previewKit.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
+                    </dd>
+                  </div>
+                  {/* US-122: linha própria da origem — só aparece quando o sistema tem catálogo
+                      (mesma condição da seção na etapa). O `BackgroundPanel` abaixo não repete
+                      a origem: ela já tem casa aqui. */}
                   {backgroundCatalog.length > 0 && (
                     <div className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.origin')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">{originLabel || '—'}</dd>
                     </div>
                   )}
-                  <div className="flex items-start justify-between gap-6 py-2.5">
-                    <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.background')}</dt>
-                    <dd className="text-right text-sm font-medium text-parchment">
-                      {[bg.story, bg.ideals, bg.bonds, bg.flaws, bg.deity].some(s => s.trim()) ? t('setup.review.filled') : '—'}
-                    </dd>
-                  </div>
-                  {/* US-40: mostra o nome da divindade na revisão quando preenchida. */}
-                  {parseDeity(bg.deity) && (
-                    <div className="flex items-start justify-between gap-6 py-2.5">
-                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.deity')}</dt>
-                      <dd className="text-right text-sm font-medium text-parchment">
-                        {parseDeity(bg.deity)!.name}
-                      </dd>
-                    </div>
-                  )}
                 </dl>
+
+                {/* US-127: background por extenso — mesmo `BackgroundPanel` que a ficha em jogo
+                    usa (US-45), com o mesmo dado que `handleConfirm` vai enviar. Substitui o
+                    antigo "Preenchido"/"—": o jogador lê a história antes de confirmar. */}
+                <div className="mt-6">
+                  <SheetHeading>{t('setup.review.background')}</SheetHeading>
+                  <BackgroundPanel background={reviewBackground} />
+                </div>
+
+                {/* US-127: features de classe e magias conhecidas da classe escolhida — só
+                    quando o sistema modela esse eixo (mesmo padrão condicional das outras
+                    seções opcionais acima). */}
+                {hasClassAwareness && (
+                  <div className="mt-6">
+                    <FeaturesPanel features={previewFeatures} spells={previewSpells} />
+                  </div>
+                )}
               </div>
             )}
           </div>

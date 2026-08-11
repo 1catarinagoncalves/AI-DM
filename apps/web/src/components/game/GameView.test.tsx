@@ -127,6 +127,42 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.queryByText('Divindade/Patrono')).toBeNull()
   })
 
+  // US-122: origem (catálogo de backgrounds, US-121) aparece na aba Background, na ficha.
+  it('mostra a origem (nome) na aba Background quando presente', async () => {
+    render(
+      <GameView
+        {...baseProps}
+        characterOrigin="Acólito"
+        background={{ story: 'História.' }}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.getByText('Origem')).toBeTruthy()
+    expect(screen.getByText('Acólito')).toBeTruthy()
+  })
+
+  // US-122: sem origem escolhida (ou sistema sem catálogo), nenhum bloco de Origem.
+  it('sem origem, a aba Background não mostra bloco de Origem', async () => {
+    render(<GameView {...baseProps} background={{ story: 'História.' }} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.queryByText('Origem')).toBeNull()
+  })
+
+  // US-122: origem sozinha (sem nenhum campo de background preenchido) já basta para a aba
+  // não cair no empty state — mesmo tratamento de deity/story/listas.
+  it('origem sozinha (background {}) já basta para não mostrar o empty state', async () => {
+    render(<GameView {...baseProps} characterOrigin="Sábio" background={{}} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.getByText('Sábio')).toBeTruthy()
+    expect(screen.queryByText('Este personagem ainda não tem história.')).toBeNull()
+  })
+
   // US-41: aba Features lista as features de classe (nome + descrição), read-only.
   it('mostra a aba Features e lista as features de classe ao clicar', async () => {
     render(

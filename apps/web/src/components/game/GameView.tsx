@@ -3,13 +3,15 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ChevronDown, Dices, Languages, Pencil, Send } from 'lucide-react'
-import { abilityModifier, formatModifier, stripFabricatedRolls, stripWorldStateTags, formatDiceBreakdown, spellLevelLabel } from '@ai-dm/shared'
-import type { ChatTurn, Locale, RollTurn, SystemSpell } from '@ai-dm/shared'
+import { abilityModifier, formatModifier, stripFabricatedRolls, stripWorldStateTags, formatDiceBreakdown } from '@ai-dm/shared'
+import type { ChatTurn, InventoryItem, Locale, RollTurn, SystemSpell } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { DmButton, Logo, SheetHeading, dmButtonClass, fieldClass } from '@/components/ui/dm'
 import { LocaleToggle } from '@/components/LocaleToggle'
 import { useLocale, useT } from '@/components/LocaleProvider'
 import { messagesFor, type MessageKey } from '@/messages'
+import { BackgroundPanel, type CharacterBackground } from '@/components/character/BackgroundPanel'
+import { FeaturesPanel, type ClassFeature } from '@/components/character/FeaturesPanel'
 
 // US-97: marcador de sessão — o aviso de troca de idioma. Vive SÓ na lista da tela:
 // não é turno de jogo, não vai ao EventLog nem ao histórico que o Mestre recebe (ele
@@ -31,29 +33,6 @@ const ATTR_LABELS: Record<string, MessageKey> = {
   intelligence: 'game.attr.intelligence', wisdom: 'game.attr.wisdom', charisma: 'game.attr.charisma',
 }
 
-interface InventoryItem {
-  name: string
-  qty: number
-}
-
-// US-41: feature de classe (awareness read-only). Mesma forma do SystemClassFeature
-// de @ai-dm/shared, tipada estruturalmente aqui (web não depende desse pacote).
-interface ClassFeature {
-  name: string
-  description: string
-}
-
-// US-45: mesma forma do CharacterBackground de @ai-dm/ai-engine (web não depende
-// desse pacote), tipada estruturalmente aqui — não redefinir a forma noutro lugar.
-interface CharacterBackground {
-  story?: string
-  ideals?: string[]
-  bonds?: string[]
-  flaws?: string[]
-  // US-40: divindade/patrono opcional (nome + portfólio).
-  deity?: { name: string; portfolio?: string }
-}
-
 interface Props {
   adventureId: string
   characterId: string
@@ -69,6 +48,10 @@ interface Props {
   skills?: { key: string; label: string; modifier: number; proficient: boolean }[]
   // US-45: background do personagem, mostrado numa aba própria da ficha.
   background?: CharacterBackground
+  // US-122: nome da origem escolhida do catálogo (US-121), já resolvido no locale ativo
+  // (mesmo padrão de characterClass/characterRace) — campo IRMÃO de `background`, não
+  // dentro dele. Ausente = nenhuma origem escolhida, ou sistema sem catálogo.
+  characterOrigin?: string
   // US-41: features de classe (nível 1), mostradas na aba "Features".
   features?: ClassFeature[]
   // US-50: magias conhecidas (US-42), mostradas numa secção da MESMA aba "Features"
@@ -106,128 +89,7 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(persistable))
 }
 
-// US-45: painel da aba Background. Read-only. Cada eixo só vira bloco se tiver
-// conteúdo; se nenhum tiver, mostra o empty state (a aba nunca some — só o conteúdo).
-function BackgroundPanel({ background }: { background?: CharacterBackground }) {
-  const t = useT()
-  const story = background?.story?.trim()
-  const lists: { label: MessageKey; items: string[] }[] = [
-    { label: 'game.background.ideals', items: background?.ideals ?? [] },
-    { label: 'game.background.bonds', items: background?.bonds ?? [] },
-    { label: 'game.background.flaws', items: background?.flaws ?? [] },
-  ]
-  // US-40: divindade só vira bloco se tiver nome; "Nome — portfólio" (ou só o nome).
-  const deityName = background?.deity?.name?.trim()
-  const deityPortfolio = background?.deity?.portfolio?.trim()
-  const deityText = deityName ? (deityPortfolio ? `${deityName} — ${deityPortfolio}` : deityName) : ''
-  const hasAny = Boolean(story) || Boolean(deityText) || lists.some(l => l.items.length > 0)
-
-  if (!hasAny) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        {t('game.background.empty')}
-      </p>
-    )
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      {story && (
-        <div>
-          <SheetHeading>{t('game.background.story')}</SheetHeading>
-          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground">{story}</p>
-        </div>
-      )}
-      {deityText && (
-        <div>
-          <SheetHeading>{t('game.background.deity')}</SheetHeading>
-          <p className="text-[13px] leading-relaxed text-foreground">{deityText}</p>
-        </div>
-      )}
-      {lists.map(({ label, items }) => items.length > 0 && (
-        <div key={label}>
-          <SheetHeading>{t(label)}</SheetHeading>
-          <ul className="list-inside list-disc space-y-1">
-            {items.map((it, i) => (
-              <li key={i} className="text-[13px] text-foreground">{it}</li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// US-41/US-50: painel da aba Features. Read-only, awareness — nome + descrição curta.
-// Duas secções: features de classe e magias conhecidas (US-42). Cada secção só existe
-// se a sua lista tiver itens (sem título órfão); se NENHUMA tiver, mostra o empty state
-// e a aba na mesma não some (igual ao painel de Background). Não resolve mecânica:
-// é só o que o personagem PODE fazer. Sem slots/preparação — não existem no modelo.
-function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells?: SystemSpell[] }) {
-  const t = useT()
-  // US-100: o nome da magia chega já resolvido no locale (a página resolve a chave da ficha);
-  // o rótulo de nível é o único texto desta lista que se monta aqui — e acompanha.
-  const { locale } = useLocale()
-  const featureList = (features ?? []).filter(f => f?.name?.trim())
-  // Ordem estável por nível e depois nome (os 20 truques do mago não podem sair
-  // arbitrários). Cópia — a prop não é mutada.
-  const spellList = [...(spells ?? [])]
-    .filter(s => s?.name?.trim())
-    .sort((a, b) => (a.level ?? 0) - (b.level ?? 0) || a.name.localeCompare(b.name))
-
-  if (featureList.length === 0 && spellList.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        {t('game.features.empty')}
-      </p>
-    )
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      {featureList.length > 0 && (
-        <section>
-          <SheetHeading>{t('game.features.title')}</SheetHeading>
-          <ul className="flex flex-col gap-2">
-            {featureList.map((f, i) => (
-              <li key={i} className="rounded-md border border-border bg-background/40 p-3">
-                <p className="text-sm font-semibold text-parchment">{f.name}</p>
-                {f.description?.trim() && (
-                  <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{f.description}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {spellList.length > 0 && (
-        <section>
-          <SheetHeading>{t('game.spells.title')}</SheetHeading>
-          <ul className="flex flex-col gap-2">
-            {spellList.map((s, i) => {
-              // Rótulo vindo de @ai-dm/shared — a MESMA regra que o prompt do mestre usa
-              // (US-42), para a ficha e o prompt nunca divergirem ("truque" vs "nível 0").
-              const label = spellLevelLabel(s.level, locale)
-              return (
-                <li key={i} className="rounded-md border border-border bg-background/40 p-3">
-                  <p data-testid="spell-name" className="text-sm font-semibold text-parchment">
-                    {label ? `${s.name} (${label})` : s.name}
-                  </p>
-                  {s.description?.trim() && (
-                    <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{s.description}</p>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      )}
-    </div>
-  )
-}
-
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background, features, spells }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background, characterOrigin, features, spells }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
   // então trocar de aba não remonta nada nem perde estado de jogo.
@@ -699,7 +561,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             aria-labelledby="sheet-tab-background"
             className="md:w-full"
           >
-            <BackgroundPanel background={background} />
+            <BackgroundPanel background={background} originName={characterOrigin} />
           </div>
         )}
         </div>

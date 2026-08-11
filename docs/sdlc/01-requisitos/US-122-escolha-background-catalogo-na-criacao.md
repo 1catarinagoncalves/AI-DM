@@ -130,3 +130,5 @@ origin  Json  @default("{}")  // US-122: {key?} — origem escolhida do catálog
 - [apps/web/src/lib/api.ts](../../../apps/web/src/lib/api.ts) — payload de `createCharacter` a espelhar.
 - [apps/web/src/messages/en-US.ts](../../../apps/web/src/messages/en-US.ts) / [pt-BR.ts](../../../apps/web/src/messages/pt-BR.ts) — chaves `setup.origin.*` novas.
 - [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) — de onde vem `config.backgrounds`, e onde a decisão "campos distintos" foi tomada.
+- [apps/web/src/components/game/GameView.tsx](../../../apps/web/src/components/game/GameView.tsx) — `BackgroundPanel` mostra `originName` (prop `characterOrigin`) na aba "Background" da ficha em jogo, antes da `story` — mesma ordem da revisão da criação.
+- [apps/web/src/app/play/[adventureId]/page.tsx](../../../apps/web/src/app/play/[adventureId]/page.tsx) — resolve `character.origin.key` contra `config.backgrounds` (por `name`, não `catalogLabel`) e passa `characterOrigin` à `GameView`.
