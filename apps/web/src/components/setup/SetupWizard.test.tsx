@@ -32,6 +32,47 @@ const configWithBackgrounds = (budget: number) => ({
   ],
 })
 
+// US-124: Markdown real do dataset (heading em nível MISTO, #### e ###) para o benefício
+// connection_and_memento — 2 blocos (Acolyte) e a anomalia do Sailor (1 bloco só, "Mementos").
+const CAM_ACOLYTE = `Roll 1d10, choose, or make up your own.
+
+#### Acolyte Connections
+|d10|Connection|
+|---|---|
+|1|A high priest awaiting your return.|
+|2|A childhood friend who left the priesthood.|
+
+### Acolyte Memento
+|d10|Memento|
+|---|---|
+|1|A timeworn holy symbol.|
+|2|A prayer book with notes.|
+`
+
+const CAM_SAILOR = `Roll 1d10, choose, or make up your own.
+
+### Sailor Mementos
+|d10|Memento|
+|---|---|
+|1|A compass that always points to the sea.|
+|2|A tattoo from your first voyage.|
+`
+
+// US-124: origens com adventures_and_advancement (parágrafo) e connection_and_memento
+// (seleção por bloco) — 'a5e-ag_sailor' reproduz a anomalia real do dataset (1 bloco só).
+const configWithCam = (budget: number) => ({
+  ...configWithBudget(budget),
+  backgrounds: [
+    { key: 'a5e-ag_acolyte', name: 'Acólito', source: 'a5e-ag', benefits: [
+      { type: 'adventures_and_advancement', name: 'Adventures and Advancement', description: 'Segue servindo o templo em viagem.' },
+      { type: 'connection_and_memento', name: 'Connection and Memento', description: CAM_ACOLYTE },
+    ] },
+    { key: 'a5e-ag_sailor', name: 'Marinheiro', source: 'a5e-ag', benefits: [
+      { type: 'connection_and_memento', name: 'Connection and Memento', description: CAM_SAILOR },
+    ] },
+  ],
+})
+
 // US-27: config com perícias e orçamento de 2 proficiências.
 const configWithSkills = (budget: number) => ({
   ...configWithBudget(budget),
@@ -531,5 +572,139 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(screen.getByText('Nobre caída')).toBeTruthy()
     expect(screen.getByText('Justiça acima de tudo')).toBeTruthy()
     expect(screen.queryByText('Preenchido')).toBeNull()
+  })
+
+  // US-124: adventures_and_advancement vira parágrafo; connection_and_memento vira um
+  // <select> por bloco, com título/subtítulo FIXOS (não o heading/preâmbulo do dataset) —
+  // nenhum `|` de Markdown cru aparece na tela.
+  it('mostra adventures_and_advancement como parágrafo e connection/memento como seleção', async () => {
+    await pickSystemAndFillRaceClass(configWithCam(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+
+    expect(screen.getByText('Segue servindo o templo em viagem.')).toBeTruthy()
+
+    const connectionSelect = screen.getByLabelText('Conexão') as HTMLSelectElement
+    const connectionOptions = [...connectionSelect.querySelectorAll('option')].filter(o => o.getAttribute('value'))
+    expect(connectionOptions.map(o => o.textContent)).toEqual([
+      'A high priest awaiting your return.', 'A childhood friend who left the priesthood.',
+    ])
+    const mementoSelect = screen.getByLabelText('Memento') as HTMLSelectElement
+    const mementoOptions = [...mementoSelect.querySelectorAll('option')].filter(o => o.getAttribute('value'))
+    expect(mementoOptions.map(o => o.textContent)).toEqual(['A timeworn holy symbol.', 'A prayer book with notes.'])
+
+    // Nenhum Markdown cru (heading `####`/`###`, preâmbulo "Roll 1d10…", `|d10|...|`) na tela.
+    expect(screen.queryByText(/Roll 1d10/)).toBeNull()
+    expect(screen.queryByText(/Acolyte Connections/)).toBeNull()
+    expect(screen.queryByText(/\|d10\|/)).toBeNull()
+  })
+
+  // US-124: botão "aleatório" preenche o <select> com uma opção sorteada DAQUELE bloco;
+  // trocar manualmente depois sobrescreve sem travar.
+  it('botão aleatório sorteia uma opção do bloco certo; trocar manualmente sobrescreve', async () => {
+    await pickSystemAndFillRaceClass(configWithCam(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+
+    const connectionSelect = screen.getByLabelText('Conexão') as HTMLSelectElement
+    expect(connectionSelect.value).toBe('') // nada selecionado ainda
+
+    const [connectionRandom] = screen.getAllByRole('button', { name: 'Sortear' })
+    fireEvent.click(connectionRandom!)
+    expect(['1', '2']).toContain(connectionSelect.value) // sorteou uma das 2 opções
+
+    // Memento não foi tocado — continua vazio (o botão só afeta o bloco dele).
+    const mementoSelect = screen.getByLabelText('Memento') as HTMLSelectElement
+    expect(mementoSelect.value).toBe('')
+
+    // Trocar manualmente sobrescreve o valor sorteado.
+    fireEvent.change(connectionSelect, { target: { value: '2' } })
+    expect(connectionSelect.value).toBe('2')
+  })
+
+  // US-124: origin.connection/memento viajam com o TEXTO da linha escolhida (não o roll),
+  // junto de origin.key, no mesmo POST /characters.
+  it('envia origin.connection/memento (texto da linha escolhida) na criação', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithCam(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '1' } })
+    fireEvent.change(screen.getByLabelText('Memento'), { target: { value: '2' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      origin: { key: 'a5e-ag_acolyte', connection: 'A high priest awaiting your return.', memento: 'A prayer book with notes.' },
+    }))
+  })
+
+  // US-124: revisão mostra a conexão/memento escolhidos, ou "—" sem seleção.
+  it('revisão mostra conexão/memento escolhidos, "—" quando nada foi selecionado', async () => {
+    await pickSystemAndFillRaceClass(configWithCam(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão sem escolher nada
+    const connectionRow = screen.getByText('Conexão').closest('div')
+    expect(within(connectionRow!).getByText('—')).toBeTruthy()
+    const mementoRow = screen.getByText('Memento').closest('div')
+    expect(within(mementoRow!).getByText('—')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
+    fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão de novo
+    expect(within(screen.getByText('Conexão').closest('div')!).getByText('A childhood friend who left the priesthood.')).toBeTruthy()
+  })
+
+  // US-124: anomalia do Sailor (1 bloco só, semanticamente "Mementos") mapeia para Memento,
+  // não Connection — SINGLE_BLOCK_IS_MEMENTO corrige por CHAVE, não por texto de heading.
+  it('Sailor (bloco único) mostra só o select de Memento, nunca o de Conexão', async () => {
+    await pickSystemAndFillRaceClass(configWithCam(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_sailor' } })
+
+    expect(screen.queryByLabelText('Conexão')).toBeNull()
+    const mementoSelect = screen.getByLabelText('Memento') as HTMLSelectElement
+    const options = [...mementoSelect.querySelectorAll('option')].filter(o => o.getAttribute('value'))
+    expect(options.map(o => o.textContent)).toEqual([
+      'A compass that always points to the sea.', 'A tattoo from your first voyage.',
+    ])
+  })
+
+  // US-124: origem sem adventures_and_advancement nem connection_and_memento (as 2 origens
+  // de configWithBackgrounds só têm skill_proficiency) não quebra — a seção só não aparece.
+  it('origem sem os benefícios narrativos não mostra a seção, sem quebrar', async () => {
+    await pickSystemAndFillRaceClass(configWithBackgrounds(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
+
+    expect(screen.queryByLabelText('Conexão')).toBeNull()
+    expect(screen.queryByLabelText('Memento')).toBeNull()
   })
 })

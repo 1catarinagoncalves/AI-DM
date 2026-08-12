@@ -1,7 +1,7 @@
 # ADR 010 — Upload de livro: lore recuperável, nunca fonte de regra
 
 **Status:** Proposto
-**Data:** 2026-08-07
+**Data:** 2026-08-12
 **Decisores:** Time de Produto e Engenharia
 **Relacionado:** [ADR 001 — Arquitetura](./001-arquitetura.md) (**este ADR o revisa**: o desenho de ingestão/RAG de lá pressupõe uma pilha que a Fase 1 não tem) · [ADR 006 — Deploy a custo zero](./006-deploy-custo-zero.md) (a pilha real, e a razão de metade das revisões) · [ADR 004 — Origem do dado de sistema](./004-origem-do-dado-de-sistema.md) e [ADR 009 — União dos SRD](./009-uniao-dos-srd-5-1-e-5-2.md) (a fonte de **regra**, que este ADR não toca) · [ADR 007 — Camadas do prompt](./007-camadas-do-prompt-por-volatilidade.md) (por que o trecho recuperado não entra no prefixo cacheável) · [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) (o molde de pipeline de ingestão que já existe no repo)
 
@@ -26,7 +26,7 @@ O desenho de referência externo confirma a fronteira em vez de contrariá-la: [
 
 Registrado porque a procedência limita o que a referência autoriza.
 
-Em **07/08/2026** a mantenedora trouxe **cinco repositórios** de D&D/LLM com a pergunta de quais seriam bons acréscimos ao AI DM. A avaliação foi feita por **README e metadados da API do GitHub** — o código **não** foi lido, executado nem auditado; das licenças, só o que o campo `license` e o README declaram.
+Em **12/08/2026** a mantenedora trouxe **cinco repositórios** de D&D/LLM com a pergunta de quais seriam bons acréscimos ao AI DM. A avaliação foi feita por **README e metadados da API do GitHub** — o código **não** foi lido, executado nem auditado; das licenças, só o que o campo `license` e o README declaram.
 
 Dos cinco, dois renderam alguma coisa:
 
@@ -53,7 +53,7 @@ Isto **revoga** o `System (regras) ◄── derivado de Book (upload)` do ADR 0
 
 ### D2 — pgvector no Postgres que já existe, não um vector store novo
 
-Extensão `vector`, versão `0.8.0`, **disponível e ainda não instalada** na Neon do projeto (verificado em 07/08/2026 — §4). Confirma a escolha #5 do ADR 001 com medição, e mantém o princípio do ADR 006: nenhum serviço novo, nenhuma conta nova, nenhum custo novo. Um datastore a mais numa pilha de camada gratuita é um ponto de falha a mais sem orçamento para monitorá-lo.
+Extensão `vector`, versão `0.8.0`, **disponível e ainda não instalada** na Neon do projeto (verificado em 12/08/2026 — §4). Confirma a escolha #5 do ADR 001 com medição, e mantém o princípio do ADR 006: nenhum serviço novo, nenhuma conta nova, nenhum custo novo. Um datastore a mais numa pilha de camada gratuita é um ponto de falha a mais sem orçamento para monitorá-lo.
 
 ### D3 — Sem fila e sem worker: a ingestão é script idempotente e retomável
 
@@ -111,7 +111,7 @@ Isto reduz exposição; **não** a elimina. Chunk é o livro em pedaços, e o AD
 
 ## 4. O que foi verificado
 
-Consulta à Neon do projeto (`purple-wave-53471231`), 07/08/2026:
+Consulta à Neon do projeto (`purple-wave-53471231`), 12/08/2026:
 
 ```sql
 SELECT name, default_version, installed_version

@@ -163,6 +163,48 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.queryByText('Este personagem ainda não tem história.')).toBeNull()
   })
 
+  // US-124: conexão/memento escolhidos na criação aparecem na aba Background, em blocos
+  // próprios (não misturados com a linha de origem nem com a história).
+  it('mostra conexão e memento na aba Background quando presentes', async () => {
+    render(
+      <GameView
+        {...baseProps}
+        characterOrigin="Acólito"
+        characterConnection="A high priest awaiting your return."
+        characterMemento="A timeworn holy symbol."
+        background={{ story: 'História.' }}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.getByText('Conexão')).toBeTruthy()
+    expect(screen.getByText('A high priest awaiting your return.')).toBeTruthy()
+    expect(screen.getByText('Memento')).toBeTruthy()
+    expect(screen.getByText('A timeworn holy symbol.')).toBeTruthy()
+  })
+
+  // US-124: sem conexão/memento escolhidos, nenhum dos dois blocos aparece.
+  it('sem conexão/memento, a aba Background não mostra esses blocos', async () => {
+    render(<GameView {...baseProps} characterOrigin="Acólito" background={{ story: 'História.' }} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.queryByText('Conexão')).toBeNull()
+    expect(screen.queryByText('Memento')).toBeNull()
+  })
+
+  // US-124: conexão/memento sozinhos (sem origem, sem background) já bastam para não cair
+  // no empty state — mesmo tratamento de origin/deity/story.
+  it('conexão sozinha (sem mais nada preenchido) já basta para não mostrar o empty state', async () => {
+    render(<GameView {...baseProps} characterConnection="A childhood friend who left the priesthood." background={{}} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.getByText('A childhood friend who left the priesthood.')).toBeTruthy()
+    expect(screen.queryByText('Este personagem ainda não tem história.')).toBeNull()
+  })
+
   // US-41: aba Features lista as features de classe (nome + descrição), read-only.
   it('mostra a aba Features e lista as features de classe ao clicar', async () => {
     render(

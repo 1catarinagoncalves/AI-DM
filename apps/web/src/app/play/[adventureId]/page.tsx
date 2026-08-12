@@ -52,6 +52,10 @@ export default async function PlayPage({ params, searchParams }: Props) {
   // `catalogLabel` não serve (backgrounds usam `name`, não `label`); resolve-se aqui.
   const originKey = character.origin?.key as string | undefined
   const originName = originKey ? config?.backgrounds?.find((b) => b.key === originKey)?.name : undefined
+  // US-124: conexão/memento escolhidos na criação — texto já persistido em Character.origin,
+  // sem resolução contra catálogo nenhuma (não é chave, é o texto da linha escolhida).
+  const originConnection = character.origin?.connection as string | undefined
+  const originMemento = character.origin?.memento as string | undefined
 
   // US-100: feature e magia também são chave — o mesmo padrão das perícias, agora na aba
   // Features. A ficha do banco não muda ao trocar de idioma; muda o config que chega aqui.
@@ -74,6 +78,8 @@ export default async function PlayPage({ params, searchParams }: Props) {
       skills={skills}
       background={character.background}
       characterOrigin={originName}
+      characterConnection={originConnection}
+      characterMemento={originMemento}
       features={features}
       spells={spells}
     />

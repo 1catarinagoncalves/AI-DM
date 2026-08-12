@@ -57,7 +57,7 @@ export class CharacterService {
         features,
         spells,
         background: this.normalizeBackground(dto.background),
-        origin: this.normalizeOrigin(originKey),
+        origin: this.normalizeOrigin(originKey, dto.origin),
       },
     })
   }
@@ -65,9 +65,21 @@ export class CharacterService {
   /**
    * US-122: normaliza a origem escolhida — mesma forma de `normalizeBackground`, mas em
    * campo próprio e distinto (`Character.origin`), nunca dentro de `background`.
+   *
+   * US-124: `connection`/`memento` viajam SEM validação contra catálogo (são a linha que o
+   * jogador escolheu no `<select>`, não uma chave) — só trim + descarte se vazio, mesmo
+   * tratamento de `background.story`. Não fazem sentido sem `key` (não há bloco de
+   * conexão/memento a mostrar sem origem escolhida), mas não bloqueiam a criação se vierem
+   * sozinhos — o wizard sempre manda os três juntos, isto só evita lixo se algo mandar diferente.
    */
-  private normalizeOrigin(key?: string): { key?: string } {
-    return key ? { key } : {}
+  private normalizeOrigin(key?: string, origin?: CreateCharacterDto['origin']): { key?: string; connection?: string; memento?: string } {
+    const out: { key?: string; connection?: string; memento?: string } = {}
+    if (key) out.key = key
+    const connection = origin?.connection?.trim()
+    if (connection) out.connection = connection
+    const memento = origin?.memento?.trim()
+    if (memento) out.memento = memento
+    return out
   }
 
   /**

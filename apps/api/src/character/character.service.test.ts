@@ -391,4 +391,26 @@ describe('CharacterService.create', () => {
     })
     expect(char.origin).toEqual({})
   })
+
+  // US-124: connection/memento viajam junto de origin.key, sem validação contra catálogo
+  // (é a linha que o jogador escolheu no <select>, não uma chave).
+  it('persiste origin.connection/memento junto com origin.key, trimados', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgrounds))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_acolyte', connection: '  A beloved high priest.  ', memento: '  A prayer book.  ' },
+    })
+    expect(char.origin).toEqual({ key: 'a5e-ag_acolyte', connection: 'A beloved high priest.', memento: 'A prayer book.' })
+  })
+
+  it('connection/memento vazios ou ausentes → descartados, não gravados como string vazia', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgrounds))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_acolyte', connection: '   ' },
+    })
+    expect(char.origin).toEqual({ key: 'a5e-ag_acolyte' })
+  })
 })

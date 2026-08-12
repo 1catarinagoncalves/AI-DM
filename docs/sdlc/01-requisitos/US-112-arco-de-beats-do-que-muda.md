@@ -5,7 +5,7 @@
 **Status:** 🗂️ Backlog
 **Depende de:** [US-35](./US-35-cena-estruturada-na-abertura.md) (extração estruturada da abertura — o padrão reusado para semear o arco) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (o ledger de entidades que o arco referencia)
 **Relacionada a:** [US-71](./US-71-simplificar-localizacao-do-personagem.md) e [US-73](./US-73-reconciliador-de-cena-em-background.md) (as duas tentativas anteriores no mesmo sintoma, por outro eixo) · [backlog-aventuras-autorais-lazygm.md](./backlog-aventuras-autorais-lazygm.md) (aventura AUTORAL com conteúdo pronto; esta US é o arco GERADO da aventura improvisada — ver *Fora do escopo*)
-**Criada em:** 2026-08-07
+**Criada em:** 2026-08-12
 
 ---
 
@@ -163,7 +163,7 @@ export interface StoryBeat {
 3. **`advanceBeat` precisa de gate determinístico?** Se o Mestre nunca chamar a tool, o beat ativo congela e o bloco vira ruído — exatamente como `updateScene` foi ignorada em 9/24 turnos, que é o precedente ruim. O anteparo análogo ao da US-73 seria reconciliar o arco pós-turno a partir da narração. Não construir antes de medir a taxa de chamada.
 
    **Encaminhamento:** não construir o reconciler nesta US (mantém o *Fora do escopo*). Em vez disso, logar quando um turno termina com beat `ativo` pendente e `advanceBeat` não foi chamado — mesma métrica que a US-71 já mediu para `updateScene` (9/24), aplicada ao beat. Dá dado real para decidir #3 numa US futura sem escrever reconciliação às cegas.
-4. **Colisão com `advanceQuest` (AV-5 do backlog do Lazy GM) — decidido em 07/08/2026: NÃO fundir as tools.** As duas avançam progressão, mas **a autoridade de decidir o avanço é de dono diferente**, e é essa a fronteira que este repo protege em toda tool (`rollDice`: *"o modelo diz **o quê** testar; o modificador vem da ficha, nunca do LLM"*, AGENTS.md → *Tools disponíveis*).
+4. **Colisão com `advanceQuest` (AV-5 do backlog do Lazy GM) — decidido em 12/08/2026: NÃO fundir as tools.** As duas avançam progressão, mas **a autoridade de decidir o avanço é de dono diferente**, e é essa a fronteira que este repo protege em toda tool (`rollDice`: *"o modelo diz **o quê** testar; o modificador vem da ficha, nunca do LLM"*, AGENTS.md → *Tools disponíveis*).
    - **`advanceBeat` é juízo do modelo.** Se a ficção realizou *"o comprador revela-se um interessado"* só o narrador sabe; não há regra de servidor que decida.
    - **`advanceQuest` é decisão do servidor.** A AV-5 já traz o gatilho determinístico (Lazy Solo 5e: rola ao entrar em câmara, 4–7 avançam, 4º avanço traz o desafio final) e diz textualmente *"roda no servidor, o modelo só narra o que ela decidiu"*.
 

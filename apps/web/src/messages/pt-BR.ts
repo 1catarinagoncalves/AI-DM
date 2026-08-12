@@ -118,6 +118,13 @@ export const ptBR = {
   // ---- wizard: origem (US-122) ----
   'setup.origin.titulo': 'Origem',
 
+  // ---- wizard: conexão e memento (US-124) — título/subtítulo são FIXOS, não vêm do
+  // heading/preâmbulo do dataset (frágil a tradução automática, ver US-124 Questão 1/2).
+  'setup.origin.connection': 'Conexão',
+  'setup.origin.memento': 'Memento',
+  'setup.origin.pickHint': 'Escolha na lista, ou sorteie.',
+  'setup.origin.random': 'Sortear',
+
   // ---- wizard: revisão ----
   'setup.review.titulo': 'Revisão',
   'setup.review.subtitulo': 'Confira a sua ficha antes de embarcar na aventura.',
@@ -132,6 +139,8 @@ export const ptBR = {
   'setup.review.kit': 'Kit inicial',
   'setup.review.background': 'Background',
   'setup.review.origin': 'Origem',
+  'setup.review.connection': 'Conexão',
+  'setup.review.memento': 'Memento',
 
   // ---- wizard: erros ----
   'setup.error.create': 'Erro ao criar personagem. Tente novamente.',
@@ -176,6 +185,8 @@ export const ptBR = {
   'game.inventoryEmpty': 'Nenhum item',
   'game.background.empty': 'Este personagem ainda não tem história.',
   'game.background.origin': 'Origem',
+  'game.background.connection': 'Conexão',
+  'game.background.memento': 'Memento',
   'game.background.story': 'História',
   'game.background.deity': 'Divindade/Patrono',
   'game.background.ideals': 'Ideais',

@@ -33,6 +33,12 @@ Roadmap incremental (fase atual: MVP single-player):
 - **Toda ação do LLM que altera estado passa pela tool correspondente** (`updateCharacterHp`,
   `updateInventory`, `updateScene`, `recordEntity` — lista viva em *Tools disponíveis para o
   DM Agent*). O LLM só narra; o Game Server decide e persiste.
+- **Repositório externo entra como ideia, não como código.** Antes de ler o código de qualquer
+  repo de referência, cheque a licença em
+  `docs/sdlc/referencia/repositorios-de-referencia.md`. AGPL e sem-licença: reimplemente do zero,
+  nunca copie — a cláusula de rede da AGPL tornaria o AI DM inteiro AGPL. Regra de jogo (CA,
+  slots, proficiência) é SRD sob CC-BY e nunca foi do repo que a implementou: copiar a regra não é
+  o problema, copiar a implementação é.
 - **Typescript estrito em todo o codebase.** Sem `any` explícito sem justificativa em comentário.
 - **Sem segredos no código.** Chaves, tokens e senhas via variáveis de ambiente; nunca
   hardcoded, nunca commitados.
@@ -265,6 +271,27 @@ comportamento é o antigo.
      dois minutos de verificação: questão em aberto que um `grep` responde é dívida, não
      documentação. Fica legitimamente aberta só a que precisa de dado de produção ou de tempo
      (hit-rate de cache, latência, frequência de falha).
+   - **Parser sobre dado de dataset: valide contra a forma CONSUMIDA, não contra fixture nem
+     contra o arquivo de origem.** Entre o dataset bruto e a tela há um pipeline
+     (`scripts/srd/ingest.mjs` → `srd-5e.config.<locale>.json` → `seed.ts` → banco → API), e cada
+     etapa transforma o texto. Antes de dar o parser por correto, rode-o sobre o **artefato que o
+     consumidor lê de fato** — para o SRD, `scripts/srd/srd-5e.config.*.json`, **nos dois
+     locales** (o pt-BR passa por tradução automática e diverge do EN). Rodar sobre
+     `_data/*.json` prova o que o ingest RECEBE, não o que a tela lê.
+     Nasceu da US-124 (12/08/2026, `parseD10Tables`), que errou o alvo **três vezes seguidas**:
+     (1) fixture escrita a partir do exemplo do próprio doc — que na transcrição para code-fence
+     perdeu `\r\n` e a linha em branco entre heading e tabela; (2) corrigido contra o dataset
+     **cru**, ainda quebrava em produção, porque o `norm()` do ingest (`ingest.mjs:141`,
+     `replace(/\s+/g, ' ')`) achata TODA quebra de linha — o config guarda uma linha só, e um
+     parser que faz `split('\n')` acha zero tabelas; (3) o próprio doc descrevia uma anomalia
+     (Sailor "só tem um bloco") que o dado real contradizia (são dois blocos idênticos), fazendo
+     o código nascer com um `if` que nunca dispara. Rodar contra os dois artefatos também revelou
+     o Gambler (lista numerada em vez de tabela pipe) e a tradução pt-BR comendo o `|` final da
+     10ª linha em duas origens — nada disso era visível na amostra de 1 entrada que a US mediu.
+     Corolário: **a US descreve o dado, não o define.** Se o parser depende de uma anomalia
+     descrita em prosa (“só tem um bloco”, “sempre duas tabelas”), meça de novo na fonte antes de
+     codificar o `if` — texto de US envelhece e simplifica; `expect(problems).toEqual([])` sobre o
+     artefato inteiro, não.
 2. **Antes de gerar código:** crie ou atualize os testes/evals primeiro — eles são o
    contrato com o agente.
 3. **Ao modificar o DM Agent:** teste contra o eval suite em `evals/` antes de abrir PR.
@@ -339,6 +366,7 @@ comportamento é o antigo.
 - Critérios de aceite: `docs/sdlc/01-requisitos/criterios-de-aceite.md`
 - Modelo de dados: `docs/sdlc/02-design/modelo-de-dados.md`
 - Estratégia de testes: `docs/sdlc/04-testes/estrategia-de-testes.md`
+- Repositórios de referência (licença, veredito, como citar): `docs/sdlc/referencia/repositorios-de-referencia.md`
 
 Respond terse like smart caveman. All technical substance stay. Only fluff die.
 

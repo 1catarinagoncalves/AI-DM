@@ -21,7 +21,10 @@ export interface CharacterBackground {
 // US-127: extraído de GameView.tsx para cá — a etapa `review` da criação (SetupWizard)
 // e a ficha em jogo (GameView) consomem o MESMO componente, com dados diferentes
 // (preview local vs. persistido). Um muda, os dois mudam juntos.
-export function BackgroundPanel({ background, originName }: { background?: CharacterBackground; originName?: string }) {
+// US-124: `connection`/`memento` são campos IRMÃOS de `originName`, não parte de
+// `CharacterBackground` — vêm de `Character.origin.{connection,memento}`, texto escolhido
+// no `<select>` da criação (não prosa livre do jogador, ver US-124 §Modelo de dados).
+export function BackgroundPanel({ background, originName, connection, memento }: { background?: CharacterBackground; originName?: string; connection?: string; memento?: string }) {
   const t = useT()
   const story = background?.story?.trim()
   const lists: { label: MessageKey; items: string[] }[] = [
@@ -33,7 +36,7 @@ export function BackgroundPanel({ background, originName }: { background?: Chara
   const deityName = background?.deity?.name?.trim()
   const deityPortfolio = background?.deity?.portfolio?.trim()
   const deityText = deityName ? (deityPortfolio ? `${deityName} — ${deityPortfolio}` : deityName) : ''
-  const hasAny = Boolean(story) || Boolean(deityText) || Boolean(originName) || lists.some(l => l.items.length > 0)
+  const hasAny = Boolean(story) || Boolean(deityText) || Boolean(originName) || Boolean(connection) || Boolean(memento) || lists.some(l => l.items.length > 0)
 
   if (!hasAny) {
     return (
@@ -51,6 +54,19 @@ export function BackgroundPanel({ background, originName }: { background?: Chara
         <div>
           <SheetHeading>{t('game.background.origin')}</SheetHeading>
           <p className="text-[13px] leading-relaxed text-foreground">{originName}</p>
+        </div>
+      )}
+      {/* US-124: conexão/memento escolhidos na criação — mesmo estilo de bloco de origem. */}
+      {connection && (
+        <div>
+          <SheetHeading>{t('game.background.connection')}</SheetHeading>
+          <p className="text-[13px] leading-relaxed text-foreground">{connection}</p>
+        </div>
+      )}
+      {memento && (
+        <div>
+          <SheetHeading>{t('game.background.memento')}</SheetHeading>
+          <p className="text-[13px] leading-relaxed text-foreground">{memento}</p>
         </div>
       )}
       {story && (

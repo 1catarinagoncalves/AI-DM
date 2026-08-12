@@ -43,8 +43,15 @@ export const CreateCharacterSchema = z.object({
   // Origem do catálogo de backgrounds (US-121/US-122): campo IRMÃO de `background`, não
   // aninhado nele — os dois convivem sem se tocar (US-122 §Nomenclatura). Chave validada
   // contra config.backgrounds no service; ausente = nenhuma origem escolhida.
+  //
+  // US-124: `connection`/`memento` guardam o TEXTO (não o `roll`) da linha escolhida no
+  // `<select>` de cada bloco de `connection_and_memento` — não vêm do catálogo, não são
+  // validados contra ele (é escolha do jogador entre as 10 linhas do dataset, texto livre
+  // do ponto de vista do backend). Limite de tamanho é guarda de trust boundary.
   origin: z.object({
     key: z.string().max(80).optional(),
+    connection: z.string().max(500).optional(),
+    memento: z.string().max(500).optional(),
   }).optional(),
 })
 

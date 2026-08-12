@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Check, Minus, Plus, Sparkles } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus, Sparkles } from 'lucide-react'
 import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
   getStartingInventory, resolveSheetEntries,
   type InitialAdventureHook, type SystemConfig,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
+import { parseD10Tables } from '@/lib/parseD10Tables'
 import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, SheetHeading, cn, dmButtonClass, fieldClass } from '@/components/ui/dm'
 import { useT } from '@/components/LocaleProvider'
 import type { MessageKey } from '@/messages'
@@ -46,6 +47,22 @@ const SOURCE_TYPE_HINT: Record<string, MessageKey> = {
 // vinha na cor do sistema operativo e destoava do painel).
 const SELECT_ARROW =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b58a5a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")"
+
+// US-124: exceção pontual do Sailor — bloco único do dataset é semanticamente "Mementos"
+// (duplicado, ver US-124 §Contexto), não "Connections". O mapeamento normal é por POSIÇÃO
+// (tables[0]=connection, tables[1]=memento) porque o heading não é extraído do Markdown
+// (frágil a tradução automática); sem heading, não dá pra corrigir por texto — só por chave
+// da origem, que não é traduzida. Curadoria manual pontual, mesmo espírito do overlay
+// `kitItems` (US-51): sem entrada aqui, cai no default posicional.
+const SINGLE_BLOCK_IS_MEMENTO = new Set(['a5e-ag_sailor'])
+
+// US-124: sorteia uma linha da tabela d10 e devolve o `roll` (não o `text`) — o <select>
+// é controlado pelo roll, o texto persistido é derivado dele na hora de enviar. Texto de
+// flavor sem efeito de regra: Math.random() no cliente basta, não é dado de mecânica.
+function rollRandom(rows: { roll: string; text: string }[], setRoll: (roll: string) => void) {
+  if (rows.length === 0) return
+  setRoll(rows[Math.floor(Math.random() * rows.length)]!.roll)
+}
 
 // Cartão de opção (sistema, perícia): a mesma materialidade em toda a escolha
 // múltipla do wizard. `selected` acende a borda de acento, `disabled` esmaece.
@@ -100,6 +117,12 @@ export function SetupWizard() {
   // US-122: origem escolhida do catálogo (US-121) — estado PRÓPRIO, distinto de `bg`. Os
   // dois não compartilham objeto de propósito (US-122 §Nomenclatura: campos que não se tocam).
   const [origin, setOrigin] = useState<string | undefined>(undefined)
+  // US-124: linha escolhida (o `roll`, "1".."10") em cada bloco de connection_and_memento —
+  // o <select> é controlado pelo roll; o TEXTO persistido é derivado dele (connectionText/
+  // mementoText abaixo), não guardado aqui. Resetados junto com `origin` (mesmo motivo:
+  // dependem da origem escolhida) e ao trocar de sistema.
+  const [connectionRoll, setConnectionRoll] = useState<string | undefined>(undefined)
+  const [mementoRoll, setMementoRoll] = useState<string | undefined>(undefined)
 
   // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
   const [charId, setCharId] = useState('')
@@ -131,6 +154,19 @@ export function SetupWizard() {
   const classLabel = classCatalog.find(c => c.key === charData.class)?.label ?? ''
   // Background usa `name`, não `label` (SystemBackgroundSchema, US-121) — catalogLabel não serve.
   const originLabel = backgroundCatalog.find(o => o.key === origin)?.name ?? ''
+  // US-124: benefícios narrativos da origem escolhida — `adventures_and_advancement` (parágrafo)
+  // e `connection_and_memento` (tabelas d10, parseadas só quando o benefício existe).
+  const originBenefits = backgroundCatalog.find(o => o.key === origin)?.benefits ?? []
+  const adventuresBenefit = originBenefits.find(b => b.type === 'adventures_and_advancement')
+  const camBenefit = originBenefits.find(b => b.type === 'connection_and_memento')
+  const camTables = camBenefit ? parseD10Tables(camBenefit.description).tables : []
+  // Mapeamento bloco→campo por POSIÇÃO (heading não é extraído do Markdown, ver acima);
+  // exceção do Sailor via SINGLE_BLOCK_IS_MEMENTO, não por texto.
+  const singleIsMemento = camTables.length === 1 && !!origin && SINGLE_BLOCK_IS_MEMENTO.has(origin)
+  const connectionTable = camTables.length === 1 ? (singleIsMemento ? undefined : camTables[0]) : camTables[0]
+  const mementoTable = camTables.length === 1 ? (singleIsMemento ? camTables[0] : undefined) : camTables[1]
+  const connectionText = connectionTable?.rows.find(r => r.roll === connectionRoll)?.text
+  const mementoText = mementoTable?.rows.find(r => r.roll === mementoRoll)?.text
   const attrLabel = Object.fromEntries(attributes.map(a => [a.key, a.label]))
   // Custo é relativo ao default: o valor inicial de cada atributo é grátis (começa 27/27).
   const spent = attributes.reduce((s, a) => s + ((POINT_COST[attrs[a.key] ?? a.default] ?? 0) - (POINT_COST[a.default] ?? 0)), 0)
@@ -179,6 +215,9 @@ export function SetupWizard() {
     setCharData(p => ({ ...p, race: '', class: '' }))
     // US-122: origem também depende do catálogo do sistema — mesmo motivo do reset acima.
     setOrigin(undefined)
+    // US-124: conexão/memento dependem da origem — mesmo motivo.
+    setConnectionRoll(undefined)
+    setMementoRoll(undefined)
     setStep('race-class')
   }
 
@@ -221,7 +260,8 @@ export function SetupWizard() {
     try {
       const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
       // US-122: origem é campo IRMÃO de background, nunca aninhado nele — a chave viaja sozinha.
-      const originPayload = origin ? { key: origin } : undefined
+      // US-124: connection/memento viajam junto (mesmo objeto), texto derivado do roll escolhido.
+      const originPayload = origin ? { key: origin, connection: connectionText, memento: mementoText } : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background, origin: originPayload })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
@@ -514,11 +554,66 @@ export function SetupWizard() {
                   <div className="mt-6">
                     <FieldLabel htmlFor="char-origin">{t('setup.origin.titulo')}</FieldLabel>
                     <select id="char-origin" value={origin ?? ''}
-                      onChange={e => setOrigin(e.target.value || undefined)}
+                      onChange={e => {
+                        setOrigin(e.target.value || undefined)
+                        // US-124: conexão/memento são da origem ANTERIOR — trocar de origem invalida a escolha.
+                        setConnectionRoll(undefined)
+                        setMementoRoll(undefined)
+                      }}
                       className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                       <option value="">{t('setup.raceClass.select')}</option>
                       {backgroundCatalog.map(o => <option key={o.key} value={o.key}>{o.name}</option>)}
                     </select>
+                  </div>
+                )}
+                {/* US-124: benefícios narrativos da origem — adventures_and_advancement como
+                    parágrafo (mesmo padrão de hook.openingNarration) e connection_and_memento
+                    como seleção por bloco. Título/subtítulo da seleção são FIXOS (i18n), não
+                    vêm do heading/preâmbulo do dataset (frágil a tradução automática). */}
+                {adventuresBenefit && (
+                  <div className="mt-6">
+                    <SheetHeading>{adventuresBenefit.name}</SheetHeading>
+                    <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground">{adventuresBenefit.description}</p>
+                  </div>
+                )}
+                {(connectionTable || mementoTable) && (
+                  <div className="mt-6 space-y-4">
+                    {connectionTable && (
+                      <div>
+                        <FieldLabel htmlFor="char-connection">{t('setup.origin.connection')}</FieldLabel>
+                        <p className="mb-1.5 text-xs text-muted-foreground">{t('setup.origin.pickHint')}</p>
+                        <div className="flex gap-2">
+                          <select id="char-connection" value={connectionRoll ?? ''}
+                            onChange={e => setConnectionRoll(e.target.value || undefined)}
+                            className={cn(selectClass, 'flex-1')} style={{ backgroundImage: SELECT_ARROW }}>
+                            <option value="">{t('setup.raceClass.select')}</option>
+                            {connectionTable.rows.map(r => <option key={r.roll} value={r.roll}>{r.text}</option>)}
+                          </select>
+                          <DmButton type="button" variant="ghost" onClick={() => rollRandom(connectionTable.rows, setConnectionRoll)}>
+                            <Dices className="size-4" aria-hidden />
+                            {t('setup.origin.random')}
+                          </DmButton>
+                        </div>
+                      </div>
+                    )}
+                    {mementoTable && (
+                      <div>
+                        <FieldLabel htmlFor="char-memento">{t('setup.origin.memento')}</FieldLabel>
+                        <p className="mb-1.5 text-xs text-muted-foreground">{t('setup.origin.pickHint')}</p>
+                        <div className="flex gap-2">
+                          <select id="char-memento" value={mementoRoll ?? ''}
+                            onChange={e => setMementoRoll(e.target.value || undefined)}
+                            className={cn(selectClass, 'flex-1')} style={{ backgroundImage: SELECT_ARROW }}>
+                            <option value="">{t('setup.raceClass.select')}</option>
+                            {mementoTable.rows.map(r => <option key={r.roll} value={r.roll}>{r.text}</option>)}
+                          </select>
+                          <DmButton type="button" variant="ghost" onClick={() => rollRandom(mementoTable.rows, setMementoRoll)}>
+                            <Dices className="size-4" aria-hidden />
+                            {t('setup.origin.random')}
+                          </DmButton>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="mt-6 space-y-4">
@@ -602,6 +697,20 @@ export function SetupWizard() {
                     <div className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.origin')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">{originLabel || '—'}</dd>
+                    </div>
+                  )}
+                  {/* US-124: conexão/memento escolhidos — só quando a origem tem esses blocos
+                      (mesma condição da seção na etapa `background`); "—" sem seleção. */}
+                  {connectionTable && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.connection')}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">{connectionText || '—'}</dd>
+                    </div>
+                  )}
+                  {mementoTable && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.memento')}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">{mementoText || '—'}</dd>
                     </div>
                   )}
                 </dl>

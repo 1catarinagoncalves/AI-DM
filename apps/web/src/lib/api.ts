@@ -53,7 +53,9 @@ export const api = {
     skills?: string[]
     background?: { story?: string; ideals?: string[]; bonds?: string[]; flaws?: string[]; deity?: { name: string; portfolio?: string } }
     // US-122: origem do catálogo de backgrounds (US-121) — campo IRMÃO de `background`.
-    origin?: { key?: string }
+    // US-124: `connection`/`memento` são o texto da linha escolhida no <select> de cada
+    // bloco de connection_and_memento — não vêm do catálogo, texto livre do ponto de vista da API.
+    origin?: { key?: string; connection?: string; memento?: string }
   }) => post<{ id: string; name: string }>('/characters', data),
 
   listSystems: () =>

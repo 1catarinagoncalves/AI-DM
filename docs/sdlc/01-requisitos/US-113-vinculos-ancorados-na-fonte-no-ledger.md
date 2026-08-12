@@ -5,7 +5,7 @@
 **Status:** ✅ Implementada
 **Depende de:** [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (o ledger `Adventure.entities`, os eixos `sabido`/`revelado`, `mergeEntities`/`formatEntities` e a tool `recordEntity` — esta US estende os quatro)
 **Relacionada a:** [US-112](./US-112-arco-de-beats-do-que-muda.md) (mesma família: dar ao Mestre estrutura em vez de proibição) · [US-87](./US-87-bloco-de-entidades-ausente-citado-no-prompt.md) (o prompt não cita bloco que o turn-state não emitiu)
-**Criada em:** 2026-08-07
+**Criada em:** 2026-08-12
 
 ---
 

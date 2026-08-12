@@ -52,6 +52,10 @@ interface Props {
   // (mesmo padrão de characterClass/characterRace) — campo IRMÃO de `background`, não
   // dentro dele. Ausente = nenhuma origem escolhida, ou sistema sem catálogo.
   characterOrigin?: string
+  // US-124: conexão/memento escolhidos na criação (Character.origin.connection/memento) —
+  // campos IRMÃOS de characterOrigin, mesmo padrão condicional (ausentes = nada escolhido).
+  characterConnection?: string
+  characterMemento?: string
   // US-41: features de classe (nível 1), mostradas na aba "Features".
   features?: ClassFeature[]
   // US-50: magias conhecidas (US-42), mostradas numa secção da MESMA aba "Features"
@@ -89,7 +93,7 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(persistable))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background, characterOrigin, features, spells }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, background, characterOrigin, characterConnection, characterMemento, features, spells }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
   // então trocar de aba não remonta nada nem perde estado de jogo.
@@ -561,7 +565,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             aria-labelledby="sheet-tab-background"
             className="md:w-full"
           >
-            <BackgroundPanel background={background} originName={characterOrigin} />
+            <BackgroundPanel background={background} originName={characterOrigin} connection={characterConnection} memento={characterMemento} />
           </div>
         )}
         </div>

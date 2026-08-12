@@ -113,6 +113,13 @@ export const enUS: Record<MessageKey, string> = {
   // ---- wizard: origin (US-122) ----
   'setup.origin.titulo': 'Origin',
 
+  // ---- wizard: connection & memento (US-124) — title/subtitle are FIXED, not parsed from
+  // the dataset's own heading/preamble (translation-fragile, see US-124 Questão 1/2).
+  'setup.origin.connection': 'Connection',
+  'setup.origin.memento': 'Memento',
+  'setup.origin.pickHint': 'Choose from the list, or roll.',
+  'setup.origin.random': 'Roll',
+
   // ---- wizard: revisão ----
   'setup.review.titulo': 'Review',
   'setup.review.subtitulo': 'Check your character sheet before setting out.',
@@ -127,6 +134,8 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.kit': 'Starting kit',
   'setup.review.background': 'Background',
   'setup.review.origin': 'Origin',
+  'setup.review.connection': 'Connection',
+  'setup.review.memento': 'Memento',
 
   // ---- wizard: erros ----
   'setup.error.create': 'Something went wrong creating the character. Try again.',
@@ -166,6 +175,8 @@ export const enUS: Record<MessageKey, string> = {
   'game.inventoryEmpty': 'No items',
   'game.background.empty': "This character doesn't have a story yet.",
   'game.background.origin': 'Origin',
+  'game.background.connection': 'Connection',
+  'game.background.memento': 'Memento',
   'game.background.story': 'Story',
   'game.background.deity': 'Deity/Patron',
   'game.background.ideals': 'Ideals',
