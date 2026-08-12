@@ -87,7 +87,7 @@ Uma a três perícias fixas + escolha de 1 entre 2–4 opções (ou, no caso do 
 
 - **`tool_proficiency` e `language`** — o projeto não tem catálogo de ferramentas nem de idiomas (`config` não tem `tools`/`languages`); mecanizar exigiria um subsistema novo do zero. Ficam texto (US-122).
 - **`equipment`, `feature`, `connection_and_memento`, `adventures_and_advancement`** — mesma exclusão já feita na US-122.
-- **Estender `config.skills` com `Culture`/`Engineering`** para cobrir Noble/Sage por completo — decisão de produto separada (misturaria o catálogo de perícias do SRD 5.2 com o do A5E); ver Questões em aberto.
+- **Estender `config.skills` com `Culture`/`Engineering`** para cobrir Noble/Sage por completo — vira [US-130](./US-130-culture-engineering-catalogo-pericias.md) (dado não vem do `Skill.json` do dataset, nem como texto tem `ability` associada; exige literal hardcoded, precedente do `DEFAULT_KIT`).
 - **Fluxo de "troque por outra perícia" quando a concessão colide** — a regra RAW 2024 deixa escolher substituta quando duas fontes dariam a mesma perícia; esta story evita a colisão **excluindo do pool** em vez de resolver a troca (ver Questões em aberto).
 - **Retroagir personagens já criados** — a mecânica vale só para criação nova, mesmo corte da US-51 (`baseAttributes`/`skills` de personagem existente não mudam).
 - **Backgrounds do `srd-2024` nativo** — a US-121 decidiu não trazê-los; fora do escopo por não existirem no catálogo, não por decisão pendente.
@@ -145,7 +145,7 @@ origin: z.object({
 - [ ] Os dois `+1` do background aparecem na etapa `attributes` somados ao valor de point-buy, **sem consumir `remaining`**.
 - [ ] Etapa `skills` não lista mais as perícias já concedidas pelo background escolhido; `skillChoices` (contagem exigida) permanece igual ao `config.proficiency.choices` de hoje.
 - [ ] `CharacterService.create` rejeita (`BadRequestException`) `origin.abilityChoice` fora de `config.attributes`, `origin.skillChoice` fora de `grant.chooseFrom`, ou ausência de qualquer um dos dois quando o `grant` os exige.
-- [ ] `baseAttributes` final = point-buy + bônus fixo + bônus livre do background, dentro dos `min`/`max` do atributo (bônus que estourar o `max` é rejeitado, mesma regra de `buildCharacterAttributesSchema`).
+- [ ] `baseAttributes` final = point-buy + bônus fixo + bônus livre do background. O `max` do `buildCharacterAttributesSchema` segue valendo pro valor **de point-buy puro** (antes do bônus de background); o bônus do background pode estourar esse teto — regra RAW (PHB 2024: bônus de origem soma depois do array/point-buy, sem cap adicional). Validação do bônus de background usa só `min` (não pode ficar negativo) e ignora `max`.
 - [ ] `Character.skills` final = perícias do background (fixas + escolhida) **união** as `choices` da etapa `skills`, sem duplicata.
 - [ ] Personagem criado **sem** escolher background (US-122 continua opcional): `baseAttributes`/`skills` idênticos ao comportamento de hoje, nenhuma validação nova disparada.
 - [ ] **Eval / teste de regressão:** `character.service.test.ts` cria um personagem com background `a5e-ag_acolyte` (fixed `Wisdom`, skills fixas `Religion` + escolha `Insight`/`Persuasion`) e confere `baseAttributes.wisdom` = default+1(point-buy se houver)+1(background) e `skills` contendo `religion` + a perícia escolhida, sem exigir 3 perícias na etapa `skills` (só as `choices` do sistema).
@@ -164,16 +164,14 @@ origin: z.object({
 
 ## Questões em aberto
 
-1. **`Culture`/`Engineering` entram no `config.skills`?** Resolveria Noble por completo e devolveria as opções cortadas do Sage/Charlatan/Entertainer/Trader — mas mistura o catálogo de perícias do SRD 5.2 (18, `wizards-of-the-coast`) com o do `a5e-ag` (`en-publishing`), que não é mais "regra do SRD numa fonte CC" (ADR 004 §3, decisão 4) — é regra de OUTRO sistema. Decisão de produto, não técnica.
-2. **Colisão de perícia (RAW deixa trocar por outra) vale a pena?** Esta story evita a colisão excluindo a perícia do background do pool de escolha da classe — mais simples, mas nunca deixa o jogador "[trocar por outra]" como o livro descreve. Fica assim ou vira story própria?
-3. **`ability_score` do background pode estourar o `max` do atributo (18, `ATTR_RANGE`)?** Hoje o point-buy já impede passar de 18 sozinho; um jogador que for a 18 no point-buy e receber +1/+2 do background passaria. Rejeitar a combinação (força escolher outro atributo pro bônus livre) ou permitir estourar o teto de criação nesse caso específico?
+1. **Colisão de perícia (RAW deixa trocar por outra) vale a pena?** Esta story evita a colisão excluindo a perícia do background do pool de escolha da classe — mais simples, mas nunca deixa o jogador "[trocar por outra]" como o livro descreve. Fica assim ou vira story própria?
 
 ---
 
 ## Referências no código
 
 - [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — `parseStartingKit` (precedente de parser texto→estruturado, US-51), `ABILITY_MAP`/`ATTR_ORDER` (linha 111-112, reusar para resolver nome de atributo), `buildBackgrounds` (US-121, a estender).
-- [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `SystemBackgroundBenefitSchema` (US-121, a estender com `grant`), `buildCharacterAttributesSchema` (limite min/max a respeitar).
+- [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `SystemBackgroundBenefitSchema` (US-121, a estender com `grant`), `buildCharacterAttributesSchema` (`min`/`max` valem pro point-buy puro; bônus de background só respeita `min`, ver critério de aceite).
 - [apps/api/src/character/character.service.ts:106-124](../../../apps/api/src/character/character.service.ts:106) — `validateSkills`, a estender com o filtro de perícias já concedidas.
 - [apps/api/src/character/character.schema.ts](../../../apps/api/src/character/character.schema.ts) — `CreateCharacterSchema.origin` (US-122), `skillChoice`/`abilityChoice` novos ali dentro.
 - [apps/web/src/components/setup/SetupWizard.tsx:13-14,128-157](../../../apps/web/src/components/setup/SetupWizard.tsx:13) — `Step`/`steps` (reordenar), `canAdvance` (nova condição da etapa `background`).

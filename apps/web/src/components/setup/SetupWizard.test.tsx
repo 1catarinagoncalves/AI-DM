@@ -71,6 +71,9 @@ const configWithCam = (budget: number) => ({
       { type: 'connection_and_memento', name: 'Connection and Memento', description: CAM_SAILOR },
     ] },
   ],
+  // US-128: equipamento da origem, mesma chave de `backgrounds[].key` — a revisão soma isso
+  // ao kit da classe, junto do rótulo fixo "Memento" quando uma linha foi escolhida.
+  backgroundEquipment: { 'a5e-ag_acolyte': [{ name: 'Símbolo sagrado', qty: 1 }] },
 })
 
 // US-27: config com perícias e orçamento de 2 proficiências.
@@ -672,6 +675,28 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão de novo
     expect(within(screen.getByText('Conexão').closest('div')!).getByText('A childhood friend who left the priesthood.')).toBeTruthy()
+  })
+
+  // US-128: revisão soma o equipamento da origem ao kit, e o rótulo fixo "Memento" (não o
+  // texto completo, que já tem linha própria) quando uma linha de memento foi escolhida.
+  it('revisão soma equipamento da origem ao kit; "Memento" só aparece no kit quando escolhido', async () => {
+    await pickSystemAndFillRaceClass(configWithCam(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão, sem memento escolhido
+    const kitRowSemMemento = screen.getByText('Kit inicial').closest('div')
+    expect(within(kitRowSemMemento!).getByText('Símbolo sagrado')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
+    fireEvent.change(screen.getByLabelText('Memento'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão, memento escolhido
+    const kitRowComMemento = screen.getByText('Kit inicial').closest('div')
+    expect(within(kitRowComMemento!).getByText('Símbolo sagrado · Memento')).toBeTruthy()
   })
 
   // US-124: anomalia do Sailor (1 bloco só, semanticamente "Mementos") mapeia para Memento,

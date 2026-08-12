@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, parseBackgroundEquipment, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -287,7 +287,96 @@ for (const locale of ['en-US', 'pt-BR']) {
       }
     }
   })
+
+  // US-128: mesmas invariantes do parser, agora sobre o ARTEFATO gravado (não o dataset cru) —
+  // fecha a Questão em aberto 5 do doc: o parser roda sobre `b.fields.desc` cru (nunca sobre
+  // texto MT-traduzido), então EN e pt-BR têm exatamente os mesmos nomes de item em inglês
+  // aqui — a tradução por item acontece via kitItems, não via re-parse de prosa traduzida.
+  test(`artefato ${locale}: backgroundEquipment cobre as 21 origens, sem item vazio`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    const keys = artifact.backgrounds.map((bg) => bg.key)
+    assert.deepEqual(Object.keys(artifact.backgroundEquipment).sort(), [...keys].sort())
+    for (const [key, items] of Object.entries(artifact.backgroundEquipment)) {
+      assert.ok(items.length > 0, `${key}: backgroundEquipment vazio`)
+      for (const item of items) {
+        assert.ok(item.name.length > 0, `${key}: item com nome vazio`)
+        assert.equal(item.qty, 1, `${key}: qty diferente de 1 em "${item.name}"`)
+      }
+    }
+  })
 }
+
+// US-128: os dois artefatos concordam nos nomes EN dos itens (mesma fonte, `b.fields.desc`
+// cru) — só a tradução por item (kitItems) pode divergir, nunca a estrutura/contagem.
+test('backgroundEquipment: EN e pt-BR têm a mesma contagem de itens por origem', () => {
+  const en = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
+  const ptBr = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.pt-BR.json'), 'utf8'))
+  for (const key of Object.keys(en.backgroundEquipment)) {
+    assert.equal(
+      ptBr.backgroundEquipment[key]?.length,
+      en.backgroundEquipment[key].length,
+      `${key}: contagem de itens diverge entre EN e pt-BR`,
+    )
+  }
+})
+
+// --- US-128 — titleCase: nome de item, cada palavra maiúscula exceto preposição no meio ---
+
+test('titleCase: palavras simples ficam todas maiúsculas', () => {
+  assert.equal(titleCase('common clothes'), 'Common Clothes')
+})
+
+test('titleCase: preposição no MEIO fica minúscula (EN)', () => {
+  assert.equal(titleCase("One set of artisan's tools"), "One Set of Artisan's Tools")
+})
+
+test('titleCase: preposição no MEIO fica minúscula (PT, duas ocorrências de "de")', () => {
+  assert.equal(titleCase('conjunto de ferramentas de artesão'), 'Conjunto de Ferramentas de Artesão')
+})
+
+test('titleCase: primeira e última palavra SEMPRE maiúsculas, mesmo se estiverem na lista', () => {
+  assert.equal(titleCase('sword of'), 'Sword Of') // "of" é a última — não a mesma ocorrência de um "of" do meio
+  assert.equal(titleCase('of the tools'), 'Of the Tools') // "of" é a primeira; "the", no meio, minúsculo
+})
+
+test('titleCase: apóstrofo dentro da palavra sobrevive ("artisan\'s", não "Artisan\'S")', () => {
+  assert.equal(titleCase("artisan's tools"), "Artisan's Tools")
+})
+
+test('titleCase: parênteses não são tocados; conteúdo dentro também vira Title Case', () => {
+  assert.equal(titleCase('Book (occult lore)'), 'Book (Occult Lore)')
+  assert.equal(titleCase('Arcane Focus (Quarterstaff)'), 'Arcane Focus (Quarterstaff)') // já correto, idempotente
+})
+
+test('titleCase: numeral no início não conta como palavra — a primeira LETRA que aparece vira maiúscula', () => {
+  assert.equal(titleCase('50 feet of rope'), '50 Feet of Rope')
+})
+
+test('titleCase: palavra única fica maiúscula (é primeira E última ao mesmo tempo)', () => {
+  assert.equal(titleCase('abacus'), 'Abacus')
+})
+
+// US-128: nome de item não começa com artigo indefinido — testado via localizeKitItems
+// (stripLeadingArticle não é exportada; o efeito observável é no item final).
+test('localizeKitItems (via buildBackgrounds): artigo indefinido no início some, EN e PT', () => {
+  const backgrounds = [{ pk: 'a5e-ag_acolyte', fields: { name: 'Acolyte', desc: '', document: 'a5e-ag' } }]
+  const benefits = [{ pk: 'a5e-ag_acolyte_equipment', fields: { parent: 'a5e-ag_acolyte', name: 'Equipment', desc: 'A prayer book, common clothes.', type: 'equipment' } }]
+  const { backgroundEquipment: en } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  assert.deepEqual(en['a5e-ag_acolyte'], [{ name: 'Prayer Book', qty: 1 }, { name: 'Common Clothes', qty: 1 }])
+
+  const ptOverlay = { kitItems: { 'A prayer book': 'um livro de orações' } }
+  const ptResolve = (_domain, _key, entry, enName) => ({ name: entry?.name?.trim() || enName })
+  const { backgroundEquipment: pt } = buildBackgrounds(ptOverlay, backgrounds, benefits, ptResolve)
+  assert.deepEqual(pt['a5e-ag_acolyte'], [{ name: 'Livro de Orações', qty: 1 }, { name: 'Common Clothes', qty: 1 }])
+})
+
+// "Any"/"Artisan's" não são o artigo "a"/"an" sozinho — não podem ser cortados.
+test('localizeKitItems: palavra que só COMEÇA com "a"/"an" (Any, Arcane...) não é confundida com artigo', () => {
+  const backgrounds = [{ pk: 'a5e-ag_folk-hero', fields: { name: 'Folk Hero', desc: '', document: 'a5e-ag' } }]
+  const benefits = [{ pk: 'a5e-ag_folk-hero_equipment', fields: { parent: 'a5e-ag_folk-hero', name: 'Equipment', desc: 'Any artisan\'s tools.', type: 'equipment' } }]
+  const { backgroundEquipment } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  assert.deepEqual(backgroundEquipment['a5e-ag_folk-hero'], [{ name: "Any Artisan's Tools", qty: 1 }])
+})
 
 // --- US-121 — backgrounds do a5e-ag: join Background + BackgroundBenefit por parent → pk ---
 
@@ -305,7 +394,7 @@ test('buildBackgrounds: agrupa benefícios por parent; type cru sobrevive sem no
     benefit('a5e-ag_acolyte_ability-scores', 'a5e-ag_acolyte', 'Ability Score Increases', 'Wisdom, Intelligence, or Charisma.', 'ability_score'),
     benefit('a5e-ag_acolyte_skills', 'a5e-ag_acolyte', 'Skill Proficiencies', 'Religion and Insight.', 'skill_proficiency'),
   ]
-  const result = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
   assert.deepEqual(result.map((b) => b.key), ['a5e-ag_acolyte', 'a5e-ag_criminal'])
   const acolyte = result.find((b) => b.key === 'a5e-ag_acolyte')
   assert.equal(acolyte.source, 'a5e-ag')
@@ -315,7 +404,7 @@ test('buildBackgrounds: agrupa benefícios por parent; type cru sobrevive sem no
 
 test('buildBackgrounds: background sem benefit correspondente aparece com benefits: []', () => {
   const backgrounds = [background('a5e-ag_urchin', 'Urchin')]
-  const result = buildBackgrounds({}, backgrounds, [], identityResolve)
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, [], identityResolve)
   assert.deepEqual(result, [{ key: 'a5e-ag_urchin', name: 'Urchin', benefits: [], source: 'a5e-ag' }])
 })
 
@@ -323,6 +412,129 @@ test('buildBackgrounds: benefit com parent órfão falha alto', () => {
   const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
   const benefits = [benefit('a5e-ag_ghost_trait', 'a5e-ag_ghost', 'Trait', 'Texto.', 'feature')]
   assert.throws(() => buildBackgrounds({}, backgrounds, benefits, identityResolve), /a5e-ag_ghost/)
+})
+
+// --- US-128 — parseBackgroundEquipment: 3 armadilhas medidas contra as 21 entradas reais ---
+
+test('buildBackgrounds: benefit type === "equipment" popula backgroundEquipment[key]', () => {
+  const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
+  const benefits = [benefit('a5e-ag_acolyte_equipment', 'a5e-ag_acolyte', 'Equipment', 'Common clothes, robe.', 'equipment')]
+  const { backgroundEquipment } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  // US-128: localizeKitItems aplica titleCase no nome final — "robe" (cru, minúsculo no
+  // meio da frase do dataset) sai "Robe" (nome de item, Title Case).
+  assert.deepEqual(backgroundEquipment['a5e-ag_acolyte'], [{ name: 'Common Clothes', qty: 1 }, { name: 'Robe', qty: 1 }])
+})
+
+test('buildBackgrounds: origem sem benefit "equipment" não entra em backgroundEquipment', () => {
+  const backgrounds = [background('a5e-ag_urchin', 'Urchin')]
+  const { backgroundEquipment } = buildBackgrounds({}, backgrounds, [], identityResolve)
+  assert.deepEqual(backgroundEquipment, {})
+})
+
+test('parseBackgroundEquipment: formato simples, split por vírgula com "and" antes do último', () => {
+  assert.deepEqual(parseBackgroundEquipment('Common clothes, halberd, uniform.'), [
+    { name: 'Common clothes', qty: 1 },
+    { name: 'halberd', qty: 1 },
+    { name: 'uniform', qty: 1 },
+  ])
+})
+
+// Armadilha 1: parêntese com "or" dentro some inteiro — senão cortar no 1º " or" (como o
+// toKitItem faz) deixaria "Holy symbol (amulet" com parêntese aberto e nunca fechado.
+test('parseBackgroundEquipment: descarta parêntese com "or" dentro (Acolyte/Cultist)', () => {
+  const result = parseBackgroundEquipment('Holy symbol (amulet or reliquary), common clothes, robes, 5 torches.')
+  assert.deepEqual(result, [
+    { name: 'Holy symbol', qty: 1 },
+    { name: 'common clothes', qty: 1 },
+    { name: 'robes', qty: 1 },
+    { name: '5 torches', qty: 1 },
+  ])
+})
+
+// Parêntese SEM "or" dentro não é tocado — a regra é específica pro caso com alternativa.
+test('parseBackgroundEquipment: parêntese sem "or" permanece intocado (Marauder)', () => {
+  const result = parseBackgroundEquipment("Traveler's clothes, signal whistle, tent (one person).")
+  assert.deepEqual(result, [
+    { name: "Traveler's clothes", qty: 1 },
+    { name: 'signal whistle', qty: 1 },
+    { name: 'tent (one person)', qty: 1 },
+  ])
+})
+
+// Armadilha 2: escolha composta no final ("and a X, Y, or Z") tem 2 vírgulas internas — um
+// split ingênuo fatiaria em 3 itens errados. Fica só a primeira opção.
+test('parseBackgroundEquipment: escolha composta no final vira só a primeira opção (Acolyte)', () => {
+  const result = parseBackgroundEquipment(
+    'Holy symbol (amulet or reliquary), common clothes, robe, and a prayer book, prayer wheel, or prayer beads.',
+  )
+  assert.deepEqual(result, [
+    { name: 'Holy symbol', qty: 1 },
+    { name: 'common clothes', qty: 1 },
+    { name: 'robe', qty: 1 },
+    { name: 'a prayer book', qty: 1 },
+  ])
+})
+
+test('parseBackgroundEquipment: escolha composta no final vira só a primeira opção (Hermit)', () => {
+  const result = parseBackgroundEquipment(
+    "Healer's satchel, herbalism kit, common clothes, 7 days rations, and a prayer book, prayer wheel, or prayer beads.",
+  )
+  assert.deepEqual(result, [
+    { name: "Healer's satchel", qty: 1 },
+    { name: 'herbalism kit', qty: 1 },
+    { name: 'common clothes', qty: 1 },
+    { name: '7 days rations', qty: 1 },
+    { name: 'a prayer book', qty: 1 },
+  ])
+})
+
+// Armadilha 3: numeral é MEDIDA (dias, pés, folhas), não contagem de item — nunca extraído
+// como `qty`. Extrair produziria "feet of rope (50)" na tela, lido como 50 cordas.
+test('parseBackgroundEquipment: numeral+unidade fica no nome, qty sempre 1 (Sailor)', () => {
+  const result = parseBackgroundEquipment("Common clothes, navigator's tools, 50 feet of rope.")
+  assert.deepEqual(result.at(-1), { name: '50 feet of rope', qty: 1 })
+})
+
+test('parseBackgroundEquipment: "or" fora de parêntese e fora da escolha final fica inteiro (Entertainer)', () => {
+  const result = parseBackgroundEquipment('Lute or other musical instrument, costume.')
+  assert.deepEqual(result, [
+    { name: 'Lute or other musical instrument', qty: 1 },
+    { name: 'costume', qty: 1 },
+  ])
+})
+
+// --- US-128: as 21 entradas reais de type === 'equipment' não podem produzir item vazio, ---
+// --- parêntese desbalanceado, nem alternativa "or" cortada em item separado. ---
+test('parseBackgroundEquipment: as 21 entradas reais de equipment não quebram', () => {
+  const backgroundsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Background.json'), 'utf8'))
+  const benefitsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'BackgroundBenefit.json'), 'utf8'))
+  const equipmentBenefits = benefitsRaw.filter((b) => b.fields.type === 'equipment')
+  assert.equal(equipmentBenefits.length, 21, 'dataset mudou de tamanho — reveja as armadilhas medidas')
+  for (const b of equipmentBenefits) {
+    const items = parseBackgroundEquipment(b.fields.desc)
+    assert.ok(items.length > 0, `${b.pk}: nenhum item extraído`)
+    for (const item of items) {
+      assert.ok(item.name.length > 0, `${b.pk}: item com nome vazio`)
+      assert.equal((item.name.match(/\(/g) || []).length, (item.name.match(/\)/g) || []).length, `${b.pk}: parêntese desbalanceado em "${item.name}"`)
+      assert.ok(!/^or\s/i.test(item.name), `${b.pk}: item começa com "or " — alternativa cortada errado: "${item.name}"`)
+    }
+  }
+  const { backgrounds: allBackgrounds } = buildBackgrounds({}, backgroundsRaw, benefitsRaw, identityResolve)
+  assert.equal(allBackgrounds.length, 21)
+})
+
+// US-128 (Gap 1 do doc): toda string que o parser produz precisa ter tradução curada em
+// kitItems — nome de item no inventário é a primeira coisa visível ao jogador pt-BR depois de
+// criar personagem, diferente dos fallbacks EN "enterrados" de features/spells (US-52).
+test('parseBackgroundEquipment: nenhum item novo de equipamento fica sem tradução em kitItems', () => {
+  const benefitsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'BackgroundBenefit.json'), 'utf8'))
+  const overlay = JSON.parse(readFileSync(OVERLAY_PATH, 'utf8'))
+  const names = new Set()
+  for (const b of benefitsRaw.filter((b) => b.fields.type === 'equipment')) {
+    for (const item of parseBackgroundEquipment(b.fields.desc)) names.add(item.name)
+  }
+  const untranslated = [...names].filter((n) => !overlay.kitItems?.[n])
+  assert.deepEqual(untranslated, [], `item(ns) de equipamento sem entrada em kitItems: ${untranslated.join(', ')}`)
 })
 
 // --- US-108 — a tabela de modificadores de habilidade do SRD 2024 ---

@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, `benefits[].description` já traz o texto cru) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha de origem — é o `origin.key` selecionado que decide o que mostrar)
 **Relacionado:** [US-39](./US-39-identidade-narrativa-background-ideais.md) (`Character.background.bonds`/`story` — onde o jogador pode copiar à mão uma conexão/memento, sem automação, ver US-121 §Nomenclatura) · [US-123](./US-123-integracao-mecanica-background-pointbuy-proficiency.md) (mecaniza os OUTROS dois tipos de benefício; estes dois ficam de fora de propósito lá)
 **Criada em:** 2026-08-08

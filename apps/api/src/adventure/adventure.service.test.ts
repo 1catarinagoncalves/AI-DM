@@ -29,6 +29,8 @@ const config: SystemConfig = {
   // US-105: a ficha guarda a chave; o catálogo é quem sabe o rótulo do locale.
   races: [{ key: 'human', label: 'Humano' }],
   classes: [{ key: 'wizard', label: 'Mago' }],
+  // US-128: equipamento da origem, chave = SystemBackground.key (Character.origin.key).
+  backgroundEquipment: { 'a5e-ag_acolyte': [{ name: 'Símbolo sagrado', qty: 1 }, { name: 'Túnica', qty: 1 }] },
   initialAdventures: {
     hooks: [
       {
@@ -253,6 +255,95 @@ describe('AdventureService.createForCharacter', () => {
     const { prisma } = fakePrisma(null)
     const service = new AdventureService(prisma, fakeAi())
     await expect(service.createForCharacter('missing', { initialHookId: 'mago-arquivo' })).rejects.toThrow()
+  })
+
+  // --- US-128: memento + equipamento da origem no inventário inicial ---
+
+  it('origem escolhida (sem memento): kit da classe + itens de equipamento, sem item de memento', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      baseAttributes: { constitution: 14 }, system: { config },
+      origin: { key: 'a5e-ag_acolyte' },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    expect(recorded.characterStateCreate).toMatchObject({
+      inventory: [
+        { name: 'Adaga', qty: 1 },
+        { name: 'Símbolo sagrado', qty: 1, origin: 'equipment' },
+        { name: 'Túnica', qty: 1, origin: 'equipment' },
+      ],
+    })
+  })
+
+  it('memento escolhido (sem origem mecanizada): kit da classe + item "Memento", nome fixo — não o texto completo', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      baseAttributes: { constitution: 14 }, system: { config },
+      origin: { memento: 'O símbolo sagrado gasto pelo tempo que seu mentor lhe deixou.' },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    expect(recorded.characterStateCreate).toMatchObject({
+      inventory: [
+        { name: 'Adaga', qty: 1 },
+        { name: 'Memento', qty: 1, origin: 'memento' },
+      ],
+    })
+  })
+
+  it('origem + memento juntos: kit + equipamento da origem + Memento, nessa ordem', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      baseAttributes: { constitution: 14 }, system: { config },
+      origin: { key: 'a5e-ag_acolyte', memento: 'O símbolo sagrado gasto pelo tempo.' },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    expect(recorded.characterStateCreate).toMatchObject({
+      inventory: [
+        { name: 'Adaga', qty: 1 },
+        { name: 'Símbolo sagrado', qty: 1, origin: 'equipment' },
+        { name: 'Túnica', qty: 1, origin: 'equipment' },
+        { name: 'Memento', qty: 1, origin: 'memento' },
+      ],
+    })
+  })
+
+  it('sem origem escolhida e sem memento: inventário só com o kit da classe, sem item vazio (sem regressão)', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    expect(recorded.characterStateCreate).toMatchObject({ inventory: [{ name: 'Adaga', qty: 1 }] })
+  })
+
+  it('origem sem catálogo de equipamento (chave desconhecida): sem item extra, sem lançar', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      baseAttributes: { constitution: 14 }, system: { config },
+      origin: { key: 'a5e-ag_urchin' },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+
+    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+
+    expect(recorded.characterStateCreate).toMatchObject({ inventory: [{ name: 'Adaga', qty: 1 }] })
   })
 })
 

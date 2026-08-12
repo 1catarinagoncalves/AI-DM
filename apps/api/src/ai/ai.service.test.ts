@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { AiService, scenePatchFromExtraction } from './ai.service'
+import { AiService, scenePatchFromExtraction, applyInventoryDeltas } from './ai.service'
 import { mergeSceneState } from '@ai-dm/ai-engine'
-import type { SceneState } from '@ai-dm/shared'
+import type { InventoryItem, SceneState } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
 import type { EventLog } from '../generated/prisma/client'
@@ -216,6 +216,43 @@ describe('AiService.completeTruncatedTurn (US-74)', () => {
     await svc.completeTruncatedTurn(INPUT, 'O beco engole o som dos seus passos.')
 
     expect(reconciled[0]!.turnId).toBeUndefined()
+  })
+})
+
+describe('applyInventoryDeltas (US-128)', () => {
+  // Regressão: o Map antigo era <string, number> e reconstruía cada item como {name, qty} —
+  // mexer em QUALQUER item apagava `origin` (memento/equipamento da origem) de todos os outros.
+  it('mexer em OUTRO item não apaga o origin do item marcado', () => {
+    const current: InventoryItem[] = [
+      { name: 'Memento', qty: 1, origin: 'memento' },
+      { name: 'Adaga', qty: 1 },
+    ]
+    const next = applyInventoryDeltas(current, [{ name: 'Adaga', delta: 1 }])
+    expect(next.find((i) => i.name === 'Memento')).toEqual({ name: 'Memento', qty: 1, origin: 'memento' })
+    expect(next.find((i) => i.name === 'Adaga')).toEqual({ name: 'Adaga', qty: 2 })
+  })
+
+  it('delta negativo remove o item quando a quantidade chega a zero', () => {
+    const current: InventoryItem[] = [{ name: 'Poção', qty: 1 }]
+    const next = applyInventoryDeltas(current, [{ name: 'Poção', delta: -1 }])
+    expect(next).toEqual([])
+  })
+
+  it('delta negativo maior que a quantidade não deixa item com qty negativa', () => {
+    const current: InventoryItem[] = [{ name: 'Flecha', qty: 2 }]
+    const next = applyInventoryDeltas(current, [{ name: 'Flecha', delta: -5 }])
+    expect(next).toEqual([])
+  })
+
+  it('item novo (sem entrada prévia) nasce sem origin', () => {
+    const next = applyInventoryDeltas([], [{ name: 'Corda', delta: 1 }])
+    expect(next).toEqual([{ name: 'Corda', qty: 1 }])
+  })
+
+  it('remover o item de memento apaga a linha, sem deixar rastro', () => {
+    const current: InventoryItem[] = [{ name: 'Memento', qty: 1, origin: 'memento' }]
+    const next = applyInventoryDeltas(current, [{ name: 'Memento', delta: -1 }])
+    expect(next).toEqual([])
   })
 })
 

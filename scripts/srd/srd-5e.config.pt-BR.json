@@ -43,6 +43,310 @@
       "min": 10
     }
   ],
+  "backgroundEquipment": {
+    "a5e-ag_acolyte": [
+      {
+        "name": "Símbolo Sagrado",
+        "qty": 1
+      },
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "Túnica",
+        "qty": 1
+      },
+      {
+        "name": "Livro de Orações",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_artisan": [
+      {
+        "name": "Conjunto de Ferramentas de Artesão",
+        "qty": 1
+      },
+      {
+        "name": "Roupas de Viajante",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_charlatan": [
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "Kit de Disfarce",
+        "qty": 1
+      },
+      {
+        "name": "Kit de Falsificação",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_criminal": [
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "Capa Escura",
+        "qty": 1
+      },
+      {
+        "name": "Ferramentas de Ladrão",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_cultist": [
+      {
+        "name": "Símbolo Sagrado",
+        "qty": 1
+      },
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "Túnicas",
+        "qty": 1
+      },
+      {
+        "name": "5 Tochas",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_entertainer": [
+      {
+        "name": "Alaúde ou Outro Instrumento Musical",
+        "qty": 1
+      },
+      {
+        "name": "Figurino",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_exile": [
+      {
+        "name": "Roupas de Viajante",
+        "qty": 1
+      },
+      {
+        "name": "10 Dias de Ração",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_farmer": [
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "Pá",
+        "qty": 1
+      },
+      {
+        "name": "Mula com Alforjes",
+        "qty": 1
+      },
+      {
+        "name": "5 Suprimento (Rações)",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_folk-hero": [
+      {
+        "name": "Quaisquer Ferramentas de Artesão, Exceto Suprimentos de Alquimista",
+        "qty": 1
+      },
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_gambler": [
+      {
+        "name": "Roupas Finas",
+        "qty": 1
+      },
+      {
+        "name": "Jogo de Dados",
+        "qty": 1
+      },
+      {
+        "name": "Baralho de Cartas",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_guard": [
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "Alabarda",
+        "qty": 1
+      },
+      {
+        "name": "Uniforme",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_guildmember": [
+      {
+        "name": "Conjunto de Ferramentas de Artesão ou Um Instrumento",
+        "qty": 1
+      },
+      {
+        "name": "Roupas de Viajante",
+        "qty": 1
+      },
+      {
+        "name": "Distintivo de Guilda",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_hermit": [
+      {
+        "name": "Bolsa de Curandeiro",
+        "qty": 1
+      },
+      {
+        "name": "Kit de Herbalismo",
+        "qty": 1
+      },
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "7 Dias de Ração",
+        "qty": 1
+      },
+      {
+        "name": "Livro de Orações",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_marauder": [
+      {
+        "name": "Roupas de Viajante",
+        "qty": 1
+      },
+      {
+        "name": "Apito de Sinalização",
+        "qty": 1
+      },
+      {
+        "name": "Barraca (Uma Pessoa)",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_noble": [
+      {
+        "name": "Roupas Finas",
+        "qty": 1
+      },
+      {
+        "name": "Anel de Sinete",
+        "qty": 1
+      },
+      {
+        "name": "Documento Detalhando Sua Árvore Genealógica",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_outlander": [
+      {
+        "name": "Roupas de Viajante",
+        "qty": 1
+      },
+      {
+        "name": "Cantil",
+        "qty": 1
+      },
+      {
+        "name": "Kit de Curandeiro",
+        "qty": 1
+      },
+      {
+        "name": "7 Dias de Ração",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_sage": [
+      {
+        "name": "Frasco de Tinta",
+        "qty": 1
+      },
+      {
+        "name": "Caneta",
+        "qty": 1
+      },
+      {
+        "name": "50 Folhas de Pergaminho",
+        "qty": 1
+      },
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_sailor": [
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "Ferramentas de Navegador",
+        "qty": 1
+      },
+      {
+        "name": "50 Pés de Corda",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_soldier": [
+      {
+        "name": "Uniforme",
+        "qty": 1
+      },
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "7 Dias de Ração",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_trader": [
+      {
+        "name": "Roupas de Viajante",
+        "qty": 1
+      },
+      {
+        "name": "Ábaco",
+        "qty": 1
+      },
+      {
+        "name": "Balança de Mercador",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_urchin": [
+      {
+        "name": "Roupas Comuns",
+        "qty": 1
+      },
+      {
+        "name": "Kit de Disfarce",
+        "qty": 1
+      }
+    ]
+  },
   "backgrounds": [
     {
       "benefits": [
@@ -2953,7 +3257,7 @@
         "qty": 1
       },
       {
-        "name": "Foco Druídico (ramo de visco)",
+        "name": "Foco Druídico (Ramo de Visco)",
         "qty": 1
       },
       {
@@ -3005,7 +3309,7 @@
         "qty": 2
       },
       {
-        "name": "Foco Arcano (cristal)",
+        "name": "Foco Arcano (Cristal)",
         "qty": 1
       },
       {
@@ -3027,11 +3331,11 @@
         "qty": 2
       },
       {
-        "name": "Foco Arcano (orbe)",
+        "name": "Foco Arcano (Orbe)",
         "qty": 1
       },
       {
-        "name": "Livro (saber oculto)",
+        "name": "Livro (Saber Oculto)",
         "qty": 1
       },
       {

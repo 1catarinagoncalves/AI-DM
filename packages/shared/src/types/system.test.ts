@@ -17,6 +17,16 @@ describe('SystemConfigSchema', () => {
     }
     expect(() => SystemConfigSchema.parse(config)).toThrow()
   })
+
+  // US-128: paralelo a startingKits, mas SEM exigir chave `default` — origem é opcional.
+  it('aceita backgroundEquipment sem chave default', () => {
+    const config = {
+      attributes: [{ key: 'cool', label: 'Cool', min: 1, max: 10, default: 5 }],
+      startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+      backgroundEquipment: { a5e_ag_acolyte: [{ name: 'Holy symbol', qty: 1 }] },
+    }
+    expect(SystemConfigSchema.parse(config)).toEqual(config)
+  })
 })
 
 describe('buildCharacterAttributesSchema', () => {

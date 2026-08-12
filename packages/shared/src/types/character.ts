@@ -1,6 +1,8 @@
 export interface InventoryItem {
   name: string
   qty: number
+  /** US-128: procedência do item. Ausente = item comum (kit, achado em jogo). */
+  origin?: 'memento' | 'equipment'
 }
 
 // Estado de cena estruturado (US-03): fonte de verdade da continuidade

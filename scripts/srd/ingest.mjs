@@ -328,24 +328,103 @@ function startingEquipmentCell(feature) {
   return line.split('|')[2]
 }
 
-function buildStartingKits(overlay, features, resolve) {
-  // A chave do overlay é o NOME EN do item ("Chain Shirt"), como em attributes/skills: item só
-  // tem nome, não tem descrição — não há onde pendurar a marca `_mt` (por isso fora de MT_DOMAINS).
-  const localize = (item) => ({
-    name: resolve('kitItems', item.name, { name: overlay.kitItems?.[item.name] }, item.name).name,
+// US-128: preposições/artigos que ficam em minúscula no meio de um nome de item — a
+// primeira e a última palavra são SEMPRE maiúsculas, mesmo se estiverem nesta lista
+// ("Of Mice and Men" continuaria com o "Of" maiúsculo). EN e PT juntos porque
+// `titleCase` roda sobre o texto final, seja ele o fallback EN ou a tradução pt-BR.
+const LOWERCASE_WORDS = new Set([
+  'of', 'in', 'on', 'at', 'to', 'for', 'with', 'from', 'by', 'and', 'or', 'the', 'a', 'an', 'except',
+  'de', 'da', 'do', 'das', 'dos', 'em', 'com', 'para', 'por', 'e', 'ou', 'sem', 'no', 'na', 'nos', 'nas', 'ao', 'aos',
+])
+
+// US-128: nome de item não começa com artigo indefinido — "a prayer book" vira "prayer book"
+// antes do titleCase (que então maiuscula a nova primeira palavra). EN ("a"/"an") e PT
+// ("um"/"uma") juntos, mesmo motivo do LOWERCASE_WORDS acima. Só o INÍCIO da string conta —
+// "One set of artisan's tools" não é artigo (é numeral), fica como está de propósito.
+function stripLeadingArticle(text) {
+  return text.replace(/^(a|an|um|uma)\s+/i, '')
+}
+
+// Nome de item de inventário, palavra por palavra maiúscula — exceto preposição/artigo no
+// meio (LOWERCASE_WORDS), e exceto a primeira e a última palavra, que são sempre maiúsculas
+// independente da lista. Pontuação (parênteses, apóstrofo) não é tocada; `'s`/`'` dentro da
+// palavra ("artisan's") sobrevive porque o token inteiro é uma unidade só.
+//
+// Posição (índice do match), não o TEXTO da palavra, decide "é a última" — duas ocorrências
+// da mesma palavra (uma no meio, outra no fim) não podem se confundir por comparação de string.
+export function titleCase(text) {
+  const matches = [...text.matchAll(/[\p{L}][\p{L}'’]*/gu)]
+  if (!matches.length) return text
+  const lastIndex = matches[matches.length - 1].index
+  let result = text
+  let shift = 0
+  for (const [i, m] of matches.entries()) {
+    const isFirst = i === 0
+    const isLast = m.index === lastIndex
+    const lower = m[0].toLowerCase()
+    const replacement = !isFirst && !isLast && LOWERCASE_WORDS.has(lower)
+      ? lower
+      : lower.charAt(0).toUpperCase() + lower.slice(1)
+    const start = m.index + shift
+    result = result.slice(0, start) + replacement + result.slice(start + m[0].length)
+    shift += replacement.length - m[0].length
+  }
+  return result
+}
+
+// Traduz nome de item de kit via `overlay.kitItems` (chave = nome EN, sem descrição — item só
+// tem nome, não há onde pendurar a marca `_mt`, por isso fora de MT_DOMAINS). Compartilhado
+// entre kit de classe (buildStartingKits, US-51) e equipamento de origem (buildBackgrounds,
+// US-128) — mesmo mecanismo, mesma chave EN, mesmo relatório de órfão/fallback. A CHAVE do
+// overlay continua o texto cru do dataset (`item.name`, nunca transformado) — só o nome final
+// (fallback EN ou tradução pt-BR) passa por `stripLeadingArticle`/`titleCase`, senão a busca
+// no overlay quebraria.
+function localizeKitItems(overlay, resolve, items) {
+  return items.map((item) => ({
+    name: titleCase(stripLeadingArticle(resolve('kitItems', item.name, { name: overlay.kitItems?.[item.name] }, item.name).name)),
     qty: item.qty,
-  })
-  const startingKits = { default: DEFAULT_KIT.map(localize) }
+  }))
+}
+
+function buildStartingKits(overlay, features, resolve) {
+  const startingKits = { default: localizeKitItems(overlay, resolve, DEFAULT_KIT) }
   for (const f of features) {
     if (f.fields.feature_type !== 'CORE_TRAITS_TABLE') continue
     const canon = CLASS_MAP[f.fields.parent]
     if (!canon) continue // subclasse/documento fora do mapa: o loop abaixo é quem cobra a base
-    startingKits[canon] = parseStartingKit(startingEquipmentCell(f)).map(localize)
+    startingKits[canon] = localizeKitItems(overlay, resolve, parseStartingKit(startingEquipmentCell(f)))
   }
   for (const canon of Object.values(CLASS_MAP)) {
     if (!startingKits[canon]) throw new Error(`Classe sem kit inicial: ${canon} (nenhuma feature CORE_TRAITS_TABLE em ClassFeature.json)`)
   }
   return startingKits
+}
+
+// --- backgroundEquipment (US-128): benefício type === 'equipment' → itens de inventário ---
+//
+// Duas regras gerais resolvem as armadilhas medidas contra as 21 entradas reais, ANTES do
+// split por vírgula — nenhuma curadoria por origem:
+//   1. parêntese que contém " or " some inteiro ("Holy symbol (amulet or reliquary)" →
+//      "Holy symbol"): sem isto, cortar no primeiro " or" (como o toKitItem faz) deixaria
+//      parêntese aberto e nunca fechado.
+//   2. escolha composta no final ("...and a prayer book, prayer wheel, or prayer beads.")
+//      vira só a primeira opção ("...and a prayer book.") ANTES do split — senão as 2
+//      vírgulas internas da escolha fatiam em 3 itens errados.
+// Sem extração de numeral (ao contrário do `toKitItem`): o número aqui nunca é contagem de
+// item, é medida ("7 days rations", "50 feet of rope") — extrair como `qty` produziria
+// "feet of rope (50)" na tela, lido como 50 cordas. Texto completo (numeral incluso) fica
+// no nome, `qty` sempre 1.
+export function parseBackgroundEquipment(desc) {
+  const noParenOr = String(desc).replace(/\s*\([^)]*\bor\b[^)]*\)/gi, '')
+  const firstOptionOnly = noParenOr.replace(
+    /,\s*and\s+([^,]+),\s*[^,]+,\s*or\s+[^,.]+\.?\s*$/i,
+    ', and $1.',
+  )
+  return firstOptionOnly
+    .split(',')
+    .map((part) => norm(part).replace(/^and\s+/i, '').replace(/\.\s*$/, ''))
+    .filter(Boolean)
+    .map((name) => ({ name, qty: 1 }))
 }
 
 // --- backgrounds (21 + benefícios): a5e-ag (EN Publishing), CC-BY-4.0 via dual-licenciamento
@@ -356,6 +435,12 @@ function buildStartingKits(overlay, features, resolve) {
 // (sem enDesc). Cada benefício é `resolve`ido por si (name+desc), com o próprio `pk` como
 // chave de overlay: não precisa de mapa tipo CLASS_MAP porque `parent` já referencia o pk do
 // Background diretamente (um nível só, não dois como classFeature/classFeatureItem).
+// US-128: devolve `{ backgrounds, backgroundEquipment }` — o segundo é derivado do benefício
+// `type === 'equipment'`, parseado a partir do `b.fields.desc` CRU (EN, igual a
+// `startingEquipmentCell`/`parseStartingKit`), nunca do `entry.description` já resolvido —
+// aquele pode vir traduzido por MT (backgrounds está em MT_DOMAINS) e um nome de item já em
+// pt-BR não bate contra a chave EN de `overlay.kitItems`. Mesmo padrão de `buildStartingKits`:
+// parse sobre o dataset EN, tradução por item via `localizeKitItems`.
 export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve) {
   const bgKeys = new Set(backgroundsRaw.map((bg) => bg.pk))
   const benefitsByParent = {}
@@ -365,17 +450,23 @@ export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve) 
     }
     ;(benefitsByParent[b.fields.parent] ??= []).push(b)
   }
-  return backgroundsRaw
+  const backgroundEquipment = {}
+  const backgrounds = backgroundsRaw
     .map((bg) => {
       const key = bg.pk
       const name = resolve('backgrounds', key, overlay.backgrounds?.[key], bg.fields.name).name
       const benefits = (benefitsByParent[bg.pk] ?? []).map((b) => {
         const entry = resolve('backgrounds', b.pk, overlay.backgrounds?.[b.pk], b.fields.name, norm(b.fields.desc))
+        if (b.fields.type === 'equipment') {
+          const items = parseBackgroundEquipment(norm(b.fields.desc))
+          backgroundEquipment[key] = localizeKitItems(overlay, resolve, items)
+        }
         return { type: b.fields.type, name: entry.name, description: entry.description }
       })
       return { key, name, benefits, source: 'a5e-ag' }
     })
     .sort((a, b) => a.key.localeCompare(b.key))
+  return { backgrounds, backgroundEquipment }
 }
 
 // Monta um artefato completo a partir do dataset + um overlay. Overlay `{}` = base EN crua.
@@ -388,7 +479,7 @@ function buildConfig(overlay, data) {
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
   const startingKits = buildStartingKits(overlay, data.features, resolve)
-  const backgrounds = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve)
+  const { backgrounds, backgroundEquipment } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
   for (const domain of ['features', 'spells', 'kitItems', 'backgrounds']) {
@@ -398,8 +489,9 @@ function buildConfig(overlay, data) {
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  SystemConfigSchema.parse({ attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds, ...STUB })
-  return { artifact: { attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds }, fallbacks, orphans, glossary }
+  const artifact = { attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment }
+  SystemConfigSchema.parse({ ...artifact, ...STUB })
+  return { artifact, fallbacks, orphans, glossary }
 }
 
 async function main() {

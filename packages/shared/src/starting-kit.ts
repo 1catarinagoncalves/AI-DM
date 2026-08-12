@@ -1,5 +1,6 @@
 import type { InventoryItem } from './types/character'
 import type { SystemConfig } from './types/system'
+import type { Locale } from './locale'
 
 // US-105: `classKey` é a CHAVE canônica gravada no Character (`wizard`, `paladin`), validada
 // contra `config.classes` na criação — não é mais o texto livre que o jogador digitava. Por isso
@@ -20,6 +21,28 @@ import type { SystemConfig } from './types/system'
 export function getStartingInventory(config: SystemConfig, classKey: string): InventoryItem[] {
   // SystemConfigSchema garante a chave `default`; ver types/system.ts.
   return config.startingKits[classKey] ?? (config.startingKits.default as InventoryItem[])
+}
+
+/**
+ * Equipamento inicial da ORIGEM escolhida (US-128), pela chave do background (US-122
+ * `origin.key`). Sem fallback `default`: origem é opcional na criação e a chave pode não
+ * existir no catálogo (sistema sem backgrounds) — as duas situações devolvem lista vazia,
+ * nunca lançam. Item marcado `origin: 'equipment'` pelo CHAMADOR (US-128 §Notas de
+ * implementação); esta função só resolve o kit cru do config, igual a `getStartingInventory`.
+ */
+export function getBackgroundEquipment(config: SystemConfig, originKey: string): InventoryItem[] {
+  return config.backgroundEquipment?.[originKey] ?? []
+}
+
+/**
+ * Rótulo fixo do item de memento no inventário (US-128) — mesma palavra usada no heading
+ * `game.background.memento` (`apps/web/src/messages`), duplicada aqui porque `apps/api` não
+ * tem catálogo de mensagens (sem ConfigModule/i18n, ver AGENTS.md). O nome do item nunca é o
+ * texto completo escolhido (`Character.origin.memento`) — esse continua só na aba Background.
+ */
+export const MEMENTO_ITEM_LABEL: Record<Locale, string> = {
+  'pt-BR': 'Memento',
+  'en-US': 'Memento',
 }
 
 /**

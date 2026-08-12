@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, type InitialAdventureHook, type ChatTurn } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
@@ -82,7 +82,10 @@ export class AdventureService {
     })
     if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
 
-    const config = SystemConfigSchema.parse(configForLocale(character.system, resolveLocale(character.user?.locale)))
+    // US-128: um só resolveLocale — reusado no config, na abertura gerada e no rótulo do
+    // item de memento (`MEMENTO_ITEM_LABEL`), em vez de recalcular a mesma coisa 3 vezes.
+    const locale = resolveLocale(character.user?.locale)
+    const config = SystemConfigSchema.parse(configForLocale(character.system, locale))
 
     // A classe é a fonte de verdade do gancho: resolvemos server-side e só usamos
     // o initialHookId do cliente para validar que ele não escolheu outro (US-28).
@@ -106,6 +109,17 @@ export class AdventureService {
     // prompt da geração de abertura (o DM precisa saber o que a personagem carrega).
     const startingInventory = getStartingInventory(config, character.class)
 
+    // US-128: equipamento da origem escolhida + memento, somados ao kit da classe — mesmo
+    // momento de materialização, mesma lista que vai para `CharacterState.inventory`. Nome do
+    // memento é o RÓTULO FIXO (`MEMENTO_ITEM_LABEL`), nunca o texto completo escolhido no
+    // wizard — esse continua só em `Character.origin.memento`, lido pela aba Background.
+    const origin = (character.origin ?? {}) as { key?: string; connection?: string; memento?: string }
+    const originItems: InventoryItem[] = [
+      ...getBackgroundEquipment(config, origin.key ?? '').map((item) => ({ ...item, origin: 'equipment' as const })),
+      ...(origin.memento ? [{ name: MEMENTO_ITEM_LABEL[locale], qty: 1, origin: 'memento' as const }] : []),
+    ]
+    const fullInventory = [...startingInventory, ...originItems]
+
     // Abertura gerada pelo MESMO DM (US-34), FORA da transação (LLM é lento e não
     // deve segurar locks). Falha/vazio → cai no openingNarration estático do gancho.
     const labelPairs = (config.attributes ?? []).map((a) => [a.key, a.label] as const)
@@ -123,7 +137,7 @@ export class AdventureService {
       characterClass: className,
       characterRace: raceName,
       mainQuest: `${hook.primaryQuestTitle}\n${hook.primaryQuestDescription}`,
-      inventory: startingInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
+      inventory: fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
       sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
       hookSeed: hook.openingNarration,
       attributeLabels: Object.fromEntries(labelPairs),
@@ -133,7 +147,7 @@ export class AdventureService {
       features,
       // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
       spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
-      locale: resolveLocale(character.user?.locale),
+      locale,
     })
     // US-101: o fallback estático já sai no idioma certo — `hook` veio do `config` do locale
     // (linha 85), e o gancho passou a ter versão por idioma. Antes ele era o único PT que
@@ -150,7 +164,7 @@ export class AdventureService {
     const [scenePatch, seededEntities] = await Promise.all([
       this.ai.extractOpeningScene(
         openingText,
-        startingInventory.map((i) => i.name),
+        fullInventory.map((i) => i.name),
       ),
       this.ai.extractOpeningEntities(openingText, `${hook.primaryQuestTitle}\n${hook.primaryQuestDescription}`),
     ])
@@ -187,7 +201,7 @@ export class AdventureService {
           hp: maxHp,
           maxHp,
           attributes: character.baseAttributes as object,
-          inventory: startingInventory as unknown as object,
+          inventory: fullInventory as unknown as object,
           // US-35: cena extraída da abertura. Nulo → coluna ausente (como antes).
           ...(sceneState ? { sceneState: sceneState as unknown as object } : {}),
         },

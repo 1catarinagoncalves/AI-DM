@@ -113,6 +113,10 @@ export const SystemConfigSchema = z.object({
   // Catálogo de backgrounds do a5e-ag (US-121), derivado pelo ingest. Opcional como races/classes:
   // config legado sem ele não fica inválido. Mecânico apenas — escolha na criação é story separada.
   backgrounds: z.array(SystemBackgroundSchema).optional(),
+  // Equipamento inicial por ORIGEM (US-128), paralelo a `startingKits` (por classe) mas sem
+  // chave `default` — origem é opcional na criação, sem origem escolhida não há o que resolver.
+  // Chave = `SystemBackground.key`. Derivado pelo ingest do benefício `type === 'equipment'`.
+  backgroundEquipment: z.record(z.string(), z.array(StartingKitItemSchema)).optional(),
   proficiency: z.object({
     choices: z.number().int().min(0),
     bonus: z.number().int(),

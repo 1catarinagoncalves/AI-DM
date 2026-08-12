@@ -6,13 +6,13 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus, Sparkles } from 'lucide-react'
 import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
-  getStartingInventory, resolveSheetEntries,
+  getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries,
   type InitialAdventureHook, type SystemConfig,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { parseD10Tables } from '@/lib/parseD10Tables'
 import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, SheetHeading, cn, dmButtonClass, fieldClass } from '@/components/ui/dm'
-import { useT } from '@/components/LocaleProvider'
+import { useT, useLocale } from '@/components/LocaleProvider'
 import type { MessageKey } from '@/messages'
 import { BackgroundPanel, type CharacterBackground } from '@/components/character/BackgroundPanel'
 import { FeaturesPanel } from '@/components/character/FeaturesPanel'
@@ -98,6 +98,7 @@ function lines(s: string): string[] {
 
 export function SetupWizard() {
   const t = useT()
+  const { locale } = useLocale()
   const router = useRouter()
   const [step, setStep] = useState<Step>('system')
   const [loading, setLoading] = useState(false)
@@ -177,6 +178,17 @@ export function SetupWizard() {
   // `getClassSpells`) e que a leitura usa para resolver (`resolveSheetEntries`), para o preview
   // nunca divergir do que a API salva e do que a GameView mostra depois (US-45/US-41).
   const previewKit = system?.config ? getStartingInventory(system.config, charData.class) : []
+  // US-128: equipamento da origem + memento somados ao kit da classe, mesma regra de
+  // AdventureService.createForCharacter — o preview não pode divergir do que a API grava.
+  // Memento aqui é o RÓTULO FIXO (MEMENTO_ITEM_LABEL), não o mementoText (texto completo,
+  // que já tem linha própria mais abaixo); gate é `mementoText` truthy, mesma condição do
+  // `originPayload.memento` que handleConfirm envia.
+  const previewOriginEquipment = system?.config && origin ? getBackgroundEquipment(system.config, origin) : []
+  const previewFullKit = [
+    ...previewKit,
+    ...previewOriginEquipment,
+    ...(mementoText ? [{ name: MEMENTO_ITEM_LABEL[locale], qty: 1 }] : []),
+  ]
   const previewFeatureKeys = system?.config ? getClassFeatures(system.config, charData.class) : []
   const previewFeatures = system?.config
     ? resolveSheetEntries(system.config.classFeatures, system.config.retiredFeatures, charData.class, previewFeatureKeys)
@@ -687,7 +699,7 @@ export function SetupWizard() {
                   <div className="flex items-start justify-between gap-6 py-2.5">
                     <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.kit')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">
-                      {previewKit.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
+                      {previewFullKit.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
                     </dd>
                   </div>
                   {/* US-122: linha própria da origem — só aparece quando o sistema tem catálogo

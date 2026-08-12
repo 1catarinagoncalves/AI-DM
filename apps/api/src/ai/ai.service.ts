@@ -139,6 +139,23 @@ export function scenePatchFromExtraction(object: ExtractedScene, playerName?: st
 }
 
 /**
+ * US-128: aplica deltas de quantidade (tool `updateInventory`) PRESERVANDO campos além de
+ * `name`/`qty` — antes reduzia o inventário a `Map<string, number>` e reconstruía cada item
+ * como `{name, qty}`, apagando `origin` (memento/equipamento da origem) no primeiro turno em
+ * que o Mestre mexesse em QUALQUER item, não só o marcado. Item novo (sem entrada prévia)
+ * nasce sem `origin`, igual a hoje. `qty <= 0` remove o item.
+ */
+export function applyInventoryDeltas(current: InventoryItem[], changes: { name: string; delta: number }[]): InventoryItem[] {
+  const items = new Map(current.map((item) => [item.name, item]))
+  for (const { name, delta } of changes) {
+    const qty = (items.get(name)?.qty ?? 0) + delta
+    if (qty <= 0) items.delete(name)
+    else items.set(name, { ...items.get(name), name, qty })
+  }
+  return [...items.values()]
+}
+
+/**
  * US-103: proveniência das três extrações estruturadas, no mesmo formato da linha do
  * turno. As três usam `summaryModel` e o MESMO pin de rota da narração — a ADR 008 §3
  * afirma que caem no mesmo endpoint dela, e esta linha é o que permite conferir por
@@ -470,20 +487,12 @@ export class AiService {
           })
 
           const current = (state?.inventory ?? []) as unknown as InventoryItem[]
-          const inv = new Map<string, number>(current.map(i => [i.name, i.qty]))
+          const inventory = applyInventoryDeltas(current, changes)
 
-          for (const { name, delta } of changes) {
-            const next = (inv.get(name) ?? 0) + delta
-            if (next <= 0) inv.delete(name)
-            else inv.set(name, next)
-          }
-
-          const total = Array.from(inv.values()).reduce((a, b) => a + b, 0)
+          const total = inventory.reduce((a, item) => a + item.qty, 0)
           if (total > 9999) {
             return { error: 'Inventário cheio: limite de 9999 itens atingido. O item não foi adicionado.' }
           }
-
-          const inventory: InventoryItem[] = Array.from(inv.entries()).map(([name, qty]) => ({ name, qty }))
 
           const inventoryJson = inventory as unknown as object
 

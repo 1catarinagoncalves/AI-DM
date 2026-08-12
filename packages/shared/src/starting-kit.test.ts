@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SystemConfig } from './types/system'
-import { getStartingInventory, getClassFeatures, getClassSpells } from './starting-kit'
+import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, MEMENTO_ITEM_LABEL } from './starting-kit'
 
 const dnd5eConfig: SystemConfig = {
   attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
@@ -43,6 +43,41 @@ describe('getStartingInventory', () => {
       startingKits: { default: [{ name: 'Mochila', qty: 1 }] },
     }
     expect(getStartingInventory(freeConfig, 'fighter')).toEqual([{ name: 'Mochila', qty: 1 }])
+  })
+})
+
+// US-128: paralelo a getStartingInventory, mas por ORIGEM e sem fallback `default` —
+// origem sem catálogo (ou personagem sem origem escolhida) devolve lista vazia, nunca lança.
+describe('getBackgroundEquipment (US-128)', () => {
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    backgroundEquipment: {
+      a5e_ag_acolyte: [{ name: 'Holy symbol', qty: 1 }, { name: 'Common clothes', qty: 1 }],
+    },
+  }
+
+  it('devolve o equipamento da origem pela chave', () => {
+    expect(getBackgroundEquipment(config, 'a5e_ag_acolyte')).toEqual([
+      { name: 'Holy symbol', qty: 1 },
+      { name: 'Common clothes', qty: 1 },
+    ])
+  })
+
+  it('origem sem entrada no catálogo devolve lista vazia (nunca lança)', () => {
+    expect(getBackgroundEquipment(config, 'a5e_ag_desconhecida')).toEqual([])
+  })
+
+  it('config sem backgroundEquipment devolve lista vazia', () => {
+    const noEquipment: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
+    expect(getBackgroundEquipment(noEquipment, 'a5e_ag_acolyte')).toEqual([])
+  })
+})
+
+describe('MEMENTO_ITEM_LABEL (US-128)', () => {
+  it('tem rótulo pro pt-BR e en-US, mesma palavra dos dois lados (game.background.memento)', () => {
+    expect(MEMENTO_ITEM_LABEL['pt-BR']).toBe('Memento')
+    expect(MEMENTO_ITEM_LABEL['en-US']).toBe('Memento')
   })
 })
 

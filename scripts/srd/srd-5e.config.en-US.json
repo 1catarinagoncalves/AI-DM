@@ -43,6 +43,310 @@
       "min": 10
     }
   ],
+  "backgroundEquipment": {
+    "a5e-ag_acolyte": [
+      {
+        "name": "Holy Symbol",
+        "qty": 1
+      },
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Robe",
+        "qty": 1
+      },
+      {
+        "name": "Prayer Book",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_artisan": [
+      {
+        "name": "One Set of Artisan's Tools",
+        "qty": 1
+      },
+      {
+        "name": "Traveler's Clothes",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_charlatan": [
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Disguise Kit",
+        "qty": 1
+      },
+      {
+        "name": "Forgery Kit",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_criminal": [
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Dark Cloak",
+        "qty": 1
+      },
+      {
+        "name": "Thieves' Tools",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_cultist": [
+      {
+        "name": "Holy Symbol",
+        "qty": 1
+      },
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Robes",
+        "qty": 1
+      },
+      {
+        "name": "5 Torches",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_entertainer": [
+      {
+        "name": "Lute or Other Musical Instrument",
+        "qty": 1
+      },
+      {
+        "name": "Costume",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_exile": [
+      {
+        "name": "Traveler's Clothes",
+        "qty": 1
+      },
+      {
+        "name": "10 Days Rations",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_farmer": [
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Shovel",
+        "qty": 1
+      },
+      {
+        "name": "Mule with Saddlebags",
+        "qty": 1
+      },
+      {
+        "name": "5 Supply (Rations)",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_folk-hero": [
+      {
+        "name": "Any Artisan's Tools except Alchemist's Supplies",
+        "qty": 1
+      },
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_gambler": [
+      {
+        "name": "Fine Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Dice Set",
+        "qty": 1
+      },
+      {
+        "name": "Playing Card Set",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_guard": [
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Halberd",
+        "qty": 1
+      },
+      {
+        "name": "Uniform",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_guildmember": [
+      {
+        "name": "One Set of Artisan's Tools or One Instrument",
+        "qty": 1
+      },
+      {
+        "name": "Traveler's Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Guild Badge",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_hermit": [
+      {
+        "name": "Healer's Satchel",
+        "qty": 1
+      },
+      {
+        "name": "Herbalism Kit",
+        "qty": 1
+      },
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "7 Days Rations",
+        "qty": 1
+      },
+      {
+        "name": "Prayer Book",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_marauder": [
+      {
+        "name": "Traveler's Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Signal Whistle",
+        "qty": 1
+      },
+      {
+        "name": "Tent (One Person)",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_noble": [
+      {
+        "name": "Fine Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Signet Ring",
+        "qty": 1
+      },
+      {
+        "name": "Writ Detailing Your Family Tree",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_outlander": [
+      {
+        "name": "Traveler's Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Waterskin",
+        "qty": 1
+      },
+      {
+        "name": "Healer's Kit",
+        "qty": 1
+      },
+      {
+        "name": "7 Days Rations",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_sage": [
+      {
+        "name": "Bottle of Ink",
+        "qty": 1
+      },
+      {
+        "name": "Pen",
+        "qty": 1
+      },
+      {
+        "name": "50 Sheets of Parchment",
+        "qty": 1
+      },
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_sailor": [
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Navigator's Tools",
+        "qty": 1
+      },
+      {
+        "name": "50 Feet of Rope",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_soldier": [
+      {
+        "name": "Uniform",
+        "qty": 1
+      },
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "7 Days Rations",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_trader": [
+      {
+        "name": "Traveler's Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Abacus",
+        "qty": 1
+      },
+      {
+        "name": "Merchant's Scale",
+        "qty": 1
+      }
+    ],
+    "a5e-ag_urchin": [
+      {
+        "name": "Common Clothes",
+        "qty": 1
+      },
+      {
+        "name": "Disguise Kit",
+        "qty": 1
+      }
+    ]
+  },
   "backgrounds": [
     {
       "benefits": [
@@ -2953,7 +3257,7 @@
         "qty": 1
       },
       {
-        "name": "Druidic Focus (sprig of mistletoe)",
+        "name": "Druidic Focus (Sprig of Mistletoe)",
         "qty": 1
       },
       {
@@ -3005,7 +3309,7 @@
         "qty": 2
       },
       {
-        "name": "Arcane Focus (crystal)",
+        "name": "Arcane Focus (Crystal)",
         "qty": 1
       },
       {
@@ -3027,11 +3331,11 @@
         "qty": 2
       },
       {
-        "name": "Arcane Focus (orb)",
+        "name": "Arcane Focus (Orb)",
         "qty": 1
       },
       {
-        "name": "Book (occult lore)",
+        "name": "Book (Occult Lore)",
         "qty": 1
       },
       {
