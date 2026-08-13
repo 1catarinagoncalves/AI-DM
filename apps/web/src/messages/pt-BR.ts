@@ -101,6 +101,9 @@ export const ptBR = {
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Perícias',
+  // US-131: seção das perícias do background, no TOPO desta etapa (a origem já avisou na
+  // etapa `background`; aqui é onde a escolha de fato acontece).
+  'setup.skills.originGrant': 'Perícias de {origin}',
   'setup.skills.instructions': 'Escolha {n} perícias proficientes (+{bonus} cada).',
   'setup.skills.selected': 'Selecionadas:',
 

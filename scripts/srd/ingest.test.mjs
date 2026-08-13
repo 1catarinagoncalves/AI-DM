@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, parseBackgroundEquipment, parseAbilityGrant, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -392,7 +392,7 @@ test('buildBackgrounds: agrupa benefícios por parent; type cru sobrevive sem no
   const backgrounds = [background('a5e-ag_acolyte', 'Acolyte'), background('a5e-ag_criminal', 'Criminal')]
   const benefits = [
     benefit('a5e-ag_acolyte_ability-scores', 'a5e-ag_acolyte', 'Ability Score Increases', '+1 to Wisdom and one other ability score.', 'ability_score'),
-    benefit('a5e-ag_acolyte_skills', 'a5e-ag_acolyte', 'Skill Proficiencies', 'Religion and Insight.', 'skill_proficiency'),
+    benefit('a5e-ag_acolyte_skills', 'a5e-ag_acolyte', 'Skill Proficiencies', 'Religion, and either Insight or Persuasion.', 'skill_proficiency'),
   ]
   const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
   assert.deepEqual(result.map((b) => b.key), ['a5e-ag_acolyte', 'a5e-ag_criminal'])
@@ -433,9 +433,101 @@ test('buildBackgrounds: benefit "ability_score" fora do padrão falha alto', () 
 
 test('buildBackgrounds: benefit de outro type nunca ganha grant', () => {
   const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
-  const benefits = [benefit('a5e-ag_acolyte_skills', 'a5e-ag_acolyte', 'Skill Proficiencies', 'Religion and Insight.', 'skill_proficiency')]
+  const benefits = [benefit('a5e-ag_acolyte_feature', 'a5e-ag_acolyte', 'Shelter of the Faithful', 'Você pode contar com hospedagem gratuita.', 'feature')]
   const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
   assert.equal('grant' in result[0].benefits[0], false)
+})
+
+// --- US-131 — parseSkillGrant: skill_proficiency → grant estruturado ---
+
+const identitySkillKey = (name) => name.toLowerCase().replace(/\s+/g, '_')
+
+test('parseSkillGrant: "Fixas, and either opções." vira { fixed, chooseFrom, chooseCount: 1 }', () => {
+  assert.deepEqual(
+    parseSkillGrant('Religion, and either Insight or Persuasion.', identitySkillKey, []),
+    { fixed: ['religion'], chooseFrom: ['insight', 'persuasion'], chooseCount: 1 },
+  )
+})
+
+test('parseSkillGrant: duas fixas (Noble) e chooseFrom com 4 opções (Sage) — vírgula de Oxford tratada', () => {
+  assert.deepEqual(
+    parseSkillGrant('Culture, History, and either Animal Handling or Persuasion.', identitySkillKey, []),
+    { fixed: ['culture', 'history'], chooseFrom: ['animal_handling', 'persuasion'], chooseCount: 1 },
+  )
+  assert.deepEqual(
+    parseSkillGrant('History, and either Arcana, Culture, Engineering, or Religion.', identitySkillKey, []),
+    { fixed: ['history'], chooseFrom: ['arcana', 'culture', 'engineering', 'religion'], chooseCount: 1 },
+  )
+})
+
+test('parseSkillGrant: "N of your choice." vira escolha livre — chooseFrom é o catálogo inteiro', () => {
+  assert.deepEqual(
+    parseSkillGrant('Two of your choice.', identitySkillKey, ['religion', 'insight', 'athletics']),
+    { fixed: [], chooseFrom: ['athletics', 'insight', 'religion'], chooseCount: 2 },
+  )
+})
+
+test('parseSkillGrant: texto fora dos dois padrões devolve undefined (função pura, não falha)', () => {
+  assert.equal(parseSkillGrant('Religion and Insight.', identitySkillKey, []), undefined)
+  assert.equal(parseSkillGrant('Any three skills.', identitySkillKey, []), undefined)
+})
+
+test('parseSkillGrant: perícia sem chave no catálogo é OMITIDA do array, não derruba a função', () => {
+  const resolve = (name) => (name === 'Culture' ? undefined : identitySkillKey(name))
+  assert.deepEqual(
+    parseSkillGrant('Culture, History, and either Animal Handling or Persuasion.', resolve, []),
+    { fixed: ['history'], chooseFrom: ['animal_handling', 'persuasion'], chooseCount: 1 },
+  )
+})
+
+// --- US-131 — buildBackgrounds: skill_proficiency vira benefits[].grant (kind: 'skills') ---
+
+const SKILLS = [
+  { key: 'religion', label: 'Religion', ability: 'wisdom' },
+  { key: 'insight', label: 'Insight', ability: 'wisdom' },
+  { key: 'persuasion', label: 'Persuasion', ability: 'charisma' },
+  { key: 'history', label: 'History', ability: 'intelligence' },
+  { key: 'animal_handling', label: 'Animal Handling', ability: 'wisdom' },
+]
+
+test('buildBackgrounds: benefit "skill_proficiency" reconhecido vira benefits[].grant (kind: "skills")', () => {
+  const backgrounds = [background('a5e-ag_noble', 'Noble')]
+  const benefits = [benefit('a5e-ag_noble_skills', 'a5e-ag_noble', 'Skill Proficiencies', 'History, and either Animal Handling or Persuasion.', 'skill_proficiency')]
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve, SKILLS)
+  assert.deepEqual(result[0].benefits[0].grant, { kind: 'skills', fixed: ['history'], chooseFrom: ['animal_handling', 'persuasion'], chooseCount: 1 })
+})
+
+test('buildBackgrounds: "N of your choice" vira grant com chooseFrom = catálogo inteiro', () => {
+  const backgrounds = [background('a5e-ag_guildmember', 'Guildmember')]
+  const benefits = [benefit('a5e-ag_guildmember_skills', 'a5e-ag_guildmember', 'Skill Proficiencies', 'Two of your choice.', 'skill_proficiency')]
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve, SKILLS)
+  assert.deepEqual(result[0].benefits[0].grant, {
+    kind: 'skills',
+    fixed: [],
+    chooseFrom: ['animal_handling', 'history', 'insight', 'persuasion', 'religion'],
+    chooseCount: 2,
+  })
+})
+
+test('buildBackgrounds: perícia sem entrada no catálogo some do grant E entra no relatório de órfãos', () => {
+  const backgrounds = [background('a5e-ag_sage', 'Sage')]
+  const benefits = [benefit('a5e-ag_sage_skills', 'a5e-ag_sage', 'Skill Proficiencies', 'History, and either Arcana, Culture, Engineering, or Religion.', 'skill_proficiency')]
+  const orphans = []
+  // Catálogo sintético SEM "Arcana"/"Culture"/"Engineering" — simula a lacuna que a US-130
+  // fechou de verdade (Culture/Engineering); Arcana some da mesma forma, caso defensivo.
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve, SKILLS, orphans)
+  assert.deepEqual(result[0].benefits[0].grant, { kind: 'skills', fixed: ['history'], chooseFrom: ['religion'], chooseCount: 1 })
+  assert.deepEqual(orphans, [
+    { domain: 'skills', key: 'Arcana' },
+    { domain: 'skills', key: 'Culture' },
+    { domain: 'skills', key: 'Engineering' },
+  ])
+})
+
+test('buildBackgrounds: benefit "skill_proficiency" fora dos dois padrões falha alto', () => {
+  const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
+  const benefits = [benefit('a5e-ag_acolyte_skills', 'a5e-ag_acolyte', 'Skill Proficiencies', 'Any three skills.', 'skill_proficiency')]
+  assert.throws(() => buildBackgrounds({}, backgrounds, benefits, identityResolve, SKILLS), /skill_proficiency fora do padrão/)
 })
 
 test('buildBackgrounds: background sem benefit correspondente aparece com benefits: []', () => {

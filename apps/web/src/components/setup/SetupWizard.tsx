@@ -149,6 +149,10 @@ export function SetupWizard() {
   // US-123: atributo escolhido para o `+1` livre do `grant.kind === 'ability'` da origem —
   // resetado junto com `origin` (mesmo motivo de connectionRoll/mementoRoll acima).
   const [abilityChoice, setAbilityChoice] = useState<string | undefined>(undefined)
+  // US-131: perícia(s) escolhida(s) do `grant.chooseFrom` do `grant.kind === 'skills'` da
+  // origem — ARRAY (não uma string), porque `chooseCount` pode ser > 1 (Guildmember real,
+  // "Two of your choice"). Resetado junto com `origin`, mesmo motivo de abilityChoice acima.
+  const [skillChoice, setSkillChoice] = useState<string[]>([])
 
   // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
   const [charId, setCharId] = useState('')
@@ -185,6 +189,16 @@ export function SetupWizard() {
   const originBenefits = backgroundCatalog.find(o => o.key === origin)?.benefits ?? []
   // US-123: bônus de atributo do background, se o ingest reconheceu o padrão de `ability_score`.
   const abilityGrant = originBenefits.find(b => b.grant?.kind === 'ability')?.grant
+  // US-131: perícias do background, se o ingest reconheceu o padrão de `skill_proficiency`.
+  // `skillBenefit` guarda name/description JÁ resolvidos (texto do dataset, ex. "Skill
+  // Proficiencies: Deception, and either Culture, Insight, or Sleight of Hand.") — o aviso na
+  // etapa `background` reaproveita esse texto em vez de reconstruir a frase a partir do grant.
+  const skillBenefit = originBenefits.find(b => b.grant?.kind === 'skills')
+  const skillGrant = skillBenefit?.grant?.kind === 'skills' ? skillBenefit.grant : undefined
+  // Chaves que a origem já concede (fixas + escolhidas) — excluídas do catálogo da etapa
+  // `skills` (evita duplicar) e somadas às `choices` da classe na revisão.
+  const originSkillKeys = skillGrant ? [...skillGrant.fixed, ...skillChoice] : []
+  const skillLabel = Object.fromEntries(skillCatalog.map(sk => [sk.key, sk.label]))
   const adventuresBenefit = originBenefits.find(b => b.type === 'adventures_and_advancement')
   const camBenefit = originBenefits.find(b => b.type === 'connection_and_memento')
   const camTables = camBenefit ? parseD10Tables(camBenefit.description).tables : []
@@ -233,7 +247,9 @@ export function SetupWizard() {
   const previewHp = 10 + conMod
   // Só as perícias ESCOLHIDAS, com modificador já resolvido — mesmo `buildSkillSheet` da
   // ficha, filtrado ao que o jogador marcou (a revisão não lista o catálogo inteiro).
-  const reviewSkills = buildSkillSheet(skillCatalog, attrs, skills, system?.config?.proficiency?.bonus ?? 2)
+  // US-131: soma as da origem (`originSkillKeys`) às da etapa `skills` — a revisão espelha a
+  // ficha completa que a API vai persistir (US-127), não só a parte escolhida na última etapa.
+  const reviewSkills = buildSkillSheet(skillCatalog, attrs, [...originSkillKeys, ...skills], system?.config?.proficiency?.bonus ?? 2)
     .filter(sk => sk.proficient)
   // Mesma forma que `handleConfirm` envia à API — reaproveitada aqui para o `BackgroundPanel`
   // (US-45) mostrar por extenso o que vai ser salvo, em vez de "Preenchido"/"—".
@@ -259,6 +275,8 @@ export function SetupWizard() {
     setMementoRoll(undefined)
     // US-123: bônus de atributo depende da origem — mesmo motivo.
     setAbilityChoice(undefined)
+    // US-131: perícia(s) da origem dependem da origem — mesmo motivo.
+    setSkillChoice([])
     setStep('race-class')
   }
 
@@ -274,10 +292,17 @@ export function SetupWizard() {
       // uma linha escolhida para o +1 livre (a linha fixa não conta, é automática).
       case 'attributes':
         return (budget === undefined || remaining === 0) && (abilityGrant?.kind !== 'ability' || !!abilityChoice)
-      // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`.
-      case 'skills': return skillChoices === 0 || skills.length === skillChoices
+      // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`. US-131:
+      // além disso, background com grant.kind === 'skills' exige as `chooseCount` chaves da
+      // origem (mesmo espírito do bônus de atributo, mas aqui a escolha acontece nesta etapa,
+      // não na `background` — perícia de origem e perícia de classe ficam na mesma tela).
+      case 'skills':
+        return (skillChoices === 0 || skills.length === skillChoices)
+          && (!skillGrant || skillGrant.chooseCount === 0 || skillChoice.length === skillGrant.chooseCount)
       // Origem, conexão e memento são opcionais — etapa `background` nunca bloqueia o avanço
-      // (mesmo espírito de US-39: texto livre também é opcional).
+      // (mesmo espírito de US-39: texto livre também é opcional). A escolha do grant de
+      // perícia acontece na etapa `skills` (ver acima), não aqui — mesmo padrão do bônus de
+      // atributo, cujo aviso também é só informativo nesta etapa.
       case 'background': return true
       case 'review': return true
     }
@@ -306,7 +331,10 @@ export function SetupWizard() {
       // US-122: origem é campo IRMÃO de background, nunca aninhado nele — a chave viaja sozinha.
       // US-124: connection/memento viajam junto (mesmo objeto), texto derivado do roll escolhido.
       // US-123: abilityChoice viaja junto — undefined quando a origem não tem grant.kind 'ability'.
-      const originPayload = origin ? { key: origin, connection: connectionText, memento: mementoText, abilityChoice } : undefined
+      // US-131: skillChoice idem, para grant.kind 'skills' — [] vira undefined (nada a validar).
+      const originPayload = origin
+        ? { key: origin, connection: connectionText, memento: mementoText, abilityChoice, skillChoice: skillChoice.length > 0 ? skillChoice : undefined }
+        : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background, origin: originPayload })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
@@ -335,6 +363,16 @@ export function SetupWizard() {
     setSkills(p => {
       if (p.includes(key)) return p.filter(k => k !== key)
       if (p.length >= skillChoices) return p
+      return [...p, key]
+    })
+  }
+
+  // US-131: marca/desmarca perícia do grant.chooseFrom da origem — mesmo padrão de
+  // toggleSkill, mas limitado a grant.chooseCount (não a skillChoices da classe).
+  function toggleSkillChoice(key: string) {
+    setSkillChoice(p => {
+      if (p.includes(key)) return p.filter(k => k !== key)
+      if (!skillGrant || p.length >= skillGrant.chooseCount) return p
       return [...p, key]
     })
   }
@@ -586,14 +624,44 @@ export function SetupWizard() {
             {step === 'skills' && system && (
               <div>
                 <SectionTitle>{t('setup.skills.titulo')}</SectionTitle>
+                {/* US-131: perícias do background — a origem já avisou (etapa `background`,
+                    texto informativo) o que ela concede; a ESCOLHA em si acontece aqui, mesmo
+                    padrão do bônus de atributo (aviso na `background`, escolha na `attributes`).
+                    `fixed` pré-marcado e não-clicável, `chooseFrom` clicável até `chooseCount`. */}
+                {skillGrant && (
+                  <div className="mt-4">
+                    <SheetHeading>{t('setup.skills.originGrant', { origin: originLabel })}</SheetHeading>
+                    <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                      {skillGrant.fixed.map(key => (
+                        <div key={key} className={optionCardClass(true)}>
+                          <span className="block text-sm font-medium text-foreground">{skillLabel[key] ?? key}</span>
+                        </div>
+                      ))}
+                      {skillGrant.chooseCount > 0 && skillGrant.chooseFrom.map(key => {
+                        const on = skillChoice.includes(key)
+                        const full = !on && skillChoice.length >= skillGrant.chooseCount
+                        return (
+                          <button key={key} type="button" onClick={() => toggleSkillChoice(key)}
+                            disabled={full}
+                            aria-pressed={on}
+                            className={optionCardClass(on)}>
+                            <span className="block text-sm font-medium text-foreground">{skillLabel[key] ?? key}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
                 {/* US-98: o número deixou de ser um <span> no meio da frase (concatenação
                     que quebra noutra ordem de palavras); o destaque fica na contagem. */}
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-6 text-sm text-muted-foreground">
                   {t('setup.skills.instructions', { n: skillChoices, bonus: system.config?.proficiency?.bonus ?? 2 })}{' '}
                   {t('setup.skills.selected')} <span className={`font-semibold ${skills.length === skillChoices ? 'text-success' : 'text-primary'}`}>{skills.length}</span>/{skillChoices}
                 </p>
                 <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                  {skillCatalog.map(sk => {
+                  {/* US-131: exclui as perícias já concedidas pela origem (fixas + escolhida) —
+                      evita duplicar; `skillChoices` (contagem) segue sendo só a parte da classe. */}
+                  {skillCatalog.filter(sk => !originSkillKeys.includes(sk.key)).map(sk => {
                     const on = skills.includes(sk.key)
                     const full = !on && skills.length >= skillChoices
                     return (
@@ -630,6 +698,8 @@ export function SetupWizard() {
                         setMementoRoll(undefined)
                         // US-123: o bônus de atributo também é da origem ANTERIOR — mesmo motivo.
                         setAbilityChoice(undefined)
+                        // US-131: as perícias escolhidas também são da origem ANTERIOR — mesmo motivo.
+                        setSkillChoice([])
                       }}
                       className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                       <option value="">{t('setup.raceClass.select')}</option>
@@ -642,6 +712,15 @@ export function SetupWizard() {
                 {abilityGrant?.kind === 'ability' && (
                   <p className="mt-4 text-sm text-foreground">
                     {t('setup.origin.abilityGrant', { attr: attrLabel[abilityGrant.fixed] ?? abilityGrant.fixed })}
+                  </p>
+                )}
+                {/* US-131: perícias do background — só o AVISO aqui, texto CRU do dataset já
+                    resolvido (`skillBenefit.name`/`description`, ex. "Skill Proficiencies:
+                    Deception, and either Culture, Insight, or Sleight of Hand."), mesmo padrão
+                    do aviso de abilityGrant acima. A ESCOLHA em si acontece na etapa `skills`. */}
+                {skillBenefit && (
+                  <p className="mt-4 text-sm text-foreground">
+                    {skillBenefit.name}: {skillBenefit.description}
                   </p>
                 )}
                 {/* US-124: benefícios narrativos da origem — adventures_and_advancement como

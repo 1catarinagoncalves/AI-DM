@@ -382,6 +382,17 @@
         },
         {
           "description": "Religion, and either Insight or Persuasion.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "insight",
+              "persuasion"
+            ],
+            "fixed": [
+              "religion"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         }
@@ -419,6 +430,17 @@
         },
         {
           "description": "Persuasion, and either Insight or History.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "insight",
+              "history"
+            ],
+            "fixed": [
+              "persuasion"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -466,6 +488,18 @@
         },
         {
           "description": "Deception, and either Culture, Insight, or Sleight of Hand.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "culture",
+              "insight",
+              "sleight_of_hand"
+            ],
+            "fixed": [
+              "deception"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -513,6 +547,17 @@
         },
         {
           "description": "Stealth, and either Deception or Intimidation.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "deception",
+              "intimidation"
+            ],
+            "fixed": [
+              "stealth"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -570,6 +615,17 @@
         },
         {
           "description": "Religion, and either Arcana or Deception.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "arcana",
+              "deception"
+            ],
+            "fixed": [
+              "religion"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         }
@@ -612,6 +668,18 @@
         },
         {
           "description": "Performance, and either Acrobatics, Culture, or Persuasion.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "acrobatics",
+              "culture",
+              "persuasion"
+            ],
+            "fixed": [
+              "performance"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         }
@@ -654,6 +722,17 @@
         },
         {
           "description": "Survival, and either History or Performance.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "history",
+              "performance"
+            ],
+            "fixed": [
+              "survival"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         }
@@ -696,6 +775,17 @@
         },
         {
           "description": "Nature, and either Animal Handling or Survival.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "animal_handling",
+              "survival"
+            ],
+            "fixed": [
+              "nature"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -743,6 +833,17 @@
         },
         {
           "description": "Survival, and either Animal Handling or Nature.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "animal_handling",
+              "nature"
+            ],
+            "fixed": [
+              "survival"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -790,6 +891,17 @@
         },
         {
           "description": "Deception, and either Insight or Sleight of Hand.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "insight",
+              "sleight_of_hand"
+            ],
+            "fixed": [
+              "deception"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         }
@@ -837,6 +949,17 @@
         },
         {
           "description": "Intimidation, and either Athletics or Investigation.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "athletics",
+              "investigation"
+            ],
+            "fixed": [
+              "intimidation"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         }
@@ -879,6 +1002,33 @@
         },
         {
           "description": "Two of your choice.",
+          "grant": {
+            "chooseCount": 2,
+            "chooseFrom": [
+              "acrobatics",
+              "animal_handling",
+              "arcana",
+              "athletics",
+              "culture",
+              "deception",
+              "engineering",
+              "history",
+              "insight",
+              "intimidation",
+              "investigation",
+              "medicine",
+              "nature",
+              "perception",
+              "performance",
+              "persuasion",
+              "religion",
+              "sleight_of_hand",
+              "stealth",
+              "survival"
+            ],
+            "fixed": [],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -926,6 +1076,17 @@
         },
         {
           "description": "Religion, and either Medicine or Survival.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "medicine",
+              "survival"
+            ],
+            "fixed": [
+              "religion"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -973,6 +1134,17 @@
         },
         {
           "description": "Survival, and either Intimidation or Stealth.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "intimidation",
+              "stealth"
+            ],
+            "fixed": [
+              "survival"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -1025,6 +1197,18 @@
         },
         {
           "description": "Culture, History, and either Animal Handling or Persuasion.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "animal_handling",
+              "persuasion"
+            ],
+            "fixed": [
+              "culture",
+              "history"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -1067,6 +1251,17 @@
         },
         {
           "description": "Survival, and either Athletics or Intimidation.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "athletics",
+              "intimidation"
+            ],
+            "fixed": [
+              "survival"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -1114,6 +1309,19 @@
         },
         {
           "description": "History, and either Arcana, Culture, Engineering, or Religion.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "arcana",
+              "culture",
+              "engineering",
+              "religion"
+            ],
+            "fixed": [
+              "history"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         }
@@ -1156,6 +1364,17 @@
         },
         {
           "description": "Athletics, and either Acrobatics or Perception.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "acrobatics",
+              "perception"
+            ],
+            "fixed": [
+              "athletics"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -1203,6 +1422,17 @@
         },
         {
           "description": "Athletics, and either Animal Handling or Intimidation.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "animal_handling",
+              "intimidation"
+            ],
+            "fixed": [
+              "athletics"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -1250,6 +1480,18 @@
         },
         {
           "description": "Persuasion, and either Culture, Deception, or Insight.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "culture",
+              "deception",
+              "insight"
+            ],
+            "fixed": [
+              "persuasion"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },
@@ -1302,6 +1544,17 @@
         },
         {
           "description": "Sleight of Hand, and either Deception or Stealth.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "deception",
+              "stealth"
+            ],
+            "fixed": [
+              "sleight_of_hand"
+            ],
+            "kind": "skills"
+          },
           "name": "Skill Proficiencies",
           "type": "skill_proficiency"
         },

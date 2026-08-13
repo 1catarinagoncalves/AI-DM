@@ -24,7 +24,6 @@ export class CharacterService {
     const locale = await localeOfUser(this.prisma, dto.userId)
     const config = SystemConfigSchema.parse(configForLocale(system, locale))
     const baseAttributes = buildCharacterAttributesSchema(config.attributes).parse(dto.attributes)
-    const skills = this.validateSkills(config, dto.skills ?? [])
     // US-105: `race`/`class` são CHAVES do catálogo do sistema. A ficha guarda a chave; o
     // rótulo é resolvido na leitura, no locale de quem lê.
     const race = this.validateCatalogKey(config.races, dto.race, 'Raça')
@@ -46,6 +45,12 @@ export class CharacterService {
     // por isso aplicado depois do parse de min/max, que segue valendo só para o point-buy puro.
     const abilityGrant = this.findAbilityGrant(config.backgrounds, originKey)
     const finalAttributes = this.applyAbilityGrant(baseAttributes, config.attributes, abilityGrant, dto.origin?.abilityChoice)
+    // US-131: perícias do background (fixas + escolhida) são resolvidas ANTES de validar as
+    // `choices` da etapa `skills` — `validateSkills` exclui essas chaves do catálogo que
+    // valida, para o mesmo par não poder ser escolhido duas vezes nem sobrar de fora.
+    const skillGrant = this.findSkillGrant(config.backgrounds, originKey)
+    const originSkills = this.applySkillGrant(skillGrant, dto.origin?.skillChoice)
+    const skills = [...originSkills, ...this.validateSkills(config, dto.skills ?? [], originSkills)]
 
     return this.prisma.character.create({
       data: {
@@ -168,12 +173,51 @@ export class CharacterService {
   }
 
   /**
+   * US-131: resolve o `grant.kind === 'skills'` da origem escolhida, se houver — cada
+   * background tem no máximo um benefício `skill_proficiency` reconhecido pelo ingest.
+   * Mesmo par find/apply de `findAbilityGrant`/`applyAbilityGrant` (US-123).
+   */
+  private findSkillGrant(
+    backgrounds: SystemConfig['backgrounds'],
+    originKey?: string,
+  ): Extract<SystemBackgroundGrant, { kind: 'skills' }> | undefined {
+    const grant = backgrounds?.find((b) => b.key === originKey)?.benefits
+      .find((b) => b.grant?.kind === 'skills')?.grant
+    return grant?.kind === 'skills' ? grant : undefined
+  }
+
+  /**
+   * US-131: perícias fixas do grant SEMPRE entram; `skillChoice` precisa ter EXATAMENTE
+   * `chooseCount` chaves, todas dentro de `grant.chooseFrom` (array, não par fixo/escolhido —
+   * `chooseCount` pode ser > 1, caso do Guildmember real, "Two of your choice"). Contagem ou
+   * chave errada rejeita, mesmo padrão de `applyAbilityGrant`. Sem grant devolve `[]`.
+   */
+  private applySkillGrant(
+    grant: Extract<SystemBackgroundGrant, { kind: 'skills' }> | undefined,
+    skillChoice?: string[],
+  ): string[] {
+    if (!grant) return []
+    if (grant.chooseCount === 0) return [...grant.fixed]
+    const chosen = [...new Set(skillChoice ?? [])]
+    const invalid = chosen.some((k) => !grant.chooseFrom.includes(k))
+    if (chosen.length !== grant.chooseCount || invalid) {
+      throw new BadRequestException(
+        `skillChoice inválido: [${(skillChoice ?? []).join(', ')}]. Esperado ${grant.chooseCount} chave(s) de grant.chooseFrom: ${grant.chooseFrom.join(', ')}`,
+      )
+    }
+    return [...grant.fixed, ...chosen]
+  }
+
+  /**
    * Valida as perícias proficientes contra o config (US-27): cada key precisa
    * existir em config.skills e a quantidade precisa bater com proficiency.choices.
    * Sistema sem perícias no config → nenhuma proficiência aceita.
+   *
+   * US-131: `excluded` tira do catálogo as perícias já concedidas pelo background — evita
+   * duplicar a mesma perícia entre a origem e a escolha da etapa `skills`.
    */
-  private validateSkills(config: SystemConfig, chosen: string[]): string[] {
-    const catalog = config.skills ?? []
+  private validateSkills(config: SystemConfig, chosen: string[], excluded: string[] = []): string[] {
+    const catalog = (config.skills ?? []).filter((s) => !excluded.includes(s.key))
     const choices = config.proficiency?.choices ?? 0
 
     if (catalog.length === 0 || choices === 0) {

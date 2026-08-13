@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha do background, awareness apenas — esta story mecaniza o segundo dos dois benefícios que ela deixou só texto) · [US-27](./US-27-pericias-do-personagem.md) (`config.proficiency`/`validateSkills`) · [US-26](./US-26-criacao-personagem-em-etapas.md) (ordem das etapas do wizard) · [US-123](./US-123-integracao-mecanica-background-pointbuy.md) (spinoff-mãe: fez o reorder do wizard e abriu a união `SystemBackgroundGrantSchema` que esta story estende com o segundo membro, `kind: 'skills'`) · [US-130](./US-130-culture-engineering-catalogo-pericias.md) (✅ implementada — `config.skills` já tem `culture`/`engineering`; a lacuna de catálogo que motivou a exclusão de órfãos abaixo está fechada antes desta story rodar)
 **Relacionado:** [US-51](./US-51-kits-iniciais-do-srd.md) (precedente direto: parser de texto livre do dataset → dado estruturado, tabela de armadilhas medidas) · [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) §4 (relatar em vez de esconder lacuna do dataset)
 **Criada em:** 2026-08-13 (spinoff de [US-123](./US-123-integracao-mecanica-background-pointbuy.md))
@@ -46,7 +46,7 @@ A US-130 adicionou `culture`/`engineering` a `config.skills` (20 entradas, ambas
 
 ### Por que a solução atual não basta
 
-`validateSkills` ([character.service.ts:106-124](../../../apps/api/src/character/character.service.ts:106)) exige **exatamente** `config.proficiency.choices` perícias, escolhidas contra `config.skills` — não tem noção de "perícia já concedida por outra fonte". A mecânica existe, mas não sabe que background existe.
+`validateSkills` ([character.service.ts:175-196](../../../apps/api/src/character/character.service.ts:175)) exige **exatamente** `config.proficiency.choices` perícias, escolhidas contra `config.skills` — não tem noção de "perícia já concedida por outra fonte". A mecânica existe, mas não sabe que background existe.
 
 ### A proposta
 
@@ -67,6 +67,7 @@ A US-130 adicionou `culture`/`engineering` a `config.skills` (20 entradas, ambas
   z.object({ kind: z.literal('skills'), fixed: z.array(z.string()), chooseFrom: z.array(z.string()), chooseCount: z.number().int().min(0) })
   ```
 - **Etapa `background`:** quando o cartão escolhido tem `grant.kind === 'skills'`, mostra as perícias de `grant.fixed` já marcadas como selecionadas (não clicáveis — vêm garantidas pelo background, sem escolha) e, se `chooseCount > 0`, cartões do `chooseFrom` para escolher (toggle único ou múltiplo, conforme `chooseCount`). Nesta story os únicos cartões possíveis nessa tela são os do `grant` do background — nenhuma perícia de raça ou classe aparece aqui (ver Fora do escopo).
+  - **Texto informativo acima dos cards**, mesmo padrão do parágrafo que já anuncia o bônus de atributo logo abaixo do `<select>` de origem (US-123, [SetupWizard.tsx:640-646](../../../apps/web/src/components/setup/SetupWizard.tsx:640), chave `setup.origin.abilityGrant`: `"+1 fixo em {attr}, +1 à escolha em outro atributo."`). Esta story mostra o par equivalente pra perícia — algo como `"{fixas} fixa(s); escolha {chooseCount} entre: {chooseFrom}."` (chave nova, ex. `setup.origin.skillGrant`) — renderizado condicionalmente quando `grant.kind === 'skills'`, no mesmo lugar (logo após o `<select>` de origem, antes dos cards clicáveis). É esse texto que explica o "porquê" antes do jogador chegar nos cards — os cards em si (`grant.fixed` pré-marcado, `chooseFrom` clicável) continuam existindo como já descrito acima, mas o texto é o indicador primário, não um badge por card.
 - **Etapa `attributes`:** nenhuma mudança — o bônus de atributo é inteiramente da US-123.
 - **Etapa `skills`:** `skillCatalog` exibido exclui as perícias já concedidas pelo background (fixas + a escolhida no passo anterior) — evita duplicar. `skillChoices`/`proficiency.choices` **não muda de valor**: continua sendo só a parte da classe/sistema, agora escolhida sobre um catálogo menor.
 - **`CreateCharacterSchema.origin`** (US-122, mesmo objeto que a US-123 estendeu com `abilityChoice`) ganha `skillChoice?: string` (a perícia escolhida do `chooseFrom`, quando `chooseCount > 0`).
@@ -79,7 +80,7 @@ A US-130 adicionou `culture`/`engineering` a `config.skills` (20 entradas, ambas
 - **`tool_proficiency` e `language`** — o projeto não tem catálogo de ferramentas nem de idiomas (`config` não tem `tools`/`languages`); mecanizar exigiria um subsistema novo do zero. Ficam texto (US-122).
 - **`equipment`, `feature`, `connection_and_memento`, `adventures_and_advancement`** — mesma exclusão já feita na US-122.
 - **Estender `config.skills` com `Culture`/`Engineering`** — já feito pela [US-130](./US-130-culture-engineering-catalogo-pericias.md) (✅ implementada, literal hardcoded no ingest com `ability: intelligence`), fora do escopo desta story por já estar pronto quando ela começa a implementar.
-- **Fluxo de "troque por outra perícia" quando a concessão colide** — a regra RAW 2024 deixa escolher substituta quando duas fontes dariam a mesma perícia; esta story evita a colisão **excluindo do pool** em vez de resolver a troca (ver Questões em aberto).
+- **Fluxo de "troque por outra perícia" quando a concessão colide** — a regra RAW 2024 deixa escolher substituta quando duas fontes dariam a mesma perícia; esta story evita a colisão **excluindo do pool** em vez de resolver a troca. **Decidido (YAGNI):** hoje só existem duas fontes de perícia (background e classe), e a exclusão do pool já cobre esse par por completo — não há uma terceira fonte (raça, por exemplo — ver bullet abaixo) disputando a mesma perícia que justifique construir o fluxo de troca agora. Revisitar se/quando outra fonte de concessão existir.
 - **Retroagir personagens já criados** — a mecânica vale só para criação nova, mesmo corte da US-51 (`skills` de personagem existente não muda).
 - **Backgrounds do `srd-2024` nativo** — a US-121 decidiu não trazê-los; fora do escopo por não existirem no catálogo, não por decisão pendente.
 - **Perícias de raça/classe nos cartões da etapa `background`** — hoje o `grant.chooseFrom` renderizado ali vem só do background escolhido. O projeto não tem, ainda, concessão de perícia por raça nem por classe fora do pool de `skills` já coberto por `proficiency.choices`; quando (se) existir, a extensão natural é a mesma tela agregar os `grant`s de todas as fontes relacionadas (background + raça + classe) em vez de abrir uma etapa nova — mas isso fica para quando essa mecânica existir, não é implementado aqui.
@@ -102,7 +103,7 @@ export const SystemBackgroundGrantSchema = z.discriminatedUnion('kind', [
 ])
 ```
 
-Extensão de `CreateCharacterSchema.origin` (US-122/US-123 — mesmo objeto, `skillChoice` é o campo novo desta story):
+Extensão de `CreateCharacterSchema.origin` (`skillChoice` é o campo novo desta story; `connection`/`memento` da US-124 omitidos abaixo por não mudarem — schema real em [character.schema.ts:51-58](../../../apps/api/src/character/character.schema.ts:51)):
 
 ```ts
 origin: z.object({
@@ -127,7 +128,7 @@ origin: z.object({
 - [ ] Perícia sem entrada em `config.skills` sai do `grant` (excluída de `fixed`/`chooseFrom`) e entra no relatório de órfãos do ingest — **não falha o `--strict`**, só relata (mesmo tratamento de fallback EN/órfão da US-47). Com a US-130 já implementada, nenhum dos 21 backgrounds de hoje deve cair nesse caminho — cobrir com fixture sintética, não com `Culture`/`Engineering` (já resolvidas no catálogo).
 - [ ] Etapa `background`: perícia órfã **não aparece como card selecionável** (nem fixa nem no `chooseFrom`) — a UI renderiza só a partir de `grant`, que já vem sem ela.
 - [ ] Noble mecaniza `Culture` + `History` (ambas fixas, catálogo já tem `culture` via US-130) + a escolha `Animal Handling`/`Persuasion` — background 100% mecanizado, nada de fora do `grant`.
-- [ ] Background com `grant.kind === 'skills'` mostra `grant.fixed` já marcada como selecionada (não clicável) na etapa `background`, mesmo quando `chooseCount === 0`.
+- [ ] Background com `grant.kind === 'skills'` mostra, logo após o `<select>` de origem, o texto informativo do benefício (fixas + quantas há pra escolher — mesmo padrão/posição de `setup.origin.abilityGrant`), e `grant.fixed` já marcada como selecionada (não clicável) nos cards abaixo, mesmo quando `chooseCount === 0`.
 - [ ] Background com `grant.kind === 'skills'` e `chooseCount > 0` oferece cartões do `chooseFrom` para escolher; sem escolher, a criação é rejeitada **só se** o background tiver esse grant.
 - [ ] Etapa `skills` não lista mais as perícias já concedidas pelo background escolhido; `skillChoices` (contagem exigida) permanece igual ao `config.proficiency.choices` de hoje.
 - [ ] `CharacterService.create` rejeita (`BadRequestException`) `origin.skillChoice` fora de `grant.chooseFrom`, ou ausência dele quando o `grant` exige.
@@ -141,24 +142,27 @@ origin: z.object({
 
 - **Parser isolado e testável**, mesmo padrão do `parseStartingKit` da US-51 ([ingest.mjs](../../../scripts/srd/ingest.mjs)): função pura `parseSkillGrant(desc, resolveSkillKey)`, entrada = string crua do dataset, saída = grant estruturado ou `undefined` (padrão não reconhecido — falha alto, igual ao `CLASS_MAP`, porque os 21 batem 100% hoje e um formato novo num bump merece ser visto, não engolido).
 - **Resolver nome de perícia → chave**: `"Sleight of Hand"` → `sleight_of_hand`, mesma normalização (`toLowerCase` + espaço→`_`) que o `config.skills` já usa como chave — não precisa de mapa novo, só a função de normalização.
-- **`canAdvance('background')`**: a US-123 mostra só texto informativo nesta etapa (o `<select>` do `+1` de atributo vive em `attributes`, não aqui — ver US-123 §Escopo) e não mexe em `canAdvance('background')`, que segue `true` incondicional (US-39). Esta story é quem primeiro condiciona essa etapa: `true` quando nenhum background está selecionado, **ou** quando está selecionado e (se `grant.kind === 'skills' && chooseCount > 0`) `skillChoice` preenchido — porque o `chooseFrom` de perícia É escolhido aqui, na própria etapa `background` (diferente do atributo).
-- **`validateSkills`** ganha um parâmetro a mais (o `grant` de skills do background, ou `undefined`): filtra `catalog` removendo as chaves já concedidas antes de aplicar a regra `chosen.length !== choices`, e valida/inclui a `skillChoice` do background separadamente — não é uma reescrita, é a mesma função com um filtro a montante.
+- **`canAdvance('background')`** ([SetupWizard.tsx:265-284](../../../apps/web/src/components/setup/SetupWizard.tsx:265)): confirmado no código — a US-123 gate o `<select>` do `+1` de atributo em `case 'attributes'` (linha 276: `abilityGrant?.kind !== 'ability' || !!abilityChoice`), e `case 'background'` segue `return true` incondicional (linha 281, comentário "Origem, conexão e memento são opcionais — etapa `background` nunca bloqueia o avanço"). Esta story é a primeira a condicionar esse `case`: `true` quando nenhum background está selecionado, **ou** quando está selecionado e (se `grant.kind === 'skills' && chooseCount > 0`) `skillChoice` preenchido — porque, ao contrário do atributo, o `chooseFrom` de perícia É escolhido na própria etapa `background`.
+- **Mesma separação find/apply que a US-123 estabeleceu**, não uma reescrita de `validateSkills`: `findAbilityGrant` ([character.service.ts:135-142](../../../apps/api/src/character/character.service.ts:135)) resolve o grant contra `originKey`, `applyAbilityGrant` ([character.service.ts:150-168](../../../apps/api/src/character/character.service.ts:150)) valida a escolha e aplica por cima do dado já validado (point-buy, no caso do atributo). Esta story espelha o par com `findSkillGrant`/`applySkillGrant` (ou nome equivalente) — `findSkillGrant` devolve o `grant.kind === 'skills'` da origem, e a aplicação filtra `config.skills` (removendo as chaves já concedidas) **antes** de `validateSkills` rodar a regra `chosen.length !== choices`, e valida `skillChoice` contra `grant.chooseFrom` no mesmo estilo de `applyAbilityGrant` (chave fora do catálogo ou grant → `BadRequestException` com o valor ofensor na mensagem, mesmo padrão de `validateCatalogKey`).
 
 ---
 
 ## Questões em aberto
 
-1. **Colisão de perícia (RAW deixa trocar por outra) vale a pena?** Esta story evita a colisão excluindo a perícia do background do pool de escolha da classe — mais simples, mas nunca deixa o jogador "[trocar por outra]" como o livro descreve. Fica assim ou vira story própria?
+Nenhuma — a única questão que existia (fluxo de troca de perícia em colisão) foi decidida como YAGNI, ver Fora do escopo.
 
 ---
 
 ## Referências no código
 
-- [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — `parseStartingKit` (precedente de parser texto→estruturado, US-51), `buildBackgrounds` (US-121/US-123, a estender de novo).
-- [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `SystemBackgroundGrantSchema` (US-123, a estender com o membro `'skills'`).
-- [apps/api/src/character/character.service.ts:106-124](../../../apps/api/src/character/character.service.ts:106) — `validateSkills`, a estender com o filtro de perícias já concedidas.
-- [apps/api/src/character/character.schema.ts](../../../apps/api/src/character/character.schema.ts) — `CreateCharacterSchema.origin` (US-122/US-123), `skillChoice` novo ali dentro.
-- [apps/web/src/components/setup/SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx) — `canAdvance('background')` (condição nova, primeira vez que essa etapa é bloqueada — US-123 só usa texto informativo aqui); reorder já feito pela US-123, não reabrir.
+- [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — `parseStartingKit` (precedente de parser texto→estruturado, US-51), `parseAbilityGrant` ([L453-459](../../../scripts/srd/ingest.mjs:453), precedente direto de parser texto→`grant`, US-123), `buildBackgrounds` ([L475-509](../../../scripts/srd/ingest.mjs:475), US-121/US-123, a estender de novo).
+- [packages/shared/src/types/system.ts:64-84](../../../packages/shared/src/types/system.ts:64) — `SystemBackgroundGrantSchema` (união com só `kind: 'ability'` hoje, comentário na L66 já anuncia o segundo membro `'skills'` desta story) e `SystemBackgroundBenefitSchema.grant` (opcional).
+- [apps/api/src/character/character.service.ts:135-168](../../../apps/api/src/character/character.service.ts:135) — `findAbilityGrant`/`applyAbilityGrant` (US-123), par find/apply que esta story espelha com `findSkillGrant`/`applySkillGrant`.
+- [apps/api/src/character/character.service.ts:175-196](../../../apps/api/src/character/character.service.ts:175) — `validateSkills`, a estender com o filtro de perícias já concedidas (parâmetro novo).
+- [apps/api/src/character/character.schema.ts:51-58](../../../apps/api/src/character/character.schema.ts:51) — `CreateCharacterSchema.origin` já tem `key`/`connection`/`memento` (US-122/US-124) e `abilityChoice` (US-123); `skillChoice` é o campo novo desta story, mesmo objeto.
+- [apps/web/src/components/setup/SetupWizard.tsx:265-284](../../../apps/web/src/components/setup/SetupWizard.tsx:265) — `canAdvance`, `case 'background'` retorna `true` incondicional hoje (L281) — condição nova desta story, primeira vez que essa etapa bloqueia; reorder dos `steps` (L25) já feito pela US-123, não reabrir.
+- [apps/web/src/components/setup/SetupWizard.tsx:640-646](../../../apps/web/src/components/setup/SetupWizard.tsx:640) — precedente do texto informativo na própria etapa `background`, logo após o `<select>` de origem: `{t('setup.origin.abilityGrant', ...)}` (chave `setup.origin.abilityGrant`, [pt-BR.ts:126](../../../apps/web/src/messages/pt-BR.ts:126): `"+1 fixo em {attr}, +1 à escolha em outro atributo."`) — mesma posição e padrão pro texto novo do grant de perícia (`setup.origin.skillGrant` ou nome equivalente).
+- [apps/web/src/components/setup/SetupWizard.tsx:536-542](../../../apps/web/src/components/setup/SetupWizard.tsx:536) — banner irmão na etapa `attributes` (`setup.attributes.abilityBanner`) reforçando o mesmo grant lá; se fizer sentido replicar pra `skills`, mesmo padrão.
 - [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) / [US-122](./US-122-escolha-background-catalogo-na-criacao.md) / [US-123](./US-123-integracao-mecanica-background-pointbuy.md) — dependências diretas.
 - [US-51](./US-51-kits-iniciais-do-srd.md) — precedente completo de parser de texto do dataset com tabela de armadilhas medidas.
 - [US-130](./US-130-culture-engineering-catalogo-pericias.md) — ✅ implementada; fechou a lacuna de catálogo (`Culture`/`Engineering`) antes desta story, ver [ingest.mjs:208-226](../../../scripts/srd/ingest.mjs:208) (`buildSkills`, 20 entradas).

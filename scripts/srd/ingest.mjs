@@ -458,6 +458,44 @@ export function parseAbilityGrant(desc) {
   return { kind: 'ability', fixed, freeCount: 1 }
 }
 
+// US-131: "Sleight of Hand" → "sleight_of_hand" — mesma normalização que `buildSkills` já usa
+// como chave (toLowerCase + espaço→"_"); não precisa de mapa novo.
+const normalizeSkillKey = (name) => String(name).toLowerCase().replace(/\s+/g, '_')
+
+const SKILL_FREE_CHOICE_WORDS = { one: 1, two: 2, three: 3, four: 4 }
+
+// US-131 — parseSkillGrant: `skill_proficiency` → grant estruturado. Dois formatos medidos nas
+// 21 entradas (US-131 §Contexto):
+//   1. "<Fixas>, and either <opções>." — 1 a 3 perícias fixas + escolha de 1 entre 2-4 opções
+//      (20/21 entradas).
+//   2. "<N> of your choice." — escolha totalmente livre de N (só o Guildmember, 1/21):
+//      `chooseFrom` vira o catálogo INTEIRO, única forma de expressar "qualquer perícia" sem
+//      campo novo no schema.
+// `resolveSkillKey(name)` resolve nome→chave do catálogo OU `undefined` — perícia sem entrada
+// (caso defensivo: US-130 já fecha a lacuna real das 21 de hoje) é OMITIDA do array, nunca
+// derruba a função inteira. `undefined` aqui é só padrão de TEXTO não reconhecido (mesmo
+// contrato do `parseAbilityGrant`) — falhar alto por isso é decisão do CALLER.
+export function parseSkillGrant(desc, resolveSkillKey, allSkillKeys) {
+  const text = String(desc).trim().replace(/\.\s*$/, '')
+  const free = text.match(/^(\w+) of your choice$/i)
+  if (free) {
+    const chooseCount = SKILL_FREE_CHOICE_WORDS[free[1].toLowerCase()]
+    if (!chooseCount) return undefined
+    return { fixed: [], chooseFrom: [...allSkillKeys].sort(), chooseCount }
+  }
+  const match = text.match(/^(.+), and either (.+)$/i)
+  if (!match) return undefined
+  const fixed = match[1].split(',').map((s) => s.trim()).filter(Boolean).map(resolveSkillKey).filter(Boolean)
+  const chooseFrom = match[2]
+    .replace(/,?\s+or\s+/i, ',')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map(resolveSkillKey)
+    .filter(Boolean)
+  return { fixed, chooseFrom, chooseCount: 1 }
+}
+
 // --- backgrounds (21 + benefícios): a5e-ag (EN Publishing), CC-BY-4.0 via dual-licenciamento
 // (ADR 004 §3.3) — join de Background + BackgroundBenefit por `parent → pk`, mesmo estilo de
 // Map que ClassFeature/ClassFeatureItem (US-47) e StartingKit (US-51) já usam.
@@ -472,8 +510,19 @@ export function parseAbilityGrant(desc) {
 // aquele pode vir traduzido por MT (backgrounds está em MT_DOMAINS) e um nome de item já em
 // pt-BR não bate contra a chave EN de `overlay.kitItems`. Mesmo padrão de `buildStartingKits`:
 // parse sobre o dataset EN, tradução por item via `localizeKitItems`.
-export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve) {
+export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, skills = [], orphans = []) {
   const bgKeys = new Set(backgroundsRaw.map((bg) => bg.pk))
+  const skillKeys = skills.map((s) => s.key)
+  const skillKeySet = new Set(skillKeys)
+  // US-131: perícia citada em `skill_proficiency` sem entrada em config.skills — relatada
+  // (mesmo relatório de órfãos do overlay, US-47) e omitida do grant (`parseSkillGrant`
+  // acima filtra o `undefined`). Caso defensivo: os 21 backgrounds de hoje batem 100%.
+  const resolveSkillKey = (name) => {
+    const key = normalizeSkillKey(name)
+    if (skillKeySet.has(key)) return key
+    orphans.push({ domain: 'skills', key: name })
+    return undefined
+  }
   const benefitsByParent = {}
   for (const b of benefitsRaw) {
     if (!bgKeys.has(b.fields.parent)) {
@@ -499,6 +548,10 @@ export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve) 
         if (b.fields.type === 'ability_score') {
           grant = parseAbilityGrant(norm(b.fields.desc))
           if (!grant) throw new Error(`${b.pk}: ability_score fora do padrão "+1 to <Atributo> and one other ability score." (desc: "${norm(b.fields.desc)}")`)
+        } else if (b.fields.type === 'skill_proficiency') {
+          grant = parseSkillGrant(norm(b.fields.desc), resolveSkillKey, skillKeys)
+          if (!grant) throw new Error(`${b.pk}: skill_proficiency fora do padrão "<Fixas>, and either <opções>." ou "<N> of your choice." (desc: "${norm(b.fields.desc)}")`)
+          grant = { kind: 'skills', ...grant }
         }
         return { type: b.fields.type, name: entry.name, description: entry.description, ...(grant ? { grant } : {}) }
       })
@@ -518,7 +571,7 @@ function buildConfig(overlay, data) {
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
   const startingKits = buildStartingKits(overlay, data.features, resolve)
-  const { backgrounds, backgroundEquipment } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve)
+  const { backgrounds, backgroundEquipment } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, orphans)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
   for (const domain of ['features', 'spells', 'kitItems', 'backgrounds']) {
@@ -762,7 +815,10 @@ function report({ fallbacks, orphans, artifact }, drafted, overlay) {
   console.log(`  attributes: 6 · skills: ${artifact.skills.length} · races: ${artifact.races.length} · classes: ${artifact.classes.length} · backgrounds: ${artifact.backgrounds.length}`)
   reportDrafts(drafted, overlay)
   if (orphans.length) {
-    console.log(`\n  ÓRFÃOS (${orphans.length}) — PT curado sem chave no SRD 5.2 (decidir: sumiu, mudou de nome, ou não é SRD):`)
+    // US-131: dois motivos possíveis por trás de `domain`: overlay com PT sem chave no SRD 5.2
+    // (a maioria dos domínios), ou `domain: 'skills'` — perícia citada num `skill_proficiency`
+    // sem entrada em config.skills (caso defensivo, ver `resolveSkillKey` em buildBackgrounds).
+    console.log(`\n  ÓRFÃOS (${orphans.length}) — chave sem par no dataset/catálogo atual (decidir: sumiu, mudou de nome, ou não é SRD):`)
     for (const o of orphans) console.log(`    ${o.domain}: ${o.key}`)
   }
   if (fallbacks.length) {

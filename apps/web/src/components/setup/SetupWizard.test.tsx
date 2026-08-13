@@ -47,6 +47,25 @@ const configWithAbilityGrant = (budget: number) => ({
   ],
 })
 
+// US-131: background com grant.kind === 'skills' — Acolyte real: Religião fixa, escolha entre
+// Intuição/Persuasão. `athletics` sobra no catálogo pra provar que só as concedidas somem
+// da etapa `skills`, não o catálogo inteiro.
+const configWithSkillGrant = (budget: number) => ({
+  ...configWithBudget(budget),
+  skills: [
+    { key: 'religion', label: 'Religião', ability: 'strength' },
+    { key: 'insight', label: 'Intuição', ability: 'strength' },
+    { key: 'persuasion', label: 'Persuasão', ability: 'strength' },
+    { key: 'athletics', label: 'Atletismo', ability: 'strength' },
+  ],
+  proficiency: { choices: 1, bonus: 2 },
+  backgrounds: [
+    { key: 'a5e-ag_acolyte', name: 'Acólito', source: 'a5e-ag', benefits: [
+      { type: 'skill_proficiency', name: 'Skill Proficiencies', description: 'Religion, and either Insight or Persuasion.', grant: { kind: 'skills' as const, fixed: ['religion'], chooseFrom: ['insight', 'persuasion'], chooseCount: 1 } },
+    ] },
+  ],
+})
+
 // US-124: Markdown real do dataset (heading em nível MISTO, #### e ###) para o benefício
 // connection_and_memento — 2 blocos (Acolyte) e a anomalia do Sailor (1 bloco só, "Mementos").
 const CAM_ACOLYTE = `Roll 1d10, choose, or make up your own.
@@ -790,5 +809,70 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc) // fecha orçamento — nada mais deveria bloquear
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  // --- US-131: perícias do background (grant.kind === 'skills') ---
+
+  it('background com grant.kind "skills": aviso na etapa background, escolha na etapa skills, exclui do catálogo da classe', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithSkillGrant(0))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+
+    // Texto informativo na etapa background — texto CRU do benefício (nome: descrição), mesma
+    // posição do aviso de abilityGrant, SEM cards aqui (a escolha não acontece nesta etapa).
+    expect(screen.getByText('Skill Proficiencies: Religion, and either Insight or Persuasion.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Intuição' })).toBeNull()
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(false) // background nunca bloqueia — a escolha é na etapa skills
+
+    fireEvent.click(nextBtn()) // → atributos
+    fireEvent.click(nextBtn()) // → perícias
+
+    // Etapa skills: seção da origem no topo — fixa como texto (não clicável), chooseFrom clicável.
+    expect(screen.getByText('Perícias de Acólito')).toBeTruthy()
+    expect(screen.getByText('Religião')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Religião' })).toBeNull()
+    expect(nextBtn().disabled).toBe(true) // nada escolhido do grant ainda
+
+    fireEvent.click(screen.getByRole('button', { name: 'Intuição' }))
+    // Religião (fixa) e Intuição (escolhida) já concedidas: só aparecem UMA vez (na seção da
+    // origem) — o catálogo da classe abaixo não as repete como card próprio.
+    expect(screen.queryByRole('button', { name: /^Religião/ })).toBeNull()
+    expect(screen.getAllByRole('button', { name: 'Intuição' })).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' }))
+    expect(nextBtn().disabled).toBe(false) // grant + proficiency.choices: 1, ambos satisfeitos
+
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      skills: ['athletics'],
+      origin: expect.objectContaining({ key: 'a5e-ag_acolyte', skillChoice: ['insight'] }),
+    }))
+  })
+
+  it('grant.kind "skills" com chooseCount 0 mostra só a fixa, sem exigir escolha em lugar nenhum', async () => {
+    const config = {
+      ...configWithSkillGrant(0),
+      // choices: 0 isola o teste da mecânica de classe (skillChoices) — só a do grant importa aqui.
+      proficiency: { choices: 0, bonus: 2 },
+      backgrounds: [
+        { key: 'a5e-ag_x', name: 'X', source: 'a5e-ag', benefits: [
+          { type: 'skill_proficiency', name: 'Skill Proficiencies', description: 'x', grant: { kind: 'skills' as const, fixed: ['religion'], chooseFrom: [], chooseCount: 0 } },
+        ] },
+      ],
+    }
+    await pickSystemAndFillRaceClass(config)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_x' } })
+
+    expect(screen.getByText('Skill Proficiencies: x')).toBeTruthy()
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    fireEvent.click(nextBtn()) // → atributos
+    fireEvent.click(nextBtn()) // → perícias
+    expect(screen.getByText('Religião')).toBeTruthy() // fixa aparece, sem chooseFrom
+    expect(nextBtn().disabled).toBe(false)
   })
 })

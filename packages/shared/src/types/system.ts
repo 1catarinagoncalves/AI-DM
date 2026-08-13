@@ -63,10 +63,18 @@ export const SystemSpellSchema = z.object({
 
 // US-123: bônus de atributo do background, derivado pelo ingest de `type === 'ability_score'`
 // (padrão único medido nas 21 entradas: "+1 to <fixo> and one other ability score."). União
-// discriminada porque a US-131 adiciona aqui um segundo membro (`kind: 'skills'`, para
-// `skill_proficiency`) sem reabrir este — mesma infraestrutura, dois benefícios diferentes.
+// discriminada: a US-131 adiciona o segundo membro (`kind: 'skills'`, para `skill_proficiency`)
+// sem reabrir este — mesma infraestrutura, dois benefícios diferentes.
 export const SystemBackgroundGrantSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('ability'), fixed: z.string().min(1), freeCount: z.number().int().min(0) }),
+  // US-131: `fixed`/`chooseFrom` já são CHAVES de config.skills, resolvidas pelo ingest —
+  // perícia sem entrada no catálogo é omitida (relatada como órfã), nunca entra aqui.
+  z.object({
+    kind: z.literal('skills'),
+    fixed: z.array(z.string()),
+    chooseFrom: z.array(z.string()),
+    chooseCount: z.number().int().min(0),
+  }),
 ])
 export type SystemBackgroundGrant = z.infer<typeof SystemBackgroundGrantSchema>
 

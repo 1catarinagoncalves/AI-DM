@@ -96,6 +96,9 @@ export const enUS: Record<MessageKey, string> = {
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Skills',
+  // US-131: background skills section, at the TOP of this step (the origin already gave the
+  // heads-up in the `background` step; this is where the actual choice happens).
+  'setup.skills.originGrant': 'Skills from {origin}',
   'setup.skills.instructions': 'Choose {n} proficient skills (+{bonus} each).',
   'setup.skills.selected': 'Selected:',
 

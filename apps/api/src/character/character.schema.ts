@@ -55,6 +55,11 @@ export const CreateCharacterSchema = z.object({
     // US-123: atributo escolhido para o `+1` livre do `grant.kind === 'ability'` da origem.
     // Validado contra `config.attributes` e `grant.fixed` no service, não aqui.
     abilityChoice: z.string().max(40).optional(),
+    // US-131: perícia(s) escolhida(s) do `grant.chooseFrom` do `grant.kind === 'skills'` da
+    // origem — ARRAY, não string única: `chooseCount` pode ser > 1 (Guildmember, "Two of your
+    // choice", é o real de hoje). Validado contra o grant no service, mesmo espírito de
+    // `abilityChoice`, mas em quantidade variável em vez de um par fixo+escolhido.
+    skillChoice: z.array(z.string().max(60)).max(6).optional(),
   }).optional(),
 })
 

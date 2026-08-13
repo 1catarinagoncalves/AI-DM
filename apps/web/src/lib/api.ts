@@ -57,7 +57,9 @@ export const api = {
     // bloco de connection_and_memento — não vêm do catálogo, texto livre do ponto de vista da API.
     // US-123: `abilityChoice` é a chave do atributo escolhido para o +1 livre do
     // grant.kind === 'ability' da origem.
-    origin?: { key?: string; connection?: string; memento?: string; abilityChoice?: string }
+    // US-131: `skillChoice` são as chaves de perícia escolhidas do grant.chooseFrom do
+    // grant.kind === 'skills' da origem — array, `chooseCount` pode ser > 1.
+    origin?: { key?: string; connection?: string; memento?: string; abilityChoice?: string; skillChoice?: string[] }
   }) => post<{ id: string; name: string }>('/characters', data),
 
   listSystems: () =>

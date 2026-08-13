@@ -468,4 +468,105 @@ describe('CharacterService.create', () => {
     })
     expect(char.baseAttributes).toEqual({ cool: 5, hard: 5 })
   })
+
+  // US-131: perícias do background (`grant.kind === 'skills'`) mescladas com as `choices` da
+  // etapa `skills` — mesmo par find/apply de `abilityChoice` acima. `a5e-ag_acolyte` real:
+  // Religion fixa + escolha Insight/Persuasion (US-131 §Critérios de aceite).
+  const configWithSkillGrant: SystemConfig = {
+    ...config,
+    skills: [
+      { key: 'religion', label: 'Religião', ability: 'cool' },
+      { key: 'insight', label: 'Intuição', ability: 'hard' },
+      { key: 'persuasion', label: 'Persuasão', ability: 'hard' },
+      { key: 'athletics', label: 'Atletismo', ability: 'cool' },
+    ],
+    proficiency: { choices: 1, bonus: 2 },
+    backgrounds: [
+      { key: 'a5e-ag_acolyte', name: 'Acolyte', source: 'a5e-ag', benefits: [
+        { type: 'skill_proficiency', name: 'Skill Proficiencies', description: 'Religion, and either Insight or Persuasion.', grant: { kind: 'skills', fixed: ['religion'], chooseFrom: ['insight', 'persuasion'], chooseCount: 1 } },
+      ] },
+    ],
+  }
+
+  // US-131 — critério de aceite: background `a5e-ag_acolyte` (skills fixas `Religion` +
+  // escolha `Insight`/`Persuasion`) confere `skills` com `religion` + a escolhida, sem exigir
+  // 3 perícias na etapa `skills` (só a `choices` do sistema, aqui 1).
+  it('mescla as perícias do background (fixa + escolhida) com as `choices` da etapa skills', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkillGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics'],
+      origin: { key: 'a5e-ag_acolyte', skillChoice: ['insight'] },
+    })
+    expect(char.skills).toEqual(['religion', 'insight', 'athletics'])
+  })
+
+  it('rejeita skillChoice fora de grant.chooseFrom', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkillGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics'],
+      origin: { key: 'a5e-ag_acolyte', skillChoice: ['athletics'] },
+    })).rejects.toThrow('skillChoice inválido')
+  })
+
+  it('rejeita skillChoice ausente quando o grant exige (chooseCount > 0)', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkillGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics'],
+      origin: { key: 'a5e-ag_acolyte' },
+    })).rejects.toThrow('skillChoice inválido')
+  })
+
+  it('rejeita contagem errada de skillChoice (grant exige exatamente chooseCount)', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkillGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics'],
+      origin: { key: 'a5e-ag_acolyte', skillChoice: ['insight', 'persuasion'] },
+    })).rejects.toThrow('skillChoice inválido')
+  })
+
+  it('perícia já concedida pelo background sai do catálogo da etapa skills (não pode ser reescolhida)', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkillGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['religion'],
+      origin: { key: 'a5e-ag_acolyte', skillChoice: ['insight'] },
+    })).rejects.toThrow('inválida')
+  })
+
+  // US-131: Guildmember real ("Two of your choice") — chooseCount 2, chooseFrom = catálogo
+  // inteiro (US-131 §Notas de implementação, ingest.mjs `parseSkillGrant`). Confere que
+  // `applySkillGrant` aceita chooseCount > 1 (não só o par fixo+escolhido do abilityGrant).
+  const configWithFreeSkillGrant: SystemConfig = {
+    ...config,
+    skills: configWithSkillGrant.skills,
+    proficiency: { choices: 0, bonus: 2 },
+    backgrounds: [
+      { key: 'a5e-ag_guildmember', name: 'Guildmember', source: 'a5e-ag', benefits: [
+        { type: 'skill_proficiency', name: 'Skill Proficiencies', description: 'Two of your choice.', grant: { kind: 'skills', fixed: [], chooseFrom: ['religion', 'insight', 'persuasion', 'athletics'], chooseCount: 2 } },
+      ] },
+    ],
+  }
+
+  it('grant.chooseCount > 1 (Guildmember): exige exatamente 2 chaves de chooseFrom', async () => {
+    const service = new CharacterService(fakePrisma(configWithFreeSkillGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_guildmember', skillChoice: ['religion', 'athletics'] },
+    })
+    expect(char.skills).toEqual(['religion', 'athletics'])
+  })
+
+  it('background sem grant.kind "skills" (ou sem origem) não mexe em skills', async () => {
+    const service = new CharacterService(fakePrisma(configWithSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics', 'perception'],
+    })
+    expect(char.skills).toEqual(['athletics', 'perception'])
+  })
 })

@@ -382,6 +382,17 @@
         },
         {
           "description": "Religião e uma entre Intuição ou Persuasão.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "insight",
+              "persuasion"
+            ],
+            "fixed": [
+              "religion"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         }
@@ -419,6 +430,17 @@
         },
         {
           "description": "Persuasão, e Intuição ou História.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "insight",
+              "history"
+            ],
+            "fixed": [
+              "persuasion"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -466,6 +488,18 @@
         },
         {
           "description": "Enganação, e Cultura, Intuição ou Prestidigitação.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "culture",
+              "insight",
+              "sleight_of_hand"
+            ],
+            "fixed": [
+              "deception"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -513,6 +547,17 @@
         },
         {
           "description": "Furtividade e ou Enganação ou Intimidação.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "deception",
+              "intimidation"
+            ],
+            "fixed": [
+              "stealth"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -570,6 +615,17 @@
         },
         {
           "description": "Religião e ou Arcanismo ou Enganação.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "arcana",
+              "deception"
+            ],
+            "fixed": [
+              "religion"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         }
@@ -612,6 +668,18 @@
         },
         {
           "description": "Atuação e ou Acrobacia, Cultura ou Persuasão.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "acrobatics",
+              "culture",
+              "persuasion"
+            ],
+            "fixed": [
+              "performance"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         }
@@ -654,6 +722,17 @@
         },
         {
           "description": "Sobrevivência e ou História ou Atuação.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "history",
+              "performance"
+            ],
+            "fixed": [
+              "survival"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         }
@@ -696,6 +775,17 @@
         },
         {
           "description": "Natureza e Adestrar Animais ou Sobrevivência.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "animal_handling",
+              "survival"
+            ],
+            "fixed": [
+              "nature"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -743,6 +833,17 @@
         },
         {
           "description": "Sobrevivência e Adestrar Animais ou Natureza.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "animal_handling",
+              "nature"
+            ],
+            "fixed": [
+              "survival"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -790,6 +891,17 @@
         },
         {
           "description": "Enganação e Intuição ou Prestidigitação.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "insight",
+              "sleight_of_hand"
+            ],
+            "fixed": [
+              "deception"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         }
@@ -837,6 +949,17 @@
         },
         {
           "description": "Intimidação e ou Atletismo ou Investigação.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "athletics",
+              "investigation"
+            ],
+            "fixed": [
+              "intimidation"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         }
@@ -879,6 +1002,33 @@
         },
         {
           "description": "Duas de sua escolha.",
+          "grant": {
+            "chooseCount": 2,
+            "chooseFrom": [
+              "acrobatics",
+              "animal_handling",
+              "arcana",
+              "athletics",
+              "culture",
+              "deception",
+              "engineering",
+              "history",
+              "insight",
+              "intimidation",
+              "investigation",
+              "medicine",
+              "nature",
+              "perception",
+              "performance",
+              "persuasion",
+              "religion",
+              "sleight_of_hand",
+              "stealth",
+              "survival"
+            ],
+            "fixed": [],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -926,6 +1076,17 @@
         },
         {
           "description": "Religião e ou Medicina ou Sobrevivência.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "medicine",
+              "survival"
+            ],
+            "fixed": [
+              "religion"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -973,6 +1134,17 @@
         },
         {
           "description": "Sobrevivência e ou Intimidação ou Furtividade.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "intimidation",
+              "stealth"
+            ],
+            "fixed": [
+              "survival"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -1025,6 +1197,18 @@
         },
         {
           "description": "Cultura, História e ou Adestrar Animais ou Persuasão.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "animal_handling",
+              "persuasion"
+            ],
+            "fixed": [
+              "culture",
+              "history"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -1067,6 +1251,17 @@
         },
         {
           "description": "Sobrevivência e ou Atletismo ou Intimidação.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "athletics",
+              "intimidation"
+            ],
+            "fixed": [
+              "survival"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -1114,6 +1309,19 @@
         },
         {
           "description": "História e uma entre Arcanismo, Cultura, Engenharia ou Religião.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "arcana",
+              "culture",
+              "engineering",
+              "religion"
+            ],
+            "fixed": [
+              "history"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         }
@@ -1156,6 +1364,17 @@
         },
         {
           "description": "Atletismo e uma entre Acrobacia ou Percepção.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "acrobatics",
+              "perception"
+            ],
+            "fixed": [
+              "athletics"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -1203,6 +1422,17 @@
         },
         {
           "description": "Atletismo e ou Adestrar Animais ou Intimidação.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "animal_handling",
+              "intimidation"
+            ],
+            "fixed": [
+              "athletics"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -1250,6 +1480,18 @@
         },
         {
           "description": "Persuasão e Cultura, Enganação ou Intuição.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "culture",
+              "deception",
+              "insight"
+            ],
+            "fixed": [
+              "persuasion"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
@@ -1302,6 +1544,17 @@
         },
         {
           "description": "Prestidigitação e, à sua escolha, Enganação ou Furtividade.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "deception",
+              "stealth"
+            ],
+            "fixed": [
+              "sleight_of_hand"
+            ],
+            "kind": "skills"
+          },
           "name": "Proficiências em Perícias",
           "type": "skill_proficiency"
         },
