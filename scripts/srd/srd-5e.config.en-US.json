@@ -3733,5 +3733,257 @@
         "qty": 1
       }
     ]
-  }
+  },
+  "tools": [
+    {
+      "category": "artisan",
+      "key": "alchemists_supplies",
+      "label": "Alchemist's Supplies"
+    },
+    {
+      "category": "artisan",
+      "key": "brewers_supplies",
+      "label": "Brewer's Supplies"
+    },
+    {
+      "category": "artisan",
+      "key": "calligraphers_supplies",
+      "label": "Calligrapher's Supplies"
+    },
+    {
+      "category": "artisan",
+      "key": "carpenters_tools",
+      "label": "Carpenter's Tools"
+    },
+    {
+      "category": "vehicle",
+      "key": "carriage",
+      "label": "Carriage"
+    },
+    {
+      "category": "vehicle",
+      "key": "cart",
+      "label": "Cart"
+    },
+    {
+      "category": "artisan",
+      "key": "cartographers_tools",
+      "label": "Cartographer's Tools"
+    },
+    {
+      "category": "vehicle",
+      "key": "chariot",
+      "label": "Chariot"
+    },
+    {
+      "category": "kit",
+      "key": "climbers_kit",
+      "label": "Climber's Kit"
+    },
+    {
+      "category": "artisan",
+      "key": "cobblers_tools",
+      "label": "Cobbler's Tools"
+    },
+    {
+      "category": "artisan",
+      "key": "cooks_utensils",
+      "label": "Cook's Utensils"
+    },
+    {
+      "category": "kit",
+      "key": "disguise_kit",
+      "label": "Disguise Kit"
+    },
+    {
+      "category": "kit",
+      "key": "forgery_kit",
+      "label": "Forgery Kit"
+    },
+    {
+      "category": "vehicle",
+      "key": "galley",
+      "label": "Galley"
+    },
+    {
+      "category": "gaming-set",
+      "key": "gaming_set_dice",
+      "label": "Gaming Set, Dice"
+    },
+    {
+      "category": "gaming-set",
+      "key": "gaming_set_dragonchess",
+      "label": "Gaming Set, Dragonchess"
+    },
+    {
+      "category": "gaming-set",
+      "key": "gaming_set_playing_cards",
+      "label": "Gaming Set, Playing Cards"
+    },
+    {
+      "category": "gaming-set",
+      "key": "gaming_set_three_dragon_ante",
+      "label": "Gaming Set, Three-Dragon Ante"
+    },
+    {
+      "category": "artisan",
+      "key": "glassblowers_tools",
+      "label": "Glassblower's Tools"
+    },
+    {
+      "category": "kit",
+      "key": "healers_kit",
+      "label": "Healer's Kit"
+    },
+    {
+      "category": "kit",
+      "key": "herbalism_kit",
+      "label": "Herbalism Kit"
+    },
+    {
+      "category": "artisan",
+      "key": "jewelers_tools",
+      "label": "Jeweler's Tools"
+    },
+    {
+      "category": "vehicle",
+      "key": "keelboat",
+      "label": "Keelboat"
+    },
+    {
+      "category": "artisan",
+      "key": "leatherworkers_tools",
+      "label": "Leatherworker's Tools"
+    },
+    {
+      "category": "vehicle",
+      "key": "longship",
+      "label": "Longship"
+    },
+    {
+      "category": "artisan",
+      "key": "masons_tools",
+      "label": "Mason's Tools"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_bagpipes",
+      "label": "Musical Instrument, Bagpipes"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_drum",
+      "label": "Musical Instrument, Drum"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_dulcimer",
+      "label": "Musical Instrument, Dulcimer"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_flute",
+      "label": "Musical Instrument, Flute"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_horn",
+      "label": "Musical Instrument, Horn"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_lute",
+      "label": "Musical Instrument, Lute"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_lyre",
+      "label": "Musical Instrument, Lyre"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_pan_flute",
+      "label": "Musical Instrument, Pan Flute"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_shawm",
+      "label": "Musical Instrument, Shawm"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_viol",
+      "label": "Musical Instrument, Viol"
+    },
+    {
+      "category": "navigators_tools",
+      "key": "navigators_tools",
+      "label": "Navigator's Tools"
+    },
+    {
+      "category": "artisan",
+      "key": "painters_supplies",
+      "label": "Painter's Supplies"
+    },
+    {
+      "category": "kit",
+      "key": "poisoners_kit",
+      "label": "Poisoner's Kit"
+    },
+    {
+      "category": "artisan",
+      "key": "potters_tools",
+      "label": "Potter's Tools"
+    },
+    {
+      "category": "vehicle",
+      "key": "rowboat",
+      "label": "Rowboat"
+    },
+    {
+      "category": "vehicle",
+      "key": "sailing_ship",
+      "label": "Sailing Ship"
+    },
+    {
+      "category": "vehicle",
+      "key": "sled",
+      "label": "Sled"
+    },
+    {
+      "category": "artisan",
+      "key": "smiths_tools",
+      "label": "Smith's Tools"
+    },
+    {
+      "category": "thieves_tools",
+      "key": "thieves_tools",
+      "label": "Thieves' Tools"
+    },
+    {
+      "category": "artisan",
+      "key": "tinkers_tools",
+      "label": "Tinker's Tools"
+    },
+    {
+      "category": "vehicle",
+      "key": "wagon",
+      "label": "Wagon"
+    },
+    {
+      "category": "vehicle",
+      "key": "warship",
+      "label": "Warship"
+    },
+    {
+      "category": "artisan",
+      "key": "weavers_tools",
+      "label": "Weaver's Tools"
+    },
+    {
+      "category": "artisan",
+      "key": "woodcarvers_tools",
+      "label": "Woodcarver's Tools"
+    }
+  ]
 }

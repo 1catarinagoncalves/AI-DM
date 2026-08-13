@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -683,6 +683,80 @@ test('buildSkills: culture/engineering pegam o label pt-BR do overlay igual às 
   const result = buildSkills(overlay, [SKILL_ROW('history', 'History', 'int')], ptResolve)
   assert.deepEqual(result.map((s) => s.label), ['Cultura', 'Engenharia', 'História'])
 })
+
+// --- US-134 — buildTools: Item.json (category tools/land-vehicle/waterborne-vehicle) → config.tools ---
+
+const item = (pk, name, category, desc = 'Rule text.') => ({ pk, fields: { name, category, desc } })
+
+test('buildTools: um item de cada um dos 5 padrões de nome, category correta, key sem "srd-2024_"', () => {
+  const items = [
+    item('srd-2024_smiths-tools', "Smith's Tools (20 GP)", 'tools'),
+    item('srd-2024_musical-instrument-lute', 'Musical Instrument, Lute', 'tools'),
+    item('srd-2024_gaming-set-dice', 'Gaming Set, Dice', 'tools'),
+    item('srd-2024_herbalism-kit', 'Herbalism Kit', 'tools'),
+    item('srd-2024_thieves-tools', "Thieves' Tools", 'tools'),
+    item('srd-2024_cart', 'Cart', 'land-vehicle'),
+    item('srd-2024_galley', 'Galley', 'waterborne-vehicle'),
+  ]
+  const result = buildTools({}, items, identityResolve)
+  assert.deepEqual(result.find((t) => t.key === 'smiths_tools'), { key: 'smiths_tools', label: "Smith's Tools", category: 'artisan' })
+  assert.deepEqual(result.find((t) => t.key === 'musical_instrument_lute'), { key: 'musical_instrument_lute', label: 'Musical Instrument, Lute', category: 'musical-instrument' })
+  assert.deepEqual(result.find((t) => t.key === 'gaming_set_dice'), { key: 'gaming_set_dice', label: 'Gaming Set, Dice', category: 'gaming-set' })
+  assert.deepEqual(result.find((t) => t.key === 'herbalism_kit'), { key: 'herbalism_kit', label: 'Herbalism Kit', category: 'kit' })
+  assert.deepEqual(result.find((t) => t.key === 'thieves_tools'), { key: 'thieves_tools', label: "Thieves' Tools", category: 'thieves_tools' })
+  assert.deepEqual(result.find((t) => t.key === 'cart'), { key: 'cart', label: 'Cart', category: 'vehicle' })
+  assert.deepEqual(result.find((t) => t.key === 'galley'), { key: 'galley', label: 'Galley', category: 'vehicle' })
+})
+
+test('buildTools: "(N GP)" some do label mas não do key', () => {
+  const result = buildTools({}, [item('srd-2024_tinkers-tools', "Tinker's Tools (50 GP)", 'tools')], identityResolve)
+  assert.deepEqual(result, [{ key: 'tinkers_tools', label: "Tinker's Tools", category: 'artisan' }])
+})
+
+test('buildTools: item category "tools" com nome fora dos 5 padrões falha alto', () => {
+  const items = [item('srd-2024_mystery-box', 'Mystery Box (10 GP)', 'tools')]
+  assert.throws(() => buildTools({}, items, identityResolve), /fora dos 5 padrões/)
+})
+
+test('buildTools: categorias fora do escopo (weapon, armor...) são descartadas', () => {
+  const items = [item('srd-2024_dagger', 'Dagger', 'weapon'), item('srd-2024_cart', 'Cart', 'land-vehicle')]
+  const result = buildTools({}, items, identityResolve)
+  assert.deepEqual(result.map((t) => t.key), ['cart'])
+})
+
+test('buildTools: label pt-BR vem do overlay igual aos outros domínios MT', () => {
+  const overlay = { tools: { smiths_tools: { name: 'Ferramentas de Ferreiro', description: 'Regra.' } } }
+  const ptResolve = (_domain, _key, entry, enName) => ({ name: entry?.name?.trim() || enName })
+  const result = buildTools(overlay, [item('srd-2024_smiths-tools', "Smith's Tools (20 GP)", 'tools')], ptResolve)
+  assert.equal(result[0].label, 'Ferramentas de Ferreiro')
+})
+
+// Contra o dataset PINADO real (não fixture): as 50 entradas medidas em US-134 §Contexto batem.
+test('buildTools: as 50 entradas reais do Item.json pinado batem a contagem por categoria', () => {
+  const itemsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Item.json'), 'utf8'))
+  const result = buildTools({}, itemsRaw, identityResolve)
+  assert.equal(result.length, 50)
+  const byCategory = {}
+  for (const t of result) byCategory[t.category] = (byCategory[t.category] || 0) + 1
+  assert.equal(byCategory.artisan, 17)
+  assert.equal(byCategory['musical-instrument'], 10)
+  assert.equal(byCategory['gaming-set'], 4)
+  assert.equal(byCategory.kit, 6)
+  assert.equal(byCategory.vehicle, 11)
+  assert.equal(byCategory.navigators_tools, 1)
+  assert.equal(byCategory.thieves_tools, 1)
+})
+
+// --- artefato: config.tools sai gravado nos dois locales, mesma contagem que o dataset real ---
+for (const locale of ['en-US', 'pt-BR']) {
+  test(`artefato ${locale}: config.tools tem 50 entradas com key/label/category`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    assert.equal(artifact.tools.length, 50)
+    for (const t of artifact.tools) {
+      assert.ok(t.key && t.label && t.category, `entrada incompleta: ${JSON.stringify(t)}`)
+    }
+  })
+}
 
 // --- US-108 — a tabela de modificadores de habilidade do SRD 2024 ---
 //

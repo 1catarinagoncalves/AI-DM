@@ -37,6 +37,9 @@ const A5E_AG = `${RAW}/en-publishing/a5e-ag`
 const FILES = [
   [`${SRD}/AbilityDescription.json`, 'AbilityDescription.json'],
   [`${SRD}/Rule.json`, 'Rule.json'],
+  // US-134: mesmo documento srd-2024 de AbilityDescription/CharacterClass — sem tag nova,
+  // sem entrada nova em NOTICE-open5e.md. Catálogo de ferramentas/veículos (config.tools).
+  [`${SRD}/Item.json`, 'Item.json'],
   [`${CORE}/Skill.json`, 'Skill.json'],
   [`${SRD}/CharacterClass.json`, 'CharacterClass.json'],
   [`${SRD}/ClassFeature.json`, 'ClassFeature.json'],

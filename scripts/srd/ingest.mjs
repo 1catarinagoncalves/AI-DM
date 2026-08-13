@@ -52,7 +52,11 @@ const NO_MT = process.argv.includes('--no-mt')
 // US-121: `backgrounds` entra — `benefit.desc` é prosa (chega a parágrafo), mesmo tratamento
 // de `features`/`spells`. O nome do background em si (sem `desc` no dataset) fica de fora do
 // rascunho automático (a chamada exige enName+enDesc) e segue curadoria manual, como races/classes.
-const MT_DOMAINS = ['features', 'spells', 'backgrounds']
+// US-134: `tools` entra — 50 nomes é curadoria manual grande demais pra uma sentada só (contraste
+// com races/skills/classes/kitItems, dezena ou menos cada). O `desc` que alimenta a tradução é o
+// texto de regra do item (`Item.json.desc`), nunca guardado no artefato — só dá contexto ao
+// modelo; ver `buildTools`.
+const MT_DOMAINS = ['features', 'spells', 'backgrounds', 'tools']
 
 // Mapa explícito das 12 classes do SRD → chave canônica do config. NÃO reusa o CLASS_SYNONYMS
 // de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte o slug do dataset.
@@ -164,7 +168,7 @@ async function load(name) {
 function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), features: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), features: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -561,6 +565,49 @@ export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, 
   return { backgrounds, backgroundEquipment }
 }
 
+// --- tools (50): Item.json category → catálogo de proficiência de ferramenta/veículo (US-134) ---
+//
+// Só 3 das 12 categorias do dataset correspondem a proficiência de ferramenta (US-134 §Contexto:
+// `tools` 39, `land-vehicle` 5, `waterborne-vehicle` 6) — as outras 9 (weapon, armor, potion...)
+// são equipamento geral, fora do escopo desta story.
+
+// Os 2 itens que não seguem padrão nenhum de nome (sem prefixo, sem sufixo " Kit", sem preço) —
+// tabela explícita, mesmo espírito do CLASS_MAP: são só 2, mapa erra alto em vez de engolir em
+// silêncio se um Item.json futuro trouxer um terceiro.
+const NAMED_ALONE_TOOLS = new Set(["Navigator's Tools", "Thieves' Tools"])
+const PRICE_SUFFIX = / \(\d+\s*GP\)$/i
+// "Smith's Tools (20 GP)", "Alchemist's Supplies (50 GP)", "Cook's Utensils (1 GP)" — o preço
+// AQUI é parte do padrão (as 17 artisan são as únicas com preço no nome), não ruído genérico:
+// distingue o padrão de um nome qualquer terminado em "(N GP)" que não seja ferramenta de ofício.
+const ARTISAN_PATTERN = /'s (Tools|Supplies|Utensils) \(\d+\s*GP\)$/
+
+// Categoria de PROFICIÊNCIA (2º nível, dentro de `category: 'tools'`) a partir do padrão do
+// NOME — tabela explícita, mesmo contrato de `parseStartingKit`/`parseSkillGrant`: nome fora
+// dos 5 padrões medidos falha alto, não é omitido em silêncio.
+function toolCategory(name, key) {
+  if (name.startsWith('Musical Instrument, ')) return 'musical-instrument'
+  if (name.startsWith('Gaming Set, ')) return 'gaming-set'
+  if (name.endsWith(' Kit')) return 'kit'
+  if (NAMED_ALONE_TOOLS.has(name)) return key // item concreto fixo, sem 2º nível — a própria chave identifica
+  if (ARTISAN_PATTERN.test(name)) return 'artisan'
+  throw new Error(`Item.json category "tools" fora dos 5 padrões medidos (US-134): "${name}"`)
+}
+
+export function buildTools(overlay, itemsRaw, resolve) {
+  const relevant = itemsRaw.filter((i) => ['tools', 'land-vehicle', 'waterborne-vehicle'].includes(i.fields.category))
+  return relevant
+    .map((item) => {
+      const key = stripDocument(item.pk).replace(/-/g, '_')
+      const enLabel = item.fields.name.replace(PRICE_SUFFIX, '')
+      const category = item.fields.category === 'tools' ? toolCategory(item.fields.name, key) : 'vehicle'
+      // `desc` do dataset (texto de regra do item) só alimenta a tradução (US-52) — nunca entra
+      // no artefato: SystemToolSchema não tem campo description (US-134 §Fora do escopo).
+      const label = resolve('tools', key, overlay.tools?.[key], enLabel, norm(item.fields.desc)).name
+      return { key, label, category }
+    })
+    .sort((a, b) => a.key.localeCompare(b.key))
+}
+
 // Monta um artefato completo a partir do dataset + um overlay. Overlay `{}` = base EN crua.
 function buildConfig(overlay, data) {
   const { resolve, fallbacks, orphans, usedOverlay, glossary } = makeResolver()
@@ -572,23 +619,24 @@ function buildConfig(overlay, data) {
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
   const startingKits = buildStartingKits(overlay, data.features, resolve)
   const { backgrounds, backgroundEquipment } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, orphans)
+  const tools = buildTools(overlay, data.items, resolve)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
-  for (const domain of ['features', 'spells', 'kitItems', 'backgrounds']) {
+  for (const domain of ['features', 'spells', 'kitItems', 'backgrounds', 'tools']) {
     for (const key of Object.keys(overlay[domain] || {})) {
       if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
     }
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  const artifact = { attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment }
+  const artifact = { attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, tools }
   SystemConfigSchema.parse({ ...artifact, ...STUB })
   return { artifact, fallbacks, orphans, glossary }
 }
 
 async function main() {
   const overlay = JSON.parse(await readFile(OVERLAY_PATH, 'utf8'))
-  const [abilities, rules, skillsRaw, classes, features, featureItems, spells, species, species2014, backgrounds, backgroundBenefits] = await Promise.all([
+  const [abilities, rules, skillsRaw, classes, features, featureItems, spells, species, species2014, backgrounds, backgroundBenefits, items] = await Promise.all([
     load('AbilityDescription.json'),
     load('Rule.json'),
     load('Skill.json'),
@@ -600,8 +648,9 @@ async function main() {
     load('Species.2014.json'),
     load('Background.json'),
     load('BackgroundBenefit.json'),
+    load('Item.json'),
   ])
-  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species, species2014, backgrounds, backgroundBenefits }
+  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species, species2014, backgrounds, backgroundBenefits, items }
 
   const base = buildConfig({}, data)
   let localized = buildConfig(overlay, data)
@@ -812,7 +861,7 @@ function reportDrafts(drafted, overlay) {
 
 function report({ fallbacks, orphans, artifact }, drafted, overlay) {
   console.log('ingest OK → scripts/srd/srd-5e.config.{en-US,pt-BR}.json')
-  console.log(`  attributes: 6 · skills: ${artifact.skills.length} · races: ${artifact.races.length} · classes: ${artifact.classes.length} · backgrounds: ${artifact.backgrounds.length}`)
+  console.log(`  attributes: 6 · skills: ${artifact.skills.length} · races: ${artifact.races.length} · classes: ${artifact.classes.length} · backgrounds: ${artifact.backgrounds.length} · tools: ${artifact.tools.length}`)
   reportDrafts(drafted, overlay)
   if (orphans.length) {
     // US-131: dois motivos possíveis por trás de `domain`: overlay com PT sem chave no SRD 5.2

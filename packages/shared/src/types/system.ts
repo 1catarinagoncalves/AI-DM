@@ -29,6 +29,19 @@ export const SystemCatalogEntrySchema = z.object({
   label: z.string().min(1),
 })
 
+// Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,
+// `land-vehicle`, `waterborne-vehicle`). Mesmo contrato de `SystemCatalogEntrySchema`
+// (key/label) mais `category`: a categoria de PROFICIÊNCIA do 5e (`artisan`,
+// `musical-instrument`, `gaming-set`, `kit`, `vehicle`, ou a própria `key` para os 2 itens
+// nomeados sozinhos sem categoria — ver `buildTools`). String livre, não enum: mesmo
+// raciocínio de `SystemBackgroundBenefitSchema.type` — 5 valores observados hoje, taxonomia
+// fechada cedo demais quebra no primeiro valor novo de um bump.
+export const SystemToolSchema = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+  category: z.string().min(1),
+})
+
 // Feature de classe (US-41): o que o personagem SABE FAZER de especial (Sentido
 // Divino, Fúria, Ataque Furtivo…). Awareness apenas — sem usos/custo/mecânica.
 // NÃO é atributo (`ability`) nem perícia (`skill`): é uma terceira coisa.
@@ -137,6 +150,10 @@ export const SystemConfigSchema = z.object({
   // chave `default` — origem é opcional na criação, sem origem escolhida não há o que resolver.
   // Chave = `SystemBackground.key`. Derivado pelo ingest do benefício `type === 'equipment'`.
   backgroundEquipment: z.record(z.string(), z.array(StartingKitItemSchema)).optional(),
+  // Catálogo de ferramentas e veículos (US-134), derivado do `Item.json` pelo ingest. Opcional
+  // como races/classes/backgrounds: config legado sem ele não fica inválido. Fecha a lacuna que
+  // bloqueava a US-132 (escolha do benefício `tool_proficiency` do background).
+  tools: z.array(SystemToolSchema).optional(),
   proficiency: z.object({
     choices: z.number().int().min(0),
     bonus: z.number().int(),
@@ -168,6 +185,7 @@ export const SystemConfigSchema = z.object({
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
 export type SystemCatalogEntry = z.infer<typeof SystemCatalogEntrySchema>
+export type SystemTool = z.infer<typeof SystemToolSchema>
 export type SystemClassFeature = z.infer<typeof SystemClassFeatureSchema>
 export type SystemSpell = z.infer<typeof SystemSpellSchema>
 export type SystemBackgroundBenefit = z.infer<typeof SystemBackgroundBenefitSchema>

@@ -3733,5 +3733,257 @@
         "qty": 1
       }
     ]
-  }
+  },
+  "tools": [
+    {
+      "category": "artisan",
+      "key": "alchemists_supplies",
+      "label": "Suprimentos de Alquimista"
+    },
+    {
+      "category": "artisan",
+      "key": "brewers_supplies",
+      "label": "Suprimentos de Cervejeiro"
+    },
+    {
+      "category": "artisan",
+      "key": "calligraphers_supplies",
+      "label": "Suprimentos de Calígrafo"
+    },
+    {
+      "category": "artisan",
+      "key": "carpenters_tools",
+      "label": "Ferramentas de Carpinteiro"
+    },
+    {
+      "category": "vehicle",
+      "key": "carriage",
+      "label": "Carruagem"
+    },
+    {
+      "category": "vehicle",
+      "key": "cart",
+      "label": "Carroça"
+    },
+    {
+      "category": "artisan",
+      "key": "cartographers_tools",
+      "label": "Ferramentas de Cartógrafo"
+    },
+    {
+      "category": "vehicle",
+      "key": "chariot",
+      "label": "Carro de Guerra"
+    },
+    {
+      "category": "kit",
+      "key": "climbers_kit",
+      "label": "Kit de Escalador"
+    },
+    {
+      "category": "artisan",
+      "key": "cobblers_tools",
+      "label": "Ferramentas de Sapateiro"
+    },
+    {
+      "category": "artisan",
+      "key": "cooks_utensils",
+      "label": "Utensílios de Cozinha"
+    },
+    {
+      "category": "kit",
+      "key": "disguise_kit",
+      "label": "Kit de Disfarce"
+    },
+    {
+      "category": "kit",
+      "key": "forgery_kit",
+      "label": "Kit de Falsificação"
+    },
+    {
+      "category": "vehicle",
+      "key": "galley",
+      "label": "Galé"
+    },
+    {
+      "category": "gaming-set",
+      "key": "gaming_set_dice",
+      "label": "Jogo de Dados"
+    },
+    {
+      "category": "gaming-set",
+      "key": "gaming_set_dragonchess",
+      "label": "Jogo de Xadrez do Dragão"
+    },
+    {
+      "category": "gaming-set",
+      "key": "gaming_set_playing_cards",
+      "label": "Baralho de Cartas"
+    },
+    {
+      "category": "gaming-set",
+      "key": "gaming_set_three_dragon_ante",
+      "label": "Jogo de Three-Dragon Ante"
+    },
+    {
+      "category": "artisan",
+      "key": "glassblowers_tools",
+      "label": "Ferramentas de Soprador de Vidro"
+    },
+    {
+      "category": "kit",
+      "key": "healers_kit",
+      "label": "Kit de Curandeiro"
+    },
+    {
+      "category": "kit",
+      "key": "herbalism_kit",
+      "label": "Kit de Herbalismo"
+    },
+    {
+      "category": "artisan",
+      "key": "jewelers_tools",
+      "label": "Ferramentas de Joalheiro"
+    },
+    {
+      "category": "vehicle",
+      "key": "keelboat",
+      "label": "Barco de Quilha"
+    },
+    {
+      "category": "artisan",
+      "key": "leatherworkers_tools",
+      "label": "Ferramentas de Coureiro"
+    },
+    {
+      "category": "vehicle",
+      "key": "longship",
+      "label": "Dracar"
+    },
+    {
+      "category": "artisan",
+      "key": "masons_tools",
+      "label": "Ferramentas de Pedreiro"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_bagpipes",
+      "label": "Instrumento Musical, Gaita de Fole"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_drum",
+      "label": "Instrumento Musical, Tambor"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_dulcimer",
+      "label": "Instrumento Musical, Saltério"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_flute",
+      "label": "Instrumento Musical, Flauta"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_horn",
+      "label": "Instrumento Musical, Trompa"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_lute",
+      "label": "Instrumento Musical, Alaúde"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_lyre",
+      "label": "Instrumento Musical, Lira"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_pan_flute",
+      "label": "Instrumento Musical, Flauta de Pã"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_shawm",
+      "label": "Instrumento Musical, Charamela"
+    },
+    {
+      "category": "musical-instrument",
+      "key": "musical_instrument_viol",
+      "label": "Instrumento Musical, Viola"
+    },
+    {
+      "category": "navigators_tools",
+      "key": "navigators_tools",
+      "label": "Ferramentas de Navegador"
+    },
+    {
+      "category": "artisan",
+      "key": "painters_supplies",
+      "label": "Suprimentos de Pintor"
+    },
+    {
+      "category": "kit",
+      "key": "poisoners_kit",
+      "label": "Kit de Envenenador"
+    },
+    {
+      "category": "artisan",
+      "key": "potters_tools",
+      "label": "Ferramentas de Oleiro"
+    },
+    {
+      "category": "vehicle",
+      "key": "rowboat",
+      "label": "Bote a Remo"
+    },
+    {
+      "category": "vehicle",
+      "key": "sailing_ship",
+      "label": "Navio a Vela"
+    },
+    {
+      "category": "vehicle",
+      "key": "sled",
+      "label": "Trenó"
+    },
+    {
+      "category": "artisan",
+      "key": "smiths_tools",
+      "label": "Ferramentas de Ferreiro"
+    },
+    {
+      "category": "thieves_tools",
+      "key": "thieves_tools",
+      "label": "Ferramentas de Ladrão"
+    },
+    {
+      "category": "artisan",
+      "key": "tinkers_tools",
+      "label": "Ferramentas de Funileiro"
+    },
+    {
+      "category": "vehicle",
+      "key": "wagon",
+      "label": "Carroça"
+    },
+    {
+      "category": "vehicle",
+      "key": "warship",
+      "label": "Navio de Guerra"
+    },
+    {
+      "category": "artisan",
+      "key": "weavers_tools",
+      "label": "Ferramentas de Tecelão"
+    },
+    {
+      "category": "artisan",
+      "key": "woodcarvers_tools",
+      "label": "Ferramentas de Entalhador"
+    }
+  ]
 }

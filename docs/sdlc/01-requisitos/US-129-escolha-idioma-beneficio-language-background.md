@@ -2,8 +2,8 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🗂️ Backlog — bloqueada, sem story-base para desbloquear ainda (ver §Depende de)
-**Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, benefit `type: "language"` já extraído, sem mecanização) · **uma story ainda não escrita** que crie `config.languages` (catálogo de idiomas do sistema) — não existe hoje, nem como US nem como campo; ver §Questões em aberto
+**Status:** 🗂️ Backlog
+**Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, benefit `type: "language"` já extraído, sem mecanização) · [US-133](./US-133-catalogo-de-idiomas-do-sistema.md) (catálogo `config.languages` — a story-base que faltava, ver §Questões em aberto)
 **Relacionado:** [US-123](./US-123-integracao-mecanica-background-pointbuy.md)/[US-131](./US-131-integracao-mecanica-background-proficiency.md) (mecanizaram `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluíram `language`/`tool_proficiency` explicitamente por essa mesma falta de catálogo — §Fora do escopo de cada uma) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha de origem — é o `origin.key` que decide se o benefício `language` existe pra este personagem)
 **Criada em:** 2026-08-12
 
@@ -98,9 +98,9 @@ languageChoice: z.string().max(60).optional(),
 
 ## Questões em aberto
 
-1. **De onde vem `config.languages`?** O 5e SRD/Open5e tem uma lista padrão de idiomas (Common, Elvish, Dwarvish, ...); não é o mesmo problema de `Culture`/`Engineering` da US-131 (perícia do A5E fora do catálogo do SRD) — idioma provavelmente é dado do SRD normal, ainda não ingerido (`scripts/srd/_data` não tem `Language.json` hoje, não conferido nesta story). Precisa de investigação própria antes de virar story-base: existe no dataset Open5e? Em que arquivo?
-2. **Vale a pena uma story-base genérica de idiomas, ou só o suficiente pra estes 5 backgrounds?** Um personagem também pode querer idioma racial (fora do escopo aqui, ver §Escopo) — se isso também estiver no roadmap, a story-base provavelmente deveria cobrir os dois de uma vez, não só o caso do background.
-3. **Esta story precisa de número novo quando a story-base existir, ou vira uma seção dela?** Registrada aqui como US independente porque é o benefício de background especificamente que motivou a pergunta (ver conversa que originou esta story) — pode ser reabsorvida na story-base de idiomas quando ela for escrita.
+1. ~~De onde vem `config.languages`?~~ **Resolvida pela US-133** (13/08/2026): existe em `open5e/core/Language.json`, mesmo documento já usado por `Skill.json`, 18 entradas — não é `Culture`/`Engineering` (não precisou de literal hardcoded).
+2. **Vale a pena uma story-base genérica de idiomas, ou só o suficiente pra estes 5 backgrounds?** A US-133 entregou o catálogo cru (`config.languages`, 18 entradas) sem decidir esse ponto — idioma racial continua fora do escopo de ambas. Um personagem também pode querer idioma racial (fora do escopo aqui, ver §Escopo) — se isso também estiver no roadmap, é extensão futura sobre o mesmo catálogo, não um catálogo novo.
+3. **Esta story precisa de número novo quando a story-base existir, ou vira uma seção dela?** Resolvida na prática: a story-base (US-133) ficou com número próprio, e esta story permanece independente, agora desbloqueada.
 
 ---
 

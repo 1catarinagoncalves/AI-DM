@@ -3,7 +3,7 @@
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, benefit `type: "tool_proficiency"` já extraído, sem mecanização) · **uma story ainda não escrita** que crie `config.tools` (catálogo de ferramentas do sistema) — não existe hoje, nem como US nem como campo; ver §Questões em aberto
+**Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, benefit `type: "tool_proficiency"` já extraído, sem mecanização) · [US-134](./US-134-catalogo-de-ferramentas-do-sistema.md) (catálogo `config.tools` — implementada, esta story está desbloqueada)
 **Relacionado:** [US-123](./US-123-integracao-mecanica-background-pointbuy.md)/[US-131](./US-131-integracao-mecanica-background-proficiency.md) (mecanizaram `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluíram `language`/`tool_proficiency` explicitamente por essa mesma falta de catálogo — §Fora do escopo de cada uma) · [US-129](./US-129-escolha-idioma-beneficio-language-background.md) (mesmo formato de story — benefício de background bloqueado por catálogo ainda inexistente; `tool_proficiency` é o segundo caso, texto mais irregular que `language`) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha de origem — é o `origin.key` que decide se o benefício `tool_proficiency` existe pra este personagem)
 **Criada em:** 2026-08-13
 
@@ -64,7 +64,7 @@ Esta story faz o mesmo que a US-129 fez para `language`: quando `config.tools` e
 
 ### Fora do escopo
 
-- **Criar `config.tools`** (com a estrutura categoria→item que os 13 `desc` exigem) — é a story-base bloqueante, não esta. Ver §Questões em aberto.
+- **Criar `config.tools`** (com a estrutura categoria→item que os 13 `desc` exigem) — era a story-base bloqueante; a US-134 já entrega, não esta. Ver §Questões em aberto.
 - **Resolver o que cada categoria contém** (que ferramentas existem dentro de "artisan's tools", que jogos existem dentro de "gaming set") — pré-requisito da story-base, não desta.
 - **Os outros 8 backgrounds sem benefit `tool_proficiency`** — nada muda para eles.
 - **Uso narrativo/mecânico da ferramenta** (testes de perícia com a ferramenta, regras de craft) — mecânica de jogo, não desta story, que é só criação de personagem.
@@ -113,9 +113,9 @@ toolChoice: z.string().max(60).optional(),
 
 ## Questões em aberto
 
-1. **De onde vem `config.tools`, e que estrutura ele precisa ter?** Diferente de `language` (US-129, onde a lista de idiomas do 5e é bem conhecida e provavelmente existe em algum resource Open5e), aqui não foi localizado nenhum `Tool.json` no dataset pinado — e mesmo que exista uma lista plana de ferramentas, os `desc` medidos acima referenciam **categorias** ("artisan's tools", "gaming set", "vehicle") que por sua vez têm sub-itens (o 5e SRD lista ~15 tipos de "artisan's tools" diferentes, por exemplo) — a story-base precisa decidir se `config.tools` modela isso em dois níveis ou achata tudo numa lista.
-2. **Vale a pena uma story-base conjunta com `config.languages` (US-129, Questão 2), já que as duas são "catálogo que falta, benefício de background bloqueado"?** As duas stories têm o mesmo formato de bloqueio; pode fazer sentido investigar as duas lacunas de dataset juntas antes de abrir qualquer story-base.
-3. **Esta story precisa de número novo quando a story-base existir, ou vira uma seção dela?** Mesmo raciocínio da US-129 (Questão 3) — registrada aqui como US independente porque é o benefício de background especificamente que motivou a pergunta, pode ser reabsorvida na story-base de ferramentas quando ela for escrita.
+1. ~~De onde vem `config.tools`, e que estrutura ele precisa ter?~~ **Resolvida pela US-134** (13/08/2026): não existe `Tool.json` dedicado, mas `wizards-of-the-coast/srd-2024/Item.json` (mesmo documento já pinado, arquivo ainda não sincronizado) tem 203 itens com campo `category` — 50 relevantes (`tools`/`land-vehicle`/`waterborne-vehicle`), e o **nome** de cada item resolve o segundo nível (categoria de proficiência) sem mapa manual.
+2. ~~Vale a pena uma story-base conjunta com `config.languages`?~~ Resolvida na prática: as duas lacunas foram investigadas no mesmo dia (US-133/US-134), mas viraram stories separadas — os dados-fonte são documentos diferentes (`open5e/core` vs. `srd-2024`) e as estruturas não têm nada em comum além de "resolvem um benefício de background".
+3. **Esta story precisa de número novo quando a story-base existir, ou vira uma seção dela?** Resolvida na prática: a story-base (US-134) ficou com número próprio, e esta story permanece independente, agora desbloqueada.
 
 ---
 
