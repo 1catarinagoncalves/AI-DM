@@ -150,6 +150,10 @@ export const SystemConfigSchema = z.object({
   // chave `default` — origem é opcional na criação, sem origem escolhida não há o que resolver.
   // Chave = `SystemBackground.key`. Derivado pelo ingest do benefício `type === 'equipment'`.
   backgroundEquipment: z.record(z.string(), z.array(StartingKitItemSchema)).optional(),
+  // Feature nomeada da origem (US-135), paralela a `classFeatures` mas keyed por
+  // `SystemBackground.key` (sem `default`: origem é opcional). Reusa SystemClassFeatureSchema —
+  // mesma forma `{key,name,description,source}`, sem tipo novo.
+  backgroundFeatures: z.record(z.string(), z.array(SystemClassFeatureSchema)).optional(),
   // Catálogo de ferramentas e veículos (US-134), derivado do `Item.json` pelo ingest. Opcional
   // como races/classes/backgrounds: config legado sem ele não fica inválido. Fecha a lacuna que
   // bloqueava a US-132 (escolha do benefício `tool_proficiency` do background).

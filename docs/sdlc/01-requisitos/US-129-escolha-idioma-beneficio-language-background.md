@@ -12,8 +12,8 @@
 ## História
 
 > **Como** jogador,
-> **quero** escolher um idioma quando o background que selecionei concede um ("One of your choice"),
-> **para que** esse benefício vire uma escolha real na ficha — hoje ele só aparece como texto no cartão do background (US-122), sem nenhum lugar pra eu de fato escolher qual idioma meu personagem fala.
+> **quero** escolher um idioma quando a origem que selecionei concede um ("One of your choice"),
+> **para que** esse benefício vire uma escolha real na ficha — hoje ele só aparece como texto no cartão da origem (US-122), sem nenhum lugar pra eu de fato escolher qual idioma meu personagem fala.
 
 ---
 
@@ -48,8 +48,8 @@ Esta story faz o mesmo que a US-131 fez para `skill_proficiency`, mas para `lang
 ### Dentro do escopo (só depois que `config.languages` existir)
 
 - `buildBackgrounds` (`scripts/srd/ingest.mjs`, mesma função que a US-121/US-123/US-131 já estenderam) reconhece `type === 'language'` e produz `grant: { kind: 'language', chooseCount: 1 }` para os 5 backgrounds da tabela acima — sem parser de texto livre (o `desc` já é sempre "One of your choice.", não precisa de regex, diferente do parser de `ability_score`/`skill_proficiency`).
-- `origin.languageChoice?: string` no `CreateCharacterSchema.origin` (US-122/US-123/US-131), validado contra `config.languages` quando o background escolhido tiver `grant.kind === 'language'`.
-- Etapa `background` do wizard mostra um `<select>` com as opções de `config.languages` quando o background escolhido concede idioma — mesmo padrão visual do `<select>` de perícia da US-131.
+- `origin.languageChoice?: string` no `CreateCharacterSchema.origin` (US-122/US-123/US-131), validado contra `config.languages` quando a origem escolhida tiver `grant.kind === 'language'`.
+- Etapa `background` do wizard mostra um `<select>` com as opções de `config.languages` quando a origem escolhida concede idioma — mesmo padrão visual do `<select>` de perícia da US-131.
 - Persistência do idioma escolhido em `Character` — formato exato (campo próprio? lista? junto de `skills`?) depende da forma que `config.languages`/o campo de idioma em `Character` tomar na story-base; não decidido aqui.
 - Tela de revisão do wizard e ficha do personagem mostram o idioma escolhido, mesmo padrão de `origin.connection`/`memento` (US-124) e `skillChoice` (US-131).
 
@@ -82,10 +82,10 @@ languageChoice: z.string().max(60).optional(),
 
 - [ ] **Bloqueado até `config.languages` existir** — nenhum critério abaixo pode ser implementado antes disso.
 - [ ] `buildBackgrounds` deriva `grant: { kind: 'language', chooseCount: 1 }` para os 5 backgrounds medidos (`acolyte`, `cultist`, `guard`, `noble`, `soldier`).
-- [ ] `<select>` na etapa `background` oferece as opções de `config.languages` quando o background escolhido tiver esse `grant`; ausente para os outros 16.
+- [ ] `<select>` na etapa `background` oferece as opções de `config.languages` quando a origem escolhida tiver esse `grant`; ausente para os outros 16.
 - [ ] `CharacterService.create` rejeita `origin.languageChoice` fora de `config.languages`, e rejeita ausência dele quando o `grant` exige escolha.
 - [ ] Idioma escolhido visível na tela de revisão do wizard e na ficha do personagem, mesmo padrão de `origin.skillChoice` (US-131)/`connection`/`memento` (US-124).
-- [ ] Personagem com background sem benefício `language`, ou sem background nenhum: nenhuma validação nova disparada, comportamento idêntico ao de hoje.
+- [ ] Personagem com origem sem benefício `language`, ou sem origem nenhuma: nenhuma validação nova disparada, comportamento idêntico ao de hoje.
 
 ---
 

@@ -347,6 +347,168 @@
       }
     ]
   },
+  "backgroundFeatures": {
+    "a5e-ag_artisan": [
+      {
+        "description": "Quando em uma cidade ou vila, você tem acesso a uma oficina totalmente equipada com tudo o que precisa para exercer seu ofício. Além disso, você pode esperar receber o preço total ao vender itens que você fabricou (embora não haja garantia de um comprador).",
+        "key": "a5e-ag_artisan_trade-mark",
+        "name": "Marca Comercial",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_charlatan": [
+      {
+        "description": "Você tem um pacote de papéis falsificados de todos os tipos—escrituras de propriedade, documentos de identificação, cartas de amor, mandados de prisão e cartas de recomendação—todos exigindo apenas algumas assinaturas e floreios para atender à necessidade atual. Quando você encontra um novo documento ou carta, pode adicionar uma cópia falsificada e modificada ao seu pacote. Se seu pacote for perdido, você pode recriá-lo com um kit de falsificação e um dia de trabalho.",
+        "key": "a5e-ag_charlatan_many-identities",
+        "name": "Muitas Identidades",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_criminal": [
+      {
+        "description": "Você conhece a Gíria de Ladrão: um conjunto de gírias, sinais manuais e termos codificados usados por criminosos profissionais. Uma criatura que conhece a Gíria de Ladrão pode esconder uma mensagem curta dentro de uma declaração aparentemente inocente. Um ouvinte que conhece a Gíria de Ladrão entende a mensagem.",
+        "key": "a5e-ag_criminal_thieves-cant",
+        "name": "Gíria de Ladrão",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_cultist": [
+      {
+        "description": "Quando você falha em um teste de Arcanismo ou Religião, você sabe qual ser ou livro detém o conhecimento que você busca; encontrar o livro ou pagar o preço do ser é outra história.",
+        "key": "a5e-ag_cultist_forbidden-lore",
+        "name": "Saber Proibido",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_entertainer": [
+      {
+        "description": "Em qualquer assentamento no qual você não tenha se tornado impopular, suas apresentações podem render dinheiro suficiente para sustentar a si mesmo e seus companheiros: quanto maior o assentamento, maior o seu padrão de vida, até um estilo de vida moderado em uma cidade.",
+        "key": "a5e-ag_entertainer_pay-the-piper",
+        "name": "Pagar o Músico",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_exile": [
+      {
+        "description": "Você ganha um dado de especialização em testes de Persuasão contra outros que estão longe de sua terra natal.",
+        "key": "a5e-ag_exile_fellow-traveler",
+        "name": "Companheiro de Viagem",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_farmer": [
+      {
+        "description": "Você sabe como guardar e transportar comida. Você e um animal sob seus cuidados podem carregar Suprimentos adicionais iguais ao seu bônus de proficiência.",
+        "key": "a5e-ag_farmer_bit-and-bridle",
+        "name": "Freio e Rédea",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_folk-hero": [
+      {
+        "description": "A menos que você esconda sua identidade, você é universalmente reconhecido e admirado perto do local de seus feitos. Você e seus companheiros recebem um estilo de vida moderado em qualquer assentamento dentro de 160 km do seu Centro de Prestígio.",
+        "key": "a5e-ag_folk-hero_local-fame",
+        "name": "Fama Local",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_gambler": [
+      {
+        "description": "Cada semana você pode tentar um “lançamento de sorte” para se sustentar através do jogo. Role 1d6 para determinar o estilo de vida que você pode pagar com os ganhos da sua semana (1–2: pobre, 3–5: moderado, 6: rico).",
+        "key": "a5e-ag_gambler_lady-luck",
+        "name": "Dama da Sorte",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_guard": [
+      {
+        "description": "Plebeus e civis às vezes presumem que você faz parte de uma força policial local e cedem a você.",
+        "key": "a5e-ag_guard_natural-authority",
+        "name": "Autoridade Natural",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_guildmember": [
+      {
+        "description": "Enquanto estiver em uma cidade ou vila, você pode manter um estilo de vida moderado exercendo seu ofício. Além disso, a guilda ocasionalmente informa você sobre trabalhos que precisam ser feitos. Completar tal trabalho pode exigir a realização de uma atividade de tempo livre, ou pode exigir uma aventura completa. A guilda fornece uma recompensa modesta se você for bem-sucedido.",
+        "key": "a5e-ag_guildmember_guild-business",
+        "name": "Negócios da Guilda",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_hermit": [
+      {
+        "description": "Você ocasionalmente ouve uma voz—talvez sua consciência, talvez um poder superior—na qual você passou a confiar. Ela lhe disse para entrar em reclusão e, então, aconselhou-o sobre quando retornar ao mundo. Você acha que ela está guiando-o para o seu destino (consulte seu Narrador sobre esta característica).",
+        "key": "a5e-ag_hermit_inner-voice",
+        "name": "Voz Interior",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_marauder": [
+      {
+        "description": "Quando você navega durante uma viagem, perseguidores têm desvantagem em testes feitos para rastrear seu grupo. Além disso, você pode viajar furtivamente em um ritmo normal.",
+        "key": "a5e-ag_marauder_secret-ways",
+        "name": "Caminhos Secretos",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_noble": [
+      {
+        "description": "Você conhece—ou conhece pessoalmente—a maioria das famílias nobres por centenas de quilômetros. Na maioria das áreas povoadas, você (e possivelmente seus companheiros, se bem comportados) pode encontrar um anfitrião nobre que lhe dará comida, abrigo e oferecerá um estilo de vida rico.",
+        "key": "a5e-ag_noble_high-society",
+        "name": "Alta Sociedade",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_outlander": [
+      {
+        "description": "Se você estiver na natureza ou próximo a ela e tiver um relacionamento comercial com uma tribo, assentamento ou outro grupo próximo, você pode manter um estilo de vida moderado para si e seus companheiros negociando os produtos de sua caça e coleta.",
+        "key": "a5e-ag_outlander_trader",
+        "name": "Comerciante",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_sage": [
+      {
+        "description": "Como membro ou amigo de várias universidades, você tem acesso de visitante às grandes bibliotecas, a maioria das quais é proibida ao público em geral. Com tempo suficiente gasto em uma biblioteca, você pode descobrir a maioria das respostas que procura (qualquer pergunta que possa ser respondida com um teste de CD 20 de Arcanismo, Cultura, Engenharia, História, Natureza ou Religião).",
+        "key": "a5e-ag_sage_library-privileges",
+        "name": "Privilégios de Biblioteca",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_sailor": [
+      {
+        "description": "Seu jargão náutico e seu andar balançante o marcam inequivocamente como um marinheiro. Você pode facilmente entrar em conversas informais com qualquer marinheiro que não seja hostil a você, aprendendo fofocas náuticas e sobre a chegada e partida de navios. Você também reconhece a maioria dos grandes navios à vista e pelo nome, e pode fazer um teste de História ou Cultura para lembrar de seu capitão mais recente e sua lealdade.",
+        "key": "a5e-ag_sailor_sea-salt",
+        "name": "Salitre do Mar",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_soldier": [
+      {
+        "description": "Soldados reconhecem os seus. Soldados fora de serviço geralmente estão dispostos a trocar histórias e fofocas com você. Soldados em serviço, embora não obedeçam às suas ordens, provavelmente responderão às suas perguntas e o tratarão com respeito, na remota possibilidade de você ser um oficial desconhecido que pode causar problemas a eles.",
+        "key": "a5e-ag_soldier_military-bearing",
+        "name": "Postura Militar",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_trader": [
+      {
+        "description": "Quando você compra uma mercadoria e a vende em outro lugar para uma comunidade que precisa dela, você ganha um bônus de 10% no preço de venda para cada 160 quilômetros (100 milhas) entre o local de compra e venda (máximo de 50%).",
+        "key": "a5e-ag_trader_supply-and-demand",
+        "name": "Oferta e Procura",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_urchin": [
+      {
+        "description": "Quando você está em uma cidade ou vila, você pode prover um estilo de vida miserável para si mesmo e seus companheiros. Além disso, você sabe como chegar a qualquer lugar na cidade sem ser visto por gangues, fofoqueiros ou patrulhas da guarda.",
+        "key": "a5e-ag_urchin_guttersnipe",
+        "name": "Moleque de Rua",
+        "source": "a5e-ag"
+      }
+    ]
+  },
   "backgrounds": [
     {
       "benefits": [

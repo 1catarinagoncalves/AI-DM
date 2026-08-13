@@ -304,6 +304,20 @@ for (const locale of ['en-US', 'pt-BR']) {
       }
     }
   })
+
+  // US-135: 20 das 21 origens têm exatamente 1 benefício `type: 'feature'` (Acólito é a
+  // exceção, medida em 13/08/2026 — ver US-135 §Contexto e motivação).
+  test(`artefato ${locale}: backgroundFeatures cobre 20 das 21 origens (Acólito é a exceção)`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    assert.deepEqual(Object.keys(artifact.backgroundFeatures).sort(), artifact.backgrounds.map((bg) => bg.key).filter((k) => k !== 'a5e-ag_acolyte').sort())
+    for (const [key, features] of Object.entries(artifact.backgroundFeatures)) {
+      assert.equal(features.length, 1, `${key}: esperada 1 feature, achou ${features.length}`)
+      assert.ok(features[0].key.startsWith(`${key}_`), `${key}: feature.key "${features[0].key}" não prefixado pelo pk da origem`)
+      assert.ok(features[0].name.length > 0, `${key}: feature sem name`)
+      assert.ok(features[0].description.length > 0, `${key}: feature sem description`)
+      assert.equal(features[0].source, 'a5e-ag', `${key}: source errado`)
+    }
+  })
 }
 
 // US-128: os dois artefatos concordam nos nomes EN dos itens (mesma fonte, `b.fields.desc`
@@ -557,6 +571,24 @@ test('buildBackgrounds: origem sem benefit "equipment" não entra em backgroundE
   const backgrounds = [background('a5e-ag_urchin', 'Urchin')]
   const { backgroundEquipment } = buildBackgrounds({}, backgrounds, [], identityResolve)
   assert.deepEqual(backgroundEquipment, {})
+})
+
+// --- US-135 — backgroundFeatures: benefit type === "feature" popula backgroundFeatures[key] ---
+
+test('buildBackgrounds: benefit type === "feature" popula backgroundFeatures[key], key = b.pk cru', () => {
+  const backgrounds = [background('a5e-ag_criminal', 'Criminal')]
+  const benefits = [benefit('a5e-ag_criminal_thieves-cant', 'a5e-ag_criminal', "Thieves' Cant", "You know thieves' cant.", 'feature')]
+  const { backgroundFeatures } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  assert.deepEqual(backgroundFeatures['a5e-ag_criminal'], [
+    { key: 'a5e-ag_criminal_thieves-cant', name: "Thieves' Cant", description: "You know thieves' cant.", source: 'a5e-ag' },
+  ])
+})
+
+test('buildBackgrounds: origem sem benefit "feature" (Acólito) não entra em backgroundFeatures', () => {
+  const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
+  const benefits = [benefit('a5e-ag_acolyte_ability-scores', 'a5e-ag_acolyte', 'Ability Score Increases', '+1 to Wisdom and one other ability score.', 'ability_score')]
+  const { backgroundFeatures } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  assert.deepEqual(backgroundFeatures, {})
 })
 
 test('parseBackgroundEquipment: formato simples, split por vírgula com "and" antes do último', () => {

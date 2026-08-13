@@ -514,6 +514,12 @@ export function parseSkillGrant(desc, resolveSkillKey, allSkillKeys) {
 // aquele pode vir traduzido por MT (backgrounds está em MT_DOMAINS) e um nome de item já em
 // pt-BR não bate contra a chave EN de `overlay.kitItems`. Mesmo padrão de `buildStartingKits`:
 // parse sobre o dataset EN, tradução por item via `localizeKitItems`.
+// US-135: devolve também `backgroundFeatures`, derivado do benefício `type === 'feature'` —
+// aqui SIM usa `entry.name`/`entry.description` já resolvidos (ao contrário de
+// `backgroundEquipment`/`ability_score`/`skill_proficiency` acima): não há parse estrutural
+// sobre o `desc` cru, é awareness igual a `SystemClassFeature` (US-41), então o texto traduzido
+// serve direto. `key: b.pk` sem slug novo — já é `<parent>_<slug>`, a mesma chave que `resolve`
+// já usa para este benefício (ver US-135 §Questões em aberto #1).
 export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, skills = [], orphans = []) {
   const bgKeys = new Set(backgroundsRaw.map((bg) => bg.pk))
   const skillKeys = skills.map((s) => s.key)
@@ -535,6 +541,7 @@ export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, 
     ;(benefitsByParent[b.fields.parent] ??= []).push(b)
   }
   const backgroundEquipment = {}
+  const backgroundFeatures = {}
   const backgrounds = backgroundsRaw
     .map((bg) => {
       const key = bg.pk
@@ -544,6 +551,9 @@ export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, 
         if (b.fields.type === 'equipment') {
           const items = parseBackgroundEquipment(norm(b.fields.desc))
           backgroundEquipment[key] = localizeKitItems(overlay, resolve, items)
+        }
+        if (b.fields.type === 'feature') {
+          ;(backgroundFeatures[key] ??= []).push({ key: b.pk, name: entry.name, description: entry.description, source: 'a5e-ag' })
         }
         // US-123: `ability_score` vira `grant` estruturado sobre o `desc` CRU (EN), nunca sobre
         // `entry.description` (pode vir traduzido por MT) — mesmo cuidado de `backgroundEquipment`
@@ -562,7 +572,7 @@ export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, 
       return { key, name, benefits, source: 'a5e-ag' }
     })
     .sort((a, b) => a.key.localeCompare(b.key))
-  return { backgrounds, backgroundEquipment }
+  return { backgrounds, backgroundEquipment, backgroundFeatures }
 }
 
 // --- tools (50): Item.json category → catálogo de proficiência de ferramenta/veículo (US-134) ---
@@ -618,7 +628,7 @@ function buildConfig(overlay, data) {
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
   const startingKits = buildStartingKits(overlay, data.features, resolve)
-  const { backgrounds, backgroundEquipment } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, orphans)
+  const { backgrounds, backgroundEquipment, backgroundFeatures } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, orphans)
   const tools = buildTools(overlay, data.items, resolve)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
@@ -629,7 +639,7 @@ function buildConfig(overlay, data) {
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  const artifact = { attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, tools }
+  const artifact = { attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools }
   SystemConfigSchema.parse({ ...artifact, ...STUB })
   return { artifact, fallbacks, orphans, glossary }
 }

@@ -12,8 +12,8 @@
 ## História
 
 > **Como** jogador,
-> **quero** escolher (ou ver concedida automaticamente) a ferramenta quando o background que selecionei dá proficiência em uma,
-> **para que** esse benefício vire mecânica real na ficha — hoje ele só aparece como texto no cartão do background (US-122), sem nenhum lugar pra eu de fato registrar essa proficiência.
+> **quero** escolher (ou ver concedida automaticamente) a ferramenta quando a origem que selecionei dá proficiência em uma,
+> **para que** esse benefício vire mecânica real na ficha — hoje ele só aparece como texto no cartão da origem (US-122), sem nenhum lugar pra eu de fato registrar essa proficiência.
 
 ---
 
@@ -57,10 +57,10 @@ Esta story faz o mesmo que a US-129 fez para `language`: quando `config.tools` e
 
 - `buildBackgrounds` (`scripts/srd/ingest.mjs`, mesma função que a US-121/US-123/US-131/US-129 já estenderam) reconhece `type === 'tool_proficiency'` e parseia os 13 `desc` da tabela acima em `grant` estruturado — item(ns) fixo(s) resolvido(s) contra `config.tools`, e/ou escolha entre opções (categoria ou item) quando o texto usa "one/either ... or".
 - **Item ou categoria sem entrada em `config.tools` é relatado como órfão e omitido do grant** — mesmo tratamento que a US-131 deu a `Culture`/`Engineering`, não bloqueia o resto do background.
-- `origin.toolChoice?: string` (ou array, se algum background exigir mais de uma escolha — nenhum dos 13 exige hoje) no `CreateCharacterSchema.origin`, validado contra `config.tools`/o `grant` do background escolhido.
-- Etapa `background` do wizard mostra seletor com as opções do `grant` quando o background escolhido concede ferramenta — mesmo padrão visual do `<select>` de idioma (US-129) / cartões de perícia (US-131).
+- `origin.toolChoice?: string` (ou array, se algum background exigir mais de uma escolha — nenhum dos 13 exige hoje) no `CreateCharacterSchema.origin`, validado contra `config.tools`/o `grant` da origem escolhida.
+- Etapa `background` do wizard mostra seletor com as opções do `grant` quando a origem escolhida concede ferramenta — a escolha em si acontece NESSA etapa, não numa etapa própria (ver §Onde aparece na criação e na ficha, que corrige a suposição de "mesmo padrão de perícia" — perícia adia a escolha pra etapa `skills`, ferramenta não tem etapa própria pra adiar).
 - Persistência da ferramenta escolhida em `Character` — formato exato depende da forma que `config.tools`/o campo em `Character` tomar na story-base; não decidido aqui.
-- Tela de revisão do wizard e ficha do personagem mostram a ferramenta escolhida, mesmo padrão de `origin.skillChoice` (US-131) / `languageChoice` (US-129).
+- Tela de revisão do wizard e ficha do personagem mostram a ferramenta escolhida — local exato de cada uma em §Onde aparece na criação e na ficha.
 
 ### Fora do escopo
 
@@ -92,15 +92,72 @@ toolChoice: z.string().max(60).optional(),
 
 ---
 
+## Onde aparece na criação e na ficha
+
+Medido em 13/08/2026 contra o precedente real de `ability_score` (US-123) e `skill_proficiency`
+(US-131) no código atual — não suposição.
+
+### 1. Etapa `background` do wizard — aviso E escolha, no mesmo lugar
+
+Os steps do wizard são `system`/`race-class`/`background`/`attributes`/`skills`/`review`
+([SetupWizard.tsx:25-26](../../../apps/web/src/components/setup/SetupWizard.tsx:25)).
+`ability_score` e `skill_proficiency` só **avisam** na etapa `background` (texto cru do
+benefit) e adiam a **escolha** para a etapa dona do eixo — `attributes`
+([SetupWizard.tsx:718-722](../../../apps/web/src/components/setup/SetupWizard.tsx:718)) e
+`skills` ([SetupWizard.tsx:637-660](../../../apps/web/src/components/setup/SetupWizard.tsx:637))
+respectivamente, com comentário explícito no código: *"a ESCOLHA em si acontece na etapa
+`skills`"* ([SetupWizard.tsx:726](../../../apps/web/src/components/setup/SetupWizard.tsx:726)).
+
+`tool_proficiency` não tem eixo próprio no wizard — não existe etapa `tools`/`equipment`. Por
+isso o seletor (`<select>` ou cartões, a depender de `chooseCount`) fica na PRÓPRIA etapa
+`background`, mesmo padrão dos selects de conexão/memento (US-124), não do de perícia/atributo.
+Local exato: dentro de `step === 'background'`
+([SetupWizard.tsx:687](../../../apps/web/src/components/setup/SetupWizard.tsx:687)), logo após
+o bloco de aviso de `skillBenefit`
+([SetupWizard.tsx:723-731](../../../apps/web/src/components/setup/SetupWizard.tsx:723)) e antes
+do bloco de conexão/memento
+([SetupWizard.tsx:742](../../../apps/web/src/components/setup/SetupWizard.tsx:742)). Trocar de
+origem precisa resetar a escolha, mesmo padrão de `setSkillChoice([])`/`setAbilityChoice(undefined)`
+no `onChange` do `<select>` de origem
+([SetupWizard.tsx:700-709](../../../apps/web/src/components/setup/SetupWizard.tsx:700)).
+
+### 2. Etapa `review` do wizard — linha própria no resumo
+
+Perícia da origem tem linha própria no `<dl>` de resumo
+(`setup.review.skills`, [SetupWizard.tsx:842-849](../../../apps/web/src/components/setup/SetupWizard.tsx:842)),
+não fica dentro do `BackgroundPanel` — o comentário no código é explícito que o painel **não**
+repete o que já tem linha ali
+([SetupWizard.tsx:856-858](../../../apps/web/src/components/setup/SetupWizard.tsx:856)). Ferramenta
+segue o mesmo padrão: linha nova (`setup.review.tools`) no mesmo `<dl>`, condicionada a
+`grant.kind === 'tools'` existir na origem escolhida — mesmo `if` condicional que envolve
+`connectionTable`/`mementoTable`
+([SetupWizard.tsx:867-878](../../../apps/web/src/components/setup/SetupWizard.tsx:867)).
+
+### 3. Ficha do personagem (`GameView`) — bloco próprio, não dentro do `BackgroundPanel`
+
+`BackgroundPanel` é só narrativa — origem/conexão/memento/história/ideais/vínculos/defeitos/divindade
+([BackgroundPanel.tsx:9-96](../../../apps/web/src/components/character/BackgroundPanel.tsx:9));
+não tem noção de mecânica. Perícia mecânica vive num bloco próprio dentro do `GameView`, condicional
+a ter conteúdo (`skills && skills.length > 0`), com `SheetHeading` + lista com marca de proficiência
+([GameView.tsx:510-528](../../../apps/web/src/components/game/GameView.tsx:510)). Ferramenta segue
+o mesmo padrão — bloco próprio (`game.tools`), não uma prop nova do `BackgroundPanel`.
+
+Precisa de prop nova em `GameView` (`tools?: string[]`, análoga a `skills`) e no que
+`apps/web/src/app/play/[adventureId]/page.tsx` monta e passa pro `GameView`, ao lado de
+`skills={skills}`/`background={character.background}`
+([page.tsx:82-83](../../../apps/web/src/app/play/[adventureId]/page.tsx:82)).
+
+---
+
 ## Critérios de aceite
 
 - [ ] **Bloqueado até `config.tools` existir** — nenhum critério abaixo pode ser implementado antes disso.
 - [ ] `buildBackgrounds` deriva `grant` para os 13 backgrounds medidos, cobrindo as três formas da tabela (fixo/item concreto, fixo/categoria, escolha entre categorias) — com teste por formato.
 - [ ] Item ou categoria sem entrada em `config.tools` sai do `grant` e entra no relatório de órfãos do ingest, sem falhar `--strict` (mesmo tratamento da US-131 pra `Culture`/`Engineering`).
-- [ ] Seletor na etapa `background` oferece as opções do `grant` quando o background escolhido tiver esse benefício; ausente para os outros 8.
+- [ ] Seletor oferece as opções do `grant` na PRÓPRIA etapa `background` (SetupWizard.tsx:687, entre o aviso de `skillBenefit` e o bloco de conexão/memento — §Onde aparece na criação e na ficha), não numa etapa própria; ausente para os outros 8.
 - [ ] `CharacterService.create` rejeita `origin.toolChoice` fora do `grant.chooseFrom`, e rejeita ausência dele quando o `grant` exige escolha.
-- [ ] Ferramenta escolhida visível na tela de revisão do wizard e na ficha do personagem, mesmo padrão de `origin.skillChoice` (US-131)/`languageChoice` (US-129).
-- [ ] Personagem com background sem benefício `tool_proficiency`, ou sem background nenhum: nenhuma validação nova disparada, comportamento idêntico ao de hoje.
+- [ ] Ferramenta escolhida visível como linha própria na etapa `review` (`setup.review.tools`, junto de connection/memento) e como bloco próprio na ficha (`GameView`, ao lado do bloco de perícias — não dentro do `BackgroundPanel`). Ver §Onde aparece na criação e na ficha.
+- [ ] Personagem com origem sem benefício `tool_proficiency`, ou sem origem nenhuma: nenhuma validação nova disparada, comportamento idêntico ao de hoje.
 
 ---
 
@@ -108,6 +165,7 @@ toolChoice: z.string().max(60).optional(),
 
 - **Parser mais irregular que os precedentes**: diferente do `desc` uniforme de `language` (sempre "One of your choice.") e dos 2 formatos regulares de `skill_proficiency` (US-131), os 13 `desc` de `tool_proficiency` variam em contagem de itens fixos (0 a 2), presença de escolha, e se o item é concreto ou uma categoria a resolver depois. Provável que precise de mais de uma função de reconhecimento de padrão, não uma regex só — seguir o mesmo espírito de "falhar alto se o formato não bater" que `parseStartingKit` (US-51) e o parser da US-131 já usam.
 - Mesmo padrão de 3 lugares a espelhar que `origin.skillChoice`/`languageChoice` já exige (US-123/US-131/US-129): `CreateCharacterSchema`, `normalizeOrigin`/`CharacterService.create`, tipo do payload em `apps/web/src/lib/api.ts`.
+- Exibição soma mais 2 lugares que não existem pra `skillChoice` hoje (perícia mostra na ficha via `skills`, que já existia antes da US-131; ferramenta é eixo novo): prop `tools?: string[]` em `GameView` + repasse em `page.tsx` (§Onde aparece, item 3), e linha nova `setup.review.tools` no `<dl>` da etapa `review` (§Onde aparece, item 2) — nenhum dos dois é reaproveitamento de campo existente.
 
 ---
 

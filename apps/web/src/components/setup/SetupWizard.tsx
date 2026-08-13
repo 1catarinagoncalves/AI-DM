@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus, Sparkles } from 'lucide-react'
 import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
-  getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries,
+  getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, MEMENTO_ITEM_LABEL,
+  resolveSheetEntries, resolveCharacterFeatures,
   type InitialAdventureHook, type SystemConfig,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
@@ -230,9 +231,14 @@ export function SetupWizard() {
     ...previewOriginEquipment,
     ...(mementoText ? [{ name: MEMENTO_ITEM_LABEL[locale], qty: 1 }] : []),
   ]
-  const previewFeatureKeys = system?.config ? getClassFeatures(system.config, charData.class) : []
+  // US-135: as chaves de origem (getBackgroundFeatures) somam às de classe assim que `origin.key`
+  // está preenchido — resolveCharacterFeatures resolve as duas contra a união dos catálogos,
+  // mesma função que a criação/ficha/prompt usam (ver US-135 §Notas de implementação).
+  const previewFeatureKeys = system?.config
+    ? [...getClassFeatures(system.config, charData.class), ...getBackgroundFeatures(system.config, origin)]
+    : []
   const previewFeatures = system?.config
-    ? resolveSheetEntries(system.config.classFeatures, system.config.retiredFeatures, charData.class, previewFeatureKeys)
+    ? resolveCharacterFeatures(system.config, charData.class, origin, previewFeatureKeys)
     : []
   const previewSpellKeys = system?.config ? getClassSpells(system.config, charData.class) : []
   const previewSpells = system?.config

@@ -569,4 +569,50 @@ describe('CharacterService.create', () => {
     })
     expect(char.skills).toEqual(['athletics', 'perception'])
   })
+
+  // US-135: feature nomeada da origem (ex. Thieves' Cant do Criminoso) somada às features de
+  // classe já materializadas na criação (US-41) — mesmo campo `Character.features`, sem coluna nova.
+  const configWithBackgroundFeature: SystemConfig = {
+    ...configWithFeatures,
+    backgrounds: [
+      { key: 'a5e-ag_criminal', name: 'Criminal', source: 'a5e-ag', benefits: [
+        { type: 'feature', name: "Thieves' Cant", description: 'x' },
+      ] },
+      { key: 'a5e-ag_acolyte', name: 'Acolyte', source: 'a5e-ag', benefits: [
+        { type: 'skill_proficiency', name: 'Religion', description: 'x' },
+      ] },
+    ],
+    backgroundFeatures: {
+      'a5e-ag_criminal': [{ key: 'a5e-ag_criminal_thieves-cant', source: 'a5e-ag', name: "Thieves' Cant", description: 'x' }],
+    },
+  }
+
+  it('origem com feature (Criminoso): chave de classe E de origem juntas em Character.features', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgroundFeature))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'paladin',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_criminal' },
+    })
+    expect(char.features).toEqual(['paladin_divine-sense', 'paladin_lay-on-hands', 'a5e-ag_criminal_thieves-cant'])
+  })
+
+  it('origem sem feature (Acólito): só as chaves de classe, sem entrada fantasma', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgroundFeature))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'paladin',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_acolyte' },
+    })
+    expect(char.features).toEqual(['paladin_divine-sense', 'paladin_lay-on-hands'])
+  })
+
+  it('sem origem escolhida: só as chaves de classe, comportamento idêntico ao pré-story', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgroundFeature))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'paladin',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.features).toEqual(['paladin_divine-sense', 'paladin_lay-on-hands'])
+  })
 })

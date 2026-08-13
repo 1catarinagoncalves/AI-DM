@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -28,10 +28,6 @@ export class CharacterService {
     // rótulo é resolvido na leitura, no locale de quem lê.
     const race = this.validateCatalogKey(config.races, dto.race, 'Raça')
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
-    // US-41: features de classe de nível 1, derivadas do kit da classe (mesmo caminho
-    // do inventário inicial). Classe sem kit de features → [] (sem crash, sem seção).
-    // US-100: são CHAVES (`barbarian_rage`), resolvidas para nome/descrição na leitura.
-    const features = getClassFeatures(config, charClass)
     // US-42: magias conhecidas (truques + exceção nível 1 de paladino/patrulheiro),
     // do mesmo kit da classe. Não-conjurador → [] (sem seção, sem crash).
     const spells = getClassSpells(config, charClass)
@@ -41,6 +37,13 @@ export class CharacterService {
     const originKey = dto.origin?.key
       ? this.validateCatalogKey(config.backgrounds, dto.origin.key, 'Origem')
       : undefined
+    // US-41: features de classe de nível 1, derivadas do kit da classe (mesmo caminho
+    // do inventário inicial). Classe sem kit de features → [] (sem crash, sem seção).
+    // US-135: união com as features de nível 1 da ORIGEM escolhida (US-121 benefício
+    // `type: 'feature'`, ex. Thieves' Cant) — mesmo campo, sem coluna nova no Prisma.
+    // US-100: são CHAVES (`barbarian_rage`/`a5e-ag_criminal_thieves-cant`), resolvidas
+    // para nome/descrição na leitura.
+    const features = [...getClassFeatures(config, charClass), ...getBackgroundFeatures(config, originKey)]
     // US-123: bônus de atributo do background soma POR CIMA do point-buy já validado acima —
     // por isso aplicado depois do parse de min/max, que segue valendo só para o point-buy puro.
     const abilityGrant = this.findAbilityGrant(config.backgrounds, originKey)

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SystemConfig } from './types/system'
-import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, MEMENTO_ITEM_LABEL } from './starting-kit'
+import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, resolveCharacterFeatures, MEMENTO_ITEM_LABEL } from './starting-kit'
 
 const dnd5eConfig: SystemConfig = {
   attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
@@ -108,6 +108,76 @@ describe('getClassFeatures (US-41)', () => {
   it('sem classFeatures no config → lista vazia (sem crash)', () => {
     const noFeatures: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
     expect(getClassFeatures(noFeatures, 'barbarian')).toEqual([])
+  })
+})
+
+// US-135: espelha getClassFeatures, mas por ORIGEM e sem fallback default (mesmo contrato de
+// getBackgroundEquipment) — origem opcional, chave ausente devolve [], nunca lança.
+describe('getBackgroundFeatures (US-135)', () => {
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    backgroundFeatures: {
+      a5e_ag_criminal: [{ key: 'a5e_ag_criminal_thieves-cant', source: 'a5e-ag', name: "Thieves' Cant", description: 'x' }],
+    },
+  }
+
+  it('devolve a chave da feature da origem', () => {
+    expect(getBackgroundFeatures(config, 'a5e_ag_criminal')).toEqual(['a5e_ag_criminal_thieves-cant'])
+  })
+
+  it('sem originKey → lista vazia', () => {
+    expect(getBackgroundFeatures(config, undefined)).toEqual([])
+  })
+
+  it('origem sem entrada no catálogo (ex. Acólito) devolve lista vazia, nunca lança', () => {
+    expect(getBackgroundFeatures(config, 'a5e_ag_acolyte')).toEqual([])
+  })
+
+  it('config sem backgroundFeatures devolve lista vazia', () => {
+    const noFeatures: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
+    expect(getBackgroundFeatures(noFeatures, 'a5e_ag_criminal')).toEqual([])
+  })
+})
+
+// US-135: resolve Character.features (chaves de classe + origem misturadas) contra a UNIÃO
+// dos dois catálogos — o ponto delicado do §Notas de implementação (resolveSheetEntries sozinho
+// só enxerga um mapa por vez).
+describe('resolveCharacterFeatures (US-135)', () => {
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    classFeatures: {
+      paladin: [{ key: 'paladin_lay-on-hands', source: 'srd', name: 'Impor as Mãos', description: 'Cura ao toque.' }],
+      default: [],
+    },
+    backgroundFeatures: {
+      a5e_ag_criminal: [{ key: 'a5e_ag_criminal_thieves-cant', source: 'a5e-ag', name: "Thieves' Cant", description: 'Código secreto.' }],
+    },
+    retiredFeatures: {
+      paladin_retired: { key: 'paladin_retired', source: 'srd', name: 'Aposentada', description: 'x' },
+    },
+  }
+
+  it('resolve chave de classe e chave de origem na MESMA lista', () => {
+    const keys = ['paladin_lay-on-hands', 'a5e_ag_criminal_thieves-cant']
+    const out = resolveCharacterFeatures(config, 'paladin', 'a5e_ag_criminal', keys)
+    expect(out.map(f => f.name)).toEqual(['Impor as Mãos', "Thieves' Cant"])
+  })
+
+  it('sem originKey → só resolve as chaves de classe', () => {
+    const out = resolveCharacterFeatures(config, 'paladin', undefined, ['paladin_lay-on-hands'])
+    expect(out.map(f => f.name)).toEqual(['Impor as Mãos'])
+  })
+
+  it('chave fora dos dois catálogos cai no retiredFeatures', () => {
+    const out = resolveCharacterFeatures(config, 'paladin', undefined, ['paladin_retired'])
+    expect(out.map(f => f.name)).toEqual(['Aposentada'])
+  })
+
+  it('chave em nenhum dos dois catálogos nem no retired vira entrada mínima (nome = chave)', () => {
+    const out = resolveCharacterFeatures(config, 'paladin', 'a5e_ag_criminal', ['fantasma'])
+    expect(out.map(f => f.name)).toEqual(['fantasma'])
   })
 })
 

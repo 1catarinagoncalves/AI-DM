@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { GameView } from '@/components/game/GameView'
-import { buildSkillSheet, catalogLabel, resolveSheetEntries, type SystemConfig } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, type SystemConfig } from '@ai-dm/shared'
 import { apiAuthHeader } from '@/lib/server-auth'
 import { LOCALE_COOKIE, localeFromCookie } from '@/lib/locale-cookie'
 import { messagesFor } from '@/messages'
@@ -60,7 +60,11 @@ export default async function PlayPage({ params, searchParams }: Props) {
   // US-100: feature e magia também são chave — o mesmo padrão das perícias, agora na aba
   // Features. A ficha do banco não muda ao trocar de idioma; muda o config que chega aqui.
   const charClass = character.class as string
-  const features = resolveSheetEntries(config?.classFeatures, config?.retiredFeatures, charClass, (character.features ?? []) as string[])
+  // US-135: Character.features mistura chaves de classe e de origem (benefício `feature` do
+  // background) — resolveCharacterFeatures resolve as duas contra a união dos catálogos.
+  const features = config
+    ? resolveCharacterFeatures(config, charClass, originKey, (character.features ?? []) as string[])
+    : []
   const spells = resolveSheetEntries(config?.classSpells, config?.retiredSpells, charClass, (character.spells ?? []) as string[])
 
   return (

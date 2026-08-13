@@ -139,6 +139,23 @@ const configWithClassKit = (budget: number) => ({
   },
 })
 
+// US-135: origem com benefício `feature` (ex. Criminoso/Thieves' Cant real) — a chave nova
+// soma às features de classe já materializadas no preview, mesma lista.
+const configWithBackgroundFeature = (budget: number) => ({
+  ...configWithClassKit(budget),
+  backgrounds: [
+    { key: 'a5e-ag_criminal', name: 'Criminoso', source: 'a5e-ag', benefits: [
+      { type: 'feature', name: "Thieves' Cant", description: 'Você conhece a gíria de ladrão.' },
+    ] },
+    { key: 'a5e-ag_acolyte', name: 'Acólito', source: 'a5e-ag', benefits: [
+      { type: 'skill_proficiency', name: 'Religião', description: 'x' },
+    ] },
+  ],
+  backgroundFeatures: {
+    'a5e-ag_criminal': [{ key: 'a5e-ag_criminal_thieves-cant', source: 'a5e-ag', name: "Thieves' Cant", description: 'Você conhece a gíria de ladrão.' }],
+  },
+})
+
 describe('SetupWizard — catálogo de sistemas via API (US-20)', () => {
   beforeEach(() => listSystems.mockReset())
   afterEach(() => cleanup())
@@ -578,6 +595,43 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     expect(screen.queryByText('Features')).toBeNull()
     expect(screen.queryByText('Magias')).toBeNull()
+  })
+
+  // US-135: a feature nomeada da origem some ao preview assim que `origin.key` é escolhido,
+  // na MESMA lista das features de classe (sem aba nova) — e trocar a origem antes do submit
+  // não deixa a feature da origem anterior sobrar no preview.
+  it('revisão mostra a feature da origem junto da feature de classe, e troca de origem não mistura', async () => {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithBackgroundFeature(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'elf' } })
+    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'wizard' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_criminal' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    expect(screen.getByText('Recuperação Arcana')).toBeTruthy() // feature de classe (wizard)
+    expect(screen.getByText("Thieves' Cant")).toBeTruthy() // feature da origem (Criminoso)
+
+    // Troca a origem antes de confirmar — o preview atualiza, sem misturar a feature anterior.
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    expect(screen.getByText('Recuperação Arcana')).toBeTruthy()
+    expect(screen.queryByText("Thieves' Cant")).toBeNull() // origem anterior não sobrou
   })
 
   // US-127: o background por extenso (não mais "Preenchido"/"—") vem do mesmo BackgroundPanel

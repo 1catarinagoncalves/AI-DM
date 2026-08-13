@@ -3,7 +3,7 @@ import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
 import type { InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
-import { buildSkillSheet, catalogLabel, resolveSheetEntries, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -332,7 +332,13 @@ export class AiService {
     // US-100: a ficha guarda CHAVES de feature/magia; o catálogo do locale devolve o texto.
     // Resolvido UMA vez por turno e compartilhado com a tool `getSpell` abaixo — é o que
     // mantém a busca por nome na MESMA língua da lista que o prompt mostrou.
-    const features = resolveSheetEntries(config?.classFeatures, config?.retiredFeatures, character.class, (character.features ?? []) as string[])
+    // US-135: Character.features mistura chaves de classe (US-41) e de origem (benefício
+    // `feature` do background) — resolveCharacterFeatures resolve as duas contra a união
+    // dos dois catálogos, sem mudar a assinatura de resolveSheetEntries (ver US-135 §Notas).
+    const originKey = (character.origin as { key?: string } | null)?.key
+    const features = config
+      ? resolveCharacterFeatures(config as SystemConfig, character.class, originKey, (character.features ?? []) as string[])
+      : []
     const knownSpells = resolveSheetEntries(config?.classSpells, config?.retiredSpells, character.class, (character.spells ?? []) as string[])
     const sheet = {
       level: character.level,

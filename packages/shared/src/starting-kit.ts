@@ -1,5 +1,5 @@
 import type { InventoryItem } from './types/character'
-import type { SystemConfig } from './types/system'
+import { resolveSheetEntries, type SystemClassFeature, type SystemConfig } from './types/system'
 import type { Locale } from './locale'
 
 // US-105: `classKey` é a CHAVE canônica gravada no Character (`wizard`, `paladin`), validada
@@ -43,6 +43,35 @@ export function getBackgroundEquipment(config: SystemConfig, originKey: string):
 export const MEMENTO_ITEM_LABEL: Record<Locale, string> = {
   'pt-BR': 'Memento',
   'en-US': 'Memento',
+}
+
+/**
+ * Feature nomeada da origem (US-135), pela chave do background (US-122 `origin.key`) — espelha
+ * `getBackgroundEquipment`: sem fallback `default` (origem é opcional), chave sem entrada no
+ * catálogo devolve [], nunca lança.
+ */
+export function getBackgroundFeatures(config: SystemConfig, originKey?: string): string[] {
+  if (!originKey) return []
+  const map = config.backgroundFeatures
+  if (!map) return []
+  return (map[originKey] ?? []).map((f) => f.key)
+}
+
+/**
+ * Resolve `Character.features` (chaves de classe E de origem misturadas, US-135) contra a
+ * UNIÃO dos dois catálogos — `resolveSheetEntries` sozinho só enxerga um mapa por vez, e uma
+ * chave de origem passada contra `classFeatures` cairia no fallback `{key, name: key}`. Mapa
+ * sintético de uma entrada por trás, mesmo `retiredFeatures` servindo as duas fontes (US-100).
+ */
+export function resolveCharacterFeatures(
+  config: SystemConfig,
+  classKey: string,
+  originKey: string | undefined,
+  featureKeys: string[],
+): SystemClassFeature[] {
+  const classList = config.classFeatures?.[classKey] ?? config.classFeatures?.default ?? []
+  const originList = originKey ? (config.backgroundFeatures?.[originKey] ?? []) : []
+  return resolveSheetEntries({ combined: [...classList, ...originList] }, config.retiredFeatures, 'combined', featureKeys)
 }
 
 /**

@@ -347,6 +347,168 @@
       }
     ]
   },
+  "backgroundFeatures": {
+    "a5e-ag_artisan": [
+      {
+        "description": "When in a city or town, you have access to a fully-stocked workshop with everything you need to ply your trade. Furthermore, you can expect to earn full price when you sell items you have crafted (though there is no guarantee of a buyer).",
+        "key": "a5e-ag_artisan_trade-mark",
+        "name": "Trade Mark",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_charlatan": [
+      {
+        "description": "You have a bundle of forged papers of all kinds—property deeds, identification papers, love letters, arrest warrants, and letters of recommendation—all requiring only a few signatures and flourishes to meet the current need. When you encounter a new document or letter, you can add a forged and modified copy to your bundle. If your bundle is lost, you can recreate it with a forgery kit and a day’s work.",
+        "key": "a5e-ag_charlatan_many-identities",
+        "name": "Many Identities",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_criminal": [
+      {
+        "description": "You know thieves' cant: a set of slang, hand signals, and code terms used by professional criminals. A creature that knows thieves' cant can hide a short message within a seemingly innocent statement. A listener who knows thieves' cant understands the message.",
+        "key": "a5e-ag_criminal_thieves-cant",
+        "name": "Thieves' Cant",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_cultist": [
+      {
+        "description": "When you fail an Arcana or Religion check, you know what being or book holds the knowledge you seek finding the book or paying the being’s price is another matter.",
+        "key": "a5e-ag_cultist_forbidden-lore",
+        "name": "Forbidden Lore",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_entertainer": [
+      {
+        "description": "In any settlement in which you haven't made yourself unpopular, your performances can earn enough money to support yourself and your companions: the bigger the settlement, the higher your standard of living, up to a moderate lifestyle in a city.",
+        "key": "a5e-ag_entertainer_pay-the-piper",
+        "name": "Pay the Piper",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_exile": [
+      {
+        "description": "You gain an expertise die on Persuasion checks against others who are away from their land of birth.",
+        "key": "a5e-ag_exile_fellow-traveler",
+        "name": "Fellow Traveler",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_farmer": [
+      {
+        "description": "You know how to stow and transport food. You and one animal under your care can each carry additional Supply equal to your proficiency bonus.",
+        "key": "a5e-ag_farmer_bit-and-bridle",
+        "name": "Bit and Bridle",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_folk-hero": [
+      {
+        "description": "Unless you conceal your identity, you're universally recognized and admired near the site of your exploits. You and your companions are treated to a moderate lifestyle in any settlement within 100 miles of your Prestige Center.",
+        "key": "a5e-ag_folk-hero_local-fame",
+        "name": "Local Fame",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_gambler": [
+      {
+        "description": "Each week you may attempt a “lucky throw” to support yourself by gambling. Roll a d6 to determine the lifestyle you can afford with your week's winnings (1–2: poor, 3–5: moderate, 6: rich).",
+        "key": "a5e-ag_gambler_lady-luck",
+        "name": "Lady Luck",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_guard": [
+      {
+        "description": "Commoners and civilians sometimes assume you are part of a local constabulary force and defer to you.",
+        "key": "a5e-ag_guard_natural-authority",
+        "name": "Natural Authority",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_guildmember": [
+      {
+        "description": "While in a city or town, you can maintain a moderate lifestyle by plying your trade. Furthermore, the guild occasionally informs you of jobs that need doing. Completing such a job might require performing a downtime activity, or it might require a full adventure. The guild provides a modest reward if you're successful.",
+        "key": "a5e-ag_guildmember_guild-business",
+        "name": "Guild Business",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_hermit": [
+      {
+        "description": "You occasionally hear a voice—perhaps your conscience, perhaps a higher power—which you have come to trust. It told you to go into seclusion, and then it advised you when to rejoin the world. You think it is leading you to your destiny (consult with your Narrator about this feature.)",
+        "key": "a5e-ag_hermit_inner-voice",
+        "name": "Inner Voice",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_marauder": [
+      {
+        "description": "When you navigate while traveling, pursuers have disadvantage on checks made to track your group. Additionally, you can travel stealthily at a normal pace.",
+        "key": "a5e-ag_marauder_secret-ways",
+        "name": "Secret Ways",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_noble": [
+      {
+        "description": "You know of—or personally know—most of the noble families for hundreds of miles. In most settled areas you (and possibly your companions, if well-behaved) can find a noble host who will feed you, shelter you, and offer you a rich lifestyle.",
+        "key": "a5e-ag_noble_high-society",
+        "name": "High Society",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_outlander": [
+      {
+        "description": "If you're in or near the wilderness and have a trading relationship with a tribe, settlement, or other nearby group, you can maintain a moderate lifestyle for yourself and your companions by trading the products of your hunting and gathering.",
+        "key": "a5e-ag_outlander_trader",
+        "name": "Trader",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_sage": [
+      {
+        "description": "As a fellow or friend of several universities you have visiting access to the great libraries, most of which are off-limits to the general public. With enough time spent in a library, you can uncover most of the answers you seek (any question answerable with a DC 20 Arcana, Culture, Engineering, History, Nature, or Religion check).",
+        "key": "a5e-ag_sage_library-privileges",
+        "name": "Library Privileges",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_sailor": [
+      {
+        "description": "Your nautical jargon and rolling gait mark you unmistakably as a mariner. You can easily enter into shop talk with any sailors that are not hostile to you, learning nautical gossip and ships' comings and goings. You also recognize most large ships by sight and by name, and can make a History orCulturecheck to recall their most recent captain and allegiance.",
+        "key": "a5e-ag_sailor_sea-salt",
+        "name": "Sea Salt",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_soldier": [
+      {
+        "description": "Soldiers recognize their own. Off duty soldiers are usually willing to trade tales and gossip with you. On duty soldiers, while not obeying your orders, are likely to answer your questions and treat you respectfully on the off chance that you’re an unfamiliar officer who can get them in trouble.",
+        "key": "a5e-ag_soldier_military-bearing",
+        "name": "Military Bearing",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_trader": [
+      {
+        "description": "When you buy a trade good and sell it elsewhere to a community in need of that good, you gain a 10% bonus to its sale price for every 100 miles between the buy and sell location (maximum of 50%).",
+        "key": "a5e-ag_trader_supply-and-demand",
+        "name": "Supply and Demand",
+        "source": "a5e-ag"
+      }
+    ],
+    "a5e-ag_urchin": [
+      {
+        "description": "When you're in a town or city, you can provide a poor lifestyle for yourself and your companions. Also, you know how to get anywhere in town without being spotted by gangs, gossips, or guard patrols.",
+        "key": "a5e-ag_urchin_guttersnipe",
+        "name": "Guttersnipe",
+        "source": "a5e-ag"
+      }
+    ]
+  },
   "backgrounds": [
     {
       "benefits": [
