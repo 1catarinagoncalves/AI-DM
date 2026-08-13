@@ -445,6 +445,19 @@ export function parseBackgroundEquipment(desc) {
     .map((name) => ({ name, qty: 1 }))
 }
 
+// US-123 — parseAbilityGrant: "+1 to Wisdom and one other ability score." → grant estruturado.
+// Padrão único medido nas 21 entradas de `ability_score` (US-123 §Contexto). Devolve
+// `undefined` quando o texto não bate OU o atributo citado não existe em ATTR_ORDER — função
+// pura e testável, mesmo contrato do `parseStartingKit` (US-51). Falhar alto por causa do
+// `undefined` é decisão do CALLER (`buildBackgrounds`), não desta função.
+export function parseAbilityGrant(desc) {
+  const match = String(desc).match(/^\+1 to (\w+) and one other ability score\.$/)
+  if (!match) return undefined
+  const fixed = match[1].toLowerCase()
+  if (!ATTR_ORDER.includes(fixed)) return undefined
+  return { kind: 'ability', fixed, freeCount: 1 }
+}
+
 // --- backgrounds (21 + benefícios): a5e-ag (EN Publishing), CC-BY-4.0 via dual-licenciamento
 // (ADR 004 §3.3) — join de Background + BackgroundBenefit por `parent → pk`, mesmo estilo de
 // Map que ClassFeature/ClassFeatureItem (US-47) e StartingKit (US-51) já usam.
@@ -479,7 +492,15 @@ export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve) 
           const items = parseBackgroundEquipment(norm(b.fields.desc))
           backgroundEquipment[key] = localizeKitItems(overlay, resolve, items)
         }
-        return { type: b.fields.type, name: entry.name, description: entry.description }
+        // US-123: `ability_score` vira `grant` estruturado sobre o `desc` CRU (EN), nunca sobre
+        // `entry.description` (pode vir traduzido por MT) — mesmo cuidado de `backgroundEquipment`
+        // acima. Falha alto se o padrão não bater: os 21 batem hoje, formato novo merece ser visto.
+        let grant
+        if (b.fields.type === 'ability_score') {
+          grant = parseAbilityGrant(norm(b.fields.desc))
+          if (!grant) throw new Error(`${b.pk}: ability_score fora do padrão "+1 to <Atributo> and one other ability score." (desc: "${norm(b.fields.desc)}")`)
+        }
+        return { type: b.fields.type, name: entry.name, description: entry.description, ...(grant ? { grant } : {}) }
       })
       return { key, name, benefits, source: 'a5e-ag' }
     })

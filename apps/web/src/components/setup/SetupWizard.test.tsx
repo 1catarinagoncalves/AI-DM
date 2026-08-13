@@ -32,6 +32,21 @@ const configWithBackgrounds = (budget: number) => ({
   ],
 })
 
+// US-123: background com grant.kind === 'ability' — fixo em Sabedoria (wisdom), livre entre
+// as demais. `budget: 0` isola o teste da mecânica de point-buy: remaining já nasce 0.
+const configWithAbilityGrant = (budget: number) => ({
+  ...configWithBudget(budget),
+  attributes: [
+    { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
+    { key: 'wisdom', label: 'Sabedoria', min: 8, max: 15, default: 8 },
+  ],
+  backgrounds: [
+    { key: 'a5e-ag_acolyte', name: 'Acólito', source: 'a5e-ag', benefits: [
+      { type: 'ability_score', name: 'Ability Score Increases', description: '+1 to Wisdom and one other ability score.', grant: { kind: 'ability' as const, fixed: 'wisdom', freeCount: 1 } },
+    ] },
+  ],
+})
+
 // US-124: Markdown real do dataset (heading em nível MISTO, #### e ###) para o benefício
 // connection_and_memento — 2 blocos (Acolyte) e a anomalia do Sailor (1 bloco só, "Mementos").
 const CAM_ACOLYTE = `Roll 1d10, choose, or make up your own.
@@ -143,25 +158,26 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('navegação ida-e-volta preserva o preenchimento e marca estados na trilha', async () => {
     await pickSystemAndFillRaceClass()
 
-    // avança para Atributos
+    // avança para Background (US-123: agora vem logo depois de Raça/Classe)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
-    expect(screen.getByRole('heading', { name: 'Atributos' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Background' })).toBeTruthy()
 
-    // trilha: Raça/Classe concluída, Atributos atual
+    // trilha: Raça/Classe concluída, Background atual
     expect(screen.getByRole('button', { name: /Raça\/Classe/ }).getAttribute('data-state')).toBe('concluída')
-    expect(screen.getByRole('button', { name: /Atributos/ }).getAttribute('data-state')).toBe('atual')
+    expect(screen.getByRole('button', { name: /Background/ }).getAttribute('data-state')).toBe('atual')
 
     // volta para Raça/Classe e avança de novo — valores mantidos
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ }))
     expect((screen.getByLabelText('Nome do personagem') as HTMLInputElement).value).toBe('Lyra')
     expect((screen.getByLabelText('Classe') as HTMLSelectElement).value).toBe('wizard')
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
-    expect(screen.getByRole('heading', { name: 'Atributos' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Background' })).toBeTruthy()
   })
 
   it('point-buy bloqueia Próximo até o orçamento fechar exatamente', async () => {
     await pickSystemAndFillRaceClass(configWithBudget(2))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // background opcional → atributos
 
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     // sobra 2 pontos → bloqueado
@@ -178,12 +194,12 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // background opcional → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc) // fecha orçamento
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // sem perícias no config → livre → background
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // background opcional → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // sem perícias no config → livre → revisão
 
     const review = screen.getByRole('heading', { name: 'Revisão' })
     expect(review).toBeTruthy()
@@ -198,6 +214,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithSkills(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
@@ -211,8 +228,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' }))
     expect(nextBtn().disabled).toBe(false) // 2 marcadas → libera
 
-    fireEvent.click(nextBtn()) // → background
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(nextBtn()) // → revisão (perícias é a última etapa antes da revisão)
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ skills: ['athletics', 'perception'] }))
   })
@@ -222,15 +238,14 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
+    fireEvent.change(screen.getByLabelText(/Fraquezas/), { target: { value: 'Não mente\n  ' } })
+
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-
-    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
-    fireEvent.change(screen.getByLabelText(/Fraquezas/), { target: { value: 'Não mente\n  ' } })
-
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -242,10 +257,6 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // etapa `background` continua livre (mesmo comportamento de hoje, sem seleção nenhuma).
   it('sem config.backgrounds, não mostra o campo Origem e a etapa segue livre', async () => {
     await pickSystemAndFillRaceClass(configWithBudget(2))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
-    const inc = screen.getByLabelText('Aumentar Força')
-    fireEvent.click(inc); fireEvent.click(inc)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
 
     expect(screen.queryByLabelText('Origem')).toBeNull()
@@ -256,10 +267,6 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // nome de cada background — sem benefícios na opção. Origem é OPCIONAL: não bloqueia o avanço.
   it('com config.backgrounds, mostra select de Origem (só o nome) e não exige escolha para avançar', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
-    const inc = screen.getByLabelText('Aumentar Força')
-    fireEvent.click(inc); fireEvent.click(inc)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
 
     const select = screen.getByLabelText('Origem') as HTMLSelectElement
@@ -283,15 +290,14 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('envia origin.key na criação, distinto de background', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
+    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
+
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
-    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
-
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -303,13 +309,13 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // US-122: revisão mostra o nome da origem numa linha própria, distinta da linha de background.
   it('revisão mostra o nome da origem, separado da linha de background', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-sage' } })
+
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-sage' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     const originRow = screen.getByText('Origem').closest('div')
@@ -323,14 +329,13 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Auril, goddess of winter' } })
+
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-
-    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Auril, goddess of winter' } })
-
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -343,14 +348,13 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Tymora' } })
+
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-
-    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Tymora' } })
-
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -363,11 +367,11 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -380,14 +384,13 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('mostra a divindade (nome + portfólio) na revisão quando só ela é preenchida', async () => {
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Solariel, Deus da justiça e da cura' } })
+
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-
-    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Solariel, Deus da justiça e da cura' } })
-
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     expect(screen.getByRole('heading', { name: 'Revisão' })).toBeTruthy()
     expect(screen.getByText('Solariel — Deus da justiça e da cura')).toBeTruthy()
@@ -403,11 +406,11 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
       .filter(o => o.getAttribute('value'))
     expect(races.map(o => [o.getAttribute('value'), o.textContent])).toEqual([['elf', 'Elfo'], ['dwarf', 'Anão']])
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     // Na revisão o jogador lê o RÓTULO, nunca a chave.
@@ -462,11 +465,11 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
 
@@ -484,13 +487,13 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('revisão mostra atributos e perícias escolhidas com modificador', async () => {
     await pickSystemAndFillRaceClass(configWithSkills(2))
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc) // Força 8 → 10 (fecha o orçamento de 2)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' }))
     fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' }))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     // Força 10 → modificador 0 (floor((10-10)/2)); perícia proficiente com bônus +2 → +2.
@@ -506,11 +509,11 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('revisão mostra PV inicial e o kit da classe escolhida', async () => {
     await pickSystemAndFillRaceClass(configWithClassKit(2)) // classe = wizard
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     // Sem atributo `constitution` no config de teste → cai no fallback (10) → PV = 10 + 0.
@@ -530,11 +533,11 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'dwarf' } })
     fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'fighter' } }) // sem entrada própria
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.getByText('Adaga')).toBeTruthy() // kit default
@@ -547,11 +550,11 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // "Features"/"Magias" nem aparece na revisão (mesmo padrão condicional de Origem/perícias).
   it('sistema sem classFeatures/classSpells não mostra bloco de features e magias', async () => {
     await pickSystemAndFillRaceClass(configWithBudget(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.queryByText('Features')).toBeNull()
@@ -562,15 +565,14 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // que a ficha em jogo usa (US-45) — história, ideais, vínculos e fraquezas visíveis antes de confirmar.
   it('revisão mostra o background por extenso via BackgroundPanel', async () => {
     await pickSystemAndFillRaceClass(configWithBudget(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
+    fireEvent.change(screen.getByLabelText(/Ideais/), { target: { value: 'Justiça acima de tudo' } })
+
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-
-    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
-    fireEvent.change(screen.getByLabelText(/Ideais/), { target: { value: 'Justiça acima de tudo' } })
-
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     expect(screen.getByText('Nobre caída')).toBeTruthy()
     expect(screen.getByText('Justiça acima de tudo')).toBeTruthy()
@@ -582,11 +584,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // nenhum `|` de Markdown cru aparece na tela.
   it('mostra adventures_and_advancement como parágrafo e connection/memento como seleção', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
-    const inc = screen.getByLabelText('Aumentar Força')
-    fireEvent.click(inc); fireEvent.click(inc)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background (US-123: 1º passo agora)
 
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
 
@@ -611,10 +609,6 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // trocar manualmente depois sobrescreve sem travar.
   it('botão aleatório sorteia uma opção do bloco certo; trocar manualmente sobrescreve', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
-    const inc = screen.getByLabelText('Aumentar Força')
-    fireEvent.click(inc); fireEvent.click(inc)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
 
@@ -639,40 +633,44 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('envia origin.connection/memento (texto da linha escolhida) na criação', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithCam(2))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
-    const inc = screen.getByLabelText('Aumentar Força')
-    fireEvent.click(inc); fireEvent.click(inc)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
     fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '1' } })
     fireEvent.change(screen.getByLabelText('Memento'), { target: { value: '2' } })
 
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
-      origin: { key: 'a5e-ag_acolyte', connection: 'A high priest awaiting your return.', memento: 'A prayer book with notes.' },
+      origin: { key: 'a5e-ag_acolyte', connection: 'A high priest awaiting your return.', memento: 'A prayer book with notes.', abilityChoice: undefined },
     }))
   })
 
   // US-124: revisão mostra a conexão/memento escolhidos, ou "—" sem seleção.
   it('revisão mostra conexão/memento escolhidos, "—" quando nada foi selecionado', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
-
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão sem escolher nada
+
     const connectionRow = screen.getByText('Conexão').closest('div')
     expect(within(connectionRow!).getByText('—')).toBeTruthy()
     const mementoRow = screen.getByText('Memento').closest('div')
     expect(within(mementoRow!).getByText('—')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
+    // US-123: background não fica mais imediatamente antes da revisão — usa a trilha (goTo)
+    // para voltar direto à etapa, em vez de um único "Voltar".
+    fireEvent.click(screen.getByRole('button', { name: /^Background$/ }))
     fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão de novo
     expect(within(screen.getByText('Conexão').closest('div')!).getByText('A childhood friend who left the priesthood.')).toBeTruthy()
   })
@@ -681,19 +679,21 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // texto completo, que já tem linha própria) quando uma linha de memento foi escolhida.
   it('revisão soma equipamento da origem ao kit; "Memento" só aparece no kit quando escolhido', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
-
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão, sem memento escolhido
+
     const kitRowSemMemento = screen.getByText('Kit inicial').closest('div')
     expect(within(kitRowSemMemento!).getByText('Símbolo sagrado')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /^Background$/ })) // trilha: volta direto
     fireEvent.change(screen.getByLabelText('Memento'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão, memento escolhido
     const kitRowComMemento = screen.getByText('Kit inicial').closest('div')
     expect(within(kitRowComMemento!).getByText('Símbolo sagrado · Memento')).toBeTruthy()
@@ -703,10 +703,6 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // não Connection — SINGLE_BLOCK_IS_MEMENTO corrige por CHAVE, não por texto de heading.
   it('Sailor (bloco único) mostra só o select de Memento, nunca o de Conexão', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
-    const inc = screen.getByLabelText('Aumentar Força')
-    fireEvent.click(inc); fireEvent.click(inc)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_sailor' } })
 
@@ -722,14 +718,77 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // de configWithBackgrounds só têm skill_proficiency) não quebra — a seção só não aparece.
   it('origem sem os benefícios narrativos não mostra a seção, sem quebrar', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
-    const inc = screen.getByLabelText('Aumentar Força')
-    fireEvent.click(inc); fireEvent.click(inc)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
 
     expect(screen.queryByLabelText('Conexão')).toBeNull()
     expect(screen.queryByLabelText('Memento')).toBeNull()
+  })
+
+  // --- US-123: bônus de atributo do background (grant.kind === 'ability') ---
+
+  it('background com grant.kind "ability" mostra o aviso na etapa background e o banner+selos na etapa atributos', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithAbilityGrant(0))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+
+    // Aviso informativo na própria etapa background — sem <select> aqui.
+    expect(screen.getByText('+1 fixo em Sabedoria, +1 à escolha em outro atributo.')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    expect(screen.getByRole('heading', { name: 'Atributos' })).toBeTruthy()
+    expect(screen.getByText('Acólito concede +1 fixo em Sabedoria e +1 bônus — escolha outro atributo abaixo.')).toBeTruthy()
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true) // nenhuma linha escolhida ainda
+
+    // US-123: o clique é no SELO (+1 bônus), não na linha inteira.
+    fireEvent.click(screen.getByRole('button', { name: '+1 bônus' }))
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      origin: expect.objectContaining({ key: 'a5e-ag_acolyte', abilityChoice: 'strength' }),
+    }))
+  })
+
+  it('linha fixa nunca é clicável nem mostra selo fantasma; clicar troca/desmarca a escolha', async () => {
+    await pickSystemAndFillRaceClass(configWithAbilityGrant(0))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    // Linha fixa: o selo "+1 origem" é texto (<span>), não um botão — nunca clicável.
+    const wisdomRow = screen.getByText('Sabedoria').closest('div')!
+    expect(within(wisdomRow).getByText('+1 origem')).toBeTruthy()
+    expect(within(wisdomRow).queryByRole('button', { name: '+1 origem' })).toBeNull()
+    expect(within(wisdomRow).queryByText('+1 bônus')).toBeNull()
+
+    // Linha elegível: o selo "+1 bônus" É um botão — clique nele, não na linha.
+    const strengthRow = screen.getByText('Força').closest('div')!
+    const ghostBadge = within(strengthRow).getByRole('button', { name: '+1 bônus' })
+
+    fireEvent.click(ghostBadge)
+    expect(within(strengthRow).getByRole('button', { name: '+1 origem' })).toBeTruthy() // vira sólido, ainda clicável (desmarca)
+    expect(within(strengthRow).queryByText('+1 bônus')).toBeNull()
+
+    fireEvent.click(within(strengthRow).getByRole('button', { name: '+1 origem' })) // clicar de novo desmarca
+    expect(within(strengthRow).getByRole('button', { name: '+1 bônus' })).toBeTruthy()
+  })
+
+  it('background sem grant.kind "ability" não exige escolha nem mostra banner/selos', async () => {
+    await pickSystemAndFillRaceClass(configWithBackgrounds(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    expect(screen.queryByText('+1 origem')).toBeNull()
+    expect(screen.queryByText('+1 bônus')).toBeNull()
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc) // fecha orçamento — nada mais deveria bloquear
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
   })
 })

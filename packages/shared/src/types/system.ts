@@ -61,6 +61,15 @@ export const SystemSpellSchema = z.object({
   source: z.string().min(1),
 })
 
+// US-123: bônus de atributo do background, derivado pelo ingest de `type === 'ability_score'`
+// (padrão único medido nas 21 entradas: "+1 to <fixo> and one other ability score."). União
+// discriminada porque a US-131 adiciona aqui um segundo membro (`kind: 'skills'`, para
+// `skill_proficiency`) sem reabrir este — mesma infraestrutura, dois benefícios diferentes.
+export const SystemBackgroundGrantSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('ability'), fixed: z.string().min(1), freeCount: z.number().int().min(0) }),
+])
+export type SystemBackgroundGrant = z.infer<typeof SystemBackgroundGrantSchema>
+
 // Background do A5E Adventurer's Guide (US-121). Catálogo MECÂNICO (texto), não efeito —
 // aplicar `benefits[].type` (ex. `ability_score`) num personagem de fato é fora do escopo.
 // `type` é string livre (não enum): 8 valores observados no dataset, mesmo raciocínio do
@@ -69,6 +78,9 @@ export const SystemBackgroundBenefitSchema = z.object({
   type: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
+  // US-123: presente só quando o ingest reconheceu o padrão estruturado do `type` (hoje só
+  // `ability_score` → `grant.kind === 'ability'`). Ausente → benefício continua awareness-only.
+  grant: SystemBackgroundGrantSchema.optional(),
 })
 
 // `key` é o pk cru do dataset (`a5e-ag_acolyte`), sem mapa explícito tipo CLASS_MAP: background

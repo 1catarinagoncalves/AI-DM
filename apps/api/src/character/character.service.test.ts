@@ -413,4 +413,59 @@ describe('CharacterService.create', () => {
     })
     expect(char.origin).toEqual({ key: 'a5e-ag_acolyte' })
   })
+
+  // US-123: bônus de atributo do background (`grant.kind === 'ability'`) soma por cima do
+  // point-buy. `fixed: 'cool'` (mapeado ao Wisdom do a5e-ag_acolyte real) sobre o config de
+  // teste — o par [cool, hard] joga o papel de [wisdom, constitution] sem precisar do config real.
+  const configWithAbilityGrant: SystemConfig = {
+    ...config,
+    backgrounds: [
+      { key: 'a5e-ag_acolyte', name: 'Acolyte', source: 'a5e-ag', benefits: [
+        { type: 'ability_score', name: 'Ability Score Increases', description: '+1 to Cool and one other ability score.', grant: { kind: 'ability', fixed: 'cool', freeCount: 1 } },
+      ] },
+    ],
+  }
+
+  it('aplica os dois +1 do background (fixo + escolhido) por cima do point-buy', async () => {
+    const service = new CharacterService(fakePrisma(configWithAbilityGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_acolyte', abilityChoice: 'hard' },
+    })
+    expect(char.baseAttributes).toEqual({ cool: 6, hard: 6 })
+  })
+
+  it('rejeita abilityChoice ausente quando o grant exige', async () => {
+    const service = new CharacterService(fakePrisma(configWithAbilityGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_acolyte' },
+    })).rejects.toThrow('abilityChoice inválido')
+  })
+
+  it('rejeita abilityChoice fora de config.attributes', async () => {
+    const service = new CharacterService(fakePrisma(configWithAbilityGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_acolyte', abilityChoice: 'strength' },
+    })).rejects.toThrow('abilityChoice inválido')
+  })
+
+  it('rejeita abilityChoice igual a grant.fixed (repetir o fixo não é "outro atributo")', async () => {
+    const service = new CharacterService(fakePrisma(configWithAbilityGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_acolyte', abilityChoice: 'cool' },
+    })).rejects.toThrow('abilityChoice inválido')
+  })
+
+  it('background sem grant.kind "ability" (ou sem origem) não exige abilityChoice', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgrounds))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_acolyte' },
+    })
+    expect(char.baseAttributes).toEqual({ cool: 5, hard: 5 })
+  })
 })

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, type SystemConfig } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -42,6 +42,10 @@ export class CharacterService {
     const originKey = dto.origin?.key
       ? this.validateCatalogKey(config.backgrounds, dto.origin.key, 'Origem')
       : undefined
+    // US-123: bônus de atributo do background soma POR CIMA do point-buy já validado acima —
+    // por isso aplicado depois do parse de min/max, que segue valendo só para o point-buy puro.
+    const abilityGrant = this.findAbilityGrant(config.backgrounds, originKey)
+    const finalAttributes = this.applyAbilityGrant(baseAttributes, config.attributes, abilityGrant, dto.origin?.abilityChoice)
 
     return this.prisma.character.create({
       data: {
@@ -52,7 +56,7 @@ export class CharacterService {
         race,
         class: charClass,
         level: 1,
-        baseAttributes,
+        baseAttributes: finalAttributes,
         skills,
         features,
         spells,
@@ -122,6 +126,45 @@ export class CharacterService {
       )
     }
     return key
+  }
+
+  /**
+   * US-123: resolve o `grant.kind === 'ability'` da origem escolhida, se houver — cada
+   * background tem no máximo um benefício `ability_score` reconhecido pelo ingest.
+   */
+  private findAbilityGrant(
+    backgrounds: SystemConfig['backgrounds'],
+    originKey?: string,
+  ): Extract<SystemBackgroundGrant, { kind: 'ability' }> | undefined {
+    const grant = backgrounds?.find((b) => b.key === originKey)?.benefits
+      .find((b) => b.grant?.kind === 'ability')?.grant
+    return grant?.kind === 'ability' ? grant : undefined
+  }
+
+  /**
+   * US-123: valida `abilityChoice` contra o grant (fora de `config.attributes`, ausente, ou
+   * igual a `grant.fixed` — repetir o fixo não é "outro atributo", RAW) e soma os dois `+1`
+   * (fixo + livre) por cima do `baseAttributes` já validado pelo point-buy. Sem grant (origem
+   * sem esse benefício, ou nenhuma origem escolhida) devolve `baseAttributes` intocado.
+   */
+  private applyAbilityGrant(
+    baseAttributes: Record<string, number>,
+    attributes: SystemConfig['attributes'],
+    grant: Extract<SystemBackgroundGrant, { kind: 'ability' }> | undefined,
+    abilityChoice?: string,
+  ): Record<string, number> {
+    if (!grant) return baseAttributes
+    const valid = new Set(attributes.map((a) => a.key))
+    if (!abilityChoice || !valid.has(abilityChoice) || abilityChoice === grant.fixed) {
+      throw new BadRequestException(
+        `abilityChoice inválido: "${abilityChoice ?? ''}". Esperado uma chave de config.attributes diferente de "${grant.fixed}".`,
+      )
+    }
+    return {
+      ...baseAttributes,
+      [grant.fixed]: (baseAttributes[grant.fixed] ?? 0) + 1,
+      [abilityChoice]: (baseAttributes[abilityChoice] ?? 0) + 1,
+    }
   }
 
   /**

@@ -89,6 +89,10 @@ export const enUS: Record<MessageKey, string> = {
   'setup.attributes.remaining': 'Points remaining:',
   'setup.attributes.decrease': 'Decrease {label}',
   'setup.attributes.increase': 'Increase {label}',
+  // US-123: background ability bonus (grant.kind === 'ability').
+  'setup.attributes.abilityBanner': '{origin} grants +1 fixed to {attr} and a +1 bonus — choose another attribute below.',
+  'setup.attributes.abilityBadgeFixed': '+1 origin',
+  'setup.attributes.abilityBadgeGhost': '+1 bonus',
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Skills',
@@ -112,6 +116,9 @@ export const enUS: Record<MessageKey, string> = {
 
   // ---- wizard: origin (US-122) ----
   'setup.origin.titulo': 'Origin',
+  // US-123: ability bonus notice, shown in the `background` step (the actual choice happens
+  // in `attributes` — this is just the heads-up for what comes next).
+  'setup.origin.abilityGrant': '+1 fixed to {attr}, +1 of your choice to another attribute.',
 
   // ---- wizard: connection & memento (US-124) — title/subtitle are FIXED, not parsed from
   // the dataset's own heading/preamble (translation-fragile, see US-124 Questão 1/2).

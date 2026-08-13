@@ -1,0 +1,128 @@
+# US-132 — Escolha da ferramenta concedida pelo benefício `tool_proficiency` do background
+
+**Épico:** 1 — Personagem
+**Fase:** 1 — MVP single-player
+**Status:** 📋 Planejada (não iniciada)
+**Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, benefit `type: "tool_proficiency"` já extraído, sem mecanização) · **uma story ainda não escrita** que crie `config.tools` (catálogo de ferramentas do sistema) — não existe hoje, nem como US nem como campo; ver §Questões em aberto
+**Relacionado:** [US-123](./US-123-integracao-mecanica-background-pointbuy.md)/[US-131](./US-131-integracao-mecanica-background-proficiency.md) (mecanizaram `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluíram `language`/`tool_proficiency` explicitamente por essa mesma falta de catálogo — §Fora do escopo de cada uma) · [US-129](./US-129-escolha-idioma-beneficio-language-background.md) (mesmo formato de story — benefício de background bloqueado por catálogo ainda inexistente; `tool_proficiency` é o segundo caso, texto mais irregular que `language`) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha de origem — é o `origin.key` que decide se o benefício `tool_proficiency` existe pra este personagem)
+**Criada em:** 2026-08-13
+
+---
+
+## História
+
+> **Como** jogador,
+> **quero** escolher (ou ver concedida automaticamente) a ferramenta quando o background que selecionei dá proficiência em uma,
+> **para que** esse benefício vire mecânica real na ficha — hoje ele só aparece como texto no cartão do background (US-122), sem nenhum lugar pra eu de fato registrar essa proficiência.
+
+---
+
+## Contexto e motivação
+
+### O que o dataset diz (medido em 13/08/2026, `scripts/srd/_data/BackgroundBenefit.json`)
+
+13 dos 21 backgrounds do catálogo A5E têm um benefit com `type: "tool_proficiency"` — mais que os 5 de `language` (US-129), texto bem menos uniforme:
+
+| Background (`pk`) | `desc` | Forma |
+|---|---|---|
+| `artisan` | "One type of artisan's tools or smith's tools." | escolha dentro de categoria aberta |
+| `charlatan` | "Disguise kit, forgery kit." | 2 fixas, item concreto |
+| `criminal` | "Gaming set, thieves' tools." | 2 fixas, item concreto |
+| `farmer` | "Land vehicles." | 1 fixa, categoria (não item concreto) |
+| `folk-hero` | "One type of artisan's tools, one vehicle." | 1 escolha de categoria + 1 categoria fixa |
+| `guildmember` | "Either one type of artisan's tools, musical instrument, or vehicle." | escolha entre 3 categorias |
+| `hermit` | "Herbalism kit." | 1 fixa, item concreto |
+| `marauder` | "One type of artisan's tools or vehicle." | escolha entre 2 categorias |
+| `noble` | "One gaming set." | 1 fixa, categoria (qual gaming set?) |
+| `sailor` | "Navigator's tools, water vehicles." | 2 fixas, mistura item concreto + categoria |
+| `soldier` | "One type of gaming set." | 1 fixa, categoria |
+| `trader` | "One vehicle." | 1 fixa, categoria |
+| `urchin` | "Disguise kit, thieves' tools." | 2 fixas, item concreto |
+
+Ao contrário de `language` (sempre "One of your choice.", US-129) e de `skill_proficiency` (2 formatos regulares, US-131), `tool_proficiency` mistura **três formas diferentes de indeterminação** na mesma tabela: item concreto já resolvido (`Herbalism kit`), categoria aberta sem enumerar as opções (`artisan's tools` — qual tipo? o texto não diz), e escolha entre categorias (`musical instrument` vs `vehicle` vs `artisan's tools`). Um catálogo de ferramentas pra isso não é uma lista plana como `config.skills` — precisaria de pelo menos dois níveis (categoria → item), e o dataset A5E não enumera os itens de cada categoria em lugar nenhum consultado até agora.
+
+### Por que isso não é mecanizável agora
+
+A US-123/US-131 excluíram `tool_proficiency` de propósito, com a razão registrada: *"o projeto não tem catálogo de ferramentas nem de idiomas (`config` não tem `tools`/`languages`); mecanizar exigiria um subsistema novo do zero"*. Isso continua verdade — não existe `config.tools`, não existe campo de ferramenta em `Character`, e **não existe `Tool.json`** no dataset Open5e pinado (`scripts/srd/_data/` não tem esse arquivo — só `Skill.json`, sem equivalente pra ferramentas). Diferente de `language` (US-129, onde o 5e padrão tem uma lista bem conhecida de idiomas que provavelmente existe em algum resource Open5e ainda não investigado), aqui a lacuna é maior: nem o dado bruto das opções de cada categoria (que ferramentas existem dentro de "artisan's tools"?) foi localizado ainda.
+
+### A proposta (condicional)
+
+Esta story faz o mesmo que a US-129 fez para `language`: quando `config.tools` existir (story-base, fora desta, e maior que a de idiomas — precisa resolver a estrutura categoria→item antes), estender `buildBackgrounds` para reconhecer `type === 'tool_proficiency'` como um `grant` estruturado, adicionar `origin.toolChoice` (ou `toolChoices`, plural — ver Modelo de dados) ao payload de criação, e um seletor na etapa `background` do wizard quando o benefício estiver presente.
+
+---
+
+## Escopo
+
+### Dentro do escopo (só depois que `config.tools` existir)
+
+- `buildBackgrounds` (`scripts/srd/ingest.mjs`, mesma função que a US-121/US-123/US-131/US-129 já estenderam) reconhece `type === 'tool_proficiency'` e parseia os 13 `desc` da tabela acima em `grant` estruturado — item(ns) fixo(s) resolvido(s) contra `config.tools`, e/ou escolha entre opções (categoria ou item) quando o texto usa "one/either ... or".
+- **Item ou categoria sem entrada em `config.tools` é relatado como órfão e omitido do grant** — mesmo tratamento que a US-131 deu a `Culture`/`Engineering`, não bloqueia o resto do background.
+- `origin.toolChoice?: string` (ou array, se algum background exigir mais de uma escolha — nenhum dos 13 exige hoje) no `CreateCharacterSchema.origin`, validado contra `config.tools`/o `grant` do background escolhido.
+- Etapa `background` do wizard mostra seletor com as opções do `grant` quando o background escolhido concede ferramenta — mesmo padrão visual do `<select>` de idioma (US-129) / cartões de perícia (US-131).
+- Persistência da ferramenta escolhida em `Character` — formato exato depende da forma que `config.tools`/o campo em `Character` tomar na story-base; não decidido aqui.
+- Tela de revisão do wizard e ficha do personagem mostram a ferramenta escolhida, mesmo padrão de `origin.skillChoice` (US-131) / `languageChoice` (US-129).
+
+### Fora do escopo
+
+- **Criar `config.tools`** (com a estrutura categoria→item que os 13 `desc` exigem) — é a story-base bloqueante, não esta. Ver §Questões em aberto.
+- **Resolver o que cada categoria contém** (que ferramentas existem dentro de "artisan's tools", que jogos existem dentro de "gaming set") — pré-requisito da story-base, não desta.
+- **Os outros 8 backgrounds sem benefit `tool_proficiency`** — nada muda para eles.
+- **Uso narrativo/mecânico da ferramenta** (testes de perícia com a ferramenta, regras de craft) — mecânica de jogo, não desta story, que é só criação de personagem.
+
+---
+
+## Modelo de dados proposto
+
+Não decidido — depende da forma que a story-base de `config.tools` tomar. Esqueleto por analogia com `grant.kind === 'skills'` (US-131) e `grant.kind === 'language'` (US-129), assumindo suporte a fixo + escolha (como `skills`, não só escolha livre como `language`):
+
+```ts
+// em SystemBackgroundGrantSchema (US-123/US-131/US-129), um novo membro da union:
+z.object({
+  kind: z.literal('tools'),
+  fixed: z.array(z.string()),      // itens já resolvidos contra config.tools
+  chooseFrom: z.array(z.string()), // opções de categoria/item, quando o desc usa "one/either ... or"
+  chooseCount: z.number().int().min(0),
+})
+```
+
+```ts
+// em CreateCharacterSchema.origin (US-122/US-123/US-131/US-129):
+toolChoice: z.string().max(60).optional(),
+```
+
+---
+
+## Critérios de aceite
+
+- [ ] **Bloqueado até `config.tools` existir** — nenhum critério abaixo pode ser implementado antes disso.
+- [ ] `buildBackgrounds` deriva `grant` para os 13 backgrounds medidos, cobrindo as três formas da tabela (fixo/item concreto, fixo/categoria, escolha entre categorias) — com teste por formato.
+- [ ] Item ou categoria sem entrada em `config.tools` sai do `grant` e entra no relatório de órfãos do ingest, sem falhar `--strict` (mesmo tratamento da US-131 pra `Culture`/`Engineering`).
+- [ ] Seletor na etapa `background` oferece as opções do `grant` quando o background escolhido tiver esse benefício; ausente para os outros 8.
+- [ ] `CharacterService.create` rejeita `origin.toolChoice` fora do `grant.chooseFrom`, e rejeita ausência dele quando o `grant` exige escolha.
+- [ ] Ferramenta escolhida visível na tela de revisão do wizard e na ficha do personagem, mesmo padrão de `origin.skillChoice` (US-131)/`languageChoice` (US-129).
+- [ ] Personagem com background sem benefício `tool_proficiency`, ou sem background nenhum: nenhuma validação nova disparada, comportamento idêntico ao de hoje.
+
+---
+
+## Notas de implementação
+
+- **Parser mais irregular que os precedentes**: diferente do `desc` uniforme de `language` (sempre "One of your choice.") e dos 2 formatos regulares de `skill_proficiency` (US-131), os 13 `desc` de `tool_proficiency` variam em contagem de itens fixos (0 a 2), presença de escolha, e se o item é concreto ou uma categoria a resolver depois. Provável que precise de mais de uma função de reconhecimento de padrão, não uma regex só — seguir o mesmo espírito de "falhar alto se o formato não bater" que `parseStartingKit` (US-51) e o parser da US-131 já usam.
+- Mesmo padrão de 3 lugares a espelhar que `origin.skillChoice`/`languageChoice` já exige (US-123/US-131/US-129): `CreateCharacterSchema`, `normalizeOrigin`/`CharacterService.create`, tipo do payload em `apps/web/src/lib/api.ts`.
+
+---
+
+## Questões em aberto
+
+1. **De onde vem `config.tools`, e que estrutura ele precisa ter?** Diferente de `language` (US-129, onde a lista de idiomas do 5e é bem conhecida e provavelmente existe em algum resource Open5e), aqui não foi localizado nenhum `Tool.json` no dataset pinado — e mesmo que exista uma lista plana de ferramentas, os `desc` medidos acima referenciam **categorias** ("artisan's tools", "gaming set", "vehicle") que por sua vez têm sub-itens (o 5e SRD lista ~15 tipos de "artisan's tools" diferentes, por exemplo) — a story-base precisa decidir se `config.tools` modela isso em dois níveis ou achata tudo numa lista.
+2. **Vale a pena uma story-base conjunta com `config.languages` (US-129, Questão 2), já que as duas são "catálogo que falta, benefício de background bloqueado"?** As duas stories têm o mesmo formato de bloqueio; pode fazer sentido investigar as duas lacunas de dataset juntas antes de abrir qualquer story-base.
+3. **Esta story precisa de número novo quando a story-base existir, ou vira uma seção dela?** Mesmo raciocínio da US-129 (Questão 3) — registrada aqui como US independente porque é o benefício de background especificamente que motivou a pergunta, pode ser reabsorvida na story-base de ferramentas quando ela for escrita.
+
+---
+
+## Referências no código
+
+- [scripts/srd/_data/BackgroundBenefit.json](../../../scripts/srd/_data/BackgroundBenefit.json) — os 13 registros `type: "tool_proficiency"` (`a5e-ag_artisan_tool-proficiencies` até `a5e-ag_urchin_tool-proficiencies`).
+- [scripts/srd/ingest.mjs:359](../../../scripts/srd/ingest.mjs:359) — `buildBackgrounds`, função a estender (mesma que a US-123/US-131/US-129 já estenderam).
+- [US-123](./US-123-integracao-mecanica-background-pointbuy.md) / [US-131](./US-131-integracao-mecanica-background-proficiency.md) — exclusão original de `language`/`tool_proficiency`, origem direta desta story.
+- [US-129](./US-129-escolha-idioma-beneficio-language-background.md) — mesmo formato de story (benefício bloqueado por catálogo ausente), precedente estrutural direto.
+- [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) / [US-122](./US-122-escolha-background-catalogo-na-criacao.md) — dependências diretas.

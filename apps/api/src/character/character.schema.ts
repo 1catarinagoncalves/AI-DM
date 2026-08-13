@@ -52,6 +52,9 @@ export const CreateCharacterSchema = z.object({
     key: z.string().max(80).optional(),
     connection: z.string().max(500).optional(),
     memento: z.string().max(500).optional(),
+    // US-123: atributo escolhido para o `+1` livre do `grant.kind === 'ability'` da origem.
+    // Validado contra `config.attributes` e `grant.fixed` no service, não aqui.
+    abilityChoice: z.string().max(40).optional(),
   }).optional(),
 })
 

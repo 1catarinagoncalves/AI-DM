@@ -352,6 +352,11 @@
       "benefits": [
         {
           "description": "+1 em Sabedoria e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "wisdom",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -389,6 +394,11 @@
       "benefits": [
         {
           "description": "+1 em Inteligência e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "intelligence",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -431,6 +441,11 @@
       "benefits": [
         {
           "description": "+1 em Carisma e em outro valor de habilidade.",
+          "grant": {
+            "fixed": "charisma",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -473,6 +488,11 @@
       "benefits": [
         {
           "description": "+1 em Destreza e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "dexterity",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -515,6 +535,11 @@
       "benefits": [
         {
           "description": "+1 em Inteligência e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "intelligence",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -557,6 +582,11 @@
       "benefits": [
         {
           "description": "+1 em Carisma e em outro valor de habilidade.",
+          "grant": {
+            "fixed": "charisma",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -594,6 +624,11 @@
       "benefits": [
         {
           "description": "+1 em Sabedoria e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "wisdom",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -631,6 +666,11 @@
       "benefits": [
         {
           "description": "+1 em Sabedoria e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "wisdom",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -673,6 +713,11 @@
       "benefits": [
         {
           "description": "+1 em Constituição e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "constitution",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -715,6 +760,11 @@
       "benefits": [
         {
           "description": "+1 em Carisma e em outro valor de habilidade.",
+          "grant": {
+            "fixed": "charisma",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -752,6 +802,11 @@
       "benefits": [
         {
           "description": "+1 em Força e em outro valor de habilidade.",
+          "grant": {
+            "fixed": "strength",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -794,6 +849,11 @@
       "benefits": [
         {
           "description": "+1 em Constituição e em outro valor de habilidade.",
+          "grant": {
+            "fixed": "constitution",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -836,6 +896,11 @@
       "benefits": [
         {
           "description": "+1 em Sabedoria e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "wisdom",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -878,6 +943,11 @@
       "benefits": [
         {
           "description": "+1 em Destreza e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "dexterity",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos de Valor de Habilidade",
           "type": "ability_score"
         },
@@ -920,6 +990,11 @@
       "benefits": [
         {
           "description": "+1 em Força e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "strength",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -967,6 +1042,11 @@
       "benefits": [
         {
           "description": "+1 em Constituição e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "constitution",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -1004,6 +1084,11 @@
       "benefits": [
         {
           "description": "+1 em Inteligência e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "intelligence",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -1041,6 +1126,11 @@
       "benefits": [
         {
           "description": "+1 em Constituição e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "constitution",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -1083,6 +1173,11 @@
       "benefits": [
         {
           "description": "+1 em Força e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "strength",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -1130,6 +1225,11 @@
       "benefits": [
         {
           "description": "+1 em Carisma e em outro valor de habilidade à sua escolha.",
+          "grant": {
+            "fixed": "charisma",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },
@@ -1172,6 +1272,11 @@
       "benefits": [
         {
           "description": "+1 em Destreza e em outro valor de habilidade.",
+          "grant": {
+            "fixed": "dexterity",
+            "freeCount": 1,
+            "kind": "ability"
+          },
           "name": "Aumentos no Valor de Habilidade",
           "type": "ability_score"
         },

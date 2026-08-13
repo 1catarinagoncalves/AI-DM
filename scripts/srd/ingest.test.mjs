@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, parseBackgroundEquipment, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, parseBackgroundEquipment, parseAbilityGrant, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -391,7 +391,7 @@ const benefit = (pk, parent, name, desc, type) => ({ pk, fields: { parent, name,
 test('buildBackgrounds: agrupa benefícios por parent; type cru sobrevive sem normalização', () => {
   const backgrounds = [background('a5e-ag_acolyte', 'Acolyte'), background('a5e-ag_criminal', 'Criminal')]
   const benefits = [
-    benefit('a5e-ag_acolyte_ability-scores', 'a5e-ag_acolyte', 'Ability Score Increases', 'Wisdom, Intelligence, or Charisma.', 'ability_score'),
+    benefit('a5e-ag_acolyte_ability-scores', 'a5e-ag_acolyte', 'Ability Score Increases', '+1 to Wisdom and one other ability score.', 'ability_score'),
     benefit('a5e-ag_acolyte_skills', 'a5e-ag_acolyte', 'Skill Proficiencies', 'Religion and Insight.', 'skill_proficiency'),
   ]
   const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
@@ -400,6 +400,42 @@ test('buildBackgrounds: agrupa benefícios por parent; type cru sobrevive sem no
   assert.equal(acolyte.source, 'a5e-ag')
   assert.equal(acolyte.benefits.length, 2)
   assert.equal(acolyte.benefits[0].type, 'ability_score')
+})
+
+// --- US-123 — parseAbilityGrant: "+1 to <Fixo> and one other ability score." → grant ---
+
+test('parseAbilityGrant: padrão do dataset vira { kind: "ability", fixed, freeCount: 1 }', () => {
+  assert.deepEqual(parseAbilityGrant('+1 to Wisdom and one other ability score.'), { kind: 'ability', fixed: 'wisdom', freeCount: 1 })
+  assert.deepEqual(parseAbilityGrant('+1 to Strength and one other ability score.'), { kind: 'ability', fixed: 'strength', freeCount: 1 })
+})
+
+test('parseAbilityGrant: texto fora do padrão devolve undefined (função pura, não falha)', () => {
+  assert.equal(parseAbilityGrant('Wisdom, Intelligence, or Charisma.'), undefined)
+  assert.equal(parseAbilityGrant('+1 to Wisdom.'), undefined)
+})
+
+test('parseAbilityGrant: atributo desconhecido no texto devolve undefined', () => {
+  assert.equal(parseAbilityGrant('+1 to Luck and one other ability score.'), undefined)
+})
+
+test('buildBackgrounds: benefit "ability_score" reconhecido vira benefits[].grant', () => {
+  const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
+  const benefits = [benefit('a5e-ag_acolyte_ability-scores', 'a5e-ag_acolyte', 'Ability Score Increases', '+1 to Wisdom and one other ability score.', 'ability_score')]
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  assert.deepEqual(result[0].benefits[0].grant, { kind: 'ability', fixed: 'wisdom', freeCount: 1 })
+})
+
+test('buildBackgrounds: benefit "ability_score" fora do padrão falha alto', () => {
+  const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
+  const benefits = [benefit('a5e-ag_acolyte_ability-scores', 'a5e-ag_acolyte', 'Ability Score Increases', 'Wisdom, Intelligence, or Charisma.', 'ability_score')]
+  assert.throws(() => buildBackgrounds({}, backgrounds, benefits, identityResolve), /ability_score fora do padrão/)
+})
+
+test('buildBackgrounds: benefit de outro type nunca ganha grant', () => {
+  const backgrounds = [background('a5e-ag_acolyte', 'Acolyte')]
+  const benefits = [benefit('a5e-ag_acolyte_skills', 'a5e-ag_acolyte', 'Skill Proficiencies', 'Religion and Insight.', 'skill_proficiency')]
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve)
+  assert.equal('grant' in result[0].benefits[0], false)
 })
 
 test('buildBackgrounds: background sem benefit correspondente aparece com benefits: []', () => {

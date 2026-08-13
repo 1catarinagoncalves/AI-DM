@@ -94,6 +94,10 @@ export const ptBR = {
   'setup.attributes.remaining': 'Pontos restantes:',
   'setup.attributes.decrease': 'Diminuir {label}',
   'setup.attributes.increase': 'Aumentar {label}',
+  // US-123: bônus de atributo do background (grant.kind === 'ability').
+  'setup.attributes.abilityBanner': '{origin} concede +1 fixo em {attr} e +1 bônus — escolha outro atributo abaixo.',
+  'setup.attributes.abilityBadgeFixed': '+1 origem',
+  'setup.attributes.abilityBadgeGhost': '+1 bônus',
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Perícias',
@@ -117,6 +121,9 @@ export const ptBR = {
 
   // ---- wizard: origem (US-122) ----
   'setup.origin.titulo': 'Origem',
+  // US-123: aviso do bônus de atributo, mostrado na etapa `background` (a escolha em si
+  // acontece na etapa `attributes` — aqui é só o aviso do que vem a seguir).
+  'setup.origin.abilityGrant': '+1 fixo em {attr}, +1 à escolha em outro atributo.',
 
   // ---- wizard: conexão e memento (US-124) — título/subtítulo são FIXOS, não vêm do
   // heading/preâmbulo do dataset (frágil a tradução automática, ver US-124 Questão 1/2).

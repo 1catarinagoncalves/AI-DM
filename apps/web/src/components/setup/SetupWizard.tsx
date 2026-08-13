@@ -17,8 +17,12 @@ import type { MessageKey } from '@/messages'
 import { BackgroundPanel, type CharacterBackground } from '@/components/character/BackgroundPanel'
 import { FeaturesPanel } from '@/components/character/FeaturesPanel'
 
-type Step = 'system' | 'race-class' | 'attributes' | 'skills' | 'background' | 'review'
-const steps: Step[] = ['system', 'race-class', 'attributes', 'skills', 'background', 'review']
+// US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
+// (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
+// `next`/`back` operam por índice (ver abaixo), então reordenar este array já reordena a
+// trilha e a navegação sem tocar nessas funções.
+type Step = 'system' | 'race-class' | 'background' | 'attributes' | 'skills' | 'review'
+const steps: Step[] = ['system', 'race-class', 'background', 'attributes', 'skills', 'review']
 
 // US-98: os rótulos de gênero saíram desta lista para o dicionário, mas a lista FICA em
 // pt-BR — ela é o `value` que viaja para a API, não o texto da tela.
@@ -75,6 +79,24 @@ function optionCardClass(selected: boolean) {
   )
 }
 
+// US-123: selo do bônus de atributo do background — sólido (`+1 origem`) na linha fixa e na
+// linha escolhida, fantasma tracejado (`+1 bônus`) nas demais linhas elegíveis enquanto nada
+// estiver escolhido. Mesma forma/posição nas duas variantes, só a borda/preenchimento muda.
+// `onClick` presente → o SELO em si é o alvo de clique (não a linha inteira): vira <button>.
+function AbilityBonusBadge({ variant, label, onClick }: { variant: 'solid' | 'ghost'; label: string; onClick?: () => void }) {
+  const className = cn(
+    'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+    variant === 'solid' ? 'border-success/50 bg-success/15 text-success' : 'border-dashed border-border text-muted-foreground',
+    onClick && 'cursor-pointer transition-colors hover:border-success/80 hover:bg-success/25',
+  )
+  if (!onClick) return <span className={className}>{label}</span>
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {label}
+    </button>
+  )
+}
+
 // US-40: campo único "Divindade/Patrono" → {name, portfolio}. Split na PRIMEIRA
 // vírgula: antes = name, depois (trim) = portfolio. Sem vírgula → só name.
 // Vazio → undefined (sem objeto). Vírgulas seguintes ficam dentro do portfolio.
@@ -124,6 +146,9 @@ export function SetupWizard() {
   // dependem da origem escolhida) e ao trocar de sistema.
   const [connectionRoll, setConnectionRoll] = useState<string | undefined>(undefined)
   const [mementoRoll, setMementoRoll] = useState<string | undefined>(undefined)
+  // US-123: atributo escolhido para o `+1` livre do `grant.kind === 'ability'` da origem —
+  // resetado junto com `origin` (mesmo motivo de connectionRoll/mementoRoll acima).
+  const [abilityChoice, setAbilityChoice] = useState<string | undefined>(undefined)
 
   // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
   const [charId, setCharId] = useState('')
@@ -158,6 +183,8 @@ export function SetupWizard() {
   // US-124: benefícios narrativos da origem escolhida — `adventures_and_advancement` (parágrafo)
   // e `connection_and_memento` (tabelas d10, parseadas só quando o benefício existe).
   const originBenefits = backgroundCatalog.find(o => o.key === origin)?.benefits ?? []
+  // US-123: bônus de atributo do background, se o ingest reconheceu o padrão de `ability_score`.
+  const abilityGrant = originBenefits.find(b => b.grant?.kind === 'ability')?.grant
   const adventuresBenefit = originBenefits.find(b => b.type === 'adventures_and_advancement')
   const camBenefit = originBenefits.find(b => b.type === 'connection_and_memento')
   const camTables = camBenefit ? parseD10Tables(camBenefit.description).tables : []
@@ -230,6 +257,8 @@ export function SetupWizard() {
     // US-124: conexão/memento dependem da origem — mesmo motivo.
     setConnectionRoll(undefined)
     setMementoRoll(undefined)
+    // US-123: bônus de atributo depende da origem — mesmo motivo.
+    setAbilityChoice(undefined)
     setStep('race-class')
   }
 
@@ -241,7 +270,10 @@ export function SetupWizard() {
           && (GENDERS as readonly string[]).includes(charData.gender)
           && raceCatalog.some(r => r.key === charData.race)
           && classCatalog.some(c => c.key === charData.class)
-      case 'attributes': return budget === undefined || remaining === 0
+      // US-123: além do point-buy fechado, background com grant.kind === 'ability' exige
+      // uma linha escolhida para o +1 livre (a linha fixa não conta, é automática).
+      case 'attributes':
+        return (budget === undefined || remaining === 0) && (abilityGrant?.kind !== 'ability' || !!abilityChoice)
       // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`.
       case 'skills': return skillChoices === 0 || skills.length === skillChoices
       // Origem, conexão e memento são opcionais — etapa `background` nunca bloqueia o avanço
@@ -273,7 +305,8 @@ export function SetupWizard() {
       const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
       // US-122: origem é campo IRMÃO de background, nunca aninhado nele — a chave viaja sozinha.
       // US-124: connection/memento viajam junto (mesmo objeto), texto derivado do roll escolhido.
-      const originPayload = origin ? { key: origin, connection: connectionText, memento: mementoText } : undefined
+      // US-123: abilityChoice viaja junto — undefined quando a origem não tem grant.kind 'ability'.
+      const originPayload = origin ? { key: origin, connection: connectionText, memento: mementoText, abilityChoice } : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background, origin: originPayload })
       // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
@@ -499,29 +532,53 @@ export function SetupWizard() {
                     {t('setup.attributes.remaining')} <span className={`font-semibold ${remaining === 0 ? 'text-success' : 'text-primary'}`}>{remaining}</span> / {budget}
                   </p>
                 )}
+                {/* US-123: banner reforça o que a etapa `background` já anunciou — só quando a
+                    origem tem grant.kind === 'ability'. Mesmo padrão visual dos avisos do wizard. */}
+                {abilityGrant?.kind === 'ability' && (
+                  <p className="mt-4 flex items-start gap-2 rounded-md border border-success/40 bg-success/10 p-3 text-sm text-foreground">
+                    <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                    {t('setup.attributes.abilityBanner', { origin: originLabel, attr: attrLabel[abilityGrant.fixed] ?? abilityGrant.fixed })}
+                  </p>
+                )}
                 {/* Agrupado por `divide` em vez de card por linha (direção §4: menos box-in-box). */}
                 <div className="mt-6 divide-y divide-border">
-                  {attributes.map(a => (
-                    <div key={a.key} className="flex items-center justify-between gap-3 py-3">
-                      <label className="text-sm font-medium text-foreground">{a.label}</label>
-                      {budget !== undefined ? (
-                        <div className="flex items-center gap-2">
-                          <button type="button" aria-label={t('setup.attributes.decrease', { label: a.label })} onClick={() => setAttr(a.key, -1, a.min, a.max)}
-                            className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
-                            disabled={(attrs[a.key] ?? a.default) <= a.min}><Minus className="size-4" aria-hidden /></button>
-                          <span className="w-8 text-center font-serif text-lg font-bold tabular-nums text-parchment" data-attr={a.key}>{attrs[a.key] ?? a.default}</span>
-                          <button type="button" aria-label={t('setup.attributes.increase', { label: a.label })} onClick={() => setAttr(a.key, 1, a.min, a.max)}
-                            className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
-                            disabled={(attrs[a.key] ?? a.default) >= a.max || remaining - ((POINT_COST[(attrs[a.key] ?? a.default) + 1] ?? 0) - (POINT_COST[attrs[a.key] ?? a.default] ?? 0)) < 0}><Plus className="size-4" aria-hidden /></button>
-                        </div>
-                      ) : (
-                        <input type="number" min={a.min} max={a.max} aria-label={a.label}
-                          value={attrs[a.key] ?? a.default}
-                          onChange={e => setAttrs(p => ({ ...p, [a.key]: Number(e.target.value) }))}
-                          className={fieldClass('w-20 text-center')} />
-                      )}
-                    </div>
-                  ))}
+                  {attributes.map(a => {
+                    // US-123: a linha fixa (grant.fixed) é sempre sólida e nunca clicável. A
+                    // linha escolhida também é sólida, mas clicável (clique de novo desmarca).
+                    // As demais permanecem clicáveis mesmo sem selo — troca direta entre linhas
+                    // sem precisar desmarcar antes (ver critério de aceite da US-123).
+                    const isFixed = abilityGrant?.kind === 'ability' && a.key === abilityGrant.fixed
+                    const isChosen = abilityGrant?.kind === 'ability' && a.key === abilityChoice
+                    const clickable = abilityGrant?.kind === 'ability' && !isFixed
+                    const bonus = isFixed || isChosen ? 1 : 0
+                    const toggle = () => setAbilityChoice(c => (c === a.key ? undefined : a.key))
+                    return (
+                      <div key={a.key} className="flex items-center justify-between gap-3 py-3">
+                        <span className="flex items-center gap-2">
+                          <label className="text-sm font-medium text-foreground">{a.label}</label>
+                          {isFixed && <AbilityBonusBadge variant="solid" label={t('setup.attributes.abilityBadgeFixed')} />}
+                          {isChosen && <AbilityBonusBadge variant="solid" label={t('setup.attributes.abilityBadgeFixed')} onClick={toggle} />}
+                          {clickable && !isChosen && !abilityChoice && <AbilityBonusBadge variant="ghost" label={t('setup.attributes.abilityBadgeGhost')} onClick={toggle} />}
+                        </span>
+                        {budget !== undefined ? (
+                          <div className="flex items-center gap-2">
+                            <button type="button" aria-label={t('setup.attributes.decrease', { label: a.label })} onClick={() => setAttr(a.key, -1, a.min, a.max)}
+                              className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
+                              disabled={(attrs[a.key] ?? a.default) <= a.min}><Minus className="size-4" aria-hidden /></button>
+                            <span className="w-8 text-center font-serif text-lg font-bold tabular-nums text-parchment" data-attr={a.key}>{(attrs[a.key] ?? a.default) + bonus}</span>
+                            <button type="button" aria-label={t('setup.attributes.increase', { label: a.label })} onClick={() => setAttr(a.key, 1, a.min, a.max)}
+                              className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
+                              disabled={(attrs[a.key] ?? a.default) >= a.max || remaining - ((POINT_COST[(attrs[a.key] ?? a.default) + 1] ?? 0) - (POINT_COST[attrs[a.key] ?? a.default] ?? 0)) < 0}><Plus className="size-4" aria-hidden /></button>
+                          </div>
+                        ) : (
+                          <input type="number" min={a.min} max={a.max} aria-label={a.label}
+                            value={attrs[a.key] ?? a.default}
+                            onChange={e => setAttrs(p => ({ ...p, [a.key]: Number(e.target.value) }))}
+                            className={fieldClass('w-20 text-center')} />
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -571,12 +628,21 @@ export function SetupWizard() {
                         // US-124: conexão/memento são da origem ANTERIOR — trocar de origem invalida a escolha.
                         setConnectionRoll(undefined)
                         setMementoRoll(undefined)
+                        // US-123: o bônus de atributo também é da origem ANTERIOR — mesmo motivo.
+                        setAbilityChoice(undefined)
                       }}
                       className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                       <option value="">{t('setup.raceClass.select')}</option>
                       {backgroundCatalog.map(o => <option key={o.key} value={o.key}>{o.name}</option>)}
                     </select>
                   </div>
+                )}
+                {/* US-123: aviso do bônus de atributo — só informativo, a escolha do +1 livre
+                    acontece na etapa `attributes` (o jogador ainda não alocou point-buy aqui). */}
+                {abilityGrant?.kind === 'ability' && (
+                  <p className="mt-4 text-sm text-foreground">
+                    {t('setup.origin.abilityGrant', { attr: attrLabel[abilityGrant.fixed] ?? abilityGrant.fixed })}
+                  </p>
                 )}
                 {/* US-124: benefícios narrativos da origem — adventures_and_advancement como
                     parágrafo (mesmo padrão de hook.openingNarration) e connection_and_memento

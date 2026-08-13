@@ -55,7 +55,9 @@ export const api = {
     // US-122: origem do catálogo de backgrounds (US-121) — campo IRMÃO de `background`.
     // US-124: `connection`/`memento` são o texto da linha escolhida no <select> de cada
     // bloco de connection_and_memento — não vêm do catálogo, texto livre do ponto de vista da API.
-    origin?: { key?: string; connection?: string; memento?: string }
+    // US-123: `abilityChoice` é a chave do atributo escolhido para o +1 livre do
+    // grant.kind === 'ability' da origem.
+    origin?: { key?: string; connection?: string; memento?: string; abilityChoice?: string }
   }) => post<{ id: string; name: string }>('/characters', data),
 
   listSystems: () =>

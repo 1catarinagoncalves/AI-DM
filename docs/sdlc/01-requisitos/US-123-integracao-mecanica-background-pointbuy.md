@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha do background, awareness apenas — esta story mecaniza um dos dois benefícios que ela deixou só texto) · [US-26](./US-26-criacao-personagem-em-etapas.md) (ordem das etapas do wizard, que esta story reordena)
 **Relacionado:** [US-131](./US-131-integracao-mecanica-background-proficiency.md) (spinoff desta story: mecaniza o OUTRO benefício, `skill_proficiency`, em `proficiency` — separado por ter dois formatos de texto e lacuna de catálogo, `ability_score` não tem nenhum dos dois) · [US-51](./US-51-kits-iniciais-do-srd.md) (precedente direto: parser de texto livre do dataset → dado estruturado, tabela de armadilhas medidas) · [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) §4 (relatar em vez de esconder lacuna do dataset)
 **Criada em:** 2026-08-08
@@ -59,11 +59,11 @@ Todas as 21 entradas seguem `+1 to <Habilidade fixa> and one other ability score
   ]).optional()
   ```
 - **Reordenar `Step`/`steps`** em `SetupWizard.tsx` ([:13-14](../../../apps/web/src/components/setup/SetupWizard.tsx:13)): `background` passa para a posição 3 (depois de `race-class`, antes de `attributes`).
-- **Etapa `background`:** quando o cartão escolhido tem `grant.kind === 'ability'`, mostra o `+1` fixo (texto) e um `<select>` para o `+1` livre (qualquer atributo do `config.attributes`).
-- **Etapa `attributes`:** os dois `+1` do background (fixo + escolhido) somam **por cima** do valor de point-buy — não consomem `budget`/`remaining`. Mostrado como um selo `+1 (background)` ao lado do atributo afetado, mesmo padrão visual dos contadores já existentes.
+- **Etapa `background`:** quando o cartão escolhido tem `grant.kind === 'ability'`, mostra um texto informativo do bônus — "+1 fixo em `<atributo>`, +1 à escolha em outro atributo" — avisando o jogador do que ele vai decidir na etapa seguinte. Nenhum `<select>` aqui; é só aviso, mesmo espírito do texto de benefício que já aparece no cartão (US-122).
+- **Etapa `attributes`:** quando o background tem `grant.kind === 'ability'`, um banner no topo da etapa reforça o que já foi anunciado em `background` ("Acólito concede +1 fixo em Sabedoria e +1 bônus — escolha outro atributo abaixo"). A linha de `grant.fixed` ganha um selo sólido `+1 origem`, sempre visível, sem interação. Cada outra linha (`config.attributes` exceto `grant.fixed`) mostra um selo **fantasma** tracejado `+1 bônus` — mesma forma/posição do selo sólido, só vazado — enquanto nenhuma estiver escolhida; a linha inteira é a área de clique. Ao clicar, o selo daquela linha vira sólido `+1 origem` e os selos fantasma das **outras** linhas somem; clicar de novo na linha escolhida desmarca, e os selos fantasma **reaparecem** nas demais. O `+1` fixo e o `+1` do bônus somam **por cima** do valor de point-buy — não consomem `budget`/`remaining`.
 - **`CreateCharacterSchema.origin`** (US-122, campo irmão de `background`) ganha `abilityChoice?: string` (a chave do atributo livre) — fica junto de `origin.key`, nunca dentro de `background`. (`skillChoice`, campo irmão para o benefício de perícia, é da US-131 — mesmo objeto `origin`, adicionado lá.)
-- **`CharacterService.create`**: resolve o `grant` da origem escolhida (se houver `origin.key`), valida `abilityChoice` contra o `grant` (chave fora de `config.attributes`, ou ausente quando o grant exige, rejeita), aplica o bônus de atributo em `baseAttributes` antes de persistir.
-- **Testes**: `ingest.test.mjs` cobre o parser de `ability_score`; `character.service.test.ts` cobre bônus aplicado, escolha inválida rejeitada, e personagem **sem** background (comportamento idêntico ao de hoje, sem regressão).
+- **`CharacterService.create`**: resolve o `grant` da origem escolhida (se houver `origin.key`), valida `abilityChoice` contra o `grant` (chave fora de `config.attributes`, ausente quando o grant exige, **ou igual a `grant.fixed`** — repetir o atributo fixo não é "outro atributo", rejeita nos três casos), aplica o bônus de atributo em `baseAttributes` antes de persistir: soma `+1` em `grant.fixed` e `+1` em `abilityChoice`, dois atributos sempre distintos.
+- **Testes**: `ingest.test.mjs` cobre o parser de `ability_score`; `character.service.test.ts` cobre bônus aplicado, escolha inválida rejeitada (fora do catálogo, ausente, **e igual a `grant.fixed`**), e personagem **sem** background (comportamento idêntico ao de hoje, sem regressão).
 
 ### Fora do escopo
 
@@ -102,7 +102,7 @@ origin: z.object({
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `benefit.grant` | union (opcional) | Presente só quando o parser reconheceu o padrão de `ability_score` |
-| `origin.abilityChoice` | string (opcional) | Preenchido quando `grant.kind === 'ability'` |
+| `origin.abilityChoice` | string (opcional) | Preenchido quando `grant.kind === 'ability'`; sempre **diferente** de `grant.fixed` (o segundo ponto é em "outro atributo", RAW) |
 
 **Persistência:** sem coluna nova além da que a US-122 já cria — o bônus de atributo é absorvido em `Character.baseAttributes` (soma aplicada antes de persistir). `Character.origin.key` (US-122) continua sendo o rastro de onde veio o bônus — `Character.background` (US-39) não é tocado por esta story.
 
@@ -110,14 +110,16 @@ origin: z.object({
 
 ## Critérios de aceite
 
-- [ ] `buildBackgrounds` deriva `grant` para os 21 `ability_score` (padrão único, 100% de cobertura medida).
-- [ ] Etapa `background` passa a ser a 3ª etapa do wizard (depois de `race-class`); trilha de progresso e `steps[]` refletem a nova ordem sem quebrar navegação (`goTo`/`canAdvance` continuam funcionando por índice).
-- [ ] Background com `grant.kind === 'ability'` mostra o `+1` fixo e oferece `<select>` para o `+1` livre; sem selecionar, `abilityChoice` fica vazio e a criação é rejeitada **só se** o background tiver esse grant (background sem `ability_score` reconhecido, ou nenhum background escolhido, não exige nada).
-- [ ] Os dois `+1` do background aparecem na etapa `attributes` somados ao valor de point-buy, **sem consumir `remaining`**.
-- [ ] `CharacterService.create` rejeita (`BadRequestException`) `origin.abilityChoice` fora de `config.attributes`, ou ausência dele quando o `grant` exige.
-- [ ] `baseAttributes` final = point-buy + bônus fixo + bônus livre do background. O `max` do `buildCharacterAttributesSchema` segue valendo pro valor **de point-buy puro** (antes do bônus de background); o bônus do background pode estourar esse teto — regra RAW (PHB 2024: bônus de origem soma depois do array/point-buy, sem cap adicional). Validação do bônus de background usa só `min` (não pode ficar negativo) e ignora `max`.
-- [ ] Personagem criado **sem** escolher background (US-122 continua opcional): `baseAttributes` idêntico ao comportamento de hoje, nenhuma validação nova disparada.
-- [ ] **Eval / teste de regressão:** `character.service.test.ts` cria um personagem com background `a5e-ag_acolyte` (fixed `Wisdom`) e confere `baseAttributes.wisdom` = default+1(point-buy se houver)+1(background).
+- [x] `buildBackgrounds` deriva `grant` para os 21 `ability_score` (padrão único, 100% de cobertura medida).
+- [x] Etapa `background` passa a ser a 3ª etapa do wizard (depois de `race-class`); trilha de progresso e `steps[]` refletem a nova ordem sem quebrar navegação (`goTo`/`canAdvance` continuam funcionando por índice).
+- [x] Etapa `background`: background com `grant.kind === 'ability'` mostra o texto do `+1` fixo + aviso do `+1` à escolha — sem `<select>` nesta etapa, só informativo.
+- [x] Etapa `attributes`: background com `grant.kind === 'ability'` mostra o banner de reforço no topo, o selo sólido `+1 origem` fixo na linha de `grant.fixed`, e o selo fantasma `+1 bônus` nas demais linhas enquanto nada estiver escolhido; sem selecionar nenhuma, `abilityChoice` fica vazio e a criação é rejeitada **só se** o background tiver esse grant (background sem `ability_score` reconhecido, ou nenhum background escolhido, não exige nada). Os dois `+1` do background aparecem somados ao valor de point-buy, **sem consumir `remaining`**.
+- [x] A linha de `grant.fixed` **nunca mostra o selo fantasma nem é clicável** (só o selo sólido) — Acolyte (`fixed: wisdom`) mostra `+1 bônus` fantasma nas outras 5 linhas, nunca em Sabedoria.
+- [x] Clicar numa linha diferente move `abilityChoice` pra ela — o selo sólido migra e os selos fantasma somem das linhas não escolhidas; clicar na linha já escolhida desmarca (`abilityChoice` volta a vazio) e os selos fantasma **reaparecem** em todas as linhas elegíveis.
+- [x] `CharacterService.create` rejeita (`BadRequestException`) `origin.abilityChoice` fora de `config.attributes`, ausente quando o `grant` exige, **e igual a `grant.fixed`** (escolher o mesmo atributo do bônus fixo pro bônus livre).
+- [x] `baseAttributes` final = point-buy + bônus fixo + bônus livre do background. O `max` do `buildCharacterAttributesSchema` segue valendo pro valor **de point-buy puro** (antes do bônus de background); o bônus do background pode estourar esse teto — regra RAW (PHB 2024: bônus de origem soma depois do array/point-buy, sem cap adicional). Validação do bônus de background usa só `min` (não pode ficar negativo) e ignora `max`.
+- [x] Personagem criado **sem** escolher background (US-122 continua opcional): `baseAttributes` idêntico ao comportamento de hoje, nenhuma validação nova disparada.
+- [x] **Eval / teste de regressão:** `character.service.test.ts` cria um personagem com background `a5e-ag_acolyte` (fixed `Wisdom`, `abilityChoice: 'constitution'`) e confere `baseAttributes.wisdom` = default+1(point-buy se houver)+1(background) **e** `baseAttributes.constitution` = default+1(point-buy se houver)+1(background) — os dois pontos aplicados em atributos diferentes. Teste separado cobre `abilityChoice: 'wisdom'` (igual a `fixed`) rejeitado.
 
 ---
 
@@ -125,7 +127,12 @@ origin: z.object({
 
 - **Parser isolado e testável**, mesmo padrão do `parseStartingKit` da US-51 ([ingest.mjs](../../../scripts/srd/ingest.mjs)): função pura `parseAbilityGrant(desc)`, entrada = string crua do dataset, saída = grant estruturado ou `undefined` (padrão não reconhecido — falha alto, igual ao `CLASS_MAP`, porque os 21 batem 100% hoje e um formato novo num bump merece ser visto, não engolido).
 - **A ordem do wizard muda, mas `Step`/`steps` continuam sendo só um array** — `goTo`/`canAdvance`/`next`/`back` operam por índice ([SetupWizard.tsx:128-157](../../../apps/web/src/components/setup/SetupWizard.tsx:128)), então mover `'background'` de posição no array `steps` já reordena a trilha e a navegação sem tocar nessas funções. A US-131 herda este reorder — não reabre.
-- **`canAdvance('background')` precisa de uma condição nova**: hoje é `true` incondicional (US-39, opcional). Passa a `true` quando nenhum background está selecionado, **ou** quando está selecionado e (se `grant.kind === 'ability'`) `abilityChoice` preenchido. A US-131 estende a mesma condição com a parte de `skillChoice` — não reescreve, adiciona uma cláusula `&&`.
+- **Esboço da etapa `attributes` com `grant.kind === 'ability'`:**
+  1. **Banner** no topo da etapa (mesmo padrão visual dos avisos já usados no wizard, ícone + fundo `success`): reforça em uma linha o que a etapa `background` já anunciou — `"<Background> concede +1 fixo em <Atributo> e +1 bônus — escolha outro atributo abaixo."`
+  2. **Selo fixo**: a linha de `grant.fixed` (ex.: Sabedoria pro Acolyte) ganha um selo `+1 origem` ao lado do contador de point-buy, sempre visível, sem nenhum controle — o jogador não interage com essa linha além do point-buy normal.
+  3. **Selo fantasma nas demais linhas, linha inteira clicável**: cada linha de `config.attributes` que não é `grant.fixed` mostra um selo tracejado `+1 bônus` (mesmo componente do selo sólido `+1 origem`, variante vazada) enquanto `abilityChoice` estiver vazio — a linha inteira é a área de clique, alvo maior que um botão isolado. Ao clicar: `abilityChoice` recebe a chave daquela linha, o selo vira sólido `+1 origem`, e os selos fantasma das **outras** linhas somem (renderização condicional, não fica chrome disputando atenção com a linha escolhida). Clicar de novo na linha já escolhida zera `abilityChoice`, e os selos fantasma **reaparecem** em todas as linhas elegíveis. Nenhuma linha precisa de filtro pra excluir `grant.fixed` — ela nunca mostra o selo fantasma nem responde a clique, é a única sempre sólida.
+  4. **Contador de point-buy** de cada linha (`−`/valor/`+`) mostra o total já somado (`base point-buy + selo`, se houver) — mesmo padrão visual que já existe, sem `<select>` nem botão novo, só o selo e a área de clique da linha.
+- **`canAdvance('background')` continua sem condição própria** (US-39, `true` incondicional) — a etapa só mostra aviso, não bloqueia nada. **`canAdvance('attributes')` precisa de uma condição nova**: hoje é `budget === undefined || remaining === 0`. Ganha `&& (grant?.kind !== 'ability' || !!abilityChoice)` — só avança com `remaining === 0` **e** (se o background tiver `grant.kind === 'ability'`) alguma linha selecionada (`abilityChoice` preenchido). A US-131 estende a condição equivalente de `canAdvance('skills')` com a parte de `skillChoice` — mesmo padrão, etapa separada.
 
 ---
 
@@ -134,7 +141,7 @@ origin: z.object({
 - [scripts/srd/ingest.mjs](../../../scripts/srd/ingest.mjs) — `parseStartingKit` (precedente de parser texto→estruturado, US-51), `ABILITY_MAP`/`ATTR_ORDER` (linha 111-112, reusar para resolver nome de atributo), `buildBackgrounds` (US-121, a estender).
 - [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `SystemBackgroundBenefitSchema` (US-121, a estender com `grant`), `buildCharacterAttributesSchema` (`min`/`max` valem pro point-buy puro; bônus de background só respeita `min`, ver critério de aceite).
 - [apps/api/src/character/character.schema.ts](../../../apps/api/src/character/character.schema.ts) — `CreateCharacterSchema.origin` (US-122), `abilityChoice` novo ali dentro.
-- [apps/web/src/components/setup/SetupWizard.tsx:13-14,128-157](../../../apps/web/src/components/setup/SetupWizard.tsx:13) — `Step`/`steps` (reordenar), `canAdvance` (nova condição da etapa `background`).
+- [apps/web/src/components/setup/SetupWizard.tsx:13-14,128-157](../../../apps/web/src/components/setup/SetupWizard.tsx:13) — `Step`/`steps` (reordenar), `canAdvance('attributes')` (nova condição — texto informativo fica em `background`, escolha e bloqueio ficam em `attributes`).
 - [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) / [US-122](./US-122-escolha-background-catalogo-na-criacao.md) — dependências diretas.
 - [US-131](./US-131-integracao-mecanica-background-proficiency.md) — spinoff, mecaniza `skill_proficiency` sobre a mesma infraestrutura (reorder, `SystemBackgroundGrantSchema`, `origin`).
 - [US-51](./US-51-kits-iniciais-do-srd.md) — precedente completo de parser de texto do dataset com tabela de armadilhas medidas.
