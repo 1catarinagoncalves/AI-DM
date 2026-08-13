@@ -1,9 +1,9 @@
 # ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
 
-**Status:** Aceito (implementado — US-47) · **decisão 6 revista em 02/08/2026** (o Free herda o SRD — ver §3.1) · **nota §3.3 em 09/08/2026** (segundo publisher — US-121)
+**Status:** Aceito (implementado — US-47) · **decisão 6 revista em 02/08/2026** (o Free herda o SRD — ver §3.1) · **nota §3.3 em 09/08/2026** (segundo publisher — US-121) · **nota §3.4 em 13/08/2026** (exceção pontual, `ability` fora do Open5e — US-130)
 **Data:** 2026-07-15
 **Decisores:** Time de Produto e Engenharia
-**Relacionado:** [ADR 003 — Sistemas como dado](./003-sistemas-como-dado.md) (o `config` como **destino**; segue inteiro) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (o overlay pt-BR é **um locale**) · [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) · [US-51](../sdlc/01-requisitos/US-51-kits-iniciais-do-srd.md) (kits, fonte/licença próprias) · [US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md) (tradução automática do conteúdo novo) · [US-121](../sdlc/01-requisitos/US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (segundo publisher, `a5e-ag`, ver §3.3)
+**Relacionado:** [ADR 003 — Sistemas como dado](./003-sistemas-como-dado.md) (o `config` como **destino**; segue inteiro) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (o overlay pt-BR é **um locale**) · [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) · [US-51](../sdlc/01-requisitos/US-51-kits-iniciais-do-srd.md) (kits, fonte/licença próprias) · [US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md) (tradução automática do conteúdo novo) · [US-121](../sdlc/01-requisitos/US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (segundo publisher, `a5e-ag`, ver §3.3) · [US-130](../sdlc/01-requisitos/US-130-culture-engineering-catalogo-pericias.md) (exceção pontual, `ability` fora do Open5e, ver §3.4)
 
 ---
 
@@ -166,6 +166,31 @@ Os 4 backgrounds nativos do `srd-2024` não entram (colidiriam em nome sem ganho
 **única** fonte de background, não uma união como o ADR 009 fez com espécie.
 
 Implementada pela [US-121](../sdlc/01-requisitos/US-121-catalogo-backgrounds-a5e-adventurers-guide.md).
+
+---
+
+## 3.4 Exceção pontual (13/08/2026): `ability` de `Culture`/`Engineering` não vem do Open5e
+
+**O que muda.** A [US-130](../sdlc/01-requisitos/US-130-culture-engineering-catalogo-pericias.md)
+adiciona `culture`/`engineering` a `config.skills` — as duas perícias do `a5e-ag` que a US-131 mediu
+como órfãs (citadas em texto solto de `BackgroundBenefit.desc`, sem entrada mecanizada). O Open5e
+nunca modelou as perícias do A5E como recurso `Skill`: `Skill.json` só tem as 18 do 5e core, todas
+`document: "core"` — não existe `culture`/`engineering` no dataset pinado, nem a `ability` que as
+governa.
+
+**Por que É exceção, diferente da §3.3.** A §3.3 manteve a fonte única (`open5e/open5e-api`, mesmo
+`TAG`) — mudou só o documento interno. Aqui o dado simplesmente **não existe** em nenhum documento
+do Open5e para ser referenciado. A `ability` (`intelligence` para as duas) veio de fora da fonte
+única: **a5e.tools/rules/skills**, referência oficial das regras do Level Up. Precedente de forma
+(não de fonte) é o `DEFAULT_KIT` ([ingest.mjs:134](../../scripts/srd/ingest.mjs:134), US-51): literal
+hardcoded no ingest, comentado inline, quando o dataset pinado não tem o dado.
+
+**Fronteira do dado.** Só as 2 chaves e a `ability` — sem terceira fonte nova para o resto do
+catálogo, sem mudança de schema (`config.skills` já assumia 1 `ability` fixa por perícia). RAW do
+A5E trata perícia↔habilidade como não-fixo; `intelligence` aqui é a "mais comum", mesma simplificação
+que as outras 18 já tinham.
+
+Implementada pela [US-130](../sdlc/01-requisitos/US-130-culture-engineering-catalogo-pericias.md).
 
 ---
 

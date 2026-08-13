@@ -13,7 +13,7 @@
 
 > **Como** jogador,
 > **quero** ver a origem que escolhi na criação (nome + benefícios) na aba "Background" da minha ficha, durante o jogo,
-> **para que** eu lembre quem meu personagem é sem voltar pra tela de criação — hoje `Character.origin.key` (US-122) fica invisível fora da criação, mesmo já sendo usado nos bastidores pela mecânica (US-123) e pelo mestre (US-125).
+> **para que** eu lembre quem meu personagem é sem voltar pra tela de criação — hoje `Character.origin.key` (US-122) fica invisível fora da criação, mesmo já sendo usado nos bastidores pela mecânica (US-123/US-131) e pelo mestre (US-125).
 
 ---
 
@@ -38,7 +38,7 @@ Estender o `BackgroundPanel` que a US-45 já criou com um bloco novo — **"Orig
 ### Dentro do escopo
 
 - **`resolveOrigin(backgrounds, originKey)`** (nova função pura, `packages/shared`, perto de `catalogLabel`/`resolveSheetEntries`): dado `config.backgrounds` (US-121) e `character.origin?.key` (US-122), devolve `{ name: string; benefits: SystemBackgroundBenefit[] } | undefined` — a entrada encontrada por `key`, ou `undefined` se ausente/sem catálogo.
-- **Filtro dos mesmos 4 tipos "awareness"** que a US-125 já define para o prompt do mestre (`feature`, `tool_proficiency`, `language`, `equipment`) — `ability_score`/`skill_proficiency` ficam de fora (já mecanizados e visíveis como número, US-123) e `adventures_and_advancement`/`connection_and_memento` também (texto longo/Markdown, sem parser aqui — ver §Fora do escopo).
+- **Filtro dos mesmos 4 tipos "awareness"** que a US-125 já define para o prompt do mestre (`feature`, `tool_proficiency`, `language`, `equipment`) — `ability_score`/`skill_proficiency` ficam de fora (já mecanizados e visíveis como número, US-123/US-131) e `adventures_and_advancement`/`connection_and_memento` também (texto longo/Markdown, sem parser aqui — ver §Fora do escopo).
 - **`BackgroundPanel`** ([GameView.tsx:111](../../../apps/web/src/components/game/GameView.tsx:111)) ganha um bloco novo "Origem": nome da origem (`SheetHeading`) + lista de cards `nome: descrição` para os benefícios filtrados, mesmo estilo visual dos cards de `FeaturesPanel` ([GameView.tsx:192-198](../../../apps/web/src/components/game/GameView.tsx:192)) — não reinventa componente novo.
 - **`hasAny`** do painel (linha 123 hoje) passa a considerar também a origem — origem presente conta como conteúdo, mesmo sem nenhum dos outros eixos preenchidos (evita cair no empty state com origem escolhida e nada mais preenchido).
 - **`Props`/`GameView`**: novo campo opcional `origin?: { name: string; benefits: { name: string; description: string }[] }`, ao lado de `background`/`features`/`spells` ([GameView.tsx:70-76](../../../apps/web/src/components/game/GameView.tsx:70)).
@@ -50,7 +50,7 @@ Estender o `BackgroundPanel` que a US-45 já criou com um bloco novo — **"Orig
 
 - **`connection_and_memento` no bloco "Origem" desta story** — continua fora do card list de `resolveOrigin`/`EXCLUDED_TYPES` (mesmo filtro da US-125). **Atualização 12/08/2026:** isso NÃO significa mais "ausente da ficha" — a US-124 passou a exibir `connection_and_memento` na ficha por conta própria, em blocos `game.background.connection`/`memento` do `BackgroundPanel`, irmãos do bloco "Origem" (não dentro dele, não via `resolveOrigin`). Ver `Character.origin.connection`/`memento` e `apps/web/src/components/character/BackgroundPanel.tsx`. Duplicar aqui seria mostrar a mesma informação duas vezes na mesma aba.
 - **`adventures_and_advancement`** — esse SIM continua sem aparecer em lugar nenhum da ficha (nem aqui, nem na US-124 — lá só virou parágrafo na tela de CRIAÇÃO). Texto longo, sem parser/exibição pensados para a ficha em jogo; extensão natural, não pedida aqui nem lá.
-- **`ability_score`/`skill_proficiency`** — já mecanizados (US-123): o bônus de atributo e as perícias da origem aparecem como número nos blocos que já existem (atributos/perícias da aba "Ficha"), mostrar o texto cru duplicaria informação.
+- **`ability_score`/`skill_proficiency`** — já mecanizados (US-123/US-131): o bônus de atributo e as perícias da origem aparecem como número nos blocos que já existem (atributos/perícias da aba "Ficha"), mostrar o texto cru duplicaria informação.
 - **Editar a origem pela ficha** — sem editor pós-criação hoje (mesma exclusão da US-45 pro background); fora daqui também.
 - **Nova aba própria pra origem** — a US-45 decidiu que cada aba nova é decisão de sua própria story; origem é dado de identidade fechada por catálogo, mesma natureza do que a aba "Background" já mostra, então entra como bloco dentro dela, não como aba nova.
 - **Mostrar isso em outra tela além da `GameView`** — mesmo corte da US-45 (alvo é só a sidebar em jogo).

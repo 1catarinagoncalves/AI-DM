@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, parseBackgroundEquipment, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, parseBackgroundEquipment, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -535,6 +535,25 @@ test('parseBackgroundEquipment: nenhum item novo de equipamento fica sem traduç
   }
   const untranslated = [...names].filter((n) => !overlay.kitItems?.[n])
   assert.deepEqual(untranslated, [], `item(ns) de equipamento sem entrada em kitItems: ${untranslated.join(', ')}`)
+})
+
+// --- US-130 — Culture/Engineering: literal A5E fora do Skill.json, mesma resolução via overlay ---
+
+const SKILL_ROW = (pk, name, ability) => ({ pk, fields: { ability, document: 'core', name } })
+
+test('buildSkills: concatena as 18 do Skill.json com culture/engineering, todas ordenadas por key', () => {
+  const skillsRaw = [SKILL_ROW('acrobatics', 'Acrobatics', 'dex'), SKILL_ROW('history', 'History', 'int')]
+  const result = buildSkills({}, skillsRaw, identityResolve)
+  assert.deepEqual(result.map((s) => s.key), ['acrobatics', 'culture', 'engineering', 'history'])
+  assert.deepEqual(result.find((s) => s.key === 'culture'), { key: 'culture', label: 'Culture', ability: 'intelligence' })
+  assert.deepEqual(result.find((s) => s.key === 'engineering'), { key: 'engineering', label: 'Engineering', ability: 'intelligence' })
+})
+
+test('buildSkills: culture/engineering pegam o label pt-BR do overlay igual às outras 18', () => {
+  const overlay = { skills: { history: 'História', culture: 'Cultura', engineering: 'Engenharia' } }
+  const ptResolve = (_domain, _key, entry, enName) => ({ name: entry?.name?.trim() || enName })
+  const result = buildSkills(overlay, [SKILL_ROW('history', 'History', 'int')], ptResolve)
+  assert.deepEqual(result.map((s) => s.label), ['Cultura', 'Engenharia', 'História'])
 })
 
 // --- US-108 — a tabela de modificadores de habilidade do SRD 2024 ---

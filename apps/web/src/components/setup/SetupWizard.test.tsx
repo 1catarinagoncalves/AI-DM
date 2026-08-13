@@ -253,8 +253,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   })
 
   // US-122: com catálogo, "Origem" é um <select> (mesmo padrão de Raça/Classe, US-105) com só o
-  // nome de cada background — sem benefícios na opção — e bloqueia o avanço sem escolha.
-  it('com config.backgrounds, mostra select de Origem (só o nome) e exige escolha para avançar', async () => {
+  // nome de cada background — sem benefícios na opção. Origem é OPCIONAL: não bloqueia o avanço.
+  it('com config.backgrounds, mostra select de Origem (só o nome) e não exige escolha para avançar', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
@@ -270,13 +270,13 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(screen.queryByText('Religião')).toBeNull() // benefícios não aparecem na opção
 
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
-    expect(nextBtn().disabled).toBe(true) // nenhuma origem escolhida
+    expect(nextBtn().disabled).toBe(false) // sem origem escolhida, avanço segue livre
 
     fireEvent.change(select, { target: { value: 'bg-acolyte' } })
     expect(nextBtn().disabled).toBe(false)
 
-    fireEvent.change(select, { target: { value: '' } }) // volta ao placeholder → bloqueia de novo
-    expect(nextBtn().disabled).toBe(true)
+    fireEvent.change(select, { target: { value: '' } }) // volta ao placeholder → segue livre
+    expect(nextBtn().disabled).toBe(false)
   })
 
   // US-122: a chave (não o nome) viaja para a API, como origin.key — campo IRMÃO de background.

@@ -244,9 +244,9 @@ export function SetupWizard() {
       case 'attributes': return budget === undefined || remaining === 0
       // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`.
       case 'skills': return skillChoices === 0 || skills.length === skillChoices
-      // US-122: origem é obrigatória SE o sistema tiver catálogo (mesmo padrão de bloqueio de
-      // race/classe); sem catálogo, a etapa segue livre como antes (US-39: texto é opcional).
-      case 'background': return backgroundCatalog.length === 0 || !!origin
+      // Origem, conexão e memento são opcionais — etapa `background` nunca bloqueia o avanço
+      // (mesmo espírito de US-39: texto livre também é opcional).
+      case 'background': return true
       case 'review': return true
     }
   }

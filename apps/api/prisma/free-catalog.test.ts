@@ -122,6 +122,9 @@ describe('attributes e skills herdados são os literais que o Free tinha', () =>
     ['perception', 'Percepção', 'wisdom'], ['survival', 'Sobrevivência', 'wisdom'],
     ['deception', 'Enganação', 'charisma'], ['intimidation', 'Intimidação', 'charisma'],
     ['performance', 'Atuação', 'charisma'], ['persuasion', 'Persuasão', 'charisma'],
+    // US-130: culture/engineering (A5E) entram no artefato compartilhado — o Free herda por
+    // inteiro (mesma política do comentário acima), não é caso novo a filtrar.
+    ['culture', 'Cultura', 'intelligence'], ['engineering', 'Engenharia', 'intelligence'],
   ]
 
   it('os 6 atributos têm a mesma chave, o mesmo rótulo e a mesma faixa', () => {
@@ -134,8 +137,8 @@ describe('attributes e skills herdados são os literais que o Free tinha', () =>
     }
   })
 
-  it('as 18 perícias têm a mesma chave, o mesmo rótulo e a mesma âncora', () => {
-    expect(ptBR.skills).toHaveLength(18)
+  it('as 20 perícias têm a mesma chave, o mesmo rótulo e a mesma âncora', () => {
+    expect(ptBR.skills).toHaveLength(20)
     for (const [key, label, ability] of FREE_SKILLS) {
       const found = (ptBR.skills ?? []).find(s => s.key === key)
       expect(found, `perícia sumiu: ${key}`).toBeDefined()

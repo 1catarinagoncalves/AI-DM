@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 🗂️ Backlog — bloqueada, sem story-base para desbloquear ainda (ver §Depende de)
 **Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, benefit `type: "language"` já extraído, sem mecanização) · **uma story ainda não escrita** que crie `config.languages` (catálogo de idiomas do sistema) — não existe hoje, nem como US nem como campo; ver §Questões em aberto
-**Relacionado:** [US-123](./US-123-integracao-mecanica-background-pointbuy-proficiency.md) (mecanizou `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluiu `language`/`tool_proficiency` explicitamente por essa mesma falta de catálogo — §Fora do escopo, linha 88) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha de origem — é o `origin.key` que decide se o benefício `language` existe pra este personagem)
+**Relacionado:** [US-123](./US-123-integracao-mecanica-background-pointbuy.md)/[US-131](./US-131-integracao-mecanica-background-proficiency.md) (mecanizaram `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluíram `language`/`tool_proficiency` explicitamente por essa mesma falta de catálogo — §Fora do escopo de cada uma) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha de origem — é o `origin.key` que decide se o benefício `language` existe pra este personagem)
 **Criada em:** 2026-08-12
 
 ---
@@ -31,15 +31,15 @@
 | `a5e-ag_noble` | "One of your choice." |
 | `a5e-ag_soldier` | "One of your choice." |
 
-Sempre 1 idioma, sempre escolha livre — nenhuma entrada fixa (diferente de `skill_proficiency`, que tem perícias fixas + pool, US-123). Não há lista de idiomas no `desc`; o `a5e-ag` pressupõe um catálogo de idiomas do 5e que o dataset em si não embute.
+Sempre 1 idioma, sempre escolha livre — nenhuma entrada fixa (diferente de `skill_proficiency`, que tem perícias fixas + pool, US-131). Não há lista de idiomas no `desc`; o `a5e-ag` pressupõe um catálogo de idiomas do 5e que o dataset em si não embute.
 
 ### Por que isso não é mecanizável agora
 
-A US-123 mecanizou `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluiu `language`/`tool_proficiency` de propósito, com a razão registrada: *"o projeto não tem catálogo de ferramentas nem de idiomas (`config` não tem `tools`/`languages`); mecanizar exigiria um subsistema novo do zero"*. Isso continua verdade hoje — não existe `config.languages`, não existe campo de idioma em `Character`, não existe nenhuma tela que mostre ou colete idioma falado. Escolher "um idioma à escolha" exige escolher **de algum catálogo**, e esse catálogo não existe.
+A US-123/US-131 mecanizaram `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluíram `language`/`tool_proficiency` de propósito, com a razão registrada: *"o projeto não tem catálogo de ferramentas nem de idiomas (`config` não tem `tools`/`languages`); mecanizar exigiria um subsistema novo do zero"*. Isso continua verdade hoje — não existe `config.languages`, não existe campo de idioma em `Character`, não existe nenhuma tela que mostre ou colete idioma falado. Escolher "um idioma à escolha" exige escolher **de algum catálogo**, e esse catálogo não existe.
 
 ### A proposta (condicional)
 
-Esta story faz o mesmo que a US-123 fez para `skill_proficiency`, mas para `language`: quando `config.languages` existir (story-base, fora desta), estender `buildBackgrounds` para reconhecer `type === 'language'` como um `grant` estruturado (`{ kind: 'language', chooseCount: 1 }` — os 5 casos medidos são sempre `chooseCount: 1`, sem fixo), adicionar `origin.languageChoice` ao payload de criação (mesmo padrão de `origin.skillChoice`/`abilityChoice`, US-123), e um `<select>` na etapa `background` do wizard quando o benefício estiver presente.
+Esta story faz o mesmo que a US-131 fez para `skill_proficiency`, mas para `language`: quando `config.languages` existir (story-base, fora desta), estender `buildBackgrounds` para reconhecer `type === 'language'` como um `grant` estruturado (`{ kind: 'language', chooseCount: 1 }` — os 5 casos medidos são sempre `chooseCount: 1`, sem fixo), adicionar `origin.languageChoice` ao payload de criação (mesmo padrão de `origin.skillChoice`/`abilityChoice`, US-123/US-131), e um `<select>` na etapa `background` do wizard quando o benefício estiver presente.
 
 ---
 
@@ -47,11 +47,11 @@ Esta story faz o mesmo que a US-123 fez para `skill_proficiency`, mas para `lang
 
 ### Dentro do escopo (só depois que `config.languages` existir)
 
-- `buildBackgrounds` (`scripts/srd/ingest.mjs`, mesma função da US-121/US-123) reconhece `type === 'language'` e produz `grant: { kind: 'language', chooseCount: 1 }` para os 5 backgrounds da tabela acima — sem parser de texto livre (o `desc` já é sempre "One of your choice.", não precisa de regex, diferente do parser de `ability_score`/`skill_proficiency`).
-- `origin.languageChoice?: string` no `CreateCharacterSchema.origin` (US-122/US-123), validado contra `config.languages` quando o background escolhido tiver `grant.kind === 'language'`.
-- Etapa `background` do wizard mostra um `<select>` com as opções de `config.languages` quando o background escolhido concede idioma — mesmo padrão visual do `<select>` de perícia da US-123.
+- `buildBackgrounds` (`scripts/srd/ingest.mjs`, mesma função que a US-121/US-123/US-131 já estenderam) reconhece `type === 'language'` e produz `grant: { kind: 'language', chooseCount: 1 }` para os 5 backgrounds da tabela acima — sem parser de texto livre (o `desc` já é sempre "One of your choice.", não precisa de regex, diferente do parser de `ability_score`/`skill_proficiency`).
+- `origin.languageChoice?: string` no `CreateCharacterSchema.origin` (US-122/US-123/US-131), validado contra `config.languages` quando o background escolhido tiver `grant.kind === 'language'`.
+- Etapa `background` do wizard mostra um `<select>` com as opções de `config.languages` quando o background escolhido concede idioma — mesmo padrão visual do `<select>` de perícia da US-131.
 - Persistência do idioma escolhido em `Character` — formato exato (campo próprio? lista? junto de `skills`?) depende da forma que `config.languages`/o campo de idioma em `Character` tomar na story-base; não decidido aqui.
-- Tela de revisão do wizard e ficha do personagem mostram o idioma escolhido, mesmo padrão de `origin.connection`/`memento` (US-124) e `skillChoice` (US-123).
+- Tela de revisão do wizard e ficha do personagem mostram o idioma escolhido, mesmo padrão de `origin.connection`/`memento` (US-124) e `skillChoice` (US-131).
 
 ### Fora do escopo
 
@@ -64,15 +64,15 @@ Esta story faz o mesmo que a US-123 fez para `skill_proficiency`, mas para `lang
 
 ## Modelo de dados proposto
 
-Não decidido — depende da forma que a story-base de `config.languages` tomar. Esqueleto por analogia direta com `grant.kind === 'skills'` (US-123), assumindo o mesmo padrão de catálogo chave→nome:
+Não decidido — depende da forma que a story-base de `config.languages` tomar. Esqueleto por analogia direta com `grant.kind === 'skills'` (US-131), assumindo o mesmo padrão de catálogo chave→nome:
 
 ```ts
-// em SystemBackgroundGrantSchema (US-123), um novo membro da union:
+// em SystemBackgroundGrantSchema (US-123/US-131), um novo membro da union:
 z.object({ kind: z.literal('language'), chooseCount: z.number().int().min(0) })
 ```
 
 ```ts
-// em CreateCharacterSchema.origin (US-122/US-123):
+// em CreateCharacterSchema.origin (US-122/US-123/US-131):
 languageChoice: z.string().max(60).optional(),
 ```
 
@@ -84,21 +84,21 @@ languageChoice: z.string().max(60).optional(),
 - [ ] `buildBackgrounds` deriva `grant: { kind: 'language', chooseCount: 1 }` para os 5 backgrounds medidos (`acolyte`, `cultist`, `guard`, `noble`, `soldier`).
 - [ ] `<select>` na etapa `background` oferece as opções de `config.languages` quando o background escolhido tiver esse `grant`; ausente para os outros 16.
 - [ ] `CharacterService.create` rejeita `origin.languageChoice` fora de `config.languages`, e rejeita ausência dele quando o `grant` exige escolha.
-- [ ] Idioma escolhido visível na tela de revisão do wizard e na ficha do personagem, mesmo padrão de `origin.skillChoice` (US-123)/`connection`/`memento` (US-124).
+- [ ] Idioma escolhido visível na tela de revisão do wizard e na ficha do personagem, mesmo padrão de `origin.skillChoice` (US-131)/`connection`/`memento` (US-124).
 - [ ] Personagem com background sem benefício `language`, ou sem background nenhum: nenhuma validação nova disparada, comportamento idêntico ao de hoje.
 
 ---
 
 ## Notas de implementação
 
-- O parser é trivial comparado ao de `ability_score`/`skill_proficiency` (US-123): os 5 `desc` são idênticos ("One of your choice."), não precisa de regex — só checar `type === 'language'` e emitir `chooseCount: 1` fixo. Se um dado futuro do `a5e-ag` trouxer idioma fixo (nunca visto nos 21 atuais), o parser vai quebrar a suposição "sempre 1 livre" — tratar como os outros formatos inesperados do projeto (falhar alto, não engolir, mesmo espírito do `CLASS_MAP`/`ABILITY_MAP`).
-- Mesmo padrão de 3 lugares a espelhar que `origin.skillChoice`/`abilityChoice` já exige (US-123): `CreateCharacterSchema`, `normalizeOrigin`/`CharacterService.create`, tipo do payload em `apps/web/src/lib/api.ts`.
+- O parser é trivial comparado ao de `ability_score`/`skill_proficiency` (US-123/US-131): os 5 `desc` são idênticos ("One of your choice."), não precisa de regex — só checar `type === 'language'` e emitir `chooseCount: 1` fixo. Se um dado futuro do `a5e-ag` trouxer idioma fixo (nunca visto nos 21 atuais), o parser vai quebrar a suposição "sempre 1 livre" — tratar como os outros formatos inesperados do projeto (falhar alto, não engolir, mesmo espírito do `CLASS_MAP`/`ABILITY_MAP`).
+- Mesmo padrão de 3 lugares a espelhar que `origin.skillChoice`/`abilityChoice` já exige (US-123/US-131): `CreateCharacterSchema`, `normalizeOrigin`/`CharacterService.create`, tipo do payload em `apps/web/src/lib/api.ts`.
 
 ---
 
 ## Questões em aberto
 
-1. **De onde vem `config.languages`?** O 5e SRD/Open5e tem uma lista padrão de idiomas (Common, Elvish, Dwarvish, ...); não é o mesmo problema de `Culture`/`Engineering` da US-123 (perícia do A5E fora do catálogo do SRD) — idioma provavelmente é dado do SRD normal, ainda não ingerido (`scripts/srd/_data` não tem `Language.json` hoje, não conferido nesta story). Precisa de investigação própria antes de virar story-base: existe no dataset Open5e? Em que arquivo?
+1. **De onde vem `config.languages`?** O 5e SRD/Open5e tem uma lista padrão de idiomas (Common, Elvish, Dwarvish, ...); não é o mesmo problema de `Culture`/`Engineering` da US-131 (perícia do A5E fora do catálogo do SRD) — idioma provavelmente é dado do SRD normal, ainda não ingerido (`scripts/srd/_data` não tem `Language.json` hoje, não conferido nesta story). Precisa de investigação própria antes de virar story-base: existe no dataset Open5e? Em que arquivo?
 2. **Vale a pena uma story-base genérica de idiomas, ou só o suficiente pra estes 5 backgrounds?** Um personagem também pode querer idioma racial (fora do escopo aqui, ver §Escopo) — se isso também estiver no roadmap, a story-base provavelmente deveria cobrir os dois de uma vez, não só o caso do background.
 3. **Esta story precisa de número novo quando a story-base existir, ou vira uma seção dela?** Registrada aqui como US independente porque é o benefício de background especificamente que motivou a pergunta (ver conversa que originou esta story) — pode ser reabsorvida na story-base de idiomas quando ela for escrita.
 
@@ -107,6 +107,6 @@ languageChoice: z.string().max(60).optional(),
 ## Referências no código
 
 - [scripts/srd/_data/BackgroundBenefit.json](../../../scripts/srd/_data/BackgroundBenefit.json) — os 5 registros `type: "language"` (`a5e-ag_acolyte_languages`, `a5e-ag_cultist_languages`, `a5e-ag_guard_languages`, `a5e-ag_noble_languages`, `a5e-ag_soldier_languages`).
-- [scripts/srd/ingest.mjs:359](../../../scripts/srd/ingest.mjs:359) — `buildBackgrounds`, função a estender (mesma que a US-123 já estendeu para `ability_score`/`skill_proficiency`).
-- [docs/sdlc/01-requisitos/US-123-integracao-mecanica-background-pointbuy-proficiency.md:88](./US-123-integracao-mecanica-background-pointbuy-proficiency.md) — exclusão original de `language`/`tool_proficiency`, origem direta desta story.
+- [scripts/srd/ingest.mjs:359](../../../scripts/srd/ingest.mjs:359) — `buildBackgrounds`, função a estender (mesma que a US-123/US-131 já estenderam para `ability_score`/`skill_proficiency`).
+- [US-123](./US-123-integracao-mecanica-background-pointbuy.md) / [US-131](./US-131-integracao-mecanica-background-proficiency.md) — exclusão original de `language`/`tool_proficiency`, origem direta desta story.
 - [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) / [US-122](./US-122-escolha-background-catalogo-na-criacao.md) — dependências diretas.

@@ -138,6 +138,17 @@ const DEFAULT_KIT = [
   { name: 'Waterskin', qty: 1 },
 ]
 
+// US-130 — Culture/Engineering: o Open5e nunca modelou as perícias do A5E como recurso
+// `Skill` (Skill.json só tem as 18 do 5e core) — elas só existem como texto solto em
+// `BackgroundBenefit.desc` (Noble, Sage, Charlatan, Entertainer, Trader), sem `ability`
+// associada em lugar nenhum do dataset pinado. `ability` NÃO vem do SRD: confirmada em
+// a5e.tools/rules/skills ("the most commonly used ability score is Intelligence" pras duas).
+// Mesmo precedente do DEFAULT_KIT acima — literal EN, comentário citando a origem.
+const A5E_SKILLS = [
+  { key: 'culture', name: 'Culture', ability: 'intelligence' },
+  { key: 'engineering', name: 'Engineering', ability: 'intelligence' },
+]
+
 const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -194,9 +205,11 @@ function buildAttributes(overlay, abilities, resolve) {
   }))
 }
 
-// --- skills (18): doc `core` (traz `ability`); descarta a5e-ag_ (defensivo, AC) ---
-function buildSkills(overlay, skillsRaw, resolve) {
-  return skillsRaw
+// --- skills (20): 18 do doc `core` (traz `ability`) + 2 literais A5E (US-130, ability fora
+// do dataset — ver A5E_SKILLS); descarta a5e-ag_ (defensivo, nunca dispara — Open5e não
+// modela A5E como recurso Skill, ver comentário de buildSkills acima da constante) ---
+export function buildSkills(overlay, skillsRaw, resolve) {
+  const core = skillsRaw
     .filter((s) => !String(s.pk).startsWith('a5e-ag_') && !String(s.fields.describes).startsWith('a5e-ag_'))
     .map((s) => {
       const key = String(s.pk).replace(/-/g, '_') // sleight-of-hand → sleight_of_hand
@@ -205,7 +218,12 @@ function buildSkills(overlay, skillsRaw, resolve) {
       const label = resolve('skills', key, { name: overlay.skills?.[key] }, s.fields.name).name
       return { key, label, ability }
     })
-    .sort((a, b) => a.key.localeCompare(b.key))
+  const a5e = A5E_SKILLS.map(({ key, name, ability }) => ({
+    key,
+    label: resolve('skills', key, { name: overlay.skills?.[key] }, name).name,
+    ability,
+  }))
+  return [...core, ...a5e].sort((a, b) => a.key.localeCompare(b.key))
 }
 
 // --- races (11): união das RAÍZES dos dois SRD (ADR 009). US-105 ---
@@ -720,7 +738,7 @@ function reportDrafts(drafted, overlay) {
 
 function report({ fallbacks, orphans, artifact }, drafted, overlay) {
   console.log('ingest OK → scripts/srd/srd-5e.config.{en-US,pt-BR}.json')
-  console.log(`  attributes: 6 · skills: 18 · races: ${artifact.races.length} · classes: ${artifact.classes.length} · backgrounds: ${artifact.backgrounds.length}`)
+  console.log(`  attributes: 6 · skills: ${artifact.skills.length} · races: ${artifact.races.length} · classes: ${artifact.classes.length} · backgrounds: ${artifact.backgrounds.length}`)
   reportDrafts(drafted, overlay)
   if (orphans.length) {
     console.log(`\n  ÓRFÃOS (${orphans.length}) — PT curado sem chave no SRD 5.2 (decidir: sumiu, mudou de nome, ou não é SRD):`)

@@ -2996,9 +2996,19 @@
       "label": "Atletismo"
     },
     {
+      "ability": "intelligence",
+      "key": "culture",
+      "label": "Cultura"
+    },
+    {
       "ability": "charisma",
       "key": "deception",
       "label": "Enganação"
+    },
+    {
+      "ability": "intelligence",
+      "key": "engineering",
+      "label": "Engenharia"
     },
     {
       "ability": "intelligence",
