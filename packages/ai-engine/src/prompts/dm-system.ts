@@ -1,4 +1,4 @@
-import type { Locale, SceneState, WorldEntity } from '@ai-dm/shared'
+import type { Locale, SceneState, SystemBackground, WorldEntity } from '@ai-dm/shared'
 import { abilityModifier, DEFAULT_LOCALE, formatModifier, localeNameForPrompt, spellLevelLabel } from '@ai-dm/shared'
 import { formatSceneState } from '../scene'
 import { formatEntities } from '../entities'
@@ -106,6 +106,32 @@ export function resolveKnownSpell(
   return { known: true, level: match.level, description: match.description }
 }
 
+/**
+ * Gancho de aventura da origem + conexão/memento escolhidos na criação (US-125).
+ * Os três opcionais: qualquer combinação pode faltar (origem sem esse benefício no
+ * catálogo, ou personagem sem conexão/memento escolhido — US-124). Awareness apenas,
+ * mesmo tratamento de `ClassFeature`/`KnownSpell` acima — o mestre OFERECE/NARRA, nunca lista verbatim.
+ */
+export interface OriginNarrative {
+  adventuresAndAdvancement?: string
+  connection?: string
+  memento?: string
+}
+
+/**
+ * Resolve o gancho `adventures_and_advancement` da origem por `key` (US-125). Prosa FIXA
+ * do catálogo (sem escolha do jogador) — diferente de `connection`/`memento`, que já
+ * chegam resolvidos em `Character.origin` (US-124) e não passam por função nenhuma.
+ * Sem entrada → `undefined`, nunca lança.
+ */
+export function resolveAdventuresAndAdvancement(
+  backgrounds: SystemBackground[] | undefined,
+  originKey: string | undefined,
+): string | undefined {
+  const entry = backgrounds?.find((b) => b.key === originKey)
+  return entry?.benefits.find((b) => b.type === 'adventures_and_advancement')?.description
+}
+
 const BACKGROUND_LABELS: Record<keyof CharacterBackground, string> = {
   story: 'Background',
   ideals: 'Ideais',
@@ -210,10 +236,12 @@ export function buildDmSystemPrompt(params: {
   features?: ClassFeature[]
   /** Magias conhecidas (US-42): SÓ os nomes vão ao prompt; a descrição vem via tool getSpell. Ausente/vazio → nenhuma seção. */
   spells?: KnownSpell[]
+  /** Gancho de aventura da origem + conexão/memento escolhidos (US-125). Ausente/todos vazios → nenhuma seção. */
+  originNarrative?: OriginNarrative
   /** US-97: idioma-alvo do turno (`User.locale`). Ausente → pt-BR, o comportamento de todas as mesas até aqui. */
   locale?: Locale
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells, originNarrative } = params
   const locale = params.locale ?? DEFAULT_LOCALE
   const targetLanguage = localeNameForPrompt(locale)
 
@@ -298,6 +326,23 @@ ${featureLines}
     ? `## Known spells (read-only — offer these by name; call getSpell for the effect before narrating a casting)
 These are the spells the character KNOWS. Offer them by name when the fiction invites it — a cleric can call on Chama Sagrada, a warlock on Rajada Mística. This list has NAMES ONLY: before you narrate the EFFECT of a casting, call \`getSpell(name)\` to get its description, and narrate from what it returns. If getSpell returns \`known: false\`, the character does NOT know that spell — do NOT invent its effect. You do NOT track spell slots, preparation, components or concentration here (that is mechanics/tools). Never print this list verbatim in the narration.
 ${spellLines}
+
+`
+    : ''
+
+  // Origin narrative (US-125): 3 campos fixos nomeados (não lista de tamanho variável,
+  // diferente de features/spells acima) — mesmo molde (filter Boolean → join → template).
+  const originLines = [
+    originNarrative?.adventuresAndAdvancement?.trim() ? `- Adventures & Advancement: ${originNarrative.adventuresAndAdvancement.trim()}` : '',
+    originNarrative?.connection?.trim() ? `- Connection: ${originNarrative.connection.trim()}` : '',
+    originNarrative?.memento?.trim() ? `- Memento: ${originNarrative.memento.trim()}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+  const originNarrativeSection = originLines
+    ? `## Origin narrative (read-only — the character's origin hook, connection and memento; offer and narrate these, NEVER list them verbatim in the narration)
+Adventures & Advancement is the origin's typical advancement hook (a promotion, a call to action). Connection and Memento are the exact lines the player CHOSE at character creation. Let them color scenes and NPCs when the fiction calls for it — you KNOW these, but you never print this list verbatim in the narration.
+${originLines}
 
 `
     : ''
@@ -431,7 +476,7 @@ The Game Server has ALREADY given the character their class's starting equipment
 
 ${sheetSection}
 
-${backgroundSection}${featuresSection}${spellsSection}`.trimEnd()
+${backgroundSection}${featuresSection}${spellsSection}${originNarrativeSection}`.trimEnd()
 }
 
 /**

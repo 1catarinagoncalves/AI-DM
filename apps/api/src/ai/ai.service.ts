@@ -15,6 +15,7 @@ import {
   buildTurnStateBlock,
   buildOpeningInstruction,
   resolveKnownSpell,
+  resolveAdventuresAndAdvancement,
   buildSummaryInput,
   mergeSceneState,
   formatSceneState,
@@ -340,11 +341,19 @@ export class AiService {
     // US-135: Character.features mistura chaves de classe (US-41) e de origem (benefício
     // `feature` do background) — resolveCharacterFeatures resolve as duas contra a união
     // dos dois catálogos, sem mudar a assinatura de resolveSheetEntries (ver US-135 §Notas).
-    const originKey = (character.origin as { key?: string } | null)?.key
+    const origin = character.origin as { key?: string; connection?: string; memento?: string } | null
+    const originKey = origin?.key
     const features = config
       ? resolveCharacterFeatures(config as SystemConfig, character.class, originKey, (character.features ?? []) as string[])
       : []
     const knownSpells = resolveSheetEntries(config?.classSpells, config?.retiredSpells, character.class, (character.spells ?? []) as string[])
+    // US-125: gancho de origem (catálogo) + conexão/memento ESCOLHIDOS (US-124) — os dois
+    // últimos já chegam resolvidos em `origin`, sem função de resolução (ver dm-system.ts).
+    const originNarrative = {
+      adventuresAndAdvancement: resolveAdventuresAndAdvancement(config?.backgrounds, originKey),
+      connection: origin?.connection,
+      memento: origin?.memento,
+    }
     const sheet = {
       level: character.level,
       hp: characterState?.hp ?? 0,
@@ -374,6 +383,8 @@ export class AiService {
       features,
       // US-42: magias conhecidas — SÓ os nomes vão ao prompt; a descrição vem via getSpell.
       spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
+      // US-125: gancho de origem + conexão/memento escolhidos, awareness apenas.
+      originNarrative,
       // US-97: camada 1 do prompt (estável por usuário) — trocar de idioma invalida o
       // cache do prefixo uma vez, e é evento raro (ADR 007).
       locale,

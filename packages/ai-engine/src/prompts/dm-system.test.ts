@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import type { SystemBackground } from '@ai-dm/shared'
 import {
   buildDmSystemPrompt,
   buildOpeningInstruction,
   buildTurnStateBlock,
+  resolveAdventuresAndAdvancement,
   SCENE_BLOCK,
   ENTITIES_BLOCK,
   INVENTORY_BLOCK,
@@ -154,6 +156,82 @@ describe('buildDmSystemPrompt — background narrativo (US-39)', () => {
     expect(p).toMatch(/Character identity/i)
     expect(p).toMatch(/Um andarilho solitário/)
     expect(p).not.toMatch(/Vínculos:/)
+  })
+})
+
+describe('resolveAdventuresAndAdvancement — gancho de origem do catálogo (US-125)', () => {
+  const backgrounds: SystemBackground[] = [
+    {
+      key: 'a5e-ag_acolyte',
+      name: 'Acolyte',
+      source: 'a5e-ag',
+      benefits: [
+        { type: 'feature', name: 'Some feature', description: 'texto de feature' },
+        { type: 'adventures_and_advancement', name: 'Adventures & Advancement', description: 'pode ser promovido dentro da hierarquia da sua ordem' },
+      ],
+    },
+  ]
+
+  it('devolve a description do benefício adventures_and_advancement da origem', () => {
+    expect(resolveAdventuresAndAdvancement(backgrounds, 'a5e-ag_acolyte')).toBe('pode ser promovido dentro da hierarquia da sua ordem')
+  })
+
+  it('origin key ausente → undefined, sem lançar', () => {
+    expect(resolveAdventuresAndAdvancement(backgrounds, undefined)).toBeUndefined()
+  })
+
+  it('origin key não encontrada no catálogo → undefined, sem lançar', () => {
+    expect(resolveAdventuresAndAdvancement(backgrounds, 'a5e-ag_inexistente')).toBeUndefined()
+  })
+
+  it('origem sem benefício do tipo adventures_and_advancement → undefined', () => {
+    const semGancho: SystemBackground[] = [{ key: 'x', name: 'X', source: 'a5e-ag', benefits: [] }]
+    expect(resolveAdventuresAndAdvancement(semGancho, 'x')).toBeUndefined()
+  })
+
+  it('backgrounds ausente → undefined, sem lançar', () => {
+    expect(resolveAdventuresAndAdvancement(undefined, 'a5e-ag_acolyte')).toBeUndefined()
+  })
+})
+
+describe('buildDmSystemPrompt — Origin narrative (US-125)', () => {
+  const originNarrative = {
+    adventuresAndAdvancement: 'pode ser promovido dentro da hierarquia da sua ordem',
+    connection: 'Um mentor idoso que te ensinou tudo',
+    memento: 'Um símbolo sagrado deixado pelo mentor no leito de morte',
+  }
+
+  it('renderiza os três campos, um por linha, sob "## Origin narrative"', () => {
+    const p = build({ originNarrative })
+    expect(p).toMatch(/## Origin narrative/)
+    expect(p).toMatch(/Adventures & Advancement:\s*pode ser promovido dentro da hierarquia da sua ordem/)
+    expect(p).toMatch(/Connection:\s*Um mentor idoso que te ensinou tudo/)
+    expect(p).toMatch(/Memento:\s*Um símbolo sagrado deixado pelo mentor no leito de morte/)
+  })
+
+  it('marca a seção como awareness apenas (nunca listada verbatim na narração)', () => {
+    const p = build({ originNarrative })
+    const section = p.slice(p.indexOf('## Origin narrative'))
+    expect(section.toLowerCase()).toMatch(/never|nunca/)
+  })
+
+  it('renderiza só os campos presentes (sem misturar texto de um campo no outro)', () => {
+    const p = build({ originNarrative: { connection: originNarrative.connection } })
+    expect(p).toMatch(/## Origin narrative/)
+    expect(p).toMatch(/Connection:\s*Um mentor idoso que te ensinou tudo/)
+    expect(p).not.toMatch(/Adventures & Advancement:/)
+    expect(p).not.toMatch(/Memento:/)
+  })
+
+  it('originNarrative ausente → sem seção, sem crash', () => {
+    const p = build()
+    expect(p).not.toMatch(/## Origin narrative/)
+    expect(typeof p).toBe('string')
+  })
+
+  it('originNarrative com os três campos undefined → sem seção (nem cabeçalho vazio)', () => {
+    const p = build({ originNarrative: {} })
+    expect(p).not.toMatch(/## Origin narrative/)
   })
 })
 

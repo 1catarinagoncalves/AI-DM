@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-26](./US-26-criacao-personagem-em-etapas.md) (wizard, etapa `review`) · [US-45](./US-45-background-na-ficha-da-interface.md) (`BackgroundPanel`) · [US-41](./US-41-features-traits-de-classe.md) (`FeaturesPanel`, `config.classFeatures`) · [US-42](./US-42-magias-conhecidas.md) (`config.classSpells`) · [US-51](./US-51-kits-iniciais-do-srd.md) (`config.startingKits`, `getStartingInventory`) · [US-27](./US-27-pericias-do-personagem.md) (`buildSkillSheet`, modificador de perícia)
-**Relacionado:** [US-124](./US-124-exibir-beneficios-narrativos-origem.md) (mesma etapa `review`, mas para os benefícios de origem — não duplicado aqui) · [US-126](./US-126-origem-na-ficha-do-personagem.md) (mesmo objetivo — dado que já existe no config chegando à tela certa — do lado da ficha em jogo)
+**Relacionado:** [US-124](./US-124-exibir-beneficios-narrativos-origem.md) (mesma etapa `review`, mas para os benefícios de origem — não duplicado aqui)
 **Criada em:** 2026-08-11
 
 ---
