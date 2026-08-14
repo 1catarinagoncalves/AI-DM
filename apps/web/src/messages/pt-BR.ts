@@ -127,6 +127,13 @@ export const ptBR = {
   // US-123: aviso do bônus de atributo, mostrado na etapa `background` (a escolha em si
   // acontece na etapa `attributes` — aqui é só o aviso do que vem a seguir).
   'setup.origin.abilityGrant': '+1 fixo em {attr}, +1 à escolha em outro atributo.',
+  'setup.origin.toolGrant': 'Proficiências de {origin}',
+  // US-132 (design critique 2026-08-14): rótulo dos <optgroup> do select de ferramenta —
+  // só as 4 categorias que hoje aparecem dentro de algum `chooseFrom` (ver TOOL_CATEGORY_ORDER).
+  'setup.tools.category.artisan': 'Ferramentas de artesão',
+  'setup.tools.category.musical-instrument': 'Instrumentos musicais',
+  'setup.tools.category.gaming-set': 'Jogos',
+  'setup.tools.category.vehicle': 'Veículos',
 
   // ---- wizard: conexão e memento (US-124) — título/subtítulo são FIXOS, não vêm do
   // heading/preâmbulo do dataset (frágil a tradução automática, ver US-124 Questão 1/2).
@@ -146,6 +153,7 @@ export const ptBR = {
   'setup.review.hp': 'PV inicial',
   'setup.review.attributes': 'Atributos',
   'setup.review.skills': 'Perícias',
+  'setup.review.tools': 'Proficiências',
   'setup.review.kit': 'Kit inicial',
   'setup.review.background': 'Background',
   'setup.review.origin': 'Origem',
@@ -191,6 +199,7 @@ export const ptBR = {
   'game.attr.charisma': 'CAR',
   'game.skills': 'Perícias',
   'game.proficient': 'Proficiente',
+  'game.tools': 'Proficiências',
   'game.inventory': 'Inventário ({n})',
   'game.inventoryEmpty': 'Nenhum item',
   'game.background.empty': 'Este personagem ainda não tem história.',

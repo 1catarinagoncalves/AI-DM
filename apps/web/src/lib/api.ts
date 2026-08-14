@@ -59,7 +59,9 @@ export const api = {
     // grant.kind === 'ability' da origem.
     // US-131: `skillChoice` são as chaves de perícia escolhidas do grant.chooseFrom do
     // grant.kind === 'skills' da origem — array, `chooseCount` pode ser > 1.
-    origin?: { key?: string; connection?: string; memento?: string; abilityChoice?: string; skillChoice?: string[] }
+    // US-132: `toolChoice` é o mesmo formato, para grant.kind === 'tools' (Folk Hero real
+    // exige 2 — chooseCount pode ser > 1 aqui também).
+    origin?: { key?: string; connection?: string; memento?: string; abilityChoice?: string; skillChoice?: string[]; toolChoice?: string[] }
   }) => post<{ id: string; name: string }>('/characters', data),
 
   listSystems: () =>

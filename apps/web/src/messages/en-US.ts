@@ -122,6 +122,13 @@ export const enUS: Record<MessageKey, string> = {
   // US-123: ability bonus notice, shown in the `background` step (the actual choice happens
   // in `attributes` — this is just the heads-up for what comes next).
   'setup.origin.abilityGrant': '+1 fixed to {attr}, +1 of your choice to another attribute.',
+  'setup.origin.toolGrant': 'Proficiencies from {origin}',
+  // US-132 (design critique 2026-08-14): <optgroup> labels for the tool select — only the 4
+  // categories that currently show up inside a `chooseFrom` (see TOOL_CATEGORY_ORDER).
+  'setup.tools.category.artisan': "Artisan's tools",
+  'setup.tools.category.musical-instrument': 'Musical instruments',
+  'setup.tools.category.gaming-set': 'Gaming sets',
+  'setup.tools.category.vehicle': 'Vehicles',
 
   // ---- wizard: connection & memento (US-124) — title/subtitle are FIXED, not parsed from
   // the dataset's own heading/preamble (translation-fragile, see US-124 Questão 1/2).
@@ -141,6 +148,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.hp': 'Starting HP',
   'setup.review.attributes': 'Attributes',
   'setup.review.skills': 'Skills',
+  'setup.review.tools': 'Proficiencies',
   'setup.review.kit': 'Starting kit',
   'setup.review.background': 'Background',
   'setup.review.origin': 'Origin',
@@ -181,6 +189,7 @@ export const enUS: Record<MessageKey, string> = {
   'game.attr.charisma': 'CHA',
   'game.skills': 'Skills',
   'game.proficient': 'Proficient',
+  'game.tools': 'Proficiencies',
   'game.inventory': 'Inventory ({n})',
   'game.inventoryEmpty': 'No items',
   'game.background.empty': "This character doesn't have a story yet.",

@@ -60,6 +60,9 @@ export const CreateCharacterSchema = z.object({
     // choice", é o real de hoje). Validado contra o grant no service, mesmo espírito de
     // `abilityChoice`, mas em quantidade variável em vez de um par fixo+escolhido.
     skillChoice: z.array(z.string().max(60)).max(6).optional(),
+    // US-132: mesmo formato de `skillChoice`, para `grant.kind === 'tools'` — ARRAY porque
+    // Folk Hero exige 2 escolhas (chooseCount: 2). Validado contra o grant no service.
+    toolChoice: z.array(z.string().max(60)).max(6).optional(),
   }).optional(),
 })
 

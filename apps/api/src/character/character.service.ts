@@ -54,6 +54,10 @@ export class CharacterService {
     const skillGrant = this.findSkillGrant(config.backgrounds, originKey)
     const originSkills = this.applySkillGrant(skillGrant, dto.origin?.skillChoice)
     const skills = [...originSkills, ...this.validateSkills(config, dto.skills ?? [], originSkills)]
+    // US-132: ferramenta/veículo do background (`grant.kind === 'tools'`) — mesmo par find/apply
+    // de perícia (US-131), mas sem etapa própria pra mesclar: a origem é a ÚNICA fonte.
+    const toolGrant = this.findToolGrant(config.backgrounds, originKey)
+    const tools = this.applyToolGrant(toolGrant, dto.origin?.toolChoice)
 
     return this.prisma.character.create({
       data: {
@@ -66,6 +70,7 @@ export class CharacterService {
         level: 1,
         baseAttributes: finalAttributes,
         skills,
+        tools,
         features,
         spells,
         background: this.normalizeBackground(dto.background),
@@ -206,6 +211,41 @@ export class CharacterService {
     if (chosen.length !== grant.chooseCount || invalid) {
       throw new BadRequestException(
         `skillChoice inválido: [${(skillChoice ?? []).join(', ')}]. Esperado ${grant.chooseCount} chave(s) de grant.chooseFrom: ${grant.chooseFrom.join(', ')}`,
+      )
+    }
+    return [...grant.fixed, ...chosen]
+  }
+
+  /**
+   * US-132: resolve o `grant.kind === 'tools'` da origem escolhida, se houver — cada
+   * background tem no máximo um benefício `tool_proficiency` reconhecido pelo ingest.
+   * Mesmo par find/apply de `findSkillGrant`/`applySkillGrant` (US-131).
+   */
+  private findToolGrant(
+    backgrounds: SystemConfig['backgrounds'],
+    originKey?: string,
+  ): Extract<SystemBackgroundGrant, { kind: 'tools' }> | undefined {
+    const grant = backgrounds?.find((b) => b.key === originKey)?.benefits
+      .find((b) => b.grant?.kind === 'tools')?.grant
+    return grant?.kind === 'tools' ? grant : undefined
+  }
+
+  /**
+   * US-132: mesma validação de `applySkillGrant` — fixas sempre entram, `toolChoice` precisa
+   * ter EXATAMENTE `chooseCount` chaves de `grant.chooseFrom` (Folk Hero real exige 2). Sem
+   * etapa própria pra mesclar (ao contrário de perícia): a origem é a ÚNICA fonte de `tools`.
+   */
+  private applyToolGrant(
+    grant: Extract<SystemBackgroundGrant, { kind: 'tools' }> | undefined,
+    toolChoice?: string[],
+  ): string[] {
+    if (!grant) return []
+    if (grant.chooseCount === 0) return [...grant.fixed]
+    const chosen = [...new Set(toolChoice ?? [])]
+    const invalid = chosen.some((k) => !grant.chooseFrom.includes(k))
+    if (chosen.length !== grant.chooseCount || invalid) {
+      throw new BadRequestException(
+        `toolChoice inválido: [${(toolChoice ?? []).join(', ')}]. Esperado ${grant.chooseCount} chave(s) de grant.chooseFrom: ${grant.chooseFrom.join(', ')}`,
       )
     }
     return [...grant.fixed, ...chosen]

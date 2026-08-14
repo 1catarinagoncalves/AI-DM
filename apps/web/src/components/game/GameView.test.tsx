@@ -75,6 +75,21 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.getByRole('tab', { name: 'Background' })).toBeTruthy()
   })
 
+  // US-132: bloco de ferramentas/veículos — mesmo padrão condicional de skills (bloco próprio
+  // na aba Ficha, some sem itens), nunca dentro do BackgroundPanel.
+  it('mostra o bloco de ferramentas na aba Ficha quando presente', async () => {
+    render(<GameView {...baseProps} tools={['Ferramentas de Ladrão', 'Jogo de Dados']} />)
+    expect(await screen.findByText('Proficiências')).toBeTruthy()
+    expect(screen.getByText('Ferramentas de Ladrão')).toBeTruthy()
+    expect(screen.getByText('Jogo de Dados')).toBeTruthy()
+  })
+
+  it('sem tools (ou lista vazia) o bloco de ferramentas não aparece', async () => {
+    render(<GameView {...baseProps} tools={[]} />)
+    expect(await screen.findByText('Atributos')).toBeTruthy()
+    expect(screen.queryByText('Proficiências')).toBeNull()
+  })
+
   it('ao clicar na aba Background mostra a história e uma fraqueza', async () => {
     render(
       <GameView

@@ -447,6 +447,18 @@ describe('US-84 — nome de bloco: emissor e citação saem da mesma constante',
     expect(p).toContain(`- ${SKILLS_LINE} (`)
     expect(p).toContain(`"${SKILLS_LINE}"`)
   })
+
+  // US-132: ferramentas/veículos são traço FIXO de nível 1 — mesma camada estável da
+  // SKILLS_LINE (sheetSection, antes da fronteira de cache), nunca o turn-state volátil.
+  it('sheet.tools vira linha própria na ficha, ao lado de Skills', () => {
+    const p = build({ sheet: { ...baseSheet, tools: ["Thieves' Tools", 'Gaming Set, Dice'] } })
+    expect(p).toContain("- Tools: Thieves' Tools, Gaming Set, Dice")
+  })
+
+  it('sheet.tools ausente/vazio não acrescenta linha nenhuma', () => {
+    expect(build()).not.toContain('- Tools:')
+    expect(build({ sheet: { ...baseSheet, tools: [] } })).not.toContain('- Tools:')
+  })
 })
 
 // US-85 — guard de CONJUNTO da fronteira do ADR 007 (regra 2), que falha FECHADO.

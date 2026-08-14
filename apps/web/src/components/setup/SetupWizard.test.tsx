@@ -66,6 +66,22 @@ const configWithSkillGrant = (budget: number) => ({
   ],
 })
 
+// US-132: background com grant.kind === 'tools' — Criminal real: thieves_tools fixo, escolha
+// entre 2 gaming sets ("Gaming set, thieves' tools.").
+const configWithToolGrant = (budget: number) => ({
+  ...configWithBudget(budget),
+  tools: [
+    { key: 'thieves_tools', label: 'Ferramentas de Ladrão', category: 'thieves_tools' },
+    { key: 'gaming_set_dice', label: 'Jogo de Dados', category: 'gaming-set' },
+    { key: 'gaming_set_cards', label: 'Baralho', category: 'gaming-set' },
+  ],
+  backgrounds: [
+    { key: 'a5e-ag_criminal', name: 'Criminoso', source: 'a5e-ag', benefits: [
+      { type: 'tool_proficiency', name: 'Tool Proficiencies', description: "Gaming set, thieves' tools.", grant: { kind: 'tools' as const, fixed: ['thieves_tools'], chooseFrom: ['gaming_set_cards', 'gaming_set_dice'], chooseCount: 1 } },
+    ] },
+  ],
+})
+
 // US-124: Markdown real do dataset (heading em nível MISTO, #### e ###) para o benefício
 // connection_and_memento — 2 blocos (Acolyte) e a anomalia do Sailor (1 bloco só, "Mementos").
 const CAM_ACOLYTE = `Roll 1d10, choose, or make up your own.
@@ -928,5 +944,98 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(nextBtn()) // → perícias
     expect(screen.getByText('Religião')).toBeTruthy() // fixa aparece, sem chooseFrom
     expect(nextBtn().disabled).toBe(false)
+  })
+
+  // --- US-132: ferramenta/veículo do background (grant.kind === 'tools') ---
+
+  it('background com grant.kind "tools": escolha acontece NA PRÓPRIA etapa background, bloqueia avanço até escolher', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithToolGrant(0))
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_criminal' } })
+
+    // fixa aparece como texto (não interativa); chooseFrom vira <select> agrupado por
+    // categoria — cartão clicável não escala pros grants com dezenas de opções (US-132
+    // design critique 2026-08-14). Escolha acontece AQUI, não numa etapa própria.
+    expect(screen.getByText('Ferramentas de Ladrão')).toBeTruthy()
+    const toolSelect = screen.getByLabelText('Proficiências de Criminoso') as HTMLSelectElement
+    expect(nextBtn().disabled).toBe(true) // nada escolhido ainda — chooseCount: 1
+
+    expect(within(toolSelect).getByRole('option', { name: 'Jogo de Dados' })).toBeTruthy()
+    fireEvent.change(toolSelect, { target: { value: 'gaming_set_dice' } })
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(nextBtn()) // → atributos
+    fireEvent.click(nextBtn()) // → perícias (config sem catálogo — etapa livre)
+    fireEvent.click(nextBtn()) // → revisão
+    expect(screen.getByText('Ferramentas de Ladrão · Jogo de Dados')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      origin: expect.objectContaining({ key: 'a5e-ag_criminal', toolChoice: ['gaming_set_dice'] }),
+    }))
+  })
+
+  it('grant.kind "tools" com chooseCount 0 mostra só a fixa, sem exigir escolha (não bloqueia avanço)', async () => {
+    const config = {
+      ...configWithToolGrant(0),
+      backgrounds: [
+        { key: 'a5e-ag_hermit', name: 'Eremita', source: 'a5e-ag', benefits: [
+          { type: 'tool_proficiency', name: 'Tool Proficiencies', description: 'x', grant: { kind: 'tools' as const, fixed: ['thieves_tools'], chooseFrom: [], chooseCount: 0 } },
+        ] },
+      ],
+    }
+    await pickSystemAndFillRaceClass(config)
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_hermit' } })
+
+    expect(screen.getByText('Ferramentas de Ladrão')).toBeTruthy() // fixa aparece, sem chooseFrom
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  // US-132 (design critique 2026-08-14): chooseCount 2 é o caso real do Folk Hero — 1 select
+  // por slot, cada um agrupado por categoria e excluindo a chave já usada no outro slot.
+  it('grant.kind "tools" com chooseCount 2 (Folk Hero): dois seletores agrupados por categoria, cada um exclui a escolha do outro', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    const config = {
+      ...configWithBudget(0),
+      tools: [
+        { key: 'smiths_tools', label: 'Ferramentas de Ferreiro', category: 'artisan' },
+        { key: 'carriage', label: 'Carruagem', category: 'vehicle' },
+      ],
+      backgrounds: [
+        { key: 'a5e-ag_folk-hero', name: 'Herói do Povo', source: 'a5e-ag', benefits: [
+          { type: 'tool_proficiency', name: 'Tool Proficiencies', description: 'x', grant: { kind: 'tools' as const, fixed: [], chooseFrom: ['smiths_tools', 'carriage'], chooseCount: 2 } },
+        ] },
+      ],
+    }
+    await pickSystemAndFillRaceClass(config)
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_folk-hero' } })
+
+    const first = screen.getByLabelText('Proficiências de Herói do Povo (1/2)') as HTMLSelectElement
+    const second = screen.getByLabelText('Proficiências de Herói do Povo (2/2)') as HTMLSelectElement
+    expect(within(first).getByRole('group', { name: 'Ferramentas de artesão' })).toBeTruthy()
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.change(first, { target: { value: 'smiths_tools' } })
+    expect(nextBtn().disabled).toBe(true) // só 1 de 2 escolhidas
+
+    // a opção já escolhida no primeiro seletor some das opções do segundo
+    expect(within(second).queryByRole('option', { name: 'Ferramentas de Ferreiro' })).toBeNull()
+
+    fireEvent.change(second, { target: { value: 'carriage' } })
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(nextBtn()) // → atributos
+    fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      origin: expect.objectContaining({ key: 'a5e-ag_folk-hero', toolChoice: ['smiths_tools', 'carriage'] }),
+    }))
   })
 })

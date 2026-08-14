@@ -608,6 +608,30 @@
         },
         {
           "description": "Um tipo de ferramentas de artesão ou ferramentas de ferreiro.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "alchemists_supplies",
+              "brewers_supplies",
+              "calligraphers_supplies",
+              "carpenters_tools",
+              "cartographers_tools",
+              "cobblers_tools",
+              "cooks_utensils",
+              "glassblowers_tools",
+              "jewelers_tools",
+              "leatherworkers_tools",
+              "masons_tools",
+              "painters_supplies",
+              "potters_tools",
+              "smiths_tools",
+              "tinkers_tools",
+              "weavers_tools",
+              "woodcarvers_tools"
+            ],
+            "fixed": [],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         },
@@ -672,6 +696,15 @@
         },
         {
           "description": "Kit de disfarce, kit de falsificação.",
+          "grant": {
+            "chooseCount": 0,
+            "chooseFrom": [],
+            "fixed": [
+              "disguise_kit",
+              "forgery_kit"
+            ],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -730,6 +763,19 @@
         },
         {
           "description": "Conjunto de jogos, ferramentas de ladrão.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "gaming_set_dice",
+              "gaming_set_dragonchess",
+              "gaming_set_playing_cards",
+              "gaming_set_three_dragon_ante"
+            ],
+            "fixed": [
+              "thieves_tools"
+            ],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -953,6 +999,18 @@
         },
         {
           "description": "Veículos terrestres.",
+          "grant": {
+            "chooseCount": 0,
+            "chooseFrom": [],
+            "fixed": [
+              "carriage",
+              "cart",
+              "chariot",
+              "sled",
+              "wagon"
+            ],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1011,6 +1069,41 @@
         },
         {
           "description": "Um tipo de ferramentas de artesão, um veículo.",
+          "grant": {
+            "chooseCount": 2,
+            "chooseFrom": [
+              "alchemists_supplies",
+              "brewers_supplies",
+              "calligraphers_supplies",
+              "carpenters_tools",
+              "carriage",
+              "cart",
+              "cartographers_tools",
+              "chariot",
+              "cobblers_tools",
+              "cooks_utensils",
+              "galley",
+              "glassblowers_tools",
+              "jewelers_tools",
+              "keelboat",
+              "leatherworkers_tools",
+              "longship",
+              "masons_tools",
+              "painters_supplies",
+              "potters_tools",
+              "rowboat",
+              "sailing_ship",
+              "sled",
+              "smiths_tools",
+              "tinkers_tools",
+              "wagon",
+              "warship",
+              "weavers_tools",
+              "woodcarvers_tools"
+            ],
+            "fixed": [],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1196,6 +1289,51 @@
         },
         {
           "description": "Ou um tipo de ferramentas de artesão, instrumento musical ou veículo.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "alchemists_supplies",
+              "brewers_supplies",
+              "calligraphers_supplies",
+              "carpenters_tools",
+              "carriage",
+              "cart",
+              "cartographers_tools",
+              "chariot",
+              "cobblers_tools",
+              "cooks_utensils",
+              "galley",
+              "glassblowers_tools",
+              "jewelers_tools",
+              "keelboat",
+              "leatherworkers_tools",
+              "longship",
+              "masons_tools",
+              "musical_instrument_bagpipes",
+              "musical_instrument_drum",
+              "musical_instrument_dulcimer",
+              "musical_instrument_flute",
+              "musical_instrument_horn",
+              "musical_instrument_lute",
+              "musical_instrument_lyre",
+              "musical_instrument_pan_flute",
+              "musical_instrument_shawm",
+              "musical_instrument_viol",
+              "painters_supplies",
+              "potters_tools",
+              "rowboat",
+              "sailing_ship",
+              "sled",
+              "smiths_tools",
+              "tinkers_tools",
+              "wagon",
+              "warship",
+              "weavers_tools",
+              "woodcarvers_tools"
+            ],
+            "fixed": [],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1254,6 +1392,14 @@
         },
         {
           "description": "Kit de Herbalismo.",
+          "grant": {
+            "chooseCount": 0,
+            "chooseFrom": [],
+            "fixed": [
+              "herbalism_kit"
+            ],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1312,6 +1458,41 @@
         },
         {
           "description": "Um tipo de ferramentas de artesão ou veículo.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "alchemists_supplies",
+              "brewers_supplies",
+              "calligraphers_supplies",
+              "carpenters_tools",
+              "carriage",
+              "cart",
+              "cartographers_tools",
+              "chariot",
+              "cobblers_tools",
+              "cooks_utensils",
+              "galley",
+              "glassblowers_tools",
+              "jewelers_tools",
+              "keelboat",
+              "leatherworkers_tools",
+              "longship",
+              "masons_tools",
+              "painters_supplies",
+              "potters_tools",
+              "rowboat",
+              "sailing_ship",
+              "sled",
+              "smiths_tools",
+              "tinkers_tools",
+              "wagon",
+              "warship",
+              "weavers_tools",
+              "woodcarvers_tools"
+            ],
+            "fixed": [],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1376,6 +1557,17 @@
         },
         {
           "description": "Um conjunto de jogos.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "gaming_set_dice",
+              "gaming_set_dragonchess",
+              "gaming_set_playing_cards",
+              "gaming_set_three_dragon_ante"
+            ],
+            "fixed": [],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1542,6 +1734,20 @@
         },
         {
           "description": "Ferramentas de navegador, veículos aquáticos.",
+          "grant": {
+            "chooseCount": 0,
+            "chooseFrom": [],
+            "fixed": [
+              "galley",
+              "keelboat",
+              "longship",
+              "navigators_tools",
+              "rowboat",
+              "sailing_ship",
+              "warship"
+            ],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1605,6 +1811,17 @@
         },
         {
           "description": "Um tipo de conjunto de jogo.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "gaming_set_dice",
+              "gaming_set_dragonchess",
+              "gaming_set_playing_cards",
+              "gaming_set_three_dragon_ante"
+            ],
+            "fixed": [],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1664,6 +1881,24 @@
         },
         {
           "description": "Um veículo.",
+          "grant": {
+            "chooseCount": 1,
+            "chooseFrom": [
+              "carriage",
+              "cart",
+              "chariot",
+              "galley",
+              "keelboat",
+              "longship",
+              "rowboat",
+              "sailing_ship",
+              "sled",
+              "wagon",
+              "warship"
+            ],
+            "fixed": [],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }
@@ -1722,6 +1957,15 @@
         },
         {
           "description": "Kit de disfarce, ferramentas de ladrão.",
+          "grant": {
+            "chooseCount": 0,
+            "chooseFrom": [],
+            "fixed": [
+              "disguise_kit",
+              "thieves_tools"
+            ],
+            "kind": "tools"
+          },
           "name": "Proficiências com Ferramentas",
           "type": "tool_proficiency"
         }

@@ -570,6 +570,106 @@ describe('CharacterService.create', () => {
     expect(char.skills).toEqual(['athletics', 'perception'])
   })
 
+  // US-132: ferramenta/veículo do background (`grant.kind === 'tools'`) — mesmo par find/apply
+  // de perícia (US-131). `a5e-ag_criminal` real: thieves_tools fixo + escolha de 1 gaming set.
+  const configWithToolGrant: SystemConfig = {
+    ...config,
+    tools: [
+      { key: 'thieves_tools', label: "Thieves' Tools", category: 'thieves_tools' },
+      { key: 'gaming_set_dice', label: 'Gaming Set, Dice', category: 'gaming-set' },
+      { key: 'gaming_set_cards', label: 'Gaming Set, Cards', category: 'gaming-set' },
+      { key: 'herbalism_kit', label: 'Herbalism Kit', category: 'kit' },
+    ],
+    backgrounds: [
+      { key: 'a5e-ag_criminal', name: 'Criminal', source: 'a5e-ag', benefits: [
+        { type: 'tool_proficiency', name: 'Tool Proficiencies', description: "Gaming set, thieves' tools.", grant: { kind: 'tools', fixed: ['thieves_tools'], chooseFrom: ['gaming_set_cards', 'gaming_set_dice'], chooseCount: 1 } },
+      ] },
+    ],
+  }
+
+  it('mescla ferramenta fixa + escolhida do background em tools', async () => {
+    const service = new CharacterService(fakePrisma(configWithToolGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_criminal', toolChoice: ['gaming_set_dice'] },
+    })
+    expect(char.tools).toEqual(['thieves_tools', 'gaming_set_dice'])
+  })
+
+  it('rejeita toolChoice fora de grant.chooseFrom', async () => {
+    const service = new CharacterService(fakePrisma(configWithToolGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_criminal', toolChoice: ['herbalism_kit'] },
+    })).rejects.toThrow('toolChoice inválido')
+  })
+
+  it('rejeita toolChoice ausente quando o grant exige (chooseCount > 0)', async () => {
+    const service = new CharacterService(fakePrisma(configWithToolGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_criminal' },
+    })).rejects.toThrow('toolChoice inválido')
+  })
+
+  // Farmer real: fixed com 5 chaves, chooseCount 0 — proficiência em TODAS, sem escolha.
+  const configWithFixedOnlyToolGrant: SystemConfig = {
+    ...config,
+    tools: [{ key: 'cart', label: 'Cart', category: 'vehicle' }],
+    backgrounds: [
+      { key: 'a5e-ag_farmer', name: 'Farmer', source: 'a5e-ag', benefits: [
+        { type: 'tool_proficiency', name: 'Tool Proficiencies', description: 'Land vehicles.', grant: { kind: 'tools', fixed: ['cart'], chooseFrom: [], chooseCount: 0 } },
+      ] },
+    ],
+  }
+
+  it('grant.chooseCount === 0 (Farmer/Hermit): entra só o fixo, sem exigir toolChoice', async () => {
+    const service = new CharacterService(fakePrisma(configWithFixedOnlyToolGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_farmer' },
+    })
+    expect(char.tools).toEqual(['cart'])
+  })
+
+  // Folk Hero real: chooseCount 2 (2 slots independentes, união dos catálogos) — exige
+  // exatamente 2 chaves de chooseFrom, mesmo teste de Guildmember pra skillChoice (US-131).
+  const configWithMultiToolGrant: SystemConfig = {
+    ...config,
+    tools: [
+      { key: 'smiths_tools', label: "Smith's Tools", category: 'artisan' },
+      { key: 'cart', label: 'Cart', category: 'vehicle' },
+    ],
+    backgrounds: [
+      { key: 'a5e-ag_folk-hero', name: 'Folk Hero', source: 'a5e-ag', benefits: [
+        { type: 'tool_proficiency', name: 'Tool Proficiencies', description: "One type of artisan's tools, one vehicle.", grant: { kind: 'tools', fixed: [], chooseFrom: ['smiths_tools', 'cart'], chooseCount: 2 } },
+      ] },
+    ],
+  }
+
+  it('grant.chooseCount > 1 (Folk Hero): exige exatamente 2 chaves de chooseFrom', async () => {
+    const service = new CharacterService(fakePrisma(configWithMultiToolGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_folk-hero', toolChoice: ['smiths_tools', 'cart'] },
+    })
+    expect(char.tools).toEqual(['smiths_tools', 'cart'])
+  })
+
+  it('background sem grant.kind "tools" (ou sem origem) não mexe em tools', async () => {
+    const service = new CharacterService(fakePrisma(configWithBackgrounds))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_acolyte' },
+    })
+    expect(char.tools).toEqual([])
+  })
+
   // US-135: feature nomeada da origem (ex. Thieves' Cant do Criminoso) somada às features de
   // classe já materializadas na criação (US-41) — mesmo campo `Character.features`, sem coluna nova.
   const configWithBackgroundFeature: SystemConfig = {

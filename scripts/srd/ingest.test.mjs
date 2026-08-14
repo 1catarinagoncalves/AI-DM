@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -529,7 +529,7 @@ test('buildBackgrounds: perícia sem entrada no catálogo some do grant E entra 
   const orphans = []
   // Catálogo sintético SEM "Arcana"/"Culture"/"Engineering" — simula a lacuna que a US-130
   // fechou de verdade (Culture/Engineering); Arcana some da mesma forma, caso defensivo.
-  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve, SKILLS, orphans)
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve, SKILLS, [], [], orphans)
   assert.deepEqual(result[0].benefits[0].grant, { kind: 'skills', fixed: ['history'], chooseFrom: ['religion'], chooseCount: 1 })
   assert.deepEqual(orphans, [
     { domain: 'skills', key: 'Arcana' },
@@ -789,6 +789,202 @@ for (const locale of ['en-US', 'pt-BR']) {
     }
   })
 }
+
+// --- US-132 — parseToolGrant: tool_proficiency → grant estruturado (kind: 'tools') ---
+
+const TOOLS = [
+  { key: 'smiths_tools', label: "Smith's Tools", category: 'artisan' },
+  { key: 'weavers_tools', label: "Weaver's Tools", category: 'artisan' },
+  { key: 'gaming_set_dice', label: 'Gaming Set, Dice', category: 'gaming-set' },
+  { key: 'gaming_set_cards', label: 'Gaming Set, Cards', category: 'gaming-set' },
+  { key: 'musical_instrument_lute', label: 'Musical Instrument, Lute', category: 'musical-instrument' },
+  { key: 'disguise_kit', label: 'Disguise Kit', category: 'kit' },
+  { key: 'forgery_kit', label: 'Forgery Kit', category: 'kit' },
+  { key: 'herbalism_kit', label: 'Herbalism Kit', category: 'kit' },
+  { key: 'thieves_tools', label: "Thieves' Tools", category: 'thieves_tools' },
+  { key: 'navigators_tools', label: "Navigator's Tools", category: 'navigators_tools' },
+  { key: 'cart', label: 'Cart', category: 'vehicle' },
+  { key: 'galley', label: 'Galley', category: 'vehicle' },
+]
+const toolsByKeySet = new Set(TOOLS.map((t) => t.key))
+const TOOL_CATEGORIES = {
+  artisan: ['smiths_tools', 'weavers_tools'],
+  'gaming-set': ['gaming_set_cards', 'gaming_set_dice'],
+  'musical-instrument': ['musical_instrument_lute'],
+  vehicleAll: ['cart', 'galley'],
+  vehicleLand: ['cart'],
+  vehicleWater: ['galley'],
+}
+
+test('parseToolGrant: item concreto único (Hermit) vira { fixed: [chave], chooseFrom: [], chooseCount: 0 }', () => {
+  assert.deepEqual(parseToolGrant('Herbalism kit.', toolsByKeySet, TOOL_CATEGORIES), { fixed: ['herbalism_kit'], chooseFrom: [], chooseCount: 0 })
+})
+
+test('parseToolGrant: lista de 2 itens concretos (Charlatan) vira fixed com os 2, sem escolha', () => {
+  assert.deepEqual(parseToolGrant('Disguise kit, forgery kit.', toolsByKeySet, TOOL_CATEGORIES), { fixed: ['disguise_kit', 'forgery_kit'], chooseFrom: [], chooseCount: 0 })
+})
+
+test('parseToolGrant: fixo + escolha na MESMA origem (Criminal) — categoria bare sem "one" ainda é escolha', () => {
+  assert.deepEqual(
+    parseToolGrant("Gaming set, thieves' tools.", toolsByKeySet, TOOL_CATEGORIES),
+    { fixed: ['thieves_tools'], chooseFrom: ['gaming_set_cards', 'gaming_set_dice'], chooseCount: 1 },
+  )
+})
+
+test('parseToolGrant: categoria PLURAL sem "one" (Farmer) vira fixed com TODAS as chaves — não escolha', () => {
+  assert.deepEqual(parseToolGrant('Land vehicles.', toolsByKeySet, TOOL_CATEGORIES), { fixed: ['cart'], chooseFrom: [], chooseCount: 0 })
+})
+
+test('parseToolGrant: item concreto + categoria terrestre/aquática (Sailor) — só a água entra, não as 2', () => {
+  assert.deepEqual(
+    parseToolGrant("Navigator's tools, water vehicles.", toolsByKeySet, TOOL_CATEGORIES),
+    { fixed: ['galley', 'navigators_tools'], chooseFrom: [], chooseCount: 0 },
+  )
+})
+
+test('parseToolGrant: "One vehicle." (Trader) — categoria sem restrição terrestre/aquática vira escolha', () => {
+  assert.deepEqual(parseToolGrant('One vehicle.', toolsByKeySet, TOOL_CATEGORIES), { fixed: [], chooseFrom: ['cart', 'galley'], chooseCount: 1 })
+})
+
+test('parseToolGrant: "One gaming set."/"One type of gaming set." (Noble/Soldier) — mesmo resultado', () => {
+  const expected = { fixed: [], chooseFrom: ['gaming_set_cards', 'gaming_set_dice'], chooseCount: 1 }
+  assert.deepEqual(parseToolGrant('One gaming set.', toolsByKeySet, TOOL_CATEGORIES), expected)
+  assert.deepEqual(parseToolGrant('One type of gaming set.', toolsByKeySet, TOOL_CATEGORIES), expected)
+})
+
+test('parseToolGrant: "X or Y" (Artisan) — item concreto já dentro da categoria não duplica o chooseFrom', () => {
+  assert.deepEqual(
+    parseToolGrant("One type of artisan's tools or smith's tools.", toolsByKeySet, TOOL_CATEGORIES),
+    { fixed: [], chooseFrom: ['smiths_tools', 'weavers_tools'], chooseCount: 1 },
+  )
+})
+
+test('parseToolGrant: "X or Y" entre 2 categorias (Marauder) — união dos dois catálogos', () => {
+  assert.deepEqual(
+    parseToolGrant("One type of artisan's tools or vehicle.", toolsByKeySet, TOOL_CATEGORIES),
+    { fixed: [], chooseFrom: ['cart', 'galley', 'smiths_tools', 'weavers_tools'], chooseCount: 1 },
+  )
+})
+
+test('parseToolGrant: "Either A, B, or C" entre 3 categorias (Guildmember) — vírgula de Oxford tratada', () => {
+  assert.deepEqual(
+    parseToolGrant("Either one type of artisan's tools, musical instrument, or vehicle.", toolsByKeySet, TOOL_CATEGORIES),
+    { fixed: [], chooseFrom: ['cart', 'galley', 'musical_instrument_lute', 'smiths_tools', 'weavers_tools'], chooseCount: 1 },
+  )
+})
+
+test('parseToolGrant: 2 slots de escolha independentes na mesma origem (Folk Hero) — chooseCount 2, união dos 2 catálogos', () => {
+  assert.deepEqual(
+    parseToolGrant("One type of artisan's tools, one vehicle.", toolsByKeySet, TOOL_CATEGORIES),
+    { fixed: [], chooseFrom: ['cart', 'galley', 'smiths_tools', 'weavers_tools'], chooseCount: 2 },
+  )
+})
+
+test('parseToolGrant: texto fora dos padrões medidos devolve undefined (função pura, não falha)', () => {
+  assert.equal(parseToolGrant('Any three tools of your choice.', toolsByKeySet, TOOL_CATEGORIES), undefined)
+})
+
+test('parseToolGrant: categoria reconhecida sem entrada no catálogo vira órfã e some do chooseFrom (não derruba)', () => {
+  const orphans = []
+  const emptyArtisan = { ...TOOL_CATEGORIES, artisan: [] }
+  assert.deepEqual(
+    parseToolGrant("One type of artisan's tools or smith's tools.", toolsByKeySet, emptyArtisan, orphans),
+    { fixed: [], chooseFrom: ['smiths_tools'], chooseCount: 1 },
+  )
+  assert.deepEqual(orphans, [{ domain: 'tools', key: 'artisan' }])
+})
+
+// --- US-132 — buildBackgrounds: tool_proficiency vira benefits[].grant (kind: 'tools') ---
+
+const TOOL_ITEMS_RAW = [
+  item('srd-2024_cart', 'Cart', 'land-vehicle'),
+  item('srd-2024_galley', 'Galley', 'waterborne-vehicle'),
+]
+
+test('buildBackgrounds: benefit "tool_proficiency" reconhecido vira benefits[].grant (kind: "tools")', () => {
+  const backgrounds = [background('a5e-ag_hermit', 'Hermit')]
+  const benefits = [benefit('a5e-ag_hermit_tools', 'a5e-ag_hermit', 'Tool Proficiencies', 'Herbalism kit.', 'tool_proficiency')]
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve, [], TOOLS, TOOL_ITEMS_RAW)
+  assert.deepEqual(result[0].benefits[0].grant, { kind: 'tools', fixed: ['herbalism_kit'], chooseFrom: [], chooseCount: 0 })
+})
+
+test('buildBackgrounds: benefit "tool_proficiency" fora dos padrões medidos falha alto', () => {
+  const backgrounds = [background('a5e-ag_hermit', 'Hermit')]
+  const benefits = [benefit('a5e-ag_hermit_tools', 'a5e-ag_hermit', 'Tool Proficiencies', 'Any three tools of your choice.', 'tool_proficiency')]
+  assert.throws(() => buildBackgrounds({}, backgrounds, benefits, identityResolve, [], TOOLS, TOOL_ITEMS_RAW), /tool_proficiency fora dos padrões/)
+})
+
+test('buildBackgrounds: ferramenta sem entrada no catálogo some do grant E entra no relatório de órfãos', () => {
+  const backgrounds = [background('a5e-ag_hermit', 'Hermit')]
+  const benefits = [benefit('a5e-ag_hermit_tools', 'a5e-ag_hermit', 'Tool Proficiencies', 'Poisoner’s kit.', 'tool_proficiency')]
+  const orphans = []
+  const { backgrounds: result } = buildBackgrounds({}, backgrounds, benefits, identityResolve, [], TOOLS, TOOL_ITEMS_RAW, orphans)
+  assert.deepEqual(result[0].benefits[0].grant, { kind: 'tools', fixed: [], chooseFrom: [], chooseCount: 0 })
+  assert.deepEqual(orphans, [{ domain: 'tools', key: 'Poisoner’s kit' }])
+})
+
+// Contra o dataset PINADO real (não fixture): os 13 backgrounds tool_proficiency medidos em
+// US-132 §Contexto — farmer/sailor só terrestre/aquático (não os 11 misturados), artisan-bg e
+// marauder e guildmember resolvem via união de categorias, folk-hero com 2 slots.
+test('buildBackgrounds: as 13 entradas reais de tool_proficiency batem os formatos medidos (US-132)', () => {
+  const backgroundsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Background.json'), 'utf8'))
+  const benefitsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'BackgroundBenefit.json'), 'utf8'))
+  const itemsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Item.json'), 'utf8'))
+  const toolBenefits = benefitsRaw.filter((b) => b.fields.type === 'tool_proficiency')
+  assert.equal(toolBenefits.length, 13, 'dataset mudou de tamanho — reveja os formatos medidos')
+
+  const tools = buildTools({}, itemsRaw, identityResolve)
+  const orphans = []
+  const { backgrounds: result } = buildBackgrounds({}, backgroundsRaw, benefitsRaw, identityResolve, [], tools, itemsRaw, orphans)
+  // `skills` vazio de propósito (não é o foco deste teste) — filtra só órfãos de 'tools'.
+  assert.deepEqual(orphans.filter((o) => o.domain === 'tools'), [])
+
+  const grantOf = (key) => result.find((b) => b.key === key).benefits.find((b) => b.type === 'tool_proficiency').grant
+
+  assert.deepEqual(grantOf('a5e-ag_hermit'), { kind: 'tools', fixed: ['herbalism_kit'], chooseFrom: [], chooseCount: 0 })
+  assert.deepEqual(grantOf('a5e-ag_charlatan'), { kind: 'tools', fixed: ['disguise_kit', 'forgery_kit'], chooseFrom: [], chooseCount: 0 })
+  assert.deepEqual(grantOf('a5e-ag_urchin'), { kind: 'tools', fixed: ['disguise_kit', 'thieves_tools'], chooseFrom: [], chooseCount: 0 })
+
+  const criminal = grantOf('a5e-ag_criminal')
+  assert.deepEqual(criminal.fixed, ['thieves_tools'])
+  assert.equal(criminal.chooseFrom.length, 4) // gaming-set inteiro
+  assert.equal(criminal.chooseCount, 1)
+
+  const farmer = grantOf('a5e-ag_farmer')
+  assert.equal(farmer.fixed.length, 5) // land: carriage, cart, chariot, sled, wagon
+  assert.deepEqual(farmer.chooseFrom, [])
+  assert.deepEqual(farmer.fixed.sort(), ['carriage', 'cart', 'chariot', 'sled', 'wagon'])
+
+  const sailor = grantOf('a5e-ag_sailor')
+  assert.equal(sailor.fixed.length, 7) // navigators_tools + 6 water
+  assert.ok(sailor.fixed.includes('navigators_tools'))
+  assert.deepEqual(sailor.fixed.filter((k) => k !== 'navigators_tools').sort(), ['galley', 'keelboat', 'longship', 'rowboat', 'sailing_ship', 'warship'])
+
+  const trader = grantOf('a5e-ag_trader')
+  assert.equal(trader.chooseFrom.length, 11) // vehicle inteiro, sem restrição terrestre/aquática
+  assert.equal(trader.chooseCount, 1)
+
+  const noble = grantOf('a5e-ag_noble')
+  assert.equal(noble.chooseFrom.length, 4)
+  const soldier = grantOf('a5e-ag_soldier')
+  assert.deepEqual(soldier.chooseFrom, noble.chooseFrom)
+
+  const artisanBg = grantOf('a5e-ag_artisan')
+  assert.equal(artisanBg.chooseFrom.length, 17) // smith's tools já dentro da categoria, sem duplicar
+  assert.equal(artisanBg.chooseCount, 1)
+
+  const marauder = grantOf('a5e-ag_marauder')
+  assert.equal(marauder.chooseFrom.length, 28) // 17 artisan + 11 vehicle
+  assert.equal(marauder.chooseCount, 1)
+
+  const guildmember = grantOf('a5e-ag_guildmember')
+  assert.equal(guildmember.chooseFrom.length, 38) // 17 artisan + 10 musical-instrument + 11 vehicle
+  assert.equal(guildmember.chooseCount, 1)
+
+  const folkHero = grantOf('a5e-ag_folk-hero')
+  assert.equal(folkHero.chooseFrom.length, 28) // 17 artisan + 11 vehicle, união dos 2 slots
+  assert.equal(folkHero.chooseCount, 2)
+})
 
 // --- US-108 — a tabela de modificadores de habilidade do SRD 2024 ---
 //

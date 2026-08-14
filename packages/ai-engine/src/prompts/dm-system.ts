@@ -40,6 +40,13 @@ export interface DmCharacterSheet {
   conditions: string[]
   /** Perícias com modificador já computado (US-27). Ausente → sistema sem perícias. */
   skills?: { label: string; modifier: number; proficient: boolean }[]
+  /**
+   * US-132: ferramentas/veículos proficientes (rótulos já resolvidos), traço FIXO de
+   * nível 1 — mesmo perfil de `skills`, não `INVENTORY_BLOCK` (estado do turno): entra na
+   * mesma linha estável da ficha, antes da fronteira de cache (US-55/US-56). Ausente/vazio
+   * → nenhuma linha extra.
+   */
+  tools?: string[]
 }
 
 /**
@@ -219,6 +226,9 @@ export function buildDmSystemPrompt(params: {
   const skillsLine = (sheet.skills ?? [])
     .map((s) => `${s.label} ${formatModifier(s.modifier)}${s.proficient ? '*' : ''}`)
     .join(', ')
+  // US-132: ferramentas/veículos — traço fixo de nível 1, mesma camada estável da
+  // SKILLS_LINE acima (não o INVENTORY_BLOCK do turno, ver DmCharacterSheet.tools).
+  const toolsLine = (sheet.tools ?? []).join(', ')
   // US-55/US-56: a ficha é dividida por volatilidade. Level/atributos/perícias são
   // CONSTANTES por personagem (level muda só em level-up, raro) → camada 2, cacheável,
   // fica no system. HP/condições mudam quase todo turno → camada 3 volátil, e desde a
@@ -229,7 +239,7 @@ export function buildDmSystemPrompt(params: {
   const sheetSection = `## Character sheet (read-only — source of truth, managed by the Game Server)
 This is the authoritative character. Trust it and narrate coherently with it. You KNOW this, but you NEVER print stats in the narration and only change it via tools.
 - Level: ${sheet.level}
-- Attributes: ${attributesLine || 'none'}${skillsLine ? `\n- ${SKILLS_LINE} (modifier; * = proficient): ${skillsLine}` : ''}`
+- Attributes: ${attributesLine || 'none'}${skillsLine ? `\n- ${SKILLS_LINE} (modifier; * = proficient): ${skillsLine}` : ''}${toolsLine ? `\n- Tools: ${toolsLine}` : ''}`
 
   // Background narrativo (US-39): itera o label-map (config-like), junta listas,
   // pula campos vazios; sem nenhum campo preenchido a seção inteira some.

@@ -8,7 +8,7 @@ import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, MEMENTO_ITEM_LABEL,
   resolveSheetEntries, resolveCharacterFeatures,
-  type InitialAdventureHook, type SystemConfig,
+  type InitialAdventureHook, type SystemConfig, type SystemTool,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { parseD10Tables } from '@/lib/parseD10Tables'
@@ -119,6 +119,36 @@ function lines(s: string): string[] {
   return s.split('\n').map(t => t.trim()).filter(Boolean)
 }
 
+// US-132 (design critique 2026-08-14): `grant.chooseFrom` de ferramenta mistura categorias
+// (artisan/vehicle/musical-instrument/gaming-set) numa lista só, às vezes 37 chaves em ordem
+// alfabética (Guildmember) — agrupar por categoria antes de listar poupa o jogador de ler tudo
+// pra achar o tipo que quer. Ordem fixa (não a ordem de `chooseFrom`) pra grupo sair sempre na
+// mesma posição entre origens diferentes. `kit`/`navigators_tools`/`thieves_tools` nunca
+// aparecem dentro de um `chooseFrom` hoje (só como `fixed`, item já concreto) — sem rótulo
+// aqui de propósito, cai no fallback de categoria crua se isso mudar.
+const TOOL_CATEGORY_ORDER = ['artisan', 'musical-instrument', 'gaming-set', 'vehicle']
+const TOOL_CATEGORY_LABEL: Record<string, MessageKey> = {
+  artisan: 'setup.tools.category.artisan',
+  'musical-instrument': 'setup.tools.category.musical-instrument',
+  'gaming-set': 'setup.tools.category.gaming-set',
+  vehicle: 'setup.tools.category.vehicle',
+}
+
+function groupToolsByCategory(keys: string[], catalog: SystemTool[]): [string, SystemTool[]][] {
+  const byKey = new Map(catalog.map(tl => [tl.key, tl]))
+  const groups = new Map<string, SystemTool[]>()
+  for (const key of keys) {
+    const entry = byKey.get(key)
+    if (!entry) continue
+    const list = groups.get(entry.category) ?? []
+    list.push(entry)
+    groups.set(entry.category, list)
+  }
+  return TOOL_CATEGORY_ORDER
+    .filter(cat => groups.has(cat))
+    .map((cat): [string, SystemTool[]] => [cat, groups.get(cat)!])
+}
+
 export function SetupWizard() {
   const t = useT()
   const { locale } = useLocale()
@@ -154,6 +184,10 @@ export function SetupWizard() {
   // origem — ARRAY (não uma string), porque `chooseCount` pode ser > 1 (Guildmember real,
   // "Two of your choice"). Resetado junto com `origin`, mesmo motivo de abilityChoice acima.
   const [skillChoice, setSkillChoice] = useState<string[]>([])
+  // US-132: ferramenta(s) escolhida(s) do `grant.chooseFrom` do `grant.kind === 'tools'` da
+  // origem — mesmo padrão de skillChoice, mas a ESCOLHA acontece nesta MESMA etapa
+  // (`background`), não numa etapa própria (não existe etapa `tools`/`equipment` no wizard).
+  const [toolChoice, setToolChoice] = useState<string[]>([])
 
   // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
   const [charId, setCharId] = useState('')
@@ -200,6 +234,13 @@ export function SetupWizard() {
   // `skills` (evita duplicar) e somadas às `choices` da classe na revisão.
   const originSkillKeys = skillGrant ? [...skillGrant.fixed, ...skillChoice] : []
   const skillLabel = Object.fromEntries(skillCatalog.map(sk => [sk.key, sk.label]))
+  // US-132: ferramenta/veículo do background, se o ingest reconheceu o padrão de
+  // `tool_proficiency` (US-132 §Modelo de dados). Mesmo par benefit/grant de skillBenefit
+  // acima, mas a escolha acontece NESTA etapa (background) — não existe etapa `tools` própria.
+  const toolBenefit = originBenefits.find(b => b.grant?.kind === 'tools')
+  const toolGrant = toolBenefit?.grant?.kind === 'tools' ? toolBenefit.grant : undefined
+  const toolCatalog = system?.config?.tools ?? []
+  const toolLabel = Object.fromEntries(toolCatalog.map(tl => [tl.key, tl.label]))
   const adventuresBenefit = originBenefits.find(b => b.type === 'adventures_and_advancement')
   const camBenefit = originBenefits.find(b => b.type === 'connection_and_memento')
   const camTables = camBenefit ? parseD10Tables(camBenefit.description).tables : []
@@ -257,6 +298,10 @@ export function SetupWizard() {
   // ficha completa que a API vai persistir (US-127), não só a parte escolhida na última etapa.
   const reviewSkills = buildSkillSheet(skillCatalog, attrs, [...originSkillKeys, ...skills], system?.config?.proficiency?.bonus ?? 2)
     .filter(sk => sk.proficient)
+  // US-132: ferramenta(s) fixa(s) + escolhida(s) da origem, já resolvidas pro rótulo — mesma
+  // forma que a API vai persistir (Character.tools), pro preview não divergir do salvo.
+  const reviewToolKeys = toolGrant ? [...toolGrant.fixed, ...toolChoice] : []
+  const reviewTools = reviewToolKeys.map(k => toolLabel[k] ?? k)
   // Mesma forma que `handleConfirm` envia à API — reaproveitada aqui para o `BackgroundPanel`
   // (US-45) mostrar por extenso o que vai ser salvo, em vez de "Preenchido"/"—".
   const reviewBackground: CharacterBackground = {
@@ -283,6 +328,8 @@ export function SetupWizard() {
     setAbilityChoice(undefined)
     // US-131: perícia(s) da origem dependem da origem — mesmo motivo.
     setSkillChoice([])
+    // US-132: ferramenta(s) da origem dependem da origem — mesmo motivo.
+    setToolChoice([])
     setStep('race-class')
   }
 
@@ -305,11 +352,15 @@ export function SetupWizard() {
       case 'skills':
         return (skillChoices === 0 || skills.length === skillChoices)
           && (!skillGrant || skillGrant.chooseCount === 0 || skillChoice.length === skillGrant.chooseCount)
-      // Origem, conexão e memento são opcionais — etapa `background` nunca bloqueia o avanço
-      // (mesmo espírito de US-39: texto livre também é opcional). A escolha do grant de
-      // perícia acontece na etapa `skills` (ver acima), não aqui — mesmo padrão do bônus de
-      // atributo, cujo aviso também é só informativo nesta etapa.
-      case 'background': return true
+      // Origem, conexão e memento são opcionais — etapa `background` não bloqueia o avanço por
+      // causa deles (mesmo espírito de US-39: texto livre também é opcional). A escolha do
+      // grant de PERÍCIA acontece na etapa `skills` (ver acima), não aqui — mesmo padrão do
+      // bônus de atributo, cujo aviso também é só informativo nesta etapa.
+      // US-132: a escolha do grant de FERRAMENTA é diferente — acontece NESTA etapa (não há
+      // etapa `tools` própria pra adiar, ver §Onde aparece na criação e na ficha), por isso
+      // bloqueia o avanço até `toolChoice` ter exatamente `chooseCount` chaves.
+      case 'background':
+        return !toolGrant || toolGrant.chooseCount === 0 || toolChoice.length === toolGrant.chooseCount
       case 'review': return true
     }
   }
@@ -338,8 +389,9 @@ export function SetupWizard() {
       // US-124: connection/memento viajam junto (mesmo objeto), texto derivado do roll escolhido.
       // US-123: abilityChoice viaja junto — undefined quando a origem não tem grant.kind 'ability'.
       // US-131: skillChoice idem, para grant.kind 'skills' — [] vira undefined (nada a validar).
+      // US-132: toolChoice idem, para grant.kind 'tools' — [] vira undefined (nada a validar).
       const originPayload = origin
-        ? { key: origin, connection: connectionText, memento: mementoText, abilityChoice, skillChoice: skillChoice.length > 0 ? skillChoice : undefined }
+        ? { key: origin, connection: connectionText, memento: mementoText, abilityChoice, skillChoice: skillChoice.length > 0 ? skillChoice : undefined, toolChoice: toolChoice.length > 0 ? toolChoice : undefined }
         : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background, origin: originPayload })
@@ -380,6 +432,19 @@ export function SetupWizard() {
       if (p.includes(key)) return p.filter(k => k !== key)
       if (!skillGrant || p.length >= skillGrant.chooseCount) return p
       return [...p, key]
+    })
+  }
+
+  // US-132 (design critique 2026-08-14): grant de ferramenta virou 1 <select> por slot de
+  // `chooseCount` (0..chooseCount-1) em vez de cartão clicável — substitui toggleToolChoice.
+  // `filter(Boolean)` compacta buracos; limpar um slot do meio quando chooseCount é 2 (só Folk
+  // Hero hoje) pode reindexar o valor do slot seguinte — sem perda de dado, teto aceito pro
+  // chooseCount máximo observado (2). Revisitar se algum background pedir 3+.
+  function setToolChoiceAt(index: number, key: string) {
+    setToolChoice(p => {
+      const next = [...p]
+      next[index] = key
+      return next.filter(Boolean)
     })
   }
 
@@ -706,6 +771,8 @@ export function SetupWizard() {
                         setAbilityChoice(undefined)
                         // US-131: as perícias escolhidas também são da origem ANTERIOR — mesmo motivo.
                         setSkillChoice([])
+                        // US-132: a(s) ferramenta(s) escolhida(s) também são da origem ANTERIOR — mesmo motivo.
+                        setToolChoice([])
                       }}
                       className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                       <option value="">{t('setup.raceClass.select')}</option>
@@ -728,6 +795,48 @@ export function SetupWizard() {
                   <p className="mt-4 text-sm text-foreground">
                     {skillBenefit.name}: {skillBenefit.description}
                   </p>
+                )}
+                {/* US-132: ferramenta/veículo do background — ao contrário do bônus de atributo
+                    e de perícia (só aviso aqui, escolha adiada pra outra etapa), a ESCOLHA
+                    acontece NESTA MESMA etapa: não existe etapa `tools`/`equipment` própria pra
+                    adiar (US-132 §Onde aparece na criação e na ficha). `fixed` é só texto (nada
+                    a escolher); `chooseFrom` vira <select> agrupado por categoria — design
+                    critique 2026-08-14: cartão clicável não escala pros grants com dezenas de
+                    opções (Guildmember chega a 37), e a ordem alfabética crua embaralhava
+                    categoria (veículo entre ferramenta de artesão). Um <select> por slot de
+                    `chooseCount` (Folk Hero é o único caso com 2 hoje), cada slot excluindo a
+                    chave já usada nos outros pra não deixar repetir. */}
+                {toolGrant && (
+                  <div className="mt-4">
+                    <SheetHeading>{t('setup.origin.toolGrant', { origin: originLabel })}</SheetHeading>
+                    {toolGrant.fixed.length > 0 && (
+                      <ul className="space-y-0.5 text-sm text-foreground">
+                        {toolGrant.fixed.map(key => <li key={key}>{toolLabel[key] ?? key}</li>)}
+                      </ul>
+                    )}
+                    {Array.from({ length: toolGrant.chooseCount }, (_, slotIndex) => {
+                      const chosenElsewhere = toolChoice.filter((_, j) => j !== slotIndex)
+                      const groups = groupToolsByCategory(
+                        toolGrant.chooseFrom.filter(key => !chosenElsewhere.includes(key)),
+                        toolCatalog,
+                      )
+                      const selectLabel = toolGrant.chooseCount > 1
+                        ? `${t('setup.origin.toolGrant', { origin: originLabel })} (${slotIndex + 1}/${toolGrant.chooseCount})`
+                        : t('setup.origin.toolGrant', { origin: originLabel })
+                      return (
+                        <select key={slotIndex} aria-label={selectLabel} value={toolChoice[slotIndex] ?? ''}
+                          onChange={e => setToolChoiceAt(slotIndex, e.target.value)}
+                          className={cn(selectClass, 'mt-3')} style={{ backgroundImage: SELECT_ARROW }}>
+                          <option value="">{t('setup.raceClass.select')}</option>
+                          {groups.map(([category, entries]) => (
+                            <optgroup key={category} label={TOOL_CATEGORY_LABEL[category] ? t(TOOL_CATEGORY_LABEL[category]) : category}>
+                              {entries.map(entry => <option key={entry.key} value={entry.key}>{entry.label}</option>)}
+                            </optgroup>
+                          ))}
+                        </select>
+                      )
+                    })}
+                  </div>
                 )}
                 {/* US-124: benefícios narrativos da origem — adventures_and_advancement como
                     parágrafo (mesmo padrão de hook.openingNarration) e connection_and_memento
@@ -847,6 +956,17 @@ export function SetupWizard() {
                         : '—'}
                     </dd>
                   </div>
+                  {/* US-132: linha própria, condicionada a haver grant.kind 'tools' na origem
+                      escolhida — mesma condição de escopo do backgroundCatalog/connectionTable
+                      abaixo (US-132 §Onde aparece na criação e na ficha). */}
+                  {toolGrant && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.tools')}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">
+                        {reviewTools.length > 0 ? reviewTools.join(' · ') : '—'}
+                      </dd>
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-6 py-2.5">
                     <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.kit')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">

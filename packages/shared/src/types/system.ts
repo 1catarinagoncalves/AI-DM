@@ -88,6 +88,15 @@ export const SystemBackgroundGrantSchema = z.discriminatedUnion('kind', [
     chooseFrom: z.array(z.string()),
     chooseCount: z.number().int().min(0),
   }),
+  // US-132: `fixed`/`chooseFrom` já são CHAVES de config.tools, resolvidas pelo ingest — mesmo
+  // contrato de `kind: 'skills'`, mas `chooseCount` pode ser 2 (Folk Hero: um slot de artisan +
+  // um de vehicle, união dos dois catálogos num `chooseFrom` só — ver `parseToolGrant`).
+  z.object({
+    kind: z.literal('tools'),
+    fixed: z.array(z.string()),
+    chooseFrom: z.array(z.string()),
+    chooseCount: z.number().int().min(0),
+  }),
 ])
 export type SystemBackgroundGrant = z.infer<typeof SystemBackgroundGrantSchema>
 

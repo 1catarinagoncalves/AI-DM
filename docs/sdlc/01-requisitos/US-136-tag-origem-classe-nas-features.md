@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-135](./US-135-feature-de-origem-na-criacao-e-ficha.md) (mistura features de classe e de origem em `Character.features`/`resolveCharacterFeatures`, sem nenhuma marca de proveniência) · [US-41](./US-41-features-traits-de-classe.md) (`FeaturesPanel`, `ClassFeature`) · [US-127](./US-127-revisao-espelha-ficha-completa.md) (revisão do wizard e ficha em jogo consomem o MESMO `FeaturesPanel` — esta story muda um componente, os dois lugares ganham a tag junto)
 **Criada em:** 2026-08-13
 

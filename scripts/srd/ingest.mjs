@@ -500,6 +500,118 @@ export function parseSkillGrant(desc, resolveSkillKey, allSkillKeys) {
   return { fixed, chooseFrom, chooseCount: 1 }
 }
 
+// US-132 — normalizeToolName: "Smith's Tools"/"Smith’s Tools" → "smiths_tools" — mesma
+// normalização de `normalizeSkillKey` (US-131) mais remoção de apóstrofo (reto ou curvo): a
+// chave de config.tools nasce do `pk` do dataset (US-134), que já nunca teve apóstrofo.
+const normalizeToolName = (name) => norm(name).replace(/[’']/g, '').toLowerCase().replace(/\s+/g, '_')
+
+// US-132 — chaves de config.tools por categoria de escolha, mais a distinção terrestre/
+// aquático que `config.tools` (US-134) colapsa em `category: 'vehicle'` (buildTools, `item.fields
+// .category === 'tools' ? toolCategory(...) : 'vehicle'`) — só o `Item.json` BRUTO ainda
+// distingue `land-vehicle`/`waterborne-vehicle`, por isso `itemsRaw` chega aqui como parâmetro
+// extra (mesmo array que `buildTools` já recebe), não recalculado a partir de `config.tools`.
+function buildToolCategories(tools, itemsRaw) {
+  const byCategory = {}
+  for (const t of tools) (byCategory[t.category] ??= []).push(t.key)
+  const vehicleLand = []
+  const vehicleWater = []
+  for (const item of itemsRaw) {
+    const key = stripDocument(item.pk).replace(/-/g, '_')
+    if (item.fields.category === 'land-vehicle') vehicleLand.push(key)
+    else if (item.fields.category === 'waterborne-vehicle') vehicleWater.push(key)
+  }
+  return {
+    artisan: byCategory['artisan'] ?? [],
+    'gaming-set': byCategory['gaming-set'] ?? [],
+    'musical-instrument': byCategory['musical-instrument'] ?? [],
+    vehicleAll: byCategory['vehicle'] ?? [],
+    vehicleLand: vehicleLand.sort(),
+    vehicleWater: vehicleWater.sort(),
+  }
+}
+
+// US-132 — resolveToolUnit: reconhece a FORMA de um fragmento de `tool_proficiency` (uma parte
+// separada por vírgula, ou um dos lados de "one/either ... or ..."). Nunca toca o catálogo —
+// só decide se o texto é uma categoria conhecida (com sua REGRA de fixo-ou-escolha) ou um item
+// concreto nomeado. `undefined` é o texto não bater com NENHUMA forma medida (falha alto no
+// CALLER, mesmo contrato de `parseAbilityGrant`/`parseSkillGrant`).
+//
+// `mode: 'fixed'` (proficiência em TODAS as chaves da categoria, sem escolha) só ocorre pra
+// veículo QUALIFICADO ("Land vehicles", "water vehicles" — plural, sem "one"). Toda outra
+// categoria (artisan, gaming-set, musical-instrument, vehicle sem qualificação) é `'choice'`:
+// o texto real nunca oferece TODAS as opções de uma vez, só "um tipo de".
+function resolveToolUnit(unitText) {
+  const clean = norm(unitText)
+  if (/^land vehicles?$/i.test(clean)) return { category: 'vehicleLand', mode: 'fixed' }
+  if (/^water vehicles?$/i.test(clean)) return { category: 'vehicleWater', mode: 'fixed' }
+  if (/vehicles?$/i.test(clean)) return { category: 'vehicleAll', mode: 'choice' }
+  if (/gaming set$/i.test(clean)) return { category: 'gaming-set', mode: 'choice' }
+  if (/artisan/i.test(clean)) return { category: 'artisan', mode: 'choice' }
+  if (/musical instrument$/i.test(clean)) return { category: 'musical-instrument', mode: 'choice' }
+  if (/\b(kit|tools)$/i.test(clean)) return { name: clean, mode: 'fixed' }
+  return undefined
+}
+
+// Resolve a FORMA reconhecida (`resolveToolUnit`) contra o catálogo real. Categoria ou item
+// nomeado sem entrada em `config.tools` — caso defensivo, os 13 reais batem 100% hoje — é
+// relatado como órfão (mesmo relatório de `resolveSkillKey`, US-131) e contribui zero chaves,
+// nunca derruba a função inteira.
+function resolveToolKeys(unit, toolsByKey, toolCategories, orphans) {
+  if (unit.category) {
+    const keys = toolCategories[unit.category]
+    if (keys.length === 0) orphans.push({ domain: 'tools', key: unit.category })
+    return keys
+  }
+  const key = normalizeToolName(unit.name)
+  if (toolsByKey.has(key)) return [key]
+  orphans.push({ domain: 'tools', key: unit.name })
+  return []
+}
+
+// US-132 — parseToolGrant: `tool_proficiency` → grant estruturado. Texto bem mais irregular que
+// `skill_proficiency` (US-131, 2 formatos): os 13 desc medidos (US-132 §Contexto) misturam item
+// concreto ("Herbalism kit"), categoria fixa sem escolha ("Land vehicles" — TODAS as chaves, não
+// uma), e escolha (dentro de uma categoria ou entre categorias via "or"). Resolvido em 2 formas
+// top-level:
+//   1. Contém "or"/"either": cláusula ÚNICA de escolha — união das partes (categoria inteira ou
+//      item concreto) vira `chooseFrom`, `chooseCount` sempre 1 (as 3 entradas reais com "or"
+//      nunca têm item fixo fora da cláusula).
+//   2. Sem "or": lista separada por vírgula, cada parte julgada independente — cada uma soma a
+//      `fixed` (item concreto, ou categoria plural sem qualificador) OU soma 1 a `chooseCount`/
+//      `chooseFrom` (categoria com "one"/singular bare). Misturar fixo e escolha na MESMA origem
+//      (Criminal: "Gaming set, thieves' tools." — thieves' tools fixo, gaming set é escolha) é o
+//      motivo de não caber no par fixed-OU-choice do `parseSkillGrant`.
+export function parseToolGrant(desc, toolsByKey, toolCategories, orphans = []) {
+  const text = String(desc).trim().replace(/\.\s*$/, '')
+  if (/\bor\b/i.test(text)) {
+    let t = text.replace(/^either\s+/i, '').replace(/^one type of\s+/i, '')
+    t = t.replace(/,?\s+or\s+/gi, ',')
+    const parts = t.split(',').map((s) => s.trim()).filter(Boolean)
+    const chooseFrom = new Set()
+    for (const part of parts) {
+      const unit = resolveToolUnit(part)
+      if (!unit) return undefined
+      resolveToolKeys(unit, toolsByKey, toolCategories, orphans).forEach((k) => chooseFrom.add(k))
+    }
+    return { fixed: [], chooseFrom: [...chooseFrom].sort(), chooseCount: 1 }
+  }
+  const parts = text.split(',').map((s) => s.trim().replace(/^one\s+/i, '')).filter(Boolean)
+  const fixed = new Set()
+  const chooseFrom = new Set()
+  let chooseCount = 0
+  for (const part of parts) {
+    const unit = resolveToolUnit(part)
+    if (!unit) return undefined
+    const keys = resolveToolKeys(unit, toolsByKey, toolCategories, orphans)
+    if (unit.mode === 'fixed') keys.forEach((k) => fixed.add(k))
+    else {
+      keys.forEach((k) => chooseFrom.add(k))
+      chooseCount += 1
+    }
+  }
+  return { fixed: [...fixed].sort(), chooseFrom: [...chooseFrom].sort(), chooseCount }
+}
+
 // --- backgrounds (21 + benefícios): a5e-ag (EN Publishing), CC-BY-4.0 via dual-licenciamento
 // (ADR 004 §3.3) — join de Background + BackgroundBenefit por `parent → pk`, mesmo estilo de
 // Map que ClassFeature/ClassFeatureItem (US-47) e StartingKit (US-51) já usam.
@@ -520,10 +632,12 @@ export function parseSkillGrant(desc, resolveSkillKey, allSkillKeys) {
 // sobre o `desc` cru, é awareness igual a `SystemClassFeature` (US-41), então o texto traduzido
 // serve direto. `key: b.pk` sem slug novo — já é `<parent>_<slug>`, a mesma chave que `resolve`
 // já usa para este benefício (ver US-135 §Questões em aberto #1).
-export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, skills = [], orphans = []) {
+export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, skills = [], tools = [], itemsRaw = [], orphans = []) {
   const bgKeys = new Set(backgroundsRaw.map((bg) => bg.pk))
   const skillKeys = skills.map((s) => s.key)
   const skillKeySet = new Set(skillKeys)
+  const toolsByKey = new Set(tools.map((t) => t.key))
+  const toolCategories = buildToolCategories(tools, itemsRaw)
   // US-131: perícia citada em `skill_proficiency` sem entrada em config.skills — relatada
   // (mesmo relatório de órfãos do overlay, US-47) e omitida do grant (`parseSkillGrant`
   // acima filtra o `undefined`). Caso defensivo: os 21 backgrounds de hoje batem 100%.
@@ -566,6 +680,10 @@ export function buildBackgrounds(overlay, backgroundsRaw, benefitsRaw, resolve, 
           grant = parseSkillGrant(norm(b.fields.desc), resolveSkillKey, skillKeys)
           if (!grant) throw new Error(`${b.pk}: skill_proficiency fora do padrão "<Fixas>, and either <opções>." ou "<N> of your choice." (desc: "${norm(b.fields.desc)}")`)
           grant = { kind: 'skills', ...grant }
+        } else if (b.fields.type === 'tool_proficiency') {
+          grant = parseToolGrant(norm(b.fields.desc), toolsByKey, toolCategories, orphans)
+          if (!grant) throw new Error(`${b.pk}: tool_proficiency fora dos padrões medidos (US-132) (desc: "${norm(b.fields.desc)}")`)
+          grant = { kind: 'tools', ...grant }
         }
         return { type: b.fields.type, name: entry.name, description: entry.description, ...(grant ? { grant } : {}) }
       })
@@ -628,8 +746,11 @@ function buildConfig(overlay, data) {
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
   const startingKits = buildStartingKits(overlay, data.features, resolve)
-  const { backgrounds, backgroundEquipment, backgroundFeatures } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, orphans)
+  // US-132: buildTools roda ANTES de buildBackgrounds — o grant `kind: 'tools'` do benefício
+  // `tool_proficiency` precisa de `config.tools` já resolvido (chaves) mais o `data.items` bruto
+  // (distinção terrestre/aquático que `config.tools` colapsa, ver buildToolCategories).
   const tools = buildTools(overlay, data.items, resolve)
+  const { backgrounds, backgroundEquipment, backgroundFeatures } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, tools, data.items, orphans)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
   for (const domain of ['features', 'spells', 'kitItems', 'backgrounds', 'tools']) {

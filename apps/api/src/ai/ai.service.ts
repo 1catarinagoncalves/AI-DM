@@ -329,6 +329,11 @@ export class AiService {
       ? buildSkillSheet(config.skills, attributes, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
       : undefined
     const skills = resolvedSkills?.map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
+    // US-132: ferramentas/veículos proficientes da origem — traço FIXO de nível 1 (mesmo
+    // perfil de `skills`), resolvidos pro rótulo do locale ativo. Vai à camada 2 (sheetSection,
+    // `sheet.tools`), nunca ao INVENTORY_BLOCK do turno — ver dm-system.ts §SKILLS_LINE.
+    // `characterTools` (não `tools`, colidiria com o registro de tools da AI SDK mais abaixo).
+    const characterTools = ((character.tools ?? []) as string[]).map((key) => catalogLabel(config?.tools, key))
     // US-100: a ficha guarda CHAVES de feature/magia; o catálogo do locale devolve o texto.
     // Resolvido UMA vez por turno e compartilhado com a tool `getSpell` abaixo — é o que
     // mantém a busca por nome na MESMA língua da lista que o prompt mostrou.
@@ -347,6 +352,7 @@ export class AiService {
       attributes,
       conditions: (characterState?.conditions ?? []) as string[],
       skills,
+      tools: characterTools,
     }
 
     // US-56: o system carrega SÓ as camadas 1+2 (estático + constante por personagem).
