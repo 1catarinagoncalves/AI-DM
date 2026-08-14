@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, benefit `type: "tool_proficiency"` já extraído, sem mecanização) · [US-134](./US-134-catalogo-de-ferramentas-do-sistema.md) (catálogo `config.tools` — implementada, esta story está desbloqueada)
 **Relacionado:** [US-123](./US-123-integracao-mecanica-background-pointbuy.md)/[US-131](./US-131-integracao-mecanica-background-proficiency.md) (mecanizaram `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluíram `language`/`tool_proficiency` explicitamente por essa mesma falta de catálogo — §Fora do escopo de cada uma) · [US-129](./US-129-escolha-idioma-beneficio-language-background.md) (mesmo formato de story — benefício de background bloqueado por catálogo ainda inexistente; `tool_proficiency` é o segundo caso, texto mais irregular que `language`) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha de origem — é o `origin.key` que decide se o benefício `tool_proficiency` existe pra este personagem)
 **Criada em:** 2026-08-13

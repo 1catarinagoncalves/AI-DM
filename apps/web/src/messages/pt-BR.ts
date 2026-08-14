@@ -204,6 +204,8 @@ export const ptBR = {
   'game.background.flaws': 'Fraquezas',
   'game.features.empty': 'Esta classe ainda não tem features nem magias registradas.',
   'game.features.title': 'Features',
+  'game.features.tag.class': 'Classe',
+  'game.features.tag.background': 'Origem',
   'game.spells.title': 'Magias',
   'game.log': 'Narração do Mestre',
   'game.empty.title': 'A sua aventura começa aqui.',

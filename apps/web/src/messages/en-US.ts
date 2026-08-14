@@ -194,6 +194,8 @@ export const enUS: Record<MessageKey, string> = {
   'game.background.flaws': 'Flaws',
   'game.features.empty': "This class doesn't have any features or spells recorded yet.",
   'game.features.title': 'Features',
+  'game.features.tag.class': 'Class',
+  'game.features.tag.background': 'Origin',
   'game.spells.title': 'Spells',
   'game.log': "Dungeon Master's narration",
   'game.empty.title': 'Your adventure begins here.',

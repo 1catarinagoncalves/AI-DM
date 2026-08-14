@@ -7,9 +7,12 @@ import { useLocale, useT } from '@/components/LocaleProvider'
 // US-41: feature de classe (awareness read-only). Mesma forma do SystemClassFeature de
 // @ai-dm/shared, mas só os campos que este painel usa — `key`/`source` são dado de
 // persistência (US-100), sem papel na exibição.
+// US-136: `origin` é opcional — só `resolveCharacterFeatures` o preenche; qualquer outro
+// chamador (nenhum conhecido hoje) continua funcionando sem badge.
 export interface ClassFeature {
   name: string
   description: string
+  origin?: 'class' | 'background'
 }
 
 // US-41/US-50: painel da aba Features da ficha. Read-only, awareness — nome + descrição curta.
@@ -49,7 +52,14 @@ export function FeaturesPanel({ features, spells }: { features?: ClassFeature[];
           <ul className="flex flex-col gap-2">
             {featureList.map((f, i) => (
               <li key={i} className="rounded-md border border-border bg-background/40 p-3">
-                <p className="text-sm font-semibold text-parchment">{f.name}</p>
+                <p className="flex items-center gap-2 text-sm font-semibold text-parchment">
+                  {f.name}
+                  {f.origin && (
+                    <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
+                      {t(f.origin === 'class' ? 'game.features.tag.class' : 'game.features.tag.background')}
+                    </span>
+                  )}
+                </p>
                 {f.description?.trim() && (
                   <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{f.description}</p>
                 )}

@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-135](./US-135-feature-de-origem-na-criacao-e-ficha.md) (mistura features de classe e de origem em `Character.features`/`resolveCharacterFeatures`, sem nenhuma marca de proveniência) · [US-41](./US-41-features-traits-de-classe.md) (`FeaturesPanel`, `ClassFeature`) · [US-127](./US-127-revisao-espelha-ficha-completa.md) (revisão do wizard e ficha em jogo consomem o MESMO `FeaturesPanel` — esta story muda um componente, os dois lugares ganham a tag junto)
 **Criada em:** 2026-08-13
 
@@ -39,7 +39,7 @@ A US-135 juntou as features de classe e de origem na MESMA lista de `Character.f
 - **`resolveCharacterFeatures`** (`packages/shared/src/starting-kit.ts:66`): retorno passa de `SystemClassFeature[]` para um tipo que soma `origin: 'class' | 'background'` a cada entrada (ex.: `CharacterFeature = SystemClassFeature & { origin: 'class' | 'background' }`). A marca é calculada checando se `f.key` está no `Set` de chaves de `classList`/`originList` **antes** de montar o mapa `combined` — não faz parsing de prefixo de chave (`a5e-ag_*` vs `<classe>_*`), que é um detalhe de formato do dataset, não uma garantia de contrato. `SystemClassFeatureSchema` **não muda** — o campo novo só existe no tipo de retorno desta função, não no catálogo persistido.
 - **`FeaturesPanel`** (`apps/web/src/components/character/FeaturesPanel.tsx`): `ClassFeature` ganha `origin?: 'class' | 'background'`. Quando presente, renderiza um badge curto ao lado do nome (chave de mensagem nova, não string hardcoded — gate US-102). Quando ausente, sem badge — compatível com qualquer chamador que não passe pela `resolveCharacterFeatures` (nenhum conhecido hoje, mas mantém o componente sem depender de um único caminho de dados).
 - **3 sites de leitura já existentes** (`apps/api/src/ai/ai.service.ts:340`, `apps/web/src/components/setup/SetupWizard.tsx:241`, `apps/web/src/app/play/[adventureId]/page.tsx:66`) — nenhuma mudança de código: os três já chamam `resolveCharacterFeatures` e só o de `ai.service.ts` (prompt do mestre) ignora o campo novo (`origin` não entra no texto do prompt, é só apresentação de UI).
-- **Mensagens novas** em `apps/web/src/messages/pt-BR.ts` e `en-US.ts`, ao lado de `game.features.title`/`game.features.empty`: rótulo curto para cada valor de `origin` (ex. `game.features.tag.class` = "Classe" / `game.features.tag.background` = "Origem").
+- **Mensagens novas** em `apps/web/src/messages/pt-BR.ts` e `en-US.ts`, ao lado de `game.features.title`/`game.features.empty`: `game.features.tag.class` = "Classe" / `game.features.tag.background` = "Origem" (pt-BR); en-US usa "Class"/"Origin", mesmo par de chaves.
 - **Teste em `starting-kit.test.ts`**: `resolveCharacterFeatures` com personagem tendo features de classe e de origem — cada item do retorno tem o `origin` correto; feature aposentada (`retiredFeatures`) resolvida via fallback também recebe `origin` coerente com de onde a chave veio.
 - **Teste novo para `FeaturesPanel`** (não existe teste de componente para ele hoje): lista mista renderiza os dois badges corretos; item sem `origin` não quebra e não mostra badge.
 
@@ -100,7 +100,7 @@ export function resolveCharacterFeatures(
 
 ## Questões em aberto
 
-1. Rótulo exato da tag ("Origem" vs "Background", "Classe" vs "Class Feature") — decisão de copy, não bloqueia implementação; seguir o vocabulário já usado na ficha (US-98/US-99 já usam "Origem" para `background` na UI em pt-BR — conferir consistência no momento de escrever a mensagem).
+Nenhuma — rótulo resolvido (ver §Escopo e §Modelo de dados).
 
 ---
 

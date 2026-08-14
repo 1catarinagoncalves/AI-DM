@@ -175,6 +175,19 @@ describe('resolveCharacterFeatures (US-135)', () => {
     expect(out.map(f => f.name)).toEqual(['Aposentada'])
   })
 
+  // US-136: origin calculado por pertencimento ao Set de classList/originList, não por
+  // parsing de prefixo de chave — as duas chaves abaixo não seguem nenhum padrão comum.
+  it('marca origin: class para chave de classFeatures e origin: background para chave de backgroundFeatures', () => {
+    const keys = ['paladin_lay-on-hands', 'a5e_ag_criminal_thieves-cant']
+    const out = resolveCharacterFeatures(config, 'paladin', 'a5e_ag_criminal', keys)
+    expect(out.map(f => f.origin)).toEqual(['class', 'background'])
+  })
+
+  it('feature aposentada (fora de classList/originList) recebe origin coerente por eliminação', () => {
+    const out = resolveCharacterFeatures(config, 'paladin', undefined, ['paladin_retired'])
+    expect(out.map(f => f.origin)).toEqual(['background'])
+  })
+
   it('chave em nenhum dos dois catálogos nem no retired vira entrada mínima (nome = chave)', () => {
     const out = resolveCharacterFeatures(config, 'paladin', 'a5e_ag_criminal', ['fantasma'])
     expect(out.map(f => f.name)).toEqual(['fantasma'])

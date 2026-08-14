@@ -57,21 +57,32 @@ export function getBackgroundFeatures(config: SystemConfig, originKey?: string):
   return (map[originKey] ?? []).map((f) => f.key)
 }
 
+/** US-136: `SystemClassFeature` + de qual catálogo a chave veio, calculado ANTES do merge. */
+export type CharacterFeature = SystemClassFeature & { origin: 'class' | 'background' }
+
 /**
  * Resolve `Character.features` (chaves de classe E de origem misturadas, US-135) contra a
  * UNIÃO dos dois catálogos — `resolveSheetEntries` sozinho só enxerga um mapa por vez, e uma
  * chave de origem passada contra `classFeatures` cairia no fallback `{key, name: key}`. Mapa
  * sintético de uma entrada por trás, mesmo `retiredFeatures` servindo as duas fontes (US-100).
+ *
+ * US-136: `origin` marca cada item como `'class'` ou `'background'` por pertencimento aos
+ * `Set`s de chave de `classList`/`originList` — NUNCA por parsing de prefixo (`a5e-ag_*` vs
+ * `<classe>_*`), que é detalhe de formato do dataset, não contrato. Calculado sobre as chaves
+ * de entrada (que cobrem também `retiredFeatures` indiretamente, US-100), não sobre o
+ * resultado já resolvido.
  */
 export function resolveCharacterFeatures(
   config: SystemConfig,
   classKey: string,
   originKey: string | undefined,
   featureKeys: string[],
-): SystemClassFeature[] {
+): CharacterFeature[] {
   const classList = config.classFeatures?.[classKey] ?? config.classFeatures?.default ?? []
   const originList = originKey ? (config.backgroundFeatures?.[originKey] ?? []) : []
-  return resolveSheetEntries({ combined: [...classList, ...originList] }, config.retiredFeatures, 'combined', featureKeys)
+  const classKeys = new Set(classList.map((f) => f.key))
+  const resolved = resolveSheetEntries({ combined: [...classList, ...originList] }, config.retiredFeatures, 'combined', featureKeys)
+  return resolved.map((f) => ({ ...f, origin: classKeys.has(f.key) ? 'class' : 'background' }))
 }
 
 /**
