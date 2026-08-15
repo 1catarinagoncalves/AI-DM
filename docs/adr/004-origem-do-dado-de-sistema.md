@@ -34,7 +34,8 @@ Pipeline de dois passos, sem código de app novo, alimentando **os dois sistemas
   (a US-99 desdobrou o artefato único em base EN + localização pt-BR).
 - O **`seed.ts` importa o artefato** para o D&D **e para o Free** — este último por **seleção de
   chaves**, não por cópia de texto (ver §3, decisão 6, revista em 02/08/2026).
-  `System.version` do D&D passou de `'5.1'` → **`'5.2'`**.
+  `System.version` do D&D passou de `'5.1'` → `'5.2'` → **`'5.1'` de novo** (US-139, 15/08/2026,
+  `apps/api/prisma/seed.ts:132,136` — ver nota abaixo).
 
 **Fonte:** Open5e (SRD 5.2), **CC-BY-4.0** — a mesma licença do SRD publicado pela WotC. Atribuição
 numa linha ([NOTICE-open5e.md](../../scripts/srd/NOTICE-open5e.md)), **sem OGL 1.0a**.
@@ -50,6 +51,14 @@ numa linha ([NOTICE-open5e.md](../../scripts/srd/NOTICE-open5e.md)), **sem OGL 1
 > mais dois documentos da EN Publishing (`a5e-ddg`, `a5e-gpg`) e o *Spells That Don't Suck* da
 > Somanyrobots. Pipeline, pin e regra de licença única continuam valendo — o que muda é qual documento
 > vence e quais publishers estão em escopo. Detalhe completo no ADR 009 §8, não repetido aqui.
+>
+> **Atualizado de novo em 15/08/2026 pela [US-139](../sdlc/01-requisitos/US-139-catalogo-classes-marshal-a5e-adventurers-guide.md).**
+> A reversão do parágrafo acima chega em `classes`/`classFeatures`/`classSpells`/`startingKits`
+> (a [US-138](../sdlc/01-requisitos/US-138-catalogo-racas-srd-5-1-como-referencia.md), na mesma
+> leva, já tinha feito o mesmo em `races`): as 12 classes SRD passam a ler o `srd-2014`, o 5.2
+> sai por completo desses quatro campos (mesma decisão "troca de fonte, não união"). `System.version`
+> volta a `'5.1'` de verdade — o parágrafo acima já anunciava a intenção, esta story é quem edita
+> o literal em `seed.ts`. A classe **Marshal** (`a5e-ag`) entra como 13ª classe, sem conjuração.
 
 **Idioma:** nenhuma fonte traduz o SRD. O pt-BR é **overlay curado do projeto**
 (`scripts/srd/locale/pt-BR.json`), indexado por **chave canônica nossa** (`paladino_lay-on-hands`,
@@ -224,6 +233,14 @@ magias inclui **truques + todas as de nível 1**. As consequências são **relat
 - **Fallback EN** (64) — conteúdo novo do 5.2 sem PT (10 features + 54 magias de 1º): cai no texto
   EN do dataset e entra no relatório; a tradução curada é a [US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md).
   `--strict` barra isso em produção.
+
+> **Revertido em 15/08/2026 pela [US-139](../sdlc/01-requisitos/US-139-catalogo-classes-marshal-a5e-adventurers-guide.md)
+> (ADR 009 §8).** *"O dataset manda"* aqui dizia fidelidade ao **5.2**; a referência mudou pro
+> **5.1** (mesma reversão da US-138 pra `races`) — o 5.2 sai por completo de `classFeatures`/
+> `classSpells`, sem fallback. Na prática: as features/magias "novas do 5.2" listadas acima saem
+> do artefato, os órfãos citados (*Sentido Divino*, *Explorador Nato*) voltam a ter chave. Números
+> desta seção (27 truques, 64 fallback…) são a medição de 03/08/2026 contra o 5.2 — não valem mais
+> como contagem atual; ver US-139 §Contexto para os números do 5.1.
 
 ---
 

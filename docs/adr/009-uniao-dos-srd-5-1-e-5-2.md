@@ -1,6 +1,6 @@
 # ADR 009 — Regra de uso do SRD: união do 5.1 e do 5.2, com o 5.2 vencendo
 
-**Status:** Aceito · **precedência revista em 15/08/2026** (o SRD 5.1 vira a fonte de referência — ver §8) · **abertas do §8 fechadas em 15/08/2026 pela US-138** (`races` implementado — ver §9)
+**Status:** Aceito · **precedência revista em 15/08/2026** (o SRD 5.1 vira a fonte de referência — ver §8) · **abertas do §8 fechadas em 15/08/2026 pela US-138** (`races` — ver §9) **e pela US-139** (`classes`/`classFeatures`/`classSpells`/`startingKits`, Marshal do a5e-ag — ver §10)
 **Data:** 2026-08-02
 **Decisores:** Time de Produto e Engenharia
 **Relacionado:** [ADR 004 — Origem do dado de sistema](./004-origem-do-dado-de-sistema.md) (**este ADR o estende**: o pipeline e o pin continuam; muda de *quais* documentos ele lê) · [ADR 003 — Sistemas como dado](./003-sistemas-como-dado.md) (catálogo é dado) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (a chave canônica é EN; o overlay pt-BR é indexado por ela) · [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) (o pipeline `sync`+`ingest`) · [US-105](../sdlc/01-requisitos/US-105-raca-e-classe-por-chave-do-srd.md) (o primeiro cliente: espécies)
@@ -171,3 +171,45 @@ A [US-138](../sdlc/01-requisitos/US-138-catalogo-racas-srd-5-1-como-referencia.m
 **Correção ao §6 e §7.** A consequência positiva do §6 ("Meio-Elfo e Meio-Orc voltam... Goliath e Orc entram. 11 espécies contra as 9 de qualquer edição isolada") e o "Estado de hoje" do §7 ("11 espécies vindas da união") descreviam o efeito de D2 (2024 vence, 5.1 preenche buraco) — **revertido para `races`** por esta implementação. Estado atual, medido em 15/08/2026 (artefatos `en-US`/`pt-BR` e `System.config` no banco, via query direta): **9 raízes**, todas do 5.1 — `dragonborn`, `dwarf`, `elf`, `gnome`, `halfling`, `half-elf`, `half-orc`, `human`, `tiefling`. `goliath`/`orc` não têm mais fonte no escopo atual (ver §8, tabela de publishers — nenhum dos documentos novos tem `Species.json`) e não aparecem no catálogo. §6/§7 ficam como registro histórico da decisão original (D2); não foram reescritos.
 
 **Overlay pt-BR:** `goliath`/`orc` continuam curados em [`locale/pt-BR.json`](../../scripts/srd/locale/pt-BR.json) — não apagados, mas passaram a aparecer no relatório `ÓRFÃOS` do `ingest` (domínio `races` entrou no loop de detecção, que antes não cobria esse domínio porque a união sempre consumia as 11 chaves do overlay).
+
+---
+
+## 10. Fechamento do §8 pro trio que sobrava — US-139 implementada (15/08/2026)
+
+A [US-139](../sdlc/01-requisitos/US-139-catalogo-classes-marshal-a5e-adventurers-guide.md)
+fecha, pro último trio que o §8/§9 deixavam em aberto (`classes`/`classFeatures`/`classSpells`/
+`startingKits`), as mesmas duas perguntas que a US-138 já tinha fechado pra `races`.
+
+**"5.1 vence com 5.2 preenchendo buraco, ou 5.1 vira a única fonte?"** — **única fonte**, mesma
+resposta da US-138. `buildClasses`/`buildClassFeatures`/`buildClassSpells`/`buildStartingKits`
+([`ingest.mjs`](../../scripts/srd/ingest.mjs)) nunca chamaram `mergeEditions` de verdade (§9 já
+registrava isso) — não houve reversão de MECANISMO, só de FONTE: `CharacterClass.json`,
+`ClassFeature.json`, `ClassFeatureItem.json` e `Spell.json` locais (`sync.mjs`) viram os do
+`srd-2014`; o par 5.2 sai do `sync` por completo, nenhum dos quatro campos o lê mais.
+`mergeEditions`/`SRD_EQUIVALENTS` ficaram sem NENHUM caller de produção (o último era
+`buildRaces`, já cortado pela US-138) — removidos nesta story, não só deixados mortos.
+
+**"`System.version` volta pra `'5.1'`?"** — **sim, aplicado**. `apps/api/prisma/seed.ts:132,136`
+muda de `'5.2'` pra `'5.1'` nesta story — o adiamento que o §9 registrava ("aplica quando US-139
+fechar o mesmo trio de fontes") se resolve aqui. Com `races`+`classFeatures`+`classSpells` todos
+no 5.1, só o texto normativo (`Rule.json`/`ability-modifiers.srd-2024.json`, US-108/US-110, fora
+do escopo das duas stories) segue ancorado no 5.2 — campo sem consumidor de runtime hoje (US-105
+§6g), não bloqueia.
+
+**A 13ª classe.** `a5e-ag/CharacterClass.json` tem uma classe base fora do SRD — **Marshal**
+(`a5e_marshal`), com três subclasses excluídas pelo mesmo filtro `subclass_of !== null` que já
+corta subclasse SRD (fica pra [US-141](../sdlc/01-requisitos/US-141-catalogo-subclasses-srd-5-1-e-marshal.md)).
+Classe marcial, sem conjuração — não entra em `config.classSpells`. Medido no artefato real de
+15/08/2026: **13 classes** (`config.classes`), **21 entradas de `classFeatures`** (2 do Marshal:
+*Commanding Presence*, *Rallying Surge* — as outras 32 de 34 brutas são ruído de tabela/nível>1),
+**73 magias distintas** de nível ≤1 em `classSpells` (nenhuma do Marshal).
+
+**Achado fora do §8: o formato de equipamento inicial também mudou.** O §8 não previu isso — só
+falava de features/magias. O 5.2 guardava o kit numa linha de tabela markdown
+(`feature_type: 'CORE_TRAITS_TABLE'`); o 5.1 **e** o a5e-ag usam outro tipo,
+`STARTING_EQUIPMENT`, com texto em prosa (bullets `(*a*)/(*b*)` no SRD, pacotes nomeados
+alternativos no Marshal) — parser antigo (`parseStartingKit`) não lia nem um nem outro; foi
+removido junto com os campos que ele consumia (`PDF_SPLITS`). Consequência de conteúdo: o
+`kitItems` do overlay pt-BR, curado pro texto de tabela do 5.2, não casa mais com as chaves cruas
+novas — pendência de curadoria registrada na US-139 (mesmo padrão da US-134 pra `tools`: fora de
+`MT_DOMAINS`, gate é `--strict`, não bloqueia build normal).

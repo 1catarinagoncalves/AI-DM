@@ -1988,12 +1988,6 @@
         "key": "barbarian_unarmored-defense",
         "name": "Defesa sem Armadura",
         "source": "srd"
-      },
-      {
-        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas corpo-a-corpo Simples ou Marciais à sua escolha, como Machados Grandes e Machadinhas. Sempre que terminar um Descanso Longo, você pode praticar exercícios com armas e alterar uma dessas escolhas de arma. Ao atingir certos níveis de Bárbaro, você ganha a habilidade de usar as propriedades de domínio de mais tipos de armas, conforme mostrado na coluna Domínio de Armas da tabela de Características de Bárbaro.",
-        "key": "barbarian_weapon-mastery",
-        "name": "Domínio de Armas",
-        "source": "srd"
       }
     ],
     "bard": [
@@ -2006,9 +2000,9 @@
     ],
     "cleric": [
       {
-        "description": "Você se dedicou a um dos seguintes papéis sagrados à sua escolha. **Protetor.** Treinado para a batalha, você ganha proficiência com armas Marciais e treinamento com armaduras Pesadas. **Taumaturgo.** Você conhece um truque extra da lista de magias de Clérigo. Além disso, sua conexão mística com o divino lhe concede um bônus em seus testes de Inteligência (Arcanismo ou Religião). O bônus é igual ao seu modificador de Sabedoria (mínimo de +1).",
-        "key": "cleric_divine-order",
-        "name": "Ordem Divina",
+        "description": "Escolha um domínio relacionado à sua divindade, como Vida. Cada domínio é detalhado ao final da descrição da classe, e cada um fornece exemplos de deuses associados a ele. Sua escolha concede a você magias de domínio e outras características quando você a escolhe no 1º nível. Ela também concede formas adicionais de usar Canalizar Divindade quando você ganha essa característica no 2º nível, e benefícios adicionais nos níveis 6, 8 e 17. ### Magias de Domínio Cada domínio possui uma lista de magias — suas magias de domínio — que você ganha nos níveis de clérigo indicados na descrição do domínio. Uma vez que você ganha uma magia de domínio, você sempre a tem preparada, e ela não conta contra o número de magias que você pode preparar a cada dia. Se você possui uma magia de domínio que não aparece na lista de magias de clérigo, a magia é, ainda assim, uma magia de clérigo para você.",
+        "key": "cleric_divine-domain",
+        "name": "Domínio Divino",
         "source": "srd"
       }
     ],
@@ -2018,12 +2012,6 @@
         "description": "Conhece a língua secreta dos druidas e as suas mensagens ocultas.",
         "key": "druid_druidic",
         "name": "Druídico",
-        "source": "srd"
-      },
-      {
-        "description": "Você se dedicou a um dos seguintes papéis sagrados à sua escolha. **Mágico.** Você conhece um truque extra da lista de magias de Druida. Além disso, sua conexão mística com a natureza lhe concede um bônus em seus testes de Inteligência (Arcanismo ou Natureza). O bônus é igual ao seu modificador de Sabedoria (bônus mínimo de +1). **Guardião.** Treinado para a batalha, você ganha proficiência com armas Marciais e treinamento com armaduras Médias.",
-        "key": "druid_primal-order",
-        "name": "Ordem Primal",
         "source": "srd"
       }
     ],
@@ -2039,12 +2027,20 @@
         "key": "fighter_second-wind",
         "name": "Retomar o Fôlego",
         "source": "srd"
+      }
+    ],
+    "marshal": [
+      {
+        "description": "Começando no 1º nível, você possui uma Presença de Comando que se estende a partir de você em um raio de 10 pés. Quando você realiza a ação de Ataque, você pode abrir mão de realizar um ataque para permitir que uma criatura dentro do alcance da sua Presença de Comando realize um ataque em seu lugar. Se o alvo puder ouvir ou ver você, ele pode usar sua reação para conjurar um truque ou realizar um ataque com arma. O raio da sua Presença de Comando aumenta para 20 pés no 5º nível, 30 pés no 10º nível, 45 pés no 15º nível e 60 pés no 20º nível.",
+        "key": "marshal_commanding-presence",
+        "name": "Presença de Comando",
+        "source": "a5e-ag"
       },
       {
-        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de três tipos de armas Simples ou Marciais à sua escolha. Sempre que terminar um Descanso Longo, você pode praticar exercícios com armas e alterar uma dessas escolhas de arma. Ao atingir certos níveis de Guerreiro, você ganha a habilidade de usar as propriedades de domínio de mais tipos de armas, conforme mostrado na coluna Domínio de Armas da tabela de Características de Guerreiro.",
-        "key": "fighter_weapon-mastery",
-        "name": "Domínio de Armas",
-        "source": "srd"
+        "description": "Também começando no 1º nível, você pode usar uma ação bônus para escolher uma criatura a até 30 pés de você. Se o alvo puder ouvir ou ver você, ele recupera pontos de vida iguais a 1d8 + seu nível de marechal. Uma vez que você use esta característica, você deve terminar um descanso longo antes de poder usá-la novamente. Você pode escolher dois alvos simultaneamente com esta característica no 3º nível, e começando no 7º nível você recupera o uso desta característica após terminar um descanso curto ou longo.",
+        "key": "marshal_rallying-surge",
+        "name": "Ímpeto de Reagrupamento",
+        "source": "a5e-ag"
       }
     ],
     "monk": [
@@ -2063,15 +2059,15 @@
     ],
     "paladin": [
       {
-        "description": "Cura ferimentos tocando o alvo com energia divina.",
-        "key": "paladin_lay-on-hands",
-        "name": "Impor as Mãos",
+        "description": "Sente presenças de bem/mal e mortos-vivos por perto.",
+        "key": "paladin_divine-sense",
+        "name": "Sentido Divino",
         "source": "srd"
       },
       {
-        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Espadas Longas e Azagaias. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Alabardas e Mangual.",
-        "key": "paladin_weapon-mastery",
-        "name": "Domínio de Armas",
+        "description": "Cura ferimentos tocando o alvo com energia divina.",
+        "key": "paladin_lay-on-hands",
+        "name": "Impor as Mãos",
         "source": "srd"
       }
     ],
@@ -2083,9 +2079,9 @@
         "source": "srd"
       },
       {
-        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Arcos Longos e Espadas Curtas. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Cimitarra e Espadas Longas.",
-        "key": "ranger_weapon-mastery",
-        "name": "Domínio de Armas",
+        "description": "Move-se e sobrevive com maestria no seu terreno.",
+        "key": "ranger_natural-explorer",
+        "name": "Explorador Nato",
         "source": "srd"
       }
     ],
@@ -2107,27 +2103,21 @@
         "key": "rogue_thieves-cant",
         "name": "Gíria de Ladrão",
         "source": "srd"
-      },
-      {
-        "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Adagas e Arcos Curtos. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Cimitarra e Espadas Curtas.",
-        "key": "rogue_weapon-mastery",
-        "name": "Domínio de Armas",
-        "source": "srd"
       }
     ],
     "sorcerer": [
       {
-        "description": "Um evento em seu passado deixou uma marca indelével em você, infundindo-o com magia latente. Como uma Ação Bônus, você pode liberar essa magia por 1 minuto, durante o qual você ganha os seguintes benefícios: - A CD de resistência de suas magias de Feiticeiro aumenta em 1. - Você tem Vantagem nas jogadas de ataque de magias de Feiticeiro que você conjurar. Você pode usar esta característica duas vezes, e você recupera todos os usos gastos quando terminar um Descanso Longo.",
-        "key": "sorcerer_innate-sorcery",
-        "name": "Feitiçaria Inata",
+        "description": "Escolha uma origem feiticeira, que descreve a fonte do seu poder mágico inato: Linhagem Dracônica ou Magia Selvagem, ambas detalhadas ao final da descrição da classe. Sua escolha concede a você características quando você a escolhe no 1º nível e novamente nos níveis 6, 14 e 18.",
+        "key": "sorcerer_sorcerous-origin",
+        "name": "Origem Feiticeira",
         "source": "srd"
       }
     ],
     "warlock": [
       {
-        "description": "Você desenterrou Invocações Místicas, fragmentos de conhecimento proibido que lhe conferem uma habilidade mágica duradoura ou outras lições. Você ganha uma invocação à sua escolha, como Pacto do Tomo. As invocações estão descritas na seção \"Opções de Invocações Místicas\" mais adiante na descrição desta classe. **Pré-requisitos.** Se uma invocação tiver um pré-requisito, você deve atendê-lo para aprender essa invocação. Por exemplo, se uma invocação exige que você seja um Bruxo de nível 5 ou superior, você pode selecionar a invocação assim que atingir o nível 5 de Bruxo. **Substituindo e Ganhando Invocações.** Sempre que ganhar um nível de Bruxo, você pode substituir uma de suas invocações por outra para a qual você se qualifique. Você não pode substituir uma invocação se ela for um pré-requisito para outra invocação que você possua. Ao atingir certos níveis de Bruxo, você ganha mais invocações à sua escolha, conforme mostrado na coluna Invocações da tabela de Características de Bruxo. Você não pode escolher a mesma invocação mais de uma vez, a menos que sua descrição diga o contrário.",
-        "key": "warlock_eldritch-invocations",
-        "name": "Invocações Místicas",
+        "description": "No 1º nível, você fez um pacto com um ser sobrenatural de sua escolha: o Arquifada, o Corruptor ou o Grande Antigo, cada um dos quais é detalhado ao final da descrição da classe. Sua escolha concede a você características no 1º nível e novamente nos níveis 6, 10 e 14.",
+        "key": "warlock_otherworldly-patron",
+        "name": "Patrono Sobrenatural",
         "source": "srd"
       }
     ],
@@ -2136,12 +2126,6 @@
         "description": "Recupera parte da energia mágica ao descansar brevemente.",
         "key": "wizard_arcane-recovery",
         "name": "Recuperação Arcana",
-        "source": "srd"
-      },
-      {
-        "description": "Você pode conjurar qualquer magia como um Ritual se essa magia tiver a marca Ritual e a magia estiver em seu grimório. Você não precisa ter a magia preparada, mas deve ler o livro para conjurar uma magia desta forma.",
-        "key": "wizard_ritual-adept",
-        "name": "Adepto Ritual",
         "source": "srd"
       }
     ]
@@ -2198,13 +2182,6 @@
         "source": "srd"
       },
       {
-        "description": "um lampejo de luz estelar fere e destaca o alvo.",
-        "key": "starry-wisp",
-        "level": 0,
-        "name": "Fagulha Estelar",
-        "source": "srd"
-      },
-      {
         "description": "guia o próximo golpe, tornando-o mais preciso.",
         "key": "true-strike",
         "level": 0,
@@ -2240,20 +2217,6 @@
         "source": "srd"
       },
       {
-        "description": "Você lança uma matriz deslumbrante de luzes coloridas e piscantes. Cada criatura em um Cone de 15 pés originado de você deve ser bem-sucedida em um teste de resistência de Constituição ou ficará com a condição Cego até o final do seu próximo turno.",
-        "key": "color-spray",
-        "level": 1,
-        "name": "Leque Cromático",
-        "source": "srd"
-      },
-      {
-        "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
-        "key": "command",
-        "level": 1,
-        "name": "Comando",
-        "source": "srd"
-      },
-      {
         "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
         "key": "comprehend-languages",
         "level": 1,
@@ -2279,13 +2242,6 @@
         "key": "disguise-self",
         "level": 1,
         "name": "Disfarçar-se",
-        "source": "srd"
-      },
-      {
-        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance ouve uma melodia discordante em sua mente. O alvo faz um teste de resistência de Sabedoria. Em uma falha, ele sofre 3d6 de dano Psíquico e deve usar imediatamente sua Reação, se disponível, para se mover o mais longe possível de você, usando a rota mais segura. Em um sucesso, o alvo sofre apenas metade do dano.",
-        "key": "dissonant-whispers",
-        "level": 1,
-        "name": "Sussurros Dissonantes",
         "source": "srd"
       },
       {
@@ -2445,6 +2401,20 @@
         "source": "srd"
       },
       {
+        "description": "Uma fina camada de chamas dispara de você. Cada criatura em um Cone de 15 pés faz um teste de resistência de Destreza, sofrendo 3d6 de dano de Fogo se falhar no teste ou metade desse dano se obtiver sucesso. Objetos inflamáveis no Cone que não estejam sendo vestidos ou carregados começam a queimar.",
+        "key": "burning-hands",
+        "level": 1,
+        "name": "Mãos Flamejantes",
+        "source": "srd"
+      },
+      {
+        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
+        "key": "charm-person",
+        "level": 1,
+        "name": "Enfeitiçar Pessoa",
+        "source": "srd"
+      },
+      {
         "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
         "key": "command",
         "level": 1,
@@ -2487,6 +2457,34 @@
         "source": "srd"
       },
       {
+        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences em sua posse — pareça diferente até que a magia termine. Você pode parecer 1 pé mais baixo ou mais alto e pode parecer mais pesado ou mais leve. Você deve adotar uma forma que tenha o mesmo arranjo básico de membros que você possui. Caso contrário, a extensão da ilusão depende de você. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passarão através do chapéu, e qualquer um que o toque não sentirá nada. Para discernir que você está disfarçado, uma criatura deve realizar a ação Estudar para inspecionar sua aparência e ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
+        "key": "disguise-self",
+        "level": 1,
+        "name": "Disfarçar-se",
+        "source": "srd"
+      },
+      {
+        "description": "Até que a magia termine, seus ataques com armas causam 1d4 de dano Radiante extra em um acerto.",
+        "key": "divine-favor",
+        "level": 1,
+        "name": "Favor Divino",
+        "source": "srd"
+      },
+      {
+        "description": "Objetos em um cubo de 6 metros dentro do alcance são contornados por uma luz azul, verde ou violeta (à sua escolha). Cada criatura no cubo também é contornada se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem Luz Penumbra em um raio de 3 metros e não podem se beneficiar da condição Invisível. Jogadas de ataque contra uma criatura ou objeto afetado têm Vantagem se o atacante puder vê-lo.",
+        "key": "faerie-fire",
+        "level": 1,
+        "name": "Fogo das Fadas",
+        "source": "srd"
+      },
+      {
+        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
+        "key": "fog-cloud",
+        "level": 1,
+        "name": "Névoa Obscurecente",
+        "source": "srd"
+      },
+      {
         "description": "Você lança um raio de luz em direção a uma criatura dentro do alcance. Faça um ataque de magia à distância contra o alvo. Em um acerto, ele sofre 4d6 de dano Radiante, e a próxima jogada de ataque feita contra ele antes do final do seu próximo turno tem Vantagem.",
         "key": "guiding-bolt",
         "level": 1,
@@ -2498,6 +2496,13 @@
         "key": "healing-word",
         "level": 1,
         "name": "Palavra Curativa",
+        "source": "srd"
+      },
+      {
+        "description": "Você toca um objeto durante toda a conjuração da magia. Se o objeto for um item mágico ou algum outro objeto mágico, você aprende suas propriedades e como usá-las, se ele requer Sintonização e quantas cargas ele possui, se houver. Você aprende se alguma magia contínua está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende o nome dessa magia. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias contínuas, se houver, estão afetando-a atualmente.",
+        "key": "identify",
+        "level": 1,
+        "name": "Identificação",
         "source": "srd"
       },
       {
@@ -2534,6 +2539,20 @@
         "level": 1,
         "name": "Escudo da Fé",
         "source": "srd"
+      },
+      {
+        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
+        "key": "speak-with-animals",
+        "level": 1,
+        "name": "Falar com Animais",
+        "source": "srd"
+      },
+      {
+        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
+        "key": "thunderwave",
+        "level": 1,
+        "name": "Onda Trovejante",
+        "source": "srd"
       }
     ],
     "default": [],
@@ -2543,13 +2562,6 @@
         "key": "druidcraft",
         "level": 0,
         "name": "Truque Druídico",
-        "source": "srd"
-      },
-      {
-        "description": "manipula um punhado dos elementos: faísca, brisa, respingo, poeira.",
-        "key": "elementalism",
-        "level": 0,
-        "name": "Elementalismo",
         "source": "srd"
       },
       {
@@ -2564,13 +2576,6 @@
         "key": "mending",
         "level": 0,
         "name": "Consertar",
-        "source": "srd"
-      },
-      {
-        "description": "sussurra uma mensagem que só o alvo distante ouve, e ele pode responder.",
-        "key": "message",
-        "level": 0,
-        "name": "Mensagem",
         "source": "srd"
       },
       {
@@ -2599,20 +2604,6 @@
         "key": "shillelagh",
         "level": 0,
         "name": "Bordão Druídico",
-        "source": "srd"
-      },
-      {
-        "description": "um toque estabiliza uma criatura caída a 0 de vida.",
-        "key": "spare-the-dying",
-        "level": 0,
-        "name": "Estabilizar",
-        "source": "srd"
-      },
-      {
-        "description": "um lampejo de luz estelar fere e destaca o alvo.",
-        "key": "starry-wisp",
-        "level": 0,
-        "name": "Fagulha Estelar",
         "source": "srd"
       },
       {
@@ -2693,13 +2684,6 @@
         "source": "srd"
       },
       {
-        "description": "Você cria um fragmento de gelo e o arremessa em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 1d10 de dano Perfurante. Acertando ou errando, o fragmento então explode. O alvo e cada criatura a até 5 pés dele devem ser bem-sucedidos em um teste de resistência de Destreza ou sofrerão 2d6 de dano de Frio.",
-        "key": "ice-knife",
-        "level": 1,
-        "name": "Adaga de Gelo",
-        "source": "srd"
-      },
-      {
         "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
         "key": "jump",
         "level": 1,
@@ -2711,13 +2695,6 @@
         "key": "longstrider",
         "level": 1,
         "name": "Passo Longo",
-        "source": "srd"
-      },
-      {
-        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
-        "key": "protection-from-evil-and-good",
-        "level": 1,
-        "name": "Proteção contra o Bem e o Mal",
         "source": "srd"
       },
       {
@@ -2739,99 +2716,6 @@
         "key": "thunderwave",
         "level": 1,
         "name": "Onda Trovejante",
-        "source": "srd"
-      }
-    ],
-    "paladin": [
-      {
-        "description": "até três aliados ganham um impulso em ataques e salvamentos.",
-        "key": "bless",
-        "level": 1,
-        "name": "Abençoar",
-        "source": "srd"
-      },
-      {
-        "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
-        "key": "command",
-        "level": 1,
-        "name": "Comando",
-        "source": "srd"
-      },
-      {
-        "description": "restaura vitalidade a uma criatura pelo toque.",
-        "key": "cure-wounds",
-        "level": 1,
-        "name": "Curar Ferimentos",
-        "source": "srd"
-      },
-      {
-        "description": "Pela duração, você sente a localização de qualquer Aberração, Celestial, Elemental, Fada, Corruptor ou Morto-vivo a até 30 pés de você. Você também sente se a magia Consagrar está ativa no local e, se estiver, onde. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
-        "key": "detect-evil-and-good",
-        "level": 1,
-        "name": "Detectar o Bem e o Mal",
-        "source": "srd"
-      },
-      {
-        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
-        "key": "detect-magic",
-        "level": 1,
-        "name": "Detectar Magia",
-        "source": "srd"
-      },
-      {
-        "description": "Pela duração, você sente a localização de venenos, criaturas venenosas ou peçonhentas e contágios mágicos a até 30 pés de você. Você sente o tipo de veneno, criatura ou contágio em cada caso. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
-        "key": "detect-poison-and-disease",
-        "level": 1,
-        "name": "Detectar Veneno e Doença",
-        "source": "srd"
-      },
-      {
-        "description": "Até que a magia termine, seus ataques com armas causam 1d4 de dano Radiante extra em um acerto.",
-        "key": "divine-favor",
-        "level": 1,
-        "name": "Favor Divino",
-        "source": "srd"
-      },
-      {
-        "description": "O alvo sofre 2d8 de dano Radiante extra do ataque. O dano aumenta em 1d8 se o alvo for um Corruptor ou um Morto-vivo.",
-        "key": "divine-smite",
-        "level": 1,
-        "name": "Destruição Divina",
-        "source": "srd"
-      },
-      {
-        "description": "Uma criatura voluntária que você toca é imbuída de bravura. Até o fim da magia, a criatura fica imune à condição Amedrontado e ganha Pontos de Vida Temporários iguais ao seu modificador de habilidade de conjuração no início de cada um de seus turnos.",
-        "key": "heroism",
-        "level": 1,
-        "name": "Heroísmo",
-        "source": "srd"
-      },
-      {
-        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
-        "key": "protection-from-evil-and-good",
-        "level": 1,
-        "name": "Proteção contra o Bem e o Mal",
-        "source": "srd"
-      },
-      {
-        "description": "Você remove veneno e apodrecimento de comida e bebida não mágicas em uma Esfera de 1,5 metro de raio centrada em um ponto dentro do alcance.",
-        "key": "purify-food-and-drink",
-        "level": 1,
-        "name": "Purificar Alimentos e Bebidas",
-        "source": "srd"
-      },
-      {
-        "description": "Ao atingir o alvo, ele sofre 1d6 de dano de Fogo extra pelo ataque. No início de cada um de seus turnos até o fim da magia, o alvo sofre 1d6 de dano de Fogo e então faz um teste de resistência de Constituição. Em uma falha, a magia continua. Em um sucesso, a magia termina.",
-        "key": "searing-smite",
-        "level": 1,
-        "name": "Destruição Ardente",
-        "source": "srd"
-      },
-      {
-        "description": "Um campo cintilante envolve uma criatura à sua escolha dentro do alcance, concedendo a ela um bônus de +2 na CA pela duração.",
-        "key": "shield-of-faith",
-        "level": 1,
-        "name": "Escudo da Fé",
         "source": "srd"
       }
     ],
@@ -2869,20 +2753,6 @@
         "key": "detect-poison-and-disease",
         "level": 1,
         "name": "Detectar Veneno e Doença",
-        "source": "srd"
-      },
-      {
-        "description": "Ao atingir o alvo, vinhas agarradoras aparecem nele, e ele faz um teste de resistência de Força. Uma criatura Grande ou maior tem Vantagem neste teste. Em uma falha, o alvo fica com a condição Contido até que a magia termine. Em um sucesso, as vinhas murcham e a magia termina. Enquanto Contido, o alvo sofre 1d6 de dano Perfurante no início de cada um de seus turnos. O alvo ou uma criatura ao alcance dele pode realizar uma ação para fazer um teste de Força (Atletismo) contra a CD de resistência da sua magia. Em um sucesso, a magia termina.",
-        "key": "ensnaring-strike",
-        "level": 1,
-        "name": "Ataque Enredante",
-        "source": "srd"
-      },
-      {
-        "description": "Plantas agarradoras brotam do solo em um quadrado de 20 pés dentro do alcance. Pela duração, essas plantas transformam o solo na área em Terreno Difícil. Elas desaparecem quando a magia termina. Cada criatura (exceto você) na área quando você conjura a magia deve ser bem-sucedida em um teste de resistência de Força ou ficará com a condição Contido até que a magia termine. Uma criatura Contida pode realizar uma ação para fazer um teste de Força (Atletismo) contra a CD de resistência da sua magia. Em um sucesso, ela se liberta das plantas agarradoras e não está mais Contida por elas.",
-        "key": "entangle",
-        "level": 1,
-        "name": "Emaranhar",
         "source": "srd"
       },
       {
@@ -2948,13 +2818,6 @@
         "key": "dancing-lights",
         "level": 0,
         "name": "Luzes Dançantes",
-        "source": "srd"
-      },
-      {
-        "description": "manipula um punhado dos elementos: faísca, brisa, respingo, poeira.",
-        "key": "elementalism",
-        "level": 0,
-        "name": "Elementalismo",
         "source": "srd"
       },
       {
@@ -3028,13 +2891,6 @@
         "source": "srd"
       },
       {
-        "description": "um estouro de energia mágica bruta atinge um alvo.",
-        "key": "sorcerous-burst",
-        "level": 0,
-        "name": "Explosão Feiticeira",
-        "source": "srd"
-      },
-      {
         "description": "guia o próximo golpe, tornando-o mais preciso.",
         "key": "true-strike",
         "level": 0,
@@ -3053,13 +2909,6 @@
         "key": "charm-person",
         "level": 1,
         "name": "Enfeitiçar Pessoa",
-        "source": "srd"
-      },
-      {
-        "description": "Você arremessa um orbe de energia em um alvo dentro do alcance. Escolha Ácido, Frio, Fogo, Eletricidade, Veneno ou Trovoada para o tipo de orbe que você cria e, então, faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 3d8 de dano do tipo escolhido. Se você rolar o mesmo número em dois ou mais dos d8, o orbe salta para um alvo diferente à sua escolha dentro de 30 pés do alvo original. Faça uma jogada de ataque contra o novo alvo e faça uma nova jogada de dano. O orbe não pode saltar novamente a menos que você conjure a magia com um espaço de magia de nível 2 ou superior.",
-        "key": "chromatic-orb",
-        "level": 1,
-        "name": "Orbe Cromática",
         "source": "srd"
       },
       {
@@ -3119,20 +2968,6 @@
         "source": "srd"
       },
       {
-        "description": "Graxa não inflamável cobre o solo em um quadrado de 3 metros centrado em um ponto dentro do alcance e o transforma em Terreno Difícil pela duração. Quando a graxa aparece, cada criatura em pé na área deve ser bem-sucedida em um teste de resistência de Destreza ou ficará com a condição Caído. Uma criatura que entrar na área ou terminar seu turno nela também deve ser bem-sucedida nesse teste ou cairá Caída.",
-        "key": "grease",
-        "level": 1,
-        "name": "Graxa",
-        "source": "srd"
-      },
-      {
-        "description": "Você cria um fragmento de gelo e o arremessa em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 1d10 de dano Perfurante. Acertando ou errando, o fragmento então explode. O alvo e cada criatura a até 5 pés dele devem ser bem-sucedidos em um teste de resistência de Destreza ou sofrerão 2d6 de dano de Frio.",
-        "key": "ice-knife",
-        "level": 1,
-        "name": "Adaga de Gelo",
-        "source": "srd"
-      },
-      {
         "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
         "key": "jump",
         "level": 1,
@@ -3151,13 +2986,6 @@
         "key": "magic-missile",
         "level": 1,
         "name": "Mísseis Mágicos",
-        "source": "srd"
-      },
-      {
-        "description": "Você dispara um raio esverdeado em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se atingir, o alvo sofre 2d8 de dano de Veneno e fica com a condição Envenenado até o final do seu próximo turno.",
-        "key": "ray-of-sickness",
-        "level": 1,
-        "name": "Raio de Enjoo",
         "source": "srd"
       },
       {
@@ -3240,10 +3068,10 @@
         "source": "srd"
       },
       {
-        "description": "Até três criaturas à sua escolha que você possa ver dentro do alcance devem, cada uma, fazer um teste de resistência de Carisma. Sempre que um alvo que falhar nesse teste fizer uma jogada de ataque ou um teste de resistência antes da magia terminar, o alvo deve subtrair 1d4 da jogada de ataque ou teste.",
-        "key": "bane",
+        "description": "Uma fina camada de chamas dispara de você. Cada criatura em um Cone de 15 pés faz um teste de resistência de Destreza, sofrendo 3d6 de dano de Fogo se falhar no teste ou metade desse dano se obtiver sucesso. Objetos inflamáveis no Cone que não estejam sendo vestidos ou carregados começam a queimar.",
+        "key": "burning-hands",
         "level": 1,
-        "name": "Perdição",
+        "name": "Mãos Flamejantes",
         "source": "srd"
       },
       {
@@ -3254,17 +3082,17 @@
         "source": "srd"
       },
       {
+        "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
+        "key": "command",
+        "level": 1,
+        "name": "Comando",
+        "source": "srd"
+      },
+      {
         "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
         "key": "comprehend-languages",
         "level": 1,
         "name": "Compreender Idiomas",
-        "source": "srd"
-      },
-      {
-        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
-        "key": "detect-magic",
-        "level": 1,
-        "name": "Detectar Magia",
         "source": "srd"
       },
       {
@@ -3275,17 +3103,17 @@
         "source": "srd"
       },
       {
+        "description": "Objetos em um cubo de 6 metros dentro do alcance são contornados por uma luz azul, verde ou violeta (à sua escolha). Cada criatura no cubo também é contornada se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem Luz Penumbra em um raio de 3 metros e não podem se beneficiar da condição Invisível. Jogadas de ataque contra uma criatura ou objeto afetado têm Vantagem se o atacante puder vê-lo.",
+        "key": "faerie-fire",
+        "level": 1,
+        "name": "Fogo das Fadas",
+        "source": "srd"
+      },
+      {
         "description": "A criatura que causou dano a você é momentaneamente cercada por chamas verdes. Ela faz um teste de resistência de Destreza, sofrendo 2d10 de dano de Fogo se falhar ou metade desse dano se obtiver sucesso.",
         "key": "hellish-rebuke",
         "level": 1,
         "name": "Repreensão Infernal",
-        "source": "srd"
-      },
-      {
-        "description": "Você coloca uma maldição em uma criatura que você possa ver dentro do alcance. Até o fim da magia, você causa 1d6 de dano Necrótico extra ao alvo sempre que acertá-lo com uma jogada de ataque. Além disso, escolha uma habilidade ao conjurar a magia. O alvo tem Desvantagem em testes de habilidade feitos com a habilidade escolhida. Se o alvo cair para 0 Pontos de Vida antes da magia terminar, você pode usar uma Ação Bônus em um turno posterior para amaldiçoar uma nova criatura.",
-        "key": "hex",
-        "level": 1,
-        "name": "Azar",
         "source": "srd"
       },
       {
@@ -3310,10 +3138,10 @@
         "source": "srd"
       },
       {
-        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
-        "key": "speak-with-animals",
+        "description": "Cada criatura à sua escolha em uma Esfera de 5 pés de raio centrada em um ponto dentro do alcance deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará com a condição Incapacitado até o final do seu próximo turno, momento em que deve repetir o teste. Se o alvo falhar no segundo teste, o alvo fica com a condição Inconsciente pela duração. A magia termina em um alvo se ele sofrer dano ou se alguém a até 5 pés dele usar uma ação para sacudi-lo e retirá-lo do efeito da magia. Criaturas que não dormem, como elfos, ou que possuem Imunidade à condição Exaustão, são automaticamente bem-sucedidas nos testes contra esta magia.",
+        "key": "sleep",
         "level": 1,
-        "name": "Falar com Animais",
+        "name": "Sono",
         "source": "srd"
       },
       {
@@ -3344,13 +3172,6 @@
         "key": "dancing-lights",
         "level": 0,
         "name": "Luzes Dançantes",
-        "source": "srd"
-      },
-      {
-        "description": "manipula um punhado dos elementos: faísca, brisa, respingo, poeira.",
-        "key": "elementalism",
-        "level": 0,
-        "name": "Elementalismo",
         "source": "srd"
       },
       {
@@ -3449,13 +3270,6 @@
         "key": "charm-person",
         "level": 1,
         "name": "Enfeitiçar Pessoa",
-        "source": "srd"
-      },
-      {
-        "description": "Você arremessa um orbe de energia em um alvo dentro do alcance. Escolha Ácido, Frio, Fogo, Eletricidade, Veneno ou Trovoada para o tipo de orbe que você cria e, então, faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 3d8 de dano do tipo escolhido. Se você rolar o mesmo número em dois ou mais dos d8, o orbe salta para um alvo diferente à sua escolha dentro de 30 pés do alvo original. Faça uma jogada de ataque contra o novo alvo e faça uma nova jogada de dano. O orbe não pode saltar novamente a menos que você conjure a magia com um espaço de magia de nível 2 ou superior.",
-        "key": "chromatic-orb",
-        "level": 1,
-        "name": "Orbe Cromática",
         "source": "srd"
       },
       {
@@ -3543,13 +3357,6 @@
         "source": "srd"
       },
       {
-        "description": "Você cria um fragmento de gelo e o arremessa em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 1d10 de dano Perfurante. Acertando ou errando, o fragmento então explode. O alvo e cada criatura a até 5 pés dele devem ser bem-sucedidos em um teste de resistência de Destreza ou sofrerão 2d6 de dano de Frio.",
-        "key": "ice-knife",
-        "level": 1,
-        "name": "Adaga de Gelo",
-        "source": "srd"
-      },
-      {
         "description": "Você toca um objeto durante toda a conjuração da magia. Se o objeto for um item mágico ou algum outro objeto mágico, você aprende suas propriedades e como usá-las, se ele requer Sintonização e quantas cargas ele possui, se houver. Você aprende se alguma magia contínua está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende o nome dessa magia. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias contínuas, se houver, estão afetando-a atualmente.",
         "key": "identify",
         "level": 1,
@@ -3596,13 +3403,6 @@
         "key": "protection-from-evil-and-good",
         "level": 1,
         "name": "Proteção contra o Bem e o Mal",
-        "source": "srd"
-      },
-      {
-        "description": "Você dispara um raio esverdeado em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se atingir, o alvo sofre 2d8 de dano de Veneno e fica com a condição Envenenado até o final do seu próximo turno.",
-        "key": "ray-of-sickness",
-        "level": 1,
-        "name": "Raio de Enjoo",
         "source": "srd"
       },
       {
@@ -3662,6 +3462,10 @@
     {
       "key": "fighter",
       "label": "Guerreiro"
+    },
+    {
+      "key": "marshal",
+      "label": "Marechal"
     },
     {
       "key": "monk",
@@ -3730,6 +3534,147 @@
       "label": "Tiefling"
     }
   ],
+  "retiredFeatures": {
+    "barbarian_weapon-mastery": {
+      "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas corpo-a-corpo Simples ou Marciais à sua escolha, como Machados Grandes e Machadinhas. Sempre que terminar um Descanso Longo, você pode praticar exercícios com armas e alterar uma dessas escolhas de arma. Ao atingir certos níveis de Bárbaro, você ganha a habilidade de usar as propriedades de domínio de mais tipos de armas, conforme mostrado na coluna Domínio de Armas da tabela de Características de Bárbaro.",
+      "key": "barbarian_weapon-mastery",
+      "name": "Domínio de Armas",
+      "source": "srd"
+    },
+    "cleric_divine-order": {
+      "description": "Você se dedicou a um dos seguintes papéis sagrados à sua escolha. **Protetor.** Treinado para a batalha, você ganha proficiência com armas Marciais e treinamento com armaduras Pesadas. **Taumaturgo.** Você conhece um truque extra da lista de magias de Clérigo. Além disso, sua conexão mística com o divino lhe concede um bônus em seus testes de Inteligência (Arcanismo ou Religião). O bônus é igual ao seu modificador de Sabedoria (mínimo de +1).",
+      "key": "cleric_divine-order",
+      "name": "Ordem Divina",
+      "source": "srd"
+    },
+    "druid_primal-order": {
+      "description": "Você se dedicou a um dos seguintes papéis sagrados à sua escolha. **Mágico.** Você conhece um truque extra da lista de magias de Druida. Além disso, sua conexão mística com a natureza lhe concede um bônus em seus testes de Inteligência (Arcanismo ou Natureza). O bônus é igual ao seu modificador de Sabedoria (bônus mínimo de +1). **Guardião.** Treinado para a batalha, você ganha proficiência com armas Marciais e treinamento com armaduras Médias.",
+      "key": "druid_primal-order",
+      "name": "Ordem Primal",
+      "source": "srd"
+    },
+    "fighter_weapon-mastery": {
+      "description": "Seu treinamento com armas permite que você use as propriedades de domínio de três tipos de armas Simples ou Marciais à sua escolha. Sempre que terminar um Descanso Longo, você pode praticar exercícios com armas e alterar uma dessas escolhas de arma. Ao atingir certos níveis de Guerreiro, você ganha a habilidade de usar as propriedades de domínio de mais tipos de armas, conforme mostrado na coluna Domínio de Armas da tabela de Características de Guerreiro.",
+      "key": "fighter_weapon-mastery",
+      "name": "Domínio de Armas",
+      "source": "srd"
+    },
+    "paladin_weapon-mastery": {
+      "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Espadas Longas e Azagaias. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Alabardas e Mangual.",
+      "key": "paladin_weapon-mastery",
+      "name": "Domínio de Armas",
+      "source": "srd"
+    },
+    "ranger_weapon-mastery": {
+      "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Arcos Longos e Espadas Curtas. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Cimitarra e Espadas Longas.",
+      "key": "ranger_weapon-mastery",
+      "name": "Domínio de Armas",
+      "source": "srd"
+    },
+    "rogue_weapon-mastery": {
+      "description": "Seu treinamento com armas permite que você use as propriedades de domínio de dois tipos de armas à sua escolha com as quais você tenha proficiência, como Adagas e Arcos Curtos. Sempre que terminar um Descanso Longo, você pode alterar os tipos de armas que escolheu. Por exemplo, você poderia mudar para usar as propriedades de domínio de Cimitarra e Espadas Curtas.",
+      "key": "rogue_weapon-mastery",
+      "name": "Domínio de Armas",
+      "source": "srd"
+    },
+    "sorcerer_innate-sorcery": {
+      "description": "Um evento em seu passado deixou uma marca indelével em você, infundindo-o com magia latente. Como uma Ação Bônus, você pode liberar essa magia por 1 minuto, durante o qual você ganha os seguintes benefícios: - A CD de resistência de suas magias de Feiticeiro aumenta em 1. - Você tem Vantagem nas jogadas de ataque de magias de Feiticeiro que você conjurar. Você pode usar esta característica duas vezes, e você recupera todos os usos gastos quando terminar um Descanso Longo.",
+      "key": "sorcerer_innate-sorcery",
+      "name": "Feitiçaria Inata",
+      "source": "srd"
+    },
+    "warlock_eldritch-invocations": {
+      "description": "Você desenterrou Invocações Místicas, fragmentos de conhecimento proibido que lhe conferem uma habilidade mágica duradoura ou outras lições. Você ganha uma invocação à sua escolha, como Pacto do Tomo. As invocações estão descritas na seção \"Opções de Invocações Místicas\" mais adiante na descrição desta classe. **Pré-requisitos.** Se uma invocação tiver um pré-requisito, você deve atendê-lo para aprender essa invocação. Por exemplo, se uma invocação exige que você seja um Bruxo de nível 5 ou superior, você pode selecionar a invocação assim que atingir o nível 5 de Bruxo. **Substituindo e Ganhando Invocações.** Sempre que ganhar um nível de Bruxo, você pode substituir uma de suas invocações por outra para a qual você se qualifique. Você não pode substituir uma invocação se ela for um pré-requisito para outra invocação que você possua. Ao atingir certos níveis de Bruxo, você ganha mais invocações à sua escolha, conforme mostrado na coluna Invocações da tabela de Características de Bruxo. Você não pode escolher a mesma invocação mais de uma vez, a menos que sua descrição diga o contrário.",
+      "key": "warlock_eldritch-invocations",
+      "name": "Invocações Místicas",
+      "source": "srd"
+    },
+    "wizard_ritual-adept": {
+      "description": "Você pode conjurar qualquer magia como um Ritual se essa magia tiver a marca Ritual e a magia estiver em seu grimório. Você não precisa ter a magia preparada, mas deve ler o livro para conjurar uma magia desta forma.",
+      "key": "wizard_ritual-adept",
+      "name": "Adepto Ritual",
+      "source": "srd"
+    }
+  },
+  "retiredSpells": {
+    "chromatic-orb": {
+      "description": "Você arremessa um orbe de energia em um alvo dentro do alcance. Escolha Ácido, Frio, Fogo, Eletricidade, Veneno ou Trovoada para o tipo de orbe que você cria e, então, faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 3d8 de dano do tipo escolhido. Se você rolar o mesmo número em dois ou mais dos d8, o orbe salta para um alvo diferente à sua escolha dentro de 30 pés do alvo original. Faça uma jogada de ataque contra o novo alvo e faça uma nova jogada de dano. O orbe não pode saltar novamente a menos que você conjure a magia com um espaço de magia de nível 2 ou superior.",
+      "key": "chromatic-orb",
+      "level": 1,
+      "name": "Orbe Cromática",
+      "source": "srd"
+    },
+    "dissonant-whispers": {
+      "description": "Uma criatura à sua escolha que você possa ver dentro do alcance ouve uma melodia discordante em sua mente. O alvo faz um teste de resistência de Sabedoria. Em uma falha, ele sofre 3d6 de dano Psíquico e deve usar imediatamente sua Reação, se disponível, para se mover o mais longe possível de você, usando a rota mais segura. Em um sucesso, o alvo sofre apenas metade do dano.",
+      "key": "dissonant-whispers",
+      "level": 1,
+      "name": "Sussurros Dissonantes",
+      "source": "srd"
+    },
+    "divine-smite": {
+      "description": "O alvo sofre 2d8 de dano Radiante extra do ataque. O dano aumenta em 1d8 se o alvo for um Corruptor ou um Morto-vivo.",
+      "key": "divine-smite",
+      "level": 1,
+      "name": "Destruição Divina",
+      "source": "srd"
+    },
+    "elementalism": {
+      "description": "manipula um punhado dos elementos: faísca, brisa, respingo, poeira.",
+      "key": "elementalism",
+      "level": 0,
+      "name": "Elementalismo",
+      "source": "srd"
+    },
+    "ensnaring-strike": {
+      "description": "Ao atingir o alvo, vinhas agarradoras aparecem nele, e ele faz um teste de resistência de Força. Uma criatura Grande ou maior tem Vantagem neste teste. Em uma falha, o alvo fica com a condição Contido até que a magia termine. Em um sucesso, as vinhas murcham e a magia termina. Enquanto Contido, o alvo sofre 1d6 de dano Perfurante no início de cada um de seus turnos. O alvo ou uma criatura ao alcance dele pode realizar uma ação para fazer um teste de Força (Atletismo) contra a CD de resistência da sua magia. Em um sucesso, a magia termina.",
+      "key": "ensnaring-strike",
+      "level": 1,
+      "name": "Ataque Enredante",
+      "source": "srd"
+    },
+    "hex": {
+      "description": "Você coloca uma maldição em uma criatura que você possa ver dentro do alcance. Até o fim da magia, você causa 1d6 de dano Necrótico extra ao alvo sempre que acertá-lo com uma jogada de ataque. Além disso, escolha uma habilidade ao conjurar a magia. O alvo tem Desvantagem em testes de habilidade feitos com a habilidade escolhida. Se o alvo cair para 0 Pontos de Vida antes da magia terminar, você pode usar uma Ação Bônus em um turno posterior para amaldiçoar uma nova criatura.",
+      "key": "hex",
+      "level": 1,
+      "name": "Azar",
+      "source": "srd"
+    },
+    "ice-knife": {
+      "description": "Você cria um fragmento de gelo e o arremessa em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se acertar, o alvo sofre 1d10 de dano Perfurante. Acertando ou errando, o fragmento então explode. O alvo e cada criatura a até 5 pés dele devem ser bem-sucedidos em um teste de resistência de Destreza ou sofrerão 2d6 de dano de Frio.",
+      "key": "ice-knife",
+      "level": 1,
+      "name": "Adaga de Gelo",
+      "source": "srd"
+    },
+    "ray-of-sickness": {
+      "description": "Você dispara um raio esverdeado em uma criatura dentro do alcance. Faça um ataque à distância com magia contra o alvo. Se atingir, o alvo sofre 2d8 de dano de Veneno e fica com a condição Envenenado até o final do seu próximo turno.",
+      "key": "ray-of-sickness",
+      "level": 1,
+      "name": "Raio de Enjoo",
+      "source": "srd"
+    },
+    "searing-smite": {
+      "description": "Ao atingir o alvo, ele sofre 1d6 de dano de Fogo extra pelo ataque. No início de cada um de seus turnos até o fim da magia, o alvo sofre 1d6 de dano de Fogo e então faz um teste de resistência de Constituição. Em uma falha, a magia continua. Em um sucesso, a magia termina.",
+      "key": "searing-smite",
+      "level": 1,
+      "name": "Destruição Ardente",
+      "source": "srd"
+    },
+    "sorcerous-burst": {
+      "description": "um estouro de energia mágica bruta atinge um alvo.",
+      "key": "sorcerous-burst",
+      "level": 0,
+      "name": "Explosão Feiticeira",
+      "source": "srd"
+    },
+    "starry-wisp": {
+      "description": "um lampejo de luz estelar fere e destaca o alvo.",
+      "key": "starry-wisp",
+      "level": 0,
+      "name": "Fagulha Estelar",
+      "source": "srd"
+    }
+  },
   "skills": [
     {
       "ability": "dexterity",
@@ -3835,55 +3780,55 @@
   "startingKits": {
     "barbarian": [
       {
-        "name": "Machado Grande",
+        "name": "Greataxe",
         "qty": 1
       },
       {
-        "name": "Machadinha",
-        "qty": 4
+        "name": "Two Handaxes",
+        "qty": 1
       },
       {
-        "name": "Mochila de Explorador",
+        "name": "Explorer’s Pack and Four Javelins",
         "qty": 1
       }
     ],
     "bard": [
       {
-        "name": "Armadura de Couro",
+        "name": "Rapier",
         "qty": 1
       },
       {
-        "name": "Adaga",
-        "qty": 2
-      },
-      {
-        "name": "Instrumento Musical",
+        "name": "Diplomat’s Pack",
         "qty": 1
       },
       {
-        "name": "Mochila de Artista",
+        "name": "Lute",
+        "qty": 1
+      },
+      {
+        "name": "Leather Armor and a Dagger",
         "qty": 1
       }
     ],
     "cleric": [
       {
-        "name": "Camisa de Malha",
+        "name": "Mace",
         "qty": 1
       },
       {
-        "name": "Escudo",
+        "name": "Scale Mail",
         "qty": 1
       },
       {
-        "name": "Maça",
+        "name": "Light Crossbow and 20 Bolts",
         "qty": 1
       },
       {
-        "name": "Símbolo Sagrado",
+        "name": "Priest’s Pack",
         "qty": 1
       },
       {
-        "name": "Mochila de Sacerdote",
+        "name": "Shield and a Holy Symbol",
         "qty": 1
       }
     ],
@@ -3907,227 +3852,201 @@
     ],
     "druid": [
       {
-        "name": "Armadura de Couro",
+        "name": "Wooden Shield",
         "qty": 1
       },
       {
-        "name": "Escudo",
+        "name": "Scimitar",
         "qty": 1
       },
       {
-        "name": "Foice",
+        "name": "Leather Armor",
         "qty": 1
       },
       {
-        "name": "Foco Druídico (Bordão)",
+        "name": "Explorer’s Pack",
         "qty": 1
       },
       {
-        "name": "Mochila de Explorador",
-        "qty": 1
-      },
-      {
-        "name": "Kit de Herbalismo",
+        "name": "Druidic Focus",
         "qty": 1
       }
     ],
     "fighter": [
       {
-        "name": "Cota de Malha",
+        "name": "Chain Mail",
         "qty": 1
       },
       {
-        "name": "Espada Grande",
+        "name": "Martial Weapon and a Shield",
         "qty": 1
       },
       {
-        "name": "Mangual",
+        "name": "Light Crossbow and 20 Bolts",
         "qty": 1
       },
       {
-        "name": "Azagaia",
-        "qty": 8
+        "name": "Dungeoneer’s Pack",
+        "qty": 1
+      }
+    ],
+    "marshal": [
+      {
+        "name": "Javelin",
+        "qty": 6
       },
       {
-        "name": "Mochila de Masmorra",
+        "name": "Longsword",
+        "qty": 1
+      },
+      {
+        "name": "Hauberk",
+        "qty": 1
+      },
+      {
+        "name": "Light Shield",
+        "qty": 1
+      },
+      {
+        "name": "Explorer's Pack",
         "qty": 1
       }
     ],
     "monk": [
       {
-        "name": "Lança",
+        "name": "Shortsword",
         "qty": 1
       },
       {
-        "name": "Adaga",
-        "qty": 5
-      },
-      {
-        "name": "Ferramentas de Artesão",
+        "name": "Dungeoneer’s Pack",
         "qty": 1
       },
       {
-        "name": "Mochila de Explorador",
-        "qty": 1
+        "name": "Dart",
+        "qty": 10
       }
     ],
     "paladin": [
       {
-        "name": "Cota de Malha",
+        "name": "Martial Weapon and a Shield",
         "qty": 1
       },
       {
-        "name": "Escudo",
+        "name": "Five Javelins",
         "qty": 1
       },
       {
-        "name": "Espada Longa",
+        "name": "Priest’s Pack",
         "qty": 1
       },
       {
-        "name": "Azagaia",
-        "qty": 6
-      },
-      {
-        "name": "Símbolo Sagrado",
-        "qty": 1
-      },
-      {
-        "name": "Mochila de Sacerdote",
+        "name": "Chain Mail and a Holy Symbol",
         "qty": 1
       }
     ],
     "ranger": [
       {
-        "name": "Armadura de Couro Batido",
+        "name": "Scale Mail",
         "qty": 1
       },
       {
-        "name": "Cimitarra",
+        "name": "Two Shortswords",
         "qty": 1
       },
       {
-        "name": "Espada Curta",
+        "name": "Dungeoneer’s Pack",
         "qty": 1
       },
       {
-        "name": "Arco Longo",
-        "qty": 1
-      },
-      {
-        "name": "Flecha",
-        "qty": 20
-      },
-      {
-        "name": "Aljava",
-        "qty": 1
-      },
-      {
-        "name": "Foco Druídico (Ramo de Visco)",
-        "qty": 1
-      },
-      {
-        "name": "Mochila de Explorador",
+        "name": "Longbow and a Quiver of 20 Arrows",
         "qty": 1
       }
     ],
     "rogue": [
       {
-        "name": "Armadura de Couro",
+        "name": "Rapier",
         "qty": 1
       },
       {
-        "name": "Adaga",
-        "qty": 2
-      },
-      {
-        "name": "Espada Curta",
+        "name": "Shortbow and Quiver of 20 Arrows",
         "qty": 1
       },
       {
-        "name": "Arco Curto",
+        "name": "Burglar’s Pack",
         "qty": 1
       },
       {
-        "name": "Flecha",
-        "qty": 20
-      },
-      {
-        "name": "Aljava",
+        "name": "Leather Armor",
         "qty": 1
       },
       {
-        "name": "Ferramentas de Ladrão",
+        "name": "Two Daggers",
         "qty": 1
       },
       {
-        "name": "Mochila de Ladrão",
+        "name": "Thieves’ Tools",
         "qty": 1
       }
     ],
     "sorcerer": [
       {
-        "name": "Lança",
+        "name": "Light Crossbow and 20 Bolts",
         "qty": 1
       },
       {
-        "name": "Adaga",
-        "qty": 2
-      },
-      {
-        "name": "Foco Arcano (Cristal)",
+        "name": "Component Pouch",
         "qty": 1
       },
       {
-        "name": "Mochila de Masmorra",
+        "name": "Dungeoneer’s Pack",
+        "qty": 1
+      },
+      {
+        "name": "Two Daggers",
         "qty": 1
       }
     ],
     "warlock": [
       {
-        "name": "Armadura de Couro",
+        "name": "Light Crossbow and 20 Bolts",
         "qty": 1
       },
       {
-        "name": "Foice",
+        "name": "Component Pouch",
         "qty": 1
       },
       {
-        "name": "Adaga",
-        "qty": 2
-      },
-      {
-        "name": "Foco Arcano (Orbe)",
+        "name": "Scholar’s Pack",
         "qty": 1
       },
       {
-        "name": "Livro (Saber Oculto)",
+        "name": "Leather Armor",
         "qty": 1
       },
       {
-        "name": "Mochila de Erudito",
+        "name": "Any Simple Weapon",
+        "qty": 1
+      },
+      {
+        "name": "Two Daggers",
         "qty": 1
       }
     ],
     "wizard": [
       {
-        "name": "Adaga",
-        "qty": 2
-      },
-      {
-        "name": "Foco Arcano (Bordão)",
+        "name": "Quarterstaff",
         "qty": 1
       },
       {
-        "name": "Túnica",
+        "name": "Component Pouch",
         "qty": 1
       },
       {
-        "name": "Grimório",
+        "name": "Scholar’s Pack",
         "qty": 1
       },
       {
-        "name": "Mochila de Erudito",
+        "name": "Spellbook",
         "qty": 1
       }
     ]

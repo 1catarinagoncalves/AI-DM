@@ -47,10 +47,19 @@ describe('migração US-105 — texto legado vira chave do catálogo', () => {
     expect(toRace('Meio-Orc')).toBe('half-orc')
   })
 
-  // Substring casaria "Meio-Orc" em `orc`, que é a espécie NOVA — raça migra por match exato.
-  it('"Meio-Orc" não vira `orc`', () => {
+  // Substring casaria "Meio-Orc" em `orc` — raça migra por match exato, não por inclusão.
+  //
+  // US-139 (ADR 009 §8): `orc` SAIU do catálogo — era a espécie que a união com o 5.2 trazia
+  // (ADR 009 §6/§7); a reversão pro 5.1 como fonte ÚNICA (US-138) a tirou de novo, sem fonte que
+  // a recupere hoje. `RACE_ALIASES.orc` continua mapeado pra `'orc'` (não removido: reaparece
+  // sozinho se uma fonte futura trouxer a raça de volta), mas `toKey` só aceita alias presente no
+  // catálogo atual (`valid.has(exact)`) — então "Orc" cru fica SEM DESTINO agora, correto: nenhum
+  // personagem tem essa raça pra migrar (checado contra o banco, 0 fichas com `race` orc/goliath
+  // em 15/08/2026), e o script reporta em `stuck` em vez de gravar uma chave que não existe mais.
+  it('"Meio-Orc" não vira `orc` (migra pra `half-orc`); "Orc" sozinho fica sem destino (5.1 não tem a raça)', () => {
     expect(toRace('Meio-Orc')).not.toBe('orc')
-    expect(toRace('Orc')).toBe('orc')
+    expect(toRace('Meio-Orc')).toBe('half-orc')
+    expect(toRace('Orc')).toBeNull()
   })
 
   it('é idempotente: valor que já é chave passa intacto', () => {

@@ -30,8 +30,15 @@ const A5E_AG = `${RAW}/en-publishing/a5e-ag`
 // (`srd-2024/Species.json`) saiu do sync porque nada mais o consome (era só `buildRaces`,
 // via US-105/ADR 009 D2, revertida). O sufixo `.2014` no arquivo local é herança de quando os
 // dois pares existiam lado a lado; mantido pra não mexer no nome que `ingest.mjs` já lê.
-// As 12 classes base são idênticas nas duas edições (ADR 009 §4); feature/magia entram
-// quando a story delas passar pela fusão (mecanismo em `mergeEditions`, ainda vivo pra isso).
+//
+// US-139 (ADR 009 §8): mesma reversão em `classes`/`classFeatures`/`classSpells` — `CharacterClass.json`,
+// `ClassFeature.json`, `ClassFeatureItem.json` e `Spell.json` locais viram os do `srd-2014` (as 12
+// bases são idênticas entre edições, ADR 009 §4, só o `pk` muda de prefixo). O par 5.2 sai do sync por
+// completo — nada mais o lê, mesma decisão de "troca de fonte, não união" da US-138 pra `races`; sem
+// par 5.2 sobrevivendo, os quatro nomes locais não colidem e não precisam de sufixo `.2014`. O Marshal
+// (`a5e-ag`) entra pelos MESMOS três documentos, mesmo publisher/licença que `Background`/`BackgroundBenefit`
+// (US-121) — sufixados `.a5e-ag` porque, ao contrário de `races`, aqui os DOIS pares (5.1 + a5e-ag)
+// convivem no artefato (fusão por `main()`, não por `mergeEditions` — ver `ingest.mjs`).
 //
 // US-108: `Rule.json` traz o TEXTO normativo das regras (56 no v2.1.0), entre elas a tabela
 // de modificadores de habilidade. Ele não alimenta o `config` — só o artefato derivado
@@ -43,13 +50,16 @@ const FILES = [
   // sem entrada nova em NOTICE-open5e.md. Catálogo de ferramentas/veículos (config.tools).
   [`${SRD}/Item.json`, 'Item.json'],
   [`${CORE}/Skill.json`, 'Skill.json'],
-  [`${SRD}/CharacterClass.json`, 'CharacterClass.json'],
-  [`${SRD}/ClassFeature.json`, 'ClassFeature.json'],
-  [`${SRD}/ClassFeatureItem.json`, 'ClassFeatureItem.json'],
-  [`${SRD}/Spell.json`, 'Spell.json'],
+  [`${SRD_2014}/CharacterClass.json`, 'CharacterClass.json'],
   [`${SRD_2014}/Species.json`, 'Species.2014.json'],
+  [`${SRD_2014}/ClassFeature.json`, 'ClassFeature.json'],
+  [`${SRD_2014}/ClassFeatureItem.json`, 'ClassFeatureItem.json'],
+  [`${SRD_2014}/Spell.json`, 'Spell.json'],
   [`${A5E_AG}/Background.json`, 'Background.json'],
   [`${A5E_AG}/BackgroundBenefit.json`, 'BackgroundBenefit.json'],
+  [`${A5E_AG}/CharacterClass.json`, 'CharacterClass.a5e-ag.json'],
+  [`${A5E_AG}/ClassFeature.json`, 'ClassFeature.a5e-ag.json'],
+  [`${A5E_AG}/ClassFeatureItem.json`, 'ClassFeatureItem.a5e-ag.json'],
 ]
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '_data')

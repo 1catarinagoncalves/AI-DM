@@ -65,7 +65,7 @@ Uma subclasse **não** é uma identidade jogável sozinha: "eu sou um Campeão" 
 
 - **`buildSubclasses`** (nova função em `ingest.mjs`, ao lado de `buildClasses`): filtra `CharacterClass` com `subclass_of !== null` (o oposto do filtro que `buildClasses` já aplica), resolve a classe-mãe pelo `CLASS_MAP` (já apontando pro 5.1 + Marshal desde a US-139) e agrupa por chave canônica da classe. Falha alto se uma subclasse referenciar um `subclass_of` sem entrada no `CLASS_MAP` (mesmo padrão de erro alto que `buildClassFeatures` já tem para `parent` órfão).
 - **Fonte de dado**: o mesmo `CharacterClass.json` (`srd-2014`) e `a5e-ag/CharacterClass.json` que a US-105/US-139 já baixam — nenhum arquivo novo no `sync.mjs`.
-- **`SystemConfigSchema`** ganha `subclasses: z.record(z.string(), z.array(z.object({ key: z.string().min(1), label: z.string().min(1) }))).optional()` — reusa o par `{key,label}` já usado por `races`/`classes`, dessa vez dentro de um `Record` por classe-mãe.
+- **`SystemConfigSchema`** ganha `subclasses: z.record(z.string(), z.array(SystemCatalogEntrySchema)).optional()` — reusa o schema `{key,label}` já nomeado (`SystemCatalogEntrySchema`, mesmo usado por `races`/`classes`) dentro de um `Record` por classe-mãe, em vez de duplicar a forma como objeto literal solto (mesmo instinto de schema nomeado que a US-140 aplicou ao separar `RaceCatalogEntrySchema`).
 - **Overlay pt-BR**: 15 labels novas curadas à mão (12 do SRD + 3 do Marshal), mesmo padrão manual de `classes`/`races` (não entra em `MT_DOMAINS` — nome próprio curto, não prosa).
 - **`NOTICE-open5e.md`**: nenhuma atribuição nova — mesmos dois documentos (`srd-2014`, `a5e-ag`) já atribuídos pela US-105/US-121/US-139.
 - **Teste em `ingest.test.mjs`**: `buildSubclasses` com fixture sintética cobrindo uma classe com subclasse, uma sem (chave ausente ou array vazio — decidir e testar um dos dois, não os dois formatos ao mesmo tempo) e uma subclasse com `subclass_of` órfão (deve falhar o ingest, não ser descartada).
@@ -74,7 +74,7 @@ Uma subclasse **não** é uma identidade jogável sozinha: "eu sou um Campeão" 
 
 - **Features mecânicas de subclasse** (`ClassFeature` com `parent` = pk de subclasse, confirmado existente no dataset) — mesmo corte que a US-139 aplicou a feature de classe base: catálogo de identidade agora, mecânica é story própria.
 - **Escolha de subclasse na criação de personagem** — nenhuma mudança em `Character`, `character.service.ts` ou no wizard. Catálogo pronto para consumo, wiring é story separada (mesmo corte que a US-121 fez para background, a US-138/140 para raça).
-- **Nível em que a subclasse é escolhida** (1 para Clérigo/Feiticeiro/Bruxo, 3 para a maioria) — não modelado; o jogo não rastreia nível de personagem hoje. Fica registrado como pergunta para a story que implementar a escolha (*Questões em aberto* #1).
+- **Nível em que a subclasse é escolhida** (1 para Clérigo/Feiticeiro/Bruxo, 3 para a maioria) — não modelado; o jogo não rastreia nível de personagem hoje. YAGNI: não há sistema de progressão para modelar contra ainda; a story que implementar a escolha decide isso quando o cenário existir.
 - **As 4 divergências de nome entre edições** (`SRD_EQUIVALENTS` do ADR 009 §4) — moot, o 5.2 não é consultado (US-139).
 - **Catálogo de subespécie** — é a [US-140](./US-140-catalogo-subracas-srd-5-1.md), desenho de dado diferente (ver §Contexto).
 
@@ -82,13 +82,13 @@ Uma subclasse **não** é uma identidade jogável sozinha: "eu sou um Campeão" 
 
 ## Modelo de dados proposto
 
-Nenhum tipo novo além do `Record` — reusa o par `{key, label}` já usado por `classes`/`races`:
+Nenhum tipo novo além do `Record` — reusa o `SystemCatalogEntrySchema` já nomeado, o mesmo `{key, label}` usado por `classes`/`races` (US-140 aplicou o mesmo instinto: schema nomeado em vez de literal duplicado):
 
 ```ts
 // packages/shared/src/types/system.ts — dentro de SystemConfigSchema
 subclasses: z.record(
-  z.string(),                                              // chave da classe-mãe
-  z.array(z.object({ key: z.string().min(1), label: z.string().min(1) })),
+  z.string(),                            // chave da classe-mãe
+  z.array(SystemCatalogEntrySchema),     // reuso direto — mesma forma de classes/races, sem parentKey
 ).optional(),
 ```
 
@@ -137,8 +137,7 @@ Exemplo:
 
 ## Questões em aberto
 
-1. **Quando a escolha de subclasse for implementada (story futura), como ela lida com nível?** A maioria das classes SRD escolhe subclasse no nível 3; Clérigo/Feiticeiro/Bruxo no nível 1. O personagem hoje não tem nível progressivo rastreado além da criação — a story de consumo vai precisar decidir se a escolha acontece toda na criação (antecipando níveis futuros) ou fica condicionada a um sistema de progressão que ainda não existe. Não bloqueia esta story (catálogo só); registrado para quando a escolha for wired.
-2. **A subclasse do Marshal usa o mesmo rótulo em `config.subclasses.marshal` que a US-139 já previa excluir?** A US-139 tinha marcado as três subclasses do Marshal como fora de escopo dela — esta story as importa pelo catálogo de subclasse, não pelo de classe. Confirmar que não há conflito de expectativa com quem revisar a US-139 depois desta.
+1. **A subclasse do Marshal usa o mesmo rótulo em `config.subclasses.marshal` que a US-139 já previa excluir?** A US-139 tinha marcado as três subclasses do Marshal como fora de escopo dela — esta story as importa pelo catálogo de subclasse, não pelo de classe. Confirmar que não há conflito de expectativa com quem revisar a US-139 depois desta.
 
 ---
 
@@ -147,7 +146,7 @@ Exemplo:
 - [scripts/srd/ingest.mjs:34](../../../scripts/srd/ingest.mjs:34) — `CLASS_MAP`, reusado sem alteração para resolver a classe-mãe.
 - [scripts/srd/ingest.mjs:248-257](../../../scripts/srd/ingest.mjs:248) — `buildClasses`, molde direto para `buildSubclasses` (mesmo filtro invertido: `subclass_of !== null`).
 - [scripts/srd/ingest.mjs:740](../../../scripts/srd/ingest.mjs:740) — `buildConfig`, onde `buildSubclasses` entra ao lado de `buildClasses`.
-- [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `SystemConfigSchema`, onde `subclasses` entra.
+- [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `SystemConfigSchema`, onde `subclasses` entra; reusa `SystemCatalogEntrySchema` (mesmo já usado por `races`/`classes`) em vez de objeto literal novo.
 - [scripts/srd/locale/pt-BR.json](../../../scripts/srd/locale/pt-BR.json) — onde as 15 labels novas entram.
 - [docs/adr/009-uniao-dos-srd-5-1-e-5-2.md](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) §4 — medição da divergência de nome entre edições, moot depois da US-139.
 - [US-139](./US-139-catalogo-classes-marshal-a5e-adventurers-guide.md) — `CLASS_MAP` apontando pro 5.1 + Marshal, dependência direta.

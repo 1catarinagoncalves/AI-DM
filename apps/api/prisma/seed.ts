@@ -129,11 +129,11 @@ async function main() {
   // US-99: `config` é a base EN; o pt-BR vive em `configLocales` (ADR 005 D3).
   await prisma.system.upsert({
     where: { id: 'system-dnd5e' },
-    update: { name: 'D&D 5e SRD', version: '5.2', config: dnd5eConfig, configLocales: { 'pt-BR': dnd5eConfigPtBr } },
+    update: { name: 'D&D 5e SRD', version: '5.1', config: dnd5eConfig, configLocales: { 'pt-BR': dnd5eConfigPtBr } },
     create: {
       id: 'system-dnd5e',
       name: 'D&D 5e SRD',
-      version: '5.2',
+      version: '5.1',
       sourceType: 'SRD',
       config: dnd5eConfig,
       configLocales: { 'pt-BR': dnd5eConfigPtBr },

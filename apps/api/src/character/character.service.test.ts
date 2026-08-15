@@ -276,6 +276,32 @@ describe('CharacterService.create', () => {
     expect(char.features).toEqual([])
   })
 
+  // US-139: Marshal — 13ª classe do catálogo (a5e-ag), primeira que não é uma das 12 do SRD.
+  // Classe marcial, sem conjuração: `classSpells` não tem entrada `marshal` nenhuma (nem
+  // `default` genérico) — cobre que `getClassSpells` não lança e devolve [] mesmo assim.
+  const configWithMarshal: SystemConfig = {
+    ...config,
+    classes: [{ key: 'marshal', label: 'Marshal' }],
+    classFeatures: {
+      marshal: [
+        { key: 'marshal_commanding-presence', source: 'a5e-ag', name: 'Commanding Presence', description: 'You have a Commanding Presence.' },
+        { key: 'marshal_rallying-surge', source: 'a5e-ag', name: 'Rallying Surge', description: 'You can rally allies.' },
+      ],
+      default: [],
+    },
+  }
+
+  it('cria personagem classe marshal (a5e-ag): features da classe, sem magia, sem lançar', async () => {
+    const service = new CharacterService(fakePrisma(configWithMarshal))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Vasko', gender: 'x', race: 'x', class: 'marshal',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.class).toBe('marshal')
+    expect(char.features).toEqual(['marshal_commanding-presence', 'marshal_rallying-surge'])
+    expect(char.spells).toEqual([])
+  })
+
   // --- US-105: raça e classe são CHAVE do catálogo, e o catálogo é FECHADO ---
 
   it('persiste a CHAVE de raça e classe, não o texto', async () => {

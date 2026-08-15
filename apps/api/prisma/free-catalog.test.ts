@@ -46,11 +46,15 @@ describe('catálogo do Free montado do artefato', () => {
       expect(entry.key, `entrada sem key: ${entry.name}`).toBeTruthy()
       expect(['srd', 'authored']).toContain(entry.source)
     }
-    expect(features.filter(f => f.source === 'srd')).toHaveLength(14)
-    expect(features.filter(f => f.source === 'authored')).toHaveLength(2)
-    // A mesma magia entra na lista de várias classes: 27 truques + 4 magias de 1º dão 70 pares
-    // classe×magia, e os 7 autorais dão 21. Total 91, igual ao que o catálogo literal produzia.
-    expect(spells.filter(s => s.source === 'srd')).toHaveLength(70)
+    // US-139: `paladin_divine-sense`/`ranger_natural-explorer` viraram referência (14 → 16),
+    // `AUTHORED_FEATURES` esvaziou (2 → 0) — ver comentário em `free-catalog.ts`.
+    expect(features.filter(f => f.source === 'srd')).toHaveLength(16)
+    expect(features.filter(f => f.source === 'authored')).toHaveLength(0)
+    // US-139: 70 → 60 pares classe×magia srd — saíram `starry-wisp`/`elementalism`/
+    // `sorcerous-burst` (retiradas, 6 pares), `message`/`spare-the-dying` do druid (reassociadas
+    // a outras classes no 5.1, 2 pares) e as 2 do paladino (dataset sem elegibilidade). Os 21
+    // autorais não mudam — nenhum dos 7 truques que nunca foram SRD foi tocado.
+    expect(spells.filter(s => s.source === 'srd')).toHaveLength(60)
     expect(spells.filter(s => s.source === 'authored')).toHaveLength(21)
   })
 
@@ -99,8 +103,11 @@ describe('sem regressão em pt-BR', () => {
     ])
   })
 
-  it('paladino e patrulheiro seguem com as 2 magias de nível 1', () => {
-    expect(names(buildFreeClassSpells(ptBR, 'pt-BR').paladin).sort()).toEqual(['Abençoar', 'Curar Ferimentos'])
+  // US-139: Paladino perdeu as 2 magias — `config.classSpells.paladin` vem VAZIO no 5.1 (o
+  // dataset não marca Paladino elegível pra nenhuma magia nível ≤1, ver comentário em
+  // `free-catalog.ts`). Patrulheiro continua com as duas.
+  it('patrulheiro segue com as 2 magias de nível 1; paladino ficou sem (5.1 não marca elegibilidade)', () => {
+    expect(buildFreeClassSpells(ptBR, 'pt-BR').paladin).toBeUndefined()
     expect(names(buildFreeClassSpells(ptBR, 'pt-BR').ranger).sort()).toEqual(['Curar Ferimentos', 'Marca do Caçador'])
   })
 })

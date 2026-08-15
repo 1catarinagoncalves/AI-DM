@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, buildRaces, parseStartingKit, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -37,33 +37,6 @@ test('formatOverlay grava o rascunho como uma linha com a marca _mt', () => {
     out,
     '{\n  "features": {\n    "wizard_arcane_recovery": { "name": "Recuperação Arcana", "description": "Recupera.", "_mt": true }\n  }\n}\n',
   )
-})
-
-// --- US-105 / ADR 009 — a fusão dos dois SRD ---
-
-const row = (pk, name) => ({ pk, fields: { name } })
-
-// D2: o jogador recebe o texto da EDIÇÃO CORRENTE onde as duas descrevem a mesma coisa.
-// Este teste falha se a precedência inverter — que é o modo silencioso de errar, porque a
-// chave continua certa e só o conteúdo volta a ser o de 2014.
-test('mergeEditions: onde as duas edições têm a chave, vence o 5.2', () => {
-  const merged = new Map(mergeEditions([row('srd-2024_dwarf', 'Dwarf')], [row('srd_dwarf', 'Dwarf 5.1')]))
-  assert.equal(merged.size, 1)
-  assert.equal(merged.get('dwarf').fields.name, 'Dwarf')
-})
-
-test('mergeEditions: chave que só o 5.1 tem entra na união', () => {
-  const merged = mergeEditions([row('srd-2024_orc', 'Orc')], [row('srd_half-elf', 'Half-Elf')])
-  assert.deepEqual(merged.map(([k]) => k), ['half-elf', 'orc']) // ordenado por chave
-})
-
-// D3: sem o mapa, conceito renomeado entre as edições vira DUAS entradas do mesmo conceito.
-test('mergeEditions: o SRD_EQUIVALENTS deduplica o conceito que mudou de slug', () => {
-  const rows2024 = [row('srd-2024_bard_cantrips', 'Cantrips')]
-  const rows2014 = [row('srd_bard_cantrips-known', 'Cantrips Known')]
-  assert.equal(mergeEditions(rows2024, rows2014, {}).length, 2, 'sem mapa, duplica')
-  const deduped = mergeEditions(rows2024, rows2014, { 'bard_cantrips-known': 'bard_cantrips' })
-  assert.deepEqual(deduped.map(([k]) => k), ['bard_cantrips'])
 })
 
 // --- US-138 (ADR 009 §8) — buildRaces vira single-source: só o SRD 5.1, sem mergeEditions ---
@@ -138,88 +111,144 @@ for (const locale of ['en-US', 'pt-BR']) {
     assert.ok(entries.length > 0, 'artefato sem entradas — ingest não rodou?')
     for (const entry of entries) {
       assert.ok(entry.key, `entrada sem key: ${entry.name}`)
-      assert.equal(entry.source, 'srd', `entrada derivada do dataset com source errado: ${entry.key}`)
+      // US-139: Marshal (classFeatures.marshal) é a5e-ag; magia não tem Marshal (sem conjuração) —
+      // continua 100% srd. As outras 12 classes continuam srd (5.1 agora, não mais 5.2).
+      assert.ok(['srd', 'a5e-ag'].includes(entry.source), `entrada derivada do dataset com source errado: ${entry.key}`)
     }
+    const marshalFeatures = artifact.classFeatures.marshal ?? []
+    assert.ok(marshalFeatures.length > 0, 'classFeatures.marshal vazio')
+    assert.ok(marshalFeatures.every((f) => f.source === 'a5e-ag'), 'classFeatures.marshal com source fora de a5e-ag')
   })
 }
 
-// --- US-51 — o kit inicial sai de TEXTO LIVRE, então cada armadilha do dataset vira teste ---
+// `races`/`classes` são catálogo FECHADO e pequeno (9/13) — ao contrário de `kitItems` (US-134,
+// "curadoria manual, grande demais pra uma sentada só"), aqui dá pra exigir 100% curado sempre.
+// Sem este teste, uma classe/raça nova (ex.: Marshal, US-139) pode entrar sem tradução e só
+// aparecer no relatório `FALLBACK EN` do `srd:ingest` — texto de console que ninguém é obrigado
+// a ler linha a linha. Isto falha o teste, não só o `--strict`.
+// Checa contra o OVERLAY (locale/pt-BR.json), não contra "label PT === label EN" — "Dragonborn"
+// e "Tiefling" são curados de propósito com o MESMO texto (empréstimo, comum em raça de D&D em
+// pt-BR); comparar por igualdade de texto dava falso positivo nos dois. O que importa é a chave
+// EXISTIR no overlay (curada, mesmo que idêntica ao EN por escolha) — não o valor bater.
+test('artefato pt-BR: toda classe e raça tem entrada curada no overlay — nenhuma cai no fallback EN', () => {
+  const en = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
+  const overlay = JSON.parse(readFileSync(OVERLAY_PATH, 'utf8'))
+  for (const domain of ['classes', 'races']) {
+    for (const { key } of en[domain]) {
+      assert.ok(overlay[domain]?.[key], `${domain}.${key}: sem entrada em locale/pt-BR.json — cai no fallback EN`)
+    }
+  }
+})
+
+// --- US-139 — buildClassFeatures/buildClassSpells: 5.1 é a fonte, Marshal soma no mesmo mapa ---
+// `identityResolve` é definida mais abaixo (US-121) — a referência aqui é segura porque o
+// callback do `test()` só roda depois que o módulo inteiro terminou de avaliar (TDZ não pega).
+
+const classRow = (pk, subclassOf = null) => ({ pk, fields: { subclass_of: subclassOf } })
+const featureRow = (pk, parent, name, desc, document = 'srd-2014') => ({ pk, fields: { parent, name, desc, document } })
+const featureItemRow = (parent, level) => ({ pk: `${parent}_${level}`, fields: { parent, level } })
+
+test('buildClassFeatures: Marshal soma no mesmo CLASS_MAP; source por documento; ruído de desc vazio (a5e-ag) filtrado', () => {
+  const classes = [classRow('srd_barbarian'), classRow('a5e_marshal')]
+  const features = [
+    featureRow('srd_barbarian_rage', 'srd_barbarian', 'Rage', 'You can enter a rage.'),
+    featureRow('a5e_marshal_commanding-presence', 'a5e_marshal', 'Commanding Presence', 'You have a Commanding Presence.', 'a5e-ag'),
+    // US-139: ruído do a5e-ag vem com desc VAZIO (não '[Column data]' como o 5.1) — mesma
+    // linha de nível 1 que precisa ficar de fora do artefato.
+    featureRow('a5e_marshal_proficiency-bonus', 'a5e_marshal', 'Proficiency Bonus', '', 'a5e-ag'),
+  ]
+  const featureItems = [
+    featureItemRow('srd_barbarian_rage', 1),
+    featureItemRow('a5e_marshal_commanding-presence', 1),
+    featureItemRow('a5e_marshal_proficiency-bonus', 1),
+  ]
+  const result = buildClassFeatures({}, { classes, features, featureItems }, identityResolve)
+  assert.deepEqual(result.barbarian.map((f) => f.key), ['barbarian_rage'])
+  assert.equal(result.barbarian[0].source, 'srd')
+  assert.deepEqual(result.marshal.map((f) => f.key), ['marshal_commanding-presence'])
+  assert.equal(result.marshal[0].source, 'a5e-ag')
+})
+
+const spellRow = (pk, name, level, classes) => ({ pk, fields: { name, level, desc: 'Texto.', classes } })
+
+test('buildClassSpells: slug via stripDocument — pk "srd_light" (5.1) vira key "light", não "srd_light"', () => {
+  const spells = [spellRow('srd_light', 'Light', 0, ['srd_wizard', 'srd_cleric'])]
+  const result = buildClassSpells({}, spells, identityResolve)
+  assert.equal(result.wizard[0].key, 'light')
+  assert.equal(result.cleric[0].key, 'light')
+})
+
+// --- US-139 — startingKits: o formato mudou de tabela (5.2) pra bullets em prosa (5.1/a5e-ag) ---
 //
-// As células abaixo são o texto CRU de `ClassFeature.CORE_TRAITS_TABLE` (Open5e v2.1.0),
-// copiado sem correção — inclusive as palavras que a extração de PDF partiu no meio.
+// As strings abaixo são o texto CRU de `ClassFeature.STARTING_EQUIPMENT` (Open5e v2.1.0,
+// srd-2014 e a5e-ag), copiado sem correção.
 
-test('parseStartingKit: opção A do clérigo, sem o ouro', () => {
-  const cell = "Choose A or B: (A) Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack, and 7 GP; or (B) 110 GP"
-  assert.deepEqual(parseStartingKit(cell), [
-    { name: 'Chain Shirt', qty: 1 },
-    { name: 'Shield', qty: 1 },
-    { name: 'Mace', qty: 1 },
-    { name: 'Holy Symbol', qty: 1 },
-    { name: "Priest's Pack", qty: 1 },
+test('firstAlternative: escolha "(*a*) X or (*b*) Y" vira só o texto de A', () => {
+  assert.equal(firstAlternative('(*a*) a greataxe or (*b*) any martial melee weapon'), 'a greataxe')
+})
+
+test('firstAlternative: escolha de TRÊS opções ("(*a*) X, (*b*) Y, or (*c*) Z") para em A', () => {
+  assert.equal(firstAlternative('(*a*) a rapier, (*b*) a longsword, or (*c*) any simple weapon'), 'a rapier')
+})
+
+test('firstAlternative: linha sem marcador (item obrigatório) sai intacta', () => {
+  assert.equal(firstAlternative("An explorer's pack and four javelins"), "An explorer's pack and four javelins")
+})
+
+test('parseSrdEquipmentBullets: barbeiro do dataset real — bullets aditivos, cada um reduzido à opção A', () => {
+  const desc =
+    'You start with the following equipment, in addition to the equipment granted by your background:\n' +
+    '* (*a*) a greataxe or (*b*) any martial melee weapon\n' +
+    '* (*a*) two handaxes or (*b*) any simple weapon\n' +
+    "* An explorer’s pack and four javelins"
+  assert.deepEqual(parseSrdEquipmentBullets(desc), [
+    { name: 'a greataxe', qty: 1 },
+    { name: 'two handaxes', qty: 1 },
+    { name: "An explorer’s pack and four javelins", qty: 1 },
   ])
 })
 
-// O guerreiro é a única classe com TRÊS opções. Cortar em "; " (e não no último ";") é o que
-// impede a opção B de entrar no kit como se fosse continuação da A.
-test('parseStartingKit: guerreiro para na opção A, sem B nem C', () => {
-  const cell =
-    "Choose A, B, or C: (A) Chain Mail, Greatsword, Flail, 8 Javelins, Dungeoneer's Pack, and 4 GP; (B) Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Dungeoneer's Pack, and 11 GP; or (C) 155 GP"
-  assert.deepEqual(parseStartingKit(cell), [
-    { name: 'Chain Mail', qty: 1 },
-    { name: 'Greatsword', qty: 1 },
-    { name: 'Flail', qty: 1 },
-    { name: 'Javelin', qty: 8 },
-    { name: "Dungeoneer's Pack", qty: 1 },
+// O clérigo tem escolha de TRÊS opções numa das linhas — mesma regra "sempre a primeira".
+test('parseSrdEquipmentBullets: clérigo — linha de 3 opções para na primeira, itens obrigatórios com "e" ficam juntos', () => {
+  const desc =
+    'You start with the following equipment, in addition to the equipment granted by your background:\n' +
+    '* (*a*) a mace or (*b*) a warhammer (if proficient)\n' +
+    '* (*a*) scale mail, (*b*) leather armor, or (*c*) chain mail (if proficient)\n' +
+    '* (*a*) a light crossbow and 20 bolts or (*b*) any simple weapon\n' +
+    "* (*a*) a priest’s pack or (*b*) an explorer’s pack\n" +
+    '* A shield and a holy symbol'
+  assert.deepEqual(parseSrdEquipmentBullets(desc).map((i) => i.name), [
+    'a mace',
+    'scale mail',
+    'a light crossbow and 20 bolts',
+    "a priest’s pack",
+    'A shield and a holy symbol',
   ])
 })
 
-// `Leather Ar mor` é o dataset, não erro de digitação daqui. Sem o reparo, o item vira uma
-// chave de overlay que nunca casa e o kit sai com "Ar mor" na ficha do jogador.
-test('parseStartingKit: repara a palavra partida pela extração de PDF', () => {
-  const cell =
-    "Choose A or B: (A) Leather Ar mor, Shield, Sickle, Druidic Focus (Quarterstaff), Explorer's Pack, Herbalism Kit, and 9 GP; or (B) 50 GP"
-  assert.deepEqual(parseStartingKit(cell).map((i) => i.name), [
-    'Leather Armor',
-    'Shield',
-    'Sickle',
-    'Druidic Focus (Quarterstaff)',
-    "Explorer's Pack",
-    'Herbalism Kit',
+test('parseA5ePackageEquipment: Marshal — escolhe o primeiro pacote, descarta rótulo e custo', () => {
+  const desc =
+    'You begin the game with 200 gp. You can select your own gear or choose one of the following equipment packages.\n\n' +
+    "- **Skirmisher’s Set (Cost 193 gp):** 6 javelins, longsword, hauberk, light shield, explorer's pack\n" +
+    "- **Soldier's Set (Cost 111 gp):** Battleaxe, scimitar, 2 spears, longbow and quiver with 20 arrows, padded leather, dungeoneer's pack"
+  assert.deepEqual(parseA5ePackageEquipment(desc), [
+    { name: 'javelin', qty: 6 },
+    { name: 'longsword', qty: 1 },
+    { name: 'hauberk', qty: 1 },
+    { name: 'light shield', qty: 1 },
+    { name: "explorer's pack", qty: 1 },
   ])
 })
 
-// Singularizar cego transforma "Thieves' Tools" (plural no singular) em "Thieves' Tool".
-// A regra é: só singulariza o que TINHA numeral.
-test('parseStartingKit: numeral singulariza, plural sem numeral fica intacto', () => {
-  const cell =
-    "Choose A or B: (A) Leather Armor, 2 Daggers, Shortsword, Shortbow, 20 Arrows, Quiver, Thieves' Tools, Burglar's Pack, and 8 GP; or (B) 100 GP"
-  assert.deepEqual(parseStartingKit(cell), [
-    { name: 'Leather Armor', qty: 1 },
-    { name: 'Dagger', qty: 2 },
-    { name: 'Shortsword', qty: 1 },
-    { name: 'Shortbow', qty: 1 },
-    { name: 'Arrow', qty: 20 },
-    { name: 'Quiver', qty: 1 },
-    { name: "Thieves' Tools", qty: 1 },
-    { name: "Burglar's Pack", qty: 1 },
-  ])
+test('parseA5ePackageEquipment: sem pacote em lista falha alto (formato inesperado)', () => {
+  assert.throws(() => parseA5ePackageEquipment('You begin the game with 200 gp, no packages listed.'), /sem pacote em lista/)
 })
 
-// Escolha em prosa DENTRO da opção A: a primeira alternativa vence, mesma regra do "sempre A".
-test('parseStartingKit: corta a escolha em prosa do monge e do bardo', () => {
-  const monk =
-    "Choose A or B: (A) Spear, 5 Daggers, Artisan's Tools or Musical Instrument chosen for the tool proficiency above, Explorer's Pack, and 11 GP; or (B) 50 GP"
-  assert.deepEqual(parseStartingKit(monk).map((i) => i.name), ['Spear', 'Dagger', "Artisan's Tools", "Explorer's Pack"])
-
-  const bard =
-    "Choose A or B: (A) Leather Armor, 2 Daggers, Musical Instrument of your choice, Entertainer's Pack, and 19 GP; or (B) 90 GP"
-  assert.deepEqual(parseStartingKit(bard).map((i) => i.name), [
-    'Leather Armor',
-    'Dagger',
-    'Musical Instrument',
-    "Entertainer's Pack",
-  ])
-})
+// buildStartingKits não é testável com fixture parcial: `CLASS_MAP` é fechado no módulo com as
+// 13 classes e a função FALHA ALTO se alguma ficar sem kit (rede de segurança contra bump que
+// esquece uma classe) — cobertura de integração vem dos testes de artefato logo abaixo, contra
+// o `srd:ingest` real. Aqui só os parsers puros (`firstAlternative`/`parseSrdEquipmentBullets`/
+// `parseA5ePackageEquipment`), que não dependem do CLASS_MAP.
 
 // --- US-51 — os kits nos DOIS artefatos ---
 //
@@ -232,31 +261,35 @@ test('artefato: os kits têm as mesmas classes e as mesmas quantidades nos dois 
   const pt = read('pt-BR')
 
   assert.deepEqual(Object.keys(en).sort(), Object.keys(pt).sort())
-  assert.equal(Object.keys(en).length, 13, '12 classes + default')
+  assert.equal(Object.keys(en).length, 14, '12 classes SRD + Marshal + default')
   for (const [classKey, items] of Object.entries(en)) {
     assert.ok(items.length > 0, `kit vazio: ${classKey}`)
     assert.deepEqual(items.map((i) => i.qty), pt[classKey].map((i) => i.qty), `quantidades divergem em ${classKey}`)
   }
 })
 
-test('artefato: en-US traz o kit em inglês e pt-BR em português', () => {
+// US-139: o kit do mago mudou de CONTEÚDO, não só de fonte — "opção A" do 5.1 escolhe
+// itens diferentes da tabela do 5.2 (ex.: Quarterstaff em vez de Dagger×2). Medido contra o
+// artefato real de 15/08/2026.
+test('artefato: en-US traz o kit em inglês', () => {
   const read = (locale) =>
     JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8')).startingKits
   assert.deepEqual(read('en-US').wizard, [
-    { name: 'Dagger', qty: 2 },
-    { name: 'Arcane Focus (Quarterstaff)', qty: 1 },
-    { name: 'Robe', qty: 1 },
+    { name: 'Quarterstaff', qty: 1 },
+    { name: 'Component Pouch', qty: 1 },
+    { name: 'Scholar’s Pack', qty: 1 },
     { name: 'Spellbook', qty: 1 },
-    { name: "Scholar's Pack", qty: 1 },
   ])
-  // Nenhum nome do kit PT pode ter sobrado igual ao EN por falta de overlay (kit misto).
-  const pt = read('pt-BR')
-  const en = read('en-US')
-  const untranslated = Object.keys(en).flatMap((k) =>
-    en[k].map((item, i) => (item.name === pt[k][i].name ? `${k}: ${item.name}` : null)).filter(Boolean),
-  )
-  assert.deepEqual(untranslated, [], 'item sem entrada em kitItems — kit sai misto EN/PT')
 })
+
+// US-139: a troca de fonte (5.2 → 5.1 + a5e-ag) mudou o TEXTO CRU do equipamento inicial das
+// 13 classes (de linha de tabela pra prosa com bullets) — o overlay `kitItems` curado pro
+// formato antigo não casa mais com as chaves novas. Kit inicial não é MT_DOMAINS (mesma decisão
+// da US-134 pra `tools`: curadoria manual, "grande demais pra uma sentada só"), então esta
+// lacuna NÃO é gate de teste — é gate de `--strict` (o mesmo mecanismo genérico de fallback que
+// já cobre features/spells/backgrounds/tools, ver `resolve()`), igual a todo outro domínio.
+// Pendência registrada: `pnpm srd:ingest --strict` falha até a curadoria de `locale/pt-BR.json`
+// → `kitItems` cobrir as novas chaves (ver relatório "FALLBACK EN" do ingest).
 
 // A chave de feature é prefixada pela classe (duas classes têm "Defesa sem Armadura"); a de
 // magia não (a mesma `light` serve mago e clérigo). Trocar isso quebra o casamento com o overlay.
@@ -267,6 +300,15 @@ test('artefato: chave de feature é prefixada pela classe, a de magia não', () 
   }
   assert.equal(artifact.classSpells.wizard.find((s) => s.name === 'Light').key, 'light')
   assert.equal(artifact.classSpells.cleric.find((s) => s.name === 'Light').key, 'light')
+})
+
+// US-139 (critério de aceite): `classSpells` vem do 5.1 (`srd_*`/sem prefixo) — falha se
+// `stripDocument` regredir e alguma chave voltar a carregar o prefixo `srd-2024_` do 5.2.
+test('artefato: nenhuma entrada de classSpells carrega o prefixo srd-2024_', () => {
+  const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
+  for (const entries of Object.values(artifact.classSpells)) {
+    for (const entry of entries) assert.ok(!entry.key.startsWith('srd-2024_'), `${entry.key}: ainda carrega o prefixo do 5.2`)
+  }
 })
 
 // --- US-100: carry-over do conteúdo aposentado -------------------------------------------------

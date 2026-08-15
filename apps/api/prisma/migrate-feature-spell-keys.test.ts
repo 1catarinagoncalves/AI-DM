@@ -32,24 +32,26 @@ describe('migração US-100 — texto gravado na ficha vira chave do catálogo',
   })
 
   it('ficha com FALLBACK EN (janela US-47→US-52): o texto inglês casa na mesma chave', () => {
-    // O caso concreto da story: quem criou um guerreiro naquela janela tem "Weapon Mastery"
-    // gravado, e o config pt-BR de hoje chama isso de "Domínio de Armas".
-    const en = enUS.classFeatures?.['fighter']?.find(f => f.key === 'fighter_weapon-mastery')
-    expect(en?.name).toBe('Weapon Mastery')
-    expect(toEntryKey({ name: en!.name }, 'fighter', featureIndex)).toBe('fighter_weapon-mastery')
-    expect(feature('fighter', 'fighter_weapon-mastery')?.name).not.toBe(en?.name) // o PT é outro texto
+    // US-139: "Weapon Mastery" (fighter) saiu do catálogo vivo — voltou a ser conteúdo do 5.2,
+    // agora só em `retiredFeatures` (ambíguo entre as 5 classes que o tinham, ver teste de
+    // retired abaixo). "Divine Sense" é o exemplo vivo equivalente: voltou ao catálogo NESTA
+    // mesma story (era órfã desde o bump pro 5.2), mesma janela de risco de fallback EN.
+    const en = enUS.classFeatures?.['paladin']?.find(f => f.key === 'paladin_divine-sense')
+    expect(en?.name).toBe('Divine Sense')
+    expect(toEntryKey({ name: en!.name }, 'paladin', featureIndex)).toBe('paladin_divine-sense')
+    expect(feature('paladin', 'paladin_divine-sense')?.name).not.toBe(en?.name) // o PT é outro texto
   })
 
   it('nome repetido entre classes casa na chave da CLASSE da ficha, não na primeira do catálogo', () => {
-    // "Domínio de Armas" existe em 5 classes, e a chave é prefixada por ela — casar no catálogo
-    // inteiro escolheria a errada em silêncio (§2). Este é o teste que prova o escopo.
-    const name = feature('fighter', 'fighter_weapon-mastery')!.name
+    // "Defesa sem Armadura" existe em 2 classes (bárbaro/monge) — casar no catálogo inteiro
+    // escolheria a errada em silêncio (§2). Este é o teste que prova o escopo.
+    const name = feature('barbarian', 'barbarian_unarmored-defense')!.name
     const donas = Object.entries(ptBR.classFeatures ?? {})
       .filter(([, entries]) => entries.some(f => f.name === name))
       .map(([classKey]) => classKey)
     expect(donas.length).toBeGreaterThan(1)
     for (const classKey of donas) {
-      expect(toEntryKey({ name }, classKey, featureIndex)).toBe(`${classKey}_weapon-mastery`)
+      expect(toEntryKey({ name }, classKey, featureIndex)).toBe(`${classKey}_unarmored-defense`)
     }
   })
 
@@ -76,8 +78,8 @@ describe('migração US-100 — texto gravado na ficha vira chave do catálogo',
     // Ficha pré-US-105 com `class` em texto cru ("Guerreiro"): o escopo por classe não existe.
     const unico = feature('barbarian', 'barbarian_rage')!.name
     expect(toEntryKey({ name: unico }, 'Guerreiro', featureIndex)).toBe('barbarian_rage')
-    // Já o nome repetido em 5 classes fica SEM destino em vez de chutar uma delas.
-    const ambiguo = feature('fighter', 'fighter_weapon-mastery')!.name
+    // Já o nome repetido em 2 classes fica SEM destino em vez de chutar uma delas.
+    const ambiguo = feature('barbarian', 'barbarian_unarmored-defense')!.name
     expect(toEntryKey({ name: ambiguo }, 'Guerreiro', featureIndex)).toBeNull()
   })
 

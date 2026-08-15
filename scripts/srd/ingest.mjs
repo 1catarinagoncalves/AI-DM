@@ -58,61 +58,38 @@ const NO_MT = process.argv.includes('--no-mt')
 // modelo; ver `buildTools`.
 const MT_DOMAINS = ['features', 'spells', 'backgrounds', 'tools']
 
-// Mapa explícito das 12 classes do SRD → chave canônica do config. NÃO reusa o CLASS_SYNONYMS
-// de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte o slug do dataset.
+// Mapa explícito das 13 classes (12 SRD + Marshal) → chave canônica do config. NÃO reusa o
+// CLASS_SYNONYMS de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte
+// o slug do dataset.
 //
 // US-54: a chave canônica é EN (a base nativa dos dados é EN, ver ADR 005). O mapa virou quase
 // identidade, mas continua explícito de propósito: é ele que FALHA ALTO quando o dataset traz uma
 // classe base desconhecida (ver `Classe base sem entrada no CLASS_MAP` abaixo). Derivar do slug
-// (`pk.replace(/^srd-2024_/, '')`) troca estas 12 linhas por uma classe sumindo em silêncio num bump.
+// (`pk.replace(/^srd_/, '')`) troca estas linhas por uma classe sumindo em silêncio num bump.
+//
+// US-139 (ADR 009 §8): as 12 SRD apontam pro `pk` do `srd-2014` (5.1 é a referência agora, 5.2
+// sai por completo — troca de fonte, não união). `a5e_marshal` é a 13ª entrada, primeira classe
+// que não é uma das 12 do SRD.
 const CLASS_MAP = {
-  'srd-2024_barbarian': 'barbarian',
-  'srd-2024_bard': 'bard',
-  'srd-2024_cleric': 'cleric',
-  'srd-2024_druid': 'druid',
-  'srd-2024_fighter': 'fighter',
-  'srd-2024_monk': 'monk',
-  'srd-2024_paladin': 'paladin',
-  'srd-2024_ranger': 'ranger',
-  'srd-2024_rogue': 'rogue',
-  'srd-2024_sorcerer': 'sorcerer',
-  'srd-2024_warlock': 'warlock',
-  'srd-2024_wizard': 'wizard',
+  'srd_barbarian': 'barbarian',
+  'srd_bard': 'bard',
+  'srd_cleric': 'cleric',
+  'srd_druid': 'druid',
+  'srd_fighter': 'fighter',
+  'srd_monk': 'monk',
+  'srd_paladin': 'paladin',
+  'srd_ranger': 'ranger',
+  'srd_rogue': 'rogue',
+  'srd_sorcerer': 'sorcerer',
+  'srd_warlock': 'warlock',
+  'srd_wizard': 'wizard',
+  'a5e_marshal': 'marshal',
 }
-
-// --- ADR 009: a fonte é a UNIÃO do srd-2024 (5.2) e do srd-2014 (5.1), com o 5.2 vencendo ---
 
 // Normaliza o `pk` tirando o prefixo do documento: `srd-2024_dwarf` e `srd_dwarf` → `dwarf`.
-// É o que faz as 7 espécies comuns colapsarem na mesma chave sem caso especial nenhum.
+// Sobrevive mesmo sem o par 5.2 (races/classes/spells já não os carregam) porque `buildTools`
+// ainda lê `Item.json` do `srd-2024` (US-134, fora do escopo desta troca de fonte).
 const stripDocument = (pk) => String(pk).replace(/^srd(-2024)?_/, '')
-
-// ADR 009 D3 — conceito idêntico que MUDOU DE SLUG entre as edições: chave 5.1 → chave 5.2.
-// Em espécie ele está vazio DE PROPÓSITO: as 7 comuns têm slug idêntico nos dois documentos
-// (medido em 02/08/2026), então a fusão delas funcionaria sem mapa nenhum. O mapa existe porque
-// o mecanismo nasce servindo Spell e ClassFeature também, onde 12 das 14 features de classe base
-// "exclusivas do 5.1" são só renomeação (`bard_cantrips-known` → `bard_cantrips`, ADR 009 §4):
-// sem ele, a precedência por chave crua DUPLICA o conceito em vez de deduplicá-lo.
-// Escrito à mão e explícito, como o CLASS_MAP — heurística de prefixo engole conteúdo em silêncio.
-const SRD_EQUIVALENTS = {}
-
-/**
- * ADR 009 D2 — funde dois documentos do mesmo domínio com precedência do 5.2: carrega o 2024
- * inteiro e do 2014 entra APENAS a chave que ainda não existe. Nunca o inverso, nunca merge
- * campo a campo (isso produziria uma entrada que não existe em edição nenhuma).
- * Devolve `[chave, registro][]` ordenado por chave — a ordenação é a idempotência do artefato.
- *
- * `equivalents` é parâmetro (e não só a const) para o teste conseguir exercitar o caso de
- * renomeação enquanto o mapa de espécies está legitimamente vazio.
- */
-export function mergeEditions(rows2024, rows2014, equivalents = SRD_EQUIVALENTS) {
-  const merged = new Map(rows2024.map((r) => [stripDocument(r.pk), r]))
-  for (const row of rows2014) {
-    const raw = stripDocument(row.pk)
-    const key = equivalents[raw] ?? raw
-    if (!merged.has(key)) merged.set(key, row)
-  }
-  return [...merged].sort((a, b) => a[0].localeCompare(b[0]))
-}
 
 // Atributo abreviado (dataset) → chave canônica. Ordem fixa = ordem do config (idempotência).
 const ABILITY_MAP = { str: 'strength', dex: 'dexterity', con: 'constitution', int: 'intelligence', wis: 'wisdom', cha: 'charisma' }
@@ -125,11 +102,6 @@ const ATTR_RANGE = { min: 10, max: 18, default: 10 }
 // Stub dos campos que o ingest não deriva (o schema os exige; o valor real vive no seed).
 // US-51: `startingKits` SAIU daqui — passou a ser derivado, ver buildStartingKits.
 const STUB = { pointBuy: { budget: 27 } }
-
-// US-51 — palavras que a extração de PDF do dataset partiu no meio ("Leather Ar mor").
-// Mapa EXPLÍCITO, não heurística de "junta letra solta": heurística engole nome legítimo em
-// silêncio num bump; o mapa erra alto (o item vira órfão no overlay ou cai no fallback EN).
-const PDF_SPLITS = { 'Ar mor': 'Armor', 'Ar rows': 'Arrows', 'Ar cane': 'Arcane' }
 
 // US-51 — fallback de classe fora do catálogo (sistema custom, classe que o config não tem).
 // NÃO vem do SRD: o dataset não tem "classe padrão". Mora aqui, em EN, para atravessar o
@@ -260,26 +232,32 @@ function buildClasses(overlay, classes, resolve) {
 }
 
 // --- classFeatures: nível 1, só classe base, sem ruído de tabela nem motor de conjuração ---
-function buildClassFeatures(overlay, { classes, features, featureItems }, resolve) {
+export function buildClassFeatures(overlay, { classes, features, featureItems }, resolve) {
   const baseClasses = classes.filter((c) => c.fields.subclass_of === null)
   for (const c of baseClasses) {
     if (!CLASS_MAP[c.pk]) throw new Error(`Classe base sem entrada no CLASS_MAP: ${c.pk}`)
   }
   const lvl1 = new Set(featureItems.filter((i) => i.fields.level === 1).map((i) => i.fields.parent))
-  const isNoise = (f) => norm(f.fields.desc) === '[Column data]' // linhas de coluna de tabela
+  // US-139: `[Column data]` é o ruído do 5.1 (mesmo texto do 5.2); o a5e-ag marca a MESMA coisa
+  // (PROFICIENCY_BONUS, CLASS_TABLE_DATA) com `desc` VAZIO — medido em 15/08/2026 contra o
+  // dataset real (`a5e_marshal_proficiency-bonus` etc.). Um só filtro por "sem descrição real"
+  // cobre as duas fontes; não precisou de checagem por `feature_type`.
+  const isNoise = (f) => { const d = norm(f.fields.desc); return d === '' || d === '[Column data]' }
   const isSpellEngine = (f) => /_(spellcasting|pact-magic)$/.test(f.pk) // conjuração é a US-42 (classSpells)
 
   const classFeatures = { default: [] }
   for (const f of features) {
     const canon = CLASS_MAP[f.fields.parent]
     if (!canon || !lvl1.has(f.pk) || isNoise(f) || isSpellEngine(f)) continue
-    const slug = String(f.pk).slice(String(f.fields.parent).length + 1) // srd-2024_paladin_lay-on-hands → lay-on-hands
+    const slug = String(f.pk).slice(String(f.fields.parent).length + 1) // srd_paladin_lay-on-hands → lay-on-hands
     const featKey = `${canon}_${slug}`
     const entry = resolve('features', featKey, overlay.features?.[featKey], f.fields.name, norm(f.fields.desc))
+    // US-139: source segue o documento de origem — a5e-ag pro Marshal, srd pras 12 SRD (5.1).
+    const source = f.fields.document === 'a5e-ag' ? 'a5e-ag' : 'srd'
     // US-106: a chave DEIXA de ser campo temporário e vira campo do artefato. Ela já era
     // calculada aqui (para casar overlay, detectar órfão e ordenar) e era jogada fora na
     // gravação — é o que impedia a ficha de acompanhar o locale (US-100).
-    ;(classFeatures[canon] ??= []).push({ key: featKey, ...entry, source: 'srd' })
+    ;(classFeatures[canon] ??= []).push({ key: featKey, ...entry, source })
   }
   for (const k of Object.keys(classFeatures)) {
     // Ordenar por `key` em vez de pelo slug nu dá a MESMA ordem (dentro de uma classe o prefixo
@@ -290,11 +268,11 @@ function buildClassFeatures(overlay, { classes, features, featureItems }, resolv
 }
 
 // --- classSpells: nível <= 1 (truques + todas as de 1º), ligadas por classes[] ---
-function buildClassSpells(overlay, spells, resolve) {
+export function buildClassSpells(overlay, spells, resolve) {
   const classSpells = { default: [] }
   for (const s of spells) {
     if (s.fields.level > 1) continue
-    const slug = String(s.pk).replace(/^srd-2024_/, '')
+    const slug = stripDocument(s.pk)
     const entry = resolve('spells', slug, overlay.spells?.[slug], s.fields.name, norm(s.fields.desc))
     // US-106: `key` sobrevive (ver buildClassFeatures). Aqui ela é o slug nu — magia não é
     // prefixada por classe, e é por isso que a MESMA linha entra em várias listas.
@@ -311,28 +289,15 @@ function buildClassSpells(overlay, spells, resolve) {
   return classSpells
 }
 
-// --- startingKits (12 + default): opção A da tabela de traços da classe (US-51) ---
+// --- startingKits (13 + default): opção A do equipamento inicial da classe (US-51/US-139) ---
 //
-// Único campo que sai de TEXTO LIVRE: o Open5e guarda o equipamento inicial como uma linha de
-// tabela markdown dentro do `desc` da feature `CORE_TRAITS_TABLE`, não como campo estruturado.
-// A alternativa era o 5e-database (`starting_equipment_options` em árvore), que é OGL 1.0a —
-// segunda licença no repo para evitar o parser abaixo. Ver US-51 → "Decisão de arquitetura".
+// Único campo que sai de TEXTO LIVRE. US-139: o 5.2 guardava isso numa linha de tabela markdown
+// (`CORE_TRAITS_TABLE`) — o 5.1 e o a5e-ag usam outro feature_type, `STARTING_EQUIPMENT`, e outro
+// formato de texto (prosa com bullets), medido em 15/08/2026 contra o dataset real. `parseStartingKit`
+// (o parser de tabela) morreu com a fonte 5.2 — ver os dois parsers abaixo, escolhidos por `document`.
 //
-// "(A) itens e N PO; ou (B) M PO": sem modelo de dinheiro no jogo, só a opção A existe aqui —
-// a alternativa em ouro e as moedas soltas da própria A são descartadas.
-export function parseStartingKit(cell) {
-  let text = String(cell)
-  for (const [broken, whole] of Object.entries(PDF_SPLITS)) text = text.replaceAll(broken, whole)
-  const optionA = text
-    .replace(/^Choose[^:]*:\s*/, '') // "Choose A or B:" — e o "Choose A, B, or C:" do guerreiro
-    .split(';')[0] // corta B (e C) fora
-    .replace(/^\(A\)\s*/, '')
-  return optionA
-    .split(',')
-    .map((part) => norm(part).replace(/^and\s+/, ''))
-    .filter((part) => part && !/^\d+\s*GP$/i.test(part))
-    .map(toKitItem)
-}
+// "(*a*) X or (*b*) Y" / "(A) X ou (B) Y": sem modelo de dinheiro no jogo, só a primeira
+// alternativa existe aqui — a alternativa em ouro e as moedas soltas são descartadas.
 
 // "8 Javelins" → { name: 'Javelin', qty: 8 }. Singulariza SÓ quando havia numeral: "Thieves'
 // Tools" e "Artisan's Tools" são plural no singular e viram "Tool" se a regra for cega.
@@ -345,12 +310,37 @@ function toKitItem(part) {
   return { name: counted[2].replace(/s$/, ''), qty: Number(counted[1]) }
 }
 
-function startingEquipmentCell(feature) {
-  const line = String(feature.fields.desc).split('\n').find((l) => l.startsWith('|Starting Equipment'))
-  if (!line) {
-    throw new Error(`${feature.pk}: tabela de traços sem a linha "|Starting Equipment|…|" (desc: ${norm(feature.fields.desc).slice(0, 80)}…)`)
-  }
-  return line.split('|')[2]
+// "(*a*) X or (*b*) Y, or (*c*) Z" → texto da opção A, sem o marcador nem o "or"/vírgula que
+// sobra da alternativa seguinte. Linha sem marcador (item obrigatório, sem escolha) sai intacta.
+export function firstAlternative(line) {
+  const segments = line.split(/\(\*[a-z]\*\)/i)
+  const text = segments.length > 1 ? segments[1] : segments[0]
+  return norm(text).replace(/,?\s*\bor\b\s*$/i, '').replace(/,\s*$/, '')
+}
+
+// srd-2014 (`document: 'srd-2014'`): um bullet (`* …`) por linha, ADITIVOS — todos entram no
+// kit, cada um já reduzido à opção A. A frase de abertura ("You start with…") não é bullet.
+export function parseSrdEquipmentBullets(desc) {
+  return String(desc)
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.startsWith('*'))
+    .map((l) => firstAlternative(l.slice(1).trim()))
+    .flatMap((optionA) => optionA.split(',').map((part) => norm(part).replace(/^and\s+/i, '')).filter(Boolean))
+    .map(toKitItem)
+}
+
+// a5e-ag (`document: 'a5e-ag'`): bullets (`- **Nome (Cost N gp):** itens`) são PACOTES
+// alternativos INTEIROS, não itens aditivos — escolhe o primeiro pacote (mesma regra "sempre A"),
+// descarta rótulo/custo, o resto vira lista de itens.
+export function parseA5ePackageEquipment(desc) {
+  const firstPackage = String(desc)
+    .split('\n')
+    .map((l) => l.trim())
+    .find((l) => l.startsWith('-'))
+  if (!firstPackage) throw new Error('STARTING_EQUIPMENT do a5e-ag sem pacote em lista ("- **Nome:** itens")')
+  const items = firstPackage.replace(/^-\s*\*\*[^:]+:\*\*\s*/, '')
+  return items.split(',').map((part) => norm(part).replace(/^and\s+/i, '')).filter(Boolean).map(toKitItem)
 }
 
 // US-128: preposições/artigos que ficam em minúscula no meio de um nome de item — a
@@ -411,16 +401,17 @@ function localizeKitItems(overlay, resolve, items) {
   }))
 }
 
-function buildStartingKits(overlay, features, resolve) {
+export function buildStartingKits(overlay, features, resolve) {
   const startingKits = { default: localizeKitItems(overlay, resolve, DEFAULT_KIT) }
   for (const f of features) {
-    if (f.fields.feature_type !== 'CORE_TRAITS_TABLE') continue
+    if (f.fields.feature_type !== 'STARTING_EQUIPMENT') continue
     const canon = CLASS_MAP[f.fields.parent]
     if (!canon) continue // subclasse/documento fora do mapa: o loop abaixo é quem cobra a base
-    startingKits[canon] = localizeKitItems(overlay, resolve, parseStartingKit(startingEquipmentCell(f)))
+    const items = f.fields.document === 'a5e-ag' ? parseA5ePackageEquipment(f.fields.desc) : parseSrdEquipmentBullets(f.fields.desc)
+    startingKits[canon] = localizeKitItems(overlay, resolve, items)
   }
   for (const canon of Object.values(CLASS_MAP)) {
-    if (!startingKits[canon]) throw new Error(`Classe sem kit inicial: ${canon} (nenhuma feature CORE_TRAITS_TABLE em ClassFeature.json)`)
+    if (!startingKits[canon]) throw new Error(`Classe sem kit inicial: ${canon} (nenhuma feature STARTING_EQUIPMENT em ClassFeature.json)`)
   }
   return startingKits
 }
@@ -773,7 +764,10 @@ function buildConfig(overlay, data) {
 
 async function main() {
   const overlay = JSON.parse(await readFile(OVERLAY_PATH, 'utf8'))
-  const [abilities, rules, skillsRaw, classes, features, featureItems, spells, species2014, backgrounds, backgroundBenefits, items] = await Promise.all([
+  const [
+    abilities, rules, skillsRaw, classes2014, features2014, featureItems2014, spells, species2014,
+    backgrounds, backgroundBenefits, items, marshalClasses, marshalFeatures, marshalFeatureItems,
+  ] = await Promise.all([
     load('AbilityDescription.json'),
     load('Rule.json'),
     load('Skill.json'),
@@ -785,7 +779,16 @@ async function main() {
     load('Background.json'),
     load('BackgroundBenefit.json'),
     load('Item.json'),
+    // US-139: o Marshal (a5e-ag) soma nos MESMOS três arrays do 5.1 — troca de fonte pras 12
+    // SRD, união pro Marshal. CLASS_MAP é quem decide o que sobrevive (subclasse do Marshal
+    // não tem entrada, cai fora nos builds do mesmo jeito que subclasse SRD já caía).
+    load('CharacterClass.a5e-ag.json'),
+    load('ClassFeature.a5e-ag.json'),
+    load('ClassFeatureItem.a5e-ag.json'),
   ])
+  const classes = [...classes2014, ...marshalClasses]
+  const features = [...features2014, ...marshalFeatures]
+  const featureItems = [...featureItems2014, ...marshalFeatureItems]
   const data = { abilities, skillsRaw, classes, features, featureItems, spells, species2014, backgrounds, backgroundBenefits, items }
 
   const base = buildConfig({}, data)

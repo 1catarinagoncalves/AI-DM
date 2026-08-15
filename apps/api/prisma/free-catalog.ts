@@ -18,14 +18,17 @@ type SrdCatalog = Pick<SystemConfig, 'classFeatures' | 'classSpells'>
 // A CURADORIA do Free: quais entradas do SRD entram. É o que faz o Free ser um 5e enxuto
 // (14 de 24 features, 27 de 84 magias) e é a única coisa que precisa de revisão humana num bump
 // — o texto vem junto, traduzido, sem digitação. Chaves geradas do artefato, não digitadas.
+// US-139: `paladin_divine-sense`/`ranger_natural-explorer` voltaram a ser referência — eram
+// AUTHORED_FEATURES porque a união do ADR 009 só alcançava `races` (comentário abaixo delas,
+// pré-US-139); a troca de fonte pro 5.1 (não mais 5.2) devolveu as duas ao catálogo vivo.
 const freeFeatureRefs: Record<string, string[]> = {
   barbarian: ['barbarian_rage', 'barbarian_unarmored-defense'],
   bard: ['bard_bardic-inspiration'],
   druid: ['druid_druidic'],
   fighter: ['fighter_fighting-style', 'fighter_second-wind'],
   monk: ['monk_martial-arts', 'monk_unarmored-defense'],
-  paladin: ['paladin_lay-on-hands'],
-  ranger: ['ranger_favored-enemy'],
+  paladin: ['paladin_lay-on-hands', 'paladin_divine-sense'],
+  ranger: ['ranger_favored-enemy', 'ranger_natural-explorer'],
   rogue: ['rogue_expertise', 'rogue_sneak-attack', 'rogue_thieves-cant'],
   wizard: ['wizard_arcane-recovery'],
 }
@@ -33,15 +36,31 @@ const freeFeatureRefs: Record<string, string[]> = {
 // Recorte da US-42, agora por chave: TODOS os truques da lista da classe; Paladino e Patrulheiro
 // (sem truques) recebem 2 magias de nível 1. Chave de magia NÃO é prefixada por classe — a mesma
 // `light` aparece na lista do mago e na do clérigo.
+//
+// US-139: `starry-wisp`/`elementalism`/`sorcerous-burst` SAÍRAM — eram truques do 5.2, revertidos
+// pela troca de fonte pro 5.1 (ADR 009 §8). Não viram AUTHORED_SPELLS: `retiredSpells` "nunca
+// entra em personagem novo" (US-100) é a mesma regra aqui — o Free para de oferecer os três pros
+// jogadores novos, igual ao D&D. `AUTHORED_SPELLS` continua só pro conteúdo que nunca foi SRD.
+//
+// `message`/`spare-the-dying` também saíram do druid — não é remoção, é RE-ASSOCIAÇÃO: o 5.1
+// as liga a outras classes (`message`: bardo/feiticeiro/mago; `spare-the-dying`: clérigo), não
+// ao druida. Medido no artefato real de 15/08/2026 (`config.classSpells`).
+//
+// `paladin` SAIU inteiro — não tem substituto. `config.classSpells.paladin` vem VAZIO no 5.1: o
+// dataset do Open5e não marca Paladino como elegível pra `bless`/`cure-wounds` (nem nenhuma
+// outra magia nível ≤1) do jeito que o 5.2 marcava — limitação do dataset pra meio-conjurador,
+// não decisão de conteúdo. Não virou AUTHORED_SPELLS: o mecanismo força `level: 0` (comentário
+// abaixo, "truque autoral é sempre nível 0") e Abençoar/Curar Ferimentos são nível 1 — forçar
+// cantrip seria dado errado, pior que não oferecer nada. Paladino no Free fica sem magia de
+// classe por hora (Patrulheiro continua com as duas). Produto pode querer revisar.
 const freeSpellRefs: Record<string, string[]> = {
-  bard: ['dancing-lights', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'prestidigitation', 'starry-wisp', 'true-strike', 'vicious-mockery'],
+  bard: ['dancing-lights', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'prestidigitation', 'true-strike', 'vicious-mockery'],
   cleric: ['guidance', 'light', 'mending', 'resistance', 'sacred-flame', 'spare-the-dying', 'thaumaturgy'],
-  druid: ['druidcraft', 'elementalism', 'guidance', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shillelagh', 'spare-the-dying', 'starry-wisp'],
-  paladin: ['bless', 'cure-wounds'],
+  druid: ['druidcraft', 'guidance', 'mending', 'poison-spray', 'produce-flame', 'resistance', 'shillelagh'],
   ranger: ['cure-wounds', 'hunters-mark'],
-  sorcerer: ['acid-splash', 'chill-touch', 'dancing-lights', 'elementalism', 'fire-bolt', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shocking-grasp', 'sorcerous-burst', 'true-strike'],
+  sorcerer: ['acid-splash', 'chill-touch', 'dancing-lights', 'fire-bolt', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shocking-grasp', 'true-strike'],
   warlock: ['chill-touch', 'eldritch-blast', 'mage-hand', 'minor-illusion', 'poison-spray', 'prestidigitation', 'true-strike'],
-  wizard: ['acid-splash', 'chill-touch', 'dancing-lights', 'elementalism', 'fire-bolt', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shocking-grasp', 'true-strike'],
+  wizard: ['acid-splash', 'chill-touch', 'dancing-lights', 'fire-bolt', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shocking-grasp', 'true-strike'],
 }
 
 /**
@@ -56,22 +75,11 @@ type AuthoredEntry = {
   'pt-BR': { name: string; description: string }
 }
 
-// As 2 features que a união do ADR 009 ainda não alcançou (existem no SRD 5.1). Viram referência
-// no dia em que uma story ligar `classFeatures` à fusão; o PT é o mesmo texto curado de sempre.
-const AUTHORED_FEATURES: AuthoredEntry[] = [
-  {
-    key: 'paladin_divine-sense',
-    classes: ['paladin'],
-    'en-US': { name: 'Divine Sense', description: 'Senses nearby presences of good, evil and undeath.' },
-    'pt-BR': { name: 'Sentido Divino', description: 'Sente presenças de bem/mal e mortos-vivos por perto.' },
-  },
-  {
-    key: 'ranger_natural-explorer',
-    classes: ['ranger'],
-    'en-US': { name: 'Natural Explorer', description: 'Moves and survives with mastery in their own terrain.' },
-    'pt-BR': { name: 'Explorador Nato', description: 'Move-se e sobrevive com maestria no seu terreno.' },
-  },
-]
+// Vazio desde a US-139: as 2 features que moravam aqui (`paladin_divine-sense`,
+// `ranger_natural-explorer`) viraram referência (`freeFeatureRefs`) — a troca de fonte pro 5.1
+// devolveu as duas ao catálogo vivo, exatamente o dia que o comentário original previa. Tipo e
+// mecanismo ficam prontos pro próximo gap (US-121 já usa o mesmo padrão pra `AUTHORED_SPELLS`).
+const AUTHORED_FEATURES: AuthoredEntry[] = []
 
 // Os 7 truques que vieram de livros que NÃO são SRD — verificados um a um contra o `srd-2024` e o
 // `srd-2014` (ADR 009 §4). Bump do dataset não os alcança, e é de propósito: são o conteúdo em que

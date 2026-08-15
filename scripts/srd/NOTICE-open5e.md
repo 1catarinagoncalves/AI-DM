@@ -20,15 +20,22 @@ exemplos fica em inglês, como o resto do system prompt.
 
 O SRD 5.1 entra por decisão do [ADR 009](../../docs/adr/009-uniao-dos-srd-5-1-e-5-2.md). O
 mecanismo de união (5.1 preenche o que o 5.2 não tem, com o 5.2 vencendo onde os dois descrevem
-a mesma coisa) segue disponível para domínios futuros, mas **`races`** não passa mais por ele: o
-ADR 009 §8 (15/08/2026, US-138) reverteu a precedência e fixou o SRD 5.1 como fonte ÚNICA de
-`config.races` — sem fusão com o 5.2. Consequência: `goliath` e `orc` (exclusivas do 5.2) saem do
-catálogo; `half-elf`/`half-orc` (exclusivas do 5.1) continuam.
+a mesma coisa) não é mais usado por domínio nenhum: o ADR 009 §8 (15/08/2026) reverteu a
+precedência e fixou o SRD 5.1 como fonte ÚNICA, sem fusão com o 5.2 —
+**`races`** (US-138) primeiro, depois **`classes`/`classFeatures`/`classSpells`/`startingKits`**
+(US-139). Consequências: `goliath`/`orc` (raças exclusivas do 5.2) saem do catálogo,
+`half-elf`/`half-orc` (5.1) continuam; features exclusivas do 5.2 (*Weapon Mastery*, *Ritual
+Adept*, *Divine Order*, *Primal Order*, *Innate Sorcery*, *Eldritch Invocations*) saem, features
+que o 5.2 tinha cortado (*Divine Sense* do Paladino, *Natural Explorer* do Patrulheiro) voltam. O
+SRD 5.2 continua sendo a fonte só de `ability-modifiers.srd-2024.json`, `d20-tests.srd-2024.json`
+e `config.tools` (US-134, `Item.json` — fora desta reversão).
 
-Os catálogos `backgrounds` (US-121) são derivados de *Level Up: Advanced 5th Edition —
-Adventurer's Guide* ("a5e-ag"), publicado por **EN Publishing**, também obtido via Open5e no
-mesmo tag `v2.1.0`. É o primeiro dado do config que não vem de `wizards-of-the-coast/`; ver
-[ADR 004](../../docs/adr/004-origem-do-dado-de-sistema.md) §3.3.
+Os catálogos `backgrounds` (US-121) e, desde a US-139, a classe **Marshal** (`config.classes`,
+`classFeatures.marshal`, `startingKits.marshal`) são derivados de *Level Up: Advanced 5th
+Edition — Adventurer's Guide* ("a5e-ag"), publicado por **EN Publishing**, também obtido via
+Open5e no mesmo tag `v2.1.0`. É o primeiro dado do config que não vem de `wizards-of-the-coast/`;
+ver [ADR 004](../../docs/adr/004-origem-do-dado-de-sistema.md) §3.3. O Marshal é uma classe SEM
+conjuração — não há entrada em `config.classSpells`.
 
 ## Licença
 

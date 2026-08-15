@@ -105,6 +105,24 @@ describe('buildDmSystemPrompt — ficha constante (US-23 / camada 2)', () => {
     expect(p).toMatch(/Level:\s*1/)
     expect(typeof p).toBe('string')
   })
+
+  // US-139: `characterClass` é string livre e `features`/`spells` são genéricos — o builder
+  // não tem lista fixa de classes. Marshal (a5e-ag, sem conjuração) é o primeiro personagem
+  // que não é uma das 12 do SRD; este teste prova que o prompt não lança pra ele.
+  it('Marshal (a5e-ag, sem conjuração): não lança, features aparecem, sem seção de magia', () => {
+    const p = build({
+      characterClass: 'Marechal',
+      features: [
+        { name: 'Commanding Presence', description: 'You have a Commanding Presence.' },
+        { name: 'Rallying Surge', description: 'You can rally allies.' },
+      ],
+      spells: [],
+    })
+    expect(typeof p).toBe('string')
+    expect(p).toMatch(/Class: Marechal/)
+    expect(p).toMatch(/Commanding Presence/)
+    expect(p).not.toMatch(/known spells/i)
+  })
 })
 
 describe('buildDmSystemPrompt — background narrativo (US-39)', () => {
