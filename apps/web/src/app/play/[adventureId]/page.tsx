@@ -60,6 +60,10 @@ export default async function PlayPage({ params, searchParams }: Props) {
   // sem resolução contra catálogo nenhuma (não é chave, é o texto da linha escolhida).
   const originConnection = character.origin?.connection as string | undefined
   const originMemento = character.origin?.memento as string | undefined
+  // US-138: gancho `adventures_and_advancement` — prosa FIXA do catálogo por `originKey`,
+  // mesma resolução de `resolveAdventuresAndAdvancement` em dm-system.ts (o web não depende
+  // do ai-engine, ver BackgroundPanel), já usada pelo Mestre desde a US-125.
+  const originAdventures = config?.backgrounds?.find((b) => b.key === originKey)?.benefits.find((benefit) => benefit.type === 'adventures_and_advancement')?.description
 
   // US-100: feature e magia também são chave — o mesmo padrão das perícias, agora na aba
   // Features. A ficha do banco não muda ao trocar de idioma; muda o config que chega aqui.
@@ -89,6 +93,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       characterOrigin={originName}
       characterConnection={originConnection}
       characterMemento={originMemento}
+      characterAdventures={originAdventures}
       features={features}
       spells={spells}
     />

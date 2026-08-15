@@ -220,6 +220,33 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.queryByText('Este personagem ainda não tem história.')).toBeNull()
   })
 
+  // US-138: gancho `adventures_and_advancement` da origem aparece na aba Background, em
+  // bloco próprio — mesmo padrão de conexão/memento (US-124), já lido pelo Mestre (US-125).
+  it('mostra o gancho de aventura da origem na aba Background quando presente', async () => {
+    render(
+      <GameView
+        {...baseProps}
+        characterOrigin="Acólito"
+        characterAdventures="You may be called to serve your temple in dangerous ways."
+        background={{ story: 'História.' }}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.getByText('Aventura e Avanço')).toBeTruthy()
+    expect(screen.getByText('You may be called to serve your temple in dangerous ways.')).toBeTruthy()
+  })
+
+  // US-138: sem gancho de aventura resolvido, o bloco não aparece.
+  it('sem gancho de aventura, a aba Background não mostra esse bloco', async () => {
+    render(<GameView {...baseProps} characterOrigin="Acólito" background={{ story: 'História.' }} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Background' }))
+
+    expect(screen.queryByText('Aventura e Avanço')).toBeNull()
+  })
+
   // US-41: aba Features lista as features de classe (nome + descrição), read-only.
   it('mostra a aba Features e lista as features de classe ao clicar', async () => {
     render(

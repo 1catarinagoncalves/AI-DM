@@ -24,7 +24,9 @@ export interface CharacterBackground {
 // US-124: `connection`/`memento` são campos IRMÃOS de `originName`, não parte de
 // `CharacterBackground` — vêm de `Character.origin.{connection,memento}`, texto escolhido
 // no `<select>` da criação (não prosa livre do jogador, ver US-124 §Modelo de dados).
-export function BackgroundPanel({ background, originName, connection, memento }: { background?: CharacterBackground; originName?: string; connection?: string; memento?: string }) {
+// US-138: `adventures` é o gancho `adventures_and_advancement` do catálogo (prosa FIXA por
+// `originKey`, já usada pelo Mestre desde a US-125) — mesmo padrão condicional de connection/memento.
+export function BackgroundPanel({ background, originName, connection, memento, adventures }: { background?: CharacterBackground; originName?: string; connection?: string; memento?: string; adventures?: string }) {
   const t = useT()
   const story = background?.story?.trim()
   const lists: { label: MessageKey; items: string[] }[] = [
@@ -36,7 +38,7 @@ export function BackgroundPanel({ background, originName, connection, memento }:
   const deityName = background?.deity?.name?.trim()
   const deityPortfolio = background?.deity?.portfolio?.trim()
   const deityText = deityName ? (deityPortfolio ? `${deityName} — ${deityPortfolio}` : deityName) : ''
-  const hasAny = Boolean(story) || Boolean(deityText) || Boolean(originName) || Boolean(connection) || Boolean(memento) || lists.some(l => l.items.length > 0)
+  const hasAny = Boolean(story) || Boolean(deityText) || Boolean(originName) || Boolean(connection) || Boolean(memento) || Boolean(adventures) || lists.some(l => l.items.length > 0)
 
   if (!hasAny) {
     return (
@@ -67,6 +69,12 @@ export function BackgroundPanel({ background, originName, connection, memento }:
         <div>
           <SheetHeading>{t('game.background.memento')}</SheetHeading>
           <p className="text-[13px] leading-relaxed text-foreground">{memento}</p>
+        </div>
+      )}
+      {adventures && (
+        <div>
+          <SheetHeading>{t('game.background.adventures')}</SheetHeading>
+          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground">{adventures}</p>
         </div>
       )}
       {story && (

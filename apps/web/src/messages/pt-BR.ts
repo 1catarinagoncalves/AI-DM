@@ -206,6 +206,7 @@ export const ptBR = {
   'game.background.origin': 'Origem',
   'game.background.connection': 'Conexão',
   'game.background.memento': 'Memento',
+  'game.background.adventures': 'Aventura e Avanço',
   'game.background.story': 'História',
   'game.background.deity': 'Divindade/Patrono',
   'game.background.ideals': 'Ideais',

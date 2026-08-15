@@ -1,6 +1,6 @@
 # ADR 009 — Regra de uso do SRD: união do 5.1 e do 5.2, com o 5.2 vencendo
 
-**Status:** Aceito
+**Status:** Aceito · **precedência revista em 15/08/2026** (o SRD 5.1 vira a fonte de referência — ver §8)
 **Data:** 2026-08-02
 **Decisores:** Time de Produto e Engenharia
 **Relacionado:** [ADR 004 — Origem do dado de sistema](./004-origem-do-dado-de-sistema.md) (**este ADR o estende**: o pipeline e o pin continuam; muda de *quais* documentos ele lê) · [ADR 003 — Sistemas como dado](./003-sistemas-como-dado.md) (catálogo é dado) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (a chave canônica é EN; o overlay pt-BR é indexado por ela) · [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) (o pipeline `sync`+`ingest`) · [US-105](../sdlc/01-requisitos/US-105-raca-e-classe-por-chave-do-srd.md) (o primeiro cliente: espécies)
@@ -125,3 +125,35 @@ E os 2 que sobram fecham o círculo do §1: são as duas órfãs do overlay pt-B
 - [`scripts/srd/NOTICE-open5e.md`](../../scripts/srd/NOTICE-open5e.md) — atribuição dos dois documentos, pela via CC-BY-4.0 dos dois.
 - [`scripts/srd/locale/pt-BR.json`](../../scripts/srd/locale/pt-BR.json) — as duas features órfãs deixam de ser órfãs **na story que ligar `classFeatures` à fusão**; é ela que atualiza o `_comment`.
 - [US-105](../sdlc/01-requisitos/US-105-raca-e-classe-por-chave-do-srd.md) — primeiro cliente da regra. Construiu o mecanismo e o aplicou **só a `races`** (`buildRaces`, com `species2014`): `sync` baixa o par 2014 apenas de `Species.json`, e `buildClassFeatures`/`buildClassSpells` continuam lendo só o 5.2. Domínio não herda a fusão sozinho — **é ligado um a um, por uma story**, e ligar `classFeatures` custa mais que uma linha: exige baixar o par 2014 de feature **e** preencher o `SRD_EQUIVALENTS`, porque 12 das 14 features "exclusivas do 5.1" são renomeação (§4) e fundir sem o mapa duplica em vez de deduplicar. Estado de hoje, medido em 03/08/2026: 11 espécies vindas da união; `classFeatures` com 24 entradas, todas 5.2.
+
+---
+
+## 8. Revisão da precedência (15/08/2026): o SRD 5.1 (2014) passa a ser a fonte de referência
+
+**Contexto.** D2 e §4 mediam disponibilidade *dentro* do SRD dual — não o ecossistema de conteúdo de terceiros ao redor dele. Olhando o seletor de fontes do Open5e (a lista completa de publishers que o `open5e-api` agrega, não só a Wizards of the Coast), ficou visível que a maior parte do conteúdo extra hospedado ali — os livros de *Level Up: Advanced 5th Edition* (EN Publishing) e o *Spells That Don't Suck* (Somanyrobots, marcado explicitamente `5e 2014` no próprio seletor) — é compatível com as regras de 2014, não com a revisão de 2024. Manter o 5.2 como vencedor (D2) deixa esse material ao lado da edição de referência, em vez de dentro dela.
+
+**Decisão.** A edição de referência do AI DM passa a ser o **SRD 5.1 (2014)**. Por hora, o SRD 5.2 (2024) sai de escopo — não é mais consultado nem para preencher lacuna; a leitura da §2 ("união com o 5.2 vencendo") fica suspensa enquanto esta revisão valer. `D1`, `D3` e `D4` continuam descrevendo o desenho do pipeline (fusão geral por domínio, mapa de equivalência, licença única); o que muda é qual documento é o vencedor por padrão, invertendo `D2`.
+
+**Escopo das fontes, por hora.** Registrado a partir do seletor de fontes do Open5e, na tela consultada em 15/08/2026:
+
+| Publisher | Documento | Em escopo? |
+|---|---|---|
+| Wizards of the Coast | SRD 5.1 (`srd-2014`) | Sim — fonte de referência |
+| Wizards of the Coast | SRD 5.2 (`srd-2024`) | Não, por hora |
+| EN Publishing | Adventurer's Guide (`a5e-ag`) | Sim — já ingerido (backgrounds, [ADR 004 §3.3](./004-origem-do-dado-de-sistema.md)) |
+| EN Publishing | Dungeon Delver's Guide (`a5e-ddg`) | Sim — ainda não ingerido |
+| EN Publishing | Gate Pass Gazette (`a5e-gpg`) | Sim — ainda não ingerido |
+| EN Publishing | Monstrous Menagerie (`a5e-mm`) | Não, por hora |
+| Somanyrobots | Spells That Don't Suck | Sim — ainda não ingerido |
+| Kobold Press | (12 documentos) | Não, por hora |
+| Open5e (própria) | (2 documentos) | Não, por hora |
+| Green Ronin Publishing | (1 documento) | Não, por hora |
+
+"Em escopo" aqui é decisão de produto, não instalação: como em D1, a fonte entra no pipeline quando uma story a ligar. `a5e-ddg`, `a5e-gpg` e o *Spells That Don't Suck* ainda não têm entrada em `sync.mjs`/`ingest.mjs` — permanecem candidatos até a primeira story que os consumir.
+
+**O que fica em aberto.** Esta revisão não resolve:
+- se o `System.version` (hoje `'5.2'`, ver D5) volta para `'5.1'` ou passa a descrever outra coisa;
+- se o pipeline muda de fato a precedência (5.1 vence, 5.2 preenche buraco) ou se o 5.1 vira a **única** fonte WotC consultada, já que o 5.2 saiu de escopo — nesse caso não há mais união a fazer no lado WotC;
+- a licença dos documentos novos (`a5e-ddg`, `a5e-gpg`, Spells That Don't Suck) — presume-se a mesma via CC-BY-4.0 do `a5e-ag` ([ADR 004 §3.3](./004-origem-do-dado-de-sistema.md)) até prova em contrário, mas cada um precisa da checagem de `Document.json` que o `a5e-ag` recebeu antes de entrar.
+
+Fica para a story que ligar cada fonte nova.

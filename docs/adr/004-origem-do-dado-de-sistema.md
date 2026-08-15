@@ -1,6 +1,6 @@
 # ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado
 
-**Status:** Aceito (implementado — US-47) · **decisão 6 revista em 02/08/2026** (o Free herda o SRD — ver §3.1) · **nota §3.3 em 09/08/2026** (segundo publisher — US-121) · **nota §3.4 em 13/08/2026** (exceção pontual, `ability` fora do Open5e — US-130)
+**Status:** Aceito (implementado — US-47) · **decisão 6 revista em 02/08/2026** (o Free herda o SRD — ver §3.1) · **nota §3.3 em 09/08/2026** (segundo publisher — US-121) · **nota §3.4 em 13/08/2026** (exceção pontual, `ability` fora do Open5e — US-130) · **fonte de referência revista em 15/08/2026** (SRD 5.1 vira a edição de referência, novos publishers em escopo — ver [ADR 009 §8](./009-uniao-dos-srd-5-1-e-5-2.md))
 **Data:** 2026-07-15
 **Decisores:** Time de Produto e Engenharia
 **Relacionado:** [ADR 003 — Sistemas como dado](./003-sistemas-como-dado.md) (o `config` como **destino**; segue inteiro) · [ADR 005 — Locale como dimensão](./005-locale-como-dimensao.md) (o overlay pt-BR é **um locale**) · [US-47](../sdlc/01-requisitos/US-47-ingestao-srd-como-dado.md) · [US-51](../sdlc/01-requisitos/US-51-kits-iniciais-do-srd.md) (kits, fonte/licença próprias) · [US-52](../sdlc/01-requisitos/US-52-traducao-automatica-do-srd.md) (tradução automática do conteúdo novo) · [US-121](../sdlc/01-requisitos/US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (segundo publisher, `a5e-ag`, ver §3.3) · [US-130](../sdlc/01-requisitos/US-130-culture-engineering-catalogo-pericias.md) (exceção pontual, `ability` fora do Open5e, ver §3.4)
@@ -44,6 +44,12 @@ numa linha ([NOTICE-open5e.md](../../scripts/srd/NOTICE-open5e.md)), **sem OGL 1
 > com o 5.2 vencendo sempre que os dois descreverem a mesma coisa. O pipeline, o pin e a regra de licença
 > única continuam valendo: o 5.1 entra pela via **CC-BY-4.0** do seu dual-licenciamento, e OGL 1.0a segue
 > barrado. `System.version` continua `'5.2'` (é a edição de referência, não o inventário).
+>
+> **Atualizado de novo em 15/08/2026 pelo [ADR 009 §8](./009-uniao-dos-srd-5-1-e-5-2.md).** O 5.2 sai de
+> escopo por hora; o **5.1 vira a fonte de referência**. Entram também no escopo (ainda não ingeridos)
+> mais dois documentos da EN Publishing (`a5e-ddg`, `a5e-gpg`) e o *Spells That Don't Suck* da
+> Somanyrobots. Pipeline, pin e regra de licença única continuam valendo — o que muda é qual documento
+> vence e quais publishers estão em escopo. Detalhe completo no ADR 009 §8, não repetido aqui.
 
 **Idioma:** nenhuma fonte traduz o SRD. O pt-BR é **overlay curado do projeto**
 (`scripts/srd/locale/pt-BR.json`), indexado por **chave canônica nossa** (`paladino_lay-on-hands`,

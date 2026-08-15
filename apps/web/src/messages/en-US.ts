@@ -196,6 +196,7 @@ export const enUS: Record<MessageKey, string> = {
   'game.background.origin': 'Origin',
   'game.background.connection': 'Connection',
   'game.background.memento': 'Memento',
+  'game.background.adventures': 'Adventures & Advancement',
   'game.background.story': 'Story',
   'game.background.deity': 'Deity/Patron',
   'game.background.ideals': 'Ideals',
