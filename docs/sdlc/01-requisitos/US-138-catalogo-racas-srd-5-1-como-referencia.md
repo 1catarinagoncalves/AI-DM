@@ -2,9 +2,9 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada
+**Status:** ✅ Implementada
 **Depende de:** [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (**obrigatória e anterior**: constrói `buildRaces` e o mecanismo de fusão 2014+2024 que esta story só reconfigura — não reescreve) · [ADR 009 §8](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (a decisão que esta story implementa: o SRD 5.1 vira fonte de referência, o 5.2 sai de escopo)
-**Relacionado:** [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) (pipeline pinado, licença única) · [US-139](./US-139-catalogo-classes-marshal-a5e-adventurers-guide.md) (mesma revisão de precedência aplicada a `classes`, na mesma leva)
+**Relacionado:** [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) (pipeline pinado, licença única) · [US-139](./US-139-catalogo-classes-marshal-a5e-adventurers-guide.md) (mesma revisão de precedência aplicada a `classes`, na mesma leva) · [US-140](./US-140-catalogo-subracas-srd-5-1.md) (estende este `buildRaces` com subespécie, story separada)
 **Criada em:** 2026-08-15
 
 ---
@@ -36,9 +36,9 @@ O ADR 009 §8 também colocou em escopo três documentos novos (`a5e-ddg`, `a5e-
 
 **Nenhum dos quatro documentos novos em escopo tem `Species.json` ou qualquer outro modelo de raça.** `a5e-ddg`/`a5e-gpg` só têm background; *Spells That Don't Suck* só tem magia; `a5e-ag` tem classe (US-139), mas não espécie. Raça continua existindo só em `wizards-of-the-coast/srd-2014` e `srd-2024` — esta story é, na prática, **inverter a precedência dentro do par que já existe**, não somar fonte nova.
 
-### O que a inversão custa: Goliath e Orc perdem fonte
+### Decidido: o 5.2 sai de vez — Goliath e Orc perdem fonte
 
-A união atual (US-105) tem 11 raízes porque o 5.2 contribui `goliath` e `orc` (exclusivas dele) e o 5.1 contribui `half-elf`/`half-orc` (exclusivas dele). O [ADR 009 §8](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) deixou em aberto se o 5.2 sai **de vez** (sem união nenhuma do lado WotC) ou se continua entrando só para preencher o que o 5.1 não tem (união invertida: 5.1 vence, 5.2 tapa buraco). A diferença é concreta: **se o 5.2 sai de vez, Goliath e Orc desaparecem do catálogo** — ninguém os re-adiciona, porque nenhuma das fontes novas os tem. Ver *Questões em aberto* #1.
+**Decisão de 15/08/2026: o 5.2 não entra nem para preencher lacuna.** `config.races` passa a vir só do `srd-2014` — sem fusão, sem `SRD_EQUIVALENTS` ativo em espécie, sem segundo documento no `sync` para este domínio. Consequência aceita: **Goliath e Orc (exclusivas do 5.2) saem do catálogo**, e nenhuma das fontes novas do ADR 009 §8 os tem para recuperar (ver tabela acima). O catálogo cai de 11 raízes (US-105) para **9** — exatamente as do `srd-2014/Species.json`, incluindo `half-elf`/`half-orc`, que já eram exclusivas dele.
 
 ---
 
@@ -46,12 +46,14 @@ A união atual (US-105) tem 11 raízes porque o 5.2 contribui `goliath` e `orc` 
 
 ### Dentro do escopo
 
-- **`buildRaces`** ([`ingest.mjs:238-244`](../../../scripts/srd/ingest.mjs:238)): a chamada de fusão troca de ordem — carrega o `srd-2014` inteiro primeiro; o `srd-2024` participa só na forma que a *Questão em aberto* #1 decidir (união invertida) ou não participa (5.1 puro). O `SRD_EQUIVALENTS` ([ADR 009 D3](../../adr/009-uniao-dos-srd-5-1-e-5-2.md)) continua existindo — vazio para espécie hoje, mas o comentário que a US-105 deixou (*"não conclua daí que é dispensável"*) segue valendo.
+- **`buildRaces`** ([`ingest.mjs:238-244`](../../../scripts/srd/ingest.mjs:238)): deixa de fundir dois documentos — passa a derivar `config.races` só de `srd-2014/Species.json`, filtrado a `subspecies_of === null` (mesmo filtro de hoje). `mergeEditions`/`SRD_EQUIVALENTS` deixam de ser chamados para este domínio (continuam existindo, servindo `classes`/US-139 e domínios futuros).
+- **`sync.mjs`**: `Species.json` do `srd-2024` deixa de ser baixado **para este propósito** — confirmar se algum outro domínio ainda depende dele antes de remover a linha (hoje não depende, ver *Notas de implementação*).
 - **`CharacterClass.json`** não muda de fonte para o campo `races` (ele nunca foi usado por `buildRaces`) — nenhuma mudança aqui, só registrado para não confundir com US-139.
-- **`System.version`**: revisar se `'5.2'` (D5 do ADR 009, mantido até aqui) ainda faz sentido como "edição de referência" com o 5.1 sendo a fonte primária de `races`. Não precisa mudar nesta story se `classes` (US-139) continuar batendo entre as duas edições — mas o valor tem que refletir a decisão real, não ficar por inércia.
-- **`NOTICE-open5e.md`**: o parágrafo que descreve `races` como "união dos dois SRD, 5.2 vencendo" passa a descrever a nova precedência.
-- **Teste em `ingest.test.mjs`**: o teste que a US-105 deixou ("as 7 espécies comuns saem do 5.2… falha se a precedência inverter") passa a afirmar o oposto — as 7 comuns saem do 5.1.
-- **Migração/reseed**: `config.races` muda de conteúdo (a fonte do rótulo de cada raça comum pode divergir entre 5.1 e 5.2 em texto, mesmo com chave idêntica) — reexecutar `pnpm srd:ingest` e `pnpm db:seed`/`db:migrate:race-class` como a US-105 já documentou; nenhuma migração de **chave** nova, porque as 7 comuns têm o mesmo `pk` normalizado nas duas edições.
+- **`System.version`**: **decidido `'5.1'` como valor final** (junto com [US-139](./US-139-catalogo-classes-marshal-a5e-adventurers-guide.md)) — mas só aplica **quando US-139 também landar**: `classFeatures`/`classSpells` ainda vêm do 5.2 até lá, e mudar o campo agora deixaria ele mentindo (`'5.1'` sem `races` ser a única coisa vinda de lá). **Esta story não mexe em [`seed.ts:132,136`](../../../apps/api/prisma/seed.ts:132)** — fica `'5.2'` até a leva fechar.
+- **`NOTICE-open5e.md`**: o parágrafo que descreve `races` como "união dos dois SRD, 5.2 vencendo" passa a dizer que a fonte é só o SRD 5.1.
+- **Teste em `ingest.test.mjs`**: o teste que a US-105 deixou ("as 7 espécies comuns saem do 5.2… falha se a precedência inverter") passa a afirmar que **todas** as 9 raças saem do 5.1, e que `goliath`/`orc` não aparecem.
+- **Migração de fichas existentes com `race = 'goliath'` ou `race = 'orc'`**: essas duas chaves saem do catálogo. Se existir alguma ficha assim no banco, ela passa a referenciar uma chave que `config.races` não tem mais — mesma classe de problema que a US-105 resolveu para o texto livre legado, agora ao contrário (chave que já foi válida deixa de ser). Contar antes de decidir o tratamento (relatar e não tocar, como o script da US-105; ou congelar a label antiga como entrada `source: 'authored'`, mesmo mecanismo do [ADR 004 §6f](../../adr/004-origem-do-dado-de-sistema.md)) — ver *Critérios de aceite* e *Notas de implementação*.
+- **Migração/reseed**: reexecutar `pnpm srd:ingest` e `pnpm db:seed`/`db:migrate:race-class` como a US-105 já documentou.
 
 ### Fora do escopo
 
@@ -64,19 +66,19 @@ A união atual (US-105) tem 11 raízes porque o 5.2 contribui `goliath` e `orc` 
 
 ## Modelo de dados proposto
 
-Nenhum tipo novo — `SystemConfig.races` já existe (US-105), `{key, label}[]`. O que muda é **qual documento vence** dentro de `buildRaces`, não o formato:
+Nenhum tipo novo — `SystemConfig.races` já existe (US-105), `{key, label}[]`. O que muda é que `buildRaces` deixa de fundir dois documentos:
 
 ```ts
 // scripts/srd/ingest.mjs — buildRaces, antes (US-105/ADR 009 D2)
-mergeEditions(species2024, species2014, SRD_EQUIVALENTS)   // 2024 vence
+mergeEditions(species2024, species2014, SRD_EQUIVALENTS)   // união, 2024 vence
 
-// depois (ADR 009 §8) — forma exata depende da Questão em aberto #1
-mergeEditions(species2014, species2024, SRD_EQUIVALENTS)   // 5.1 vence
+// depois (ADR 009 §8) — sem fusão, uma fonte só
+buildFromSingleSource(species2014)                          // só 5.1
 ```
 
 | Campo | Antes (US-105) | Depois |
 |---|---|---|
-| `config.races` | 11 raízes, 2024 vence nas 7 comuns | 9 a 11 raízes (depende da *Questão em aberto* #1), 5.1 vence nas 7 comuns |
+| `config.races` | 11 raízes (`goliath`, `orc` do 5.2; `half-elf`, `half-orc` do 5.1; 7 comuns do 5.2) | **9 raízes**, todas do 5.1 — `goliath`/`orc` saem, `half-elf`/`half-orc` continuam |
 
 **Persistência:** mesmo artefato `srd-5e.config.<locale>.json` — sem migração de schema. Migração de dados só se algum `pk` normalizado divergir entre 5.1/5.2 (não esperado nas 7 comuns, ver ADR 009 §4).
 
@@ -84,33 +86,37 @@ mergeEditions(species2014, species2024, SRD_EQUIVALENTS)   // 5.1 vence
 
 ## Critérios de aceite
 
-- [ ] `buildRaces` deriva `config.races` com o SRD 5.1 vencendo nas raças comuns às duas edições — teste que falha se a precedência voltar a ser 2024.
-- [ ] A *Questão em aberto* #1 está resolvida em código: ou `config.races` mantém 11 raízes (união invertida, 2024 tapa buraco), ou passa a ter 9 (só 5.1) — o número no teste bate com a decisão tomada, documentada aqui com data.
-- [ ] `NOTICE-open5e.md` descreve a precedência corrente (qual edição vence), não a do ADR 009 original.
-- [ ] `SystemConfigSchema` continua validando `races` sem mudança de schema.
-- [ ] Ambos os artefatos (`en-US`, `pt-BR`) refletem a nova precedência.
-- [ ] **Eval / teste de regressão:** `ingest.test.mjs` cobre `buildRaces` com fixture sintética confirmando que uma raça presente nas duas edições sai com o texto do 5.1, e que a raça exclusiva de cada edição entra ou não conforme a decisão da *Questão em aberto* #1.
+- [x] `buildRaces` deriva `config.races` só do `srd-2014` — **9 raízes**: `dragonborn`, `dwarf`, `elf`, `gnome`, `halfling`, `half-elf`, `half-orc`, `human`, `tiefling`.
+- [x] `goliath` e `orc` **não** aparecem em `config.races` — teste que falha se eles voltarem (proteção contra reintrodução acidental via `srd-2024`).
+- [x] `NOTICE-open5e.md` descreve `races` como derivado só do SRD 5.1, não mais "união dos dois SRD".
+- [x] `SystemConfigSchema` continua validando `races` sem mudança de schema.
+- [x] Ambos os artefatos (`en-US`, `pt-BR`) trazem as 9 raças, sem `goliath`/`orc`.
+- [x] Contagem de fichas existentes com `race = 'goliath'` ou `race = 'orc'` registrada (mesmo que zero) — se houver alguma, o tratamento está decidido e implementado (relatório sem tocar, ou entrada autoral que preserva a chave), não descoberto em produção. **Contagem: 0** (query direta na Neon, 15/08/2026 — `migrate-race-class-keys.ts` não serve pra essa medição porque já rodou uma vez e é idempotente).
+- [x] **Eval / teste de regressão:** `ingest.test.mjs` cobre `buildRaces` com fixture sintética confirmando 9 entradas, todas do 5.1, e ausência de `goliath`/`orc` mesmo que a fixture do `srd-2024` os contenha.
 
 ---
 
 ## Notas de implementação
 
-- **Não é fonte nova, é troca de argumento.** `mergeEditions`/`SRD_EQUIVALENTS` (US-105, ADR 009 D3) já existem e servem sem alteração de assinatura — só a ordem dos dois datasets na chamada muda. Resistir à tentação de generalizar o mecanismo "por via das dúvidas": ele já é genérico.
-- **Faça a contagem antes de fechar a Questão em aberto #1**, mesma disciplina da US-105: quantas fichas existentes têm `race = 'goliath'` ou `race = 'orc'`, se o banco já tiver alguma. Se zero, o custo de perdê-las é só "opção a menos no wizard", não migração de ficha.
+- **É simplificação, não extensão.** `buildRaces` deixa de chamar `mergeEditions`/`SRD_EQUIVALENTS` para este domínio — vira leitura direta de um documento, mesmo padrão de builder single-source que outros campos do `config` já têm. Não generalizar de volta "por via das dúvidas": se um domínio futuro precisar de união, ele chama `mergeEditions` de novo, o mecanismo continua existindo para `classes` (US-139).
+- **Confirme se `srd-2024/Species.json` ainda é baixado por outro motivo antes de tirar a linha do `sync.mjs`** — na data desta story, nenhum outro builder o consome, mas revalide (`grep -rn "species2024" scripts/srd`).
+- **Faça a contagem de fichas com `race` em `{goliath, orc}` antes de escrever o tratamento de migração.** Zero fichas: só documentar. Alguma ficha: decidir entre "relatar e não tocar" (padrão da US-105) e "entrada autoral que preserva a chave" (padrão do [ADR 004 §6f](../../adr/004-origem-do-dado-de-sistema.md)) — não é uma decisão de código sem saber o número.
 - **`pnpm srd:sync` antes de `pnpm srd:ingest`**, ordem padrão do pipeline (US-47).
+- **Descoberto na implementação, fora da spec original:** o loop de órfãos de overlay ([`ingest.mjs:759`](../../../scripts/srd/ingest.mjs:759)) nunca incluía `races` — antes da união reverter, as 11 chaves do overlay sempre casavam com as 11 do catálogo, então não fazia diferença. Com o catálogo caindo pra 9, `goliath`/`orc` (curados em [`locale/pt-BR.json`](../../../scripts/srd/locale/pt-BR.json)) ficariam mortos e invisíveis sem entrar na lista. Adicionado `races` ao loop — as duas chaves agora aparecem no relatório `ÓRFÃOS` do `ingest`. As entradas em si **não foram apagadas** do overlay (decisão de curadoria, não de código); ficam pendentes de limpeza manual.
 
 ---
 
 ## Questões em aberto
 
-1. **A inversão é "só 5.1" ou "união invertida" (5.1 vence, 5.2 tapa buraco)?** O ADR 009 §8 registrou a pergunta sem resolver. Só 5.1 é mais simples (uma fonte, sem `SRD_EQUIVALENTS` ativo em espécie) mas **derruba Goliath e Orc do catálogo** sem nenhuma fonte em escopo para recuperá-los. União invertida preserva as 11 raízes de hoje, ao custo de manter os dois documentos no `sync` para `races` — o mesmo custo que a US-105 já paga hoje, só invertido. **Sugestão:** união invertida — o ADR 009 original já argumentou (§3.1) que tirar opção de raça por corte editorial de terceiro é o problema a evitar; a mesma lógica vale ao inverter. Decisão final cabe a quem aprovar esta story.
+Nenhuma pendente de decisão de fonte — **decidido em 15/08/2026: só 5.1, sem união** (o ADR 009 §8 tinha deixado em aberto entre "só 5.1" e "união invertida"; fechado nesta story a favor de "só 5.1"). Fica pendente só a execução da contagem de migração (*Notas de implementação*), que é operacional, não uma escolha de desenho.
 
 ---
 
 ## Referências no código
 
-- [scripts/srd/ingest.mjs:238-244](../../../scripts/srd/ingest.mjs:238) — `buildRaces`, onde a ordem dos argumentos muda.
+- [scripts/srd/ingest.mjs:238-244](../../../scripts/srd/ingest.mjs:238) — `buildRaces`, onde a chamada de `mergeEditions` é removida e substituída por leitura direta do `srd-2014`.
 - [scripts/srd/sync.mjs:15-19](../../../scripts/srd/sync.mjs:15) — `SRD`/`SRD_2014`, os dois documentos que `buildRaces` já baixa.
 - [scripts/srd/NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md) — parágrafo de proveniência de `races`, a atualizar.
 - [docs/adr/009-uniao-dos-srd-5-1-e-5-2.md](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) §8 — a decisão que esta story implementa.
 - [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) — mecanismo original (`mergeEditions`, `SRD_EQUIVALENTS`, `buildRaces`), reconfigurado aqui, não reescrito.
+- [apps/api/prisma/seed.ts:132,136](../../../apps/api/prisma/seed.ts:132) — `System.version`, hardcoded `'5.2'`. Não muda nesta story (ver *Escopo* → `System.version`), fica marcado aqui pra US-139 achar sem precisar regrep.

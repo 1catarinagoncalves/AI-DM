@@ -230,17 +230,20 @@ export function buildSkills(overlay, skillsRaw, resolve) {
   return [...core, ...a5e].sort((a, b) => a.key.localeCompare(b.key))
 }
 
-// --- races (11): união das RAÍZES dos dois SRD (ADR 009). US-105 ---
-// Subespécie fica fora (`subspecies_of !== null`): as 4 do 5.1 (high-elf, hill-dwarf, lightfoot,
-// rock-gnome) são escolha de produto, não consequência da fonte — mesmo filtro que
-// `buildClassFeatures` já aplica a subclasse. `Species.desc` vem VAZIO no dataset (a descrição
-// está no SpeciesTrait.json, fora do escopo), então o catálogo é só {key, label}.
-function buildRaces(overlay, species2024, species2014, resolve) {
-  const roots = (rows) => rows.filter((s) => s.fields.subspecies_of === null)
-  return mergeEditions(roots(species2024), roots(species2014)).map(([key, s]) => ({
-    key,
-    label: resolve('races', key, { name: overlay.races?.[key] }, s.fields.name).name,
-  }))
+// --- races (9): só as RAÍZES do SRD 5.1 (ADR 009 §8, US-138) — a união com o 5.2 que a
+// US-105/ADR 009 D2 fixava foi revertida: goliath/orc (exclusivas do 5.2) saem, sem fonte nova
+// pra recuperá-las. Subespécie fica fora (`subspecies_of !== null`): as 4 do 5.1 (high-elf,
+// hill-dwarf, lightfoot, rock-gnome) são escolha de produto, não consequência da fonte — mesmo
+// filtro que `buildClassFeatures` já aplica a subclasse. `Species.desc` vem VAZIO no dataset (a
+// descrição está no SpeciesTrait.json, fora do escopo), então o catálogo é só {key, label}.
+export function buildRaces(overlay, species2014, resolve) {
+  return species2014
+    .filter((s) => s.fields.subspecies_of === null)
+    .map((s) => {
+      const key = stripDocument(s.pk)
+      return { key, label: resolve('races', key, { name: overlay.races?.[key] }, s.fields.name).name }
+    })
+    .sort((a, b) => a.key.localeCompare(b.key))
 }
 
 // --- classes (12): o CLASS_MAP já ERA o catálogo; aqui ele passa a ser emitido ---
@@ -741,7 +744,7 @@ function buildConfig(overlay, data) {
   const { resolve, fallbacks, orphans, usedOverlay, glossary } = makeResolver()
   const attributes = buildAttributes(overlay, data.abilities, resolve)
   const skills = buildSkills(overlay, data.skillsRaw, resolve)
-  const races = buildRaces(overlay, data.species, data.species2014, resolve)
+  const races = buildRaces(overlay, data.species2014, resolve)
   const classes = buildClasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
@@ -753,7 +756,10 @@ function buildConfig(overlay, data) {
   const { backgrounds, backgroundEquipment, backgroundFeatures } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, tools, data.items, orphans)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
-  for (const domain of ['features', 'spells', 'kitItems', 'backgrounds', 'tools']) {
+  // US-138: `races` entra na lista pela primeira vez — antes da união reverter (ADR 009 §8),
+  // as 11 chaves do overlay sempre casavam com as 11 do catálogo, então não fazia diferença.
+  // Agora goliath/orc ficam no overlay sem chave no catálogo (9 raízes) e precisam aparecer aqui.
+  for (const domain of ['races', 'features', 'spells', 'kitItems', 'backgrounds', 'tools']) {
     for (const key of Object.keys(overlay[domain] || {})) {
       if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
     }
@@ -767,7 +773,7 @@ function buildConfig(overlay, data) {
 
 async function main() {
   const overlay = JSON.parse(await readFile(OVERLAY_PATH, 'utf8'))
-  const [abilities, rules, skillsRaw, classes, features, featureItems, spells, species, species2014, backgrounds, backgroundBenefits, items] = await Promise.all([
+  const [abilities, rules, skillsRaw, classes, features, featureItems, spells, species2014, backgrounds, backgroundBenefits, items] = await Promise.all([
     load('AbilityDescription.json'),
     load('Rule.json'),
     load('Skill.json'),
@@ -775,13 +781,12 @@ async function main() {
     load('ClassFeature.json'),
     load('ClassFeatureItem.json'),
     load('Spell.json'),
-    load('Species.json'),
     load('Species.2014.json'),
     load('Background.json'),
     load('BackgroundBenefit.json'),
     load('Item.json'),
   ])
-  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species, species2014, backgrounds, backgroundBenefits, items }
+  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species2014, backgrounds, backgroundBenefits, items }
 
   const base = buildConfig({}, data)
   let localized = buildConfig(overlay, data)

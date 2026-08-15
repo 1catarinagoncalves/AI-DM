@@ -3710,10 +3710,6 @@
       "label": "Gnomo"
     },
     {
-      "key": "goliath",
-      "label": "Goliath"
-    },
-    {
       "key": "half-elf",
       "label": "Meio-Elfo"
     },
@@ -3728,10 +3724,6 @@
     {
       "key": "human",
       "label": "Humano"
-    },
-    {
-      "key": "orc",
-      "label": "Orc"
     },
     {
       "key": "tiefling",

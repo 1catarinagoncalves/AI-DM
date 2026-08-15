@@ -3710,10 +3710,6 @@
       "label": "Gnome"
     },
     {
-      "key": "goliath",
-      "label": "Goliath"
-    },
-    {
       "key": "half-elf",
       "label": "Half-Elf"
     },
@@ -3728,10 +3724,6 @@
     {
       "key": "human",
       "label": "Human"
-    },
-    {
-      "key": "orc",
-      "label": "Orc"
     },
     {
       "key": "tiefling",

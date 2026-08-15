@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, parseStartingKit, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, mergeEditions, buildRaces, parseStartingKit, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -64,6 +64,38 @@ test('mergeEditions: o SRD_EQUIVALENTS deduplica o conceito que mudou de slug', 
   assert.equal(mergeEditions(rows2024, rows2014, {}).length, 2, 'sem mapa, duplica')
   const deduped = mergeEditions(rows2024, rows2014, { 'bard_cantrips-known': 'bard_cantrips' })
   assert.deepEqual(deduped.map(([k]) => k), ['bard_cantrips'])
+})
+
+// --- US-138 (ADR 009 §8) — buildRaces vira single-source: só o SRD 5.1, sem mergeEditions ---
+
+const raceRow = (pk, name, subspeciesOf = null) => ({ pk, fields: { name, subspecies_of: subspeciesOf } })
+const raceIdentityResolve = (_domain, _key, _entry, enName) => ({ name: enName })
+
+test('buildRaces: as 9 raízes do 5.1, subespécie filtrada fora, ordenadas por key', () => {
+  const species2014 = [
+    raceRow('srd_dragonborn', 'Dragonborn'),
+    raceRow('srd_dwarf', 'Dwarf'),
+    raceRow('srd_elf', 'Elf'),
+    raceRow('srd_gnome', 'Gnome'),
+    raceRow('srd_halfling', 'Halfling'),
+    raceRow('srd_half-elf', 'Half-Elf'),
+    raceRow('srd_half-orc', 'Half-Orc'),
+    raceRow('srd_human', 'Human'),
+    raceRow('srd_tiefling', 'Tiefling'),
+    raceRow('srd_high-elf', 'High Elf', 'elf'), // subespécie — mesmo filtro de buildClassFeatures
+  ]
+  const result = buildRaces({}, species2014, raceIdentityResolve)
+  const expectedKeys = ['dragonborn', 'dwarf', 'elf', 'gnome', 'halfling', 'half-elf', 'half-orc', 'human', 'tiefling']
+  assert.deepEqual(result.map((r) => r.key), [...expectedKeys].sort((a, b) => a.localeCompare(b)))
+})
+
+// Proteção contra reintrodução acidental: `buildRaces` não tem mais parâmetro pro 5.2, então
+// goliath/orc só voltariam se alguém reintroduzisse a fusão — este teste falha se isso acontecer.
+test('buildRaces: goliath/orc não aparecem — não existem no 5.1 e a função não recebe o 5.2', () => {
+  const species2014 = [raceRow('srd_dwarf', 'Dwarf'), raceRow('srd_human', 'Human')]
+  const result = buildRaces({}, species2014, raceIdentityResolve)
+  assert.deepEqual(result.map((r) => r.key), ['dwarf', 'human'])
+  assert.equal(buildRaces.length, 3, 'assinatura tem 3 parâmetros — não sobra espaço pro species2024')
 })
 
 const RAGE = { en: 'Rage', pt: 'Fúria' }

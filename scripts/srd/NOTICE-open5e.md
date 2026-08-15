@@ -18,9 +18,12 @@ também só SRD 5.2. É o único derivado que **não** mora nesta pasta: ele é 
 pelo builder do system prompt, e JSON de fora do pacote arrastaria o `rootDir` do tsc. O texto dos
 exemplos fica em inglês, como o resto do system prompt.
 
-O SRD 5.1 entra por decisão do [ADR 009](../../docs/adr/009-uniao-dos-srd-5-1-e-5-2.md): a fonte é a
-**união** dos dois documentos do mesmo tag, com o 5.2 vencendo onde os dois descrevem a mesma coisa.
-Hoje o 5.1 contribui as espécies `half-elf` e `half-orc`, que a edição 2024 retirou.
+O SRD 5.1 entra por decisão do [ADR 009](../../docs/adr/009-uniao-dos-srd-5-1-e-5-2.md). O
+mecanismo de união (5.1 preenche o que o 5.2 não tem, com o 5.2 vencendo onde os dois descrevem
+a mesma coisa) segue disponível para domínios futuros, mas **`races`** não passa mais por ele: o
+ADR 009 §8 (15/08/2026, US-138) reverteu a precedência e fixou o SRD 5.1 como fonte ÚNICA de
+`config.races` — sem fusão com o 5.2. Consequência: `goliath` e `orc` (exclusivas do 5.2) saem do
+catálogo; `half-elf`/`half-orc` (exclusivas do 5.1) continuam.
 
 Os catálogos `backgrounds` (US-121) são derivados de *Level Up: Advanced 5th Edition —
 Adventurer's Guide* ("a5e-ag"), publicado por **EN Publishing**, também obtido via Open5e no

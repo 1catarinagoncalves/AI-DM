@@ -26,10 +26,12 @@ const A5E_AG = `${RAW}/en-publishing/a5e-ag`
 // [url, nome local]. A âncora de perícia (`ability`) só existe no doc `core`/Skill.json;
 // a srd-2024/SkillDescription não a traz (só `describes` + desc). Ver ingest.mjs.
 //
-// US-105: só `Species` baixa o par 2014 — é o único domínio ingerido em que a união rende
-// conteúdo (half-elf, half-orc). As 12 classes base são idênticas nas duas edições (ADR 009 §4),
-// e feature/magia entram quando a story delas passar pela fusão. Cada arquivo do 5.1 sai com
-// sufixo `.2014` porque o nome do arquivo é o mesmo nos dois documentos.
+// US-138 (ADR 009 §8): `Species` do 5.1 é agora a ÚNICA fonte de `config.races` — o par 5.2
+// (`srd-2024/Species.json`) saiu do sync porque nada mais o consome (era só `buildRaces`,
+// via US-105/ADR 009 D2, revertida). O sufixo `.2014` no arquivo local é herança de quando os
+// dois pares existiam lado a lado; mantido pra não mexer no nome que `ingest.mjs` já lê.
+// As 12 classes base são idênticas nas duas edições (ADR 009 §4); feature/magia entram
+// quando a story delas passar pela fusão (mecanismo em `mergeEditions`, ainda vivo pra isso).
 //
 // US-108: `Rule.json` traz o TEXTO normativo das regras (56 no v2.1.0), entre elas a tabela
 // de modificadores de habilidade. Ele não alimenta o `config` — só o artefato derivado
@@ -45,7 +47,6 @@ const FILES = [
   [`${SRD}/ClassFeature.json`, 'ClassFeature.json'],
   [`${SRD}/ClassFeatureItem.json`, 'ClassFeatureItem.json'],
   [`${SRD}/Spell.json`, 'Spell.json'],
-  [`${SRD}/Species.json`, 'Species.json'],
   [`${SRD_2014}/Species.json`, 'Species.2014.json'],
   [`${A5E_AG}/Background.json`, 'Background.json'],
   [`${A5E_AG}/BackgroundBenefit.json`, 'BackgroundBenefit.json'],
