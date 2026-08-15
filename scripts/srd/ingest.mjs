@@ -202,20 +202,38 @@ export function buildSkills(overlay, skillsRaw, resolve) {
   return [...core, ...a5e].sort((a, b) => a.key.localeCompare(b.key))
 }
 
-// --- races (9): só as RAÍZES do SRD 5.1 (ADR 009 §8, US-138) — a união com o 5.2 que a
-// US-105/ADR 009 D2 fixava foi revertida: goliath/orc (exclusivas do 5.2) saem, sem fonte nova
-// pra recuperá-las. Subespécie fica fora (`subspecies_of !== null`): as 4 do 5.1 (high-elf,
-// hill-dwarf, lightfoot, rock-gnome) são escolha de produto, não consequência da fonte — mesmo
-// filtro que `buildClassFeatures` já aplica a subclasse. `Species.desc` vem VAZIO no dataset (a
-// descrição está no SpeciesTrait.json, fora do escopo), então o catálogo é só {key, label}.
+// --- races (13): as 9 RAÍZES do SRD 5.1 (ADR 009 §8, US-138) e as 4 subespécies que o
+// mesmo dataset já tem (high-elf, hill-dwarf, lightfoot, rock-gnome — US-140). A união com
+// o 5.2 que a US-105/ADR 009 D2 fixava segue revertida: goliath/orc (exclusivas do 5.2) saem,
+// sem fonte nova pra recuperá-las. `Species.desc` vem VAZIO no dataset (a descrição está no
+// SpeciesTrait.json, fora do escopo), então o catálogo é só {key, label, parentKey?}.
+// US-140: sort NÃO é mais alfabético global — é raiz por raiz (alfabética entre si), cada
+// raiz imediatamente seguida da(s) sua(s) subespécie(s) (também alfabética entre si). O
+// wizard agrupa por POSIÇÃO da lista (optgroup logo após a raiz), não recalcula por
+// `parentKey` — ver §Como aparece na criação de personagem da US-140.
 export function buildRaces(overlay, species2014, resolve) {
-  return species2014
+  const toEntry = (s) => {
+    const key = stripDocument(s.pk)
+    const entry = { key, label: resolve('races', key, { name: overlay.races?.[key] }, s.fields.name).name }
+    if (s.fields.subspecies_of !== null) entry.parentKey = stripDocument(s.fields.subspecies_of)
+    return entry
+  }
+  const roots = species2014
     .filter((s) => s.fields.subspecies_of === null)
-    .map((s) => {
-      const key = stripDocument(s.pk)
-      return { key, label: resolve('races', key, { name: overlay.races?.[key] }, s.fields.name).name }
-    })
+    .map(toEntry)
     .sort((a, b) => a.key.localeCompare(b.key))
+  const subspeciesByParent = new Map()
+  for (const s of species2014) {
+    if (s.fields.subspecies_of === null) continue
+    const parentKey = stripDocument(s.fields.subspecies_of)
+    const list = subspeciesByParent.get(parentKey) ?? []
+    list.push(toEntry(s))
+    subspeciesByParent.set(parentKey, list)
+  }
+  return roots.flatMap((root) => [
+    root,
+    ...(subspeciesByParent.get(root.key) ?? []).sort((a, b) => a.key.localeCompare(b.key)),
+  ])
 }
 
 // --- classes (12): o CLASS_MAP já ERA o catálogo; aqui ele passa a ser emitido ---

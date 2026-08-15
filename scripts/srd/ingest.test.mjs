@@ -40,26 +40,36 @@ test('formatOverlay grava o rascunho como uma linha com a marca _mt', () => {
 })
 
 // --- US-138 (ADR 009 §8) — buildRaces vira single-source: só o SRD 5.1, sem mergeEditions ---
+// --- US-140 — subespécie entra no catálogo, com `parentKey`, agrupada por posição ---
 
 const raceRow = (pk, name, subspeciesOf = null) => ({ pk, fields: { name, subspecies_of: subspeciesOf } })
 const raceIdentityResolve = (_domain, _key, _entry, enName) => ({ name: enName })
 
-test('buildRaces: as 9 raízes do 5.1, subespécie filtrada fora, ordenadas por key', () => {
+test('buildRaces: raiz com subespécie emite as duas com parentKey normalizado; raiz sem emite só ela', () => {
   const species2014 = [
-    raceRow('srd_dragonborn', 'Dragonborn'),
+    raceRow('srd_dragonborn', 'Dragonborn'), // raiz sem subespécie — sem entrada fantasma
     raceRow('srd_dwarf', 'Dwarf'),
     raceRow('srd_elf', 'Elf'),
-    raceRow('srd_gnome', 'Gnome'),
-    raceRow('srd_halfling', 'Halfling'),
-    raceRow('srd_half-elf', 'Half-Elf'),
-    raceRow('srd_half-orc', 'Half-Orc'),
-    raceRow('srd_human', 'Human'),
-    raceRow('srd_tiefling', 'Tiefling'),
-    raceRow('srd_high-elf', 'High Elf', 'elf'), // subespécie — mesmo filtro de buildClassFeatures
+    // subespécie: subspecies_of é o `pk` CRU da raiz (`srd_elf`), não a key já normalizada —
+    // é a normalização (mesmo strip de `stripDocument`) que buildRaces tem de fazer.
+    raceRow('srd_high-elf', 'High Elf', 'srd_elf'),
+    raceRow('srd_hill-dwarf', 'Hill Dwarf', 'srd_dwarf'),
   ]
   const result = buildRaces({}, species2014, raceIdentityResolve)
-  const expectedKeys = ['dragonborn', 'dwarf', 'elf', 'gnome', 'halfling', 'half-elf', 'half-orc', 'human', 'tiefling']
-  assert.deepEqual(result.map((r) => r.key), [...expectedKeys].sort((a, b) => a.localeCompare(b)))
+
+  // Emissão agrupa por raiz (raízes em ordem alfabética, cada uma seguida da sua subespécie) —
+  // NÃO é sort alfabético global (`high-elf` não fica perto de `human`/`half-elf`).
+  assert.deepEqual(result.map((r) => r.key), ['dragonborn', 'dwarf', 'hill-dwarf', 'elf', 'high-elf'])
+
+  const highElf = result.find((r) => r.key === 'high-elf')
+  const hillDwarf = result.find((r) => r.key === 'hill-dwarf')
+  assert.equal(highElf.parentKey, 'elf')
+  assert.equal(hillDwarf.parentKey, 'dwarf')
+
+  // Raízes não ganham parentKey (ausente = raiz, mesmo contrato do RaceCatalogEntrySchema).
+  for (const key of ['dragonborn', 'dwarf', 'elf']) {
+    assert.equal(result.find((r) => r.key === key).parentKey, undefined)
+  }
 })
 
 // Proteção contra reintrodução acidental: `buildRaces` não tem mais parâmetro pro 5.2, então

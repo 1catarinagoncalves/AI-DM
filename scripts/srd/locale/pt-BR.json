@@ -39,8 +39,12 @@
     "half-elf": "Meio-Elfo",
     "half-orc": "Meio-Orc",
     "halfling": "Halfling",
+    "high-elf": "Alto-elfo",
+    "hill-dwarf": "Anão da Colina",
     "human": "Humano",
+    "lightfoot": "Halfling Pés-Leves",
     "orc": "Orc",
+    "rock-gnome": "Gnomo das Rochas",
     "tiefling": "Tiefling"
   },
   "classes": {

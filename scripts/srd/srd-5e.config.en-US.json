@@ -3506,12 +3506,27 @@
       "label": "Dwarf"
     },
     {
+      "key": "hill-dwarf",
+      "label": "Hill Dwarf",
+      "parentKey": "dwarf"
+    },
+    {
       "key": "elf",
       "label": "Elf"
     },
     {
+      "key": "high-elf",
+      "label": "High Elf",
+      "parentKey": "elf"
+    },
+    {
       "key": "gnome",
       "label": "Gnome"
+    },
+    {
+      "key": "rock-gnome",
+      "label": "Rock Gnome",
+      "parentKey": "gnome"
     },
     {
       "key": "half-elf",
@@ -3524,6 +3539,11 @@
     {
       "key": "halfling",
       "label": "Halfling"
+    },
+    {
+      "key": "lightfoot",
+      "label": "Lightfoot",
+      "parentKey": "halfling"
     },
     {
       "key": "human",

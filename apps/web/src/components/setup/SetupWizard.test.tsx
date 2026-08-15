@@ -23,6 +23,18 @@ const configWithBudget = (budget: number) => ({
   classes: [{ key: 'wizard', label: 'Mago' }, { key: 'fighter', label: 'Guerreiro' }],
 })
 
+// US-140: catálogo de raça com subespécie — mesma ordem que buildRaces emite (raiz seguida
+// da(s) sua(s) subespécie(s)), pra provar que o wizard só itera, não reordena por parentKey.
+const configWithRaceSubspecies = (budget: number) => ({
+  ...configWithBudget(budget),
+  races: [
+    { key: 'dwarf', label: 'Anão' },
+    { key: 'hill-dwarf', label: 'Anão da Colina', parentKey: 'dwarf' },
+    { key: 'elf', label: 'Elfo' },
+    { key: 'high-elf', label: 'Alto-elfo', parentKey: 'elf' },
+  ],
+})
+
 // US-122: config com catálogo de backgrounds (US-121) — origem escolhida na etapa `background`.
 const configWithBackgrounds = (budget: number) => ({
   ...configWithBudget(budget),
@@ -469,6 +481,35 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(screen.getByText('Mago')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'elf', class: 'wizard' }))
+  })
+
+  // US-140: subespécie (`parentKey`) agrupa sob um <optgroup> com o label da raiz — a raiz
+  // fica como <option> solta (fora do grupo), seguindo a ORDEM do catálogo (raiz, depois a
+  // sua subespécie), sem recalcular agrupamento no componente.
+  it('agrupa subespécie sob optgroup da raiz, com a raiz como opção solta fora do grupo', async () => {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithRaceSubspecies(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+
+    const select = screen.getByLabelText('Raça') as HTMLSelectElement
+    const groups = [...select.querySelectorAll('optgroup')]
+    expect(groups.map(g => g.getAttribute('label'))).toEqual(['Anão', 'Elfo'])
+
+    const dwarfGroup = groups.find(g => g.getAttribute('label') === 'Anão')!
+    expect([...dwarfGroup.querySelectorAll('option')].map(o => [o.getAttribute('value'), o.textContent]))
+      .toEqual([['hill-dwarf', 'Anão da Colina']])
+    const elfGroup = groups.find(g => g.getAttribute('label') === 'Elfo')!
+    expect([...elfGroup.querySelectorAll('option')].map(o => [o.getAttribute('value'), o.textContent]))
+      .toEqual([['high-elf', 'Alto-elfo']])
+
+    // Raiz continua opção solta, fora de QUALQUER optgroup — segue selecionável.
+    const looseOptions = [...select.children].filter(el => el.tagName === 'OPTION')
+    expect(looseOptions.map(o => o.getAttribute('value'))).toEqual(['', 'dwarf', 'elf'])
+
+    fireEvent.change(select, { target: { value: 'dwarf' } })
+    expect(select.value).toBe('dwarf')
+    fireEvent.change(select, { target: { value: 'hill-dwarf' } })
+    expect(select.value).toBe('hill-dwarf')
   })
 
   // US-105: o catálogo passou a depender do sistema. Trocar de sistema com raça/classe já

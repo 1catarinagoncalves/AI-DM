@@ -3506,12 +3506,27 @@
       "label": "Anão"
     },
     {
+      "key": "hill-dwarf",
+      "label": "Anão da Colina",
+      "parentKey": "dwarf"
+    },
+    {
       "key": "elf",
       "label": "Elfo"
     },
     {
+      "key": "high-elf",
+      "label": "Alto-elfo",
+      "parentKey": "elf"
+    },
+    {
       "key": "gnome",
       "label": "Gnomo"
+    },
+    {
+      "key": "rock-gnome",
+      "label": "Gnomo das Rochas",
+      "parentKey": "gnome"
     },
     {
       "key": "half-elf",
@@ -3524,6 +3539,11 @@
     {
       "key": "halfling",
       "label": "Halfling"
+    },
+    {
+      "key": "lightfoot",
+      "label": "Halfling Pés-Leves",
+      "parentKey": "halfling"
     },
     {
       "key": "human",

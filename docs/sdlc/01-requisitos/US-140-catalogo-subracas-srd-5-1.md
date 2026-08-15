@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada
+**Status:** ✅ Implementada
 **Depende de:** [US-138](./US-138-catalogo-racas-srd-5-1-como-referencia.md) (**obrigatória e anterior**: é ela que faz `buildRaces` derivar só do `srd-2014` — esta story estende o mesmo builder, sem reabrir a fonte) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (o filtro `subspecies_of === null` que esta story remove)
 **Relacionado:** [ADR 009 §8](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (fonte de referência) · [US-141](./US-141-catalogo-subclasses-srd-5-1-e-marshal.md) (mesmo tipo de extensão — variante de entidade já catalogada —, story irmã com desenho diferente por razão explicada abaixo)
 
@@ -152,6 +152,7 @@ Pontos que valem registrar:
 - **Não reintroduza `mergeEditions` aqui.** O 5.2 não participa (decisão da US-138, sem exceção) — subespécie é filtro a menos dentro do mesmo `srd-2014`, não fusão a mais.
 - **Labels pt-BR das 4 subespécies já confirmadas** (*Questões em aberto* #2, resolvida 2026-08-15): gravar `Alto-elfo`, `Anão da Colina`, `Halfling Pés-Leves`, `Gnomo das Rochas` no overlay, sem nova curadoria.
 - **Confirme a normalização do `parentKey`** — `subspecies_of` vem como `pk` cru (`srd_elf`); precisa passar pelo mesmo `norm`/strip de prefixo que já gera a chave da raiz, não um valor cru diferente da chave real da raiz.
+- **`buildRaces` precisa TROCAR o sort, não só parar de filtrar.** Hoje ([`ingest.mjs:211-219`](../../../scripts/srd/ingest.mjs:211)) a lista final é `.sort((a, b) => a.key.localeCompare(b.key))` — alfabético GLOBAL, confirmado pelo teste atual (`ingest.test.mjs:60-62`). Emitindo as 4 subespécies nesse mesmo sort, `high-elf` cai longe de `elf` (entre `gnome`/`half-elf`/`half-orc`/`halfling`) — quebra a premissa do `<optgroup>` em §Como aparece, que agrupa por POSIÇÃO na lista, não por `parentKey` recalculado no componente. Decisão: `buildRaces` agrupa na emissão — raízes em ordem alfabética, cada raiz imediatamente seguida da(s) sua(s) subespécie(s) (entre si, também alfabética) — o wizard continua burro, só itera. Alternativa descartada: agrupar por `parentKey` dentro do `SetupWizard` (deixaria `buildRaces` alfabético puro, mas contradiz a nota já escrita em §Como aparece de que a ordem não é recalculada no componente).
 
 ---
 

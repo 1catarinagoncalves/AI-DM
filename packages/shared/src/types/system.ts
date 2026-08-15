@@ -29,6 +29,14 @@ export const SystemCatalogEntrySchema = z.object({
   label: z.string().min(1),
 })
 
+// Entrada de catálogo de RAÇA (US-140): estende SystemCatalogEntrySchema com `parentKey`,
+// só para `config.races` — `classes` fica no schema genérico acima, sem o campo (subclasse
+// é catálogo `Record<classKey, …>` separado, US-141, desenho de dado diferente).
+// Ausente = raiz; presente = subespécie, valor é a `key` da raiz (não o `pk` cru do dataset).
+export const RaceCatalogEntrySchema = SystemCatalogEntrySchema.extend({
+  parentKey: z.string().min(1).optional(),
+})
+
 // Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,
 // `land-vehicle`, `waterborne-vehicle`). Mesmo contrato de `SystemCatalogEntrySchema`
 // (key/label) mais `category`: a categoria de PROFICIÊNCIA do 5e (`artisan`,
@@ -150,7 +158,7 @@ export const SystemConfigSchema = z.object({
   // Catálogos de raça e de classe (US-105), derivados do SRD pelo ingest. Opcionais como
   // `skills`: config legado sem eles não fica inválido — e é o que decide se o service
   // valida a chave da ficha contra catálogo ou aceita o que vier (ver character.service).
-  races: z.array(SystemCatalogEntrySchema).optional(),
+  races: z.array(RaceCatalogEntrySchema).optional(),
   classes: z.array(SystemCatalogEntrySchema).optional(),
   // Catálogo de backgrounds do a5e-ag (US-121), derivado pelo ingest. Opcional como races/classes:
   // config legado sem ele não fica inválido. Mecânico apenas — escolha na criação é story separada.
@@ -198,6 +206,7 @@ export const SystemConfigSchema = z.object({
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
 export type SystemCatalogEntry = z.infer<typeof SystemCatalogEntrySchema>
+export type RaceCatalogEntry = z.infer<typeof RaceCatalogEntrySchema>
 export type SystemTool = z.infer<typeof SystemToolSchema>
 export type SystemClassFeature = z.infer<typeof SystemClassFeatureSchema>
 export type SystemSpell = z.infer<typeof SystemSpellSchema>
