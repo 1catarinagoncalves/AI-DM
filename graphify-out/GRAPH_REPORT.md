@@ -1,16 +1,16 @@
 # Graph Report - AI DM  (2026-08-16)
 
 ## Corpus Check
-- 410 files · ~872,176 words
+- 412 files · ~872,695 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3005 nodes · 4080 edges · 251 communities (203 shown, 48 thin omitted)
+- 3009 nodes · 4086 edges · 253 communities (205 shown, 48 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.59)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2cafd862`
+- Built from commit: `496119d2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -193,7 +193,7 @@
 - US-140 — Catálogo de subespécies (subraças) do SRD 5.1
 - US-121 — Catálogo de backgrounds do A5E Adventurer's Guide (Open5e)
 - US-122 — Escolha de origem (catálogo de background) na criação de personagem
-- locale.ts
+- shared/src/index.ts
 - US-134 — Catálogo de ferramentas e veículos do sistema (`config.tools`)
 - US-142 — Traços mecânicos de subespécie (raça-base + subespécie combinados)
 - ai-engine/src/index.ts
@@ -236,15 +236,16 @@
 - ADR 012 — Aventura gerada: artefato congelado, seed recomputável, coluna própria
 - character.service.test.ts
 - sheet.test.ts
-- US-98-i18n-da-interface-web.md
+- AGENTS.md
 - localizeKitItems
 - Injectable
 - backlog-motor-de-geracao-de-aventuras.md
-- 011-observabilidade-em-camadas.md
 - US-121-catalogo-backgrounds-a5e-adventurers-guide.md
 - lazygm/sync.mjs
 - Atribuição — Lazy GM Resource Document + Lazy GM's 5e Monster Builder
-- shared/src/index.ts
+- US-125 — Adventures & Advancement, conexão e memento da origem no prompt do Mestre
+- Checklist de Deploy — AI Dungeon Master
+- Modificadores de atributo — tabela do SRD 2024
 
 ## God Nodes (most connected - your core abstractions)
 1. `PrismaService` - 27 edges
@@ -287,7 +288,7 @@
 - **World State & Scene Consistency** — docs_sdlc_01_requisitos_us_71_simplificar_localizacao_do_personagem, docs_sdlc_01_requisitos_us_73_reconciliador_de_cena_em_background, docs_sdlc_01_requisitos_us_75_dimensao_de_proveniencia_no_ledger [EXTRACTED 0.95]
 - **Kanban API Interaction Flow** — tools_kanban_carregar, tools_kanban_mover, tools_kanban_abrir [EXTRACTED 0.90]
 
-## Communities (251 total, 48 thin omitted)
+## Communities (253 total, 48 thin omitted)
 
 ### Community 0 - "ingest.mjs"
 Cohesion: 0.10
@@ -378,8 +379,8 @@ Cohesion: 0.13
 Nodes (15): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Modelo de dados proposto (+7 more)
 
 ### Community 23 - "backlog-aventuras-autorais-lazygm.md"
-Cohesion: 0.27
-Nodes (7): US-67 — Editar a ação enviada ao DM, US-69 — Guard anti-degeneração da narração, US-71 — Simplificar a localização do personagem, US-73 — Reconciliador de cena em background, US-74 — Guard de turno truncado, US-75 — Dimensões de conhecimento no ledger, US-87 — O prompt para de afirmar que existe um bloco de entidades que o turn-state não emitiu
+Cohesion: 0.24
+Nodes (9): US-67 — Editar a ação enviada ao DM, US-69 — Guard anti-degeneração da narração, US-71 — Simplificar a localização do personagem, US-73 — Reconciliador de cena em background, US-74 — Guard de turno truncado, US-75 — Dimensões de conhecimento no ledger, US-77 — Reancorar as assertivas de prompt restantes, US-87 — O prompt para de afirmar que existe um bloco de entidades que o turn-state não emitiu (+1 more)
 
 ### Community 24 - "AiController"
 Cohesion: 0.11
@@ -450,7 +451,7 @@ Cohesion: 0.20
 Nodes (9): compilerOptions, esModuleInterop, module, moduleResolution, noUncheckedIndexedAccess, resolveJsonModule, skipLibCheck, strict (+1 more)
 
 ### Community 41 - "PRD — AI Dungeon Master"
-Cohesion: 0.20
+Cohesion: 0.18
 Nodes (10): 1. Declaração do problema, 2. Objetivos e critério de aceite, 3. Usuários alvo, 4.1 Personagens e campanhas, 4.2 Multiplayer, 4.3 Sistemas e aventuras, 4. Casos de uso, 5. Fora do escopo (v1) (+2 more)
 
 ### Community 42 - "Endpoints (Fase 1 — MVP)"
@@ -578,7 +579,7 @@ Cohesion: 0.06
 Nodes (36): A fonte de mundo é Dunsany, e ela não é JSON, A fonte de método é JSON pronto, A inversão de 07/08/2026, Adiado para a fase 4, Armadilha: a fonte se move sozinha, Backlog — Aventuras autorais a partir do Lazy GM's Resource Document, Cinco tarefas mudam de dono, Conteúdo (+28 more)
 
 ### Community 76 - "US-02 — Inventário do personagem e equipamento inicial"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (13): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Equipamentos iniciais por classe, Escopo, Fora do escopo, História (+5 more)
 
 ### Community 78 - "US-105 — Raça e classe vêm do catálogo do SRD e são guardadas por chave"
@@ -610,8 +611,8 @@ Cohesion: 0.07
 Nodes (18): ATTACKS_DESC, ATTR_KEYS, CHECKS_DESC, d20Rules(), ADR-0009, MOD_ROWS, modifiersDesc(), OVERLAY_PATH (+10 more)
 
 ### Community 92 - "US-105-raca-e-classe-por-chave-do-srd.md"
-Cohesion: 0.38
-Nodes (3): US-41 — Features de classe conhecidas pelo mestre, US-42 — Magias conhecidas pelo mestre, US-47 — Ingestão do SRD 5e (2024) como dado do sistema
+Cohesion: 0.24
+Nodes (5): US-46 — Acessibilidade da aplicação web (WCAG 2.2 AA), US-47 — Ingestão do SRD 5e (2024) como dado do sistema, US-66 — Todas as telas mobile-friendly, US-68 — Nomes de fantasia originais, US-88 — Doc que ordena deixa de citar API que não existe
 
 ### Community 112 - "US-101 — Ganchos de aventura inicial em inglês"
 Cohesion: 0.14
@@ -738,8 +739,8 @@ Cohesion: 0.18
 Nodes (11): 1. Contexto, 2. Decisão, 3. Alternativas rejeitadas, 4. Consequências, 5. Próximos passos, ADR 011 — Observabilidade em camadas: convenção antes de infraestrutura, Camada 0 — Formato: JSON estruturado, zero lib, Camada 1 — Correlação: `turnId` por turno (+3 more)
 
 ### Community 168 - "ADR 004 — Origem do dado de sistema: ingestão do SRD por pipeline pinado"
-Cohesion: 0.09
-Nodes (22): 1. Contexto, 2. Decisão, 3.1 Revisão da decisão 6 (02/08/2026): o Free herda o SRD, 3.2 Correção de procedência (03/08/2026): o kit inicial é CC-BY, não OGL, 3.3 Segundo publisher no config (09/08/2026): `a5e-ag` entra sob a mesma regra de licença única, 3.4 Exceção pontual (13/08/2026): `ability` de `Culture`/`Engineering` não vem do Open5e, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset (+14 more)
+Cohesion: 0.17
+Nodes (12): 1. Contexto, 2. Decisão, 3.1 Revisão da decisão 6 (02/08/2026): o Free herda o SRD, 3.2 Correção de procedência (03/08/2026): o kit inicial é CC-BY, não OGL, 3.3 Segundo publisher no config (09/08/2026): `a5e-ag` entra sob a mesma regra de licença única, 3.4 Exceção pontual (13/08/2026): `ability` de `Culture`/`Engineering` não vem do Open5e, 3. Decisões-chave e justificativas, 4. A descoberta que só apareceu cutucando o dataset (+4 more)
 
 ### Community 169 - "entities.ts"
 Cohesion: 0.36
@@ -770,8 +771,8 @@ Cohesion: 0.13
 Nodes (15): A proposta, Como ficou (04/08/2026), Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História (+7 more)
 
 ### Community 176 - "starting-kit.ts"
-Cohesion: 0.25
-Nodes (12): CharacterFeature, getBackgroundEquipment(), getBackgroundFeatures(), getClassFeatures(), getClassSpells(), getRaceFeatures(), getStartingInventory(), MEMENTO_ITEM_LABEL (+4 more)
+Cohesion: 0.17
+Nodes (16): CharacterFeature, getBackgroundEquipment(), getBackgroundFeatures(), getClassFeatures(), getClassSpells(), getRaceFeatures(), getStartingInventory(), MEMENTO_ITEM_LABEL (+8 more)
 
 ### Community 177 - "CurrentUser"
 Cohesion: 0.19
@@ -821,9 +822,9 @@ Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do 
 Cohesion: 0.14
 Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Modelo de dados proposto (+6 more)
 
-### Community 199 - "locale.ts"
-Cohesion: 0.23
-Nodes (8): isLocale(), Locale, localeLabel(), LOCALES, resolveLocale(), ADR-0005, SPELL_LEVEL_WORDS, spellLevelLabel()
+### Community 199 - "shared/src/index.ts"
+Cohesion: 0.17
+Nodes (10): createSeededRandom(), deriveAdventureSeed(), isLocale(), Locale, localeLabel(), LOCALES, resolveLocale(), ADR-0005 (+2 more)
 
 ### Community 200 - "US-134 — Catálogo de ferramentas e veículos do sistema (`config.tools`)"
 Cohesion: 0.13
@@ -874,8 +875,8 @@ Cohesion: 0.22
 Nodes (9): Backlog — Mapa em tempo real, Corte mínimo, Decisões abertas, Depende de, O estado verificado, O que fica de fora deste backlog, Referências externas, Referências no código (+1 more)
 
 ### Community 212 - "US-110-tabela-de-testes-de-habilidade-do-srd-2024.md"
-Cohesion: 0.09
-Nodes (23): Modificadores de atributo — tabela do SRD 2024, O que cada faixa de pontuação significa (SRD 2024), Onde isto é usado, Regra de cálculo, Tabela de modificadores (SRD 2024), US-34 — Qualidade cinematográfica da narração do AI DM, US-35 — Estado de cena estruturado já na abertura da aventura, US-36 — Eval de qualidade da narração do DM (+15 more)
+Cohesion: 0.12
+Nodes (16): US-34 — Qualidade cinematográfica da narração do AI DM, US-35 — Estado de cena estruturado já na abertura da aventura, US-36 — Eval de qualidade da narração do DM, US-37 — Nível cinematográfico mantido em todos os turnos, US-38 — Rolagens ancoradas na ficha, US-70 — Piso por dimensão e robustez do eval, US-72 — Evals de prompt resistentes à reescrita, US-89 — Export que ninguém importa para de sobreviver no repo (+8 more)
 
 ### Community 213 - "ai.service.ts"
 Cohesion: 0.08
@@ -989,21 +990,17 @@ Nodes (4): catalogEn, catalogPt, config, systemRow
 Cohesion: 0.29
 Nodes (6): featuresEn, featuresPtBr, spellsEn, spellsPtBr, SystemClassFeature, SystemSpell
 
-### Community 242 - "US-98-i18n-da-interface-web.md"
-Cohesion: 0.20
-Nodes (7): US-46 — Acessibilidade da aplicação web (WCAG 2.2 AA), US-66 — Todas as telas mobile-friendly, US-68 — Nomes de fantasia originais, US-83 — README com arquitetura de alto nível, US-86 — Árvore de diretórios na documentação deixa de mentir sobre onde o arquivo está, US-88 — Doc que ordena deixa de citar API que não existe, US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
+### Community 242 - "AGENTS.md"
+Cohesion: 0.25
+Nodes (3): US-83 — README com arquitetura de alto nível, US-86 — Árvore de diretórios na documentação deixa de mentir sobre onde o arquivo está, US-91 — Convenções de Implementação (e o bloco Backend do AGENTS.md) deixam de descrever um projeto que não é este
 
 ### Community 243 - "localizeKitItems"
 Cohesion: 0.50
 Nodes (4): localizeKitItems(), LOWERCASE_WORDS, stripLeadingArticle(), titleCase()
 
-### Community 246 - "011-observabilidade-em-camadas.md"
-Cohesion: 0.20
-Nodes (6): Antes de abrir PR, Antes de merge para main, Checklist de Deploy — AI Dungeon Master, Deploy, Desejado, não implementado, Observabilidade — o que existe hoje
-
 ### Community 247 - "US-121-catalogo-backgrounds-a5e-adventurers-guide.md"
-Cohesion: 0.42
-Nodes (3): US-39 — Identidade narrativa do personagem, US-43 — Calibração do peso dos traços de identidade, US-45 — Background visível na ficha do personagem
+Cohesion: 0.38
+Nodes (5): US-39 — Identidade narrativa do personagem, US-41 — Features de classe conhecidas pelo mestre, US-42 — Magias conhecidas pelo mestre, US-43 — Calibração do peso dos traços de identidade, US-45 — Background visível na ficha do personagem
 
 ### Community 248 - "lazygm/sync.mjs"
 Cohesion: 0.36
@@ -1013,9 +1010,17 @@ Nodes (6): buildNotice(), FILES, main(), NOTICE_PATH, OUT, quoteBlock()
 Cohesion: 0.29
 Nodes (6): Atribuição exigida, Atribuição — Lazy GM Resource Document + Lazy GM's 5e Monster Builder, Escopo e limites, Lazy GM Resource Document, Lazy GM's 5e Monster Builder, Licença
 
-### Community 250 - "shared/src/index.ts"
+### Community 250 - "US-125 — Adventures & Advancement, conexão e memento da origem no prompt do Mestre"
+Cohesion: 0.20
+Nodes (10): Critérios de aceite, Dentro do escopo, Escopo desta story, Fora do escopo, História, Modelo de dados proposto, Notas de implementação, Por que não injetar `benefits[].description` cru para conexão/memento (+2 more)
+
+### Community 251 - "Checklist de Deploy — AI Dungeon Master"
 Cohesion: 0.33
-Nodes (4): EntityEdge, InventoryItem, SceneState, WorldEntity
+Nodes (6): Antes de abrir PR, Antes de merge para main, Checklist de Deploy — AI Dungeon Master, Deploy, Desejado, não implementado, Observabilidade — o que existe hoje
+
+### Community 252 - "Modificadores de atributo — tabela do SRD 2024"
+Cohesion: 0.40
+Nodes (5): Modificadores de atributo — tabela do SRD 2024, O que cada faixa de pontuação significa (SRD 2024), Onde isto é usado, Regra de cálculo, Tabela de modificadores (SRD 2024)
 
 ## Knowledge Gaps
 - **1661 isolated node(s):** `História`, `O problema observado`, `Por que a solução atual não basta`, `A proposta`, `Dentro do escopo` (+1656 more)
@@ -1025,12 +1030,12 @@ Nodes (4): EntityEdge, InventoryItem, SceneState, WorldEntity
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-105-raca-e-classe-por-chave-do-srd.md` to `US-02 — Inventário do personagem e equipamento inicial`, `US-98-i18n-da-interface-web.md`, `US-110-tabela-de-testes-de-habilidade-do-srd-2024.md`, `backlog-motor-de-geracao-de-aventuras.md`, `backlog-aventuras-autorais-lazygm.md`, `US-121-catalogo-backgrounds-a5e-adventurers-guide.md`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **Why does `US-47 — Ingestão do SRD 5e (2024) como dado do sistema` connect `US-105-raca-e-classe-por-chave-do-srd.md` to `US-121-catalogo-backgrounds-a5e-adventurers-guide.md`, `US-110-tabela-de-testes-de-habilidade-do-srd-2024.md`, `backlog-motor-de-geracao-de-aventuras.md`, `backlog-aventuras-autorais-lazygm.md`?**
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
+- **Why does `US-108 — Tabela de modificadores do SRD 2024 como fonte da regra` connect `US-108 — Tabela de modificadores do SRD 2024 como fonte da regra` to `US-110-tabela-de-testes-de-habilidade-do-srd-2024.md`?**
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Why does `SystemConfigSchema` connect `system.ts` to `ingest.mjs`, `CharacterService`, `AiService`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **Why does `US-131 — Integração mecânica: perícias do background em `proficiency`` connect `US-131 — Integração mecânica: perícias do background em `proficiency`` to `US-121-catalogo-backgrounds-a5e-adventurers-guide.md`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
 - **What connects `História`, `O problema observado`, `Por que a solução atual não basta` to the rest of the system?**
   _1661 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**

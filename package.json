@@ -24,7 +24,9 @@
     "srd:ingest": "pnpm --fail-if-no-match --filter @ai-dm/ai-engine... build && dotenv -e .env -- node scripts/srd/ingest.mjs",
     "srd:ingest:test": "node --test scripts/srd/ingest.test.mjs",
     "lazygm:sync": "node scripts/lazygm/sync.mjs",
-    "lazygm:sync:test": "node --test scripts/lazygm/sync.test.mjs"
+    "lazygm:sync:test": "node --test scripts/lazygm/sync.test.mjs",
+    "lazygm:extract": "node scripts/lazygm/extract-tables.mjs",
+    "lazygm:extract:test": "node --test scripts/lazygm/extract-tables.test.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

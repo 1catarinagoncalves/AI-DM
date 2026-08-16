@@ -1,0 +1,459 @@
+{
+  "version": "3.8.0",
+  "tables": {
+    "1d20quests": {
+      "headers": null,
+      "data": [
+        {
+          "item_num": 1,
+          "item": "Find an item"
+        },
+        {
+          "item_num": 2,
+          "item": "Kill a villain"
+        },
+        {
+          "item_num": 3,
+          "item": "Rescue an NPC"
+        },
+        {
+          "item_num": 4,
+          "item": "Uncover a secret"
+        },
+        {
+          "item_num": 5,
+          "item": "Clear out monsters"
+        },
+        {
+          "item_num": 6,
+          "item": "Protect a monument"
+        },
+        {
+          "item_num": 7,
+          "item": "Protect an NPC"
+        },
+        {
+          "item_num": 8,
+          "item": "Steal an item"
+        },
+        {
+          "item_num": 9,
+          "item": "Return an item"
+        },
+        {
+          "item_num": 10,
+          "item": "Close a gate"
+        },
+        {
+          "item_num": 11,
+          "item": "Open a gate"
+        },
+        {
+          "item_num": 12,
+          "item": "Activate a monument"
+        },
+        {
+          "item_num": 13,
+          "item": "Disable an artifact"
+        },
+        {
+          "item_num": 14,
+          "item": "Recover an item"
+        },
+        {
+          "item_num": 15,
+          "item": "Convince an NPC"
+        },
+        {
+          "item_num": 16,
+          "item": "Awaken a monster"
+        },
+        {
+          "item_num": 17,
+          "item": "Put a monster to sleep"
+        },
+        {
+          "item_num": 18,
+          "item": "Bury a secret"
+        },
+        {
+          "item_num": 19,
+          "item": "Discover a monument"
+        },
+        {
+          "item_num": 20,
+          "item": "Dig up an artifact"
+        }
+      ]
+    },
+    "locationsmonumentsanditems": {
+      "headers": {
+        "d20": "d20",
+        "location": "Location",
+        "monument": "Monument",
+        "item": "Item"
+      },
+      "data": [
+        {
+          "d20": "1",
+          "location": "Tower",
+          "monument": "Sarcophagus",
+          "item": "Coin"
+        },
+        {
+          "d20": "2",
+          "location": "Crypts",
+          "monument": "Obelisk",
+          "item": "Figurine"
+        },
+        {
+          "d20": "3",
+          "location": "Keep",
+          "monument": "Orb",
+          "item": "Gemstone"
+        },
+        {
+          "d20": "4",
+          "location": "Cairn",
+          "monument": "Bone pile",
+          "item": "Amulet"
+        },
+        {
+          "d20": "5",
+          "location": "Giant statue",
+          "monument": "Skull",
+          "item": "Earring"
+        },
+        {
+          "d20": "6",
+          "location": "Caves",
+          "monument": "Megalith",
+          "item": "Bell"
+        },
+        {
+          "d20": "7",
+          "location": "Sewers",
+          "monument": "Pillars",
+          "item": "Bone"
+        },
+        {
+          "d20": "8",
+          "location": "Temple",
+          "monument": "Throne",
+          "item": "Bowl"
+        },
+        {
+          "d20": "9",
+          "location": "Mines",
+          "monument": "Statues",
+          "item": "Candle"
+        },
+        {
+          "d20": "10",
+          "location": "Mansion",
+          "monument": "Well",
+          "item": "Ring"
+        },
+        {
+          "d20": "11",
+          "location": "Academy",
+          "monument": "Orrery",
+          "item": "Circlet"
+        },
+        {
+          "d20": "12",
+          "location": "Dungeon",
+          "monument": "Effigy",
+          "item": "Bracelet"
+        },
+        {
+          "d20": "13",
+          "location": "Barrow",
+          "monument": "Arcane circle",
+          "item": "Dagger"
+        },
+        {
+          "d20": "14",
+          "location": "Vault",
+          "monument": "Spire",
+          "item": "Goblet"
+        },
+        {
+          "d20": "15",
+          "location": "Tomb",
+          "monument": "Altar",
+          "item": "Key"
+        },
+        {
+          "d20": "16",
+          "location": "Warren",
+          "monument": "Pit",
+          "item": "Lamp"
+        },
+        {
+          "d20": "17",
+          "location": "Ship",
+          "monument": "Fountain",
+          "item": "Brooch"
+        },
+        {
+          "d20": "18",
+          "location": "Sanctum",
+          "monument": "Archway",
+          "item": "Skull"
+        },
+        {
+          "d20": "19",
+          "location": "Cove",
+          "monument": "Cage",
+          "item": "Mask"
+        },
+        {
+          "d20": "20",
+          "location": "Castle",
+          "monument": "Brazier",
+          "item": "Necklace"
+        }
+      ]
+    },
+    "conditiondescriptionandorigin": {
+      "headers": {
+        "d20": "d20",
+        "condition": "Condition",
+        "description": "Description",
+        "origin": "Origin"
+      },
+      "data": [
+        {
+          "d20": "1",
+          "condition": "Smoky",
+          "description": "Ruined",
+          "origin": "Human"
+        },
+        {
+          "d20": "2",
+          "condition": "Acidic",
+          "description": "Decrepit",
+          "origin": "Elven"
+        },
+        {
+          "d20": "3",
+          "condition": "Bloodied",
+          "description": "Obsidian",
+          "origin": "Dwarven"
+        },
+        {
+          "d20": "4",
+          "condition": "Burning",
+          "description": "Haunted",
+          "origin": "Halfling"
+        },
+        {
+          "d20": "5",
+          "condition": "Frozen",
+          "description": "Unholy",
+          "origin": "Gnomish"
+        },
+        {
+          "d20": "6",
+          "condition": "Poisonous",
+          "description": "Sunken",
+          "origin": "Tiefling"
+        },
+        {
+          "d20": "7",
+          "condition": "Necrotic",
+          "description": "Forgotten",
+          "origin": "Dragonborn"
+        },
+        {
+          "d20": "8",
+          "condition": "Thunderous",
+          "description": "Macabre",
+          "origin": "Orc"
+        },
+        {
+          "d20": "9",
+          "condition": "Ringing",
+          "description": "Ancient",
+          "origin": "Goblinoid"
+        },
+        {
+          "d20": "10",
+          "condition": "Lightning",
+          "description": "Festering",
+          "origin": "Undead"
+        },
+        {
+          "d20": "11",
+          "condition": "Radiant",
+          "description": "Monstrous",
+          "origin": "Celestial"
+        },
+        {
+          "d20": "12",
+          "condition": "Shadowed",
+          "description": "Golden",
+          "origin": "Fey"
+        },
+        {
+          "d20": "13",
+          "condition": "Oozing",
+          "description": "Spired",
+          "origin": "Elemental"
+        },
+        {
+          "d20": "14",
+          "condition": "Ethereal",
+          "description": "Towering",
+          "origin": "Giant"
+        },
+        {
+          "d20": "15",
+          "condition": "Whispering",
+          "description": "Forsaken",
+          "origin": "Fiendish"
+        },
+        {
+          "d20": "16",
+          "condition": "Windswept",
+          "description": "Gloomy",
+          "origin": "Unseelie"
+        },
+        {
+          "d20": "17",
+          "condition": "Drenched",
+          "description": "Horrific",
+          "origin": "Aberrant"
+        },
+        {
+          "d20": "18",
+          "condition": "Diseased",
+          "description": "Colossal",
+          "origin": "Shadow"
+        },
+        {
+          "d20": "19",
+          "condition": "Crystalline",
+          "description": "Overgrown",
+          "origin": "Ethereal"
+        },
+        {
+          "d20": "20",
+          "condition": "Silvered",
+          "description": "Shattered",
+          "origin": "Abyssal"
+        }
+      ]
+    },
+    "patronsandnpcs": {
+      "headers": {
+        "d20": "d20",
+        "behavior": "Behavior",
+        "ancestry": "Ancestry"
+      },
+      "data": [
+        {
+          "d20": "1",
+          "behavior": "Enthusiastic",
+          "ancestry": "Human"
+        },
+        {
+          "d20": "2",
+          "behavior": "Flighty",
+          "ancestry": "Elf"
+        },
+        {
+          "d20": "3",
+          "behavior": "Shifty",
+          "ancestry": "Dwarf"
+        },
+        {
+          "d20": "4",
+          "behavior": "Optimistic",
+          "ancestry": "Halfling"
+        },
+        {
+          "d20": "5",
+          "behavior": "Paranoid",
+          "ancestry": "Orc"
+        },
+        {
+          "d20": "6",
+          "behavior": "Well spoken",
+          "ancestry": "Drow"
+        },
+        {
+          "d20": "7",
+          "behavior": "Superior",
+          "ancestry": "Tiefling"
+        },
+        {
+          "d20": "8",
+          "behavior": "Haughty",
+          "ancestry": "Dragonborn"
+        },
+        {
+          "d20": "9",
+          "behavior": "Pessimistic",
+          "ancestry": "Fey"
+        },
+        {
+          "d20": "10",
+          "behavior": "Suspicious",
+          "ancestry": "Goblin"
+        },
+        {
+          "d20": "11",
+          "behavior": "Worried",
+          "ancestry": "Construct"
+        },
+        {
+          "d20": "12",
+          "behavior": "Greedy",
+          "ancestry": "Celestial"
+        },
+        {
+          "d20": "13",
+          "behavior": "Brave",
+          "ancestry": "Ghost"
+        },
+        {
+          "d20": "14",
+          "behavior": "Stern",
+          "ancestry": "Wizard's familiar"
+        },
+        {
+          "d20": "15",
+          "behavior": "Sly",
+          "ancestry": "Talking animal"
+        },
+        {
+          "d20": "16",
+          "behavior": "Wise",
+          "ancestry": "Avian"
+        },
+        {
+          "d20": "17",
+          "behavior": "Reserved",
+          "ancestry": "Lizardfolk"
+        },
+        {
+          "d20": "18",
+          "behavior": "Cheery",
+          "ancestry": "Catfolk"
+        },
+        {
+          "d20": "19",
+          "behavior": "Opportunistic",
+          "ancestry": "Lycanthrope"
+        },
+        {
+          "d20": "20",
+          "behavior": "Soft spoken",
+          "ancestry": "Artifact"
+        }
+      ]
+    }
+  }
+}
