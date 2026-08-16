@@ -483,10 +483,12 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'elf', class: 'wizard' }))
   })
 
-  // US-140: subespécie (`parentKey`) agrupa sob um <optgroup> com o label da raiz — a raiz
-  // fica como <option> solta (fora do grupo), seguindo a ORDEM do catálogo (raiz, depois a
-  // sua subespécie), sem recalcular agrupamento no componente.
-  it('agrupa subespécie sob optgroup da raiz, com a raiz como opção solta fora do grupo', async () => {
+  // US-142: subespécie (`parentKey`) agrupa sob um <optgroup> com o label da raiz — a raiz
+  // deixa de ser <option> solta quando tem subespécie (reverte a decisão da US-140: o SRD já
+  // documenta a variante, "só a raiz" vira uma opção mecanicamente incompleta ao lado da
+  // completa). Segue a ORDEM do catálogo (raiz, depois a sua subespécie), sem recalcular
+  // agrupamento no componente.
+  it('raiz com subespécie vira só optgroup — sem <option> solta fora do grupo', async () => {
     listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithRaceSubspecies(2) }])
     render(<SetupWizard />)
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
@@ -502,12 +504,10 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect([...elfGroup.querySelectorAll('option')].map(o => [o.getAttribute('value'), o.textContent]))
       .toEqual([['high-elf', 'Alto-elfo']])
 
-    // Raiz continua opção solta, fora de QUALQUER optgroup — segue selecionável.
+    // Raiz NÃO aparece mais solta fora do grupo — só o placeholder sobra fora de optgroup.
     const looseOptions = [...select.children].filter(el => el.tagName === 'OPTION')
-    expect(looseOptions.map(o => o.getAttribute('value'))).toEqual(['', 'dwarf', 'elf'])
+    expect(looseOptions.map(o => o.getAttribute('value'))).toEqual([''])
 
-    fireEvent.change(select, { target: { value: 'dwarf' } })
-    expect(select.value).toBe('dwarf')
     fireEvent.change(select, { target: { value: 'hill-dwarf' } })
     expect(select.value).toBe('hill-dwarf')
   })

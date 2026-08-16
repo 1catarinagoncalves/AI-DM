@@ -741,4 +741,63 @@ describe('CharacterService.create', () => {
     })
     expect(char.features).toEqual(['paladin_divine-sense', 'paladin_lay-on-hands'])
   })
+
+  // US-142: `raceFeatures`, quando presente, É o catálogo jogável de `race` — a raiz que tem
+  // subespécie (elf) fica de fora dele, só a subespécie (high-elf) e a raiz sem subespécie
+  // (human) validam. Reverte a decisão da US-140 (raiz+subespécie independentes).
+  const configWithRaceFeatures: SystemConfig = {
+    ...config,
+    races: [
+      { key: 'elf', label: 'Elf' },
+      { key: 'high-elf', label: 'High Elf', parentKey: 'elf' },
+      { key: 'human', label: 'Human' },
+    ],
+    raceFeatures: {
+      'high-elf': [
+        { key: 'ability-score-increase', source: 'elf', name: 'Ability Score Increase', description: '+2 Dex.' },
+        { key: 'darkvision', source: 'elf', name: 'Darkvision', description: '60 ft.' },
+        { key: 'ability-score-increase', source: 'high-elf', name: 'Ability Score Increase', description: '+1 Int.' },
+        { key: 'cantrip', source: 'high-elf', name: 'Cantrip', description: 'x' },
+      ],
+      human: [{ key: 'ability-score-increase', source: 'human', name: 'Ability Score Increase', description: '+1 all.' }],
+    },
+  }
+
+  it('raça com subespécie: Character.features ganha os traços combinados (raiz + subespécie)', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceFeatures))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.race).toBe('high-elf')
+    expect(char.features).toEqual(['ability-score-increase', 'darkvision', 'ability-score-increase', 'cantrip'])
+  })
+
+  it('rejeita a raiz que tem subespécie como Character.race quando raceFeatures está presente', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceFeatures))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })).rejects.toThrow('Raça inválida')
+  })
+
+  it('raiz sem subespécie continua válida com raceFeatures presente, só os traços próprios', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceFeatures))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.race).toBe('human')
+    expect(char.features).toEqual(['ability-score-increase'])
+  })
+
+  it('config sem raceFeatures (legado) valida race contra config.races cheio, sem mudar comportamento', async () => {
+    const service = new CharacterService(fakePrisma(catalogPt))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'dwarf', class: 'wizard',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.race).toBe('dwarf')
+    expect(char.features).toEqual([])
+  })
 })

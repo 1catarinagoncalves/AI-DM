@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -79,6 +79,48 @@ test('buildRaces: goliath/orc não aparecem — não existem no 5.1 e a função
   const result = buildRaces({}, species2014, raceIdentityResolve)
   assert.deepEqual(result.map((r) => r.key), ['dwarf', 'human'])
   assert.equal(buildRaces.length, 3, 'assinatura tem 3 parâmetros — não sobra espaço pro species2024')
+})
+
+// --- US-142 — buildRaceFeatures: SpeciesTrait.json vira config.raceFeatures, por chave jogável ---
+
+const traitRow = (pk, name, desc, parent) => ({ pk, fields: { name, desc, parent, type: null } })
+
+test('buildRaceFeatures: raiz com subespécie combina raiz+próprios sem dedupe; raiz some da chave jogável', () => {
+  const races = [
+    { key: 'dwarf', label: 'Dwarf' },
+    { key: 'hill-dwarf', label: 'Hill Dwarf', parentKey: 'dwarf' },
+    { key: 'human', label: 'Human' },
+  ]
+  const speciesTraits = [
+    traitRow('srd_dwarf_ability-score-increase', 'Ability Score Increase', '+2 Con.', 'srd_dwarf'),
+    traitRow('srd_dwarf_darkvision', 'Darkvision', '60 feet.', 'srd_dwarf'),
+    traitRow('srd_hill-dwarf_ability-score-increase', 'Ability Score Increase', '+1 Wis.', 'srd_hill-dwarf'),
+    traitRow('srd_hill-dwarf_dwarven-toughness', 'Dwarven Toughness', '+1 HP per level.', 'srd_hill-dwarf'),
+    traitRow('srd_human_ability-score-increase', 'Ability Score Increase', '+1 all.', 'srd_human'),
+  ]
+  const result = buildRaceFeatures(races, speciesTraits)
+
+  // Raiz-com-subespécie some do mapa — não é mais chave jogável (US-142 reverte a US-140 #1).
+  assert.equal(result.dwarf, undefined)
+
+  // Subespécie: raiz PRIMEIRO, depois os próprios — concatenação simples, sem dedupe por key
+  // (as duas "Ability Score Increase" sobrevivem como entradas separadas).
+  assert.deepEqual(result['hill-dwarf'], [
+    { key: 'ability-score-increase', name: 'Ability Score Increase', description: '+2 Con.', source: 'dwarf' },
+    { key: 'darkvision', name: 'Darkvision', description: '60 feet.', source: 'dwarf' },
+    { key: 'ability-score-increase', name: 'Ability Score Increase', description: '+1 Wis.', source: 'hill-dwarf' },
+    { key: 'dwarven-toughness', name: 'Dwarven Toughness', description: '+1 HP per level.', source: 'hill-dwarf' },
+  ])
+
+  // Raiz SEM subespécie: só os próprios traços, sob a própria chave.
+  assert.deepEqual(result.human, [
+    { key: 'ability-score-increase', name: 'Ability Score Increase', description: '+1 all.', source: 'human' },
+  ])
+})
+
+test('buildRaceFeatures: raça sem trait nenhum no dataset entra com lista vazia (nunca some da chave)', () => {
+  const races = [{ key: 'tiefling', label: 'Tiefling' }]
+  assert.deepEqual(buildRaceFeatures(races, []), { tiefling: [] })
 })
 
 const RAGE = { en: 'Rage', pt: 'Fúria' }
@@ -403,6 +445,44 @@ for (const locale of ['en-US', 'pt-BR']) {
     }
   })
 }
+
+// US-142: raceFeatures cobre exatamente as 9 chaves JOGÁVEIS (5 raízes sem subespécie + as 4
+// subespécies) — as 4 raízes COM subespécie (dwarf/elf/gnome/halfling) ficaram de fora.
+for (const locale of ['en-US', 'pt-BR']) {
+  test(`artefato ${locale}: raceFeatures cobre as 9 chaves jogáveis, sem as 4 raízes com subespécie`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    assert.deepEqual(Object.keys(artifact.raceFeatures).sort(), [
+      'dragonborn', 'half-elf', 'half-orc', 'high-elf', 'hill-dwarf', 'human', 'lightfoot', 'rock-gnome', 'tiefling',
+    ])
+    for (const [key, features] of Object.entries(artifact.raceFeatures)) {
+      assert.ok(features.length > 0, `${key}: raceFeatures vazio`)
+      for (const f of features) {
+        assert.ok(f.key.length > 0, `${key}: feature sem key`)
+        assert.ok(f.name.length > 0, `${key}: feature sem name`)
+        assert.ok(f.description.length > 0, `${key}: feature sem description`)
+        assert.ok(f.source.length > 0, `${key}: feature sem source`)
+      }
+    }
+  })
+}
+
+// US-142: subespécie combina raiz + próprios — o par mais visível (Alto-elfo, 2 Ability Score
+// Increase separados) prova a concatenação sem dedupe direto no artefato gravado.
+test('artefato en-US: high-elf combina os 10 traços de elf + os 4 próprios, ASI da raiz e da subespécie sobrevivem separados', () => {
+  const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
+  const highElf = artifact.raceFeatures['high-elf']
+  assert.equal(highElf.length, 14)
+  const asi = highElf.filter((f) => f.key === 'ability-score-increase')
+  assert.deepEqual(asi.map((f) => f.source), ['elf', 'high-elf'])
+})
+
+// US-142: raceFeatures nasce EN puro nos dois locales (decisão de produto, §Fora do escopo) —
+// sem overlay pt-BR, os dois artefatos têm de ser byte-a-byte iguais neste campo.
+test('raceFeatures: EN e pt-BR são idênticos (sem overlay de tradução nesta story)', () => {
+  const en = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
+  const ptBr = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.pt-BR.json'), 'utf8'))
+  assert.deepEqual(ptBr.raceFeatures, en.raceFeatures)
+})
 
 // US-128: os dois artefatos concordam nos nomes EN dos itens (mesma fonte, `b.fields.desc`
 // cru) — só a tradução por item (kitItems) pode divergir, nunca a estrutura/contagem.

@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada
+**Status:** 🗂️ Backlog
 **Depende de:** [US-139](./US-139-catalogo-classes-marshal-a5e-adventurers-guide.md) (**obrigatória e anterior**: é ela que aponta o `CLASS_MAP` para o `srd-2014` e traz `a5e_marshal → marshal` — esta story reusa o mesmo mapa para resolver a classe-mãe de cada subclasse) · [US-41](./US-41-features-traits-de-classe.md) (formato `{key, label}` reusado)
 **Relacionado:** [ADR 009 §4](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (mediu a divergência de subclasse entre edições — moot depois que o 5.2 saiu de escopo, US-139) · [US-140](./US-140-catalogo-subracas-srd-5-1.md) (mesmo tipo de extensão — variante de entidade já catalogada —, story irmã com desenho diferente por razão explicada abaixo)
 

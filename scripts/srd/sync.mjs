@@ -52,6 +52,9 @@ const FILES = [
   [`${CORE}/Skill.json`, 'Skill.json'],
   [`${SRD_2014}/CharacterClass.json`, 'CharacterClass.json'],
   [`${SRD_2014}/Species.json`, 'Species.2014.json'],
+  // US-142: mesmo documento srd-2014 de Species.json acima — traço mecânico por trás da
+  // chave que Species.json só nomeia (raiz + subespécie), sem tag nova.
+  [`${SRD_2014}/SpeciesTrait.json`, 'SpeciesTrait.2014.json'],
   [`${SRD_2014}/ClassFeature.json`, 'ClassFeature.json'],
   [`${SRD_2014}/ClassFeatureItem.json`, 'ClassFeatureItem.json'],
   [`${SRD_2014}/Spell.json`, 'Spell.json'],

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Fragment } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus, Sparkles } from 'lucide-react'
@@ -616,21 +616,20 @@ export function SetupWizard() {
                         onChange={e => setCharData(p => ({ ...p, race: e.target.value }))}
                         className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                         <option value="">{t('setup.raceClass.select')}</option>
-                        {/* US-140: raiz vira <option> solta (continua selecionável); a(s) sua(s)
-                            subespécie(s) — sequenciais na lista, ver buildRaces — entram num
-                            <optgroup> logo depois. Chave subespécie sem raiz na lista (não deveria
-                            existir) simplesmente não aparece: nada varre `parentKey` sozinho. */}
+                        {/* US-142: raiz COM subespécie deixa de ser <option> solta — o SRD já
+                            documenta a variante, então "só a raiz" some e vira só o <optgroup>
+                            com a(s) subespécie(s) dentro (resolve também a duplicação visual
+                            "raiz" solta + "raiz" repetida no heading do grupo, US-140). Raiz SEM
+                            subespécie continua <option> solta normal, sem grupo. */}
                         {raceCatalog.filter(r => !r.parentKey).map(root => {
                           const subspecies = raceCatalog.filter(r => r.parentKey === root.key)
+                          if (subspecies.length === 0) {
+                            return <option key={root.key} value={root.key}>{root.label}</option>
+                          }
                           return (
-                            <Fragment key={root.key}>
-                              <option value={root.key}>{root.label}</option>
-                              {subspecies.length > 0 && (
-                                <optgroup label={root.label}>
-                                  {subspecies.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                                </optgroup>
-                              )}
-                            </Fragment>
+                            <optgroup key={root.key} label={root.label}>
+                              {subspecies.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                            </optgroup>
                           )
                         })}
                       </select>

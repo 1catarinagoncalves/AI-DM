@@ -206,7 +206,8 @@ export function buildSkills(overlay, skillsRaw, resolve) {
 // mesmo dataset já tem (high-elf, hill-dwarf, lightfoot, rock-gnome — US-140). A união com
 // o 5.2 que a US-105/ADR 009 D2 fixava segue revertida: goliath/orc (exclusivas do 5.2) saem,
 // sem fonte nova pra recuperá-las. `Species.desc` vem VAZIO no dataset (a descrição está no
-// SpeciesTrait.json, fora do escopo), então o catálogo é só {key, label, parentKey?}.
+// SpeciesTrait.json — mecânica, via `buildRaceFeatures` abaixo, US-142), então este catálogo
+// segue só {key, label, parentKey?}.
 // US-140: sort NÃO é mais alfabético global — é raiz por raiz (alfabética entre si), cada
 // raiz imediatamente seguida da(s) sua(s) subespécie(s) (também alfabética entre si). O
 // wizard agrupa por POSIÇÃO da lista (optgroup logo após a raiz), não recalcula por
@@ -234,6 +235,31 @@ export function buildRaces(overlay, species2014, resolve) {
     root,
     ...(subspeciesByParent.get(root.key) ?? []).sort((a, b) => a.key.localeCompare(b.key)),
   ])
+}
+
+// --- raceFeatures (93 traços): SpeciesTrait.json do srd-2014, por chave JOGÁVEL de `races` ---
+// US-142: raiz SEM subespécie ganha os próprios traços; raiz COM subespécie some da chave
+// jogável (ver validateCatalogKey em character.service.ts) e cede lugar à(s) subespécie(s),
+// cada uma com raiz+próprios concatenados (raiz primeiro). Sem overlay/resolve — o texto nasce
+// EN puro nos dois locales (decisão de produto, US-142 §Fora do escopo), então `buildConfig`
+// chama esta função a mesma forma nas duas passagens (base e localizada).
+export function buildRaceFeatures(races, speciesTraits) {
+  const traitsByParent = new Map()
+  for (const t of speciesTraits) {
+    const parentKey = stripDocument(t.fields.parent)
+    const slug = t.pk.slice(t.fields.parent.length + 1) // srd_high-elf_cantrip → cantrip
+    const list = traitsByParent.get(parentKey) ?? []
+    list.push({ key: slug, name: t.fields.name, description: norm(t.fields.desc), source: parentKey })
+    traitsByParent.set(parentKey, list)
+  }
+  const rootsWithSubspecies = new Set(races.filter((r) => r.parentKey).map((r) => r.parentKey))
+  const raceFeatures = {}
+  for (const race of races) {
+    if (!race.parentKey && rootsWithSubspecies.has(race.key)) continue
+    const inherited = race.parentKey ? (traitsByParent.get(race.parentKey) ?? []) : []
+    raceFeatures[race.key] = [...inherited, ...(traitsByParent.get(race.key) ?? [])]
+  }
+  return raceFeatures
 }
 
 // --- classes (12): o CLASS_MAP já ERA o catálogo; aqui ele passa a ser emitido ---
@@ -754,6 +780,7 @@ function buildConfig(overlay, data) {
   const attributes = buildAttributes(overlay, data.abilities, resolve)
   const skills = buildSkills(overlay, data.skillsRaw, resolve)
   const races = buildRaces(overlay, data.species2014, resolve)
+  const raceFeatures = buildRaceFeatures(races, data.speciesTraits)
   const classes = buildClasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
@@ -775,7 +802,7 @@ function buildConfig(overlay, data) {
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  const artifact = { attributes, skills, races, classes, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools }
+  const artifact = { attributes, skills, races, raceFeatures, classes, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools }
   SystemConfigSchema.parse({ ...artifact, ...STUB })
   return { artifact, fallbacks, orphans, glossary }
 }
@@ -784,7 +811,7 @@ async function main() {
   const overlay = JSON.parse(await readFile(OVERLAY_PATH, 'utf8'))
   const [
     abilities, rules, skillsRaw, classes2014, features2014, featureItems2014, spells, species2014,
-    backgrounds, backgroundBenefits, items, marshalClasses, marshalFeatures, marshalFeatureItems,
+    speciesTraits, backgrounds, backgroundBenefits, items, marshalClasses, marshalFeatures, marshalFeatureItems,
   ] = await Promise.all([
     load('AbilityDescription.json'),
     load('Rule.json'),
@@ -794,6 +821,7 @@ async function main() {
     load('ClassFeatureItem.json'),
     load('Spell.json'),
     load('Species.2014.json'),
+    load('SpeciesTrait.2014.json'),
     load('Background.json'),
     load('BackgroundBenefit.json'),
     load('Item.json'),
@@ -807,7 +835,7 @@ async function main() {
   const classes = [...classes2014, ...marshalClasses]
   const features = [...features2014, ...marshalFeatures]
   const featureItems = [...featureItems2014, ...marshalFeatureItems]
-  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species2014, backgrounds, backgroundBenefits, items }
+  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items }
 
   const base = buildConfig({}, data)
   let localized = buildConfig(overlay, data)

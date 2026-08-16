@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SystemConfig } from './types/system'
-import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, resolveCharacterFeatures, MEMENTO_ITEM_LABEL } from './starting-kit'
+import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, resolveCharacterFeatures, MEMENTO_ITEM_LABEL } from './starting-kit'
 
 const dnd5eConfig: SystemConfig = {
   attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
@@ -137,6 +137,41 @@ describe('getBackgroundFeatures (US-135)', () => {
   it('config sem backgroundFeatures devolve lista vazia', () => {
     const noFeatures: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
     expect(getBackgroundFeatures(noFeatures, 'a5e_ag_criminal')).toEqual([])
+  })
+})
+
+// US-142: espelha getClassFeatures, mas sem fallback `default` (não existe "raça default",
+// mesmo contrato de getBackgroundFeatures) — chave sem entrada devolve [], nunca lança.
+describe('getRaceFeatures (US-142)', () => {
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    raceFeatures: {
+      'high-elf': [
+        { key: 'ability-score-increase', source: 'elf', name: 'Ability Score Increase', description: '+2 Dex.' },
+        { key: 'darkvision', source: 'elf', name: 'Darkvision', description: '60 ft.' },
+        { key: 'ability-score-increase', source: 'high-elf', name: 'Ability Score Increase', description: '+1 Int.' },
+        { key: 'cantrip', source: 'high-elf', name: 'Cantrip', description: 'x' },
+      ],
+      human: [{ key: 'ability-score-increase', source: 'human', name: 'Ability Score Increase', description: '+1 all.' }],
+    },
+  }
+
+  it('devolve as chaves combinadas da subespécie (raiz + próprios), sem dedupe', () => {
+    expect(getRaceFeatures(config, 'high-elf')).toEqual(['ability-score-increase', 'darkvision', 'ability-score-increase', 'cantrip'])
+  })
+
+  it('raiz sem subespécie: só as chaves próprias', () => {
+    expect(getRaceFeatures(config, 'human')).toEqual(['ability-score-increase'])
+  })
+
+  it('chave sem entrada no catálogo (raiz que tem subespécie, ex. "elf") devolve lista vazia', () => {
+    expect(getRaceFeatures(config, 'elf')).toEqual([])
+  })
+
+  it('config sem raceFeatures devolve lista vazia', () => {
+    const noFeatures: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
+    expect(getRaceFeatures(noFeatures, 'human')).toEqual([])
   })
 })
 

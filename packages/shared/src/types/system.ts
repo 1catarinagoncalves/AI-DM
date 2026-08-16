@@ -159,6 +159,12 @@ export const SystemConfigSchema = z.object({
   // `skills`: config legado sem eles não fica inválido — e é o que decide se o service
   // valida a chave da ficha contra catálogo ou aceita o que vier (ver character.service).
   races: z.array(RaceCatalogEntrySchema).optional(),
+  // Traço mecânico de raça (US-142), por chave JOGÁVEL de `races` — raiz sem subespécie, ou
+  // subespécie (a raiz que TEM subespécie não ganha entrada própria, ver validateCatalogKey em
+  // character.service.ts). Reusa SystemClassFeatureSchema, mesma forma de `backgroundFeatures`
+  // logo abaixo — sem tipo novo. Subespécie concatena os traços da raiz + os próprios, sem
+  // dedupe por `key` (Ability Score Increase da raiz e da subespécie somam como dois traços).
+  raceFeatures: z.record(z.string(), z.array(SystemClassFeatureSchema)).optional(),
   classes: z.array(SystemCatalogEntrySchema).optional(),
   // Catálogo de backgrounds do a5e-ag (US-121), derivado pelo ingest. Opcional como races/classes:
   // config legado sem ele não fica inválido. Mecânico apenas — escolha na criação é story separada.

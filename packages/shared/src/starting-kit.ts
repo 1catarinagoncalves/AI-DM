@@ -57,6 +57,18 @@ export function getBackgroundFeatures(config: SystemConfig, originKey?: string):
   return (map[originKey] ?? []).map((f) => f.key)
 }
 
+/**
+ * Traço mecânico da RAÇA escolhida (US-142), pela chave jogável de `config.races` (raiz sem
+ * subespécie, ou subespécie — a raiz que TEM subespécie nunca chega aqui, `validateCatalogKey`
+ * barra antes). Espelha `getClassFeatures`: sem fallback `default` (não existe "raça default"),
+ * chave sem entrada devolve [], nunca lança.
+ */
+export function getRaceFeatures(config: SystemConfig, raceKey: string): string[] {
+  const map = config.raceFeatures
+  if (!map) return []
+  return (map[raceKey] ?? []).map((f) => f.key)
+}
+
 /** US-136: `SystemClassFeature` + de qual catálogo a chave veio, calculado ANTES do merge. */
 export type CharacterFeature = SystemClassFeature & { origin: 'class' | 'background' }
 

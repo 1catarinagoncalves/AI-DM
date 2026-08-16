@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -26,7 +26,12 @@ export class CharacterService {
     const baseAttributes = buildCharacterAttributesSchema(config.attributes).parse(dto.attributes)
     // US-105: `race`/`class` são CHAVES do catálogo do sistema. A ficha guarda a chave; o
     // rótulo é resolvido na leitura, no locale de quem lê.
-    const race = this.validateCatalogKey(config.races, dto.race, 'Raça')
+    // US-142: `raceFeatures`, quando presente, É o catálogo jogável — a raiz que tem subespécie
+    // fica de fora dele (só a(s) subespécie(s) tem entrada), então validar contra ele em vez de
+    // `config.races` reverte a raiz a chave inválida sem precisar filtrar `parentKey` aqui.
+    // Config legado sem `raceFeatures` cai no `config.races` cheio de sempre, sem mudar comportamento.
+    const raceCatalog = config.raceFeatures ? Object.keys(config.raceFeatures).map((key) => ({ key })) : config.races
+    const race = this.validateCatalogKey(raceCatalog, dto.race, 'Raça')
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
     // US-42: magias conhecidas (truques + exceção nível 1 de paladino/patrulheiro),
     // do mesmo kit da classe. Não-conjurador → [] (sem seção, sem crash).
@@ -43,7 +48,9 @@ export class CharacterService {
     // `type: 'feature'`, ex. Thieves' Cant) — mesmo campo, sem coluna nova no Prisma.
     // US-100: são CHAVES (`barbarian_rage`/`a5e-ag_criminal_thieves-cant`), resolvidas
     // para nome/descrição na leitura.
-    const features = [...getClassFeatures(config, charClass), ...getBackgroundFeatures(config, originKey)]
+    // US-142: features de raça (raiz sem subespécie, ou subespécie já combinada com a raiz)
+    // somadas ao mesmo array — mesmo pipeline de classe/origem, sem coluna nova no Prisma.
+    const features = [...getClassFeatures(config, charClass), ...getBackgroundFeatures(config, originKey), ...getRaceFeatures(config, race)]
     // US-123: bônus de atributo do background soma POR CIMA do point-buy já validado acima —
     // por isso aplicado depois do parse de min/max, que segue valendo só para o point-buy puro.
     const abilityGrant = this.findAbilityGrant(config.backgrounds, originKey)
