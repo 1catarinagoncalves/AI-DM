@@ -4,8 +4,8 @@
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-145](./US-145-sync-lgmrd-notice.md) (artefato `LGMRD.json` baixado) · [US-146](./US-146-seed-deterministico-motor-aventura.md) (gerador seedado)
-**Consome, quando existir:** [US-156](./US-156-catalogos-registro-dto-validacao.md) (GEN-13 — escolha do jogador por campo de registro)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (GEN-4, alimenta GEN-6 e GEN-9)
+**Consome, quando existir:** [US-156](./US-156-catalogos-registro-dto-validacao.md) (escolha do jogador por campo de registro)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-147, alimenta [US-149](./US-149-segredos-40-prompts-lgmrd.md) e [US-152](./US-152-statblocks-papel-orcamento.md)) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story)
 **Criada em:** 2026-08-15
 
 ---
@@ -22,7 +22,7 @@
 
 ### O problema observado
 
-O motor precisa de matéria-prima antes de qualquer chamada ao modelo (GEN-6 escreve os segredos com locais e NPCs já decididos "no contexto — nunca antes"). Sem uma etapa de rolagem determinística, essa matéria-prima não existe: o motor teria que pedir ao próprio modelo para inventar premissa e locais, reintroduzindo exatamente o problema que a [US-29](./US-29-saneamento-de-rolagens-ficticias.md) já baniu do lado da rolagem de jogo — sorteio que o modelo faz não é sorteio, é invenção sem procedência.
+O motor precisa de matéria-prima antes de qualquer chamada ao modelo ([US-149](./US-149-segredos-40-prompts-lgmrd.md) escreve os segredos com locais e NPCs já decididos "no contexto — nunca antes"). Sem uma etapa de rolagem determinística, essa matéria-prima não existe: o motor teria que pedir ao próprio modelo para inventar premissa e locais, reintroduzindo exatamente o problema que a [US-29](./US-29-saneamento-de-rolagens-ficticias.md) já baniu do lado da rolagem de jogo — sorteio que o modelo faz não é sorteio, é invenção sem procedência.
 
 ### Por que a solução atual não basta
 
@@ -30,7 +30,7 @@ Nada no repo hoje lê o `LGMRD.json` (a US-145 apenas o baixa) nem distingue dua
 
 ### A proposta
 
-Duas rolagens, nesta ordem, ambas pelo seed da [US-146](./US-146-seed-deterministico-motor-aventura.md), lendo o artefato da [US-145](./US-145-sync-lgmrd-notice.md): primeiro o registro (uma vez, três campos independentes), depois o conteúdo (por peça, pelas 135 tabelas). Cada um dos três campos de registro pode vir escolhido pelo jogador (quando a GEN-13/US-156 existir) ou sorteado aqui — por campo, não tudo-ou-nada.
+Duas rolagens, nesta ordem, ambas pelo seed da [US-146](./US-146-seed-deterministico-motor-aventura.md), lendo o artefato da [US-145](./US-145-sync-lgmrd-notice.md): primeiro o registro (uma vez, três campos independentes), depois o conteúdo (por peça, pelas 135 tabelas). Cada um dos três campos de registro pode vir escolhido pelo jogador (quando a [US-156](./US-156-catalogos-registro-dto-validacao.md) existir) ou sorteado aqui — por campo, não tudo-ou-nada.
 
 ---
 
@@ -39,10 +39,10 @@ Duas rolagens, nesta ordem, ambas pelo seed da [US-146](./US-146-seed-determinis
 ### Dentro do escopo
 
 - **Roda no Game Server** (`apps/api`), pelo mesmo argumento dos dados existentes: sorteio determinístico não é trabalho de modelo de linguagem.
-- **Registro — uma vez por aventura.** `setting`, `tone`, `areaType` — sorteados pelo seed quando o jogador não escolheu (GEN-13 ausente ou campo omitido no DTO). Fixado uma vez, passado a **todas** as chamadas de modelo seguintes (GEN-6 em diante).
-- **Conteúdo — por peça.** Lê `LGMRD.json` (baixado pela US-145) e rola, pelo mesmo seed, as tabelas que produzem premissa, locais, monumentos, complicação — a lista de escolhas que os passos seguintes (GEN-6, prosa dos locais) vestem de prosa. Ainda não é uma `GeneratedAdventure` (US-144) montada — é a matéria-prima bruta.
+- **Registro — uma vez por aventura.** `setting`, `tone`, `areaType` — sorteados pelo seed quando o jogador não escolheu ([US-156](./US-156-catalogos-registro-dto-validacao.md) ausente ou campo omitido no DTO). Fixado uma vez, passado a **todas** as chamadas de modelo seguintes ([US-149](./US-149-segredos-40-prompts-lgmrd.md) em diante).
+- **Conteúdo — por peça.** Lê `LGMRD.json` (baixado pela US-145) e rola, pelo mesmo seed, as tabelas que produzem premissa, locais, monumentos, complicação — a lista de escolhas que os passos seguintes ([US-149](./US-149-segredos-40-prompts-lgmrd.md), prosa dos locais) vestem de prosa. Ainda não é uma `GeneratedAdventure` (US-144) montada — é a matéria-prima bruta.
 - **Cada campo de registro é independente:** escolher o tom e deixar o local no aleatório é caminho normal — não existe combinação inválida entre "escolhido" e "sorteado" por campo.
-- **"Aleatório" continua determinístico:** mesmo seed, mesmo resultado — o jogador não re-rola recarregando a página, e a eval (GEN-11) pode pinar a aventura inteira mesmo quando nenhum campo foi escolhido manualmente.
+- **"Aleatório" continua determinístico:** mesmo seed, mesmo resultado — o jogador não re-rola recarregando a página, e a eval ([US-154](./US-154-eval-aventura-gerada.md)) pode pinar a aventura inteira mesmo quando nenhum campo foi escolhido manualmente.
 - **Sem cópia das listas de rótulo do DnDGenerate.** O eixo (haver `tone`/`setting`/`areaType` como dimensão fixada uma vez) é o que se copia; os dez valores genéricos por eixo não — o catálogo real vem do [GEN-13](./US-156-catalogos-registro-dto-validacao.md).
 
 ### Fora do escopo

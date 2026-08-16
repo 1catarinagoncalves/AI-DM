@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** nenhuma — pode ir em paralelo com [US-143](./US-143-adr-aventura-como-dado-gerado.md) e [US-144](./US-144-schema-aventura-shared.md)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (GEN-2) · [US-47](./US-47-ingestao-srd-como-dado.md) (molde de sync pinado por SHA/tag, escrita determinística) · [scripts/srd/NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md) (regime de atribuição CC-BY já em uso)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-145) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story, à medida que cada story é escrita) · [US-47](./US-47-ingestao-srd-como-dado.md) (molde de sync pinado por SHA/tag, escrita determinística) · [scripts/srd/NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md) (regime de atribuição CC-BY já em uso)
 **Criada em:** 2026-08-15
 
 ---
@@ -21,11 +21,11 @@
 
 ### O problema observado
 
-O motor de geração (GEN-4 em diante) precisa sortear premissa, locais, monumentos e complicação a partir das 135 tabelas do LGMRD (SlyFlourish.com), e precisa de statblocks por papel (Minion/Soldier/Brute) do `5e_Monster_Builder.json` para popular encontros (GEN-9). Hoje nenhum dos dois existe no repo — o pipeline de ingestão SRD (`scripts/srd/`) baixa e processa exclusivamente dados do Open5e (races, classes, spells, backgrounds), sem tocar em fontes de geração de aventura.
+O motor de geração ([US-147](./US-147-rolagem-registro-conteudo.md) em diante) precisa sortear premissa, locais, monumentos e complicação a partir das 135 tabelas do LGMRD (SlyFlourish.com), e precisa de statblocks por papel (Minion/Soldier/Brute) do `5e_Monster_Builder.json` para popular encontros ([US-152](./US-152-statblocks-papel-orcamento.md)). Hoje nenhum dos dois existe no repo — o pipeline de ingestão SRD (`scripts/srd/`) baixa e processa exclusivamente dados do Open5e (races, classes, spells, backgrounds), sem tocar em fontes de geração de aventura.
 
 ### Por que a solução atual não basta
 
-`scripts/srd/sync.mjs` já resolve exatamente este problema para outra fonte — mas é escopado ao Open5e (`TAG = 'v2.1.0'`, `RAW = https://raw.githubusercontent.com/open5e/open5e-api/...`) e não tem lugar para uma fonte de repositório diferente. O LGMRD tem workflow **nightly** (o próprio backlog aponta: *"a fonte tem workflow nightly e as versões publicadas não batem entre si"*) — baixar de `main` sem pin quebraria a garantia de reprodutibilidade que o `sync.mjs` do SRD já estabeleceu, e que a eval (GEN-11) e o teste de seed (GEN-3) dependem para pinar um resultado.
+`scripts/srd/sync.mjs` já resolve exatamente este problema para outra fonte — mas é escopado ao Open5e (`TAG = 'v2.1.0'`, `RAW = https://raw.githubusercontent.com/open5e/open5e-api/...`) e não tem lugar para uma fonte de repositório diferente. O LGMRD tem workflow **nightly** (o próprio backlog aponta: *"a fonte tem workflow nightly e as versões publicadas não batem entre si"*) — baixar de `main` sem pin quebraria a garantia de reprodutibilidade que o `sync.mjs` do SRD já estabeleceu, e que a eval ([US-154](./US-154-eval-aventura-gerada.md)) e o teste de seed ([US-146](./US-146-seed-deterministico-motor-aventura.md)) dependem para pinar um resultado.
 
 ### A proposta
 
@@ -39,15 +39,15 @@ Um segundo `sync` — em `scripts/lazygm/`, não dentro de `scripts/srd/` (fonte
 
 - **`scripts/lazygm/sync.mjs`** (arquivo novo, pasta nova) — baixa `LGMRD.json` e `5e_Monster_Builder.json` por **commit SHA** fixo (nunca `main`), grava em `scripts/lazygm/_data/` (gitignored, mesmo padrão de `scripts/srd/_data/`), no molde de `FILES`/`OUT`/`main()` de [sync.mjs](../../../scripts/srd/sync.mjs).
 - **`NOTICE-lazygm.md`** gerado a partir do campo `attribution` do dado baixado — texto **verbatim**, nunca parafraseado, com a atribuição tripla. Entra no mesmo commit que o primeiro dado derivado (mesma disciplina que `NOTICE-open5e.md` já segue).
-- **Sem parser.** Ao contrário do `ingest.mjs` do SRD (que produz `config` normalizado), esta story só baixa e versiona o artefato bruto — o consumo (rolagem pelas tabelas, GEN-4; statblocks por papel, GEN-9) é responsabilidade de stories seguintes que leem o JSON diretamente.
+- **Sem parser.** Ao contrário do `ingest.mjs` do SRD (que produz `config` normalizado), esta story só baixa e versiona o artefato bruto — o consumo (rolagem pelas tabelas, [US-147](./US-147-rolagem-registro-conteudo.md); statblocks por papel, [US-152](./US-152-statblocks-papel-orcamento.md)) é responsabilidade de stories seguintes que leem o JSON diretamente.
 - **CC-BY-4.0** — mesma licença do Open5e, cabe no regime que [NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md) já descreve; `NOTICE-lazygm.md` é um documento irmão, não uma seção dentro do existente (fonte diferente, atribuição diferente).
 - **Teste de sync** — regressão simples de que o pin não é `main` (grep no SHA fixo ou constante nomeada), no molde de como `sync.mjs` do SRD documenta `TAG` como constante exportada.
 
 ### Fora do escopo
 
-- **Qualquer parser/normalização do LGMRD** (`buildRaces`-like) — GEN-4 e GEN-9 leem o JSON baixado diretamente; esta story só garante que ele existe, versionado e pinado.
-- **`5e_Monster_Builder.json` virar catálogo de monstros do SRD.** O backlog é explícito: *"não precisa ingerir monstro do SRD"* — os statblocks por papel bastam, sem bestiário nominal (ver GEN-9).
-- **Os dois exemplares de referência de densidade** (`36-villageofwhitesparrow.md`, `37-thenightblade.md`) usados pela eval (GEN-11) — mesma fonte CC-BY, mas consumo de eval é escopo daquela story, não desta.
+- **Qualquer parser/normalização do LGMRD** (`buildRaces`-like) — [US-147](./US-147-rolagem-registro-conteudo.md) e [US-152](./US-152-statblocks-papel-orcamento.md) leem o JSON baixado diretamente; esta story só garante que ele existe, versionado e pinado.
+- **`5e_Monster_Builder.json` virar catálogo de monstros do SRD.** O backlog é explícito: *"não precisa ingerir monstro do SRD"* — os statblocks por papel bastam, sem bestiário nominal (ver [US-152](./US-152-statblocks-papel-orcamento.md)).
+- **Os dois exemplares de referência de densidade** (`36-villageofwhitesparrow.md`, `37-thenightblade.md`) usados pela eval ([US-154](./US-154-eval-aventura-gerada.md)) — mesma fonte CC-BY, mas consumo de eval é escopo daquela story, não desta.
 - **Re-sync automático/CI agendado.** Igual ao `sync.mjs` do SRD, roda sob demanda (`node scripts/lazygm/sync.mjs`), não em pipeline.
 
 ---
@@ -101,5 +101,6 @@ scripts/lazygm/
 
 - [scripts/srd/sync.mjs](../../../scripts/srd/sync.mjs) — molde de pin, `FILES`, `OUT`, guard de entrypoint, `.source`.
 - [scripts/srd/NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md) — regime de atribuição CC-BY já em uso; `NOTICE-lazygm.md` é o documento irmão.
-- [Backlog — Motor de geração de aventuras one-shot §GEN-2](./backlog-motor-de-geracao-de-aventuras.md) — texto de origem e a nota sobre o workflow *nightly* do LGMRD.
+- [Backlog — Motor de geração de aventuras one-shot §GEN-2](./backlog-motor-de-geracao-de-aventuras.md) (US-145) — texto de origem e a nota sobre o workflow *nightly* do LGMRD.
+- [ADR 012](../../adr/012-aventura-gerada-como-dado.md) — decisão que resolve os rótulos `GEN-N` do backlog para número de story.
 - [US-47](./US-47-ingestao-srd-como-dado.md) — a story original que estabeleceu escrita determinística de artefato versionado, molde geral desta.

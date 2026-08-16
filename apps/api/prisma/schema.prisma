@@ -79,6 +79,10 @@ model Adventure {
   // sumarização, então um callback a uma entidade de muitos turnos atrás (ex.: "a
   // Vigia na sala secreta") sobrevive. Array de WorldEntity (@ai-dm/shared).
   entities        Json?
+  // Artefato congelado da aventura gerada (US-144, ADR-012 D2): GeneratedAdventureSchema
+  // (@ai-dm/shared). Coluna própria, sem reuso de `entities` — namespaces diferentes,
+  // `generatedAdventure.id` != `Adventure.id`. `seed` não persiste (US-146, recomputado).
+  generatedAdventure Json?
   participants    AdventureParticipant[]
   characterStates CharacterState[]
   quests          Quest[]
