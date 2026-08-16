@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-147](./US-147-rolagem-registro-conteudo.md) (locais e conteúdo já rolados) · [US-148](./US-148-perfil-personagem-entrada-motor.md) (perfil do personagem)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-149) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (`extractionModel`, o modelo barato que esta story usa) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (padrão de `generateObject` server-side para extração estruturada)
 **Criada em:** 2026-08-15
@@ -12,7 +12,7 @@
 ## História
 
 > **Como** mantenedora,
-> **quero** que o motor escreva os ~11 segredos da aventura a partir dos 40 prompts de segredo do LGMRD, com locais e NPCs já decididos e `background.story`/`bonds`/`flaws`/`hookSeed` no contexto,
+> **quero** que o motor escreva os ~11 segredos da aventura a partir dos 40 prompts de segredo do LGMRD, com locais e NPCs já decididos e `background.story`/`bonds`/`flaws`, `origin.connection`/`memento` e `hookSeed` no contexto,
 > **para que** a aventura gerada tenha quebra-cabeça — pistas que apontam para entidades que existem e se conectam ao personagem — em vez de lista de fatos soltos.
 
 ---
@@ -29,7 +29,7 @@ Não existe hoje nenhuma chamada de modelo que escreva conteúdo de aventura anc
 
 ### A proposta
 
-Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como moldes, recebe locais e NPCs já rolados (US-147) mais `background.story`/`bonds`/`flaws` e `hookSeed` (US-148) no contexto, roda no **modelo barato** (`extractionModel`, [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md)) — geração de aventura não é turno de jogo: não tem streaming, não tem jogador esperando, não paga o teto de 60s do proxy SSE.
+Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como moldes, recebe locais e NPCs já rolados (US-147) mais `background.story`/`bonds`/`flaws`, `origin.connection`/`memento` e `hookSeed` (US-148) no contexto, roda no **modelo barato** (`extractionModel`, [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md)) — geração de aventura não é turno de jogo: não tem streaming, não tem jogador esperando, não paga o teto de 60s do proxy SSE.
 
 ---
 
@@ -38,7 +38,7 @@ Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como mol
 ### Dentro do escopo
 
 - **`generateSecrets(profile, locations, npcs, secretPrompts)`** — chamada `generateObject` (mesmo padrão de `extractOpeningEntities`, [ai.service.ts:1112](../../../apps/api/src/ai/ai.service.ts)), schema = `AdventureSecretSchema[]` (de [US-144](./US-144-schema-aventura-shared.md)), instruída a produzir ~11 segredos usando os 40 prompts do LGMRD como moldes de pergunta ("o que o vilão esconde?", "que engano o NPC comete?", etc. — formato exato a confirmar no artefato da US-145).
-- **Contexto obrigatório na chamada:** locais e NPCs já decididos (com `id`), `background.story`/`bonds`/`flaws` (US-148), `hookSeed`. Sem locais e NPCs, a chamada não roda — dependência de ordem, não sugestão.
+- **Contexto obrigatório na chamada:** locais e NPCs já decididos (com `id`), `background.story`/`bonds`/`flaws` (US-148), `origin.connection`/`memento` (US-148, distinto de `background` — schema.prisma:40-43), `hookSeed`. Sem locais e NPCs, a chamada não roda — dependência de ordem, não sugestão.
 - **`secret.locationId` referencia um `id` real** dos locais recebidos — a chamada é instruída a **escolher entre os `id`s dados**, nunca inventar um novo.
 - **Modelo barato, não o da narração** — usa `extractionModel` ([US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md)), com as mesmas ressalvas de provider/pin que aquela story documenta (sem herdar `DEEPSEEK_ROUTE` se o modelo escolhido não for DeepSeek).
 - **Teste com fixture:** perfil de personagem com `bonds` preenchido produz ao menos um segredo referenciando esse vínculo (verificação de conteúdo, não só de forma).
@@ -65,10 +65,10 @@ Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como mol
 - [ ] `generateSecrets` produz um array de `AdventureSecret` (schema US-144), rodando **depois** de locais e NPCs já existirem no contexto da chamada — nunca antes (ordem verificável pela assinatura da função exigir os dois como parâmetro obrigatório).
 - [ ] Todo `secret.locationId` no retorno corresponde a um `id` presente na lista de locais recebida (verificação de melhor esforço nesta story; a garantia formal é o gate da [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)).
 - [ ] A chamada usa `extractionModel` ([US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md)), não `primaryModel`/o modelo de narração.
-- [ ] `background.bonds`/`flaws`/`story` (quando presentes) e `hookSeed` (sempre) são passados no contexto da chamada — verificável no prompt montado.
-- [ ] Personagem com `background` vazio ainda produz segredos válidos, usando só `hookSeed` como âncora narrativa (mesma garantia que a [US-148](./US-148-perfil-personagem-entrada-motor.md) já estabelece na entrada).
+- [ ] `background.bonds`/`flaws`/`story` (quando presentes), `origin.connection`/`memento` (quando presentes) e `hookSeed` (sempre) são passados no contexto da chamada — verificável no prompt montado.
+- [ ] Personagem com `background` **e** `origin` vazios ainda produz segredos válidos, usando só `hookSeed` como âncora narrativa (mesma garantia que a [US-148](./US-148-perfil-personagem-entrada-motor.md) já estabelece na entrada).
 - [ ] Falha/timeout da chamada não deve travar a criação da aventura sem sinalização — mesmo padrão de falha silenciosa com log das extrações existentes (`extractOpeningScene`/`extractOpeningEntities`), a decidir se aqui a falha propaga para acionar o reseed da [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) em vez de devolver vazio silenciosamente (ver *Questões em aberto*).
-- [ ] **Eval / teste de regressão:** fixture com `background.bonds = ["deve favor a um contrabandista"]` produz ao menos um segredo cujo texto referencia esse vínculo (checagem por palavra-chave ou LLM-judge, no molde da rubrica da [US-36](./US-36-eval-de-qualidade-da-narracao.md)).
+- [ ] **Eval / teste de regressão:** fixture com `background.bonds = ["deve favor a um contrabandista"]` produz ao menos um segredo cujo texto referencia esse vínculo (checagem por palavra-chave ou LLM-judge, no molde da rubrica da [US-36](./US-36-eval-de-qualidade-da-narracao.md)). Segunda fixture com `origin.connection`/`memento` preenchidos (sem `background.bonds`) confirma que o vínculo de `origin` também ancora ao menos um segredo — não é só `background` que o motor honra.
 
 ---
 
@@ -90,7 +90,9 @@ Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como mol
 ## Referências no código
 
 - [apps/api/src/ai/ai.service.ts:1112](../../../apps/api/src/ai/ai.service.ts) — `extractOpeningEntities`, o molde de `generateObject` estruturado a espelhar.
+- [apps/api/src/ai/ai.service.ts:344-356](../../../apps/api/src/ai/ai.service.ts) — `originNarrative` (`connection`/`memento`) montado por turno; mesmo shape que chega aqui via `AdventureProfile.origin`.
+- [packages/ai-engine/src/prompts/dm-system.ts:59-133](../../../packages/ai-engine/src/prompts/dm-system.ts) — `CharacterBackground`, `OriginNarrative`.
 - [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) — `extractionModel`, incluindo as armadilhas de `reasoning`/pin de rota a evitar aqui.
 - [US-147](./US-147-rolagem-registro-conteudo.md) — locais e conteúdo rolados, entrada desta story.
-- [US-148](./US-148-perfil-personagem-entrada-motor.md) — `AdventureProfile`, entrada desta story.
+- [US-148](./US-148-perfil-personagem-entrada-motor.md) — `AdventureProfile` (`background` + `origin`), entrada desta story.
 - [Backlog — Motor de geração de aventuras one-shot §GEN-6 e §O desenho: três camadas](./backlog-motor-de-geracao-de-aventuras.md) (US-149) — texto de origem.

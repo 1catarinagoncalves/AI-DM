@@ -1,13 +1,25 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
-import { mergeSceneState, type CharacterBackground } from '@ai-dm/ai-engine'
+import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 
 export interface CreateAdventureDto {
   initialHookId: string
+}
+
+/**
+ * US-148: entrada do motor de geração de aventuras (US-149 em diante). `hookSeed` é
+ * sempre a rede de segurança — presente mesmo com `background`/`origin` vazios.
+ */
+export interface AdventureProfile {
+  level: number
+  classKey: string
+  background: CharacterBackground
+  origin: OriginNarrative
+  hookSeed: string
 }
 
 @Injectable()
@@ -70,6 +82,35 @@ export class AdventureService {
       primaryQuestTitle: resolveHookTemplate(hook.primaryQuestTitle, vars),
       primaryQuestDescription: resolveHookTemplate(hook.primaryQuestDescription, vars),
       openingNarration: resolveHookTemplate(hook.openingNarration, vars),
+    }
+  }
+
+  /**
+   * US-148: monta o perfil que o motor de geração recebe — nível, classe, background/origin
+   * brutos e o hookSeed RESOLVIDO (placeholders já substituídos, via `this.resolveHook`,
+   * mesmo padrão de `createForCharacter`). `background`/`origin` vazios não lançam: o
+   * `hookSeed` da classe é a rede de segurança. Método privado (não função livre) porque
+   * precisa de `this.resolveHook` — só ele resolve os placeholders sem duplicar a lógica.
+   */
+  private buildAdventureProfile(
+    character: { name: string; level: number; class: string; background: unknown; origin: unknown },
+    config: SystemConfig,
+  ): AdventureProfile {
+    const origin = (character.origin ?? {}) as { key?: string; connection?: string; memento?: string }
+    const rawHook = resolveInitialHook(config, character.class)
+    const className = catalogLabel(config.classes, character.class)
+    const hookSeed = rawHook ? this.resolveHook(rawHook, character.name, className).openingNarration : ''
+
+    return {
+      level: character.level,
+      classKey: character.class,
+      background: (character.background ?? {}) as CharacterBackground,
+      origin: {
+        adventuresAndAdvancement: resolveAdventuresAndAdvancement(config.backgrounds, origin.key),
+        connection: origin.connection,
+        memento: origin.memento,
+      },
+      hookSeed,
     }
   }
 

@@ -31,6 +31,13 @@ const config: SystemConfig = {
   classes: [{ key: 'wizard', label: 'Mago' }],
   // US-128: equipamento da origem, chave = SystemBackground.key (Character.origin.key).
   backgroundEquipment: { 'a5e-ag_acolyte': [{ name: 'Símbolo sagrado', qty: 1 }, { name: 'Túnica', qty: 1 }] },
+  // US-148: catálogo de origem narrativa — usado por resolveAdventuresAndAdvancement no perfil.
+  backgrounds: [
+    {
+      key: 'a5e-ag_acolyte', name: 'Acólito', source: 'a5e-ag',
+      benefits: [{ type: 'adventures_and_advancement', name: 'Chamado', description: 'O templo pede um favor.' }],
+    },
+  ],
   initialAdventures: {
     hooks: [
       {
@@ -466,5 +473,58 @@ describe('AdventureService.getTurns', () => {
       { role: 'roll', label: 'Percepção', formula: '1d20+5', rolls: [7], modifier: 5, total: 12 },
       { role: 'dm', content: 'Marcas sutis nas pedras.' },
     ])
+  })
+})
+
+// US-148: perfil de entrada do motor de geração. Método privado — acessado via cast
+// (mesmo padrão de teste direto dos outros métodos privados não existe ainda no
+// arquivo; este é o primeiro, daí o cast explícito em vez de invenção de helper).
+describe('AdventureService.buildAdventureProfile', () => {
+  function service(): { buildAdventureProfile: (character: Record<string, unknown>, config: SystemConfig) => unknown } {
+    const { prisma } = fakePrisma(null)
+    return new AdventureService(prisma, fakeAi()) as unknown as { buildAdventureProfile: (character: Record<string, unknown>, config: SystemConfig) => unknown }
+  }
+
+  it('personagem com background e origin preenchidos: perfil carrega os cinco campos, hookSeed resolvido', () => {
+    const character = {
+      name: 'Elara', level: 3, class: 'wizard',
+      background: { story: 'Aprendiz fugida', ideals: ['Conhecimento'], bonds: ['O mentor'], flaws: ['Orgulho'], deity: { name: 'Mystra', portfolio: 'magia' } },
+      origin: { key: 'a5e-ag_acolyte', connection: 'O templo que a criou', memento: 'Um símbolo sagrado gasto' },
+    }
+
+    const profile = service().buildAdventureProfile(character, config) as Record<string, unknown>
+
+    expect(profile).toEqual({
+      level: 3,
+      classKey: 'wizard',
+      background: character.background,
+      origin: {
+        adventuresAndAdvancement: 'O templo pede um favor.',
+        connection: 'O templo que a criou',
+        memento: 'Um símbolo sagrado gasto',
+      },
+      hookSeed: 'A vela curva-se, Elara.', // placeholder {characterName} resolvido, não cru
+    })
+  })
+
+  it('background {} e origin {} (rede de segurança): perfil válido, hookSeed da classe não-vazio, sem lançar', () => {
+    const character = { name: 'Nyx', level: 1, class: 'wizard', background: {}, origin: {} }
+
+    const profile = service().buildAdventureProfile(character, config) as Record<string, unknown>
+
+    expect(profile['level']).toBe(1)
+    expect(profile['classKey']).toBe('wizard')
+    expect(profile['background']).toEqual({})
+    expect(profile['origin']).toEqual({ adventuresAndAdvancement: undefined, connection: undefined, memento: undefined })
+    expect(profile['hookSeed']).toBe('A vela curva-se, Nyx.')
+    expect((profile['hookSeed'] as string).length).toBeGreaterThan(0)
+  })
+
+  it('origin.key fora do catálogo: adventuresAndAdvancement ausente, sem lançar (mesmo lookup de resolveAdventuresAndAdvancement)', () => {
+    const character = { name: 'Elara', level: 1, class: 'wizard', background: {}, origin: { key: 'chave-inexistente' } }
+
+    const profile = service().buildAdventureProfile(character, config) as Record<string, unknown>
+
+    expect((profile['origin'] as Record<string, unknown>)['adventuresAndAdvancement']).toBeUndefined()
   })
 })
