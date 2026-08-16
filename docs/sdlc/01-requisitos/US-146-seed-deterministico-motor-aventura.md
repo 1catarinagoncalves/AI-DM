@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-146, bloqueia [US-147](./US-147-rolagem-registro-conteudo.md)) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-47](./US-47-ingestao-srd-como-dado.md) (mesma propriedade de escrita determinística exigida dos artefatos do SRD) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (rolagem nunca inventada pelo modelo — o mesmo princípio aplicado ao sorteio do motor)
 **Criada em:** 2026-08-15
@@ -39,7 +39,7 @@ Uma função `deriveAdventureSeed(characterId, order)` que combina os dois em um
 
 - **`deriveAdventureSeed(characterId: string, order: number): number`** — combina os dois em um seed estável (ex. hash simples dos dois valores concatenados). Determinístico: mesma entrada, mesma saída, sempre.
 - **`createSeededRandom(seed: number): () => number`** — PRNG puro (sem dependência nova; um algoritmo de poucas linhas como mulberry32 é suficiente e já é padrão de mercado para este uso), devolvendo uma função que gera floats em `[0, 1)` de forma determinística e reproduzível a partir do seed.
-- **Local:** `packages/shared/src/adventure-seed.ts` (ou `packages/ai-engine`, a decidir pela camada que consumir primeiro — ver *Questões em aberto*), exportado para [US-147](./US-147-rolagem-registro-conteudo.md) e [US-152](./US-152-statblocks-papel-orcamento.md) importarem.
+- **Local:** `packages/shared/src/adventure-seed.ts`, exportado para [US-147](./US-147-rolagem-registro-conteudo.md) e [US-152](./US-152-statblocks-papel-orcamento.md) importarem.
 - **Teste de determinismo:** o mesmo par `(characterId, order)` produz a mesma sequência de números **byte a byte** em duas execuções — mesma propriedade de escrita determinística que a [US-47](./US-47-ingestao-srd-como-dado.md) já exige dos artefatos do SRD (regenerar o artefato duas vezes produz o mesmo arquivo).
 - **Nenhuma rolagem do motor consome `Math.random`** — critério de aceite verificável por grep/lint no código que a [US-147](./US-147-rolagem-registro-conteudo.md) e a [US-152](./US-152-statblocks-papel-orcamento.md) escreverem depois (esta story só entrega o gerador; a garantia de uso exclusivo é policiada pelas stories consumidoras, mas o contrato nasce aqui).
 
@@ -73,13 +73,13 @@ export function createSeededRandom(seed: number): () => number { /* ... */ }
 
 ## Critérios de aceite
 
-- [ ] `deriveAdventureSeed(characterId, order)` é determinística: mesma entrada, mesma saída, em chamadas repetidas e entre execuções do processo.
-- [ ] `createSeededRandom(seed)` devolve uma função geradora cuja sequência completa (N chamadas) é **byte a byte idêntica** entre duas instâncias criadas com o mesmo `seed`.
-- [ ] Seeds diferentes (`order` diferente, ou `characterId` diferente) produzem sequências diferentes — sem colisão trivial entre `order: 1` e `order: 2` do mesmo personagem.
-- [ ] `seed + 1` (o incremento que a [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) usa para reseed) produz uma sequência distinta da original, também determinística.
-- [ ] Nenhuma chamada a `Math.random()` existe no módulo — grep confirma.
-- [ ] `pnpm typecheck` e `pnpm test --filter @ai-dm/shared` (ou o pacote escolhido) passam.
-- [ ] **Eval / teste de regressão:** teste que gera 100 números com `createSeededRandom(42)`, salva o array esperado como fixture, e falha se uma mudança futura no algoritmo alterar a sequência sem atualizar a fixture — protege contra uma refatoração silenciosa quebrar a reprodutibilidade que a eval ([US-154](./US-154-eval-aventura-gerada.md)) e o playtest manual ([US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)) dependem.
+- [x] `deriveAdventureSeed(characterId, order)` é determinística: mesma entrada, mesma saída, em chamadas repetidas e entre execuções do processo.
+- [x] `createSeededRandom(seed)` devolve uma função geradora cuja sequência completa (N chamadas) é **byte a byte idêntica** entre duas instâncias criadas com o mesmo `seed`.
+- [x] Seeds diferentes (`order` diferente, ou `characterId` diferente) produzem sequências diferentes — sem colisão trivial entre `order: 1` e `order: 2` do mesmo personagem.
+- [x] `seed + 1` (o incremento que a [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) usa para reseed) produz uma sequência distinta da original, também determinística.
+- [x] Nenhuma chamada a `Math.random()` existe no módulo — grep confirma (e teste dedicado escaneia o source).
+- [x] `pnpm typecheck` e `pnpm test --filter @ai-dm/shared` passam.
+- [x] **Eval / teste de regressão:** guard de drift por hash sha256 (mesmo padrão do [rubric-drift.test.ts](../../../packages/ai-engine/src/rubric-drift.test.ts) da US-36) sobre 100 números de `createSeededRandom(42)` — hash hardcoded em vez de `toMatchSnapshot`, pra exigir revisão manual em vez do reflexo `-u`. Falha e imprime o hash novo se o algoritmo mudar sem querer. Protege a reprodutibilidade que a eval ([US-154](./US-154-eval-aventura-gerada.md)) e o playtest manual ([US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)) dependem.
 
 ---
 
@@ -87,18 +87,20 @@ export function createSeededRandom(seed: number): () => number { /* ... */ }
 
 - **PRNG sem dependência nova.** mulberry32 é ~5 linhas, sem import, e é o algoritmo mais citado para este caso de uso (seed determinístico, qualidade suficiente para geração de conteúdo, não para criptografia). Evita abrir uma dependência nova só para isto (regra do projeto: não adicionar dependência sem verificar equivalente).
 - **`deriveAdventureSeed` não precisa ser criptograficamente forte** — só estável e sem colisão óbvia entre personagens/ordens vizinhas. Um hash simples (ex. FNV-1a sobre a string `${characterId}:${order}`) basta.
-- **Onde este módulo mora** decide quem primeiro precisa dele: se [US-147](./US-147-rolagem-registro-conteudo.md) roda no Game Server (`apps/api`) e [US-152](./US-152-statblocks-papel-orcamento.md) também, o módulo pode viver em `@ai-dm/shared` (consumido por ambos sem duplicar) — mesma lógica de por que `WorldEntity` mora lá.
+- **Onde este módulo mora:** `@ai-dm/shared` — decidido (ver *Questões em aberto*). [US-147](./US-147-rolagem-registro-conteudo.md) e [US-152](./US-152-statblocks-papel-orcamento.md) rodam no Game Server (`apps/api`); `shared` é consumido por ambos sem duplicar, mesma lógica de por que `WorldEntity` mora lá. `ai-engine` fica de fora — é escopo de prompts, não de sorteio.
 
 ---
 
 ## Questões em aberto
 
-1. `@ai-dm/shared` ou `@ai-dm/ai-engine`? O motor de geração ainda não tem pacote definido — se US-147/US-152 rodam inteiramente no Game Server (`apps/api`, "roda no Game Server, pelo mesmo argumento dos dados: sorteio que o modelo faz não é sorteio" — texto do backlog), `@ai-dm/shared` é o lugar natural (mesmo pacote de `WorldEntity`, sem acoplar a `ai-engine`, que é sobre prompts).
+Nenhuma. ~~`@ai-dm/shared` ou `@ai-dm/ai-engine`?~~ — **resolvido: `@ai-dm/shared`.** US-147 e US-152 rodam inteiramente no Game Server (`apps/api`, "roda no Game Server, pelo mesmo argumento dos dados: sorteio que o modelo faz não é sorteio" — texto do backlog); `ai-engine` é escopo de prompts, não encaixa. US-144 já colocou o schema da aventura gerada em `@ai-dm/shared` — mesmo pacote de `WorldEntity`, consistência a favor de `shared`.
 
 ---
 
 ## Referências no código
 
+- [packages/shared/src/adventure-seed.ts](../../../packages/shared/src/adventure-seed.ts) — `deriveAdventureSeed` (FNV-1a 32-bit) e `createSeededRandom` (mulberry32), implementados por esta story.
+- [packages/shared/src/adventure-seed.test.ts](../../../packages/shared/src/adventure-seed.test.ts) — testes de determinismo, colisão e o guard de drift por hash.
 - [Backlog — Motor de geração de aventuras one-shot §GEN-3](./backlog-motor-de-geracao-de-aventuras.md) (US-146) — texto de origem e a seção *O desenho: três camadas* (determinístico no Game Server).
 - [US-47](./US-47-ingestao-srd-como-dado.md) — escrita determinística de artefato, mesma propriedade exigida aqui para a sequência do PRNG.
 - [apps/api/src/game/dice.service.ts](../../../apps/api/src/game/dice.service.ts) — `DiceService`, a rolagem de jogo existente; categoria vizinha e não tocada por esta story (rolagem de jogo ≠ sorteio de geração de conteúdo).
