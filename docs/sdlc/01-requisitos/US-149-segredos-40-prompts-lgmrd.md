@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-147](./US-147-rolagem-registro-conteudo.md) (locais e conteúdo já rolados) · [US-148](./US-148-perfil-personagem-entrada-motor.md) (perfil do personagem)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (GEN-6) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (`extractionModel`, o modelo barato que esta story usa) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (padrão de `generateObject` server-side para extração estruturada)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-149) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (`extractionModel`, o modelo barato que esta story usa) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (padrão de `generateObject` server-side para extração estruturada)
 **Criada em:** 2026-08-15
 
 ---
@@ -21,7 +21,7 @@
 
 ### O problema observado
 
-É a única chamada de modelo do caminho crítico do motor (as outras camadas são determinísticas ou prosa de apoio) — e é, nas palavras do backlog, *"a tarefa que decide se a aventura gerada tem quebra-cabeça ou lista"*. Sem ela, o motor produziria só a matéria-prima rolada (US-147) e statblocks (GEN-9): nenhum segredo, nenhuma pista, nenhum gancho de investigação. A aventura ficaria mecanicamente completa e narrativamente vazia.
+É a única chamada de modelo do caminho crítico do motor (as outras camadas são determinísticas ou prosa de apoio) — e é, nas palavras do backlog, *"a tarefa que decide se a aventura gerada tem quebra-cabeça ou lista"*. Sem ela, o motor produziria só a matéria-prima rolada (US-147) e statblocks ([US-152](./US-152-statblocks-papel-orcamento.md)): nenhum segredo, nenhuma pista, nenhum gancho de investigação. A aventura ficaria mecanicamente completa e narrativamente vazia.
 
 ### Por que a solução atual não basta
 
@@ -46,9 +46,9 @@ Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como mol
 ### Fora do escopo
 
 - **A escolha de qual dos 40 prompts usar para cada segredo** — heurística de seleção (aleatória pelo seed? por locação?) é detalhe de implementação, não critério de aceite formal desta story; o que importa é o resultado ter `locationId` válido e usar o contexto de personagem.
-- **O gate que verifica se o grafo fecha** (todo `locationId` referenciado existe) — é [GEN-7](./US-150-gate-antes-de-persistir-aventura-gerada.md); esta story produz o melhor esforço, a verificação formal é da story seguinte.
-- **Prosa das locações e *area aspects*** — mencionada no backlog na mesma camada ("modelo, uma chamada por peça"), mas é conteúdo diferente (descrição de lugar, não segredo) — trabalho de story separada se o corte mínimo do backlog exigir (não está listada como GEN própria; a decidir se cabe aqui ou em GEN-4).
-- **Piso de quantidade por seção** (mínimo de segredos) — vai **no prompt**, não como validação de código aqui (molde do DnDGenerate: "pedir 'se houver menos de N, escreva mais' é mais barato que re-rolar" — decisão já tomada pelo backlog, aplicada pela GEN-7).
+- **O gate que verifica se o grafo fecha** (todo `locationId` referenciado existe) — é [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md); esta story produz o melhor esforço, a verificação formal é da story seguinte.
+- **Prosa das locações e *area aspects*** — mencionada no backlog na mesma camada ("modelo, uma chamada por peça"), mas é conteúdo diferente (descrição de lugar, não segredo) — trabalho de story separada se o corte mínimo do backlog exigir (não está listada como GEN própria; a decidir se cabe aqui ou em [US-147](./US-147-rolagem-registro-conteudo.md)).
+- **Piso de quantidade por seção** (mínimo de segredos) — vai **no prompt**, não como validação de código aqui (molde do DnDGenerate: "pedir 'se houver menos de N, escreva mais' é mais barato que re-rolar" — decisão já tomada pelo backlog, aplicada pela [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)).
 
 ---
 
@@ -56,18 +56,18 @@ Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como mol
 
 > Sem schema novo — reusa `AdventureSecretSchema` de [US-144](./US-144-schema-aventura-shared.md) como shape de saída do `generateObject`.
 
-**Persistência:** nenhuma nesta story — o array de segredos gerado alimenta o artefato completo que [GEN-7](./US-150-gate-antes-de-persistir-aventura-gerada.md) valida e [GEN-8](./US-151-semear-ledger-segredos-gerados.md) semeia no ledger.
+**Persistência:** nenhuma nesta story — o array de segredos gerado alimenta o artefato completo que [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) valida e [US-151](./US-151-semear-ledger-segredos-gerados.md) semeia no ledger.
 
 ---
 
 ## Critérios de aceite
 
 - [ ] `generateSecrets` produz um array de `AdventureSecret` (schema US-144), rodando **depois** de locais e NPCs já existirem no contexto da chamada — nunca antes (ordem verificável pela assinatura da função exigir os dois como parâmetro obrigatório).
-- [ ] Todo `secret.locationId` no retorno corresponde a um `id` presente na lista de locais recebida (verificação de melhor esforço nesta story; a garantia formal é o gate da GEN-7).
+- [ ] Todo `secret.locationId` no retorno corresponde a um `id` presente na lista de locais recebida (verificação de melhor esforço nesta story; a garantia formal é o gate da [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)).
 - [ ] A chamada usa `extractionModel` ([US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md)), não `primaryModel`/o modelo de narração.
 - [ ] `background.bonds`/`flaws`/`story` (quando presentes) e `hookSeed` (sempre) são passados no contexto da chamada — verificável no prompt montado.
-- [ ] Personagem com `background` vazio ainda produz segredos válidos, usando só `hookSeed` como âncora narrativa (mesma garantia que a GEN-5/US-148 já estabelece na entrada).
-- [ ] Falha/timeout da chamada não deve travar a criação da aventura sem sinalização — mesmo padrão de falha silenciosa com log das extrações existentes (`extractOpeningScene`/`extractOpeningEntities`), a decidir se aqui a falha propaga para acionar o reseed da GEN-7 em vez de devolver vazio silenciosamente (ver *Questões em aberto*).
+- [ ] Personagem com `background` vazio ainda produz segredos válidos, usando só `hookSeed` como âncora narrativa (mesma garantia que a [US-148](./US-148-perfil-personagem-entrada-motor.md) já estabelece na entrada).
+- [ ] Falha/timeout da chamada não deve travar a criação da aventura sem sinalização — mesmo padrão de falha silenciosa com log das extrações existentes (`extractOpeningScene`/`extractOpeningEntities`), a decidir se aqui a falha propaga para acionar o reseed da [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) em vez de devolver vazio silenciosamente (ver *Questões em aberto*).
 - [ ] **Eval / teste de regressão:** fixture com `background.bonds = ["deve favor a um contrabandista"]` produz ao menos um segredo cujo texto referencia esse vínculo (checagem por palavra-chave ou LLM-judge, no molde da rubrica da [US-36](./US-36-eval-de-qualidade-da-narracao.md)).
 
 ---
@@ -82,7 +82,7 @@ Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como mol
 
 ## Questões em aberto
 
-1. Falha desta chamada deve **travar** a geração (acionando reseed pela GEN-7) ou **degradar** silenciosamente (aventura sem segredos, mas jogável)? O backlog não decide explicitamente para esta etapa — diferente das extrações de abertura existentes (que sempre degradam), aqui a ausência de segredos esvazia o propósito central do motor. Recomendação: tratar falha como motivo de reseed na GEN-7, não como degradação silenciosa — mas decidir com a GEN-7 sendo escrita junto.
+1. Falha desta chamada deve **travar** a geração (acionando reseed pela [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)) ou **degradar** silenciosamente (aventura sem segredos, mas jogável)? O backlog não decide explicitamente para esta etapa — diferente das extrações de abertura existentes (que sempre degradam), aqui a ausência de segredos esvazia o propósito central do motor. Recomendação: tratar falha como motivo de reseed na [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md), não como degradação silenciosa — mas decidir com a [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) sendo escrita junto.
 2. Quantos segredos por prompt, e como os 40 prompts se distribuem entre locais/NPCs — decisão de prompt-engineering que só se resolve escrevendo e testando o system prompt real.
 
 ---
@@ -93,4 +93,4 @@ Uma chamada `generateSecrets` que usa os 40 prompts de segredo do LGMRD como mol
 - [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) — `extractionModel`, incluindo as armadilhas de `reasoning`/pin de rota a evitar aqui.
 - [US-147](./US-147-rolagem-registro-conteudo.md) — locais e conteúdo rolados, entrada desta story.
 - [US-148](./US-148-perfil-personagem-entrada-motor.md) — `AdventureProfile`, entrada desta story.
-- [Backlog — Motor de geração de aventuras one-shot §GEN-6 e §O desenho: três camadas](./backlog-motor-de-geracao-de-aventuras.md) — texto de origem.
+- [Backlog — Motor de geração de aventuras one-shot §GEN-6 e §O desenho: três camadas](./backlog-motor-de-geracao-de-aventuras.md) (US-149) — texto de origem.

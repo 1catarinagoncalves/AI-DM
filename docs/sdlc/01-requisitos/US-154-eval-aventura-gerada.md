@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-151](./US-151-semear-ledger-segredos-gerados.md) (ledger semeado do artefato) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (motor já é o caminho de criação de aventura)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (GEN-11) · [US-49](./US-49-eval-fidelidade-de-regra.md) (molde de caso de fidelidade) · [US-36](./US-36-eval-de-qualidade-da-narracao.md) (rubrica de qualidade narrativa reusada)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-154) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-49](./US-49-eval-fidelidade-de-regra.md) (molde de caso de fidelidade) · [US-36](./US-36-eval-de-qualidade-da-narracao.md) (rubrica de qualidade narrativa reusada)
 **Criada em:** 2026-08-15
 
 ---
@@ -29,7 +29,7 @@ A [US-49](./US-49-eval-fidelidade-de-regra.md) e a [US-36](./US-36-eval-de-quali
 
 ### A proposta
 
-Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed pinado: verifica que o Mestre não revela segredo com `revelado: false` antes da ficção merecer, nem inventa NPC quando há ~7 já gerados. Referência de densidade: os dois exemplares do LGMRD, de forma permanente (não provisória, dado o adiamento da fase 4). O que eles não medem — solo, pt-BR — fica com o seed jogado à mão (GEN-7) e a rubrica da US-36.
+Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed pinado: verifica que o Mestre não revela segredo com `revelado: false` antes da ficção merecer, nem inventa NPC quando há ~7 já gerados. Referência de densidade: os dois exemplares do LGMRD, de forma permanente (não provisória, dado o adiamento da fase 4). O que eles não medem — solo, pt-BR — fica com o seed jogado à mão ([US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)) e a rubrica da US-36.
 
 ---
 
@@ -45,7 +45,7 @@ Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed 
 
 ### Fora do escopo
 
-- **Substituir o playtest manual do gate** (GEN-7) — esta eval mede assertos automatizáveis (segredo oculto, NPC não inventado); não mede se a aventura tem quebra-cabeça ou é sopa de pista genérica (isso é humano, ver *O que o motor não produz* no backlog).
+- **Substituir o playtest manual do gate** ([US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)) — esta eval mede assertos automatizáveis (segredo oculto, NPC não inventado); não mede se a aventura tem quebra-cabeça ou é sopa de pista genérica (isso é humano, ver *O que o motor não produz* no backlog).
 - **Medir se a aventura funciona para um personagem só, ou se a prosa em pt-BR presta** — explicitamente **não** coberto pelos exemplares do LGMRD (inglês, grupo); fica com o seed jogado à mão e a rubrica da US-36, não com um assert automatizado novo.
 - **Um exemplar solo em pt-BR próprio.** Custo permanente registrado pelo backlog, sem remédio nesta story.
 
@@ -66,7 +66,7 @@ Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed 
 - [ ] Assert de NPC não inventado: a narração não introduz NPC nomeado ausente do artefato gerado, quando ~7 NPCs já existem.
 - [ ] Os dois exemplares do LGMRD entram como referência de densidade/estrutura (contagem de seções comparável), documentada no caso de eval — não como assert de conteúdo textual.
 - [ ] O caso está integrado a `pnpm eval` e passa (ou falha de forma diagnosticável, com o `secretId`/NPC ofensor no output).
-- [ ] **Eval / teste de regressão:** o próprio caso É o teste de regressão desta story — falha se um prompt futuro (mudança em GEN-6/US-149) fizer o Mestre vazar um segredo oculto ou inventar NPC.
+- [ ] **Eval / teste de regressão:** o próprio caso É o teste de regressão desta story — falha se um prompt futuro (mudança em [US-149](./US-149-segredos-40-prompts-lgmrd.md)) fizer o Mestre vazar um segredo oculto ou inventar NPC.
 
 ---
 
@@ -90,4 +90,4 @@ Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed 
 - [US-36](./US-36-eval-de-qualidade-da-narracao.md) — rubrica de qualidade narrativa reusada.
 - [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) — disciplina de ancorar assert no dado, não na impressão.
 - [US-145](./US-145-sync-lgmrd-notice.md) — os dois exemplares do LGMRD, referência de densidade.
-- [Backlog — Motor de geração de aventuras one-shot §GEN-11](./backlog-motor-de-geracao-de-aventuras.md) — texto de origem.
+- [Backlog — Motor de geração de aventuras one-shot §GEN-11](./backlog-motor-de-geracao-de-aventuras.md) (US-154) — texto de origem.

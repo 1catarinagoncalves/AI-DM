@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (a quest primária já vem do artefato gerado, não mais do gancho)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (GEN-12) · [US-89](./US-89-gate-de-codigo-morto-com-knip.md) (o gate que pegaria os campos se eles sobrevivessem mortos) · [initial-adventures.ts](../../../apps/api/prisma/initial-adventures.ts) (os 13 ganchos, onde os campos vivem)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-155) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-89](./US-89-gate-de-codigo-morto-com-knip.md) (o gate que pegaria os campos se eles sobrevivessem mortos) · [initial-adventures.ts](../../../apps/api/prisma/initial-adventures.ts) (os 13 ganchos, onde os campos vivem)
 **Criada em:** 2026-08-15
 
 ---
@@ -29,7 +29,7 @@ A [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) troca a fonte d
 
 ### A proposta
 
-Remover `primaryQuestTitle`/`primaryQuestDescription` de `InitialAdventureHookSchema` e dos 13 ganchos em cada locale, deixando o resto do gancho (`openingNarration`, `tags`) intacto — é entrada da [GEN-5/US-148](./US-148-perfil-personagem-entrada-motor.md), continua vivo.
+Remover `primaryQuestTitle`/`primaryQuestDescription` de `InitialAdventureHookSchema` e dos 13 ganchos em cada locale, deixando o resto do gancho (`openingNarration`, `tags`) intacto — é entrada da [US-148](./US-148-perfil-personagem-entrada-motor.md), continua vivo.
 
 ---
 
@@ -45,7 +45,7 @@ Remover `primaryQuestTitle`/`primaryQuestDescription` de `InitialAdventureHookSc
 
 ### Fora do escopo
 
-- **O resto do gancho** (`id`, `title`, `classKey`, `pitch`, `openingNarration`, `tags`) — permanece. `openingNarration` é entrada da GEN-5 (`hookSeed`); os outros continuam servindo a resolução de gancho por classe (que não desaparece, só para de decidir a quest).
+- **O resto do gancho** (`id`, `title`, `classKey`, `pitch`, `openingNarration`, `tags`) — permanece. `openingNarration` é entrada da [US-148](./US-148-perfil-personagem-entrada-motor.md) (`hookSeed`); os outros continuam servindo a resolução de gancho por classe (que não desaparece, só para de decidir a quest).
 - **Migração de dados.** `initialAdventures` vive dentro de `System.config`/`configLocales` (Json), regenerado por seed — não há coluna de banco para migrar, só o artefato de config a re-semear (`pnpm db:seed`).
 - **A UI que exibia a quest primária antes de a aventura começar** (se existir) — ajuste de UI para não quebrar visualmente é escopo de quem descobrir o consumidor ao rodar o gate desta story, não pré-planejado aqui.
 
@@ -103,4 +103,4 @@ export const InitialAdventureHookSchema = z.object({
 - [apps/api/prisma/initial-adventures.ts](../../../apps/api/prisma/initial-adventures.ts) — os 13 ganchos, en-US e pt-BR.
 - [apps/api/src/adventure/adventure.service.ts:45-74](../../../apps/api/src/adventure/adventure.service.ts) — `getInitialAdventure`, `resolveHook`, os pontos que param de resolver os campos removidos.
 - [US-89](./US-89-gate-de-codigo-morto-com-knip.md) — gate que verifica ausência de referência morta.
-- [Backlog — Motor de geração de aventuras one-shot §GEN-12](./backlog-motor-de-geracao-de-aventuras.md) — texto de origem.
+- [Backlog — Motor de geração de aventuras one-shot §GEN-12](./backlog-motor-de-geracao-de-aventuras.md) (US-155) — texto de origem.

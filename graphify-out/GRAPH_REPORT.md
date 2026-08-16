@@ -1,16 +1,16 @@
 # Graph Report - AI DM  (2026-08-16)
 
 ## Corpus Check
-- 404 files · ~869,254 words
+- 407 files · ~870,539 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2974 nodes · 4022 edges · 245 communities (198 shown, 47 thin omitted)
+- 2988 nodes · 4046 edges · 245 communities (198 shown, 47 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.59)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bb8d323d`
+- Built from commit: `8cbc0766`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -122,7 +122,7 @@
 - US-19 Character Sheet Sync
 - US-29 Fictional Roll Sanitization
 - US-101 — Ganchos de aventura inicial em inglês
-- shared/src/index.ts
+- adventure-generation.ts
 - Direção por alavanca
 - US-50 Character Spells
 - US-53 Prisma Config Migration
@@ -206,7 +206,7 @@
 - Backlog — Combate por turno
 - Backlog — Classe de armadura e resolução de ataque
 - Backlog — Mapa em tempo real
-- Checklist de Deploy — AI Dungeon Master
+- Modificadores de atributo — tabela do SRD 2024
 - ai.service.ts
 - Injectable
 - US-93 — Três gates baratos: drift de migração, dependência vulnerável e smoke pós-deploy
@@ -373,7 +373,7 @@ Nodes (15): A proposta, Contexto e motivação, Critérios de aceite, Dentro do 
 
 ### Community 23 - "backlog-motor-de-geracao-de-aventuras.md"
 Cohesion: 0.06
-Nodes (36): Modificadores de atributo — tabela do SRD 2024, O que cada faixa de pontuação significa (SRD 2024), Onde isto é usado, Regra de cálculo, Tabela de modificadores (SRD 2024), US-34 — Qualidade cinematográfica da narração do AI DM, US-35 — Estado de cena estruturado já na abertura da aventura, US-36 — Eval de qualidade da narração do DM (+28 more)
+Nodes (37): US-34 — Qualidade cinematográfica da narração do AI DM, US-35 — Estado de cena estruturado já na abertura da aventura, US-36 — Eval de qualidade da narração do DM, US-37 — Nível cinematográfico mantido em todos os turnos, US-38 — Rolagens ancoradas na ficha, US-39 — Identidade narrativa do personagem, US-40 — Divindade / patrono do personagem, US-41 — Features de classe conhecidas pelo mestre (+29 more)
 
 ### Community 24 - "AiController"
 Cohesion: 0.11
@@ -444,7 +444,7 @@ Cohesion: 0.20
 Nodes (9): compilerOptions, esModuleInterop, module, moduleResolution, noUncheckedIndexedAccess, resolveJsonModule, skipLibCheck, strict (+1 more)
 
 ### Community 41 - "PRD — AI Dungeon Master"
-Cohesion: 0.20
+Cohesion: 0.18
 Nodes (10): 1. Declaração do problema, 2. Objetivos e critério de aceite, 3. Usuários alvo, 4.1 Personagens e campanhas, 4.2 Multiplayer, 4.3 Sistemas e aventuras, 4. Casos de uso, 5. Fora do escopo (v1) (+2 more)
 
 ### Community 42 - "Endpoints (Fase 1 — MVP)"
@@ -611,9 +611,9 @@ Nodes (10): Critérios de aceite, Dentro do escopo, Escopo desta story, Fora do 
 Cohesion: 0.14
 Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Notas de implementação (+6 more)
 
-### Community 113 - "shared/src/index.ts"
-Cohesion: 0.33
-Nodes (4): EntityEdge, InventoryItem, SceneState, WorldEntity
+### Community 113 - "adventure-generation.ts"
+Cohesion: 0.15
+Nodes (12): ADR-0012, AdventureEncounter, AdventureEncounterSchema, AdventureLocation, AdventureLocationSchema, AdventureNpc, AdventureNpcInteractionSchema, AdventureNpcSchema (+4 more)
 
 ### Community 114 - "Direção por alavanca"
 Cohesion: 0.14
@@ -764,8 +764,8 @@ Cohesion: 0.13
 Nodes (15): A proposta, Como ficou (04/08/2026), Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História (+7 more)
 
 ### Community 176 - "starting-kit.ts"
-Cohesion: 0.25
-Nodes (12): CharacterFeature, getBackgroundEquipment(), getBackgroundFeatures(), getClassFeatures(), getClassSpells(), getRaceFeatures(), getStartingInventory(), MEMENTO_ITEM_LABEL (+4 more)
+Cohesion: 0.17
+Nodes (16): CharacterFeature, getBackgroundEquipment(), getBackgroundFeatures(), getClassFeatures(), getClassSpells(), getRaceFeatures(), getStartingInventory(), MEMENTO_ITEM_LABEL (+8 more)
 
 ### Community 177 - "CurrentUser"
 Cohesion: 0.19
@@ -816,7 +816,7 @@ Cohesion: 0.14
 Nodes (14): A proposta, Contexto e motivação, Critérios de aceite, Dentro do escopo, Escopo, Fora do escopo, História, Modelo de dados proposto (+6 more)
 
 ### Community 199 - "locale.ts"
-Cohesion: 0.23
+Cohesion: 0.22
 Nodes (8): isLocale(), Locale, localeLabel(), LOCALES, resolveLocale(), ADR-0005, SPELL_LEVEL_WORDS, spellLevelLabel()
 
 ### Community 200 - "US-134 — Catálogo de ferramentas e veículos do sistema (`config.tools`)"
@@ -867,9 +867,9 @@ Nodes (10): A assimetria que define a ordem, Backlog — Classe de armadura e re
 Cohesion: 0.22
 Nodes (9): Backlog — Mapa em tempo real, Corte mínimo, Decisões abertas, Depende de, O estado verificado, O que fica de fora deste backlog, Referências externas, Referências no código (+1 more)
 
-### Community 212 - "Checklist de Deploy — AI Dungeon Master"
-Cohesion: 0.33
-Nodes (6): Antes de abrir PR, Antes de merge para main, Checklist de Deploy — AI Dungeon Master, Deploy, Desejado, não implementado, Observabilidade — o que existe hoje
+### Community 212 - "Modificadores de atributo — tabela do SRD 2024"
+Cohesion: 0.40
+Nodes (5): Modificadores de atributo — tabela do SRD 2024, O que cada faixa de pontuação significa (SRD 2024), Onde isto é usado, Regra de cálculo, Tabela de modificadores (SRD 2024)
 
 ### Community 213 - "ai.service.ts"
 Cohesion: 0.08
@@ -992,7 +992,7 @@ Cohesion: 0.50
 Nodes (4): localizeKitItems(), LOWERCASE_WORDS, stripLeadingArticle(), titleCase()
 
 ## Knowledge Gaps
-- **1641 isolated node(s):** `config`, `catalogEn`, `catalogPt`, `systemRow`, `{ listSystems, createCharacter, getInitialAdventure, createAdventure }` (+1636 more)
+- **1652 isolated node(s):** `História`, `O problema observado`, `Por que a solução atual não basta`, `A proposta`, `Dentro do escopo` (+1647 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **47 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1000,11 +1000,11 @@ Nodes (4): localizeKitItems(), LOWERCASE_WORDS, stripLeadingArticle(), titleCase
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `SystemConfigSchema` connect `system.ts` to `ingest.mjs`, `CharacterService`, `AiService`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
-- **Why does `buildConfig()` connect `ingest.mjs` to `norm`, `system.ts`, `main`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **What connects `config`, `catalogEn`, `catalogPt` to the rest of the system?**
-  _1641 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+- **Why does `US-124 — Exibir os benefícios narrativos da origem (`adventures_and_advancement`, `connection_and_memento`)` connect `US-124 — Exibir os benefícios narrativos da origem (`adventures_and_advancement`, `connection_and_memento`)` to `backlog-motor-de-geracao-de-aventuras.md`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+- **What connects `História`, `O problema observado`, `Por que a solução atual não basta` to the rest of the system?**
+  _1652 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.0967741935483871 - nodes in this community are weakly interconnected._
 - **Should `dm-system.ts` be split into smaller, more focused modules?**

@@ -5,7 +5,7 @@
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-144](./US-144-schema-aventura-shared.md) (schema da aventura, campos `setting`/`tone`/`areaType`)
 **Bloqueia:** [US-157](./US-157-tela-de-mundo-depois-da-revisao.md)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (GEN-13) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (contrato de chave canônica + rótulo por locale, copiado aqui) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate que reprova texto solto no JSX)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-156) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (contrato de chave canônica + rótulo por locale, copiado aqui) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate que reprova texto solto no JSX)
 **Criada em:** 2026-08-15
 
 ---
@@ -22,7 +22,7 @@
 
 ### O problema observado
 
-A [US-144](./US-144-schema-aventura-shared.md) já declara `setting`/`tone`/`areaType` como campos de `GeneratedAdventureSchema`, guardando a **chave**, nunca o rótulo. Mas não existe hoje nenhum catálogo de valores possíveis para esses três campos — sem ele, a [US-147/GEN-4](./US-147-rolagem-registro-conteudo.md) não tem de onde sortear quando o jogador não escolhe, e não há como validar uma escolha do jogador contra algo.
+A [US-144](./US-144-schema-aventura-shared.md) já declara `setting`/`tone`/`areaType` como campos de `GeneratedAdventureSchema`, guardando a **chave**, nunca o rótulo. Mas não existe hoje nenhum catálogo de valores possíveis para esses três campos — sem ele, a [US-147](./US-147-rolagem-registro-conteudo.md) não tem de onde sortear quando o jogador não escolhe, e não há como validar uma escolha do jogador contra algo.
 
 ### Por que a solução atual não basta
 
@@ -41,12 +41,12 @@ A [US-144](./US-144-schema-aventura-shared.md) já declara `setting`/`tone`/`are
 - **`config.settings`, `config.tones`, `config.areaTypes`** — três novos campos opcionais em `SystemConfigSchema`, cada um `z.array(SystemCatalogEntrySchema).optional()`, mesmo padrão de `races`/`classes`/`backgrounds`.
 - **Conteúdo dos catálogos:** dez rótulos genéricos por eixo (o eixo em si é o que se copia do DnDGenerate, não a lista literal — ver backlog). Escritos/curados para este projeto, não copiados verbatim de fonte externa (sem licença a atribuir, são rótulos genéricos: Heroico, Sombrio, Mistério, etc.).
 - **`CreateAdventureDto`** (já com `setting?`/`tone?`/`areaType?` desde a [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md)) valida cada campo presente contra o catálogo correspondente — mesmo `validateCatalogKey` que `character.service.ts` já usa para raça/classe/origem, reaplicado aqui do lado da aventura.
-- **"Aleatório" nunca é uma chave de catálogo.** Campo omitido no DTO ⇒ [US-147/GEN-4](./US-147-rolagem-registro-conteudo.md) sorteia pelo seed. Nenhuma chave `random` entra nas listas — ausência já significa isso, e uma chave `random` obrigaria todo consumidor (prompt, artefato, resolução de rótulo, gate) a tratá-la como caso especial.
+- **"Aleatório" nunca é uma chave de catálogo.** Campo omitido no DTO ⇒ [US-147](./US-147-rolagem-registro-conteudo.md) sorteia pelo seed. Nenhuma chave `random` entra nas listas — ausência já significa isso, e uma chave `random` obrigaria todo consumidor (prompt, artefato, resolução de rótulo, gate) a tratá-la como caso especial.
 - **Validação no servidor, não só na tela** (fronteira de confiança): chave fora do catálogo do sistema é 400, mesmo molde da validação de classe e raça da US-105.
 
 ### Fora do escopo
 
-- **A tela que envia a escolha** — é [GEN-14/US-157](./US-157-tela-de-mundo-depois-da-revisao.md); esta story só entrega catálogo + validação server-side, consumível por DTO mesmo sem UI.
+- **A tela que envia a escolha** — é [US-157](./US-157-tela-de-mundo-depois-da-revisao.md); esta story só entrega catálogo + validação server-side, consumível por DTO mesmo sem UI.
 - **O sorteio em si quando o campo está ausente** — já é escopo da [US-147](./US-147-rolagem-registro-conteudo.md); esta story só garante que o catálogo existe para o sorteio escolher de dentro dele.
 - **Tradução dos dez rótulos por eixo para os dois locales** — segue o mesmo padrão de `races`/`classes`: `configLocales['pt-BR']` traz o rótulo em português, `config` (base EN) traz em inglês. Não é overlay novo de tradução automática (US-52); os dez rótulos por eixo são curtos o bastante para curadoria manual direta nos dois artefatos.
 
@@ -116,4 +116,4 @@ export interface CreateAdventureDto {
 - [apps/api/src/character/character.service.ts:134-142](../../../apps/api/src/character/character.service.ts) — `validateCatalogKey`, a função copiada/reaplicada para os três campos novos.
 - [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) — contrato original de chave canônica + rótulo por locale.
 - [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) — `CreateAdventureDto` já com os três campos opcionais, sem validação (esta story adiciona a validação).
-- [Backlog — Motor de geração de aventuras one-shot §GEN-13 e §O que o DnDGenerate acrescenta](./backlog-motor-de-geracao-de-aventuras.md) — texto de origem.
+- [Backlog — Motor de geração de aventuras one-shot §GEN-13 e §O que o DnDGenerate acrescenta](./backlog-motor-de-geracao-de-aventuras.md) (US-156) — texto de origem.

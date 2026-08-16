@@ -10,6 +10,9 @@ build/
 # US-47: dataset SRD cru baixado pelo sync (só os artefatos srd-5e.config.<locale>.json entram no repo)
 scripts/srd/_data/
 
+# US-145: dataset LGMRD cru baixado pelo sync (só NOTICE-lazygm.md entra no repo)
+scripts/lazygm/_data/
+
 # Prisma 7: client gerado pelo `prisma generate` (output obrigatório no generator)
 apps/api/src/generated/
 

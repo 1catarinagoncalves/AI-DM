@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma — pode ir em paralelo com [US-143](./US-143-adr-aventura-como-dado-gerado.md) e [US-144](./US-144-schema-aventura-shared.md)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-145) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story, à medida que cada story é escrita) · [US-47](./US-47-ingestao-srd-como-dado.md) (molde de sync pinado por SHA/tag, escrita determinística) · [scripts/srd/NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md) (regime de atribuição CC-BY já em uso)
 **Criada em:** 2026-08-15
@@ -29,7 +29,7 @@ O motor de geração ([US-147](./US-147-rolagem-registro-conteudo.md) em diante)
 
 ### A proposta
 
-Um segundo `sync` — em `scripts/lazygm/`, não dentro de `scripts/srd/` (fonte e licença diferentes, mesmo raciocínio que já separa `A5E_AG` do `SRD_2014` dentro do sync existente) — que baixa `LGMRD.json` e `5e_Monster_Builder.json` por **commit SHA fixo** e gera `NOTICE-lazygm.md` a partir do campo `attribution` do próprio dado, verbatim, com a atribuição tripla (SlyFlourish, autor do LGMRD, licença).
+Um segundo `sync` — em `scripts/lazygm/`, não dentro de `scripts/srd/` (fonte e licença diferentes, mesmo raciocínio que já separa `A5E_AG` do `SRD_2014` dentro do sync existente) — que baixa `LGMRD.json` e `5e_Monster_Builder.json` por **commit SHA fixo** e gera `NOTICE-lazygm.md` a partir do campo `attribution` (top-level, string única, confirmado nos bytes crus — ver "Questões em aberto") de cada JSON, verbatim, concatenando as duas fontes (LGMRD/SlyFlourish e Monster Builder) mais a licença.
 
 ---
 
@@ -38,7 +38,7 @@ Um segundo `sync` — em `scripts/lazygm/`, não dentro de `scripts/srd/` (fonte
 ### Dentro do escopo
 
 - **`scripts/lazygm/sync.mjs`** (arquivo novo, pasta nova) — baixa `LGMRD.json` e `5e_Monster_Builder.json` por **commit SHA** fixo (nunca `main`), grava em `scripts/lazygm/_data/` (gitignored, mesmo padrão de `scripts/srd/_data/`), no molde de `FILES`/`OUT`/`main()` de [sync.mjs](../../../scripts/srd/sync.mjs).
-- **`NOTICE-lazygm.md`** gerado a partir do campo `attribution` do dado baixado — texto **verbatim**, nunca parafraseado, com a atribuição tripla. Entra no mesmo commit que o primeiro dado derivado (mesma disciplina que `NOTICE-open5e.md` já segue).
+- **`NOTICE-lazygm.md`** gerado lendo o campo `data.attribution` (top-level string) de cada JSON — confirmado nos bytes crus, ver "Questões em aberto" — texto **verbatim**, nunca parafraseado (inclusive um typo de origem: "vailable" em vez de "available" no `attribution` do `LGMRD.json` — não corrigir), concatenando os dois blocos (LGMRD e Monster Builder, cada um já embute a atribuição da SRD 5.1/WotC). Entra no mesmo commit que o primeiro dado derivado (mesma disciplina que `NOTICE-open5e.md` já segue).
 - **Sem parser.** Ao contrário do `ingest.mjs` do SRD (que produz `config` normalizado), esta story só baixa e versiona o artefato bruto — o consumo (rolagem pelas tabelas, [US-147](./US-147-rolagem-registro-conteudo.md); statblocks por papel, [US-152](./US-152-statblocks-papel-orcamento.md)) é responsabilidade de stories seguintes que leem o JSON diretamente.
 - **CC-BY-4.0** — mesma licença do Open5e, cabe no regime que [NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md) já descreve; `NOTICE-lazygm.md` é um documento irmão, não uma seção dentro do existente (fonte diferente, atribuição diferente).
 - **Teste de sync** — regressão simples de que o pin não é `main` (grep no SHA fixo ou constante nomeada), no molde de como `sync.mjs` do SRD documenta `TAG` como constante exportada.
@@ -74,7 +74,7 @@ scripts/lazygm/
 
 - [ ] `node scripts/lazygm/sync.mjs` baixa `LGMRD.json` e `5e_Monster_Builder.json` por commit SHA fixo (constante exportada, mesmo padrão de `TAG` em [sync.mjs](../../../scripts/srd/sync.mjs)) para `scripts/lazygm/_data/`.
 - [ ] O download **nunca** aponta para `main`/`HEAD`/branch — só SHA fixo, verificável lendo a URL montada.
-- [ ] `NOTICE-lazygm.md` existe, gerado (não escrito à mão) a partir do campo `attribution` do dado, verbatim, com a atribuição tripla (SlyFlourish, autoria do LGMRD, CC-BY-4.0).
+- [ ] `NOTICE-lazygm.md` existe, gerado (não escrito à mão) a partir do campo `attribution` (top-level) de cada JSON, verbatim, cobrindo a atribuição do LGMRD (Michael Shea/SlyFlourish + SRD 5.1/WotC embutida) e do Monster Builder (Teos Abadía, Scott Fitzgerald Gray, Michael Shea + SRD 5.1/WotC embutida) sob CC-BY-4.0.
 - [ ] `scripts/lazygm/_data/` está no `.gitignore`; `NOTICE-lazygm.md` e `sync.mjs` estão versionados.
 - [ ] `pnpm typecheck` passa (arquivo `.mjs` fora do typecheck do TS, mas o script não quebra o pipeline de build).
 - [ ] **Eval / teste de regressão:** teste que falha se o SHA do pin for trocado por uma branch (ex.: regex no arquivo checando ausência de `/main/` ou `/HEAD/` na URL montada) — mesma disciplina que protege o `sync.mjs` do SRD de virar não-reprodutível.
@@ -87,13 +87,18 @@ scripts/lazygm/
 - **`JSON.parse(text)` logo após o fetch** — mesma guarda de "falha cedo se vier HTML de erro" que o `sync.mjs` do SRD já usa (`sync.mjs:74`).
 - **Pasta separada (`scripts/lazygm/`), não subpasta de `scripts/srd/`** — fonte diferente (SlyFlourish, não Open5e), pipeline diferente (sem `ingest.mjs`/parser), evita a tentação de reusar `FILES`/`OUT` do SRD e misturar dois regimes de licença/atribuição num só `.source`.
 - **`NOTICE-lazygm.md` documento irmão de `NOTICE-open5e.md`**, não seção dentro dele — os dois documentos de atribuição para fontes CC-BY distintas devem poder mudar independentemente (bump do LGMRD não deve gerar diff no NOTICE do Open5e).
+- **Extração da atribuição é leitura direta de `data.attribution`** — campo top-level, string única, sibling de `sections`, confirmado lendo os bytes crus dos dois JSONs em 16/08/2026. Sem necessidade de varredura recursiva nem parser de markdown: `JSON.parse(text).attribution` já retorna o texto pronto (mistura de markdown com links e URLs soltas, quebras `\n\n` entre o bloco da fonte principal e o bloco embutido da SRD 5.1/WotC).
 
 ---
 
 ## Questões em aberto
 
-1. Qual é o commit SHA a pinar? O backlog não fixa um — decidir no dia da implementação, olhando o histórico do repositório do LGMRD no GitHub (SlyFlourish.com/lazy-dm-resource-document ou equivalente), documentado como comentário ao lado da constante (mesmo padrão do `TAG` do Open5e).
-2. O campo `attribution` do dado tem a forma exata assumida (texto pronto para verbatim)? Confirmar a estrutura real do JSON baixado antes de escrever o gerador do NOTICE — não assumir a partir desta story.
+1. ~~Qual é o commit SHA a pinar?~~ **Resolvido (16/08/2026, pesquisa nesta story):** repositório fonte é [crit-tech/LGMRD](https://github.com/crit-tech/LGMRD) (sem tag semver, confirma a suspeita original). O workflow `.github/workflows/nightly.yml` roda todo dia (`cron: "0 0 * * *"`) mais em todo push a `main`, e só cria commit via `EndBug/add-and-commit@v9` quando o build muda algo — por isso o histórico de commits do bot é esparso, não porque o workflow parou. **Pin definitivo continua para o dia da implementação:** rodar `git log -1 --format=%H -- LGMRD.json 5e_Monster_Builder.json` num clone do repo (não o HEAD genérico — pode ter commits de tooling no meio, ex. `bd0ca5a` "Approve postinstall scripts" que não toca dado) e documentar o SHA + data como comentário ao lado da constante, mesmo padrão do `TAG` do Open5e.
+2. ~~O campo `attribution` do dado tem a forma exata assumida?~~ **Resolvido (16/08/2026), confirmado nos bytes crus** (`curl` direto pro raw do GitHub + grep/Read, não resumo de fetch) — a suposição original da story estava **certa**: existe sim campo `attribution` top-level, string única, sibling de `sections`, em ambos os arquivos. Valor verbatim:
+   - `LGMRD.json` → `"This work includes material taken from The Lazy GM's Resource Document by Michael E. Shea of [SlyFlourish.com](https://www.slyflourish.com) and vailable at https://slyflourish.com/lazy_gm_resource_document.html. The Lazy GM's Resource Document is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.\n\nThis work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.\n"` (nota: `"vailable"` é typo da fonte, não corrigir — verbatim é verbatim).
+   - `5e_Monster_Builder.json` → `"This work includes material taken from the [Lazy GM's 5e Monster Builder Resource Document](https://slyflourish.com/lazy_5e_monster_building_resource_document.html) written by Teos Abadía of [Alphastream.org](https://alphastream.org/), Scott Fitzgerald Gray of [Insaneangel.com](https://insaneangel.com/), and Michael E. Shea of [SlyFlourish.com](https://slyflourish.com/), available under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).\n\nThis work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.\n"`
+
+   Cada campo já embute a atribuição da SRD 5.1/WotC junto da atribuição principal — `NOTICE-lazygm.md` só precisa concatenar `data.attribution` dos dois arquivos, sem parser, sem varredura recursiva. (Uma tentativa anterior de resolver esta questão via `WebFetch`, que resume a página por sub-modelo em vez de retornar bytes, concluiu erroneamente que o campo não existia — corrigido aqui com download direto + grep/Read.)
 
 ---
 

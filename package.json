@@ -22,7 +22,9 @@
     "i18n:literals:test": "node --test scripts/check-jsx-literals.test.mjs",
     "srd:sync": "node scripts/srd/sync.mjs",
     "srd:ingest": "pnpm --fail-if-no-match --filter @ai-dm/ai-engine... build && dotenv -e .env -- node scripts/srd/ingest.mjs",
-    "srd:ingest:test": "node --test scripts/srd/ingest.test.mjs"
+    "srd:ingest:test": "node --test scripts/srd/ingest.test.mjs",
+    "lazygm:sync": "node scripts/lazygm/sync.mjs",
+    "lazygm:sync:test": "node --test scripts/lazygm/sync.test.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

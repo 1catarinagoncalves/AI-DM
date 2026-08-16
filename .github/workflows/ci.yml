@@ -155,6 +155,12 @@ jobs:
       - name: Teste do ingest do SRD
         run: pnpm srd:ingest:test
 
+      # Idem: teste do sync do LGMRD (US-145), na raiz. Só a regressão do pin (SHA fixo,
+      # nunca main/HEAD) e do formato do NOTICE — não roda o `lazygm:sync` em si (I/O
+      # externo, baixaria ~600KB do GitHub a cada run sem necessidade).
+      - name: Teste do sync do LGMRD
+        run: pnpm lazygm:sync:test
+
       # Guard de frescor do grafo graphify. Aviso, NÃO falha: consertar exige
       # `graphify extract --backend gemini --force` local, que gasta chave e
       # dinheiro — reprovar um PR de doc por isso é desproporcional (diferente

@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-156](./US-156-catalogos-registro-dto-validacao.md) (catálogos de `settings`/`tones`/`areaTypes` e DTO validado)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (GEN-14) · [US-46](./US-46-acessibilidade-wcag-aa.md) (WCAG AA) · [US-66](./US-66-telas-mobile-friendly.md) (mobile) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate de string literal no JSX)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-157) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-46](./US-46-acessibilidade-wcag-aa.md) (WCAG AA) · [US-66](./US-66-telas-mobile-friendly.md) (mobile) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate de string literal no JSX)
 **Criada em:** 2026-08-15
 
 ---
@@ -107,4 +107,4 @@ const [areaType, setAreaType] = useState<string | 'random'>('random')
 - [apps/web/src/components/setup/SetupWizard.tsx:74-80](../../../apps/web/src/components/setup/SetupWizard.tsx) — `optionCardClass`, reusado para os cartões de opção do novo passo.
 - [US-156](./US-156-catalogos-registro-dto-validacao.md) — catálogos e DTO que esta tela consome.
 - [US-46](./US-46-acessibilidade-wcag-aa.md), [US-66](./US-66-telas-mobile-friendly.md), [US-102](./US-102-gate-de-string-literal-no-jsx.md) — disciplinas que toda tela nova do wizard segue.
-- [Backlog — Motor de geração de aventuras one-shot §GEN-14](./backlog-motor-de-geracao-de-aventuras.md) — texto de origem.
+- [Backlog — Motor de geração de aventuras one-shot §GEN-14](./backlog-motor-de-geracao-de-aventuras.md) (US-157) — texto de origem.

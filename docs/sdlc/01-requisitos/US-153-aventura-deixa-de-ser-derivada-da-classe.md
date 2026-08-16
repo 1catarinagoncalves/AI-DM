@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato validado) · [US-151](./US-151-semear-ledger-segredos-gerados.md) (ledger semeado do artefato)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (GEN-10) · [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (o mecanismo que esta story substitui) · [starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) (`resolveInitialHook`, que continua vivo como porta de entrada)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-153) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (o mecanismo que esta story substitui) · [starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) (`resolveInitialHook`, que continua vivo como porta de entrada)
 **Criada em:** 2026-08-15
 
 ---
@@ -29,7 +29,7 @@ A [US-28](./US-28-aventura-inicial-baseada-na-classe.md) resolveu bem o problema
 
 ### A proposta
 
-`createForCharacter` para de resolver a aventura por `resolveInitialHook(config, character.class)` e passa a chamar o motor (GEN-0 a GEN-9, já compostos). O gancho **continua vivo** como porta de entrada: `openingNarration` do hook vira o `hookSeed` que a [GEN-5/US-148](./US-148-perfil-personagem-entrada-motor.md) consome, explicando por que *aquele* personagem está *nesta* aventura — mas deixa de ser a aventura inteira.
+`createForCharacter` para de resolver a aventura por `resolveInitialHook(config, character.class)` e passa a chamar o motor ([US-143](./US-143-adr-aventura-como-dado-gerado.md) a [US-152](./US-152-statblocks-papel-orcamento.md), já compostos). O gancho **continua vivo** como porta de entrada: `openingNarration` do hook vira o `hookSeed` que a [US-148](./US-148-perfil-personagem-entrada-motor.md) consome, explicando por que *aquele* personagem está *nesta* aventura — mas deixa de ser a aventura inteira.
 
 ---
 
@@ -37,17 +37,17 @@ A [US-28](./US-28-aventura-inicial-baseada-na-classe.md) resolveu bem o problema
 
 ### Dentro do escopo
 
-- **`createForCharacter` chama o motor** em vez de `resolveInitialHook` sozinho — o gancho é resolvido (continua existindo), mas só alimenta `hookSeed` (GEN-5), não decide mais a estrutura inteira.
+- **`createForCharacter` chama o motor** em vez de `resolveInitialHook` sozinho — o gancho é resolvido (continua existindo), mas só alimenta `hookSeed` ([US-148](./US-148-perfil-personagem-entrada-motor.md)), não decide mais a estrutura inteira.
 - **Sai a validação que rejeita `initialHookId` diferente do da classe** ([adventure.service.ts:99-101](../../../apps/api/src/adventure/adventure.service.ts)) — não há mais um `initialHookId` escolhido pelo cliente para validar contra; a aventura é sempre gerada.
-- **`CreateAdventureDto`** (hoje `{ initialHookId: string }`, [adventure.service.ts:9-11](../../../apps/api/src/adventure/adventure.service.ts)) perde esse campo e ganha os três campos de registro opcionais da [GEN-13/US-156](./US-156-catalogos-registro-dto-validacao.md) (`setting?`, `tone?`, `areaType?`), todos opcionais.
+- **`CreateAdventureDto`** (hoje `{ initialHookId: string }`, [adventure.service.ts:9-11](../../../apps/api/src/adventure/adventure.service.ts)) perde esse campo e ganha os três campos de registro opcionais da [US-156](./US-156-catalogos-registro-dto-validacao.md) (`setting?`, `tone?`, `areaType?`), todos opcionais.
 - **Critério central:** dois personagens da mesma classe, com `background` diferentes, recebem aventuras diferentes; o mesmo personagem regenerado (mesmo `characterId` + `order`) recebe a mesma — a garantia de determinismo da [US-146](./US-146-seed-deterministico-motor-aventura.md) verificada ponta a ponta neste fluxo.
 - **A abertura narrada continua existindo** — `generateOpeningNarration` ([adventure.service.ts:133](../../../apps/api/src/adventure/adventure.service.ts)) segue rodando, mas agora com `mainQuest` derivado do artefato gerado (`adventure.summary`/`start`), não mais de `hook.primaryQuestTitle`/`Description` fixos.
 
 ### Fora do escopo
 
-- **Remover o campo de gancho do config.** `openingNarration`/`tags` continuam existindo em `InitialAdventureHookSchema` — só os dois campos de quest fixa saem, e isso é escopo da [GEN-12/US-155](./US-155-aposentar-quest-fixa-por-classe.md), não desta story.
-- **A geração em si (GEN-0 a GEN-9).** Esta story só troca o **caminho de chamada** de `createForCharacter` — as stories anteriores já entregam o motor pronto para ser chamado.
-- **A tela de escolha de registro** (GEN-14) — esta story consome `setting`/`tone`/`areaType` opcionais no DTO, mas a UI que os envia é story separada.
+- **Remover o campo de gancho do config.** `openingNarration`/`tags` continuam existindo em `InitialAdventureHookSchema` — só os dois campos de quest fixa saem, e isso é escopo da [US-155](./US-155-aposentar-quest-fixa-por-classe.md), não desta story.
+- **A geração em si ([US-143](./US-143-adr-aventura-como-dado-gerado.md) a [US-152](./US-152-statblocks-papel-orcamento.md)).** Esta story só troca o **caminho de chamada** de `createForCharacter` — as stories anteriores já entregam o motor pronto para ser chamado.
+- **A tela de escolha de registro** ([US-157](./US-157-tela-de-mundo-depois-da-revisao.md)) — esta story consome `setting`/`tone`/`areaType` opcionais no DTO, mas a UI que os envia é story separada.
 
 ---
 
@@ -57,7 +57,7 @@ A [US-28](./US-28-aventura-inicial-baseada-na-classe.md) resolveu bem o problema
 // apps/api/src/adventure/adventure.service.ts
 export interface CreateAdventureDto {
   // initialHookId REMOVIDO — a aventura é sempre gerada, não escolhida pelo cliente.
-  setting?: string  // GEN-13: chave do catálogo, ou ausente = sorteado pelo seed
+  setting?: string  // US-156: chave do catálogo, ou ausente = sorteado pelo seed
   tone?: string
   areaType?: string
 }
@@ -66,7 +66,7 @@ export interface CreateAdventureDto {
 | Campo | Antes (US-28) | Depois |
 |---|---|---|
 | `CreateAdventureDto.initialHookId` | obrigatório, validado contra a classe | **removido** |
-| `CreateAdventureDto.setting/tone/areaType` | não existiam | novos, todos opcionais (GEN-13) |
+| `CreateAdventureDto.setting/tone/areaType` | não existiam | novos, todos opcionais ([US-156](./US-156-catalogos-registro-dto-validacao.md)) |
 
 **Persistência:** sem migração de schema Prisma nesta story — `Adventure`/`Quest` continuam com os mesmos campos; o que muda é a **fonte** de `title`/`Quest.title`/`Quest.description` (do artefato gerado, não do hook fixo).
 
@@ -74,8 +74,8 @@ export interface CreateAdventureDto {
 
 ## Critérios de aceite
 
-- [ ] `createForCharacter` chama o motor de geração (composição de GEN-0 a GEN-9) para produzir a `GeneratedAdventure`, em vez de resolver só `resolveInitialHook`.
-- [ ] `resolveInitialHook` continua sendo chamado — seu resultado alimenta `hookSeed` (GEN-5), não a estrutura da aventura.
+- [ ] `createForCharacter` chama o motor de geração (composição de [US-143](./US-143-adr-aventura-como-dado-gerado.md) a [US-152](./US-152-statblocks-papel-orcamento.md)) para produzir a `GeneratedAdventure`, em vez de resolver só `resolveInitialHook`.
+- [ ] `resolveInitialHook` continua sendo chamado — seu resultado alimenta `hookSeed` ([US-148](./US-148-perfil-personagem-entrada-motor.md)), não a estrutura da aventura.
 - [ ] A validação que rejeita `initialHookId` diferente do da classe é removida — não existe mais `initialHookId` no DTO.
 - [ ] `CreateAdventureDto` não tem mais `initialHookId`; tem `setting?`, `tone?`, `areaType?`, todos opcionais.
 - [ ] Dois personagens da mesma classe, com `background` diferentes, recebem `GeneratedAdventure` com conteúdo diferente (locais, NPCs, segredos distintos) — verificável em teste com dois personagens fixture.
@@ -91,7 +91,7 @@ export interface CreateAdventureDto {
 
 - **Ordem de troca no código:** `rawHook`/validação de `initialHookId` ([adventure.service.ts:97-101](../../../apps/api/src/adventure/adventure.service.ts)) é o bloco que sai; `hook.primaryQuestTitle`/`Description` usados na criação de `Quest` ([adventure.service.ts:211-217](../../../apps/api/src/adventure/adventure.service.ts)) trocam de fonte para o artefato gerado.
 - **`hook.title` como `Adventure.title` também troca** — hoje `title: hook.title` ([adventure.service.ts:187](../../../apps/api/src/adventure/adventure.service.ts)); passa a vir de `adventure.summary` ou um título curto derivado do artefato (a decidir se `GeneratedAdventureSchema`, US-144, precisa de um campo `title` próprio — hoje ela não tem, só `summary`).
-- **`className`/`raceName` continuam resolvidos e passados ao motor** ([GEN-5/US-148](./US-148-perfil-personagem-entrada-motor.md) já usa `classKey`) — mas os rótulos (`catalogLabel`) continuam servindo só a mensagem de erro e o prompt de narração, mesma disciplina da US-105.
+- **`className`/`raceName` continuam resolvidos e passados ao motor** ([US-148](./US-148-perfil-personagem-entrada-motor.md) já usa `classKey`) — mas os rótulos (`catalogLabel`) continuam servindo só a mensagem de erro e o prompt de narração, mesma disciplina da US-105.
 - **`GeneratedAdventureSchema` sem `title`** é a lacuna concreta que esta story descobre — se confirmado, é uma emenda pequena à US-144 (adicionar `title: z.string().min(1)`), não uma reabertura de escopo.
 
 ---
@@ -110,4 +110,4 @@ export interface CreateAdventureDto {
 - [apps/api/src/adventure/adventure.service.ts:187,211-217](../../../apps/api/src/adventure/adventure.service.ts) — `Adventure.title`, `Quest.title`/`Quest.description`, os pontos que trocam de fonte.
 - [apps/api/src/character/starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) — `resolveInitialHook`, que continua vivo como porta de entrada (`hookSeed`).
 - [US-28](./US-28-aventura-inicial-baseada-na-classe.md) — o mecanismo original que esta story substitui.
-- [Backlog — Motor de geração de aventuras one-shot §GEN-10](./backlog-motor-de-geracao-de-aventuras.md) — texto de origem.
+- [Backlog — Motor de geração de aventuras one-shot §GEN-10](./backlog-motor-de-geracao-de-aventuras.md) (US-153) — texto de origem.
