@@ -393,3 +393,68 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     await expect(svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })).rejects.toThrow('modelo indisponível')
   })
 })
+
+describe('AiService.generateSecrets (US-149)', () => {
+  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
+  const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+  const secretPrompts = {
+    charactersecrets: Array.from({ length: 10 }, (_, i) => `character prompt ${i + 1}`),
+    historicalsecrets: Array.from({ length: 10 }, (_, i) => `historical prompt ${i + 1}`),
+    npcandvillainsecrets: Array.from({ length: 10 }, (_, i) => `npc prompt ${i + 1}`),
+    plotandstorysecrets: Array.from({ length: 10 }, (_, i) => `plot prompt ${i + 1}`),
+  }
+
+  function svc() {
+    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+  }
+
+  it('minta id no código (secret-N), nunca deixado ao modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }] }
+    const secrets = await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })
+    expect(secrets[0]!.id).toBe('secret-1')
+    expect(secrets[0]!.locationId).toBe('loc-1')
+  })
+
+  it('usa extractionModel (US-114), não primaryModel', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })
+    expect(genObj.model).toBe(extractionModel)
+  })
+
+  it('background.bonds presente entra no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho', background: { bonds: ['jurou vingança contra o culto'] } })
+    expect(genObj.system).toContain('jurou vingança contra o culto')
+  })
+
+  it('origin.connection/memento presentes entram no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho', origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' } })
+    expect(genObj.system).toContain('um sacerdote amado')
+    expect(genObj.system).toContain('um livro de orações')
+  })
+
+  it('background/origin vazios cai no hookSeed como âncora (US-148)', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho da abertura' })
+    expect(genObj.system).toContain('gancho da abertura')
+  })
+
+  it('instrui o split fixo 3+3+3+2 por categoria no prompt', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })
+    expect(genObj.prompt).toContain('escreva exatamente 3')
+    expect(genObj.prompt).toContain('escreva exatamente 2')
+  })
+
+  it('falha propaga erro estruturado — NÃO devolve array vazio em silêncio', async () => {
+    genObj.error = new Error('modelo indisponível')
+    await expect(svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })).rejects.toThrow('modelo indisponível')
+  })
+})

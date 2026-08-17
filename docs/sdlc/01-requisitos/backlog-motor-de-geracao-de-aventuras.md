@@ -13,22 +13,22 @@ inclusive a primeira — é gerada. Ver *O adiamento do arco para a fase 4*.
 e passa a precedê-la.
 **Atualizado em:** 2026-08-07 (terceira vez, mesmo dia) — o `dhorions/DnDGenerate` saiu da lista
 de descartados. Integridade referencial, `narrative`, `followUps` e o eixo de registro entraram na
-GEN-1, GEN-4 e GEN-7. Ver *O que o DnDGenerate acrescenta*.
+US-144, US-147 e US-150. Ver *O que o DnDGenerate acrescenta*.
 **Atualizado em:** 2026-08-07 (quarta vez, mesmo dia) — o registro deixa de ser só sorteado: o
-jogador escolhe `setting`, `tone` e `areaType`, ou deixa cada um no aleatório. Entram GEN-13
-(catálogo, DTO e validação) e GEN-14 (a tela, depois da revisão).
+jogador escolhe `setting`, `tone` e `areaType`, ou deixa cada um no aleatório. Entram US-156
+(catálogo, DTO e validação) e US-157 (a tela, depois da revisão).
 **Atualizado em:** 2026-08-07 (quinta vez, mesmo dia) — o backlog irmão foi adiado para a **fase
 4 (multiplayer)** do roadmap. Não é mais "este roda primeiro": é **este roda sozinho na fase 1**.
 Ver *O adiamento do arco para a fase 4*.
 **Status:** 📋 Proposta — nenhuma tarefa iniciada
 
 Este documento **não é uma user story**. É a sequência de tarefas até a meta acima. Cada item
-vira um `US-*.md` próprio quando entrar em execução.
+já tem story própria em `US-*.md`.
 
-> **Rótulos, não números de story.** `GEN-0`…`GEN-14` são identificadores **internos deste
-> documento**. O número real (`US-NNN`, `ADR NNN`) é atribuído **no dia em que a story for
-> escrita**. Enquanto isso, `GEN-N` não corresponde a nenhuma story existente. Mesma convenção do
-> backlog irmão, e os rótulos `AV-N` citados aqui são os **daquele** documento.
+> **Numeração atualizada em 17/08/2026.** Os rótulos internos `GEN-0`…`GEN-14` foram substituídos
+> pelo número real da story, na mesma ordem: `US-143`…`US-157`. As duas lacunas descobertas depois
+> do texto original — `GEN-4½` e `GEN-9½` — viraram `US-158` e `US-159`, fora da sequência porque
+> foram escritas por último. Os rótulos `AV-N` citados aqui são do **backlog irmão**, não deste.
 
 ---
 
@@ -37,7 +37,7 @@ vira um `US-*.md` próprio quando entrar em execução.
 A decisão que economiza o motor inteiro: ele **não tem saída própria**.
 
 ```
-Schema da aventura (GEN-1)
+Schema da aventura (US-144)
   ├── produtor A — este motor                            (fase 1)
   └── produtor B — O Lamento, escrito à mão (AV-0)       (fase 4, multiplayer)
 ```
@@ -54,7 +54,7 @@ escrita à mão não cabe.
 
 > **Com o produtor B na fase 4, isto muda de natureza.** Deixa de ser dependência entre dois
 > backlogs próximos e vira **seguro barato**: o teste de escrever uma locação e dois segredos à
-> mão (GEN-1) custa uma tarde e é a única coisa que impede o schema de virar um blob com a forma
+> mão (US-144) custa uma tarde e é a única coisa que impede o schema de virar um blob com a forma
 > do gerador. Três fases é tempo de sobra para ninguém lembrar por que o campo existia.
 > **Não é o único motivo de o teste ficar:** um schema que só o gerador consegue preencher também
 > não aceita conteúdo escrito à mão para *debug*, nem aventura corrigida à mão depois de gerada.
@@ -74,11 +74,11 @@ caminho e não daquele:
 
 | Era | Vira | Por quê |
 |---|---|---|
-| AV-1 — schema da aventura | **GEN-1** | É a saída do motor. Quem chega primeiro escreve |
-| AV-2 — `sync` pinado do LGMRD | **GEN-2** | São as 135 tabelas. Já era independente lá (*"pode ir em paralelo"*) |
-| AV-4 — semear entidades e segredos | **GEN-8** | O `map()` é o mesmo; a fonte é o artefato gerado |
-| AV-6 — statblocks por papel | **GEN-9** | Vêm do mesmo artefato da GEN-2 |
-| AV-3 — tirar a aventura do acoplamento com a classe | **GEN-10** | Muda de motivo: não é campanha única, é aventura por personagem |
+| AV-1 — schema da aventura | **US-144** | É a saída do motor. Quem chega primeiro escreve |
+| AV-2 — `sync` pinado do LGMRD | **US-145** | São as 135 tabelas. Já era independente lá (*"pode ir em paralelo"*) |
+| AV-4 — semear entidades e segredos | **US-151** | O `map()` é o mesmo; a fonte é o artefato gerado |
+| AV-6 — statblocks por papel | **US-152** | Vêm do mesmo artefato da US-145 |
+| AV-3 — tirar a aventura do acoplamento com a classe | **US-153** | Muda de motivo: não é campanha única, é aventura por personagem |
 
 O backlog irmão fica com o que é dele: **escrever *O Lamento*** (AV-0), as regras locais (AV-8), o
 en-US (AV-9) e as quests em fases (AV-5). E ganha uma vantagem que não tinha: **a AV-0 passa a
@@ -100,17 +100,17 @@ escrever contra um schema que já existe e já rodou**, em vez de contra um sche
 1. **A eval perde a âncora.** O plano anterior media a saída gerada contra *O Lamento*. Sem ele
    escrito, "a aventura gerada degradou" não é afirmável. **Remédio, e ele não custa nada:** os
    dois exemplares do próprio LGMRD — `36-villageofwhitesparrow.md` e `37-thenightblade.md` —
-   chegam dentro do artefato que a GEN-2 baixa, são CC-BY, e o backlog irmão já os classifica como
+   chegam dentro do artefato que a US-145 baixa, são CC-BY, e o backlog irmão já os classifica como
    *"os dois melhores exemplares de formato do documento"*. Eles não entram no jogo: entram na
    eval como referência de densidade. O que se perde é o exemplar **solo** e **em pt-BR**; o que
    se mede com eles é estrutura e densidade, que é o que degrada primeiro.
 2. **A primeira coisa que um jogador vê passa a ser gerada.** Não há mais piso escrito à mão
-   debaixo da experiência inicial. O gate da GEN-7 é estrutura, não qualidade. **Remédio:** um
+   debaixo da experiência inicial. O gate da US-150 é estrutura, não qualidade. **Remédio:** um
    seed pinado, jogado à mão ponta a ponta, é critério de saída do corte mínimo — não "os testes
-   passam". Está na GEN-7.
+   passam". Está na US-150.
 3. **O schema nasce com um produtor só na frente.** Risco de fixar campos que servem à geração e
    descobrir na AV-0 que falta *boxed text*, *area aspect* ou fecho ramificado. **Remédio:** os
-   Eight Steps ditam os campos (acima), e a GEN-1 tem de passar o teste de escrever **uma locação
+   Eight Steps ditam os campos (acima), e a US-144 tem de passar o teste de escrever **uma locação
    e dois segredos à mão** no schema antes de o motor existir — que é, invertido, exatamente o
    arranjo que a AV-1 já propunha.
 
@@ -135,9 +135,9 @@ mais cara possível de descobrir que o produto é jogado em sessões avulsas.
    campanha única porque não há campanha; a pergunta volta na fase 4, com multiplayer, que é onde
    ela sempre fez sentido.
 2. **O nome deste backlog fica literalmente certo.** *One-shot* era descrição de formato; passa a
-   ser o produto. Sem arco, cada aventura fecha em si, e os `followUps[]` da GEN-1 são **a única**
+   ser o produto. Sem arco, cada aventura fecha em si, e os `followUps[]` da US-144 são **a única**
    continuidade entre elas — o que os promove de campo simpático a peça central.
-3. **A escala solo deixa de ser condição temporária.** Ver GEN-9.
+3. **A escala solo deixa de ser condição temporária.** Ver US-152.
 
 ### O que isto custa, e não tem remédio grátis
 
@@ -148,7 +148,7 @@ provisório (*"enquanto ele não existe"*). Com a fase 4 no caminho, "enquanto" 
 detalhe: são escritos **em inglês** e **para grupo**. Servem para medir estrutura e densidade;
 não medem se a aventura funciona para um personagem só, nem se a prosa em pt-BR presta.
 
-O que sobra para medir essas duas: o seed pinado jogado à mão (GEN-7) e a rubrica de narração da
+O que sobra para medir essas duas: o seed pinado jogado à mão (US-150) e a rubrica de narração da
 [US-36](./US-36-eval-de-qualidade-da-narracao.md), que já roda em pt-BR. **Não é equivalente**, e
 está registrado para não ser descoberto no meio.
 
@@ -170,12 +170,12 @@ Levantadas em 07/08/2026. Quatro não acrescentam nada ao que o repo já tem.
 
 | Referência                                                      | O que é                                                                                                                           | Veredito                                                                                                                                   |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **The Lazy GM's Resource Document** (SlyFlourish.com)           | Eight Steps, 135 tabelas, 40 prompts de segredo, Monster Difficulty Dials, Lazy Solo 5e                                           | **Entra — é a forma.** É a fonte que a GEN-2 baixa                                                                                         |
-| **`gist.github.com/tock-dev/2f69b270394472bef9d2cfe39bcfd2b9`** | System prompt para o Claude Agent SDK: entrevista campo a campo, **valida o encontro antes de compilar**, só então emite o módulo | **Entra — é a ordem.** Ver *Ordem de geração* e GEN-7                                                                                      |
-| **`carl-prewitt.com/oneshot/`** (OneShotsmith)                  | Gerador determinístico: **seed reproduzível**, math de XP contra orçamento, segredos e pistas nas locações                        | **Entra — é o determinismo.** Ver GEN-3                                                                                                    |
+| **The Lazy GM's Resource Document** (SlyFlourish.com)           | Eight Steps, 135 tabelas, 40 prompts de segredo, Monster Difficulty Dials, Lazy Solo 5e                                           | **Entra — é a forma.** É a fonte que a US-145 baixa                                                                                         |
+| **`gist.github.com/tock-dev/2f69b270394472bef9d2cfe39bcfd2b9`** | System prompt para o Claude Agent SDK: entrevista campo a campo, **valida o encontro antes de compilar**, só então emite o módulo | **Entra — é a ordem.** Ver *Ordem de geração* e US-150                                                                                      |
+| **`carl-prewitt.com/oneshot/`** (OneShotsmith)                  | Gerador determinístico: **seed reproduzível**, math de XP contra orçamento, segredos e pistas nas locações                        | **Entra — é o determinismo.** Ver US-146                                                                                                    |
 | **`github.com/dhorions/DnDGenerate`**                           | Java/Spring, ChatGPT + DALL-E + PDF. O que importa não é o app: é `promptv9.txt` e os JSONs de `static/data/`                     | **Entra — é a integridade referencial e o eixo de registro.** Ver a seção seguinte. O app em si (chamada única, PDF, imagens) fica de fora |
 | `github.com/jwilferd10/Adventure-Alchemist`                     | Randomizador de masmorra client-side, sem tabelas documentadas                                                                    | Descartada                                                                                                                                 |
-| `github.com/Hayawi/OneShotGenerator`                            | Flask, `Plots.txt` e monstros por CR, só nível 1                                                                                  | Descartada. O Monster Builder do LGMRD cobre melhor e no mesmo artefato (GEN-9)                                                            |
+| `github.com/Hayawi/OneShotGenerator`                            | Flask, `Plots.txt` e monstros por CR, só nível 1                                                                                  | Descartada. O Monster Builder do LGMRD cobre melhor e no mesmo artefato (US-152)                                                            |
 | `github.com/samkitkat/dnd-oneshot-generator`                    | React/Express/Supabase puxando 5e API e Open5e                                                                                    | Descartada. O repo ingere Open5e desde a [US-47](./US-47-ingestao-srd-como-dado.md)                                                        |
 
 **O que a combinação é:** o LGMRD dá a **forma**, o gist dá a **ordem e o gate**, o OneShotsmith
@@ -189,7 +189,7 @@ Aqui a ficha já respondeu — ver *As entradas já existem no repo*. O que se a
 
 ### O que o DnDGenerate acrescenta
 
-Quatro achados. Os três primeiros mudam o schema da GEN-1; o quarto muda a GEN-4.
+Quatro achados. Os três primeiros mudam o schema da US-144; o quarto muda a US-147.
 
 **1. Integridade referencial entre seções — o achado.** Cada seção do prompt é obrigada a
 **nomear entidades declaradas em outra seção**:
@@ -205,7 +205,7 @@ Não são listas paralelas: é um **grafo declarado**. Locação, encontro e NPC
 cada um aponta para os outros pelo nome.
 
 **O LGMRD não tem isto.** Os Eight Steps são oito listas, e nada obriga o segredo 7 a citar a
-locação 3. E é justamente o antídoto da *"sopa de pista genérica"*: a GEN-7 pedia *"ao menos três
+locação 3. E é justamente o antídoto da *"sopa de pista genérica"*: a US-150 pedia *"ao menos três
 segredos referenciam entidade que existe"*, e isto generaliza para toda seção — o que torna o gate
 verificável, porque toda referência cruzada é por nome dentro de seção nomeada.
 
@@ -240,7 +240,7 @@ copia é haver o eixo, e ele ser sorteado uma vez.**
   defaults inline do prompt (faltando locação, invente cinco; faltando NPC, ponha quatro) servem
   como piso de **quantidade** e cabem no prompt; estrutura continua sendo gate com re-seed.
 - **HP e AC inventados pelo modelo por NPC.** É a rolagem fictícia que a
-  [US-29](./US-29-saneamento-de-rolagens-ficticias.md) já saneou, e a GEN-9 tem statblock por papel.
+  [US-29](./US-29-saneamento-de-rolagens-ficticias.md) já saneou, e a US-152 tem statblock por papel.
 - **O catch-all final** ("qualquer outra informação útil ao mestre"). Saída ilimitada não passa em
   `parse()`.
 - PDF, retratos por DALL-E e a fila de geração.
@@ -257,8 +257,8 @@ Verificado em 07/08/2026. Nenhuma coluna nova.
 | **Nível** | `Character.level` em [schema.prisma](../../../apps/api/prisma/schema.prisma) | Campo existe; **nada o incrementa**. Ver *Ressalva do nível* |
 | **História de fundo** | `Character.background` (Json): `{story, ideals, bonds, flaws, deity:{name, portfolio}}`, das [US-39](./US-39-identidade-narrativa-background-ideais.md) e [US-40](./US-40-divindade-do-personagem.md) | Pronto. Já vai ao prompt da abertura; **ainda não decide estrutura de aventura** |
 | **Gancho de classe** | 13 ganchos × 2 locales em [initial-adventures.ts](../../../apps/api/prisma/initial-adventures.ts), resolvidos por `resolveInitialHook` | Pronto. Vira semente de entrada, não aventura |
-| **Fatores de mundo** | As 135 tabelas do `LGMRD.json` | Chegam com a GEN-2 |
-| **Registro escolhido** | `setting`, `tone`, `areaType` — escolha do jogador | **Não existe.** É a GEN-13, a única entrada com trabalho de dado novo |
+| **Fatores de mundo** | As 135 tabelas do `LGMRD.json` | Chegam com a US-145 |
+| **Registro escolhido** | `setting`, `tone`, `areaType` — escolha do jogador | **Não existe.** É a US-156, a única entrada com trabalho de dado novo |
 
 `background.deity` é o encaixe mais forte e o menos óbvio: `{name, portfolio}` é uma divindade com
 domínio declarada pelo jogador, e é o eixo natural para o antagonista e o fecho da aventura
@@ -277,7 +277,7 @@ existir progressão. **Motor que só gera nível 1 entrega o que este backlog pr
 **Ressalva do background vazio.** `background` é `Json @default("{}")`: criar personagem sem
 preencher nada é caminho válido. O motor **não pode depender** de `story`, `bonds` ou `deity`
 existirem — com o objeto vazio ele cai no `hookSeed` da classe, que sempre existe. Isto é
-critério de aceite da GEN-5, não observação.
+critério de aceite da US-148, não observação.
 
 ---
 
@@ -320,7 +320,7 @@ pede ao modelo para consertar a própria saída.
 2. locais (~6)              ← tabelas de locais e monumentos, pelo seed
 3. NPCs (~7)                ← gerador de NPC; >= 1 amarrado a background.bonds
 4. segredos (~11)           ← modelo, os 40 prompts, com story/bonds/flaws no contexto
-5. encontros (4-5)          ← papéis da GEN-9, orçamento para UM personagem
+5. encontros (4-5)          ← papéis da US-152, orçamento para UM personagem
 6. fecho ramificado (2-3)   ← e os followUps, que a aventura seguinte herda
 7. gate                     ← schema + grafo fecha + orçamento. Falha => re-seed
 ```
@@ -344,16 +344,16 @@ template** e **semente plantada e não colhida**.
 
 Um quarto, próprio deste backlog: **o motor não conhece a campanha.** Ele gera uma aventura de
 cada vez. Estado que atravessa aventuras é entrada e saída dele, não invenção dele. Os
-`followUps[]` da GEN-1 não desmentem isso — ele continua sem **planejar** entre aventuras; passa
+`followUps[]` da US-144 não desmentem isso — ele continua sem **planejar** entre aventuras; passa
 a **emitir** as sementes, que é resposta parcial e custa um campo.
 
-O primeiro dos três, a **cadeia causal**, é o que a integridade referencial da GEN-1 mais ataca —
+O primeiro dos três, a **cadeia causal**, é o que a integridade referencial da US-144 mais ataca —
 e ainda assim não resolve. Grafo que fecha garante que a pista aponta para uma locação que existe;
 não garante que as três pistas componham um mecanismo. Estrutura é piso, não teto.
 
 Com a inversão, isto pesa mais do que pesava: **não há aventura escrita à mão debaixo da
 experiência do jogador**, então estes quatro são o piso de qualidade e não o teto. É a razão de a
-GEN-7 exigir um seed jogado à mão, e não só testes verdes.
+US-150 exigir um seed jogado à mão, e não só testes verdes.
 
 ---
 
@@ -371,16 +371,16 @@ GEN-7 exigir um seed jogado à mão, e não só testes verdes.
 
 Caminho crítico marcado ✱.
 
-**✱ GEN-0 — ADR: aventura como dado gerado**
+**✱ US-143 — ADR: aventura como dado gerado**
 Decide antes de existir schema: a aventura gerada é **regenerável pelo seed** ou **congelada no
-banco**? Recomendação: **gravar os dois** — o artefato porque é o que a GEN-8 semeia, o seed
+banco**? Recomendação: **gravar os dois** — o artefato porque é o que a US-151 semeia, o seed
 porque é o que a eval pina. Decide também onde o artefato mora: reusar `Adventure.entities`
 (`Json`), como a AV-1 propunha, ou coluna própria.
 Herda a decisão aberta 1 do backlog irmão (*aventura é dado de um sistema ou entidade reusável?*),
 que a inversão torna urgente: quem escreve o schema primeiro responde primeiro.
-Depende de: nada. Bloqueia: GEN-1.
+Depende de: nada. Bloqueia: US-144.
 
-**✱ GEN-1 — schema da aventura em `@ai-dm/shared`**
+**✱ US-144 — schema da aventura em `@ai-dm/shared`**
 Zod para o que a aventura tem: `id`, `levelRange`, `setting`, `tone`, `areaType`, `summary`,
 `npcs[]`, `secrets[]`, `locations[{title, aspects[], boxedText, description, occupants[]}]`,
 `encounters[]`, `start`, `conclusion`, `followUps[]`.
@@ -397,18 +397,18 @@ paralelas:
 - **`followUps[]`**: cada gancho com história bastante para virar cenário. É onde a "semente
   plantada e não colhida" vira campo.
 
-Os três de registro entram aqui e não na GEN-4 porque são **propriedade da aventura, não da
+Os três de registro entram aqui e não na US-147 porque são **propriedade da aventura, não da
 rolagem**. A aventura escrita à mão também tem tom, e a AV-0 o declara em vez de sortear; e a
-partir da GEN-13 quem os fixa pode ser o jogador. O campo guarda a **chave** (`grimdark`), nunca o
+partir da US-156 quem os fixa pode ser o jogador. O campo guarda a **chave** (`grimdark`), nunca o
 rótulo — mesmo contrato de `races`/`classes` desde a US-105, e é o que faz o artefato sobreviver
 à troca de idioma.
 
 Teste que protege a inversão: **uma locação e dois segredos escritos à mão** passam em `parse()`,
 nos dois locales, antes de o motor existir. Sem isso o schema nasce moldado no gerador e a AV-0
 não cabe nele.
-Depende de: GEN-0. Bloqueia: quase tudo.
+Depende de: US-143. Bloqueia: quase tudo.
 
-**✱ GEN-2 — `sync` pinado do LGMRD + NOTICE gerado**
+**✱ US-145 — `sync` pinado do LGMRD + NOTICE gerado**
 Baixa `LGMRD.json` e `5e_Monster_Builder.json` por **commit SHA** (nunca por `main`: a fonte tem
 workflow *nightly* e as versões publicadas não batem entre si) para `scripts/lazygm/`, e gera
 `NOTICE-lazygm.md` a partir do campo `attribution` — verbatim, não parafraseado, com a atribuição
@@ -416,16 +416,16 @@ tripla. Artefato versionado e escrita determinística, molde da US-47; **não h�
 CC-BY-4.0, a mesma do Open5e — cabe no regime que
 [NOTICE-open5e.md](../../../scripts/srd/NOTICE-open5e.md) já descreve.
 O NOTICE entra no mesmo commit que o primeiro dado derivado.
-Depende de: nada — pode ir em paralelo com GEN-0 e GEN-1.
+Depende de: nada — pode ir em paralelo com US-143 e US-144.
 
-**✱ GEN-3 — seed determinístico**
+**✱ US-146 — seed determinístico**
 `seed` de `Character.id` + `Adventure.order`; toda rolagem do motor consome esse gerador, nenhuma
 consome `Math.random`. Teste: o mesmo par regenera artefato **byte a byte** igual — mesma
 propriedade de escrita determinística que a US-47 já exige dos artefatos do SRD.
-Depende de: nada. Bloqueia: GEN-4.
+Depende de: nada. Bloqueia: US-147.
 
-**✱ GEN-4 — rolagem: registro primeiro, conteúdo depois**
-Lê o artefato da GEN-2 e rola as tabelas pelo seed da GEN-3. Roda no Game Server, pelo mesmo
+**✱ US-147 — rolagem: registro primeiro, conteúdo depois**
+Lê o artefato da US-145 e rola as tabelas pelo seed da US-146. Roda no Game Server, pelo mesmo
 argumento dos dados: sorteio que o modelo faz não é sorteio. Saída ainda não é aventura — é a
 lista de escolhas que os passos seguintes vestem de prosa.
 
@@ -436,8 +436,8 @@ lista de escolhas que os passos seguintes vestem de prosa.
    peça sai Grimdark no primeiro ato e Comedic no fecho.
 2. **Conteúdo — por peça.** As 135 tabelas do LGMRD: premissa, locais, monumentos, complicação.
 
-**Cada um dos três pode vir escolhido pelo jogador (GEN-13) ou não vir.** Quando não vem, é
-sorteado aqui pelo seed da GEN-3 — e o sorteio é **por campo**, não tudo-ou-nada: escolher o tom e
+**Cada um dos três pode vir escolhido pelo jogador (US-156) ou não vir.** Quando não vem, é
+sorteado aqui pelo seed da US-146 — e o sorteio é **por campo**, não tudo-ou-nada: escolher o tom e
 deixar o local no aleatório é caminho normal.
 
 Consequência que vale registrar: **"aleatório" continua determinístico.** Mesmo seed, mesmo
@@ -446,37 +446,36 @@ uma aventura inteira.
 
 As listas de rótulos não são copiadas do DnDGenerate: são dez genéricos, e o projeto tem panteão
 próprio. O que se copia é **haver o eixo, e ele ser fixado uma vez**.
-Depende de: GEN-2, GEN-3. Consome, quando existir: GEN-13.
+Depende de: US-145, US-146. Consome, quando existir: US-156.
 
-**✱ GEN-4½ — locais e NPCs com prosa** *(descoberto em 2026-08-16, lacuna do texto original)*
+**✱ US-158 — locais e NPCs com prosa** *(descoberto em 2026-08-16, lacuna do texto original)*
 O passo 2 (locais, ~6) e o passo 3 (NPCs, ~7; >= 1 amarrado a `background.bonds`) de *Ordem de
 geração* estavam descritos em prosa desde o início (*O desenho: três camadas* já listava "prosa
 das locações e area aspects" na camada 2), mas nunca ganharam número `GEN-N` nem story própria —
-a numeração pulava direto de GEN-4 (rolagem crua) para GEN-6 (segredos). Sem eles, `locations[]`/
-`npcs[]` com `id` real não existem em lugar nenhum do código para a GEN-6 referenciar.
-Veste de prosa o conteúdo bruto da GEN-4 (`locais`/`monumentos` crus) e a tabela `patronsandnpcs`
+a numeração pulava direto de US-147 (rolagem crua) para US-149 (segredos). Sem eles, `locations[]`/
+`npcs[]` com `id` real não existem em lugar nenhum do código para a US-149 referenciar.
+Veste de prosa o conteúdo bruto da US-147 (`locais`/`monumentos` crus) e a tabela `patronsandnpcs`
 (`behavior`/`ancestry`, sem `name`/`role` — invenção do modelo em cima disso, não cópia). `id` é
-atribuído no código, nunca pelo modelo — é o primeiro passo que os minta; GEN-6 só os referencia.
-Modelo barato (US-114), mesmo padrão da GEN-6.
-Story: [US-158](./US-158-locais-npcs-prosa-motor.md).
-Depende de: GEN-4. Bloqueia: GEN-6.
+atribuído no código, nunca pelo modelo — é o primeiro passo que os minta; US-149 só os referencia.
+Modelo barato (US-114), mesmo padrão da US-149.
+Depende de: US-147. Bloqueia: US-149.
 
-**✱ GEN-5 — perfil do personagem como entrada**
+**✱ US-148 — perfil do personagem como entrada**
 Monta o perfil que o motor recebe: nível, chave de classe, `background` e o `hookSeed` do gancho.
 Critério que não pode faltar: **personagem com `background` vazio gera aventura completa**,
 caindo no `hookSeed`. Assinatura recebe nível desde já, com valor 1 enquanto a D1 não existir.
-Depende de: nada. Bloqueia: GEN-6.
+Depende de: nada. Bloqueia: US-149.
 
-**✱ GEN-6 — segredos pelos 40 prompts**
-A chamada ao modelo do passo 4, com locais e NPCs já decididos no contexto (saída da GEN-4½,
-`locations[]`/`npcs[]` com `id` real — nunca o conteúdo bruto da GEN-4 direto) — nunca antes.
+**✱ US-149 — segredos pelos 40 prompts**
+A chamada ao modelo do passo 4, com locais e NPCs já decididos no contexto (saída da US-158,
+`locations[]`/`npcs[]` com `id` real — nunca o conteúdo bruto da US-147 direto) — nunca antes.
 Modelo barato (US-114). É a tarefa que decide se a aventura gerada tem quebra-cabeça ou lista.
-Depende de: GEN-4½, GEN-5.
+Depende de: US-158, US-148.
 
-**✱ GEN-7 — gate antes de persistir**
+**✱ US-150 — gate antes de persistir**
 Quatro verificações, e re-seed em vez de conserto:
 
-1. O artefato passa no `parse()` da GEN-1.
+1. O artefato passa no `parse()` da US-144.
 2. **O grafo fecha.** Todo `locationId`, `npcId` e `encounterId` referenciado existe na seção
    correspondente, e nenhuma locação ou NPC declarado fica órfão — sem encontro, sem segredo,
    sem interação. É a verificação que a integridade referencial do DnDGenerate torna possível, e
@@ -491,9 +490,9 @@ Teto de tentativas explícito, com falha registrada — gerador que re-rola sem 
 criação de personagem.
 **Critério de saída do corte mínimo, e ele não é automatizável:** um seed pinado, jogado à mão
 ponta a ponta. É o remédio do item 2 de *O que a inversão quebra*.
-Depende de: GEN-6.
+Depende de: US-149, US-159 (a régua da verificação 3).
 
-**✱ GEN-8 — semear o ledger com os segredos gerados**
+**✱ US-151 — semear o ledger com os segredos gerados**
 Os ~11 segredos entram como `WorldEntity` com `revelado: false`; os ~7 NPCs, com `revelado: true`.
 Aproveita a [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) inteira — o Mestre já sabe não
 revelar e já reinjeta sem comprimir. O caminho de semear ao criar aventura **já roda**
@@ -502,14 +501,15 @@ falta a fonte ser o artefato em vez de extração por LLM.
 **É a tarefa que paga a conta:** ~11 pistas soltas dão ao Mestre o que fazer quando o jogador
 anda, que é o defeito medido na
 [US-71](./US-71-simplificar-localizacao-do-personagem.md) (9 de 24 viagens sem `updateScene`).
-Depende de: GEN-1, GEN-7.
+Depende de: US-144, US-150.
 
-**✱ GEN-9 — statblocks por papel e orçamento para um personagem**
+**✱ US-152 — statblocks por papel e orçamento para um personagem**
 `5e_Monster_Builder.json` traz statblocks por função, não bestiário nominal — Minion (CR 1/8),
 Soldier (CR 1/2), Brute (CR 2). **Não precisa ingerir monstro do SRD**, o que evita um pipeline
-inteiro. O passo 5 povoa encontro com os papéis que existem, e o orçamento é medido contra a
-régua da US-111, para **um** personagem.
-Está no caminho crítico porque, sem ele, o gate da GEN-7 não tem o que verificar no encontro — e
+inteiro. O passo 5 povoa encontro com os papéis que existem, e o orçamento é medido contra o
+*Lazy Encounter Benchmark* do próprio `5e_Monster_Builder.json` (US-159 — não a régua de CD de
+teste de habilidade da US-111, que é outro dado do SRD), para **um** personagem.
+Está no caminho crítico porque, sem ele, o gate da US-150 não tem o que verificar no encontro — e
 encontro escrito no default de grupo mata um personagem solo de nível 1.
 
 **Tamanho de grupo é 1, escrito como 1 — não como parâmetro.** Multiplayer é a fase 4; até lá,
@@ -518,41 +518,53 @@ possível, que é configuração falsa. O caminho de volta é conhecido e barato
 chegar, o multiplicador entra num lugar só, aqui.
 Note a assimetria com o **nível**, que *é* parâmetro desde já (*Ressalva do nível*): nível muda
 dentro da fase 1 se a D1 existir; tamanho de grupo não muda antes da fase 4.
-Depende de: GEN-2, GEN-4.
+Depende de: US-145, US-147.
 
-**✱ GEN-10 — a aventura deixa de ser derivada da classe**
+**✱ US-159 — orçamento de encontro do LGMRD** *(descoberto em 2026-08-17, corrige citação errada
+da US-152/US-150 à US-111)*
+A US-152 e a US-150 citavam "a régua de dificuldade do SRD 2024 (US-111)" como o que mede orçamento
+de encontro — mas US-111 é CD de teste de habilidade (5/10/15/20/25/30), dado sem relação com
+quantos monstros um personagem aguenta. Nenhum artefato do pipeline `scripts/srd` tem tabela de
+orçamento de encontro. O `5e_Monster_Builder.json` (já baixado pela US-152/US-145) traz a própria:
+o *Lazy Encounter Benchmark* — soma de CR contra nível do personagem, sem tabela de XP separada.
+Duas funções puras, `encounterDeadlyThreshold(nível)` e `singleMonsterCrCap(nível)`, extraídas do
+mesmo artefato, no molde committed/gitignored do `lgmrd-tables.json` (US-149).
+Depende de: US-145 (parte da US-152). Bloqueia: US-152 (calibração de statblock), US-150 (verificação
+3 do gate).
+
+**✱ US-153 — a aventura deixa de ser derivada da classe**
 `createForCharacter` para de resolver a aventura por `resolveInitialHook(config, character.class)`
 e passa a chamar o motor. Sai também a validação que **rejeita** `initialHookId` diferente do da
 classe. O gancho continua vivo como **porta de entrada**: `openingNarration` é o `hookSeed` que a
-GEN-5 consome e que explica por que *aquele* personagem está *nesta* aventura.
+US-148 consome e que explica por que *aquele* personagem está *nesta* aventura.
 Critério: dois personagens da mesma classe, com backgrounds diferentes, recebem aventuras
 diferentes; o mesmo personagem regenerado recebe a mesma.
 O `CreateAdventureDto` (hoje um campo só, `initialHookId`) perde esse campo e ganha os três de
-registro da GEN-13, **todos opcionais**.
-Depende de: GEN-7, GEN-8.
+registro da US-156, **todos opcionais**.
+Depende de: US-150, US-151.
 
-**GEN-11 — eval da aventura gerada**
+**US-154 — eval da aventura gerada**
 Caso de fidelidade no molde da [US-49](./US-49-eval-fidelidade-de-regra.md), com a rubrica da
 [US-36](./US-36-eval-de-qualidade-da-narracao.md), contra um seed pinado: o Mestre não revela
 segredo com `revelado: false` antes da ficção merecer, nem inventa NPC quando há ~7 gerados.
-Referência de densidade: os dois exemplares do LGMRD que a GEN-2 já baixou — e, com o arco na
+Referência de densidade: os dois exemplares do LGMRD que a US-145 já baixou — e, com o arco na
 fase 4, **de forma permanente e não provisória**. Ancorar assert no **artefato** (este `secretId`
 continua oculto, este NPC existe), não na impressão de quem leu.
 O que eles **não** medem, por serem em inglês e escritos para grupo: se a aventura funciona para
-um personagem só, e se a prosa em pt-BR presta. Essas duas ficam com o seed jogado à mão (GEN-7) e
+um personagem só, e se a prosa em pt-BR presta. Essas duas ficam com o seed jogado à mão (US-150) e
 a rubrica da US-36. Ver *O adiamento do arco para a fase 4*.
-Depende de: GEN-8, GEN-10.
+Depende de: US-151, US-153.
 
-**GEN-12 — aposentar a quest fixa por classe**
+**US-155 — aposentar a quest fixa por classe**
 Remove `primaryQuestTitle`/`primaryQuestDescription` dos 13 ganchos quando a quest primária passar
 a vir da aventura gerada, para não sobreviverem como campo morto que o gate da
 [US-89](./US-89-gate-de-codigo-morto-com-knip.md) pega depois. O resto do gancho
-(`openingNarration`, `tags`) **fica**: é entrada da GEN-5.
-Depende de: GEN-10.
+(`openingNarration`, `tags`) **fica**: é entrada da US-148.
+Depende de: US-153.
 
 ### O jogador escolhe o registro
 
-**✱ GEN-13 — catálogos de registro, DTO e validação**
+**✱ US-156 — catálogos de registro, DTO e validação**
 `settings`, `tones` e `areaTypes` entram no `SystemConfig` como `SystemCatalogEntry[]` — o mesmo
 contrato de `races` e `classes` desde a US-105: **chave canônica EN + rótulo no locale do
 config**. Não são texto solto no componente, e não podem ser: o gate de string literal no JSX da
@@ -563,20 +575,20 @@ já é dado.
 Três decisões que economizam o resto:
 
 - **"Aleatório" não é entrada de catálogo.** É **ausência de escolha** — campo omitido no DTO, e a
-  GEN-4 sorteia pelo seed. Pôr uma chave `random` na lista obrigaria todo consumidor a tratá-la
+  US-147 sorteia pelo seed. Pôr uma chave `random` na lista obrigaria todo consumidor a tratá-la
   como caso especial: o prompt, o artefato, a resolução de rótulo e o gate. Ausência já significa
   isso e não custa nada.
 - **A escolha é por campo.** Três opcionais independentes, não um botão "surpreenda-me" global.
 - **A escolha vive na aventura, não no personagem.** Vai no `CreateAdventureDto` e aterrissa nos
-  campos de registro do artefato da GEN-1. **Sem migração** — o `Character` não ganha coluna, e o
+  campos de registro do artefato da US-144. **Sem migração** — o `Character` não ganha coluna, e o
   mesmo personagem pode ter aventuras de tons diferentes.
 
 **Validação no servidor, não só na tela** (fronteira de confiança): chave fora do catálogo do
 sistema é 400, no mesmo molde da validação de classe e raça que a US-105 já faz. Cliente não é a
 fonte de verdade da lista.
-Depende de: GEN-1. Bloqueia: GEN-14.
+Depende de: US-144. Bloqueia: US-157.
 
-**✱ GEN-14 — a tela de mundo, depois da revisão**
+**✱ US-157 — a tela de mundo, depois da revisão**
 Sétimo passo do `SetupWizard`, que hoje termina em `review`
 (`'system' | 'race-class' | 'attributes' | 'skills' | 'background' | 'review'`). O novo passo entra
 **depois**, e a ordem tem razão: a revisão fecha o **personagem**; esta tela abre a **aventura**.
@@ -591,20 +603,21 @@ Chaves de i18n novas em `setup.world.*`, nos dois locales.
 [US-46](./US-46-acessibilidade-wcag-aa.md) (WCAG AA) e
 [US-66](./US-66-telas-mobile-friendly.md) (mobile) valem como em toda tela nova — grupo de rádio
 com rótulo associado, não `div` clicável.
-Depende de: GEN-13.
+Depende de: US-156.
 
 ---
 
 ## Corte mínimo
 
-**GEN-0 + GEN-1 + GEN-2 + GEN-3 + GEN-4 + GEN-4½ + GEN-5 + GEN-6 + GEN-7 + GEN-8 + GEN-9 + GEN-10 +
-GEN-13 + GEN-14** — catorze stories (GEN-4½/US-158 somada em 2026-08-16, lacuna nunca numerada do
-texto original), **nenhuma tarefa de escrita**, nenhuma dependência de outro backlog.
+**US-143 + US-144 + US-145 + US-146 + US-147 + US-158 + US-148 + US-149 + US-150 + US-151 + US-152 + US-159 +
+US-153 + US-156 + US-157** — quinze stories (US-158 somada em 2026-08-16, US-159
+somada em 2026-08-17, ambas lacunas nunca numeradas do texto original), **nenhuma tarefa de
+escrita**, nenhuma dependência de outro backlog.
 
 Fora: eval e limpeza dos ganchos. Fora também: seed compartilhável, PDF, mapa, quests em fases.
 
-**A GEN-14 é a única do corte que o motor não precisa para rodar** — sem ela os três campos ficam
-sempre omitidos e a GEN-4 sorteia tudo, que é produto funcionando. Está dentro porque é escopo
+**A US-157 é a única do corte que o motor não precisa para rodar** — sem ela os três campos ficam
+sempre omitidos e a US-147 sorteia tudo, que é produto funcionando. Está dentro porque é escopo
 pedido, não porque destrava algo. Se o corte precisar encolher, é a primeira a sair, e sai sem
 deixar buraco: o DTO já aceita os campos.
 
@@ -612,14 +625,14 @@ O corte é maior que o do backlog irmão em número de stories e menor em calend
 crítico passava por escrever uma aventura inteira em dois idiomas. **Aqui não há nenhuma tarefa
 que só uma pessoa consiga fazer.**
 
-Critério de saída: um seed pinado, jogado ponta a ponta à mão (GEN-7). Se a aventura gerada for
+Critério de saída: um seed pinado, jogado ponta a ponta à mão (US-150). Se a aventura gerada for
 sopa de pista genérica, o resto do backlog é trabalho jogado fora.
 
 **Com o arco na fase 4, esse critério subiu de peso.** Antes ele era o portão do corte mínimo e a
 saída de emergência era escrever *O Lamento* primeiro. Agora não há saída de emergência: não
 existe aventura escrita à mão no horizonte da fase 1, e o playtest manual é a única medida de
 qualidade que não vem de exemplar em inglês escrito para grupo. Ele deixa de ser evento único e
-vira **rotina** — um seed novo jogado a cada mudança no prompt de segredos (GEN-6).
+vira **rotina** — um seed novo jogado a cada mudança no prompt de segredos (US-149).
 
 ---
 
@@ -630,14 +643,14 @@ vira **rotina** — um seed novo jogado a cada mudança no prompt de segredos (G
 (*Por que Pegāna*, *Por que este material*, *A fonte de método*) **não foram reescritas** — o
 raciocínio delas é anterior e vale como registro.
 
-1. O **corte mínimo** de lá listava AV-1, AV-2, AV-3, AV-4 e AV-6, que passaram a ser GEN-1,
-   GEN-2, GEN-10, GEN-8 e GEN-9. O corte de lá encolheu para **AV-0**, e a ADR-AV foi absorvida
-   pela GEN-0.
+1. O **corte mínimo** de lá listava AV-1, AV-2, AV-3, AV-4 e AV-6, que passaram a ser US-144,
+   US-145, US-153, US-151 e US-152. O corte de lá encolheu para **AV-0**, e a ADR-AV foi absorvida
+   pela US-143.
 2. A **decisão de 06/08 — campanha única para todas as classes** — foi marcada como reaberta.
    **Com o adiamento para a fase 4 ela se resolve por consequência:** na fase 1 não há campanha
    autoral, então não há campanha única; a pergunta volta com o multiplayer.
 3. A **AV-3** de lá dizia *"personagens de classes diferentes recebem a mesma campanha, com
-   aberturas diferentes"*. A GEN-10 inverte o critério.
+   aberturas diferentes"*. A US-153 inverte o critério.
 4. A **D3** (conteúdo para as aventuras 2..N) é exatamente o que este backlog resolve — era o
    caminho **(b)** que a decisão aberta 4 de lá registrava como *"o caminho provável"*. **D1** e
    **D2** continuam sem dono, e a D1 perdeu o motivador junto com o arco.
@@ -654,16 +667,21 @@ raciocínio delas é anterior e vale como registro.
 - **07/08/2026 — este backlog roda primeiro.** Custos, ganhos e os três remédios em *A inversão e
   o que ela custa*. Cinco tarefas mudam de dono.
 - **07/08/2026 — o jogador escolhe o registro, e "aleatório" é ausência de escolha.** Nem chave de
-  catálogo, nem flag: campo omitido no DTO, sorteado pelo seed. Por campo, não global. GEN-13.
+  catálogo, nem flag: campo omitido no DTO, sorteado pelo seed. Por campo, não global. US-156.
 - **07/08/2026 — a tela de mundo vem depois da revisão.** A revisão fecha o personagem; a tela
-  abre a aventura. Dois objetos, dois passos. GEN-14.
+  abre a aventura. Dois objetos, dois passos. US-157.
 - **07/08/2026 — o arco de história vai para a fase 4 (multiplayer).** Este backlog passa a ser o
   único caminho de aventura da fase 1, o motor gera inclusive a primeira, e a referência de eval
   fica sendo permanentemente os exemplares do LGMRD. Custos em *O adiamento do arco para a fase 4*.
-- **07/08/2026 — tamanho de grupo é 1, escrito como 1.** Não é parâmetro antes da fase 4. GEN-9.
-- **16/08/2026 — locais e NPCs com prosa viram GEN-4½/US-158, story própria.** Estavam descritos em
+- **07/08/2026 — tamanho de grupo é 1, escrito como 1.** Não é parâmetro antes da fase 4. US-152.
+- **17/08/2026 — a régua de orçamento da US-152 não é a US-111.** US-111 é CD de teste de
+  habilidade (5/10/15/20/25/30); orçamento de encontro é outro dado do SRD, e o repo não tinha
+  nenhum artefato com essa tabela ingerido. Achado: o `5e_Monster_Builder.json` (já baixado pela
+  US-145) traz o *Lazy Encounter Benchmark* próprio do LGMRD — soma de CR contra nível do
+  personagem, sem tabela de XP separada. Story nova no corte mínimo: **US-159**.
+- **16/08/2026 — locais e NPCs com prosa viram US-158, story própria.** Estavam descritos em
   *O desenho: três camadas* desde o início mas nunca numerados nem escritos — a lacuna só apareceu
-  ao detalhar a implementação da GEN-6 (US-149), que assumia `locations[]`/`npcs[]` com `id` real
+  ao detalhar a implementação da US-149, que assumia `locations[]`/`npcs[]` com `id` real
   como entrada já pronta.
 
 ## Decisões abertas
@@ -672,25 +690,25 @@ raciocínio delas é anterior e vale como registro.
    fase 1 não há campanha única porque não há campanha autoral. O motor gera todas as aventuras,
    inclusive a primeira. A pergunta volta na **fase 4**, com multiplayer, que é onde ela sempre
    fez sentido. Ver *O adiamento do arco para a fase 4*.
-2. **Aventura gerada é regenerável ou congelada?** Recomendação na GEN-0: gravar os dois.
+2. **Aventura gerada é regenerável ou congelada?** Recomendação na US-143: gravar os dois.
 3. **Quantas chamadas ao modelo por aventura, e a que custo?** O passo 4 é uma; locações e fecho
    podem ser mais. Não foi medido, e a baseline da
    [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md) é de turno, não de geração.
 4. **O motor usa os vínculos da [US-113](./US-113-vinculos-ancorados-na-fonte-no-ledger.md)?**
    NPC amarrado a `background.bonds` é exatamente um vínculo ancorado na fonte. Se a US-113
    entregar antes, o passo 3 grava vínculo em vez de texto solto.
-5. **Gerar na criação do personagem ou em background?** A GEN-6 é chamada de modelo dentro de
+5. **Gerar na criação do personagem ou em background?** A US-149 é chamada de modelo dentro de
    `createForCharacter`, que já espera pelo `generateOpeningNarration`. Somar uma segunda espera
-   ao caminho síncrono da criação pode estourar o teto do proxy SSE. Medir na GEN-6.
+   ao caminho síncrono da criação pode estourar o teto do proxy SSE. Medir na US-149.
 
 ## Referências no código
 
 - [schema.prisma](../../../apps/api/prisma/schema.prisma) — `Character.level`, `Character.background`, `Adventure.order` e `Adventure.entities`: as quatro entradas/saídas do motor, todas existentes.
-- [adventure.service.ts](../../../apps/api/src/adventure/adventure.service.ts) — `createForCharacter`: onde o gancho por classe é resolvido e validado hoje, e onde o motor entra na GEN-10. `extractOpeningEntities` é o caminho de semeadura que a GEN-8 reusa.
+- [adventure.service.ts](../../../apps/api/src/adventure/adventure.service.ts) — `createForCharacter`: onde o gancho por classe é resolvido e validado hoje, e onde o motor entra na US-153. `extractOpeningEntities` é o caminho de semeadura que a US-151 reusa.
 - [starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) — `resolveInitialHook`: como a classe vira gancho. Desde a US-105 o lookup é direto pela chave canônica.
-- [initial-adventures.ts](../../../apps/api/prisma/initial-adventures.ts) — os 13 ganchos. `openingNarration` vira entrada da GEN-5; os dois campos de quest são o que a GEN-12 aposenta.
-- [character.ts](../../../packages/shared/src/types/character.ts) — `WorldEntity`, com os eixos `sabido` e `revelado` da US-75: é onde os segredos gerados aterrissam na GEN-8.
-- [system.ts](../../../packages/shared/src/types/system.ts) — `SystemCatalogEntry` e `catalogLabel`: o contrato de chave+rótulo que a GEN-13 copia para `settings`, `tones` e `areaTypes`.
-- [SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx) — os seis passos de hoje; a GEN-14 acrescenta o sétimo depois de `review`.
-- [sync.mjs](../../../scripts/srd/sync.mjs) — molde de pinagem e artefato versionado que a GEN-2 copia. O parser da US-47 **não** é reusado: aqui não há parser.
+- [initial-adventures.ts](../../../apps/api/prisma/initial-adventures.ts) — os 13 ganchos. `openingNarration` vira entrada da US-148; os dois campos de quest são o que a US-155 aposenta.
+- [character.ts](../../../packages/shared/src/types/character.ts) — `WorldEntity`, com os eixos `sabido` e `revelado` da US-75: é onde os segredos gerados aterrissam na US-151.
+- [system.ts](../../../packages/shared/src/types/system.ts) — `SystemCatalogEntry` e `catalogLabel`: o contrato de chave+rótulo que a US-156 copia para `settings`, `tones` e `areaTypes`.
+- [SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx) — os seis passos de hoje; a US-157 acrescenta o sétimo depois de `review`.
+- [sync.mjs](../../../scripts/srd/sync.mjs) — molde de pinagem e artefato versionado que a US-145 copia. O parser da US-47 **não** é reusado: aqui não há parser.
 - [backlog-aventuras-autorais-lazygm.md](./backlog-aventuras-autorais-lazygm.md) — o produtor B, os Eight Steps e os alvos de densidade. Deixa de ser pré-requisito e passa a ser o que vem depois.

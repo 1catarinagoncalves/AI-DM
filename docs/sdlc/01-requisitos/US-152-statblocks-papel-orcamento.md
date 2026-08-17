@@ -3,8 +3,8 @@
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-145](./US-145-sync-lgmrd-notice.md) (`5e_Monster_Builder.json` baixado) · [US-147](./US-147-rolagem-registro-conteudo.md) (conteúdo já rolado, incluindo local/complicação que o encontro habita)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-152, caminho crítico) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-111](./US-111-classe-de-dificuldade-do-srd-2024.md) (régua de dificuldade do SRD 2024, referência de orçamento)
+**Depende de:** [US-145](./US-145-sync-lgmrd-notice.md) (`5e_Monster_Builder.json` baixado) · [US-147](./US-147-rolagem-registro-conteudo.md) (conteúdo já rolado, incluindo local/complicação que o encontro habita) · [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (o *Lazy Encounter Benchmark* contra o qual o orçamento é medido)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-152, caminho crítico) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story)
 **Criada em:** 2026-08-15
 
 ---
@@ -29,7 +29,7 @@ O repo não tem hoje **nenhum** dado de monstro — nem bestiário nominal, nem 
 
 ### A proposta
 
-Ler `5e_Monster_Builder.json` (baixado pela US-145) e usar os três papéis diretamente — sem ingerir monstro nominal do SRD. O passo povoa cada encontro com os papéis que existem, e o orçamento é medido contra a régua de dificuldade referenciada pela [US-111](./US-111-classe-de-dificuldade-do-srd-2024.md), calibrado para **um** personagem.
+Ler `5e_Monster_Builder.json` (baixado pela US-145) e usar os três papéis diretamente — sem ingerir monstro nominal do SRD. O passo povoa cada encontro com os papéis que existem, e o orçamento é medido contra o *Lazy Encounter Benchmark* da [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (o mesmo artefato, seção diferente), calibrado para **um** personagem.
 
 ---
 
@@ -70,9 +70,9 @@ Ler `5e_Monster_Builder.json` (baixado pela US-145) e usar os três papéis dire
 
 - [ ] O motor lê `5e_Monster_Builder.json` (US-145) e extrai os três papéis (Minion, Soldier, Brute) com seus respectivos CR.
 - [ ] Nenhum ingest/parser novo é criado para monstro nominal do SRD — a leitura é direta do artefato do LGMRD.
-- [ ] O orçamento de cada encontro é calculado e comparado contra a régua de dificuldade de **um** personagem daquele nível — nunca multiplicado por tamanho de grupo.
+- [ ] O orçamento de cada encontro é calculado e comparado contra o *Lazy Encounter Benchmark* de **um** personagem daquele nível ([US-159](./US-159-orcamento-de-encontro-lgmrd.md)) — nunca multiplicado por tamanho de grupo.
 - [ ] Nenhum parâmetro de "tamanho de grupo" existe no código — a constante `1` está escrita como `1`, não como config com um valor possível.
-- [ ] Encontro de nível 1 gerado por esta lógica não excede o orçamento de um personagem solo (verificável comparando contra a régua da US-111).
+- [ ] Encontro de nível 1 gerado por esta lógica não excede o orçamento de um personagem solo (verificável comparando contra `encounterDeadlyThreshold`/`singleMonsterCrCap` da US-159).
 - [ ] `pnpm typecheck` e testes do módulo passam.
 - [ ] **Eval / teste de regressão:** fixture com nível 1 produz encontro dentro do orçamento (ex.: 2 Minions, não 1 Brute sozinho se o Brute sozinho exceder o orçamento de um personagem nível 1); teste falha se o cálculo de orçamento multiplicar por qualquer coisa além de 1.
 
@@ -95,6 +95,6 @@ Ler `5e_Monster_Builder.json` (baixado pela US-145) e usar os três papéis dire
 ## Referências no código
 
 - [US-145](./US-145-sync-lgmrd-notice.md) — `5e_Monster_Builder.json`, a fonte desta story.
-- [US-111](./US-111-classe-de-dificuldade-do-srd-2024.md) — régua de dificuldade do SRD 2024, referenciada para o orçamento (a forma exata de aplicação — se via `difficultyClasses` ou outra tabela de orçamento de XP — é decisão de implementação a confirmar contra o artefato real).
+- [US-159](./US-159-orcamento-de-encontro-lgmrd.md) — *Lazy Encounter Benchmark*, a régua de orçamento contra a qual o encontro é medido (**não** é `difficultyClasses` da US-111 — resolvida em 17/08/2026, ver *Fora do escopo* da US-111).
 - [US-29](./US-29-saneamento-de-rolagens-ficticias.md) — por que HP/AC não são inventados pelo modelo.
 - [Backlog — Motor de geração de aventuras one-shot §GEN-9](./backlog-motor-de-geracao-de-aventuras.md) (US-152) — texto de origem, incluindo a nota sobre tamanho de grupo = 1.

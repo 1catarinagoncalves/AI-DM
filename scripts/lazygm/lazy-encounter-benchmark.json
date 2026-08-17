@@ -1,0 +1,16 @@
+{
+  "version": "3.1.0",
+  "sourceSubsections": {
+    "usingthebenchmark": "Using the Benchmark",
+    "thecrcapforasinglemonster": "The CR Cap for a Single Monster"
+  },
+  "deadlyDivisor": {
+    "upToLevel4": 4,
+    "level5Plus": 2
+  },
+  "singleMonsterCapMultiplier": {
+    "upToLevel4": 1,
+    "level5Plus": 1.5
+  },
+  "levelBreakpoint": 5
+}

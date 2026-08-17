@@ -26,7 +26,9 @@
     "lazygm:sync": "node scripts/lazygm/sync.mjs",
     "lazygm:sync:test": "node --test scripts/lazygm/sync.test.mjs",
     "lazygm:extract": "node scripts/lazygm/extract-tables.mjs",
-    "lazygm:extract:test": "node --test scripts/lazygm/extract-tables.test.mjs"
+    "lazygm:extract:test": "node --test scripts/lazygm/extract-tables.test.mjs",
+    "lazygm:extract-benchmark": "node scripts/lazygm/extract-benchmark.mjs",
+    "lazygm:extract-benchmark:test": "node --test scripts/lazygm/extract-benchmark.test.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

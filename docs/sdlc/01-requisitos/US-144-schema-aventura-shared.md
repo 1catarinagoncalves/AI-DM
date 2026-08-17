@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-143](./US-143-adr-aventura-como-dado-gerado.md) ✅ — [ADR 012](../../adr/012-aventura-gerada-como-dado.md) decidiu: artefato grava congelado em `Adventure.generatedAdventure Json?` (coluna nova), `seed` não persiste (recomputado de `Character.id`+`Adventure.order`, US-146)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-144, bloqueia quase tudo abaixo dele) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (chave canônica EN, nunca rótulo — mesmo contrato para `tone`/`setting`/`areaType`) · [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (`SystemBackgroundSchema`, molde de schema Zod de catálogo derivado)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-144, bloqueia quase tudo abaixo dele) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (chave canônica EN, nunca rótulo — mesmo contrato para `tone`/`setting`/`areaType`) · [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (`SystemBackgroundSchema`, molde de schema Zod de catálogo derivado) · [US-112](./US-112-arco-de-beats-do-que-muda.md) (arco de beats — coluna `Adventure.arc` separada e MUTÁVEL, não funde neste schema; ver *Questões em aberto* #3)
 **Criada em:** 2026-08-15
 
 ---
@@ -163,6 +163,8 @@ generatedAdventure Json?
 
 1. ~~Herdada da US-143: se a persistência escolhida for `Adventure.entities` reusado, este schema precisa conviver na mesma coluna que `WorldEntity[]`~~ — **resolvida pelo [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (16/08/2026):** coluna própria `Adventure.generatedAdventure Json?`, sem reuso — não convive com `WorldEntity[]`.
 2. O nível de detalhe de `AdventureEncounterSchema` (só `npcIds[]` e `locationId`, sem orçamento nem CR) é suficiente para a [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) verificar "o orçamento cabe em um personagem"? A [US-152](./US-152-statblocks-papel-orcamento.md) pode exigir campos adicionais aqui (`budget`, `role` por NPC no encontro) — a decidir quando aquela story escrever contra este schema.
+
+3. **Este schema deveria virar fonte de beat para a [US-112](./US-112-arco-de-beats-do-que-muda.md)?** Cogitado em 17/08/2026: os `id` de `locations[]`/`npcs[]`/`secrets[]`/`encounters[]` já são vínculo verificável — em tese, matéria-prima melhor pra um beat (`locationId`/`npcId` reais) que a extração livre (`extractOpeningArc`) que a US-112 propõe sobre a prosa da abertura. **Não é campo novo aqui.** `Adventure.arc` da US-112 é estado mutável por turno (`estado: pendente/ativo/cumprido`, escrito pelo `advanceBeat`); `generatedAdventure` é congelado por desenho ([ADR 012](../../adr/012-aventura-gerada-como-dado.md) D1/D2, que já rejeitou misturar ciclo mutável e imutável numa coluna só — foi a mesma pergunta feita e respondida pro ledger). Fica registrado pra quem implementar a US-112 decidir a fonte dos beats por produtor: motor deriva do artefato, gancho de classe/aventura autoral usa `extractOpeningArc`.
 
 ---
 

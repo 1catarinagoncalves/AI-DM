@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 🗂️ Backlog
 **Depende de:** [US-35](./US-35-cena-estruturada-na-abertura.md) (extração estruturada da abertura — o padrão reusado para semear o arco) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (o ledger de entidades que o arco referencia)
-**Relacionada a:** [US-71](./US-71-simplificar-localizacao-do-personagem.md) e [US-73](./US-73-reconciliador-de-cena-em-background.md) (as duas tentativas anteriores no mesmo sintoma, por outro eixo) · [backlog-aventuras-autorais-lazygm.md](./backlog-aventuras-autorais-lazygm.md) (aventura AUTORAL com conteúdo pronto; esta US é o arco GERADO da aventura improvisada — ver *Fora do escopo*)
+**Relacionada a:** [US-71](./US-71-simplificar-localizacao-do-personagem.md) e [US-73](./US-73-reconciliador-de-cena-em-background.md) (as duas tentativas anteriores no mesmo sintoma, por outro eixo) · [backlog-aventuras-autorais-lazygm.md](./backlog-aventuras-autorais-lazygm.md) (aventura AUTORAL com conteúdo pronto; esta US é o arco GERADO da aventura improvisada — ver *Fora do escopo*) · [US-144](./US-144-schema-aventura-shared.md) (schema da aventura gerada pelo motor — candidato a segunda fonte de beat, ver *Questões em aberto* #5; **não funde com este schema**)
 **Criada em:** 2026-08-12
 
 ---
@@ -172,6 +172,10 @@ export interface StoryBeat {
    **O que se funde é o DADO, não a tool:** as 6 fases do *Night Blade* têm a forma de 6 beats. Se a aventura autoral entrar, o artefato preenche a mesma coluna `Adventure.arc` e o mesmo bloco de prompt que o gerador desta US preenche — dois escritores, um leitor, sem segundo bloco disputando espaço no turno.
 
    **Continua aberto, e é de quem escrever a AV-5:** se o avanço de fase é determinístico e disparado por *entrar em câmara*, `updateScene` já reporta a mudança de `local` — a máquina de estados pode pendurar-se ali e a AV-5 pode não precisar de tool nenhuma. Decidir lá, não aqui.
+
+5. **A aventura gerada pelo motor (US-144) é fonte melhor de beat que a prosa da abertura?** Esta US foi escrita em 12/08/2026, antes do schema do motor ([US-144](./US-144-schema-aventura-shared.md), 15/08/2026) existir. `extractOpeningArc` lê texto livre; o artefato do motor já tem `secrets[]`, `encounters[]` e `npcs[]` com `id` real e vínculo verificável entre si (`locationId`, `npcIds[]`) — em tese, matéria-prima melhor pra derivar `muda` com `locationId`/`npcId` reais em vez da string solta que o modelo proposto acima produz.
+
+   **Encaminhamento:** não decidir agora. Quando esta US for implementada, se `Adventure.generatedAdventure` existir pra aquela aventura (aventura nascida do motor, US-153+), considerar derivar os beats do artefato em vez de rodar `extractOpeningArc` sobre a prosa. **Sem tocar `GeneratedAdventureSchema`:** ele continua congelado — [ADR 012](../../adr/012-aventura-gerada-como-dado.md) D2 já rejeitou misturar dado mutável (o beat muda de `estado` a cada `advanceBeat`) em coluna imutável, foi a mesma pergunta feita e respondida pro ledger. `extractOpeningArc` continua sendo o caminho pra aventura sem artefato — gancho de classe hoje, aventura autoral na fase 4.
 
 ---
 
