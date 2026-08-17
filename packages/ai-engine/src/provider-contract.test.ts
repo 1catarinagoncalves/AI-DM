@@ -5,6 +5,7 @@ import {
   primaryModel,
   fallbackModel,
   groqFallbackModel,
+  extractionModel,
   NARRATION_PROVIDER_OPTIONS,
   EXTRACTION_PROVIDER_OPTIONS,
 } from './model'
@@ -87,6 +88,39 @@ describe('contrato com o provider', () => {
         abortSignal: AbortSignal.timeout(REQ_TIMEOUT_MS),
       })
       expect(object.local.trim().length).toBeGreaterThan(0)
+    },
+    REQ_TIMEOUT_MS,
+  )
+
+  // US-114: extractionModel assume as extrações e o fecho de salvamento. Achado
+  // 2026-08-17 (Questão em aberto #2): `{enabled:false}` é a ÚNICA config das três
+  // testadas que não falha em silêncio neste modelo — `exclude`/`effort`/omitir dão
+  // 400 aqui (modo tool) e 200 com corpo VAZIO no `generateText` do fecho.
+  it.runIf(process.env['CONTRACT'])(
+    'extração: extractionModel com thinking desligado devolve objeto',
+    async () => {
+      const { object } = await generateObject({
+        model: extractionModel,
+        schema: SMOKE_SCHEMA,
+        prompt: EXTRACTION_PROMPT,
+        providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+        abortSignal: AbortSignal.timeout(REQ_TIMEOUT_MS),
+      })
+      expect(object.local.trim().length).toBeGreaterThan(0)
+    },
+    REQ_TIMEOUT_MS,
+  )
+
+  it.runIf(process.env['CONTRACT'])(
+    'fecho: extractionModel com generateText (sem tools) devolve texto não-vazio',
+    async () => {
+      const { text } = await generateText({
+        model: extractionModel,
+        prompt: PROSE_PROMPT,
+        providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+        abortSignal: AbortSignal.timeout(REQ_TIMEOUT_MS),
+      })
+      expect(text.trim().length).toBeGreaterThan(0)
     },
     REQ_TIMEOUT_MS,
   )

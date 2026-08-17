@@ -31,13 +31,36 @@ const FIXTURE = {
         }),
       ],
     },
+    {
+      id: 'creatingsecrets',
+      subsections: [
+        fixtureSubsection('charactersecrets', { data: [{ item_num: 1, item: 'What family history might be revealed?' }] }),
+        fixtureSubsection('historicalsecrets', { data: [{ item_num: 1, item: 'What dead god has a connection to the area?' }] }),
+        fixtureSubsection('npcandvillainsecrets', { data: [{ item_num: 1, item: 'What dark history follows the NPC?' }] }),
+        fixtureSubsection('plotandstorysecrets', { data: [{ item_num: 1, item: 'Placeholder plot prompt' }] }),
+      ],
+    },
   ],
 }
 
-test('extractTables pega as 4 subsections de coreadventuregenerators', () => {
+test('extractTables pega as 4 subsections de coreadventuregenerators e as 4 de creatingsecrets', () => {
   const result = extractTables(FIXTURE)
-  assert.deepEqual(Object.keys(result.tables), ['1d20quests', 'locationsmonumentsanditems', 'conditiondescriptionandorigin', 'patronsandnpcs'])
+  assert.deepEqual(Object.keys(result.tables), [
+    '1d20quests',
+    'locationsmonumentsanditems',
+    'conditiondescriptionandorigin',
+    'patronsandnpcs',
+    'charactersecrets',
+    'historicalsecrets',
+    'npcandvillainsecrets',
+    'plotandstorysecrets',
+  ])
   assert.equal(result.version, '1.2.3')
+})
+
+test('extractTables lança erro quando a section creatingsecrets não existe', () => {
+  const broken = { version: '1.0.0', sections: [FIXTURE.sections[0]] }
+  assert.throws(() => extractTables(broken), /creatingsecrets/)
 })
 
 test('extractTables preserva data e headers de cada tabela sem normalizar', () => {

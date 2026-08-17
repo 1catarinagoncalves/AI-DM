@@ -11,6 +11,7 @@ import {
   EXTRACTION_PROVIDER_OPTIONS,
   formatProvenance,
   summaryModel,
+  extractionModel,
   buildDmSystemPrompt,
   buildTurnStateBlock,
   buildOpeningInstruction,
@@ -102,10 +103,12 @@ const SALVAGE_SYSTEM_PROMPT = `Você é o Mestre de um RPG. A narração de um t
 - NÃO role dados, NÃO chame ferramentas, NÃO escreva números de teste nem blocos de estado. Só a prosa de continuação e as opções.
 - Escreva em pt-BR natural, no mesmo tom da narração.`
 
-// Raciocínio baixo de propósito: o fecho é uma tarefa curta e o que importa aqui é
-// LATÊNCIA (estamos dentro do orçamento de 60s do turno). `exclude` mantém o raciocínio
-// fora da prosa (mesma razão do NARRATION_PROVIDER_OPTIONS).
-const SALVAGE_PROVIDER_OPTIONS = { openrouter: { reasoning: { effort: 'low', exclude: true } } } as const
+// US-114: `{enabled:false}`, NÃO `{effort:'low', exclude:true}`. A config antiga foi
+// medida contra o `extractionModel` (`qwen/qwen3.7-flash`) em 2026-08-17 e dá 200 com
+// corpo VAZIO — sem erro, sem log — o `hasOptionsList` abaixo dá falso, o
+// `SALVAGE_FALLBACK` assume, e o turno degrada pro "- 💬 Continuar." SEMPRE. Mesma
+// chave de `EXTRACTION_PROVIDER_OPTIONS`, mesmo motivo.
+const SALVAGE_PROVIDER_OPTIONS = { openrouter: { reasoning: { enabled: false } } } as const
 
 // Fecho estático de último recurso — se a geração do salvamento falhar ou ainda vier
 // sem opções, o jogador NUNCA fica sem saída.
@@ -158,12 +161,12 @@ export function applyInventoryDeltas(current: InventoryItem[], changes: { name: 
 
 /**
  * US-103: proveniência das três extrações estruturadas, no mesmo formato da linha do
- * turno. As três usam `summaryModel` e o MESMO pin de rota da narração — a ADR 008 §3
- * afirma que caem no mesmo endpoint dela, e esta linha é o que permite conferir por
- * observação. Endpoint diferente do turno = a §3 está errada.
+ * turno. Até a US-114 as três usavam `summaryModel` e o MESMO pin de rota da
+ * narração (ADR 008 §3); agora usam `extractionModel` (US-114), sem pin — endpoint
+ * único. Esta linha é o que permite conferir por observação qual dos dois serviu.
  */
 function logExtractionEndpoint(label: string, providerMetadata: unknown): void {
-  console.log(`[AiService][${label}] model=${summaryModel.modelId ?? 'unknown'} ${formatProvenance(providerMetadata)}`)
+  console.log(`[AiService][${label}] model=${extractionModel.modelId ?? 'unknown'} ${formatProvenance(providerMetadata)}`)
 }
 
 @Injectable()
@@ -936,8 +939,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     let closure = ''
     try {
       const { text } = await generateText({
-        // narrationModels[0] = deepseek-v4-flash (mesmo primário da narração).
-        model: narrationModels[0]!,
+        // US-114: extractionModel (qwen/qwen3.7-flash), não mais narrationModels[0].
+        // Fecho é continuação curta sem tools, mesma classe de tarefa das extrações —
+        // e é o item de maior valor da US-114 (latência dentro do teto de 60s do proxy).
+        model: extractionModel,
         system: SALVAGE_SYSTEM_PROMPT,
         prompt: `[AÇÃO DO JOGADOR]:\n${message}\n\n[NARRAÇÃO ATÉ AGORA — continue EXATAMENTE de onde parou, sem repetir]:\n${base}`,
         maxTokens: 700,
@@ -1076,7 +1081,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         ? `\n\nNÃO liste como objeto de cena o que a personagem CARREGA no inventário: ${carriedInventory.join(', ')}.`
         : ''
       const { object, providerMetadata } = await generateObject({
-        model: summaryModel,
+        model: extractionModel,
         schema: OPENING_SCENE_SCHEMA,
         system:
           'Extraia o estado de cena atual desta narração de abertura de RPG. Use APENAS o que está no texto — não invente local, NPC nem objeto. `ambiente`: interno = coberto/abrigado, externo = aberto. `presentes`: só NPCs/personagens na cena (NUNCA a própria personagem-jogadora). `objetos_em_cena`: objetos e elementos notáveis do ambiente, incluindo atmosféricos (névoa, cheiro), NUNCA itens que a personagem carrega. Deixe um campo vazio só se o texto realmente não o revelar.',
@@ -1114,7 +1119,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     if (text.length === 0) return null
     try {
       const { object, providerMetadata } = await generateObject({
-        model: summaryModel,
+        model: extractionModel,
         schema: OPENING_ENTITIES_SCHEMA,
         system:
           'Extraia as entidades DURÁVEIS que esta abertura de RPG estabelece — NPCs nomeados, locais, objetos notáveis, facções — e ONDE cada um está, usando APENAS o texto. Não invente e NÃO INFIRA vínculos que o texto não afirma explicitamente (dono, identidade secreta, parentesco): se a prosa mostra um arboreto sem dizer de quem é, extraia só "arboreto" (local), sem dono. Tudo aqui é conhecimento comum que o jogador já viu. Não inclua a própria personagem-jogadora. Se a abertura não estabelece nenhuma entidade durável, devolva a lista vazia.',
@@ -1140,7 +1145,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * mas esquece de registrar; o snapshot congela e o sinal de continuidade da US-71
    * passa a apontar para trás, alimentando o replay — `erro narração 2`).
    *
-   * Reusa a extração estruturada da US-35 (`OPENING_SCENE_SCHEMA` + `summaryModel`),
+   * Reusa a extração estruturada da US-35 (`OPENING_SCENE_SCHEMA` + `extractionModel`, US-114),
    * mas FUNDE com a cena corrente: dá a cena atual como base e pede o estado no FIM da
    * narração; campos escalares vazios NÃO sobrescrevem (turno só-diálogo não zera o
    * `local`). Persiste só a coluna `sceneState` — NÃO loga `CHARACTER_UPDATE` (mesmo
@@ -1160,7 +1165,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       const current = (state?.sceneState ?? null) as SceneState | null
       const baseText = (current && formatSceneState(current)) || '(nenhuma cena registrada ainda)'
       const { object, providerMetadata } = await generateObject({
-        model: summaryModel,
+        model: extractionModel,
         schema: OPENING_SCENE_SCHEMA,
         system:
           'Você reconcilia o estado ESTRUTURADO da cena de um RPG com a narração mais recente. Dada a CENA ATUAL e a NARRAÇÃO, produza o estado da cena como está no FIM da narração. Use APENAS o que a narração e a cena atual revelam — não invente. Se a personagem SE MOVEU para um lugar novo na narração, `local` é o lugar NOVO (fim do trajeto), não o de partida. `presentes`: só NPCs/personagens presentes no FIM (inclua quem apareceu, remova quem saiu; NUNCA a própria personagem-jogadora). `objetos_em_cena`: elementos notáveis do ambiente no fim (incl. atmosféricos), NUNCA itens carregados. Se a narração NÃO muda um campo, repita o valor da cena atual. Deixe um campo vazio só se nem a cena atual nem a narração o revelarem.',

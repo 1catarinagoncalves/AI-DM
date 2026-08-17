@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { NARRATION_PROVIDER_OPTIONS, EXTRACTION_PROVIDER_OPTIONS, OPENROUTER_PROVENANCE, formatProvenance } from './model'
+import { NARRATION_PROVIDER_OPTIONS, EXTRACTION_PROVIDER_OPTIONS, extractionModel, primaryModel, OPENROUTER_PROVENANCE, formatProvenance } from './model'
 
 // Guard do pin de roteamento do OpenRouter. O mesmo slug
 // `deepseek/deepseek-v4-flash` é servido por 22 endpoints e só o first-party da
@@ -41,8 +41,20 @@ describe('opções das extrações estruturadas', () => {
     expect(openrouter.reasoning).toEqual({ enabled: false })
   })
 
-  it('mantém o mesmo pin de rota da narração', () => {
-    expect(openrouter.provider).toBe(NARRATION_PROVIDER_OPTIONS.openrouter.provider)
+  // US-114: as extrações saíram do `summaryModel`/DeepSeek para `extractionModel`
+  // (`qwen/qwen3.7-flash`). O pin `DEEPSEEK_ROUTE` é `only: DEEPSEEK_ALLOWED_PROVIDERS`
+  // — herdá-lo aqui faria o OpenRouter não achar provedor que case, e a falha cairia
+  // dentro de um `catch` que devolve `null`, em silêncio. Sem `provider` nenhum não
+  // há rota para herdar por engano (critério de aceite #4 da US-114).
+  it('não carrega pin de rota do DeepSeek (o modelo novo não é DeepSeek)', () => {
+    expect(openrouter).not.toHaveProperty('provider')
+  })
+})
+
+describe('extractionModel (US-114)', () => {
+  it('é um modelo distinto do da narração/sumarização', () => {
+    expect(extractionModel.modelId).toBe('qwen/qwen3.7-flash')
+    expect(extractionModel.modelId).not.toBe(primaryModel.modelId)
   })
 })
 

@@ -282,9 +282,36 @@ export const NARRATION_PROVIDER_OPTIONS = {
 export const EXTRACTION_PROVIDER_OPTIONS = {
   openrouter: {
     reasoning: { enabled: false },
-    provider: DEEPSEEK_ROUTE,
   },
 } as const
+
+/**
+ * US-114: modelo utilitário para extração estruturada e fecho de turno truncado —
+ * `extractOpeningScene`/`extractOpeningEntities`/`reconcileScene`/`completeTruncatedTurn`
+ * (`ai.service.ts`) saem do `deepseek-v4-flash` da narração. As quatro são cópia de
+ * schema fechado ou continuação curta, não raciocínio de fronteira; `summaryModel`
+ * continua no modelo grande porque É o caso que já quebrou (413 "Request too large"
+ * do antigo `groq('llama-3.1-8b-instant')`, ver comentário dele abaixo) — o lote de
+ * overflow da sumarização cresce com a aventura, as quatro chamadas daqui têm
+ * entrada pequena e limitada (um texto de abertura, uma narração de um turno).
+ *
+ * `qwen/qwen3.7-flash`, SEM `provider` pin de propósito: endpoint único (Alibaba
+ * direto) — `DEEPSEEK_ROUTE` é pin de rota `only: DEEPSEEK_ALLOWED_PROVIDERS`
+ * específico da família DeepSeek; herdá-lo aqui faria o OpenRouter não achar
+ * provedor que case (falha dentro de um `catch` que devolve `null`, em silêncio).
+ * Sem `provider` nenhum não há esse risco (US-114, critério de aceite #4).
+ *
+ * Medido 2026-08-16/17 (US-114, Questões em aberto #1/#2) contra
+ * `POST /chat/completions` com o mesmo `tool_choice`/schema que `generateObject`
+ * em modo tool manda: aceita tool calling; thinking desliga só com
+ * `reasoning: { enabled: false }` — mesma armadilha do DeepSeek acima, mas com um
+ * agravante: `exclude`/`effort`/omitir dão 400 em `generateObject` (alto e visível),
+ * e dão 200 com corpo VAZIO em `generateText` (`completeTruncatedTurn`) — falha
+ * SILENCIOSA, sem log, degrada sempre pro `SALVAGE_FALLBACK`. Por isso
+ * `SALVAGE_PROVIDER_OPTIONS` (`ai.service.ts`) usa a MESMA chave `{enabled:false}`,
+ * não a antiga `{effort:'low', exclude:true}`.
+ */
+export const extractionModel: LanguageModelV1 = openrouter('qwen/qwen3.7-flash', {}, WITH_PROVENANCE)
 
 // Sumarização de memória: mesmo deepseek-v4-flash da narração, via OpenRouter.
 // Antes usava groq('llama-3.1-8b-instant'), mas o free tier daquele modelo tem

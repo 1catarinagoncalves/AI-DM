@@ -448,6 +448,19 @@ As listas de rótulos não são copiadas do DnDGenerate: são dez genéricos, e 
 próprio. O que se copia é **haver o eixo, e ele ser fixado uma vez**.
 Depende de: GEN-2, GEN-3. Consome, quando existir: GEN-13.
 
+**✱ GEN-4½ — locais e NPCs com prosa** *(descoberto em 2026-08-16, lacuna do texto original)*
+O passo 2 (locais, ~6) e o passo 3 (NPCs, ~7; >= 1 amarrado a `background.bonds`) de *Ordem de
+geração* estavam descritos em prosa desde o início (*O desenho: três camadas* já listava "prosa
+das locações e area aspects" na camada 2), mas nunca ganharam número `GEN-N` nem story própria —
+a numeração pulava direto de GEN-4 (rolagem crua) para GEN-6 (segredos). Sem eles, `locations[]`/
+`npcs[]` com `id` real não existem em lugar nenhum do código para a GEN-6 referenciar.
+Veste de prosa o conteúdo bruto da GEN-4 (`locais`/`monumentos` crus) e a tabela `patronsandnpcs`
+(`behavior`/`ancestry`, sem `name`/`role` — invenção do modelo em cima disso, não cópia). `id` é
+atribuído no código, nunca pelo modelo — é o primeiro passo que os minta; GEN-6 só os referencia.
+Modelo barato (US-114), mesmo padrão da GEN-6.
+Story: [US-158](./US-158-locais-npcs-prosa-motor.md).
+Depende de: GEN-4. Bloqueia: GEN-6.
+
 **✱ GEN-5 — perfil do personagem como entrada**
 Monta o perfil que o motor recebe: nível, chave de classe, `background` e o `hookSeed` do gancho.
 Critério que não pode faltar: **personagem com `background` vazio gera aventura completa**,
@@ -455,9 +468,10 @@ caindo no `hookSeed`. Assinatura recebe nível desde já, com valor 1 enquanto a
 Depende de: nada. Bloqueia: GEN-6.
 
 **✱ GEN-6 — segredos pelos 40 prompts**
-A chamada ao modelo do passo 4, com locais e NPCs já decididos no contexto — nunca antes. Modelo
-barato (US-114). É a tarefa que decide se a aventura gerada tem quebra-cabeça ou lista.
-Depende de: GEN-4, GEN-5.
+A chamada ao modelo do passo 4, com locais e NPCs já decididos no contexto (saída da GEN-4½,
+`locations[]`/`npcs[]` com `id` real — nunca o conteúdo bruto da GEN-4 direto) — nunca antes.
+Modelo barato (US-114). É a tarefa que decide se a aventura gerada tem quebra-cabeça ou lista.
+Depende de: GEN-4½, GEN-5.
 
 **✱ GEN-7 — gate antes de persistir**
 Quatro verificações, e re-seed em vez de conserto:
@@ -583,9 +597,9 @@ Depende de: GEN-13.
 
 ## Corte mínimo
 
-**GEN-0 + GEN-1 + GEN-2 + GEN-3 + GEN-4 + GEN-5 + GEN-6 + GEN-7 + GEN-8 + GEN-9 + GEN-10 +
-GEN-13 + GEN-14** — treze stories, **nenhuma tarefa de escrita**, nenhuma dependência de outro
-backlog.
+**GEN-0 + GEN-1 + GEN-2 + GEN-3 + GEN-4 + GEN-4½ + GEN-5 + GEN-6 + GEN-7 + GEN-8 + GEN-9 + GEN-10 +
+GEN-13 + GEN-14** — catorze stories (GEN-4½/US-158 somada em 2026-08-16, lacuna nunca numerada do
+texto original), **nenhuma tarefa de escrita**, nenhuma dependência de outro backlog.
 
 Fora: eval e limpeza dos ganchos. Fora também: seed compartilhável, PDF, mapa, quests em fases.
 
@@ -647,6 +661,10 @@ raciocínio delas é anterior e vale como registro.
   único caminho de aventura da fase 1, o motor gera inclusive a primeira, e a referência de eval
   fica sendo permanentemente os exemplares do LGMRD. Custos em *O adiamento do arco para a fase 4*.
 - **07/08/2026 — tamanho de grupo é 1, escrito como 1.** Não é parâmetro antes da fase 4. GEN-9.
+- **16/08/2026 — locais e NPCs com prosa viram GEN-4½/US-158, story própria.** Estavam descritos em
+  *O desenho: três camadas* desde o início mas nunca numerados nem escritos — a lacuna só apareceu
+  ao detalhar a implementação da GEN-6 (US-149), que assumia `locations[]`/`npcs[]` com `id` real
+  como entrada já pronta.
 
 ## Decisões abertas
 

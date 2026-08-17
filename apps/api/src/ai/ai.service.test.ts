@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { AiService, scenePatchFromExtraction, applyInventoryDeltas } from './ai.service'
-import { mergeSceneState } from '@ai-dm/ai-engine'
+import { mergeSceneState, extractionModel } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
@@ -9,12 +9,14 @@ import type { EventLog } from '../generated/prisma/client'
 // US-74: a geração do fecho é a única I/O externa do `completeTruncatedTurn`. Fake
 // fixa — o que se testa aqui é o encanamento (o que é persistido, o que é
 // reconciliado, o que vai no prompt), não a prosa do modelo.
-const { salvage } = vi.hoisted(() => ({ salvage: { text: '', system: '', prompt: '' } }))
+const { salvage } = vi.hoisted(() => ({ salvage: { text: '', system: '', prompt: '', model: undefined as unknown, providerOptions: undefined as unknown } }))
 vi.mock('ai', async (importOriginal) => ({
   ...(await importOriginal<typeof import('ai')>()),
-  generateText: async ({ system, prompt }: { system: string; prompt: string }) => {
+  generateText: async ({ system, prompt, model, providerOptions }: { system: string; prompt: string; model: unknown; providerOptions: unknown }) => {
     salvage.system = system
     salvage.prompt = prompt
+    salvage.model = model
+    salvage.providerOptions = providerOptions
     return { text: salvage.text }
   },
 }))
@@ -216,6 +218,22 @@ describe('AiService.completeTruncatedTurn (US-74)', () => {
     await svc.completeTruncatedTurn(INPUT, 'O beco engole o som dos seus passos.')
 
     expect(reconciled[0]!.turnId).toBeUndefined()
+  })
+
+  // US-114: `completeTruncatedTurn` saiu de `narrationModels[0]` para `extractionModel`,
+  // e `{effort:'low', exclude:true}` para `{enabled:false}` — a config antiga dá 200
+  // com corpo VAZIO no modelo novo (achado 2026-08-17, Questão em aberto #2), sem
+  // erro nem log: o `hasOptionsList` abaixo dá falso, `SALVAGE_FALLBACK` assume, e o
+  // turno degrada pro "- 💬 Continuar." SEMPRE, em silêncio. Regressão dessa dupla —
+  // trocar só o modelo e deixar a config antiga é exatamente o bug que este teste pega.
+  it('US-114: usa extractionModel com reasoning {enabled:false}, não a config antiga do 60s', async () => {
+    const { svc } = salvageService()
+    salvage.text = 'A grade cede.\n\n- 🗡️ Descer.'
+
+    await svc.completeTruncatedTurn(INPUT, 'O beco engole o som dos seus passos.')
+
+    expect(salvage.model).toBe(extractionModel)
+    expect(salvage.providerOptions).toEqual({ openrouter: { reasoning: { enabled: false } } })
   })
 })
 

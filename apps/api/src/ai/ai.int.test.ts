@@ -72,7 +72,16 @@ vi.mock('@ai-dm/ai-engine', async (importOriginal) => {
 
   // Cast necessário: `LanguageModelV1` vive em @ai-sdk/provider, que não é dependência
   // direta da API — declarar o tipo aqui exigiria adicioná-la só para um teste.
-  return { ...actual, narrationModels: [narrador as unknown as (typeof actual.narrationModels)[number]], summaryModel: extrator as unknown as typeof actual.summaryModel }
+  //
+  // US-114: `reconcileScene` saiu de `summaryModel` para `extractionModel` — o dublê
+  // precisa cobrir os dois nomes (o segundo é quem de fato intercepta a chamada agora;
+  // `summaryModel` fica dublado por segurança, caso `summarizeOldTurns` dispare).
+  return {
+    ...actual,
+    narrationModels: [narrador as unknown as (typeof actual.narrationModels)[number]],
+    summaryModel: extrator as unknown as typeof actual.summaryModel,
+    extractionModel: extrator as unknown as typeof actual.extractionModel,
+  }
 })
 
 // --- chunks do dublê -------------------------------------------------------------
