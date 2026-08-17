@@ -9,7 +9,13 @@ import type { EventLog } from '../generated/prisma/client'
 // US-74: a geração do fecho é a única I/O externa do `completeTruncatedTurn`. Fake
 // fixa — o que se testa aqui é o encanamento (o que é persistido, o que é
 // reconciliado, o que vai no prompt), não a prosa do modelo.
-const { salvage } = vi.hoisted(() => ({ salvage: { text: '', system: '', prompt: '', model: undefined as unknown, providerOptions: undefined as unknown } }))
+// US-158: mesmo padrão para `generateObject` — `genObj.result` é o retorno fixo,
+// `genObj.error` (quando setado) faz o fake REJEITAR em vez de resolver, pra testar
+// que a falha propaga (critério de aceite da US-158) em vez de cair num catch mudo.
+const { salvage, genObj } = vi.hoisted(() => ({
+  salvage: { text: '', system: '', prompt: '', model: undefined as unknown, providerOptions: undefined as unknown },
+  genObj: { result: undefined as unknown, error: undefined as unknown, system: '', prompt: '', model: undefined as unknown },
+}))
 vi.mock('ai', async (importOriginal) => ({
   ...(await importOriginal<typeof import('ai')>()),
   generateText: async ({ system, prompt, model, providerOptions }: { system: string; prompt: string; model: unknown; providerOptions: unknown }) => {
@@ -18,6 +24,13 @@ vi.mock('ai', async (importOriginal) => ({
     salvage.model = model
     salvage.providerOptions = providerOptions
     return { text: salvage.text }
+  },
+  generateObject: async ({ system, prompt, model }: { system: string; prompt: string; model: unknown }) => {
+    genObj.system = system
+    genObj.prompt = prompt
+    genObj.model = model
+    if (genObj.error) throw genObj.error
+    return { object: genObj.result, providerMetadata: undefined }
   },
 }))
 
@@ -315,5 +328,68 @@ describe('scenePatchFromExtraction + reconcile (US-73)', () => {
     const extracted = { local: 'clareira', ambiente: 'externo' as const, periodo: 'manhã', presentes: [], objetos_em_cena: [] }
     const next = mergeSceneState(stale, scenePatchFromExtraction(extracted))
     expect(next.presentes).toEqual([]) // ninguém além da personagem
+  })
+})
+
+describe('AiService.generateLocationsAndNpcs (US-158)', () => {
+  const rolled = {
+    premissa: 'Open a gate',
+    locais: 'Cove',
+    monumentos: 'Cage',
+    complicacao: { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' },
+    patronsandnpcs: Array.from({ length: 7 }, () => ({ behavior: 'Sly', ancestry: 'Human' })),
+  }
+  const registry = { setting: 'coastal', tone: 'grimdark', areaType: 'ruins' }
+
+  function svc() {
+    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+  }
+
+  it('minta id no código (loc-N/npc-N), nunca deixado ao modelo', async () => {
+    genObj.error = undefined
+    genObj.result = {
+      locations: [{ title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas do mestre', occupants: ['Marta'] }],
+      npcs: [{ name: 'Marta', role: 'a arquétipo herborista suspeita' }],
+    }
+    const { locations, npcs } = await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })
+    expect(npcs[0]!.id).toBe('npc-1')
+    expect(locations[0]!.id).toBe('loc-1')
+    expect(locations[0]!.occupants).toEqual(['npc-1']) // resolvido por nome → id
+  })
+
+  it('occupant sem NPC correspondente fica cru (melhor esforço — gate é US-150)', async () => {
+    genObj.error = undefined
+    genObj.result = {
+      locations: [{ title: 'Torre', aspects: [], boxedText: 'x', description: 'y', occupants: ['Fantasma sem nome'] }],
+      npcs: [{ name: 'Marta', role: 'papel' }],
+    }
+    const { locations } = await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })
+    expect(locations[0]!.occupants).toEqual(['Fantasma sem nome'])
+  })
+
+  it('usa extractionModel (US-114), não primaryModel', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })
+    expect(genObj.model).toBe(extractionModel)
+  })
+
+  it('background.bonds presente entra no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho', background: { bonds: ['jurou vingança contra o culto'] } })
+    expect(genObj.system).toContain('jurou vingança contra o culto')
+  })
+
+  it('background/origin vazios cai no hookSeed como âncora (US-148)', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho da abertura' })
+    expect(genObj.system).toContain('gancho da abertura')
+  })
+
+  it('falha propaga erro estruturado — NÃO devolve array vazio em silêncio', async () => {
+    genObj.error = new Error('modelo indisponível')
+    await expect(svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })).rejects.toThrow('modelo indisponível')
   })
 })

@@ -17,7 +17,25 @@ describe('rollContent (US-147)', () => {
       locais: 'Cove',
       monumentos: 'Cage',
       complicacao: { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' },
+      patronsandnpcs: [
+        { behavior: 'Sly', ancestry: 'Talking animal' },
+        { behavior: 'Soft spoken', ancestry: 'Artifact' },
+        { behavior: 'Shifty', ancestry: 'Dwarf' },
+        { behavior: 'Superior', ancestry: 'Tiefling' },
+        { behavior: 'Optimistic', ancestry: 'Halfling' },
+        { behavior: 'Soft spoken', ancestry: 'Artifact' },
+        { behavior: 'Suspicious', ancestry: 'Goblin' },
+      ],
     })
+  })
+
+  // US-158: 7 rolls independentes (um por NPC) — `order` diferente muda a seleção,
+  // igual aos outros campos (não-degenerado).
+  it('patronsandnpcs tem 7 linhas e muda com order (US-158)', () => {
+    const a = rollContent('char-1', 1).patronsandnpcs
+    const b = rollContent('char-1', 2).patronsandnpcs
+    expect(a).toHaveLength(7)
+    expect(a).not.toEqual(b)
   })
 
   it('order diferente produz conteúdo diferente (não-degenerado)', () => {

@@ -1,12 +1,23 @@
 import { createSeededRandom, deriveAdventureSeed } from '@ai-dm/shared'
 import { readLgmrdTables, type LgmrdTable, type LgmrdTableRow } from './lgmrd-tables'
 
+export interface RolledPatronOrNpc {
+  behavior: string
+  ancestry: string
+}
+
 export interface RolledAdventureContent {
   premissa: string
   locais: string
   monumentos: string
   complicacao: { condition: string; description: string; origin: string }
+  patronsandnpcs: RolledPatronOrNpc[]
 }
+
+// US-158: uma linha de `patronsandnpcs` dá `behavior`+`ancestry` para ~1 NPC — o modelo
+// inventa nome/papel em cima disso (ver Notas de implementação da US-158), então
+// rolar 7x cobre os ~7 NPCs do backlog.
+const NPC_ROLL_COUNT = 7
 
 function pickRow(table: LgmrdTable, rand: () => number): LgmrdTableRow {
   return table.data[Math.floor(rand() * table.data.length)]!
@@ -19,10 +30,20 @@ function tableSeed(characterId: string, order: number, purpose: string): number 
   return deriveAdventureSeed(`${characterId}:${purpose}`, order)
 }
 
+// US-158: sub-seed POR ROLL (`npc-1`..`npc-7`), não um único `npc` compartilhado — mesma
+// garantia de independência do resto da tabela: rolar mais ou menos NPCs no futuro não
+// desloca a sequência dos outros campos.
+function rollPatronsAndNpcs(characterId: string, order: number, table: LgmrdTable): RolledPatronOrNpc[] {
+  return Array.from({ length: NPC_ROLL_COUNT }, (_, i) => {
+    const row = pickRow(table, createSeededRandom(tableSeed(characterId, order, `npc-${i + 1}`)))
+    return { behavior: String(row['behavior']), ancestry: String(row['ancestry']) }
+  })
+}
+
 /**
  * Conteúdo — matéria-prima bruta das tabelas do LGMRD, rolada pelo seed determinístico da
- * US-146. Ainda não é prosa (isso é US-149 e a prosa das locações) nem uma GeneratedAdventure
- * montada (US-144) — só a lista de escolhas roladas.
+ * US-146. Ainda não é prosa (isso é US-158, locais/NPCs, e US-149, segredos) nem uma
+ * GeneratedAdventure montada (US-144) — só a lista de escolhas roladas.
  *
  * `locais`/`monumentos` vêm da MESMA linha de `locationsmonumentsanditems` — um roll dá os
  * dois juntos na fonte (LGMRD), então usam o mesmo sub-seed.
@@ -41,5 +62,6 @@ export function rollContent(characterId: string, order: number, tables: ReturnTy
       description: String(conditionRow['description']),
       origin: String(conditionRow['origin']),
     },
+    patronsandnpcs: rollPatronsAndNpcs(characterId, order, tables.tables['patronsandnpcs']),
   }
 }

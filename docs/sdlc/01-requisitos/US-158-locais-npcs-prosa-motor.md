@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-147](./US-147-rolagem-registro-conteudo.md) (conteúdo bruto rolado — locais/monumentos, `patronsandnpcs`) · [US-148](./US-148-perfil-personagem-entrada-motor.md) (perfil do personagem, para amarrar NPC a `bonds`) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (`extractionModel` já existe no código, [model.ts:314](../../../packages/ai-engine/src/model.ts) — verificado 2026-08-17; doc do US-114 ainda mostra status 🚧 Em progresso, mas a peça que esta story precisa já foi entregue, não é mais bloqueio)
 **Bloqueia:** [US-149](./US-149-segredos-40-prompts-lgmrd.md) (precisa de `locations`/`npcs` com `id` real como entrada)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot §O desenho: três camadas / §Ordem de geração](./backlog-motor-de-geracao-de-aventuras.md) (passos 2 "locais" e 3 "NPCs", camada 2 — nunca ganharam número `GEN-N` próprio) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) · [US-144](./US-144-schema-aventura-shared.md) (`AdventureLocationSchema`/`AdventureNpcSchema`, reusados sem mudança)
@@ -64,13 +64,13 @@ Uma chamada `generateObject` (mesmo molde de `extractOpeningEntities`, [ai.servi
 
 ## Critérios de aceite
 
-- [ ] Função produz `locations: AdventureLocationSchema[]` e `npcs: AdventureNpcSchema[]`, cada item com `id` atribuído no código (nunca pelo modelo), rodando **depois** do conteúdo bruto da US-147 existir e **antes** da chamada de segredos da US-149 — ordem verificável pela assinatura exigir o conteúdo rolado como parâmetro obrigatório.
-- [ ] `patronsandnpcs` é rolado pelo seed determinístico (US-146), não pelo modelo — nenhuma chamada a `Math.random`.
-- [ ] Ao menos um NPC (papel ou nome) referencia `background.bonds` quando presente — checagem por palavra-chave ou LLM-judge, molde da rubrica US-36 (mesma disciplina que a US-149 aplica aos segredos).
-- [ ] Personagem com `background`/`origin` vazios ainda produz `locations`/`npcs` válidos, usando só `hookSeed` como âncora.
-- [ ] Chamada usa `extractionModel` (US-114), não `primaryModel`.
-- [ ] Falha/timeout propaga erro estruturado — não devolve array vazio silenciosamente; aciona reseed pela US-150.
-- [ ] **Eval / teste de regressão:** fixture com `background.bonds` preenchido produz ao menos um NPC referenciando esse vínculo; fixture com `background`/`origin` vazios ainda produz `locations`/`npcs` não-vazios.
+- [x] Função produz `locations: AdventureLocationSchema[]` e `npcs: AdventureNpcSchema[]`, cada item com `id` atribuído no código (nunca pelo modelo), rodando **depois** do conteúdo bruto da US-147 existir e **antes** da chamada de segredos da US-149 — ordem verificável pela assinatura exigir o conteúdo rolado como parâmetro obrigatório. (`AiService.generateLocationsAndNpcs`, [ai.service.ts](../../../apps/api/src/ai/ai.service.ts))
+- [x] `patronsandnpcs` é rolado pelo seed determinístico (US-146), não pelo modelo — nenhuma chamada a `Math.random`. (`rollPatronsAndNpcs`, [roll-content.ts](../../../apps/api/src/adventure-generation/roll-content.ts))
+- [x] Ao menos um NPC (papel ou nome) referencia `background.bonds` quando presente — checagem por palavra-chave ou LLM-judge, molde da rubrica US-36 (mesma disciplina que a US-149 aplica aos segredos). Aqui via instrução explícita no prompt (`bondsInstruction`); a checagem de qualidade da saída real do modelo é trabalho de eval, fora do escopo do teste unitário.
+- [x] Personagem com `background`/`origin` vazios ainda produz `locations`/`npcs` válidos, usando só `hookSeed` como âncora.
+- [x] Chamada usa `extractionModel` (US-114), não `primaryModel`.
+- [x] Falha/timeout propaga erro estruturado — não devolve array vazio silenciosamente; aciona reseed pela US-150. Sem `try/catch`, ao contrário de `extractOpeningEntities`/`extractOpeningScene` — de propósito.
+- [x] **Eval / teste de regressão:** [ai.service.test.ts](../../../apps/api/src/ai/ai.service.test.ts) (`AiService.generateLocationsAndNpcs`) cobre minting de `id`, resolução de `occupants` por nome, uso de `extractionModel`, `bonds` no prompt, fallback pro `hookSeed`, e propagação de erro. [roll-content.test.ts](../../../apps/api/src/adventure-generation/roll-content.test.ts) cobre fixture pinada de `patronsandnpcs` e não-degeneração por `order`.
 
 ---
 

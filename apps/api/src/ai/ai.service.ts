@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
-import type { InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
+import type { AdventureLocation, AdventureNpc, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
 import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
@@ -40,6 +40,8 @@ import {
 import { DiceService } from '../game/dice.service'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
+import type { RolledAdventureContent } from '../adventure-generation/roll-content'
+import type { AdventureRegistry } from '../adventure-generation/roll-registry'
 
 export interface ChatInput {
   adventureId: string
@@ -90,6 +92,47 @@ const OPENING_ENTITIES_SCHEMA = z.object({
 })
 
 const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
+
+// US-158: schema da prosa de locais+NPCs. SEM `id` — quem minta é o código
+// (`generateLocationsAndNpcs`), nunca o modelo. `occupants` referencia NPCs pelo NOME
+// (o `id` ainda não existe neste ponto da chamada); o código resolve nome→id depois.
+const LOCATIONS_AND_NPCS_SCHEMA = z.object({
+  locations: z
+    .array(
+      z.object({
+        title: z.string().min(1),
+        aspects: z.array(z.string()).describe('2-3 aspectos/traços curtos do local, estilo Fate — não frases completas'),
+        boxedText: z.string().min(1).describe('Texto de leitura em voz alta ao chegar no local, 2-3 frases'),
+        description: z.string().min(1).describe('Notas do mestre sobre o local — NÃO lidas em voz alta'),
+        occupants: z.array(z.string()).describe('Nomes de NPCs presentes aqui, EXATAMENTE como escritos em npcs[].name — [] se nenhum'),
+      }),
+    )
+    .min(1),
+  npcs: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        role: z.string().min(1).describe('Arquétipo de ficção popular + conexão com a aventura, 1 frase curta'),
+      }),
+    )
+    .min(1),
+})
+
+// US-158: `patronsandnpcs` só dá behavior+ancestry (método do LGMRD) — o prompt lista
+// as linhas roladas para o modelo INVENTAR nome+arquétipo em cima delas, nunca copiar.
+function buildLocationsAndNpcsPrompt(rolled: RolledAdventureContent): string {
+  const npcRows = rolled.patronsandnpcs
+    .map((row, i) => `${i + 1}. comportamento: ${row.behavior}; ancestralidade: ${row.ancestry}`)
+    .join('\n')
+  return [
+    `Premissa da aventura: ${rolled.premissa}`,
+    `Local/monumento centrais rolados: ${rolled.locais} — ${rolled.monumentos}`,
+    `Complicação: ${rolled.complicacao.condition} (${rolled.complicacao.description}), origem: ${rolled.complicacao.origin}`,
+    '',
+    `Linhas roladas para os NPCs (uma por NPC, gere exatamente ${rolled.patronsandnpcs.length}):`,
+    npcRows,
+  ].join('\n')
+}
 
 // US-74 (salvage): instrução da chamada que COMPLETA uma narração truncada. Foco
 // estreito — continuar + fechar nas opções, SEM tools, SEM dados. As opções são
@@ -1136,6 +1179,65 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       logLlmFailure('semeadura de entidades da abertura', 'o ledger nasce vazio e o Mestre pode contradizer a abertura (US-75)', err)
       return null
     }
+  }
+
+  /**
+   * US-158: veste de prosa os ~6 locais e gera os ~7 NPCs a partir do conteúdo bruto
+   * já rolado (US-147), mintando `id` real no CÓDIGO (`loc-N`/`npc-N`) — nunca deixado
+   * ao modelo (a US-149 só CONSOME esses `id`s, esta story é quem os cria). Uma
+   * chamada combinada (não duas): deixa o modelo amarrar `occupants` de local a NPC no
+   * mesmo contexto (Notas de implementação da US-158).
+   *
+   * Ao contrário de `extractOpeningEntities`/`extractOpeningScene` (que engolem falha
+   * e devolvem `null`), esta chamada NUNCA captura erro: sem `locations`/`npcs` a
+   * US-149 (segredos) e o gate da US-150 não têm entrada — a falha aqui é motivo de
+   * reseed, não de degradar em silêncio (US-158, critério de aceite).
+   */
+  async generateLocationsAndNpcs(params: {
+    rolled: RolledAdventureContent
+    registry: AdventureRegistry
+    background?: CharacterBackground
+    hookSeed: string
+  }): Promise<{ locations: AdventureLocation[]; npcs: AdventureNpc[] }> {
+    const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
+    // Rede de segurança quando `background`/`origin` vêm vazios (US-148): o gancho
+    // segue sendo a âncora, mesma garantia que a US-148 já estabelece na entrada.
+    const bondsInstruction = bonds.length > 0
+      ? `Vínculos da personagem — amarre AO MENOS UM NPC (por nome ou papel) a um destes: ${bonds.join('; ')}.`
+      : `Personagem sem vínculos registrados — amarre ao menos um NPC ao gancho da aventura: "${params.hookSeed}".`
+
+    const { object, providerMetadata } = await generateObject({
+      model: extractionModel,
+      schema: LOCATIONS_AND_NPCS_SCHEMA,
+      system:
+        'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
+        'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ${bondsInstruction}`,
+      prompt: buildLocationsAndNpcsPrompt(params.rolled),
+      providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+    })
+    logExtractionEndpoint('generateLocationsAndNpcs', providerMetadata)
+
+    const npcs: AdventureNpc[] = object.npcs.map((npc, i) => ({
+      id: `npc-${i + 1}`,
+      name: npc.name,
+      role: npc.role,
+      interactions: [],
+    }))
+    const npcIdByName = new Map(npcs.map((npc) => [normName(npc.name), npc.id]))
+
+    // US-158, Fora do escopo: integridade referencial é "melhor esforço" aqui (gate
+    // fica pra US-150) — nome sem match vira `occupants` cru, não é descartado.
+    const locations: AdventureLocation[] = object.locations.map((loc, i) => ({
+      id: `loc-${i + 1}`,
+      title: loc.title,
+      aspects: loc.aspects,
+      boxedText: loc.boxedText,
+      description: loc.description,
+      occupants: loc.occupants.map((name) => npcIdByName.get(normName(name)) ?? name),
+    }))
+
+    return { locations, npcs }
   }
 
   /**
