@@ -39,7 +39,7 @@ Quatro verificações, na ordem certa, e **re-seed em vez de conserto**: nunca s
 
 1. **O artefato passa no `parse()` da [US-144](./US-144-schema-aventura-shared.md).** Primeira verificação, mais barata.
 2. **O grafo fecha.** Todo `locationId`, `npcId` e `encounterId` referenciado existe na seção correspondente, e nenhuma locação ou NPC declarado fica órfão — sem encontro, sem segredo, sem interação apontando para ele. Substitui a checagem mais fraca de "ao menos três segredos referenciam entidade que existe" (que só media um lado da relação).
-3. **O orçamento do encontro cabe em um personagem** daquele nível — comparado contra o *Lazy Encounter Benchmark* da [US-159](./US-159-orcamento-de-encontro-lgmrd.md) e os papéis de statblock da [US-152](./US-152-statblocks-papel-orcamento.md).
+3. **O orçamento do encontro cabe em um personagem** daquele nível — comparado contra o *Lazy Encounter Benchmark* da [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (✅ implementada: `encounterDeadlyThreshold(level)` e `singleMonsterCrCap(level)`, [`apps/api/src/adventure-generation/lazy-encounter-benchmark.ts`](../../../apps/api/src/adventure-generation/lazy-encounter-benchmark.ts)) e os papéis de statblock da [US-152](./US-152-statblocks-papel-orcamento.md). Falha se a soma de CR dos monstros do encontro **excede** (`>`) `encounterDeadlyThreshold`, **ou** se algum monstro único tem CR que **alcança ou passa** (`>=`) `singleMonsterCrCap` — as duas checagens da US-159, operadores diferentes de propósito.
 4. **Piso de quantidade por seção** (locais, NPCs, segredos, encontros) — verificado **no prompt** da [US-149](./US-149-segredos-40-prompts-lgmrd.md), não aqui em código (molde do DnDGenerate: pedir "se houver menos de N, escreva mais" é mais barato que re-rolar a aventura inteira por falta de um NPC). Este gate só confirma que o piso foi atingido, não o impõe via retry de prompt.
 - **Re-seed, teto explícito.** Falha em qualquer uma das quatro verificações → gera de novo com `seed + 1` (US-146). Teto de tentativas explícito (ex. 3), com falha **registrada** (log estruturado com o motivo da última falha) — gerador que re-rola sem limite trava a criação de personagem.
 - **Critério de saída do corte mínimo, não automatizável:** um seed pinado, jogado à mão ponta a ponta — critério humano, não substituível por `pnpm test` verde. Vira rotina: um seed novo jogado a cada mudança no prompt de segredos ([US-149](./US-149-segredos-40-prompts-lgmrd.md)).
@@ -48,7 +48,7 @@ Quatro verificações, na ordem certa, e **re-seed em vez de conserto**: nunca s
 
 - **Consertar a saída do modelo** (pedir para ele corrigir um `id` inválido) — deliberadamente fora; o remédio é sempre reseed.
 - **A cadeia causal entre pistas e a subversão do template** — o grafo fechar garante que a pista aponta para algo que existe, não que as pistas componham um mecanismo coerente. É piso, não teto (ver *O que o motor não produz* no backlog) — não é critério de aceite mecânico desta story.
-- **Escolher os valores da régua de dificuldade** — usa o que a [US-111](./US-111-classe-de-dificuldade-do-srd-2024.md)/[US-152](./US-152-statblocks-papel-orcamento.md) já definirem; esta story só compara, não define a escala.
+- **Escolher os valores da régua de orçamento de encontro** — usa o que a [US-159](./US-159-orcamento-de-encontro-lgmrd.md)/[US-152](./US-152-statblocks-papel-orcamento.md) já definirem; esta story só compara, não define a escala. (Não é [US-111](./US-111-classe-de-dificuldade-do-srd-2024.md) — essa é a CD de teste de habilidade, um dado diferente; ver a nota de correção no cabeçalho da US-159.)
 
 ---
 
@@ -71,7 +71,7 @@ type GateResult =
 - [ ] Artefato que falha `.parse()` (US-144) é rejeitado antes das outras três verificações rodarem — ordem de custo crescente.
 - [ ] Toda referência cruzada (`locationId`, `npcId`, `encounterId`) do artefato é resolvida contra as seções correspondentes; artefato com referência para `id` inexistente falha o gate.
 - [ ] Nenhuma locação ou NPC declarado fica órfão — sem nenhum encontro, segredo ou interação apontando para ele — sob pena de falhar o gate.
-- [ ] Orçamento de cada encontro é comparado contra a régua de dificuldade para **um** personagem daquele nível; encontro fora do orçamento falha o gate.
+- [ ] Orçamento de cada encontro é comparado contra `encounterDeadlyThreshold`/`singleMonsterCrCap` (US-159) para **um** personagem daquele nível; encontro fora do orçamento falha o gate.
 - [ ] Falha em qualquer verificação aciona reseed (`seed + 1`, US-146), até um teto explícito de tentativas; ao esgotar o teto, a falha é registrada com o motivo da última tentativa, e a criação da aventura não trava indefinidamente.
 - [ ] Nenhuma tentativa de "consertar" a saída do modelo existe no código — só reseed inteiro.
 - [ ] **Critério de saída do corte mínimo (não automatizável):** um seed pinado, jogado à mão ponta a ponta, sem sopa de pista genérica — registrado como parte do relato desta story, não como teste automatizado.
@@ -82,6 +82,7 @@ type GateResult =
 ## Notas de implementação
 
 - **Ordem de verificação por custo:** `.parse()` primeiro (mais barato), grafo depois (percorrer arrays, ainda barato), orçamento por último (pode exigir os dados de statblock da [US-152](./US-152-statblocks-papel-orcamento.md) já carregados). Falhar cedo evita trabalho desperdiçado antes do reseed.
+- **`encounterDeadlyThreshold`/`singleMonsterCrCap` (US-159) não leem arquivo em runtime** — fórmula hardcoded, dois `if`/ternário. O gate soma o CR dos monstros do encontro (convertido de fração pra número — responsabilidade de quem monta o encontro, tipicamente US-152) e compara contra o retorno dessas duas funções; não há parsing nem I/O extra nesta verificação.
 - **O grafo fecha é a verificação central desta story** — é o que a integridade referencial do schema (US-144) torna possível verificar de forma mecânica, ao contrário do LGMRD puro (oito listas sem obrigação de citação cruzada).
 - **Teto de tentativas** — número exato (3? 5?) fica para a implementação decidir olhando o custo real por chamada ([US-149](./US-149-segredos-40-prompts-lgmrd.md) é a mais cara, uma chamada de modelo por tentativa de reseed inteira).
 - **Esgotamento do teto de reseed:** o backlog não decide se a criação da aventura falha de vez ou cai num fallback (aventura mais simples, sem os quatro gates) — só cita "trava a criação de personagem" como risco a evitar, sem especificar o comportamento. Falhar explicitamente com erro estruturado (molde da [US-120](./US-120-erro-de-llm-estruturado.md)), nunca silenciar.
@@ -99,5 +100,5 @@ Nenhuma.
 - [Backlog — Motor de geração de aventuras one-shot §GEN-7](./backlog-motor-de-geracao-de-aventuras.md) (US-150) — texto de origem, as quatro verificações e o critério de saída do corte mínimo.
 - [US-144](./US-144-schema-aventura-shared.md) — `GeneratedAdventureSchema.parse()`, primeira verificação.
 - [US-146](./US-146-seed-deterministico-motor-aventura.md) — `seed + 1`, o mecanismo de reseed.
-- [US-159](./US-159-orcamento-de-encontro-lgmrd.md) — *Lazy Encounter Benchmark*, a régua de orçamento de encontro que a verificação 3 compara.
+- [US-159](./US-159-orcamento-de-encontro-lgmrd.md) — *Lazy Encounter Benchmark*, a régua de orçamento de encontro que a verificação 3 compara. ✅ Implementada: [`apps/api/src/adventure-generation/lazy-encounter-benchmark.ts`](../../../apps/api/src/adventure-generation/lazy-encounter-benchmark.ts) (`encounterDeadlyThreshold`, `singleMonsterCrCap`).
 - [US-120](./US-120-erro-de-llm-estruturado.md) — molde de erro estruturado para o esgotamento do teto de reseed.

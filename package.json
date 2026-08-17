@@ -28,7 +28,9 @@
     "lazygm:extract": "node scripts/lazygm/extract-tables.mjs",
     "lazygm:extract:test": "node --test scripts/lazygm/extract-tables.test.mjs",
     "lazygm:extract-benchmark": "node scripts/lazygm/extract-benchmark.mjs",
-    "lazygm:extract-benchmark:test": "node --test scripts/lazygm/extract-benchmark.test.mjs"
+    "lazygm:extract-benchmark:test": "node --test scripts/lazygm/extract-benchmark.test.mjs",
+    "lazygm:extract-monster-roles": "node scripts/lazygm/extract-monster-roles.mjs",
+    "lazygm:extract-monster-roles:test": "node --test scripts/lazygm/extract-monster-roles.test.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

@@ -1,0 +1,13 @@
+{
+  "version": "3.1.0",
+  "sourceSubsections": {
+    "minion": "Minion (CR 1/8)",
+    "soldier": "Soldier (CR 1/2)",
+    "brute": "Brute (CR 2)"
+  },
+  "cr": {
+    "minion": "1/8",
+    "soldier": "1/2",
+    "brute": "2"
+  }
+}
