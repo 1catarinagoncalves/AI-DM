@@ -219,6 +219,34 @@ describe('AdventureService.createForCharacter', () => {
     expect(recorded.characterStateCreate).not.toHaveProperty('sceneState')
   })
 
+  // US-151: `extractOpeningEntities` (fake sempre devolve null aqui) deixou de ser a fonte —
+  // o ledger vem de `seedLedgerFromGeneratedAdventure(generated)`, lido do artefato do motor
+  // (Marta/secret-1, fixos em `fakeAi`). Nível 1 → `composeEncounterRoles` vazio, sem NPC de
+  // combate para filtrar neste teste (esse caso já é coberto em seed-ledger.test.ts).
+  it('US-151: entities vêm do artefato gerado (secret + NPC narrativo), não mais de extractOpeningEntities', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 },
+      system: { config },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+
+    await service.createForCharacter('char-1', {})
+
+    expect(recorded.adventureCreate?.['entities']).toEqual([
+      {
+        nome: 'secret-1', tipo: 'outro', local: 'Enseada Cinzenta',
+        nota: 'A estalajadeira esconde uma dívida com o culto.',
+        sabido: 'publico', revelado: false, atualizadoEm: expect.any(String),
+      },
+      {
+        nome: 'Marta', tipo: 'npc', local: 'Enseada Cinzenta',
+        nota: 'herborista suspeita', revelado: true, atualizadoEm: expect.any(String),
+      },
+    ])
+  })
+
   it('classe desconhecida: cai no gancho default (hookSeed), sem erro', async () => {
     const character = {
       id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Nyx', class: 'Cartógrafa Estelar', level: 1,

@@ -10,6 +10,7 @@ import { composeEncounterRoles, buildEncounterNpcs } from '../adventure-generati
 import { readSecretPrompts } from '../adventure-generation/lgmrd-tables'
 import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
+import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-ledger'
 
 export interface CreateAdventureDto {
   // initialHookId REMOVIDO (US-153): a aventura é sempre gerada, não escolhida pelo cliente.
@@ -273,6 +274,10 @@ export class AdventureService {
     if (!gateResult.ok) throw new Error(gateResult.reason)
     const generated = gateResult.adventure
     const mainQuest = `${generated.summary}\n${generated.start}`
+    // US-151: ledger semeado do artefato JÁ VALIDADO — substitui `extractOpeningEntities`
+    // (extração por LLM da prosa) como fonte, agora que a aventura sempre vem do motor
+    // (US-153). Síncrono: não entra no Promise.all abaixo, que é só para chamadas de LLM.
+    const seededEntities = seedLedgerFromGeneratedAdventure(generated)
 
     // Abertura gerada pelo MESMO DM (US-34), FORA da transação (LLM é lento e não
     // deve segurar locks). Falha/vazio → cai no hookSeed estático do perfil.
@@ -312,16 +317,10 @@ export class AdventureService {
     // isto o `sceneState` nasce nulo e o turno 1 fica sem âncora de continuidade
     // (a abertura roda sem tools, nunca chama `updateScene`). Falha/vazio → nulo,
     // idêntico ao comportamento pré-US-35; nunca derruba a criação.
-    // US-75: em paralelo, semeia o ledger de entidades da abertura (nenhuma extração
-    // depende da outra). Sem esta âncora estruturada, o Mestre pode contradizer depois
-    // o que a abertura estabeleceu (Erro 1). Falha/vazio → ledger vazio (pré-US-75).
-    const [scenePatch, seededEntities] = await Promise.all([
-      this.ai.extractOpeningScene(
-        openingText,
-        fullInventory.map((i) => i.name),
-      ),
-      this.ai.extractOpeningEntities(openingText, mainQuest),
-    ])
+    const scenePatch = await this.ai.extractOpeningScene(
+      openingText,
+      fullInventory.map((i) => i.name),
+    )
     const sceneState = scenePatch ? mergeSceneState(null, scenePatch) : null
 
     return this.prisma.$transaction(async (tx) => {
@@ -332,13 +331,13 @@ export class AdventureService {
       })
 
       const adventure = await tx.adventure.create({
-        // US-75: ledger semeado da abertura. Nulo → coluna ausente (default do Prisma).
+        // US-151: ledger semeado do artefato gerado. Vazio → coluna ausente (default do Prisma).
         data: {
           systemId: character.systemId,
           creatorId: character.userId,
           title: generated.summary,
           order,
-          ...(seededEntities ? { entities: seededEntities as unknown as object } : {}),
+          ...(seededEntities.length > 0 ? { entities: seededEntities as unknown as object } : {}),
         },
       })
 
