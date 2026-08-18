@@ -88,8 +88,6 @@ export class AdventureService {
       ...hook,
       title: resolveHookTemplate(hook.title, vars),
       pitch: resolveHookTemplate(hook.pitch, vars),
-      primaryQuestTitle: resolveHookTemplate(hook.primaryQuestTitle, vars),
-      primaryQuestDescription: resolveHookTemplate(hook.primaryQuestDescription, vars),
       openingNarration: resolveHookTemplate(hook.openingNarration, vars),
     }
   }

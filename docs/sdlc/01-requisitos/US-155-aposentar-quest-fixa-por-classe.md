@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (2026-08-18)
 **Depende de:** [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (a quest primária já vem do artefato gerado, não mais do gancho)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-155) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-89](./US-89-gate-de-codigo-morto-com-knip.md) (o gate que pegaria os campos se eles sobrevivessem mortos) · [initial-adventures.ts](../../../apps/api/prisma/initial-adventures.ts) (os 13 ganchos, onde os campos vivem)
 **Criada em:** 2026-08-15
@@ -42,6 +42,10 @@ Remover `primaryQuestTitle`/`primaryQuestDescription` de `InitialAdventureHookSc
 - **`resolveHook`** ([adventure.service.ts:64-74](../../../apps/api/src/adventure/adventure.service.ts)) para de resolver os dois campos removidos — só `title`, `pitch`, `openingNarration` continuam passando por `resolveHookTemplate`.
 - **`getInitialAdventure`** (endpoint que expõe o hook resolvido à UI, [adventure.service.ts:45-62](../../../apps/api/src/adventure/adventure.service.ts)) para de devolver os dois campos — checar se algum componente web (`apps/web`) os lê antes de remover do DTO exposto.
 - **Roda o gate de knip** ([US-89](./US-89-gate-de-codigo-morto-com-knip.md)) depois da remoção, confirmando que nenhuma referência morta sobrou.
+- **Os 3 arquivos de teste que referenciam os dois campos** — fixtures tipadas contra `InitialAdventureHook`, quebram `pnpm typecheck` se não forem atualizadas junto:
+  - [adventure.service.test.ts:57-64](../../../apps/api/src/adventure/adventure.service.test.ts) — fixtures de hook.
+  - [starting-inventory.test.ts:12](../../../apps/api/src/character/starting-inventory.test.ts) — hook mínimo de teste.
+  - [initial-adventures.test.ts:13](../../../apps/api/prisma/initial-adventures.test.ts) — `textFields` itera os dois campos.
 
 ### Fora do escopo
 
@@ -72,14 +76,14 @@ export const InitialAdventureHookSchema = z.object({
 
 ## Critérios de aceite
 
-- [ ] `InitialAdventureHookSchema` não tem mais `primaryQuestTitle`/`primaryQuestDescription`.
-- [ ] Os 13 ganchos em `initial-adventures.ts`, nos dois locales, não têm mais os dois campos.
-- [ ] `resolveHook` não resolve mais os dois campos removidos.
-- [ ] `getInitialAdventure` não expõe mais os dois campos no DTO devolvido à UI.
-- [ ] Nenhum consumidor morto (web ou API) referencia `primaryQuestTitle`/`primaryQuestDescription` depois da remoção — verificado pelo gate de knip ([US-89](./US-89-gate-de-codigo-morto-com-knip.md)).
-- [ ] `pnpm db:seed` roda sem erro e o config resultante não tem os dois campos.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] **Eval / teste de regressão:** teste que valida `InitialAdventureHookSchema.parse()` de um gancho **sem** os dois campos (regressão de que o schema não os exige mais); `pnpm dead` (knip) não acusa nenhum novo item morto na área tocada.
+- [x] `InitialAdventureHookSchema` não tem mais `primaryQuestTitle`/`primaryQuestDescription`.
+- [x] Os 13 ganchos em `initial-adventures.ts`, nos dois locales, não têm mais os dois campos.
+- [x] `resolveHook` não resolve mais os dois campos removidos.
+- [x] `getInitialAdventure` não expõe mais os dois campos no DTO devolvido à UI.
+- [x] Nenhum consumidor morto (web ou API) referencia `primaryQuestTitle`/`primaryQuestDescription` depois da remoção — verificado pelo gate de knip ([US-89](./US-89-gate-de-codigo-morto-com-knip.md)).
+- [x] `pnpm db:seed` roda sem erro e o config resultante não tem os dois campos — confirmado nos dois sistemas (Free, D&D 5e SRD) via query direta pós-seed.
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] **Eval / teste de regressão:** teste que valida `InitialAdventureHookSchema.parse()` de um gancho **sem** os dois campos ([initial-adventures.test.ts](../../../apps/api/prisma/initial-adventures.test.ts)); `pnpm dead` (knip) não acusa nenhum item novo na área tocada (os 2 achados pré-existentes — `RaceCatalogEntry`, `SystemBackgroundBenefit` — não são desta story).
 
 ---
 
@@ -93,7 +97,7 @@ export const InitialAdventureHookSchema = z.object({
 
 ## Questões em aberto
 
-1. Existe hoje algum componente em `apps/web` que exibe `primaryQuestTitle`/`primaryQuestDescription` antes da aventura começar (ex.: uma prévia na tela de revisão)? Não confirmado nesta story — verificar com grep dedicado ao implementar, e ajustar a tela se houver.
+1. ~~Existe hoje algum componente em `apps/web` que exibe `primaryQuestTitle`/`primaryQuestDescription` antes da aventura começar (ex.: uma prévia na tela de revisão)?~~ **Respondido:** não. `grep -i "primaryQuestTitle|primaryQuestDescription"` em `apps/web` não retorna nenhum resultado — os dois campos só aparecem em `apps/api`, `packages/shared` e docs. Remoção do DTO em `getInitialAdventure` não exige ajuste de tela.
 
 ---
 
@@ -102,5 +106,8 @@ export const InitialAdventureHookSchema = z.object({
 - [packages/shared/src/types/system.ts:136-146](../../../packages/shared/src/types/system.ts) — `InitialAdventureHookSchema`, os dois campos a remover.
 - [apps/api/prisma/initial-adventures.ts](../../../apps/api/prisma/initial-adventures.ts) — os 13 ganchos, en-US e pt-BR.
 - [apps/api/src/adventure/adventure.service.ts:45-74](../../../apps/api/src/adventure/adventure.service.ts) — `getInitialAdventure`, `resolveHook`, os pontos que param de resolver os campos removidos.
+- [apps/api/src/adventure/adventure.service.test.ts:57-64](../../../apps/api/src/adventure/adventure.service.test.ts) — fixtures de hook a atualizar.
+- [apps/api/src/character/starting-inventory.test.ts:12](../../../apps/api/src/character/starting-inventory.test.ts) — hook mínimo de teste a atualizar.
+- [apps/api/prisma/initial-adventures.test.ts:13](../../../apps/api/prisma/initial-adventures.test.ts) — `textFields` a atualizar.
 - [US-89](./US-89-gate-de-codigo-morto-com-knip.md) — gate que verifica ausência de referência morta.
 - [Backlog — Motor de geração de aventuras one-shot §GEN-12](./backlog-motor-de-geracao-de-aventuras.md) (US-155) — texto de origem.

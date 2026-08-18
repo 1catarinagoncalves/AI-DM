@@ -9,7 +9,7 @@ import { resolveInitialHook } from './starting-inventory'
 // direta. Antes, `Character.class` era texto PT e precisava do CLASS_SYNONYMS no meio.
 describe('resolveInitialHook (US-28/US-54/US-105)', () => {
   const hook = (id: string, classKey: string) => ({
-    id, classKey, title: id, pitch: '', primaryQuestTitle: '', primaryQuestDescription: '',
+    id, classKey, title: id, pitch: '',
     openingNarration: '', tags: [],
   })
   const config: SystemConfig = {

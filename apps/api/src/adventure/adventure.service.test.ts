@@ -54,14 +54,13 @@ const config: SystemConfig = {
     hooks: [
       {
         id: 'mago-arquivo', classKey: 'wizard', title: 'O Arquivo Que Sussurra',
-        pitch: 'Um grimório reconhece {characterName}.', primaryQuestTitle: 'Descobrir o arquivo',
-        primaryQuestDescription: 'Investigar o grimório.', openingNarration: 'A vela curva-se, {characterName}.',
+        pitch: 'Um grimório reconhece {characterName}.',
+        openingNarration: 'A vela curva-se, {characterName}.',
         tags: [],
       },
       {
         id: 'default-sinal', classKey: 'default', title: 'O Primeiro Sinal de {characterClass}',
-        pitch: 'Algo reconhece {characterName}.', primaryQuestTitle: 'Descobrir o chamado',
-        primaryQuestDescription: 'Investigar o chamado de {characterName}.',
+        pitch: 'Algo reconhece {characterName}.',
         openingNarration: 'Alguém pronuncia a tua classe: {characterClass}.', tags: [],
       },
     ],

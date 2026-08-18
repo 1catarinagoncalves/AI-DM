@@ -139,8 +139,8 @@ export const InitialAdventureHookSchema = z.object({
   // Classe base à qual se aplica, ou 'default' (fallback para classes desconhecidas/custom).
   classKey: z.string().min(1),
   pitch: z.string().min(1),
-  primaryQuestTitle: z.string().min(1),
-  primaryQuestDescription: z.string().min(1),
+  // primaryQuestTitle e primaryQuestDescription REMOVIDOS (US-155): a quest primária vem
+  // do artefato de aventura gerado (US-153), não mais deste hook fixo por classe.
   openingNarration: z.string().min(1),
   tags: z.array(z.string()).default([]),
 })

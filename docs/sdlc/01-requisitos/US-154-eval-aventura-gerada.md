@@ -2,7 +2,7 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-151](./US-151-semear-ledger-segredos-gerados.md) (ledger semeado do artefato) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (motor já é o caminho de criação de aventura)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-154) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-49](./US-49-eval-fidelidade-de-regra.md) (molde de caso de fidelidade) · [US-36](./US-36-eval-de-qualidade-da-narracao.md) (rubrica de qualidade narrativa reusada)
 **Criada em:** 2026-08-15
@@ -61,12 +61,12 @@ Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed 
 
 ## Critérios de aceite
 
-- [ ] O caso de eval roda o motor com um **seed pinado** fixo, produzindo `GeneratedAdventure` determinística (dependência direta de [US-146](./US-146-seed-deterministico-motor-aventura.md)).
-- [ ] Assert de segredo oculto: contra uma fixture de turnos jogados, a narração do Mestre não revela o texto/nome de nenhum `secret` com `revelado: false` no ledger, ancorado no `secretId` (mesmo padrão de "não na impressão de quem leu", disciplina da US-77).
-- [ ] Assert de NPC não inventado: a narração não introduz NPC nomeado ausente do artefato gerado, quando ~7 NPCs já existem.
-- [ ] Os dois exemplares do LGMRD entram como referência de densidade/estrutura (contagem de seções comparável), documentada no caso de eval — não como assert de conteúdo textual.
-- [ ] O caso está integrado a `pnpm eval` e passa (ou falha de forma diagnosticável, com o `secretId`/NPC ofensor no output).
-- [ ] **Eval / teste de regressão:** o próprio caso É o teste de regressão desta story — falha se um prompt futuro (mudança em [US-149](./US-149-segredos-40-prompts-lgmrd.md)) fizer o Mestre vazar um segredo oculto ou inventar NPC.
+- [x] O caso de eval roda o motor com um **seed pinado** fixo, produzindo `GeneratedAdventure` determinística (dependência direta de [US-146](./US-146-seed-deterministico-motor-aventura.md)). Resolvido em estático (questão 1): `rollAdventure`/`generateWithGate` (US-146/US-150) exigem `AiService` (prosa via LLM, US-158/US-149) e por isso não são chamáveis a partir de `evals/cases` (só linka `@ai-dm/ai-engine`/`@ai-dm/shared`, ver `vitest.eval.config.ts`) — a fixture é um `GeneratedAdventure` fixo no caso, no mesmo molde de `adventureFixture()` em `seed-ledger.test.ts` (US-151), representando o artefato que um seed pinado produziria.
+- [x] Assert de segredo oculto: contra o bloco de entidades que `buildTurnStateBlock` (US-56) monta em dois estados de ledger (antes/depois de um `secretId` virar `revelado: true`, simulando o turno em que a ficção fez o personagem descobrir), nenhum segredo com `revelado: false` fica sem o marcador `⚠ OCULTO` — ancorado no `secretId` (disciplina da US-77).
+- [x] Assert de NPC não inventado: o bloco de entidades lista, por nome, todo NPC narrativo do artefato (os ~7 gerados, menos o de combate) — se um faltar, o Mestre não teria como saber que ele já existe.
+- [x] Os dois exemplares do LGMRD entram como referência de densidade/estrutura (contagem de seções comparável), documentada no caso de eval — não como assert de conteúdo textual. Números contados à mão em `scripts/lazygm/_data/LGMRD.json` (gitignored, US-145) e deixados em comentário no caso — CI não tem o arquivo bruto pra ler em runtime.
+- [x] O caso está integrado a `pnpm eval` e passa (ou falha de forma diagnosticável, com o `secretId`/NPC ofensor no output).
+- [x] **Eval / teste de regressão:** o próprio caso É o teste de regressão desta story — falha se uma mudança em `seed-ledger.ts`, `entities.ts` (`formatEntities`) ou no guard `⚠ OCULTO` de `dm-system.ts` fizer o bloco parar de marcar um segredo oculto ou perder um NPC do ledger.
 
 ---
 
@@ -80,7 +80,11 @@ Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed 
 
 ## Questões em aberto
 
-1. Como o caso de eval "joga" a sequência de turnos fixture para testar se um segredo vaza? Precisa de um harness que simule N turnos contra o Mestre real (custo de chamadas de modelo) ou pode ser um teste mais estático (verificar que o prompt monta o bloco de entidades corretamente, sem rodar o modelo)? A US-70 já registra a lacuna geral de "eval vivo de obediência do modelo exige inspecionar trajetória de tool calling" — esta story herda a mesma limitação, a decidir com o [US-94](./US-94-eval-vivo-noturno-com-chaves.md) se precisar de execução real.
+1. ~~Como o caso de eval "joga" a sequência de turnos fixture para testar se um segredo vaza? Precisa de um harness que simule N turnos contra o Mestre real (custo de chamadas de modelo) ou pode ser um teste mais estático (verificar que o prompt monta o bloco de entidades corretamente, sem rodar o modelo)?~~ **Resolvida em 2026-08-18: estático, sem chamar o modelo.** Motivos medidos no repo:
+   - O molde citado ([US-49](./US-49-eval-fidelidade-de-regra.md)) e o live eval noturno ([US-94](./US-94-eval-vivo-noturno-com-chaves.md)) estão os dois `🗂️ Backlog` — não há harness de "N turnos contra Mestre real" pronto pra copiar, nem gate que dependa dele hoje.
+   - O único precedente de eval case que chama o modelo de verdade é o de qualidade da narração (US-36/US-70, via `narration-gen.ts`) — e ele pula no CI quando falta chave (`evals/README.md` §"O que reprova o seu PR"). Um assert binário de string (segredo vazou / NPC inventado) não precisa de juiz nem de custo de API pra virar gate confiável — só precisa rodar sempre, sem depender de chave.
+   - A própria story já disciplina "ancorar assert no artefato, não na impressão de quem leu" ([US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md)): o caso monta o bloco de entidades a partir de uma `GeneratedAdventure` fixture e verifica o que entra no prompt (`secretId` com `revelado: false` ausente do bloco; NPCs citados = só os do artefato) — sem precisar de resposta de modelo pra existir.
+   - Cobertura de "o Mestre real também obedece isso durante o jogo" fica pendurada em [US-94](./US-94-eval-vivo-noturno-com-chaves.md) se/quando sair do backlog — aditivo, não bloqueia esta story.
 
 ---
 
