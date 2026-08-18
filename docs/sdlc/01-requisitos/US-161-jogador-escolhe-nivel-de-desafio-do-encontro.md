@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (`encounterDeadlyThreshold`/`singleMonsterCrCap`, os dois orçamentos que esta story expõe como opção) · [US-160](./US-160-composer-encontro-usa-limiar-de-soma.md) (fixa `encounterDeadlyThreshold` como orçamento único do composer — esta story não desfaz isso, só adiciona uma segunda opção)
 **Relacionado:** [US-152](./US-152-statblocks-papel-orcamento.md) (`composeEncounterRoles`, função que ganha o parâmetro) · [US-148](./US-148-perfil-personagem-entrada-motor.md) (`AdventureProfile`, monta por chamada de geração — veículo natural pra preferência por-aventura) · [US-165](./US-165-tela-escolhe-nivel-de-desafio.md) (tela que expõe `challenge` ao jogador — resolve a Questão em aberto #2 desta story) · [US-156](./US-156-catalogos-registro-dto-validacao.md)/[US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (precedente: jogador escolhe `setting`/`tone`/`areaType` via catálogo+DTO+tela, com fallback Aleatório) · [US-162](./US-162-jogador-escolhe-quantidade-de-segredos.md)/[US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) (dials irmãos, mesma pergunta em aberto sobre onde a preferência mora)
 **Criada em:** 2026-08-17
@@ -59,12 +59,12 @@ Nenhum schema de banco novo nesta story — só a assinatura de `composeEncounte
 
 ## Critérios de aceite
 
-- [ ] `composeEncounterRoles(level, 'adventure')` devolve o mesmo resultado que `composeEncounterRoles(level)` devolvia pós-US-160 (`encounterDeadlyThreshold`).
-- [ ] `composeEncounterRoles(level, 'challenge')` devolve o mesmo resultado que a implementação pré-US-160 devolvia (`singleMonsterCrCap`).
-- [ ] Nível 1, 2 e 3 com `'challenge'` (modo desafio): array não vazio.
-- [ ] `'adventure'` (modo aventura) é o valor default quando `challenge` é omitido — nenhum chamador existente quebra.
-- [ ] `pnpm typecheck` e testes do módulo passam.
-- [ ] **Eval / teste de regressão:** as fixtures já usadas pela US-160 (nível 1, 4, 5, 8), duplicadas para os dois valores de `challenge`.
+- [x] `composeEncounterRoles(level, 'adventure')` devolve o mesmo resultado que `composeEncounterRoles(level)` devolvia pós-US-160 (`encounterDeadlyThreshold`).
+- [x] `composeEncounterRoles(level, 'challenge')` devolve o mesmo resultado que a implementação pré-US-160 devolvia (`singleMonsterCrCap`).
+- [x] Nível 1, 2 e 3 com `'challenge'` (modo desafio): array não vazio.
+- [x] `'adventure'` (modo aventura) é o valor default quando `challenge` é omitido — nenhum chamador existente quebra.
+- [x] `pnpm typecheck` e testes do módulo passam.
+- [x] **Eval / teste de regressão:** as fixtures já usadas pela US-160 (nível 1, 4, 5, 8), duplicadas para os dois valores de `challenge`.
 
 ---
 

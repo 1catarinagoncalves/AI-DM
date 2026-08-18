@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-146](./US-146-seed-deterministico-motor-aventura.md) (seed determinístico, ✅) · [US-147](./US-147-rolagem-registro-conteudo.md) (rolagem registro+conteúdo, ✅) · [US-158](./US-158-locais-npcs-prosa-motor.md) (locais+NPCs em prosa, ✅) · [US-149](./US-149-segredos-40-prompts-lgmrd.md) (segredos, ✅) · [US-152](./US-152-statblocks-papel-orcamento.md) (composer de encontro, ✅) · [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (orçamento de encontro, ✅) · [US-160](./US-160-composer-encontro-usa-limiar-de-soma.md) (corrige o orçamento do composer — sem ela esta story monta encontro que estoura o gate em nível 1–4)
 **Relacionado:** [US-144](./US-144-schema-aventura-shared.md) (o schema que esta story preenche) · [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) *§Ordem de geração*, passos 0-6
 **Bloqueia:** [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (gate — precisa de um `GeneratedAdventure` montado pra validar) · [US-151](./US-151-semear-ledger-segredos-gerados.md) (semear o ledger — precisa do artefato pra extrair)

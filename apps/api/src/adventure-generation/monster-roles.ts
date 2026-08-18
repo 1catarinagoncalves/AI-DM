@@ -1,5 +1,5 @@
 import type { AdventureNpc } from '@ai-dm/shared'
-import { encounterDeadlyThreshold } from './lazy-encounter-benchmark'
+import { encounterDeadlyThreshold, singleMonsterCrCap } from './lazy-encounter-benchmark'
 
 // US-152: os 3 papéis do 5e_Monster_Builder.json (seção `generalusestatblocks`, subsections
 // `minion`/`soldier`/`brute`) que o motor usa como oponente jogável — sem ingerir monstro
@@ -7,6 +7,11 @@ import { encounterDeadlyThreshold } from './lazy-encounter-benchmark'
 // irmão lazy-encounter-benchmark.ts, US-159); scripts/lazygm/extract-monster-roles.mjs só
 // confirma que a seção-fonte ainda existe, nunca deriva este valor dela.
 export type MonsterRole = 'Minion' | 'Soldier' | 'Brute'
+
+// US-161: dial de risco escolhido pelo jogador — chave canônica EN (US-54). 'adventure' é o
+// default (comportamento da US-160, pode zerar em nível 1-3); 'challenge' reusa
+// singleMonsterCrCap (pré-US-160, sempre não vazio) pra quem topa risco maior.
+export type EncounterChallenge = 'adventure' | 'challenge'
 
 export const MONSTER_ROLE_CR: Record<MonsterRole, number> = {
   Minion: 1 / 8,
@@ -21,23 +26,30 @@ export function totalCr(roles: MonsterRole[]): number {
 }
 
 /**
- * US-160: monta o encontro para UM personagem (grupo = 1, nunca multiplicado) de nível
- * `level` — soma CR de papéis até `encounterDeadlyThreshold` (limiar de soma do LGMRD,
- * US-159), não `singleMonsterCrCap` (teto de monstro único): empacotar contra o teto de
- * monstro único sempre estourava o limiar de soma que a verificação 3 do gate (US-150)
- * cobra — todo encontro gerado em nível 1-4 falhava o gate (US-160, Contexto e motivação).
- * `encounterDeadlyThreshold` é sempre menor que `singleMonsterCrCap` em qualquer nível
- * (prova em US-160, Notas de implementação), então empacotar sob ele garante o teto de
- * monstro único de graça, sem checagem dupla. Em nível 1-3 o limiar é 0 e a função devolve
+ * US-160/US-161: monta o encontro para UM personagem (grupo = 1, nunca multiplicado) de nível
+ * `level` — soma CR de papéis até um dos dois orçamentos do LGMRD, escolhido por `challenge`.
+ * Os dois orçamentos convivem como OPÇÕES do jogador, não um substituindo o outro: nenhuma
+ * fórmula nova (US-159 intacta), só qual delas o loop guloso usa.
+ *
+ * `'adventure'` (default) usa `encounterDeadlyThreshold` (limiar de soma) — empacotar contra
+ * o teto de monstro único sempre estourava o limiar de soma que a verificação 3 do gate
+ * (US-150) cobra (US-160, Contexto e motivação). Em nível 1-3 o limiar é 0 e a função devolve
  * array vazio — resultado correto do LGMRD nesses níveis, não bug.
+ *
+ * `'challenge'` usa `singleMonsterCrCap` (teto de monstro único, sempre > 0, sempre maior que
+ * `encounterDeadlyThreshold`) — pra quem topa risco maior, nível 1-3 devolve composição não
+ * vazia (US-161).
  *
  * Greedy: tenta o papel de maior impacto primeiro (Brute) a cada rodada; só entra se AINDA
  * couber estritamente abaixo do orçamento (o LGMRD trata soma igual ao limiar como letal,
- * operador `>`) — por isso nível 1 nunca recebe um Brute (CR 2) sozinho, que já estoura o
- * teto de monstro único (1), a fortiori o limiar de soma (0).
+ * operador `>`) — por isso nível 1 em modo aventura nunca recebe um Brute (CR 2) sozinho, que
+ * já estoura o teto de monstro único (1), a fortiori o limiar de soma (0).
  */
-export function composeEncounterRoles(level: number): MonsterRole[] {
-  const budget = encounterDeadlyThreshold(level)
+export function composeEncounterRoles(
+  level: number,
+  challenge: EncounterChallenge = 'adventure',
+): MonsterRole[] {
+  const budget = challenge === 'challenge' ? singleMonsterCrCap(level) : encounterDeadlyThreshold(level)
   const roles: MonsterRole[] = []
   let sum = 0
 

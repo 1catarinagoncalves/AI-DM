@@ -44,6 +44,35 @@ describe('composeEncounterRoles (US-152/US-160)', () => {
   })
 })
 
+describe('composeEncounterRoles — dial challenge (US-161)', () => {
+  it("'adventure' omitido bate com 'adventure' explícito — default não quebra chamador existente", () => {
+    for (const level of [1, 4, 5, 8]) {
+      expect(composeEncounterRoles(level)).toEqual(composeEncounterRoles(level, 'adventure'))
+    }
+  })
+
+  it("'adventure' empacota sob encounterDeadlyThreshold — mesmo resultado pós-US-160", () => {
+    for (const level of [4, 5, 8]) {
+      const roles = composeEncounterRoles(level, 'adventure')
+      expect(totalCr(roles)).toBeLessThan(encounterDeadlyThreshold(level))
+    }
+    expect(composeEncounterRoles(1, 'adventure')).toEqual([])
+  })
+
+  it("'challenge' empacota sob singleMonsterCrCap — comportamento pré-US-160", () => {
+    for (const level of [1, 4, 5, 8]) {
+      const roles = composeEncounterRoles(level, 'challenge')
+      expect(totalCr(roles)).toBeLessThan(singleMonsterCrCap(level))
+    }
+  })
+
+  it("nível 1, 2 e 3 com 'challenge' devolvem array não vazio — singleMonsterCrCap nunca é 0", () => {
+    for (const level of [1, 2, 3]) {
+      expect(composeEncounterRoles(level, 'challenge').length).toBeGreaterThan(0)
+    }
+  })
+})
+
 describe('buildEncounterNpcs (US-152)', () => {
   const existingNpcs: AdventureNpc[] = Array.from({ length: 7 }, (_, i) => ({
     id: `npc-${i + 1}`,
