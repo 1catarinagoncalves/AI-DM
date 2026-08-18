@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import type { SystemConfig } from '@ai-dm/shared'
-import { AdventureService } from './adventure.service'
+import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
+import { AdventureService, type AdventureProfile } from './adventure.service'
 import type { PrismaService } from '../prisma.service'
 import type { AiService } from '../ai/ai.service'
 
@@ -526,5 +526,89 @@ describe('AdventureService.buildAdventureProfile', () => {
     const profile = service().buildAdventureProfile(character, config) as Record<string, unknown>
 
     expect((profile['origin'] as Record<string, unknown>)['adventuresAndAdvancement']).toBeUndefined()
+  })
+})
+
+// US-164: orquestrador — `AiService` mockado com locations/npcs/secrets/closing FIXOS (eval/teste
+// de regressão do critério de aceite); a parte determinística (registro, encounters[].npcIds) vem
+// do código real (rollAdventure/composeEncounterRoles), nunca mockada.
+describe('AdventureService.generateAdventure (US-164)', () => {
+  const profile: AdventureProfile = {
+    level: 1,
+    classKey: 'wizard',
+    background: {},
+    origin: {},
+    hookSeed: 'A vela curva-se, Elara.',
+  }
+
+  function fakeGenAi(overrides: {
+    locations?: Record<string, unknown>[]
+    npcs?: Record<string, unknown>[]
+    secrets?: Record<string, unknown>[]
+    closing?: { conclusion: string; followUps: string[] }
+  } = {}): AiService {
+    const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas', occupants: [] }]
+    const npcs = overrides.npcs ?? [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+    const secrets = overrides.secrets ?? [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
+    const closing = overrides.closing ?? { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }
+    return {
+      generateLocationsAndNpcs: async () => ({ locations, npcs }),
+      generateSecrets: async () => secrets,
+      generateClosing: async () => closing,
+    } as unknown as AiService
+  }
+
+  function service(ai: AiService) {
+    const { prisma } = fakePrisma(null)
+    return new AdventureService(prisma, ai)
+  }
+
+  it('monta um GeneratedAdventure que passa em .parse() (US-144)', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1)
+    expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+  })
+
+  it('id = characterId:order; levelRange = { min, max } = profile.level; summary/start vêm do rolado/perfil', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 2)
+    expect(adventure.id).toBe('char-1:2')
+    expect(adventure.levelRange).toEqual({ min: 1, max: 1 })
+    expect(adventure.summary.length).toBeGreaterThan(0)
+    expect(adventure.start).toBe('A vela curva-se, Elara.')
+  })
+
+  it('encounters[0].locationId referencia locations[0]; npcIds referencia NPCs do próprio npcs[] final', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1)
+    expect(adventure.encounters).toHaveLength(1)
+    expect(adventure.encounters[0]!.locationId).toBe('loc-1')
+    expect(adventure.encounters[0]!.npcIds.length).toBeGreaterThan(0) // nível 5, modo aventura: limiar > 0
+    for (const id of adventure.encounters[0]!.npcIds) {
+      expect(adventure.npcs.some((n) => n.id === id)).toBe(true)
+    }
+  })
+
+  it('nível 1-3 (limiar de soma zero, US-160): encontro existe mas npcIds vazio, sem quebrar o parse', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 1 }, 'char-1', 1)
+    expect(adventure.encounters).toHaveLength(1)
+    expect(adventure.encounters[0]!.npcIds).toEqual([])
+  })
+
+  it('npcs[] final inclui os NPCs do passo 2 (locais/NPCs) e os do passo 4 (combate)', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1)
+    expect(adventure.npcs.some((n) => n.id === 'npc-1')).toBe(true)
+    expect(adventure.npcs.length).toBeGreaterThan(1)
+  })
+
+  it('mesmo characterId+order: registro e encounters[].npcIds deterministicos entre execuções (parte não-LLM)', async () => {
+    const a = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7)
+    const b = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7)
+    expect(a.setting).toBe(b.setting)
+    expect(a.tone).toBe(b.tone)
+    expect(a.areaType).toBe(b.areaType)
+    expect(a.encounters[0]!.npcIds).toEqual(b.encounters[0]!.npcIds)
+  })
+
+  it('registryOverrides é repassado ao rollAdventure — registro fixado, não sorteado', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, { tone: 'heroic' })
+    expect(adventure.tone).toBe('heroic')
   })
 })

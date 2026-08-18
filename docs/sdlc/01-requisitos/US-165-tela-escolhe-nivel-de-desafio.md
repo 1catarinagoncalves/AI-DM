@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🗂️ Backlog
+**Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) (`composeEncounterRoles(level, challenge)` parametrizada — sem ela não há valor real pra esta tela emitir) · [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (passo `world` do `SetupWizard`, onde o grupo de rádio desta story entra)
 **Relacionado:** [US-156](./US-156-catalogos-registro-dto-validacao.md) (precedente de forma — catálogo+DTO+tela — mas não reusado literalmente: `challenge` não vem de catálogo, é enum fixo de dois valores) · [US-162](./US-162-jogador-escolhe-quantidade-de-segredos.md)/[US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) (dials irmãos com a mesma lacuna de tela — cada um ganha story própria quando a função subjacente estiver parametrizada, esta story não antecipa as deles) · [US-46](./US-46-acessibilidade-wcag-aa.md) (WCAG AA) · [US-66](./US-66-telas-mobile-friendly.md) (mobile) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate de string literal no JSX)
 **Criada em:** 2026-08-18

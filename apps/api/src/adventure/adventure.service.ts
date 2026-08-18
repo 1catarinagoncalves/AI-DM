@@ -1,10 +1,14 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig } from '@ai-dm/shared'
+import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type GeneratedAdventure } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
+import { rollAdventure } from '../adventure-generation/roll-adventure'
+import { composeEncounterRoles, buildEncounterNpcs } from '../adventure-generation/monster-roles'
+import { readSecretPrompts } from '../adventure-generation/lgmrd-tables'
+import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 
 export interface CreateAdventureDto {
   initialHookId: string
@@ -112,6 +116,72 @@ export class AdventureService {
       },
       hookSeed,
     }
+  }
+
+  /**
+   * US-164: orquestrador do motor — executa os passos 1-6 da *Ordem de geração*
+   * (backlog do motor de aventuras) e devolve um `GeneratedAdventure` que passa em
+   * `.parse()` (só FORMA; grafo fechar/orçamento continuam sendo o gate da US-150).
+   * `encounters` tem sempre um elemento (`encounter-1`, mintado no código, nunca pelo
+   * modelo) cujo `locationId` é `locations[0]` (Questão em aberto #1, resolvida) e cujos
+   * `npcIds` vêm de `composeEncounterRoles`/`buildEncounterNpcs` (US-152/US-160) — os
+   * NPCs de combate entram também em `npcs[]` (referência real, não solta).
+   */
+  async generateAdventure(
+    profile: AdventureProfile,
+    characterId: string,
+    order: number,
+    registryOverrides: AdventureRegistryOverrides = {},
+  ): Promise<GeneratedAdventure> {
+    const { registry, content } = rollAdventure(characterId, order, registryOverrides)
+
+    const { locations, npcs } = await this.ai.generateLocationsAndNpcs({
+      rolled: content,
+      registry,
+      background: profile.background,
+      hookSeed: profile.hookSeed,
+    })
+
+    const secrets = await this.ai.generateSecrets({
+      locations,
+      npcs,
+      secretPrompts: readSecretPrompts(),
+      background: profile.background,
+      origin: profile.origin,
+      hookSeed: profile.hookSeed,
+    })
+
+    const encounterNpcs = buildEncounterNpcs(composeEncounterRoles(profile.level), npcs)
+    const allNpcs = [...npcs, ...encounterNpcs]
+    const encounters: AdventureEncounter[] = [
+      { id: 'encounter-1', locationId: locations[0]!.id, npcIds: encounterNpcs.map((npc) => npc.id) },
+    ]
+
+    const { conclusion, followUps } = await this.ai.generateClosing({
+      locations,
+      npcs: allNpcs,
+      secrets,
+      registry,
+      complicacao: content.complicacao,
+      hookSeed: profile.hookSeed,
+      premissa: content.premissa,
+    })
+
+    return GeneratedAdventureSchema.parse({
+      id: `${characterId}:${order}`,
+      levelRange: { min: profile.level, max: profile.level },
+      setting: registry.setting,
+      tone: registry.tone,
+      areaType: registry.areaType,
+      summary: content.premissa,
+      npcs: allNpcs,
+      secrets,
+      locations,
+      encounters,
+      start: profile.hookSeed,
+      conclusion,
+      followUps,
+    })
   }
 
   async createForCharacter(characterId: string, dto: CreateAdventureDto) {

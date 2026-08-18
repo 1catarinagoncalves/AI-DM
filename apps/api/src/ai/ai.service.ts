@@ -190,6 +190,37 @@ function buildSecretsPrompt(locations: AdventureLocation[], npcs: AdventureNpc[]
   ].join('\n')
 }
 
+// US-164, passo 6: schema do FECHO RAMIFICADO. SEM `id` — `followUps[]` não referencia
+// nada, é semente pra PRÓXIMA aventura (US-151 consome como texto, não por id).
+const CLOSING_SCHEMA = z.object({
+  conclusion: z.string().min(1),
+  followUps: z.array(z.string()).min(1),
+})
+
+function buildClosingPrompt(params: {
+  locations: AdventureLocation[]
+  npcs: AdventureNpc[]
+  secrets: AdventureSecret[]
+  complicacao: { condition: string; description: string; origin: string }
+  hookSeed: string
+  premissa: string
+}): string {
+  const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
+  const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
+  const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
+  return [
+    `Gancho da aventura: ${params.hookSeed}`,
+    `Premissa: ${params.premissa}`,
+    `Complicação: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
+    '',
+    `Locais disponíveis:\n${locationLines}`,
+    '',
+    `NPCs disponíveis:\n${npcLines}`,
+    '',
+    `Segredos já escritos:\n${secretLines}`,
+  ].join('\n')
+}
+
 // US-74 (salvage): instrução da chamada que COMPLETA uma narração truncada. Foco
 // estreito — continuar + fechar nas opções, SEM tools, SEM dados. As opções são
 // ancoradas no próprio texto da narração (que já descreveu a cena), então não precisa
@@ -1346,6 +1377,42 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       locationId: secret.locationId,
       text: secret.text,
     }))
+  }
+
+  /**
+   * US-164, passo 6: escreve o FECHO RAMIFICADO — `conclusion` (prosa) e `followUps[]`
+   * (sementes pra próxima aventura, US-151) — a partir de `locations`/`npcs`/`secrets` já
+   * decididos (US-158/US-149), a `complicacao` e `premissa` roladas (US-147) e o
+   * `hookSeed` (US-148). `registry` entra no system prompt, mesma disciplina de
+   * `generateSecrets`/`generateLocationsAndNpcs` — sem ele o fecho pode destoar do tom
+   * fixado. Antagonista não é entidade rastreável aqui (US-164, Questão em aberto #2) —
+   * só cor narrativa via `premissa`. NUNCA captura erro — mesma disciplina de
+   * `generateSecrets`: falha aqui é motivo de reseed na US-150, não degradação silenciosa.
+   */
+  async generateClosing(params: {
+    locations: AdventureLocation[]
+    npcs: AdventureNpc[]
+    secrets: AdventureSecret[]
+    registry: AdventureRegistry
+    complicacao: { condition: string; description: string; origin: string }
+    hookSeed: string
+    premissa: string
+  }): Promise<{ conclusion: string; followUps: string[] }> {
+    const { object, providerMetadata } = await generateObject({
+      model: extractionModel,
+      schema: CLOSING_SCHEMA,
+      system:
+        'Você é o Mestre de um RPG escrevendo o FECHO RAMIFICADO de uma aventura one-shot (método Lazy GM Resource Document). ' +
+        'Escreva a CONCLUSÃO (2-3 parágrafos) resolvendo a premissa e a complicação, ancorada nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova. ' +
+        'Se a premissa sugerir um antagonista, ele aparece só como PROSA no fecho, não precisa ser um NPC já listado. ' +
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
+        'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura.',
+      prompt: buildClosingPrompt(params),
+      providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+    })
+    logExtractionEndpoint('generateClosing', providerMetadata)
+
+    return { conclusion: object.conclusion, followUps: object.followUps }
   }
 
   /**

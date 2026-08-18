@@ -559,6 +559,19 @@ Devolve um `GeneratedAdventure` que passa em `.parse()` (forma), não validado c
 isso é o gate da US-150, que consome o artefato desta story.
 Depende de: US-146, US-147, US-149, US-152, US-158, US-159, US-160. Bloqueia: US-150, US-151.
 
+**✱ US-166 — motor gera múltiplos encontros (4-5), não só um**
+*(descoberta em 2026-08-18, questão em aberto #3 da US-164 — "um encontro ou 4-5?" — respondida
+"4-5" e destacada como story própria)*
+`generateAdventure` (US-164) monta `encounters[]` com UM elemento. Backlog original (passo 5,
+acima) sempre foi plural. Esta story faz `composeEncounterRoles`/`buildEncounterNpcs` (US-152/
+US-160/US-161, ✅, reusadas sem mudança) rodarem N vezes: papéis repetem (as funções são puras
+por `level`/`challenge`, sem RNG — achado da US-160), `npcIds` cumulativo entre chamadas (evita
+colisão de id), `locationId` round-robin pelas locations geradas. Sem schema novo — `encounters`
+já é array (US-144). Gate (US-150) já compara orçamento de CADA encontro, plural-safe, sem
+mudança necessária.
+Depende de: US-164. Não entra no corte mínimo — motor roda com um encontro só (US-164) enquanto
+esta story não entra.
+
 **✱ US-161 — jogador escolhe o nível de desafio do encontro**
 *(descoberto em 2026-08-17, discussão de produto sobre a US-160: array vazio em nível 1–3 é
 resultado correto do LGMRD, mas fixa uma única resposta pra todo jogador, sem alternativa)*

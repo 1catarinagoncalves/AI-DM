@@ -458,3 +458,56 @@ describe('AiService.generateSecrets (US-149)', () => {
     await expect(svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })).rejects.toThrow('modelo indisponível')
   })
 })
+
+describe('AiService.generateClosing (US-164)', () => {
+  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
+  const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+  const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
+  const registry = { setting: 'coastal', tone: 'grimdark', areaType: 'ruins' }
+  const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
+
+  function svc() {
+    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+  }
+
+  it('devolve conclusion e followUps do modelo, sem mintar id (sem entidade a referenciar)', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }
+    const closing = await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'Kill a villain' })
+    expect(closing).toEqual({ conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] })
+  })
+
+  it('usa extractionModel (US-114), não primaryModel', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'premissa' })
+    expect(genObj.model).toBe(extractionModel)
+  })
+
+  it('registry (tone/setting/areaType) entra no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'premissa' })
+    expect(genObj.system).toContain('grimdark')
+    expect(genObj.system).toContain('coastal')
+    expect(genObj.system).toContain('ruins')
+  })
+
+  it('locais/NPCs/segredos e complicação/premissa entram no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'Kill a villain' })
+    expect(genObj.prompt).toContain('loc-1')
+    expect(genObj.prompt).toContain('npc-1')
+    expect(genObj.prompt).toContain('secret-1')
+    expect(genObj.prompt).toContain('Drenched')
+    expect(genObj.prompt).toContain('Kill a villain')
+  })
+
+  it('falha propaga erro estruturado — NÃO devolve fecho vazio em silêncio', async () => {
+    genObj.error = new Error('modelo indisponível')
+    await expect(
+      svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'premissa' }),
+    ).rejects.toThrow('modelo indisponível')
+  })
+})

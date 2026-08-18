@@ -90,7 +90,7 @@ export interface CreateAdventureDto {
 ## Notas de implementação
 
 - **Ordem de troca no código:** `rawHook`/validação de `initialHookId` ([adventure.service.ts:97-101](../../../apps/api/src/adventure/adventure.service.ts)) é o bloco que sai; `hook.primaryQuestTitle`/`Description` usados na criação de `Quest` ([adventure.service.ts:211-217](../../../apps/api/src/adventure/adventure.service.ts)) trocam de fonte para o artefato gerado.
-- **`hook.title` como `Adventure.title` também troca** — hoje `title: hook.title` ([adventure.service.ts:187](../../../apps/api/src/adventure/adventure.service.ts)); passa a vir de `adventure.summary` ou um título curto derivado do artefato (a decidir se `GeneratedAdventureSchema`, US-144, precisa de um campo `title` próprio — hoje ela não tem, só `summary`).
+- **`hook.title` como `Adventure.title` também troca** — hoje `title: hook.title` ([adventure.service.ts:187](../../../apps/api/src/adventure/adventure.service.ts)); passa a vir de `adventure.summary` DIRETO, sem transformação (decidido, ver *Questões em aberto* #1 — resolvida).
 - **`className`/`raceName` continuam resolvidos e passados ao motor** ([US-148](./US-148-perfil-personagem-entrada-motor.md) já usa `classKey`) — mas os rótulos (`catalogLabel`) continuam servindo só a mensagem de erro e o prompt de narração, mesma disciplina da US-105.
 - **`GeneratedAdventureSchema` sem `title`** é a lacuna concreta que esta story descobre — se confirmado, é uma emenda pequena à US-144 (adicionar `title: z.string().min(1)`), não uma reabertura de escopo.
 
@@ -98,7 +98,7 @@ export interface CreateAdventureDto {
 
 ## Questões em aberto
 
-1. `GeneratedAdventureSchema` (US-144) não lista `title` entre os campos — confirmar se `summary` serve como título curto ou se falta um campo. Resolver ao implementar esta story, emendando a US-144 se necessário.
+1. ~~`GeneratedAdventureSchema` (US-144) não lista `title` entre os campos — confirmar se `summary` serve como título curto ou se falta um campo.~~ **RESOLVIDO (2026-08-18): `summary` serve como título, sem campo novo.** `summary = content.premissa` (US-164, `adventure.service.ts`) é a linha CRUA da tabela `1d20quests` do LGMRD ([roll-content.ts:57](../../../apps/api/src/adventure-generation/roll-content.ts)) — frases curtas tipo `"Kill a villain"`, `"Rescue an NPC"`, já no formato de título, não de resumo longo. `Adventure.title = adventure.summary`, direto, sem transformação — sem emendar a US-144, sem campo novo no schema.
 2. O que acontece com o `id` do hook (`rawHook.id`, usado hoje em log/depuração)? Provavelmente nada — o `hookSeed` (texto) é o que sobrevive, o `id` do gancho deixa de ter consumidor fora da resolução interna.
 
 ---
