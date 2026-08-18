@@ -14,9 +14,17 @@ export interface RolledAdventure {
  *
  * Os dois sorteios usam sub-seeds independentes (ver roll-registry/roll-content) — a ordem
  * aqui é garantia de USO, não de uma sequência de PRNG compartilhada entre os dois.
+ *
+ * `attempt` (US-150, reseed): default `0`, repassado aos dois sorteios — a tentativa seguinte
+ * do gate rola registro e conteúdo NOVOS, não só reamostra o modelo por cima do mesmo material.
  */
-export function rollAdventure(characterId: string, order: number, registryOverrides: AdventureRegistryOverrides = {}): RolledAdventure {
-  const registry = rollRegistry(characterId, order, registryOverrides)
-  const content = rollContent(characterId, order)
+export function rollAdventure(
+  characterId: string,
+  order: number,
+  registryOverrides: AdventureRegistryOverrides = {},
+  attempt = 0,
+): RolledAdventure {
+  const registry = rollRegistry(characterId, order, registryOverrides, attempt)
+  const content = rollContent(characterId, order, undefined, attempt)
   return { registry, content }
 }

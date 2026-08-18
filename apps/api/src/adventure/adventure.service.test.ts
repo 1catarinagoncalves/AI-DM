@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
 import { AdventureService, type AdventureProfile } from './adventure.service'
 import type { PrismaService } from '../prisma.service'
@@ -610,5 +610,53 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   it('registryOverrides é repassado ao rollAdventure — registro fixado, não sorteado', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, { tone: 'heroic' })
     expect(adventure.tone).toBe('heroic')
+  })
+})
+
+// US-150: gate que envolve generateAdventure. Não repete a matriz de checagens (isso é
+// adventure-gate.test.ts) — só confirma que a integração real (rollAdventure + AiService
+// mockado) chega no gate e reage certo aos dois desfechos, sem mockar o gate em si.
+describe('AdventureService.generateGatedAdventure (US-150)', () => {
+  const profile: AdventureProfile = { level: 1, classKey: 'wizard', background: {}, origin: {}, hookSeed: 'A vela curva-se, Elara.' }
+
+  function fakeGenAi(overrides: { locations?: Record<string, unknown>[] } = {}): AiService {
+    const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [] }]
+    const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+    const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
+    const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'] }
+    return {
+      generateLocationsAndNpcs: vi.fn(async () => ({ locations, npcs })),
+      generateSecrets: vi.fn(async () => secrets),
+      generateClosing: vi.fn(async () => closing),
+    } as unknown as AiService
+  }
+
+  function service(ai: AiService) {
+    const { prisma } = fakePrisma(null)
+    return new AdventureService(prisma, ai)
+  }
+
+  it('grafo fechado (npc ocupa o local): gate passa na 1ª tentativa, sem reseed', async () => {
+    const ai = fakeGenAi({ locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }] })
+
+    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1)
+
+    expect(result.ok).toBe(true)
+    expect(ai.generateLocationsAndNpcs).toHaveBeenCalledTimes(1)
+  })
+
+  it('NPC órfão (nada aponta pra "Marta"): esgota o teto de tentativas e falha registrada', async () => {
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const ai = fakeGenAi() // occupants: [] — npc-1 nunca referenciado, mesmo resultado em toda tentativa
+
+    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1)
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.reason).toContain('npc-1')
+      expect(result.reason).toContain('teto de 3 tentativas esgotado')
+    }
+    expect(ai.generateLocationsAndNpcs).toHaveBeenCalledTimes(3) // teto default
+    expect(logSpy).toHaveBeenCalled()
   })
 })

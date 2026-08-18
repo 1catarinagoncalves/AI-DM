@@ -9,6 +9,7 @@ import { rollAdventure } from '../adventure-generation/roll-adventure'
 import { composeEncounterRoles, buildEncounterNpcs } from '../adventure-generation/monster-roles'
 import { readSecretPrompts } from '../adventure-generation/lgmrd-tables'
 import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
+import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
 
 export interface CreateAdventureDto {
   initialHookId: string
@@ -126,14 +127,19 @@ export class AdventureService {
    * modelo) cujo `locationId` é `locations[0]` (Questão em aberto #1, resolvida) e cujos
    * `npcIds` vêm de `composeEncounterRoles`/`buildEncounterNpcs` (US-152/US-160) — os
    * NPCs de combate entram também em `npcs[]` (referência real, não solta).
+   *
+   * `attempt` (US-150): default `0`, repassado a `rollAdventure` — o gate que envolve esta
+   * função incrementa a cada reseed, pra rolar registro/conteúdo NOVOS, não reamostrar em cima
+   * do mesmo material (ver adventure-gate.ts).
    */
   async generateAdventure(
     profile: AdventureProfile,
     characterId: string,
     order: number,
     registryOverrides: AdventureRegistryOverrides = {},
+    attempt = 0,
   ): Promise<GeneratedAdventure> {
-    const { registry, content } = rollAdventure(characterId, order, registryOverrides)
+    const { registry, content } = rollAdventure(characterId, order, registryOverrides, attempt)
 
     const { locations, npcs } = await this.ai.generateLocationsAndNpcs({
       rolled: content,
@@ -182,6 +188,25 @@ export class AdventureService {
       conclusion,
       followUps,
     })
+  }
+
+  /**
+   * US-150: gate antes de persistir — envolve `generateAdventure` com as três verificações
+   * mecânicas (parse, grafo fecha, orçamento do encontro) e o reseed correto por verificação
+   * (ver adventure-gate.ts). Não lança: devolve `GateResult`, quem chama decide o que fazer
+   * com `ok: false` (nenhum consumidor de persistência ainda — fora do escopo desta story).
+   */
+  async generateGatedAdventure(
+    profile: AdventureProfile,
+    characterId: string,
+    order: number,
+    registryOverrides: AdventureRegistryOverrides = {},
+    maxAttempts = 3,
+  ): Promise<GateResult> {
+    return generateWithGate(
+      (attempt) => this.generateAdventure(profile, characterId, order, registryOverrides, attempt),
+      maxAttempts,
+    )
   }
 
   async createForCharacter(characterId: string, dto: CreateAdventureDto) {

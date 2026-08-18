@@ -21,6 +21,19 @@ describe('deriveAdventureSeed (US-146)', () => {
   it('order diferente produz seed diferente (sem colisão trivial entre vizinhos)', () => {
     expect(deriveAdventureSeed('char-1', 1)).not.toBe(deriveAdventureSeed('char-1', 2))
   })
+
+  // US-150: attempt aditivo — default 0 preserva o hash de sempre; só attempt > 0 muda o input.
+  it('attempt default (ausente) é idêntico a attempt explícito 0', () => {
+    expect(deriveAdventureSeed('char-1', 1)).toBe(deriveAdventureSeed('char-1', 1, 0))
+  })
+
+  it('attempt > 0 produz seed diferente do attempt 0, determinística por tentativa', () => {
+    const attempt0 = deriveAdventureSeed('char-1', 1, 0)
+    const attempt1 = deriveAdventureSeed('char-1', 1, 1)
+    expect(attempt1).not.toBe(attempt0)
+    expect(deriveAdventureSeed('char-1', 1, 1)).toBe(attempt1)
+    expect(deriveAdventureSeed('char-1', 1, 2)).not.toBe(attempt1)
+  })
 })
 
 describe('createSeededRandom (US-146)', () => {

@@ -4,9 +4,13 @@
  * seedado por `deriveAdventureSeed`, pra mesma ficha regenerar mesma aventura.
  */
 
-/** FNV-1a 32-bit sobre `${characterId}:${order}` — estável, sem colisão óbvia entre vizinhos. */
-export function deriveAdventureSeed(characterId: string, order: number): number {
-  const input = `${characterId}:${order}`
+/**
+ * FNV-1a 32-bit sobre `${characterId}:${order}` — estável, sem colisão óbvia entre vizinhos.
+ * `attempt` (US-150, reseed): default `0` produz o MESMO input de sempre (nenhum teste de
+ * determinismo já verde quebra); só `attempt > 0` muda o hash, um reseed real por tentativa.
+ */
+export function deriveAdventureSeed(characterId: string, order: number, attempt = 0): number {
+  const input = attempt === 0 ? `${characterId}:${order}` : `${characterId}:${order}:${attempt}`
   let hash = 0x811c9dc5
   for (let i = 0; i < input.length; i++) {
     hash ^= input.charCodeAt(i)

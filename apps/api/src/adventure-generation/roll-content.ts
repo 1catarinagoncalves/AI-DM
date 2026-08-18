@@ -25,17 +25,18 @@ function pickRow(table: LgmrdTable, rand: () => number): LgmrdTableRow {
 
 // US-147: um sub-seed por tabela (characterId+propósito+order), pela mesma razão do
 // roll-registry — o conteúdo não pode deslocar de sequência conforme o registro foi ou não
-// escolhido manualmente (rolagens independentes entre si).
-function tableSeed(characterId: string, order: number, purpose: string): number {
-  return deriveAdventureSeed(`${characterId}:${purpose}`, order)
+// escolhido manualmente (rolagens independentes entre si). `attempt` (US-150, reseed): default
+// `0`, repassado ao seed de cada tabela.
+function tableSeed(characterId: string, order: number, purpose: string, attempt = 0): number {
+  return deriveAdventureSeed(`${characterId}:${purpose}`, order, attempt)
 }
 
 // US-158: sub-seed POR ROLL (`npc-1`..`npc-7`), não um único `npc` compartilhado — mesma
 // garantia de independência do resto da tabela: rolar mais ou menos NPCs no futuro não
 // desloca a sequência dos outros campos.
-function rollPatronsAndNpcs(characterId: string, order: number, table: LgmrdTable): RolledPatronOrNpc[] {
+function rollPatronsAndNpcs(characterId: string, order: number, table: LgmrdTable, attempt: number): RolledPatronOrNpc[] {
   return Array.from({ length: NPC_ROLL_COUNT }, (_, i) => {
-    const row = pickRow(table, createSeededRandom(tableSeed(characterId, order, `npc-${i + 1}`)))
+    const row = pickRow(table, createSeededRandom(tableSeed(characterId, order, `npc-${i + 1}`, attempt)))
     return { behavior: String(row['behavior']), ancestry: String(row['ancestry']) }
   })
 }
@@ -48,10 +49,15 @@ function rollPatronsAndNpcs(characterId: string, order: number, table: LgmrdTabl
  * `locais`/`monumentos` vêm da MESMA linha de `locationsmonumentsanditems` — um roll dá os
  * dois juntos na fonte (LGMRD), então usam o mesmo sub-seed.
  */
-export function rollContent(characterId: string, order: number, tables: ReturnType<typeof readLgmrdTables> = readLgmrdTables()): RolledAdventureContent {
-  const questRow = pickRow(tables.tables['1d20quests'], createSeededRandom(tableSeed(characterId, order, 'premissa')))
-  const locationRow = pickRow(tables.tables['locationsmonumentsanditems'], createSeededRandom(tableSeed(characterId, order, 'locais')))
-  const conditionRow = pickRow(tables.tables['conditiondescriptionandorigin'], createSeededRandom(tableSeed(characterId, order, 'complicacao')))
+export function rollContent(
+  characterId: string,
+  order: number,
+  tables: ReturnType<typeof readLgmrdTables> = readLgmrdTables(),
+  attempt = 0,
+): RolledAdventureContent {
+  const questRow = pickRow(tables.tables['1d20quests'], createSeededRandom(tableSeed(characterId, order, 'premissa', attempt)))
+  const locationRow = pickRow(tables.tables['locationsmonumentsanditems'], createSeededRandom(tableSeed(characterId, order, 'locais', attempt)))
+  const conditionRow = pickRow(tables.tables['conditiondescriptionandorigin'], createSeededRandom(tableSeed(characterId, order, 'complicacao', attempt)))
 
   return {
     premissa: String(questRow['item']),
@@ -62,6 +68,6 @@ export function rollContent(characterId: string, order: number, tables: ReturnTy
       description: String(conditionRow['description']),
       origin: String(conditionRow['origin']),
     },
-    patronsandnpcs: rollPatronsAndNpcs(characterId, order, tables.tables['patronsandnpcs']),
+    patronsandnpcs: rollPatronsAndNpcs(characterId, order, tables.tables['patronsandnpcs'], attempt),
   }
 }

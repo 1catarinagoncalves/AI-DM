@@ -54,7 +54,7 @@ Um quarto grupo de rádio no passo `world` que a US-157 introduz — **Desafio**
 
 ## Modelo de dados proposto
 
-Sem schema de banco novo. `CreateAdventureDto` ([adventure.service.ts:9-11](../../../apps/api/src/adventure/adventure.service.ts)) ganha um campo:
+Sem schema de banco novo. `CreateAdventureDto` ([adventure.service.ts:13-16](../../../apps/api/src/adventure/adventure.service.ts)) ganha um campo:
 
 ```ts
 export interface CreateAdventureDto {
@@ -96,6 +96,6 @@ export interface CreateAdventureDto {
 ## Referências no código
 
 - [`apps/web/src/components/setup/SetupWizard.tsx`](../../../apps/web/src/components/setup/SetupWizard.tsx) — passo `world` (a partir da US-157), onde o grupo de rádio entra.
-- [`apps/api/src/adventure/adventure.service.ts:9-11`](../../../apps/api/src/adventure/adventure.service.ts) — `CreateAdventureDto`, ganha o campo `challenge`.
+- [`apps/api/src/adventure/adventure.service.ts:13-16`](../../../apps/api/src/adventure/adventure.service.ts) — `CreateAdventureDto`, ganha o campo `challenge` (número real pós-US-164, 2026-08-18).
 - [US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) — `composeEncounterRoles(level, challenge)`, a função que esta tela finalmente dá acesso ao jogador.
 - [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) — passo `world`, reusado, não recriado.

@@ -2,9 +2,9 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-144](./US-144-schema-aventura-shared.md) (schema da aventura) · [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure`, quem produz o artefato) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato já validado)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-151) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (`sabido`/`revelado`, os eixos que esta story usa) · [US-71](./US-71-simplificar-localizacao-do-personagem.md) (o defeito de produção que esta story ataca — 9 de 24 viagens sem `updateScene`)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-151) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (`sabido`/`revelado`, os eixos que esta story usa) · [US-71](./US-71-simplificar-localizacao-do-personagem.md) (o defeito de produção que esta story ataca — 9 de 24 viagens sem `updateScene`) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (`order` calculado antes da transação — empurra pra trás o momento em que o artefato, e portanto esta função, fica disponível)
 **Criada em:** 2026-08-15
 
 ---
@@ -27,9 +27,23 @@ O caminho de semear entidades ao criar uma aventura **já roda** — `extractOpe
 
 Sem esta story, o motor geraria uma `GeneratedAdventure` completa (locais, NPCs, ~11 segredos com `revelado: false`) mas o jogo continuaria vendo só a prosa de abertura e a quest primária — os ~11 segredos ficariam presos dentro do artefato, nunca virando `WorldEntity` no ledger que o Mestre lê a cada turno. É exatamente o defeito medido na [US-71](./US-71-simplificar-localizacao-do-personagem.md): 9 de 24 viagens sem `updateScene`, porque o Mestre não tinha pistas soltas suficientes para saber o que fazer quando o jogador anda.
 
+### Achado ao planejar a implementação (2026-08-18, contra o código real da US-164)
+
+Três achados corrigem a proposta abaixo (*Modelo de dados proposto*), que foi escrita antes de `generateAdventure` existir:
+
+1. **`npcs[].interactions[]` nunca é populado por nenhum gerador atual — a linha 3 da tabela original (`interactions[].encounterId → encounter.locationId`) não tem dado nenhum pra ler.** `generateLocationsAndNpcs` grava `interactions: []` fixo ([ai.service.ts:1281](../../../apps/api/src/ai/ai.service.ts)); `buildEncounterNpcs` idem ([monster-roles.ts:83](../../../apps/api/src/adventure-generation/monster-roles.ts)). Nem `generateSecrets` nem `generateClosing` escrevem nesse campo depois. O caminho real pra resolver `local` do NPC é OUTRO, por reverse-lookup, e depende de qual das duas populações de `npcs[]` (US-164 junta as duas em `allNpcs`) o NPC veio:
+   - **NPC narrativo** (de `generateLocationsAndNpcs`, `role` = descrição livre tipo `"herborista suspeita"`): `local` resolve achando a `location` cujo `occupants[]` contém o `npc.id` ([ai.service.ts:1293](../../../apps/api/src/ai/ai.service.ts) já resolve nome→id no `occupants`).
+   - **NPC de combate** (de `buildEncounterNpcs`, `role` ∈ `Minion`/`Soldier`/`Brute`): nunca aparece em `occupants` — `buildEncounterNpcs` não toca `locations`. `local` resolveria achando o `encounter` cujo `npcIds[]` contém o `npc.id`, e usando `encounter.locationId` — MAS ver achado 2.
+2. **NPC de combate não deveria virar `WorldEntity` — não é entidade nomeada durável.** `buildEncounterNpcs` grava `name: role` ([monster-roles.ts:81](../../../apps/api/src/adventure-generation/monster-roles.ts)) — o NPC de combate se chama literalmente `"Soldier"` ou `"Brute"`, sem nome próprio. O ledger existe pra entidades que "o Mestre não pode esquecer" ([character.ts:19-23](../../../packages/shared/src/types/character.ts)) — semear `"Brute"` com `revelado: true` não ajuda o Mestre a lembrar de nada, só polui o ledger com um combatente genérico que morre no próprio encontro. Proposta: filtrar fora de `seedLedgerFromGeneratedAdventure` todo NPC cujo `role` é chave de `MONSTER_ROLE_CR` (mesmo teste que o gate da US-150 usa pra achar CR, ver US-150 atualizada) — só NPC narrativo vira `WorldEntity`.
+3. **`WorldEntity.nome` é campo OBRIGATÓRIO** ([character.ts:50](../../../packages/shared/src/types/character.ts), sem `?`) **e é a chave de merge do ledger** ("match tolerante a acento/caixa", comentário na própria interface) — mas `AdventureSecretSchema` não tem nome nenhum, só `id`/`locationId`/`text`. A tabela original (*Modelo de dados proposto*) mapeia `secrets[].text` → `nota` e nunca decide o que vira `nome`. Sem valor pra esse campo, `seedLedgerFromGeneratedAdventure` não compila contra `WorldEntity`. Proposta: `nome = secret.id` (`"secret-3"`) — não é nome de ficção, mas é estável e único, e segredo nunca é referenciado pelo nome em narração (é referenciado pelo `text`), então não precisa ser bonito, só servir de chave.
+
+Consequência prática: com o filtro do achado 2, o caminho de "NPC de combate" do achado 1 nunca executa dentro desta story (o NPC filtrado nem chega a precisar de `local`) — mas fica registrado porque US-166 (múltiplos encontros) pode reabrir a pergunta se algum dia NPC de combate precisar de rastreio (não previsto hoje).
+
+**Achado relacionado, herdado da [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md):** `order` passa a ser calculado ANTES da transação (`generateAdventure`/o gate da US-150 fazem chamada LLM, não podem segurar lock) — isso empurra pra trás TAMBÉM o momento em que o `GeneratedAdventure` fica pronto, e portanto o momento em que `seedLedgerFromGeneratedAdventure` PODE rodar. Não muda nada na função em si (`seedLedgerFromGeneratedAdventure` não usa `order`, só o artefato já pronto), mas muda ONDE ela pluga no `createForCharacter` — ver *Notas de implementação*, nota atualizada abaixo.
+
 ### A proposta
 
-Trocar a **fonte** de `extractOpeningEntities` (extração por LLM da prosa) pelo **artefato gerado** (leitura direta e determinística), mantendo o resto do pipeline de semeadura (`tx.adventure.create({ data: { entities } })`) intacto. Os ~11 segredos entram como `WorldEntity` com `revelado: false`; os ~7 NPCs, com `revelado: true`.
+Trocar a **fonte** de `extractOpeningEntities` (extração por LLM da prosa) pelo **artefato gerado** (leitura direta e determinística), mantendo o resto do pipeline de semeadura (`tx.adventure.create({ data: { entities } })`) intacto. Os ~11 segredos entram como `WorldEntity` com `revelado: false`; os NPCs NARRATIVOS (não os de combate, achado 2 acima), com `revelado: true`.
 
 ---
 
@@ -37,10 +51,10 @@ Trocar a **fonte** de `extractOpeningEntities` (extração por LLM da prosa) pel
 
 ### Dentro do escopo
 
-- **`seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure): WorldEntity[]`** — mapeia `adventure.secrets[]` → `WorldEntity` com `tipo: 'outro'` (ou o tipo mais apropriado por segredo), `sabido: 'publico'` (padrão salvo indicação contrária), `revelado: false` (o jogador ainda não descobriu — é a razão de existir do segredo). Mapeia `adventure.npcs[]` → `WorldEntity` com `tipo: 'npc'`, `revelado: true` (o jogador já pode encontrá-los desde o início), `local` resolvido do `locationId` do encontro/interação mais próximo.
+- **`seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure): WorldEntity[]`** — mapeia `adventure.secrets[]` → `WorldEntity` com `nome = secret.id` (chave de merge; segredo não tem nome de ficção, achado 2026-08-18 #3), `tipo: 'outro'` (ou o tipo mais apropriado por segredo), `sabido: 'publico'` (padrão salvo indicação contrária), `revelado: false` (o jogador ainda não descobriu — é a razão de existir do segredo), `local` = título da location de `secret.locationId` (campo nativo no segredo, sem lookup reverso). Mapeia `adventure.npcs[]` → `WorldEntity` só pros NPCs NARRATIVOS (filtra fora `role` ∈ `MONSTER_ROLE_CR`, achado 2026-08-18 acima) com `tipo: 'npc'`, `revelado: true` (o jogador já pode encontrá-los desde o início), `local` resolvido por reverse-lookup em `locations[].occupants[]` (não por `interactions[]` — achado acima).
 - **Substitui a fonte em `createForCharacter`** ([adventure.service.ts](../../../apps/api/src/adventure/adventure.service.ts)): quando a aventura vem do motor ([US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) troca o caminho), `seedLedgerFromGeneratedAdventure` substitui `extractOpeningEntities` como fonte de `tx.adventure.create({ data: { entities } })`. O `map()` em si é o mesmo padrão — só a fonte muda de "extração por LLM" para "leitura do artefato validado".
 - **Reusa a US-75 inteira.** O Mestre já sabe não revelar segredo com `revelado: false` (regras de prompt já escritas naquela story) e já reinjeta sem comprimir (ledger nunca é resumido) — esta story só popula o ledger de outra fonte, não muda nenhuma regra de prompt de leitura.
-- **Teste de mapeamento:** artefato com 3 segredos e 2 NPCs produz exatamente 5 `WorldEntity`, com os campos `revelado`/`sabido` corretos por tipo.
+- **Teste de mapeamento:** artefato com 3 segredos e 2 NPCs narrativos produz exatamente 5 `WorldEntity`, com os campos `revelado`/`sabido` corretos por tipo (NPC de combate, se presente no artefato, não conta — ver achado 2026-08-18).
 
 ### Fora do escopo
 
@@ -57,9 +71,11 @@ Trocar a **fonte** de `extractOpeningEntities` (extração por LLM da prosa) pel
 
 | De (`GeneratedAdventure`) | Para (`WorldEntity`) |
 |---|---|
+| `secrets[].id` | `nome` — chave de merge; segredo não tem nome de ficção, `id` serve porque nunca é citado pelo nome em narração (achado 2026-08-18 #3) |
 | `secrets[].text` | `nota`, `revelado: false`, `sabido: 'publico'` (padrão) |
-| `npcs[].name` + `.role` | `nome`, `nota` (role), `tipo: 'npc'`, `revelado: true` |
-| `npcs[].interactions[].encounterId` → `encounter.locationId` | `local` do NPC, resolvido por join |
+| `secrets[].locationId` → `location.title` | `local` do segredo — direto, sem reverse-lookup (o segredo já carrega o id nativo) |
+| `npcs[].name` + `.role`, SÓ onde `role` ∉ `MONSTER_ROLE_CR` | `nome`, `nota` (role), `tipo: 'npc'`, `revelado: true` — NPC de combate (`role` ∈ `Minion`/`Soldier`/`Brute`) é FILTRADO, não vira `WorldEntity` (achado 2026-08-18, não é entidade nomeada durável) |
+| `locations[].occupants[]` contém `npc.id` → essa `location.title` | `local` do NPC narrativo — reverse-lookup em `occupants`, NÃO em `npcs[].interactions[]` (achado 2026-08-18: `interactions[]` nunca é populado por nenhum gerador atual) |
 
 **Persistência:** `Adventure.entities` (`Json?`), mesma coluna que `extractOpeningEntities` já popula hoje — sem migração.
 
@@ -67,13 +83,13 @@ Trocar a **fonte** de `extractOpeningEntities` (extração por LLM da prosa) pel
 
 ## Critérios de aceite
 
-- [ ] `seedLedgerFromGeneratedAdventure` mapeia todo `secrets[]` do artefato para `WorldEntity` com `revelado: false`.
-- [ ] Mapeia todo `npcs[]` do artefato para `WorldEntity` com `revelado: true`.
-- [ ] O `local` do NPC, quando resolvível pela interação/encontro, é preenchido — NPC sem encontro associado não quebra o mapeamento (campo fica ausente, não lança).
+- [ ] `seedLedgerFromGeneratedAdventure` mapeia todo `secrets[]` do artefato para `WorldEntity` com `nome = secret.id`, `revelado: false`, `local` preenchido do título da location referenciada por `secret.locationId`.
+- [ ] Mapeia todo `npcs[]` NARRATIVO (role ∉ `MONSTER_ROLE_CR`) do artefato para `WorldEntity` com `revelado: true`; NPC de combate (role ∈ `Minion`/`Soldier`/`Brute`) NÃO vira `WorldEntity` (achado 2026-08-18).
+- [ ] O `local` do NPC narrativo é resolvido por reverse-lookup em `locations[].occupants[]` (não em `npcs[].interactions[]`, que nenhum gerador atual popula) — NPC sem location associada não quebra o mapeamento (campo fica ausente, não lança).
 - [ ] Quando a aventura vem do motor gerado, `tx.adventure.create({ data: { entities } })` recebe o resultado desta função — não mais o de `extractOpeningEntities` (essa troca é condicionada pela [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md), que decide quando "a aventura vem do motor").
 - [ ] A semeadura **não** gera evento `CHARACTER_UPDATE` (mesmo comportamento da US-75).
 - [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] **Eval / teste de regressão:** fixture com artefato de 3 segredos + 2 NPCs produz ledger com exatamente 5 entidades, cada uma com `revelado`/`sabido`/`tipo` corretos; ausência de `entities` não quebra a criação (artefato vazio → ledger vazio, mesmo comportamento de fallback pré-US-75).
+- [ ] **Eval / teste de regressão:** fixture com artefato de 3 segredos + 2 NPCs narrativos + 1 NPC de combate (role `'Soldier'`) produz ledger com exatamente 5 entidades — o NPC de combate NÃO aparece — cada uma com `revelado`/`sabido`/`tipo`/`local` corretos; ausência de `entities` não quebra a criação (artefato vazio → ledger vazio, mesmo comportamento de fallback pré-US-75).
 
 ---
 
@@ -81,21 +97,25 @@ Trocar a **fonte** de `extractOpeningEntities` (extração por LLM da prosa) pel
 
 - **Espelhar `extractOpeningEntities` na assinatura, não na implementação** — a função nova não é `async` (não chama LLM, só mapeia um objeto já validado pelo gate), então é síncrona e não precisa do padrão `Promise.all` que `createForCharacter` usa para as duas extrações hoje.
 - **`WorldEntity.tipo` para segredo:** o tipo `'outro'` é o mais genérico do enum existente (`npc | local | objeto | faccao | outro`) — segredo não é bem nenhum dos quatro específicos; usar `'outro'` até haver evidência de que precisa de tipo próprio.
-- **Onde plugar:** [adventure.service.ts:164-171](../../../apps/api/src/adventure/adventure.service.ts) — o `Promise.all` que hoje chama `extractOpeningScene` + `extractOpeningEntities` ganha um branch: aventura do motor usa `seedLedgerFromGeneratedAdventure` (síncrono) em vez de `extractOpeningEntities` (assíncrono).
+- **Onde plugar — corrigido contra o código real (2026-08-18):** o `Promise.all` que chama `extractOpeningScene` + `extractOpeningEntities` está em [adventure.service.ts:275-282](../../../apps/api/src/adventure/adventure.service.ts) (não `:164-171` — a inserção da US-164 empurrou tudo pra baixo). MAS `seedLedgerFromGeneratedAdventure` não precisa entrar nesse `Promise.all`: ele é síncrono e depende só do `GeneratedAdventure` (já pronto assim que o gate da US-150 devolve), não do `openingText` — que só existe depois de `generateOpeningNarration` rodar. Plug-in melhor: logo após o gate devolver o artefato validado, ANTES até de `generateOpeningNarration` (achado da US-153: `order` → gate/`generateAdventure` → aqui → `generateOpeningNarration` com `mainQuest` do artefato → `extractOpeningScene` sozinho, sem mais `Promise.all` com `extractOpeningEntities`, que esta story substitui).
+- **Filtro de NPC de combate reusa o mesmo teste do gate da US-150** — `role in MONSTER_ROLE_CR` ([monster-roles.ts](../../../apps/api/src/adventure-generation/monster-roles.ts)), não uma constante nova duplicada aqui.
+- **`nome = secret.id` é só até haver evidência contrária** (achado 2026-08-18 #3) — se algum dia o Mestre precisar CITAR um segredo pelo nome em prosa (hoje não cita, só age de acordo com ele), revisitar; `id` como `nome` funciona pro merge do ledger, não pra leitura humana.
 
 ---
 
 ## Questões em aberto
 
-1. Como o `local` do NPC é resolvido quando o NPC participa de mais de um encontro em locais diferentes? O schema (US-144) não define "local primário" do NPC — decidir na implementação: primeiro encontro na ordem do array, ou campo explícito a acrescentar em `AdventureNpcSchema`.
+1. ~~Como o `local` do NPC é resolvido quando o NPC participa de mais de um encontro em locais diferentes?~~ **RESOLVIDO (2026-08-18), pela mecânica real da US-164:** NPC de combate (o único que `encounters[].npcIds` referencia hoje) é filtrado fora do ledger (achado 2 acima) — a pergunta original não se aplica a ele. NPC narrativo nunca aparece em `encounters[].npcIds` (só em `locations[].occupants[]`); se o mesmo nome aparecer nos `occupants` de mais de uma location (LLM repetindo, raro), primeiro match no array de `locations[]` vence — sem campo novo em `AdventureNpcSchema`. Fica registrado pra revisitar se a US-166 (múltiplos encontros) ou uma US futura decidir rastrear NPC de combate no ledger.
 
 ---
 
 ## Referências no código
 
-- [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) — `generateAdventure`, quem entrega o `GeneratedAdventure` que esta story lê.
+- [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) — ✅ implementada 2026-08-18. `AdventureService.generateAdventure`, quem entrega o `GeneratedAdventure` que esta story lê.
+- [apps/api/src/adventure-generation/monster-roles.ts](../../../apps/api/src/adventure-generation/monster-roles.ts) — `MONSTER_ROLE_CR` (teste de "é NPC de combate?", achado 2026-08-18), `buildEncounterNpcs` (por que `interactions[]`/`occupants[]` ficam vazios pro NPC de combate).
+- [apps/api/src/ai/ai.service.ts:1252](../../../apps/api/src/ai/ai.service.ts) — `generateLocationsAndNpcs`, onde `occupants[]` resolve nome→id (o reverse-lookup real de `local` do NPC narrativo).
 - [apps/api/src/ai/ai.service.ts:1112](../../../apps/api/src/ai/ai.service.ts) — `extractOpeningEntities`, a função cuja fonte esta story substitui (não remove).
-- [apps/api/src/adventure/adventure.service.ts:164-171](../../../apps/api/src/adventure/adventure.service.ts) — `Promise.all` de extração pós-abertura, onde o branch novo entra.
+- [apps/api/src/adventure/adventure.service.ts:275-282](../../../apps/api/src/adventure/adventure.service.ts) — `Promise.all` de extração pós-abertura (número real pós-US-164; não é mais onde o branch novo entra — ver *Notas de implementação*, achado 2026-08-18).
 - [packages/shared/src/types/character.ts](../../../packages/shared/src/types/character.ts) — `WorldEntity`, o tipo de destino do mapeamento.
 - [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) — `sabido`/`revelado`, os eixos reusados sem mudança de semântica.
 - [US-71](./US-71-simplificar-localizacao-do-personagem.md) — 9 de 24 viagens sem `updateScene`, o defeito de produção que esta story paga.
