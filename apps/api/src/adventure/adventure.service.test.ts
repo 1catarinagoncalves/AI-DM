@@ -1,25 +1,37 @@
 import { describe, it, expect, vi } from 'vitest'
+import { BadRequestException } from '@nestjs/common'
 import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
 import { AdventureService, type AdventureProfile } from './adventure.service'
+import { rollAdventure } from '../adventure-generation/roll-adventure'
 import type { PrismaService } from '../prisma.service'
 import type { AiService } from '../ai/ai.service'
 
-// Fake do AiService: por padrão devolve null (força o fallback estático da US-28,
+// Fake do AiService: por padrão devolve null pra abertura (força o fallback estático,
 // preservando as asserções de texto abaixo). `opening` != null exercita o caminho IA.
 // `scene` (US-35) default null → extração falha/vazia, sceneState nulo (fallback).
 // `entities` (US-75) default null → ledger vazio, igual ao comportamento pré-US-75.
 // `seen` (US-105) recebe o input da geração — é como se afirma que o Mestre viu o RÓTULO
 // de raça/classe, e não a chave crua guardada na ficha.
+// US-153: generateLocationsAndNpcs/generateSecrets/generateClosing sempre respondem com um
+// grafo FECHADO (npc-1 ocupa loc-1) — o gate (US-150) exige isso pra passar na 1ª tentativa,
+// sem reseed, mantendo os testes deste ficheiro determinísticos.
 function fakeAi(
   opening: string | null = null,
   scene: Record<string, unknown> | null = null,
   entities: Record<string, unknown>[] | null = null,
   seen: Record<string, unknown> = {},
 ): AiService {
+  const locations = [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }]
+  const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+  const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
+  const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'] }
   return {
     generateOpeningNarration: async (input: Record<string, unknown>) => { Object.assign(seen, input); return opening },
     extractOpeningScene: async () => scene,
     extractOpeningEntities: async () => entities,
+    generateLocationsAndNpcs: async () => ({ locations, npcs }),
+    generateSecrets: async () => secrets,
+    generateClosing: async () => closing,
   } as unknown as AiService
 }
 
@@ -67,11 +79,12 @@ interface Recorded {
 
 // Test double mínimo: só os métodos que AdventureService.createForCharacter chama,
 // incluindo um $transaction que executa o callback com um "tx" que grava as chamadas.
+// US-153: `adventureParticipant.count` sai da `tx` pro `prisma` de topo — o `order` agora é
+// calculado ANTES de abrir a transação (this.prisma, não tx.prisma).
 function fakePrisma(character: Record<string, unknown> | null, participantCount = 0): { prisma: PrismaService; recorded: Recorded } {
   const recorded: Recorded = {}
   const tx = {
     adventureParticipant: {
-      count: async () => participantCount,
       create: async ({ data }: { data: Record<string, unknown> }) => {
         recorded.participantCreate = data
         return { id: 'participant-1', ...data }
@@ -109,6 +122,7 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
 
   const prisma = {
     character: { findUnique: async () => character },
+    adventureParticipant: { count: async () => participantCount },
     $transaction: async (fn: (tx: unknown) => unknown) => fn(tx),
   } as unknown as PrismaService
 
@@ -116,27 +130,32 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
 }
 
 describe('AdventureService.createForCharacter', () => {
-  it('classe conhecida: usa o gancho da classe para título, quest primária e narração', async () => {
+  // US-153: título e quest já não vêm do gancho fixo por classe — vêm do artefato do
+  // motor de geração (US-164), determinístico por characterId+order (US-146). `rollAdventure`
+  // real (não mockado) devolve o mesmo `content.premissa` que `generateAdventure` usou.
+  it('título e quest vêm do artefato gerado (summary/start), não mais do gancho fixo por classe', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 },
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma, fakeAi())
 
-    const adventure = await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    const adventure = await service.createForCharacter('char-1', {})
 
-    expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: 'O Arquivo Que Sussurra', order: 1 })
+    const { content } = rollAdventure('char-1', 1)
+    expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: content.premissa, order: 1 })
     expect(recorded.participantCreate).toEqual({ adventureId: 'adv-1', characterId: 'char-1' })
     expect(recorded.characterStateCreate).toMatchObject({
       characterId: 'char-1', adventureId: 'adv-1', hp: 12, maxHp: 12,
       inventory: [{ name: 'Adaga', qty: 1 }], // 'Mago'→wizard, e o config só tem kit 'fighter' → default
     })
+    // Quest.title = summary (mesma premissa); Quest.description = start (o hookSeed, US-153 #4).
     expect(recorded.questCreate).toMatchObject({
-      adventureId: 'adv-1', title: 'Descobrir o arquivo', description: 'Investigar o grimório.', isPrimary: true,
+      adventureId: 'adv-1', title: content.premissa, description: 'A vela curva-se, Elara.', isPrimary: true,
     })
-    // Placeholder {characterName} resolvido antes de persistir.
+    // Placeholder {characterName} resolvido antes de persistir (hookSeed continua vindo do gancho).
     expect(recorded.eventLogCreate).toMatchObject({
       adventureId: 'adv-1', characterId: 'char-1', type: 'NARRATION',
       payload: { text: 'A vela curva-se, Elara.' },
@@ -145,7 +164,7 @@ describe('AdventureService.createForCharacter', () => {
 
   it('caminho IA: quando a geração devolve texto, a abertura persiste esse texto, não o template estático', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 },
       system: { config },
     }
@@ -153,7 +172,7 @@ describe('AdventureService.createForCharacter', () => {
     const gerado = 'A chuva fina cai sobre Elara enquanto o grimório desperta.'
     const service = new AdventureService(prisma, fakeAi(gerado))
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
     expect(recorded.eventLogCreate).toMatchObject({
       type: 'NARRATION',
@@ -163,7 +182,7 @@ describe('AdventureService.createForCharacter', () => {
 
   it('US-35: extração devolve patch → CharacterState nasce com sceneState preenchido e coerente', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 },
       system: { config },
     }
@@ -174,7 +193,7 @@ describe('AdventureService.createForCharacter', () => {
     }
     const service = new AdventureService(prisma, fakeAi('A chuva cai sobre a estrada.', patch))
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
     const state = recorded.characterStateCreate as Record<string, unknown>
     expect(state['sceneState']).toMatchObject({
@@ -187,72 +206,67 @@ describe('AdventureService.createForCharacter', () => {
 
   it('US-35: extração devolve null → CharacterState criado sem sceneState, sem erro (fallback US-34)', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 },
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma, fakeAi('A chuva cai sobre a estrada.', null))
 
-    const adventure = await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    const adventure = await service.createForCharacter('char-1', {})
 
     expect(adventure).toMatchObject({ id: 'adv-1' })
     expect(recorded.characterStateCreate).not.toHaveProperty('sceneState')
   })
 
-  it('classe desconhecida: cai no gancho default com a classe no texto, sem erro', async () => {
+  it('classe desconhecida: cai no gancho default (hookSeed), sem erro', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Nyx', class: 'Cartógrafa Estelar',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Nyx', class: 'Cartógrafa Estelar', level: 1,
       baseAttributes: { constitution: 10 },
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma, fakeAi())
 
-    const adventure = await service.createForCharacter('char-1', { initialHookId: 'default-sinal' })
+    const adventure = await service.createForCharacter('char-1', {})
 
-    expect(adventure).toMatchObject({ title: 'O Primeiro Sinal de Cartógrafa Estelar' })
+    // US-153: título já não é o template do gancho ('O Primeiro Sinal de...') — vem do artefato.
+    expect(typeof adventure.title).toBe('string')
+    expect((adventure.title as string).length).toBeGreaterThan(0)
     expect(recorded.eventLogCreate).toMatchObject({
       payload: { text: 'Alguém pronuncia a tua classe: Cartógrafa Estelar.' },
     })
   })
 
-  it('rejeita um initialHookId que não corresponde à classe do personagem', async () => {
+  it('order é calculado ANTES da transação e numera pela contagem de aventuras anteriores do personagem', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
-      baseAttributes: { constitution: 10 }, system: { config },
-    }
-    const { prisma } = fakePrisma(character)
-    const service = new AdventureService(prisma, fakeAi())
-    await expect(service.createForCharacter('char-1', { initialHookId: 'default-sinal' })).rejects.toThrow()
-  })
-
-  it('numera order pela contagem de aventuras anteriores do personagem', async () => {
-    const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 10 },
       system: { config },
     }
     const { prisma, recorded } = fakePrisma(character, 2)
     const service = new AdventureService(prisma, fakeAi())
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
-    expect(recorded.adventureCreate).toMatchObject({ order: 3 })
+    // Mesmo `order` nos dois lugares: generateGatedAdventure (registro/conteúdo rolados
+    // para order=3) e tx.adventure.create — sem recomputar (achado 2026-08-18, US-153).
+    const { content } = rollAdventure('char-1', 3)
+    expect(recorded.adventureCreate).toMatchObject({ order: 3, title: content.premissa })
   })
 
   // US-105: a chave vai ao lookup, o rótulo vai ao Mestre. Falha se a chave crua vazar
   // para a primeira cena ("Elara, a wizard").
   it('a abertura recebe o RÓTULO de raça e classe, não a chave', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 10 }, system: { config },
     }
     const { prisma } = fakePrisma(character)
     const seen: Record<string, unknown> = {}
     const service = new AdventureService(prisma, fakeAi(null, null, null, seen))
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
     expect(seen['characterClass']).toBe('Mago')
     expect(seen['characterRace']).toBe('Humano')
@@ -261,21 +275,108 @@ describe('AdventureService.createForCharacter', () => {
   it('rejeita quando o personagem não existe', async () => {
     const { prisma } = fakePrisma(null)
     const service = new AdventureService(prisma, fakeAi())
-    await expect(service.createForCharacter('missing', { initialHookId: 'mago-arquivo' })).rejects.toThrow()
+    await expect(service.createForCharacter('missing', {})).rejects.toThrow()
+  })
+
+  // US-153: dois personagens da mesma classe, characterIds diferentes → premissas roladas
+  // diferentes (seed por characterId+order, US-146/US-147) — título e Quest.title diferem.
+  it('dois personagens da mesma classe, backgrounds diferentes: recebem aventuras (título) diferentes', async () => {
+    const charA = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config }, background: { story: 'Aprendiz fugida' },
+    }
+    const charB = {
+      id: 'char-2', userId: 'user-1', systemId: 'sys-1', name: 'Nyx', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config }, background: { story: 'Órfã do porto' },
+    }
+    const runA = fakePrisma(charA)
+    const runB = fakePrisma(charB)
+
+    const adventureA = await new AdventureService(runA.prisma, fakeAi()).createForCharacter('char-1', {})
+    const adventureB = await new AdventureService(runB.prisma, fakeAi()).createForCharacter('char-2', {})
+
+    expect(adventureA.title).not.toBe(adventureB.title)
+  })
+
+  // US-146: mesmo personagem, mesmo order → mesma aventura (determinismo ponta a ponta).
+  it('mesmo personagem, mesmo order: recriar a aventura devolve o mesmo título e a mesma quest', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const run1 = fakePrisma(character)
+    const run2 = fakePrisma(character)
+
+    const adventure1 = await new AdventureService(run1.prisma, fakeAi()).createForCharacter('char-1', {})
+    const adventure2 = await new AdventureService(run2.prisma, fakeAi()).createForCharacter('char-1', {})
+
+    expect(adventure1.title).toBe(adventure2.title)
+    expect(run1.recorded.questCreate).toEqual(run2.recorded.questCreate)
+  })
+
+  // US-150: teto de tentativas do gate esgotado (grafo nunca fecha: npc-1 nunca referenciado)
+  // → Error genérico com o motivo da última falha, NUNCA BadRequestException, sem fallback
+  // estático (ao contrário de generateOpeningNarration, não existe aventura fixa pra cair).
+  it('gate esgota o teto de tentativas: lança Error genérico com o motivo, sem BadRequestException', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const orphanAi = {
+      generateOpeningNarration: async () => null,
+      extractOpeningScene: async () => null,
+      extractOpeningEntities: async () => null,
+      generateLocationsAndNpcs: async () => ({
+        locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+        npcs: [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }], // nunca referenciado → órfão
+      }),
+      generateSecrets: async () => [{ id: 'secret-1', locationId: 'loc-1', text: 'segredo' }],
+      generateClosing: async () => ({ conclusion: 'fim', followUps: [] }),
+    } as unknown as AiService
+    const service = new AdventureService(prisma, orphanAi)
+
+    const err: unknown = await service.createForCharacter('char-1', {}).catch((e) => e)
+
+    expect(err).toBeInstanceOf(Error)
+    expect(err).not.toBeInstanceOf(BadRequestException)
+    expect((err as Error).message).toContain('teto de 3 tentativas esgotado')
+    expect(logSpy).toHaveBeenCalled()
+    logSpy.mockRestore()
+  })
+
+  // US-153: DTO consome setting/tone/areaType opcionais (US-156) — repassados como
+  // registryOverrides ao motor, fixando o registro em vez de sortear (a UI que os
+  // preenche é a US-157, fora do escopo aqui; esta story só liga o cano).
+  it('setting/tone/areaType do DTO são repassados a generateGatedAdventure como registryOverrides', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+    const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
+
+    await service.createForCharacter('char-1', { setting: 'coastal', tone: 'heroic', areaType: 'ruins' })
+
+    expect(gateSpy).toHaveBeenCalledWith(
+      expect.anything(), 'char-1', 1, { setting: 'coastal', tone: 'heroic', areaType: 'ruins' },
+    )
   })
 
   // --- US-128: memento + equipamento da origem no inventário inicial ---
 
   it('origem escolhida (sem memento): kit da classe + itens de equipamento, sem item de memento', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 }, system: { config },
       origin: { key: 'a5e-ag_acolyte' },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma, fakeAi())
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
     expect(recorded.characterStateCreate).toMatchObject({
       inventory: [
@@ -288,14 +389,14 @@ describe('AdventureService.createForCharacter', () => {
 
   it('memento escolhido (sem origem mecanizada): kit da classe + item "Memento", nome fixo — não o texto completo', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 }, system: { config },
       origin: { memento: 'O símbolo sagrado gasto pelo tempo que seu mentor lhe deixou.' },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma, fakeAi())
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
     expect(recorded.characterStateCreate).toMatchObject({
       inventory: [
@@ -307,14 +408,14 @@ describe('AdventureService.createForCharacter', () => {
 
   it('origem + memento juntos: kit + equipamento da origem + Memento, nessa ordem', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 }, system: { config },
       origin: { key: 'a5e-ag_acolyte', memento: 'O símbolo sagrado gasto pelo tempo.' },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma, fakeAi())
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
     expect(recorded.characterStateCreate).toMatchObject({
       inventory: [
@@ -328,27 +429,27 @@ describe('AdventureService.createForCharacter', () => {
 
   it('sem origem escolhida e sem memento: inventário só com o kit da classe, sem item vazio (sem regressão)', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 }, system: { config },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma, fakeAi())
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
     expect(recorded.characterStateCreate).toMatchObject({ inventory: [{ name: 'Adaga', qty: 1 }] })
   })
 
   it('origem sem catálogo de equipamento (chave desconhecida): sem item extra, sem lançar', async () => {
     const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 }, system: { config },
       origin: { key: 'a5e-ag_urchin' },
     }
     const { prisma, recorded } = fakePrisma(character)
     const service = new AdventureService(prisma, fakeAi())
 
-    await service.createForCharacter('char-1', { initialHookId: 'mago-arquivo' })
+    await service.createForCharacter('char-1', {})
 
     expect(recorded.characterStateCreate).toMatchObject({ inventory: [{ name: 'Adaga', qty: 1 }] })
   })

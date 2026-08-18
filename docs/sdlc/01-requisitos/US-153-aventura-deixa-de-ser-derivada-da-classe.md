@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (2026-08-18)
 **Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (✅ implementada 2026-08-18 — `AdventureService.generateAdventure`, a função que esta story chama) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato validado) · [US-151](./US-151-semear-ledger-segredos-gerados.md) (ledger semeado do artefato)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-153) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (o mecanismo que esta story substitui) · [starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) (`resolveInitialHook`, que continua vivo como porta de entrada)
 **Criada em:** 2026-08-15
@@ -81,17 +81,19 @@ export interface CreateAdventureDto {
 
 ## Critérios de aceite
 
-- [ ] `createForCharacter` chama `generateAdventure` ([US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md)) para produzir a `GeneratedAdventure`, em vez de resolver só `resolveInitialHook`.
-- [ ] `order` é calculado ANTES de abrir `$transaction` (não mais dentro dela) e passado tanto pra `generateAdventure` quanto pra `tx.adventure.create` — mesmo valor nos dois lugares, sem recomputar (achado 2026-08-18).
-- [ ] `resolveInitialHook` continua sendo chamado — seu resultado alimenta `hookSeed` ([US-148](./US-148-perfil-personagem-entrada-motor.md)), não a estrutura da aventura.
-- [ ] A validação que rejeita `initialHookId` diferente do da classe é removida — não existe mais `initialHookId` no DTO.
-- [ ] `CreateAdventureDto` não tem mais `initialHookId`; tem `setting?`, `tone?`, `areaType?`, todos opcionais.
-- [ ] Dois personagens da mesma classe, com `background` diferentes, recebem `GeneratedAdventure` com conteúdo diferente (locais, NPCs, segredos distintos) — verificável em teste com dois personagens fixture.
-- [ ] O mesmo personagem, recriando a aventura com o mesmo `order`, recebe a mesma `GeneratedAdventure` — determinismo ponta a ponta.
-- [ ] `Adventure.title` e `Quest.title`/`Quest.description` derivam do artefato gerado (`adventure.summary`, `adventure.start`/`conclusion`), não mais dos campos fixos do hook.
-- [ ] `generateOpeningNarration` continua rodando, com `mainQuest` vindo do artefato gerado.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] **Eval / teste de regressão:** teste de integração criando aventura para dois personagens da mesma classe com `bonds` diferentes — confirma que o texto de `Quest.description` (ou o artefato subjacente) difere entre os dois; teste de regeneração confirma paridade byte a byte para o mesmo personagem.
+- [x] `createForCharacter` chama `generateGatedAdventure` ([US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md), não `generateAdventure` direto — questão em aberto #3, resolvida) para produzir a `GeneratedAdventure`, em vez de resolver só `resolveInitialHook`.
+- [x] Quando `GateResult.ok` é `false` (teto de tentativas esgotado), `createForCharacter` lança `new Error(result.reason)` — sem `BadRequestException` e sem fallback estático (#3).
+- [x] `order` é calculado ANTES de abrir `$transaction` (não mais dentro dela) e passado tanto pra `generateGatedAdventure` quanto pra `tx.adventure.create` — mesmo valor nos dois lugares, sem recomputar (achado 2026-08-18).
+- [x] `resolveInitialHook` continua sendo chamado — seu resultado alimenta `hookSeed` ([US-148](./US-148-perfil-personagem-entrada-motor.md)), não a estrutura da aventura.
+- [x] A validação que rejeita `initialHookId` diferente do da classe é removida — não existe mais `initialHookId` no DTO.
+- [x] `CreateAdventureDto` não tem mais `initialHookId`; tem `setting?`, `tone?`, `areaType?`, todos opcionais.
+- [x] Dois personagens da mesma classe, com `background` diferentes, recebem `GeneratedAdventure` com conteúdo diferente (locais, NPCs, segredos distintos) — verificável em teste com dois personagens fixture.
+- [x] O mesmo personagem, recriando a aventura com o mesmo `order`, recebe a mesma `GeneratedAdventure` — determinismo ponta a ponta.
+- [x] `Adventure.title = adventure.summary`; `Quest.title = adventure.summary`; `Quest.description = adventure.start` — mapeamento exato (#4, resolvida); `adventure.conclusion` não alimenta nenhum campo de `Quest` nesta story.
+- [x] `generateOpeningNarration.mainQuest` E o 2º argumento de `extractOpeningEntities` ([adventure.service.ts:275](../../../apps/api/src/adventure/adventure.service.ts) e [:305](../../../apps/api/src/adventure/adventure.service.ts)) trocam JUNTOS para `` `${adventure.summary}\n${adventure.start}` `` — mesma string derivada nos dois call sites (#5, resolvida).
+- [x] Ordem de chamadas de IA dentro de `createForCharacter` muda: `generateGatedAdventure` roda ANTES de `generateOpeningNarration`/`extractOpeningEntities` (não depois) — a narração e a extração de entidades dependem do artefato gerado (#5).
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] **Eval / teste de regressão:** teste de integração criando aventura para dois personagens da mesma classe com `bonds` diferentes — confirma que o texto de `Quest.description` (ou o artefato subjacente) difere entre os dois; teste de regeneração confirma paridade byte a byte para o mesmo personagem.
 
 ---
 
@@ -107,7 +109,10 @@ export interface CreateAdventureDto {
 ## Questões em aberto
 
 1. ~~`GeneratedAdventureSchema` (US-144) não lista `title` entre os campos — confirmar se `summary` serve como título curto ou se falta um campo.~~ **RESOLVIDO (2026-08-18): `summary` serve como título, sem campo novo.** `summary = content.premissa` (US-164, `adventure.service.ts`) é a linha CRUA da tabela `1d20quests` do LGMRD ([roll-content.ts:57](../../../apps/api/src/adventure-generation/roll-content.ts)) — frases curtas tipo `"Kill a villain"`, `"Rescue an NPC"`, já no formato de título, não de resumo longo. `Adventure.title = adventure.summary`, direto, sem transformação — sem emendar a US-144, sem campo novo no schema.
-2. O que acontece com o `id` do hook (`rawHook.id`, usado hoje em log/depuração)? Provavelmente nada — o `hookSeed` (texto) é o que sobrevive, o `id` do gancho deixa de ter consumidor fora da resolução interna.
+2. ~~O que acontece com o `id` do hook (`rawHook.id`, usado hoje em log/depuração)?~~ **RESOLVIDO (2026-08-18): nada — sem consumidor.** Checado contra o código real: `rawHook.id` só aparece em [adventure.service.ts:235](../../../apps/api/src/adventure/adventure.service.ts), dentro da própria validação `dto.initialHookId !== rawHook.id` que esta story remove. Nenhum log, nenhuma outra leitura. `hookSeed` (texto de `resolveHook(...).openingNarration`) é o único valor derivado do gancho que sobrevive; `rawHook.id` fica sem consumidor fora da resolução interna.
+3. ~~`createForCharacter` chama `generateAdventure` direto, ou `generateGatedAdventure` (US-150)?~~ **RESOLVIDO (2026-08-18): `generateGatedAdventure`.** [adventure-gate.ts:196](../../../apps/api/src/adventure-generation/adventure-gate.ts) já comenta que o gate não tem "nenhum consumidor de persistência ainda" — US-153 é esse consumidor; persistir sem gate reabriria o buraco que a US-150 fechou. `createForCharacter` chama `generateGatedAdventure(profile, characterId, order, registryOverrides)` (`maxAttempts` fica no default = 3 da assinatura). Se `GateResult.ok` é `false` (teto de tentativas esgotado), lança `new Error(result.reason)` — não `BadRequestException` (não é erro de input do cliente, é falha de geração) e sem fallback estático (ao contrário do `openingNarration`, não existe aventura fixa pra cair). `generateWithGate` já loga cada tentativa via `logGateFailure`; o erro final carrega `reason`/`attempt` pro rastro da exceção não tratada.
+4. ~~`Quest.title`/`Quest.description` mapeiam para quais campos exatos do artefato — `summary`, `start`, `conclusion` de qual jeito?~~ **RESOLVIDO (2026-08-18): `Quest.title = adventure.summary`, `Quest.description = adventure.start`.** `adventure.summary` é o mesmo valor de `Adventure.title` — não é duplicação espúria, é a premissa da tabela `1d20quests` (curta, tipo título) servindo os dois lugares que precisam do nome da missão. `adventure.start` é `profile.hookSeed` (o gancho/abertura) — dá contexto de por que a personagem está envolvida, sem spoiler. `adventure.conclusion` **não** alimenta nenhum campo de `Quest` nesta story: usá-lo como descrição vazaria o desfecho antes do jogo começar; fica no artefato disponível pra consumo futuro (ex.: tela de fecho), fora do escopo aqui.
+5. ~~`generateOpeningNarration.mainQuest` ([adventure.service.ts:275](../../../apps/api/src/adventure/adventure.service.ts)) e o 2º argumento de `extractOpeningEntities` ([:305](../../../apps/api/src/adventure/adventure.service.ts)) hoje usam a MESMA string (`hook.primaryQuestTitle`+`Description`) — o critério de aceite só cita a narração, e o outro call site?~~ **RESOLVIDO (2026-08-18): os dois trocam juntos**, para a mesma string derivada — `` `${adventure.summary}\n${adventure.start}` `` (os mesmos dois campos do item #4 acima), usada tanto em `generateOpeningNarration` quanto em `extractOpeningEntities`. Consequência de ordem: `generateGatedAdventure` (e as três chamadas de IA dentro de `generateAdventure`) precisa rodar ANTES de `generateOpeningNarration` agora, não depois — a sequência de chamadas de IA dentro de `createForCharacter` era narração → extração; passa a ser geração+gate → narração → extração. Nota, não bloqueio: isso serializa uma 4ª chamada de IA atrás das 3 de `generateAdventure`, perdendo paralelismo que hoje existe entre narração e extração; sem otimização nesta story — medir latência depois se virar problema real.
 
 ---
 

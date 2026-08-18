@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-144](./US-144-schema-aventura-shared.md) (schema da aventura) · [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure`, quem produz o artefato) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato já validado)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-151) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (`sabido`/`revelado`, os eixos que esta story usa) · [US-71](./US-71-simplificar-localizacao-do-personagem.md) (o defeito de produção que esta story ataca — 9 de 24 viagens sem `updateScene`) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (`order` calculado antes da transação — empurra pra trás o momento em que o artefato, e portanto esta função, fica disponível)
 **Criada em:** 2026-08-15

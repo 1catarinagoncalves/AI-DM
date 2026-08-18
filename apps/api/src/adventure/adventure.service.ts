@@ -12,7 +12,10 @@ import type { AdventureRegistryOverrides } from '../adventure-generation/roll-re
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
 
 export interface CreateAdventureDto {
-  initialHookId: string
+  // initialHookId REMOVIDO (US-153): a aventura é sempre gerada, não escolhida pelo cliente.
+  setting?: string // US-156: chave do catálogo, ou ausente = sorteado pelo seed
+  tone?: string
+  areaType?: string
 }
 
 /**
@@ -223,19 +226,15 @@ export class AdventureService {
     const locale = resolveLocale(character.user?.locale)
     const config = SystemConfigSchema.parse(configForLocale(character.system, locale))
 
-    // A classe é a fonte de verdade do gancho: resolvemos server-side e só usamos
-    // o initialHookId do cliente para validar que ele não escolheu outro (US-28).
-    // US-105: a chave vai para o lookup (hook, kit); o rótulo, para todo texto que uma
-    // pessoa lê — mensagem de erro, placeholder do gancho e prompt do Mestre.
+    // US-153: a classe não escolhe mais a aventura inteira — o gancho continua vivo só
+    // como hookSeed do motor de geração (buildAdventureProfile), via US-148.
+    // US-105: a chave vai para o lookup (kit); o rótulo, para todo texto que uma
+    // pessoa lê — mensagem de erro e prompt do Mestre.
     const className = catalogLabel(config.classes, character.class)
     const raceName = catalogLabel(config.races, character.race)
 
     const rawHook = resolveInitialHook(config, character.class)
     if (!rawHook) throw new BadRequestException('O sistema deste personagem não tem aventuras iniciais configuradas')
-    if (dto.initialHookId !== rawHook.id) {
-      throw new BadRequestException(`Gancho inicial "${dto.initialHookId}" não é válido para a classe ${className}`)
-    }
-    const hook = this.resolveHook(rawHook, character.name, className)
 
     const attrs = character.baseAttributes as Record<string, number>
     const conMod = Math.floor(((attrs['constitution'] ?? 10) - 10) / 2)
@@ -256,8 +255,27 @@ export class AdventureService {
     ]
     const fullInventory = [...startingInventory, ...originItems]
 
+    // US-153: order calculado ANTES da transação — generateGatedAdventure roda fora do
+    // lock (LLM é lento, mesma disciplina de generateOpeningNarration abaixo) e precisa
+    // do valor pronto; a transação recebe este MESMO `order`, não recalcula.
+    const order = (await this.prisma.adventureParticipant.count({ where: { characterId } })) + 1
+    const profile = this.buildAdventureProfile(character, config)
+
+    // US-153: motor de geração (US-164) substitui o catálogo fixo por classe (US-28) — o
+    // gancho (`profile.hookSeed`) só ancora a abertura, não decide mais locais/NPCs/segredos/
+    // quest. Gate (US-150) antes de persistir; teto de tentativas esgotado → sem fallback
+    // estático (ao contrário de generateOpeningNarration, não existe aventura fixa pra cair).
+    const gateResult = await this.generateGatedAdventure(profile, characterId, order, {
+      setting: dto.setting,
+      tone: dto.tone,
+      areaType: dto.areaType,
+    })
+    if (!gateResult.ok) throw new Error(gateResult.reason)
+    const generated = gateResult.adventure
+    const mainQuest = `${generated.summary}\n${generated.start}`
+
     // Abertura gerada pelo MESMO DM (US-34), FORA da transação (LLM é lento e não
-    // deve segurar locks). Falha/vazio → cai no openingNarration estático do gancho.
+    // deve segurar locks). Falha/vazio → cai no hookSeed estático do perfil.
     const labelPairs = (config.attributes ?? []).map((a) => [a.key, a.label] as const)
     // Perícias com modificador para a abertura (US-27): o DM já conhece as competências desde a 1ª cena.
     const skills = config.skills
@@ -272,10 +290,10 @@ export class AdventureService {
       characterGender: character.gender,
       characterClass: className,
       characterRace: raceName,
-      mainQuest: `${hook.primaryQuestTitle}\n${hook.primaryQuestDescription}`,
+      mainQuest,
       inventory: fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
       sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
-      hookSeed: hook.openingNarration,
+      hookSeed: profile.hookSeed,
       attributeLabels: Object.fromEntries(labelPairs),
       background: (character.background ?? {}) as unknown as CharacterBackground,
       // US-41: features de classe do kit (o DM já as conhece na 1ª cena). US-100: a ficha guarda
@@ -285,10 +303,10 @@ export class AdventureService {
       spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
       locale,
     })
-    // US-101: o fallback estático já sai no idioma certo — `hook` veio do `config` do locale
-    // (linha 85), e o gancho passou a ter versão por idioma. Antes ele era o único PT que
-    // sobrava numa mesa em inglês, e só aparecia quando a geração falhava.
-    const openingText = generatedOpening ?? hook.openingNarration
+    // US-101: o fallback estático já sai no idioma certo — `profile.hookSeed` veio do
+    // `config` do locale (linha 85), e o gancho passou a ter versão por idioma. Antes ele
+    // era o único PT que sobrava numa mesa em inglês, e só aparecia quando a geração falhava.
+    const openingText = generatedOpening ?? profile.hookSeed
 
     // US-35: extrai a cena estruturada da abertura ANTES da transação (é LLM). Sem
     // isto o `sceneState` nasce nulo e o turno 1 fica sem âncora de continuidade
@@ -302,13 +320,11 @@ export class AdventureService {
         openingText,
         fullInventory.map((i) => i.name),
       ),
-      this.ai.extractOpeningEntities(openingText, `${hook.primaryQuestTitle}\n${hook.primaryQuestDescription}`),
+      this.ai.extractOpeningEntities(openingText, mainQuest),
     ])
     const sceneState = scenePatch ? mergeSceneState(null, scenePatch) : null
 
     return this.prisma.$transaction(async (tx) => {
-      const order = (await tx.adventureParticipant.count({ where: { characterId } })) + 1
-
       // Fecha a aventura ativa anterior do personagem (continuidade sequencial, ver ADR 002)
       await tx.adventure.updateMany({
         where: { status: 'ACTIVE', participants: { some: { characterId } } },
@@ -320,7 +336,7 @@ export class AdventureService {
         data: {
           systemId: character.systemId,
           creatorId: character.userId,
-          title: hook.title,
+          title: generated.summary,
           order,
           ...(seededEntities ? { entities: seededEntities as unknown as object } : {}),
         },
@@ -343,12 +359,14 @@ export class AdventureService {
         },
       })
 
-      // Quest principal derivada do gancho (US-28): dá objetivo ao DM (ver AiService).
+      // US-153: quest principal derivada do artefato gerado (não mais do gancho fixo por
+      // classe) — dá objetivo ao DM (ver AiService). `conclusion` fica de fora de propósito
+      // (vazaria o desfecho antes do jogo começar, ver US-153 Questões em aberto #4).
       await tx.quest.create({
         data: {
           adventureId: adventure.id,
-          title: hook.primaryQuestTitle,
-          description: hook.primaryQuestDescription,
+          title: generated.summary,
+          description: generated.start,
           isPrimary: true,
         },
       })
