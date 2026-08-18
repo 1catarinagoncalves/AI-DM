@@ -29,7 +29,7 @@ export class AdventureController {
   }
 
   @ApiOperation({ summary: 'Gera e inicia a aventura inicial do personagem via motor de geração (US-164), ancorada no personagem.' })
-  @ApiBody({ schema: zodBody(CreateAdventureSchema, { setting: 'coastal' }) })
+  @ApiBody({ schema: zodBody(CreateAdventureSchema, { setting: 'coastal-area' }) })
   @Post()
   async create(@Param('characterId') characterId: string, @Body() body: unknown, @CurrentUser() user: AuthUser) {
     await this.assertOwner(characterId, user)

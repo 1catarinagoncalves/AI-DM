@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (2026-08-18)
 **Depende de:** [US-144](./US-144-schema-aventura-shared.md) (schema da aventura, campos `setting`/`tone`/`areaType`)
 **Bloqueia:** [US-157](./US-157-tela-de-mundo-depois-da-revisao.md)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-156) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (contrato de chave canônica + rótulo por locale, copiado aqui) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate que reprova texto solto no JSX)
@@ -139,19 +139,19 @@ Nota: `Settings.json` da fonte reserva `Mythological` — para Pegāna (panteão
 
 ## Critérios de aceite
 
-- [ ] `SystemConfigSchema` aceita `settings`, `tones`, `areaTypes` como `SystemCatalogEntry[]` opcionais — config legado sem eles continua válido.
-- [ ] `config.tones` tem exatamente as dez chaves `heroic`, `grimdark`, `mystery`, `comedic`, `epic`, `romantic`, `horror`, `political-intrigue`, `survival`, `slice-of-life`, com `label` nos dois locales.
-- [ ] `config.settings` tem exatamente as dez chaves `high-fantasy`, `dark-fantasy`, `steampunk`, `urban-fantasy`, `post-apocalyptic`, `historical-fiction`, `sci-fi-space-opera`, `mythological`, `alternate-reality`, `cyberpunk`, com `label` nos dois locales.
-- [ ] `config.areaTypes` tem exatamente as dez chaves `city`, `forest`, `mountain-range`, `underground-caves`, `desert`, `coastal-area`, `swamp`, `plains`, `magical-realm`, `ruins`, com `label` nos dois locales.
-- [ ] `CreateAdventureDto` com `tone: "heroic"`, `setting: "mythological"` ou `areaType: "ruins"` (uma chave válida de cada catálogo) passa a validação sem 400.
-- [ ] `CreateAdventureDto` com `setting`/`tone`/`areaType` presente e fora do catálogo do sistema (ex.: `tone: "chave-inexistente"`) recebe 400, mesma mensagem-molde de `validateCatalogKey` (valor ofensor + formato esperado).
-- [ ] `CreateAdventureDto` com os três campos ausentes não gera erro — a ausência é caminho válido (aleatório).
-- [ ] Nenhuma chave `random`/`aleatorio` existe em `settings`/`tones`/`areaTypes` — ausência de escolha é sempre campo omitido, nunca valor especial.
-- [ ] A escolha não persiste em `Character` — sem migração de coluna nova naquela tabela.
-- [ ] `dnd5eConfig` e `freeConfig` (os dois sistemas semeados, [seed.ts:99-100](../../../apps/api/prisma/seed.ts)) têm as mesmas três listas — Free herda por já espalhar `dnd5eProductFields`, não por cópia manual.
-- [ ] `pnpm db:seed` roda antes de qualquer verificação manual dos critérios de 400 — `validateCatalogKey` no-opa (aceita qualquer chave) em `System.config` sem os catálogos ([character.service.ts:141-142](../../../apps/api/src/character/character.service.ts)), então banco não re-semeado não reprova.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] **Eval / teste de regressão:** teste que cria aventura com `tone: "chave-inexistente"` recebe 400; teste com `tone: "heroic"`, `setting: "high-fantasy"` e `areaType: "city"` passa; teste com os três campos omitidos não recebe erro e segue para o motor sortear (US-147).
+- [x] `SystemConfigSchema` aceita `settings`, `tones`, `areaTypes` como `SystemCatalogEntry[]` opcionais — config legado sem eles continua válido.
+- [x] `config.tones` tem exatamente as dez chaves `heroic`, `grimdark`, `mystery`, `comedic`, `epic`, `romantic`, `horror`, `political-intrigue`, `survival`, `slice-of-life`, com `label` nos dois locales.
+- [x] `config.settings` tem exatamente as dez chaves `high-fantasy`, `dark-fantasy`, `steampunk`, `urban-fantasy`, `post-apocalyptic`, `historical-fiction`, `sci-fi-space-opera`, `mythological`, `alternate-reality`, `cyberpunk`, com `label` nos dois locales.
+- [x] `config.areaTypes` tem exatamente as dez chaves `city`, `forest`, `mountain-range`, `underground-caves`, `desert`, `coastal-area`, `swamp`, `plains`, `magical-realm`, `ruins`, com `label` nos dois locales.
+- [x] `CreateAdventureDto` com `tone: "heroic"`, `setting: "mythological"` ou `areaType: "ruins"` (uma chave válida de cada catálogo) passa a validação sem 400.
+- [x] `CreateAdventureDto` com `setting`/`tone`/`areaType` presente e fora do catálogo do sistema (ex.: `tone: "chave-inexistente"`) recebe 400, mesma mensagem-molde de `validateCatalogKey` (valor ofensor + formato esperado).
+- [x] `CreateAdventureDto` com os três campos ausentes não gera erro — a ausência é caminho válido (aleatório).
+- [x] Nenhuma chave `random`/`aleatorio` existe em `settings`/`tones`/`areaTypes` — ausência de escolha é sempre campo omitido, nunca valor especial.
+- [x] A escolha não persiste em `Character` — sem migração de coluna nova naquela tabela.
+- [x] `dnd5eConfig` e `freeConfig` (os dois sistemas semeados, [seed.ts:99-100](../../../apps/api/prisma/seed.ts)) têm as mesmas três listas — Free herda por já espalhar `dnd5eProductFields`, não por cópia manual.
+- [x] `pnpm db:seed` roda antes de qualquer verificação manual dos critérios de 400 — `validateCatalogKey` no-opa (aceita qualquer chave) em `System.config` sem os catálogos ([character.service.ts:141-142](../../../apps/api/src/character/character.service.ts)), então banco não re-semeado não reprova.
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] **Eval / teste de regressão:** teste que cria aventura com `tone: "chave-inexistente"` recebe 400; teste com `tone: "heroic"`, `setting: "high-fantasy"` e `areaType: "city"` passa; teste com os três campos omitidos não recebe erro e segue para o motor sortear (US-147).
 
 ---
 
@@ -160,6 +160,9 @@ Nota: `Settings.json` da fonte reserva `Mythological` — para Pegāna (panteão
 - **Copiar `validateCatalogKey`** ([character.service.ts:134-142](../../../apps/api/src/character/character.service.ts)) — mesma função, chamada do lado de `AdventureService` para os três campos novos, em vez de duplicar a lógica.
 - **`SystemCatalogEntrySchema` já existe** ([system.ts:27-30](../../../packages/shared/src/types/system.ts)) — reusar diretamente, sem criar `SystemSettingSchema`/`SystemToneSchema`/`SystemAreaTypeSchema` redundantes (mesmo raciocínio que já vale para `classes` não ter schema próprio além do genérico).
 - **Os dez rótulos por eixo são copiados do DnDGenerate** (`CampaignTones.json`/`Settings.json`/`areaType.json`) — decisão revista em relação ao backlog original (que previa rótulos próprios); ver *Conteúdo dos catálogos* para a lista com chave EN + rótulo pt-BR já resolvidos.
+- **Literal em `dnd5eProductFields(locale)`, não em `buildConfig()`/ingest.mjs.** As três listas não são SRD-derivadas — não têm dataset de origem para `resolve()`/overlay consumirem. Adicionar como retorno fixo de `dnd5eProductFields` ([seed.ts:60-66](../../../apps/api/prisma/seed.ts)), rótulo pt-BR direto na branch `locale === 'pt-BR'`, sem tocar `ingest.mjs`.
+- **Free herda pelo spread existente, não por código novo.** `buildFreeConfig()` já faz `...dnd5eProductFields(locale)` ([seed.ts:95](../../../apps/api/prisma/seed.ts)) — colocar as listas ali resolve os dois sistemas de uma vez. Confirmar com teste que `freeConfig.tones`/`settings`/`areaTypes` existem, não só `dnd5eConfig`.
+- **Re-seed depois do merge.** `validateCatalogKey` aceita qualquer chave quando o catálogo está ausente/vazio ([character.service.ts:141-142](../../../apps/api/src/character/character.service.ts)) — banco de dev/staging só passa a rejeitar chave inválida depois de `pnpm db:seed` (local) ou `migrate deploy` + reseed manual (Neon, [US-58](./US-58-banco-postgres-neon.md)).
 - **`pnpm docs:links`/gate US-102** não se aplicam a este backend em si — mas a [US-157](./US-157-tela-de-mundo-depois-da-revisao.md), que consome estes catálogos na UI, precisa (ela referencia o gate).
 
 ---

@@ -82,6 +82,23 @@ export class AdventureService {
     return this.resolveHook(hook, character.name, catalogLabel(config.classes, character.class))
   }
 
+  /**
+   * Valida a chave de setting/tone/areaType contra o catálogo do config (US-156), cópia do
+   * `validateCatalogKey` de `character.service.ts` (mesmo molde de mensagem, catálogo FECHADO,
+   * sem chave `custom`). Config sem o catálogo (`settings`/`tones`/`areaTypes` opcionais, para
+   * não invalidar config legado) aceita o que vier — mesma rede que impede um banco não
+   * re-semeado de bloquear a criação de aventura.
+   */
+  private validateCatalogKey(catalog: Array<{ key: string }> | undefined, key: string, field: string): string {
+    if (!catalog || catalog.length === 0) return key
+    if (!catalog.some((e) => e.key === key)) {
+      throw new BadRequestException(
+        `${field} inválido: "${key}". Esperado uma chave do catálogo do sistema: ${catalog.map((e) => e.key).join(', ')}`,
+      )
+    }
+    return key
+  }
+
   private resolveHook(hook: InitialAdventureHook, name: string, charClass: string): InitialAdventureHook {
     const vars = { characterName: name, characterClass: charClass }
     return {
@@ -265,9 +282,9 @@ export class AdventureService {
     // quest. Gate (US-150) antes de persistir; teto de tentativas esgotado → sem fallback
     // estático (ao contrário de generateOpeningNarration, não existe aventura fixa pra cair).
     const gateResult = await this.generateGatedAdventure(profile, characterId, order, {
-      setting: dto.setting,
-      tone: dto.tone,
-      areaType: dto.areaType,
+      setting: dto.setting ? this.validateCatalogKey(config.settings, dto.setting, 'Cenário') : undefined,
+      tone: dto.tone ? this.validateCatalogKey(config.tones, dto.tone, 'Tom') : undefined,
+      areaType: dto.areaType ? this.validateCatalogKey(config.areaTypes, dto.areaType, 'Tipo de área') : undefined,
     })
     if (!gateResult.ok) throw new Error(gateResult.reason)
     const generated = gateResult.adventure

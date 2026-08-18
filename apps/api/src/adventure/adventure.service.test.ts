@@ -392,6 +392,88 @@ describe('AdventureService.createForCharacter', () => {
     )
   })
 
+  // US-156: validação server-side de setting/tone/areaType contra o catálogo do sistema —
+  // mesmo molde de validateCatalogKey (character.service.ts), reaplicado do lado da aventura.
+  describe('US-156: catálogo de registro (setting/tone/areaType)', () => {
+    const configComCatalogo: SystemConfig = {
+      ...config,
+      tones: [{ key: 'heroic', label: 'Heroico' }],
+      settings: [{ key: 'high-fantasy', label: 'Alta Fantasia' }],
+      areaTypes: [{ key: 'ruins', label: 'Ruínas' }],
+    }
+
+    it('chave válida de cada catálogo: passa a validação, sem 400', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', { tone: 'heroic', setting: 'high-fantasy', areaType: 'ruins' }))
+        .resolves.toMatchObject({ id: 'adv-1' })
+    })
+
+    it('tone fora do catálogo: 400 com o valor ofensor e as chaves esperadas', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', { tone: 'chave-inexistente' }))
+        .rejects.toThrow('Tom inválido: "chave-inexistente". Esperado uma chave do catálogo do sistema: heroic')
+    })
+
+    it('setting fora do catálogo: BadRequestException (400), não Error genérico', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      const err: unknown = await service.createForCharacter('char-1', { setting: 'chave-inexistente' }).catch((e) => e)
+      expect(err).toBeInstanceOf(BadRequestException)
+    })
+
+    it('areaType fora do catálogo: 400', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', { areaType: 'chave-inexistente' }))
+        .rejects.toThrow('Tipo de área inválido')
+    })
+
+    it('os três campos ausentes: não gera erro, segue para o motor sortear', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', {})).resolves.toMatchObject({ id: 'adv-1' })
+    })
+
+    it('sistema sem catálogo (config legado): aceita qualquer chave, sem 400', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config }, // config sem settings/tones/areaTypes
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', { tone: 'qualquer-coisa' }))
+        .resolves.toMatchObject({ id: 'adv-1' })
+    })
+  })
+
   // --- US-128: memento + equipamento da origem no inventário inicial ---
 
   it('origem escolhida (sem memento): kit da classe + itens de equipamento, sem item de memento', async () => {
