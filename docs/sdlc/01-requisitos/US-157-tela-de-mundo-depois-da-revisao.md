@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-156](./US-156-catalogos-registro-dto-validacao.md) (catálogos de `settings`/`tones`/`areaTypes` e DTO validado)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-157) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-46](./US-46-acessibilidade-wcag-aa.md) (WCAG AA) · [US-66](./US-66-telas-mobile-friendly.md) (mobile) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate de string literal no JSX)
 **Criada em:** 2026-08-15
@@ -95,9 +95,24 @@ const [areaType, setAreaType] = useState<string | 'random'>('random')
 
 ---
 
+## Fluxo de criação: `review` → `world` → aventura
+
+Resolve a questão em aberto nº 1 (2026-08-18): o botão de `review` **precisa** virar "Avançar", com "Criar aventura" novo em `world`.
+
+Achado ao verificar contra o código real: o botão de `review` hoje (`setup.confirm`, [SetupWizard.tsx:1044-1047](../../../apps/web/src/components/setup/SetupWizard.tsx)) chama `handleConfirm`, que cria o `Character` **e** já dispara `loadHook` — indo direto para a tela `if (charId)` ([SetupWizard.tsx:486](../../../apps/web/src/components/setup/SetupWizard.tsx), comentário "US-28: etapa Aventura inicial"). Essa tela é o gancho fixo por classe que a [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md)/[US-155](./US-155-aposentar-quest-fixa-por-classe.md) já aposentaram do lado do servidor — e o botão "Começar aventura" dela chama `api.createAdventure(charId, hook.id)`, que ainda manda `{ initialHookId: hook.id }` ([api.ts:73-74](../../../apps/web/src/lib/api.ts)). `CreateAdventureSchema` no backend **não tem mais** o campo `initialHookId` ([adventure.controller.ts:11-15](../../../apps/api/src/adventure/adventure.controller.ts)) — o zod descarta a chave desconhecida em silêncio, o DTO chega vazio, e a aventura gerada hoje **nunca** carrega nada do que a tela de gancho mostrou. A tela `if (charId)` atual já está desalinhada do contrato real do servidor, independente desta story.
+
+**Solução proposta:**
+- `review` troca o botão de `setup.confirm` para `setup.next` (reusa `next()`): `handleConfirm` continua criando o `Character` (a aventura gerada depende de `characterId`), mas em vez de chamar `loadHook` direto, avança para o passo `world`.
+- A tela `world` **substitui** a tela `if (charId)` de hoje (US-28) — não convivem duas telas pós-`review`. `getInitialAdventure`/`hook.title`/`hook.pitch` saem de uso aqui (o gancho por classe continua vivo só como `hookSeed` interno do motor, [US-153 §A proposta](./US-153-aventura-deixa-de-ser-derivada-da-classe.md)).
+- Botão final de `world` ("Criar aventura"/`setup.world.start`) chama uma função nova que faz `api.createAdventure(charId, dto)` com `dto = { setting, tone, areaType }` (cada campo omitido se ficou em Aleatório) — **substituindo** a assinatura antiga `createAdventure(characterId, initialHookId)` em [api.ts:73](../../../apps/web/src/lib/api.ts), que fica sem consumidor e pode ser removida.
+- Continuam sendo **duas chamadas HTTP separadas** (`POST /characters` depois `POST /characters/:id/adventures`) — mesma ordem de hoje, personagem primeiro. A UX fica contígua porque a segunda chamada é resultado direto do botão de `world`, sem tela intermediária nova; o estado de carregamento (`starting`) já existe e cobre a espera do motor (3 chamadas de LLM, [US-153 §Achado](./US-153-aventura-deixa-de-ser-derivada-da-classe.md)).
+- Consequência: esta mudança não é só a tela nova da US-157 — é também o que **corrige** o DTO vazio que `createAdventure` manda hoje. Sem ela, `setting`/`tone`/`areaType` continuam nunca chegando ao servidor mesmo depois da US-156.
+
+---
+
 ## Questões em aberto
 
-1. O botão "Criar personagem" (hoje ao final de `review`) precisa virar "Avançar" em `review` e um novo "Criar aventura"/"Começar" em `world`? Provavelmente sim — mas o texto exato e se a criação do `Character` e da `Adventure` continuam sendo duas chamadas separadas (como são hoje, personagem primeiro, aventura depois) ou passam a ser uma UX contígua é decisão de implementação, não fixada pelo backlog.
+1. ~~O botão "Criar personagem" (hoje ao final de `review`) precisa virar "Avançar" em `review` e um novo "Criar aventura"/"Começar" em `world`?~~ **Resolvida (2026-08-18): sim** — ver [§Fluxo de criação](#fluxo-de-criação-review--world--aventura) acima.
 
 ---
 

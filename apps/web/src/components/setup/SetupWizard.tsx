@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus, Sparkles } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
 import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, MEMENTO_ITEM_LABEL,
   resolveSheetEntries, resolveCharacterFeatures,
-  type InitialAdventureHook, type SystemConfig, type SystemTool,
+  type SystemConfig, type SystemTool,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { parseD10Tables } from '@/lib/parseD10Tables'
@@ -22,8 +22,10 @@ import { FeaturesPanel } from '@/components/character/FeaturesPanel'
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
 // `next`/`back` operam por índice (ver abaixo), então reordenar este array já reordena a
 // trilha e a navegação sem tocar nessas funções.
-type Step = 'system' | 'race-class' | 'background' | 'attributes' | 'skills' | 'review'
-const steps: Step[] = ['system', 'race-class', 'background', 'attributes', 'skills', 'review']
+// US-157: `world` entra ao FINAL, depois de `review` — o registro da aventura (setting/
+// tone/areaType) tem ciclo de decisão distinto do personagem, que `review` já fecha.
+type Step = 'system' | 'race-class' | 'background' | 'attributes' | 'skills' | 'review' | 'world'
+const steps: Step[] = ['system', 'race-class', 'background', 'attributes', 'skills', 'review', 'world']
 
 // US-98: os rótulos de gênero saíram desta lista para o dicionário, mas a lista FICA em
 // pt-BR — ela é o `value` que viaja para a API, não o texto da tela.
@@ -95,6 +97,30 @@ function AbilityBonusBadge({ variant, label, onClick }: { variant: 'solid' | 'gh
     <button type="button" onClick={onClick} className={className}>
       {label}
     </button>
+  )
+}
+
+// US-157: um grupo de rádio do passo `world` (Cenário/Tom/Tipo de Área) — catálogo do
+// sistema + "Aleatório". <label> envolve o <input> (rótulo associado, não `div`
+// clicável, US-46); `optionCardClass` dá a mesma materialidade de cartão do resto do
+// wizard. `sr-only` no input: o cartão inteiro é o alvo de clique/foco visível.
+function WorldOptionGroup({ name, legend, randomLabel, catalog, value, onChange }: {
+  name: string; legend: string; randomLabel: string
+  catalog: { key: string; label: string }[]; value: string; onChange: (key: string) => void
+}) {
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-medium text-parchment">{legend}</legend>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {[...catalog, { key: 'random', label: randomLabel }].map(entry => (
+          <label key={entry.key} className={optionCardClass(value === entry.key)}>
+            <input type="radio" name={name} value={entry.key} checked={value === entry.key}
+              onChange={() => onChange(entry.key)} className="sr-only" />
+            {entry.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
   )
 }
 
@@ -189,11 +215,14 @@ export function SetupWizard() {
   // (`background`), não numa etapa própria (não existe etapa `tools`/`equipment` no wizard).
   const [toolChoice, setToolChoice] = useState<string[]>([])
 
-  // US-28: depois de confirmar o personagem, mostramos a etapa "Aventura inicial".
+  // US-28/US-157: depois de confirmar o personagem, o wizard avança para o passo `world`.
   const [charId, setCharId] = useState('')
-  const [hook, setHook] = useState<InitialAdventureHook | null>(null)
-  const [hookError, setHookError] = useState(false)
   const [starting, setStarting] = useState(false)
+  // US-157: sentinela 'random' só no estado do componente — nunca serializado no DTO
+  // (ver createWorldAdventure). Estado inicial: os três em Aleatório.
+  const [setting, setSetting] = useState('random')
+  const [tone, setTone] = useState('random')
+  const [areaType, setAreaType] = useState('random')
 
   useEffect(() => {
     // US-61: a identidade vem do login (token); o wizard só carrega o catálogo.
@@ -213,6 +242,11 @@ export function SetupWizard() {
   // US-122: catálogo de origens (backgrounds do A5E, US-121). Ausente → seção "Origem" não
   // aparece e a etapa `background` segue livre, mesmo padrão condicional de skillCatalog acima.
   const backgroundCatalog = system?.config?.backgrounds ?? []
+  // US-157: catálogos do registro da aventura (US-156) — mesmo padrão de raceCatalog/
+  // classCatalog acima, consumidos só no passo `world`.
+  const settingCatalog = system?.config?.settings ?? []
+  const toneCatalog = system?.config?.tones ?? []
+  const areaTypeCatalog = system?.config?.areaTypes ?? []
   // Rótulo da escolha atual, para a revisão e para o subtítulo do gancho — a chave nunca
   // aparece na tela.
   const raceLabel = raceCatalog.find(r => r.key === charData.race)?.label ?? ''
@@ -362,6 +396,9 @@ export function SetupWizard() {
       case 'background':
         return !toolGrant || toolGrant.chooseCount === 0 || toolChoice.length === toolGrant.chooseCount
       case 'review': return true
+      // US-157: Cenário/Tom/Tipo de Área são opcionais (Aleatório é uma escolha válida) —
+      // o passo `world` nunca bloqueia; o footer usa `createWorldAdventure`, não `next()`.
+      case 'world': return true
     }
   }
 
@@ -395,23 +432,24 @@ export function SetupWizard() {
         : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background, origin: originPayload })
-      // Personagem já está salvo: guardamos o id e passamos à etapa de aventura inicial.
+      // Personagem já está salvo: guardamos o id e avançamos ao passo `world` (US-157).
       setCharId(char.id)
-      loadHook(char.id)
+      setStep('world')
     } catch { setError(t('setup.error.create')) }
     finally { setLoading(false) }
   }
 
-  function loadHook(id: string) {
-    setHookError(false)
-    api.getInitialAdventure(id).then(setHook).catch(() => setHookError(true))
-  }
-
-  async function startAdventure() {
-    if (!hook) return
+  // US-157: cada grupo em Aleatório OMITE o campo — nunca envia a chave "random" (mesma
+  // disciplina de ausência = aleatório da US-156).
+  async function createWorldAdventure() {
     setStarting(true); setError('')
     try {
-      const adv = await api.createAdventure(charId, hook.id)
+      const dto = {
+        ...(setting !== 'random' && { setting }),
+        ...(tone !== 'random' && { tone }),
+        ...(areaType !== 'random' && { areaType }),
+      }
+      const adv = await api.createAdventure(charId, dto)
       router.push(`/play/${adv.id}?characterId=${charId}`)
     } catch { setError(t('setup.error.start')); setStarting(false) }
   }
@@ -481,51 +519,6 @@ export function SetupWizard() {
       {t('setup.exit')}
     </Link>
   )
-
-  // US-28: etapa "Aventura inicial" — personagem já criado, escolhemos o gancho da classe.
-  if (charId) {
-    return (
-      <SceneFrame scene="/scenes/arboretum-moonlit.png" dim="heavy" localeToggle={false}>
-        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-8 sm:px-6">
-          {/* US-107: aqui o personagem JÁ existe (está no hub); sair só adia a aventura. */}
-          {exitToHub}
-          <Panel className="p-6 sm:p-9">
-            <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-accent">
-              <Sparkles className="size-3.5" aria-hidden />
-              {t('hook.eyebrow')}
-            </p>
-            {error && <p className={cn(errorBox, 'mt-4')}>{error}</p>}
-
-            {hookError ? (
-              <div className="mt-4 space-y-5">
-                {/* US-98: o nome do personagem deixou de ser um <span> no meio da frase —
-                    partir a frase em duas chaves para destacar o miolo é a concatenação
-                    que quebra em idioma com outra ordem de palavras. */}
-                <p className="text-sm text-muted-foreground">{t('hook.error', { name: charData.name })}</p>
-                <DmButton type="button" onClick={() => loadHook(charId)} className="w-full py-3 text-base">
-                  {t('common.retry')}
-                </DmButton>
-              </div>
-            ) : !hook ? (
-              <p className="mt-4 animate-pulse text-sm text-muted-foreground">{t('hook.loading')}</p>
-            ) : (
-              <>
-                <SectionTitle className="mt-3 sm:text-4xl">{hook.title}</SectionTitle>
-                <p className="mt-2 text-sm text-muted-foreground">{t('hook.subtitle', { name: charData.name, class: classLabel })}</p>
-                <div className="mt-6 space-y-4 text-[15px] leading-relaxed text-foreground">
-                  <p>{hook.pitch}</p>
-                  <p className="whitespace-pre-wrap italic text-muted-foreground">{hook.openingNarration}</p>
-                </div>
-                <DmButton type="button" onClick={startAdventure} disabled={starting} className="mt-8 w-full py-3 text-base">
-                  {starting ? t('hook.starting') : t('hook.start')}
-                </DmButton>
-              </>
-            )}
-          </Panel>
-        </div>
-      </SceneFrame>
-    )
-  }
 
   // Sem seletor de idioma: a criação herda o idioma já ativo no hub de personagens.
   return (
@@ -1031,9 +1024,26 @@ export function SetupWizard() {
                 )}
               </div>
             )}
+
+            {/* US-157: sétimo passo, depois de `review` — substitui a antiga etapa
+                "Aventura inicial" (US-28), aposentada junto do gancho fixo por classe. */}
+            {step === 'world' && (
+              <div>
+                <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
+                <div className="mt-6 space-y-6">
+                  <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
+                    catalog={settingCatalog} value={setting} onChange={setSetting} />
+                  <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
+                    catalog={toneCatalog} value={tone} onChange={setTone} />
+                  <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
+                    catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Voltar / Próximo / Confirmar */}
+          {/* Voltar / Próximo / Confirmar / Criar aventura */}
           {step !== 'system' && (
             <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
               <DmButton variant="ghost" type="button" onClick={back}>
@@ -1042,8 +1052,13 @@ export function SetupWizard() {
               </DmButton>
               {step === 'review' ? (
                 <DmButton type="button" onClick={handleConfirm} disabled={loading}>
+                  {loading ? t('setup.confirming') : t('setup.next')}
+                  <ArrowRight className="size-4" aria-hidden />
+                </DmButton>
+              ) : step === 'world' ? (
+                <DmButton type="button" onClick={createWorldAdventure} disabled={starting}>
                   <Check className="size-4" aria-hidden />
-                  {loading ? t('setup.confirming') : t('setup.confirm')}
+                  {starting ? t('setup.world.starting') : t('setup.world.start')}
                 </DmButton>
               ) : (
                 <DmButton type="button" onClick={next} disabled={!canAdvance(step)}>

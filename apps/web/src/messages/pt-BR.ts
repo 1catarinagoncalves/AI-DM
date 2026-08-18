@@ -54,13 +54,22 @@ export const ptBR = {
   'setup.step.skills': 'Perícias',
   'setup.step.background': 'Background',
   'setup.step.review': 'Revisão',
+  'setup.step.world': 'Mundo',
   'setup.back': 'Voltar',
   // US-107: saída da criação. "Voltar" (rodapé) anda uma etapa; este sai da tela —
   // por isso o rótulo nomeia o DESTINO, e não repete o verbo sozinho.
   'setup.exit': 'Voltar aos personagens',
   'setup.next': 'Próximo',
-  'setup.confirm': 'Confirmar personagem',
   'setup.confirming': 'A criar...',
+  // US-157: sétimo passo, depois de `review` — cenário/tom/tipo de área da aventura.
+  'setup.world.titulo': 'O mundo da aventura',
+  'setup.world.subtitulo': 'Escolha cenário, tom e tipo de área — ou deixe cada um no Aleatório.',
+  'setup.world.setting': 'Cenário',
+  'setup.world.tone': 'Tom',
+  'setup.world.areaType': 'Tipo de área',
+  'setup.world.random': 'Aleatório',
+  'setup.world.start': 'Criar aventura',
+  'setup.world.starting': 'Criando aventura...',
 
   // ---- wizard: sistema ----
   'setup.system.titulo': 'Escolha o Sistema',
@@ -165,12 +174,6 @@ export const ptBR = {
   'setup.error.start': 'Erro ao iniciar a aventura. Tente novamente.',
 
   // ---- gancho de aventura inicial ----
-  'hook.eyebrow': 'Aventura inicial',
-  'hook.loading': 'Preparando a sua aventura…',
-  'hook.error': 'Não foi possível carregar a aventura inicial de {name}.',
-  'hook.subtitle': 'A primeira aventura de {name}, {class}.',
-  'hook.start': 'Iniciar aventura',
-  'hook.starting': 'Iniciando...',
 
   // ---- mesa de jogo ----
   'game.notFound': 'Personagem não encontrado.',

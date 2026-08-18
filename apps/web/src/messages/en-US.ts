@@ -50,13 +50,22 @@ export const enUS: Record<MessageKey, string> = {
   'setup.step.skills': 'Skills',
   'setup.step.background': 'Background',
   'setup.step.review': 'Review',
+  'setup.step.world': 'World',
   'setup.back': 'Back',
   // US-107: saída da criação. "Voltar" (rodapé) anda uma etapa; este sai da tela —
   // por isso o rótulo nomeia o DESTINO, e não repete o verbo sozinho.
   'setup.exit': 'Back to characters',
   'setup.next': 'Next',
-  'setup.confirm': 'Confirm character',
   'setup.confirming': 'Creating...',
+  // US-157: seventh step, after `review` — adventure setting/tone/area type.
+  'setup.world.titulo': 'The world of the adventure',
+  'setup.world.subtitulo': 'Choose setting, tone and area type — or leave each one on Random.',
+  'setup.world.setting': 'Setting',
+  'setup.world.tone': 'Tone',
+  'setup.world.areaType': 'Area type',
+  'setup.world.random': 'Random',
+  'setup.world.start': 'Create adventure',
+  'setup.world.starting': 'Creating adventure...',
 
   // ---- wizard: sistema ----
   'setup.system.titulo': 'Choose the System',
@@ -160,12 +169,6 @@ export const enUS: Record<MessageKey, string> = {
   'setup.error.start': 'Something went wrong starting the adventure. Try again.',
 
   // ---- gancho de aventura inicial ----
-  'hook.eyebrow': 'Opening adventure',
-  'hook.loading': 'Preparing your adventure…',
-  'hook.error': "Couldn't load the opening adventure for {name}.",
-  'hook.subtitle': 'The first adventure of {name}, {class}.',
-  'hook.start': 'Start adventure',
-  'hook.starting': 'Starting...',
 
   // ---- mesa de jogo ----
   'game.notFound': 'Character not found.',

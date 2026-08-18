@@ -21,13 +21,6 @@ const CreateAdventureSchema = z.object({
 export class AdventureController {
   constructor(private readonly adventureService: AdventureService) {}
 
-  @ApiOperation({ summary: 'Aventura inicial resolvida pela classe do personagem (US-28), com placeholders aplicados.' })
-  @Get('initial')
-  async getInitial(@Param('characterId') characterId: string, @CurrentUser() user: AuthUser) {
-    await this.assertOwner(characterId, user)
-    return this.adventureService.getInitialAdventure(characterId)
-  }
-
   @ApiOperation({ summary: 'Gera e inicia a aventura inicial do personagem via motor de geração (US-164), ancorada no personagem.' })
   @ApiBody({ schema: zodBody(CreateAdventureSchema, { setting: 'coastal-area' }) })
   @Post()

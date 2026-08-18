@@ -1,4 +1,4 @@
-import type { InitialAdventureHook, Locale, SystemConfig, ChatTurn } from '@ai-dm/shared'
+import type { Locale, SystemConfig, ChatTurn } from '@ai-dm/shared'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
@@ -67,11 +67,10 @@ export const api = {
   listSystems: () =>
     get<{ id: string; name: string; sourceType: string; config: SystemConfig | null }[]>('/systems'),
 
-  getInitialAdventure: (characterId: string) =>
-    get<InitialAdventureHook>(`/characters/${characterId}/adventures/initial`),
-
-  createAdventure: (characterId: string, initialHookId: string) =>
-    post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, { initialHookId }),
+  // US-157: dto omite o campo quando o jogador deixa o grupo em Aleatório — nunca envia
+  // uma chave "random" (mesma disciplina de ausência = aleatório da US-156).
+  createAdventure: (characterId: string, dto: { setting?: string; tone?: string; areaType?: string }) =>
+    post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, dto),
 
   // US-61: as fichas do próprio utilizador, derivadas do token (sem userId no caminho).
   listCharacters: () =>

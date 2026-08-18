@@ -564,21 +564,6 @@ describe('AdventureService.createForCharacter', () => {
   })
 })
 
-describe('AdventureService.getInitialAdventure', () => {
-  it('resolve o gancho da classe com placeholders aplicados', async () => {
-    const character = {
-      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human',
-      baseAttributes: { constitution: 10 }, system: { config },
-    }
-    const { prisma } = fakePrisma(character)
-    const service = new AdventureService(prisma, fakeAi())
-
-    const hook = await service.getInitialAdventure('char-1')
-
-    expect(hook).toMatchObject({ id: 'mago-arquivo', title: 'O Arquivo Que Sussurra', openingNarration: 'A vela curva-se, Elara.' })
-  })
-})
-
 describe('AdventureService.getTurns', () => {
   it('devolve N turnos em ordem, mapeando ACTION→user e NARRATION→dm (inclui resumidos)', async () => {
     const logs = [

@@ -45,10 +45,6 @@ export class AdventureService {
    * personagem, então a invariante "mesmo sistema" vale por construção.
    */
   /**
-   * Aventura inicial resolvida para o personagem (US-28), com placeholders já
-   * aplicados. Alimenta a etapa "Aventura inicial" da UI antes de iniciar.
-   */
-  /**
    * US-61: confirma que o personagem pertence ao utilizador autenticado antes de
    * qualquer operação por `characterId`. Inexistente → 404; dono diferente → 403.
    */
@@ -61,25 +57,6 @@ export class AdventureService {
     if (character.userId !== userId) {
       throw new ForbiddenException('Este personagem não pertence ao utilizador autenticado')
     }
-  }
-
-  async getInitialAdventure(characterId: string): Promise<InitialAdventureHook> {
-    const character = await this.prisma.character.findUnique({
-      where: { id: characterId },
-      include: { system: true, user: { select: { locale: true } } },
-    })
-    if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
-
-    // US-99: os ganchos são iguais nos dois artefatos hoje (seguem em PT, ver US-101),
-    // mas o config sai pelo locale como em todo lugar — quando a US-101 os traduzir,
-    // esta linha já está certa em vez de virar um bug silencioso.
-    const config = SystemConfigSchema.parse(configForLocale(character.system, resolveLocale(character.user?.locale)))
-    const hook = resolveInitialHook(config, character.class)
-    if (!hook) throw new BadRequestException('O sistema deste personagem não tem aventuras iniciais configuradas')
-
-    // US-105: `character.class` é a CHAVE; o placeholder {characterClass} é texto narrativo,
-    // e leva o rótulo no locale do dono — nunca a chave crua.
-    return this.resolveHook(hook, character.name, catalogLabel(config.classes, character.class))
   }
 
   /**

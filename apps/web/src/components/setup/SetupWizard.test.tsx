@@ -2,13 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 import type { SystemConfig } from '@ai-dm/shared'
 
-const { listSystems, createCharacter, getInitialAdventure, createAdventure } = vi.hoisted(() => ({
+const { listSystems, createCharacter, createAdventure } = vi.hoisted(() => ({
   listSystems: vi.fn(),
   createCharacter: vi.fn(),
-  getInitialAdventure: vi.fn(),
   createAdventure: vi.fn(),
 }))
-vi.mock('@/lib/api', () => ({ api: { listSystems, createCharacter, getInitialAdventure, createAdventure } }))
+vi.mock('@/lib/api', () => ({ api: { listSystems, createCharacter, createAdventure } }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 import { SetupWizard } from './SetupWizard'
@@ -138,6 +137,14 @@ const configWithCam = (budget: number) => ({
   backgroundEquipment: { 'a5e-ag_acolyte': [{ name: 'Símbolo sagrado', qty: 1 }] },
 })
 
+// US-157: config com o catálogo do registro da aventura (US-156) — passo `world`.
+const configWithWorldCatalog = (budget: number) => ({
+  ...configWithBudget(budget),
+  settings: [{ key: 'coastal-area', label: 'Área costeira' }, { key: 'underdark', label: 'Subterrâneo' }],
+  tones: [{ key: 'heroic', label: 'Heroico' }, { key: 'grim', label: 'Sombrio' }],
+  areaTypes: [{ key: 'ruins', label: 'Ruínas' }, { key: 'settlement', label: 'Povoado' }],
+})
+
 // US-27: config com perícias e orçamento de 2 proficiências.
 const configWithSkills = (budget: number) => ({
   ...configWithBudget(budget),
@@ -203,9 +210,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   beforeEach(() => {
     listSystems.mockReset()
     createCharacter.mockReset()
-    getInitialAdventure.mockReset()
     createAdventure.mockReset()
-    getInitialAdventure.mockResolvedValue({ id: 'hook-1', title: 'Aventura', pitch: 'p', openingNarration: 'n' })
   })
   afterEach(() => cleanup())
 
@@ -269,7 +274,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(review).toBeTruthy()
     expect(createCharacter).not.toHaveBeenCalled() // nada criado antes de confirmar
 
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledTimes(1)
   })
 
@@ -293,7 +298,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(nextBtn().disabled).toBe(false) // 2 marcadas → libera
 
     fireEvent.click(nextBtn()) // → revisão (perícias é a última etapa antes da revisão)
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ skills: ['athletics', 'perception'] }))
   })
 
@@ -311,7 +316,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: { story: 'Nobre caída', ideals: [], bonds: [], flaws: ['Não mente'] },
     }))
@@ -363,7 +368,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: { key: 'bg-acolyte' },
       background: expect.objectContaining({ story: 'Nobre caída' }),
@@ -401,7 +406,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: expect.objectContaining({ deity: { name: 'Auril', portfolio: 'goddess of winter' } }),
     }))
@@ -420,7 +425,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: expect.objectContaining({ deity: { name: 'Tymora' } }),
     }))
@@ -437,7 +442,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: expect.objectContaining({ deity: undefined }),
     }))
@@ -479,7 +484,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     // Na revisão o jogador lê o RÓTULO, nunca a chave.
     expect(screen.getByText('Mago')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'elf', class: 'wizard' }))
   })
 
@@ -552,11 +557,11 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(screen.getByRole('button', { name: /Voltar/ })).toBeTruthy()
   })
 
-  // US-28: depois de Confirmar, o jogador vê a etapa "Aventura inicial" e a inicia.
-  it('mostra a aventura inicial da classe e inicia-a ao confirmar', async () => {
+  // US-157: depois de Confirmar, o jogador vê o passo "Mundo" (substitui a antiga etapa
+  // "Aventura inicial" da US-28, aposentada junto do gancho fixo por classe).
+  async function confirmAndReachWorld(config: SystemConfig) {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
-    createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
-    await pickSystemAndFillRaceClass(configWithBudget(2))
+    await pickSystemAndFillRaceClass(config)
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
@@ -564,15 +569,30 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // confirma personagem → Mundo
+    await screen.findByRole('heading', { name: 'O mundo da aventura' })
+  }
 
-    // Etapa Aventura inicial aparece com o gancho resolvido pela API.
-    const start = await screen.findByRole('button', { name: /Iniciar aventura/ })
-    expect(getInitialAdventure).toHaveBeenCalledWith('char-1')
-    expect(screen.getByRole('heading', { name: 'Aventura' })).toBeTruthy()
+  it('passo Mundo nasce com os três grupos em Aleatório; avançar sem tocar envia o DTO vazio', async () => {
+    createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
+    await confirmAndReachWorld(configWithWorldCatalog(2))
 
-    fireEvent.click(start)
-    expect(createAdventure).toHaveBeenCalledWith('char-1', 'hook-1')
+    fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+    expect(createAdventure).toHaveBeenCalledWith('char-1', {})
+  })
+
+  // US-157: selecionar uma opção não-Aleatório em cada grupo manda a `key` correspondente;
+  // nenhuma chave "random" é enviada em nenhum caso.
+  it('selecionar uma opção em cada grupo do Mundo envia as três keys no DTO', async () => {
+    createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
+    await confirmAndReachWorld(configWithWorldCatalog(2))
+
+    fireEvent.click(screen.getByLabelText('Subterrâneo'))
+    fireEvent.click(screen.getByLabelText('Sombrio'))
+    fireEvent.click(screen.getByLabelText('Povoado'))
+    fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+
+    expect(createAdventure).toHaveBeenCalledWith('char-1', { setting: 'underdark', tone: 'grim', areaType: 'settlement' })
   })
 
   // US-127: a revisão espelha o que a ficha vai mostrar depois — atributos e perícias com
@@ -773,7 +793,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: { key: 'a5e-ag_acolyte', connection: 'A high priest awaiting your return.', memento: 'A prayer book with notes.', abilityChoice: undefined },
     }))
@@ -879,7 +899,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(nextBtn()) // → perícias
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: expect.objectContaining({ key: 'a5e-ag_acolyte', abilityChoice: 'strength' }),
     }))
@@ -956,7 +976,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(nextBtn().disabled).toBe(false) // grant + proficiency.choices: 1, ambos satisfeitos
 
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       skills: ['athletics'],
       origin: expect.objectContaining({ key: 'a5e-ag_acolyte', skillChoice: ['insight'] }),
@@ -1012,7 +1032,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(nextBtn()) // → revisão
     expect(screen.getByText('Ferramentas de Ladrão · Jogo de Dados')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: expect.objectContaining({ key: 'a5e-ag_criminal', toolChoice: ['gaming_set_dice'] }),
     }))
@@ -1074,7 +1094,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(nextBtn()) // → atributos
     fireEvent.click(nextBtn()) // → perícias
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar personagem/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: expect.objectContaining({ key: 'a5e-ag_folk-hero', toolChoice: ['smiths_tools', 'carriage'] }),
     }))
