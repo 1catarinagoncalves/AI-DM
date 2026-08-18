@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { MONSTER_ROLE_CR, composeEncounterRoles, totalCr, buildEncounterNpcs } from './monster-roles'
-import { singleMonsterCrCap } from './lazy-encounter-benchmark'
+import { encounterDeadlyThreshold, singleMonsterCrCap } from './lazy-encounter-benchmark'
 import type { AdventureNpc } from '@ai-dm/shared'
 
 describe('MONSTER_ROLE_CR (US-152)', () => {
@@ -11,28 +11,36 @@ describe('MONSTER_ROLE_CR (US-152)', () => {
   })
 })
 
-describe('composeEncounterRoles (US-152)', () => {
+describe('composeEncounterRoles (US-152/US-160)', () => {
   it('nível 1 nunca recebe um Brute sozinho — CR 2 já estoura o teto de monstro único (1)', () => {
     const roles = composeEncounterRoles(1)
     expect(roles).not.toEqual(['Brute'])
     expect(roles.filter((r) => r === 'Brute')).toHaveLength(0)
   })
 
-  it('nível 1 produz encontro não vazio dentro do orçamento de um personagem solo', () => {
-    const roles = composeEncounterRoles(1)
-    expect(roles.length).toBeGreaterThan(0)
-    expect(totalCr(roles)).toBeLessThan(singleMonsterCrCap(1))
+  it('nível 1, 2 e 3 devolvem array vazio — encounterDeadlyThreshold é 0 nesses níveis, resultado correto do LGMRD, não bug', () => {
+    for (const level of [1, 2, 3]) {
+      expect(composeEncounterRoles(level)).toEqual([])
+    }
   })
 
-  it('nunca ultrapassa (nem alcança) o teto de monstro único do nível dado', () => {
-    for (const level of [1, 2, 4, 5, 8, 12]) {
+  it('nível 4+ devolve composição não vazia com soma estritamente menor que encounterDeadlyThreshold', () => {
+    for (const level of [4, 5, 8, 12]) {
+      const roles = composeEncounterRoles(level)
+      expect(roles.length).toBeGreaterThan(0)
+      expect(totalCr(roles)).toBeLessThan(encounterDeadlyThreshold(level))
+    }
+  })
+
+  it('empacotar sob encounterDeadlyThreshold nunca alcança o teto de monstro único (regressão)', () => {
+    for (const level of [4, 5, 8, 12]) {
       const roles = composeEncounterRoles(level)
       expect(totalCr(roles)).toBeLessThan(singleMonsterCrCap(level))
     }
   })
 
   it('não multiplica por tamanho de grupo — mesmo nível produz sempre a mesma composição (determinístico)', () => {
-    expect(composeEncounterRoles(1)).toEqual(composeEncounterRoles(1))
+    expect(composeEncounterRoles(5)).toEqual(composeEncounterRoles(5))
   })
 })
 

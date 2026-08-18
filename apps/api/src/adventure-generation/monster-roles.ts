@@ -1,5 +1,5 @@
 import type { AdventureNpc } from '@ai-dm/shared'
-import { singleMonsterCrCap } from './lazy-encounter-benchmark'
+import { encounterDeadlyThreshold } from './lazy-encounter-benchmark'
 
 // US-152: os 3 papéis do 5e_Monster_Builder.json (seção `generalusestatblocks`, subsections
 // `minion`/`soldier`/`brute`) que o motor usa como oponente jogável — sem ingerir monstro
@@ -21,19 +21,23 @@ export function totalCr(roles: MonsterRole[]): number {
 }
 
 /**
- * US-152: monta o encontro para UM personagem (grupo = 1, nunca multiplicado) de nível
- * `level` — soma CR de papéis até o teto de monstro único do LGMRD (`singleMonsterCrCap`,
- * US-159), não o `encounterDeadlyThreshold` de soma de grupo: aquele já nasce 0 até nível 3
- * e não sobra composição alguma pra caber nele (US-159, Notas de implementação: "a
- * calibração de quantos Minions ainda são jogáveis... é decisão da US-152").
+ * US-160: monta o encontro para UM personagem (grupo = 1, nunca multiplicado) de nível
+ * `level` — soma CR de papéis até `encounterDeadlyThreshold` (limiar de soma do LGMRD,
+ * US-159), não `singleMonsterCrCap` (teto de monstro único): empacotar contra o teto de
+ * monstro único sempre estourava o limiar de soma que a verificação 3 do gate (US-150)
+ * cobra — todo encontro gerado em nível 1-4 falhava o gate (US-160, Contexto e motivação).
+ * `encounterDeadlyThreshold` é sempre menor que `singleMonsterCrCap` em qualquer nível
+ * (prova em US-160, Notas de implementação), então empacotar sob ele garante o teto de
+ * monstro único de graça, sem checagem dupla. Em nível 1-3 o limiar é 0 e a função devolve
+ * array vazio — resultado correto do LGMRD nesses níveis, não bug.
  *
  * Greedy: tenta o papel de maior impacto primeiro (Brute) a cada rodada; só entra se AINDA
- * couber estritamente abaixo do teto (o próprio LGMRD trata CR igual ao teto como letal,
- * operador `>=`) — por isso nível 1 nunca recebe um Brute (CR 2) sozinho, que já estoura o
- * teto de 1.
+ * couber estritamente abaixo do orçamento (o LGMRD trata soma igual ao limiar como letal,
+ * operador `>`) — por isso nível 1 nunca recebe um Brute (CR 2) sozinho, que já estoura o
+ * teto de monstro único (1), a fortiori o limiar de soma (0).
  */
 export function composeEncounterRoles(level: number): MonsterRole[] {
-  const budget = singleMonsterCrCap(level)
+  const budget = encounterDeadlyThreshold(level)
   const roles: MonsterRole[] = []
   let sum = 0
 

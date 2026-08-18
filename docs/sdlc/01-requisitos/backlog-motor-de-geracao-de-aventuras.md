@@ -20,6 +20,10 @@ jogador escolhe `setting`, `tone` e `areaType`, ou deixa cada um no aleatório. 
 **Atualizado em:** 2026-08-07 (quinta vez, mesmo dia) — o backlog irmão foi adiado para a **fase
 4 (multiplayer)** do roadmap. Não é mais "este roda primeiro": é **este roda sozinho na fase 1**.
 Ver *O adiamento do arco para a fase 4*.
+**Atualizado em:** 2026-08-18 — ao mapear a integração do motor com o prompt do AI DM,
+confirmado que US-145/146/147/149/152/158/159 (✅ implementadas) produzem peças soltas: nenhuma
+função as junta num `GeneratedAdventure`, e o passo 6 (fecho ramificado + `followUps`) não tem
+código nenhum. Nova story no caminho crítico: **US-164**, o orquestrador.
 **Status:** 📋 Proposta — nenhuma tarefa iniciada
 
 Este documento **não é uma user story**. É a sequência de tarefas até a meta acima. Cada item
@@ -532,6 +536,73 @@ mesmo artefato, no molde committed/gitignored do `lgmrd-tables.json` (US-149).
 Depende de: US-145 (parte da US-152). Bloqueia: US-152 (calibração de statblock), US-150 (verificação
 3 do gate).
 
+**✱ US-160 — composer de encontro usa o limiar de soma, não só o teto de monstro único**
+*(descoberto em 2026-08-17, ao planejar a verificação 3 da US-150 contra a US-152 real)*
+`composeEncounterRoles` (US-152) empacota contra `singleMonsterCrCap`, que é sempre maior que
+`encounterDeadlyThreshold` em qualquer nível — empacotar contra o primeiro estoura o segundo
+sempre. Em nível 1 isso reprova todo encontro gerado (`0.875 > 0`), e como a função é pura em
+`level`, reseed (US-146) não muda nada: o gate esgotaria o teto de tentativas pra todo personagem
+de nível 1–4, o público inteiro da fase 1. Correção: trocar o orçamento do loop guloso pra
+`encounterDeadlyThreshold`; nível 1–3 (limiar `0`) devolve array vazio — resultado correto do
+LGMRD, não bug.
+Depende de: US-152, US-159. Bloqueia: US-150 (verificação 3 do gate).
+
+**✱ US-164 — orquestrador: monta o `GeneratedAdventure` e gera o fecho ramificado**
+*(descoberto em 2026-08-18, ao mapear o que falta pra integrar o motor ao prompt do AI DM)*
+Seis stories da *Ordem de geração* chegaram a ✅ (US-145/146/147/149/152/158/159), mas nenhuma
+função as chama em sequência. `grep GeneratedAdventure apps/api/src` só acha o import do tipo.
+Falta: (1) a função que executa `rollAdventure` → `generateLocationsAndNpcs` → `generateSecrets`
+→ `composeEncounterRoles`/`buildEncounterNpcs`, na ordem certa; (2) embrulhar a saída do
+composer num `AdventureEncounter` de verdade (`id`, `locationId`, `npcIds[]`); (3) o passo 6
+inteiro — fecho ramificado e `followUps[]` — que não tem prompt nem schema de chamada hoje.
+Devolve um `GeneratedAdventure` que passa em `.parse()` (forma), não validado contra grafo —
+isso é o gate da US-150, que consome o artefato desta story.
+Depende de: US-146, US-147, US-149, US-152, US-158, US-159, US-160. Bloqueia: US-150, US-151.
+
+**✱ US-161 — jogador escolhe o nível de desafio do encontro**
+*(descoberto em 2026-08-17, discussão de produto sobre a US-160: array vazio em nível 1–3 é
+resultado correto do LGMRD, mas fixa uma única resposta pra todo jogador, sem alternativa)*
+`composeEncounterRoles` ganha segundo parâmetro `challenge: 'adventure' | 'challenge'` (chave
+canônica EN, US-54): `'adventure'` (modo aventura, `encounterDeadlyThreshold`, default,
+comportamento da US-160) ou `'challenge'` (modo desafio, `singleMonsterCrCap`, o orçamento
+pré-US-160, que nunca saiu do repo — só reaproveitado, não recalibrado). Nenhuma fórmula nova;
+US-159 permanece intacta. Decidido: a preferência é por aventura gerada, não campo em
+`Character`; e precisa de tela já na fase 1 — story própria, **US-165**. Esta story entrega só a
+função parametrizada.
+Depende de: US-159, US-160. Não entra no corte mínimo — enhancement, motor roda sem ela
+(default `'adventure'` preserva o comportamento da US-160).
+
+**✱ US-165 — tela: jogador escolhe o nível de desafio do encontro**
+*(descoberta em 2026-08-18, ao decidir que a US-161 precisa de tela já na fase 1)*
+Quarto grupo de rádio no passo `world` (US-157) — Desafio, Modo aventura / Modo desafio — ao
+lado de Cenário/Tom/Tipo de Área. Diferente daqueles três, não vem de catálogo (`challenge` é
+enum fixo de dois valores, domínio de encontro, não registro de mundo). `CreateAdventureDto`
+ganha `challenge?`. Fora desta story: consumir o campo na geração real (orquestrador, US-164,
+segue sem esse parâmetro).
+Depende de: US-161, US-157. Não entra no corte mínimo — enhancement sobre enhancement.
+
+**✱ US-162 — jogador escolhe a quantidade de segredos ativos**
+*(descoberto em 2026-08-17, mesma discussão de produto da US-161: que outros dials fazem
+sentido pro jogador gerenciar)*
+`SECRET_CATEGORY_COUNT` (`ai.service.ts:163-168`) é `Record` fixo — sempre 3+3+3+2=11 segredos,
+mesmo split entre as 4 categorias do LGMRD, pra todo jogador. Vira função de uma preferência de
+densidade, 2-3 níveis pré-definidos, teto de 10 por categoria (tamanho da seção-fonte). Nenhum
+prompt-molde novo, nenhuma tabela do LGMRD muda — só quanto de cada categoria já existente é
+pedido.
+Depende de: US-149. Não entra no corte mínimo — enhancement, motor roda sem ela (default
+reproduz o comportamento de hoje).
+
+**✱ US-163 — jogador escolhe o tamanho da aventura (locais e NPCs)**
+*(descoberto em 2026-08-17, mesma discussão de produto da US-161/US-162)*
+Dois pontos, formas diferentes: `NPC_ROLL_COUNT=7` (`roll-content.ts:20`) vira função da mesma
+preferência de tamanho — parametrização direta, mesmo padrão dos dials irmãos. Contagem de
+locais **não tem controle hoje** (`locais`/`monumentos` vêm de uma única linha rolada, sem
+instrução de quantidade no prompt) — esta story fecha essa lacuna, adicionando instrução de
+quantidade-alvo em `buildLocationsAndNpcsPrompt` espelhando a que já existe pros NPCs. É a única
+peça dos três dials descobertos em 17/08 que não é só trocar uma constante existente.
+Depende de: US-158. Não entra no corte mínimo — enhancement, motor roda sem ela (default
+reproduz `NPC_ROLL_COUNT=7` de hoje; locais seguem no "~6" por elaboração livre do modelo).
+
 **✱ US-153 — a aventura deixa de ser derivada da classe**
 `createForCharacter` para de resolver a aventura por `resolveInitialHook(config, character.class)`
 e passa a chamar o motor. Sai também a validação que **rejeita** `initialHookId` diferente do da
@@ -609,10 +680,10 @@ Depende de: US-156.
 
 ## Corte mínimo
 
-**US-143 + US-144 + US-145 + US-146 + US-147 + US-158 + US-148 + US-149 + US-150 + US-151 + US-152 + US-159 +
-US-153 + US-156 + US-157** — quinze stories (US-158 somada em 2026-08-16, US-159
-somada em 2026-08-17, ambas lacunas nunca numeradas do texto original), **nenhuma tarefa de
-escrita**, nenhuma dependência de outro backlog.
+**US-143 + US-144 + US-145 + US-146 + US-147 + US-158 + US-148 + US-149 + US-164 + US-150 + US-151 + US-152 + US-159 +
+US-160 + US-153 + US-156 + US-157** — dezessete stories (US-158 somada em 2026-08-16, US-159 e
+US-160 somadas em 2026-08-17, US-164 somada em 2026-08-18, todas lacunas nunca numeradas do texto
+original), **nenhuma tarefa de escrita**, nenhuma dependência de outro backlog.
 
 Fora: eval e limpeza dos ganchos. Fora também: seed compartilhável, PDF, mapa, quests em fases.
 

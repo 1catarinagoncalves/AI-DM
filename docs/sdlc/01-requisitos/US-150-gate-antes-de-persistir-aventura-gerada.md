@@ -3,7 +3,7 @@
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-149](./US-149-segredos-40-prompts-lgmrd.md) · [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (a régua de orçamento de encontro que a verificação 3 compara)
+**Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (orquestrador — monta o `GeneratedAdventure` que este gate valida; sem ele não há artefato) · [US-149](./US-149-segredos-40-prompts-lgmrd.md) · [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (a régua de orçamento de encontro que a verificação 3 compara) · [US-160](./US-160-composer-encontro-usa-limiar-de-soma.md) (corrige o orçamento de `composeEncounterRoles` — sem ela, a verificação 3 rejeita todo encontro gerado pra nível 1–4)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-150, critério de saída do corte mínimo) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-144](./US-144-schema-aventura-shared.md) (o `parse()` que o gate roda)
 **Criada em:** 2026-08-15
 

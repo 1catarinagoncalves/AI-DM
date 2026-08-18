@@ -3,7 +3,7 @@
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-144](./US-144-schema-aventura-shared.md) (schema da aventura) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato já validado)
+**Depende de:** [US-144](./US-144-schema-aventura-shared.md) (schema da aventura) · [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure`, quem produz o artefato) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato já validado)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-151) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (`sabido`/`revelado`, os eixos que esta story usa) · [US-71](./US-71-simplificar-localizacao-do-personagem.md) (o defeito de produção que esta story ataca — 9 de 24 viagens sem `updateScene`)
 **Criada em:** 2026-08-15
 
@@ -21,7 +21,7 @@
 
 ### O problema observado
 
-O caminho de semear entidades ao criar uma aventura **já roda** — `extractOpeningEntities` ([ai.service.ts:1112](../../../apps/api/src/ai/ai.service.ts)), chamado em `createForCharacter` ([adventure.service.ts:169](../../../apps/api/src/adventure/adventure.service.ts)), extrai por LLM o que a prosa de abertura estabelece. Mas essa extração é sobre **texto livre gerado sem tools** — ela infere entidades a partir de prosa, com todas as limitações de precisão que uma extração pós-hoc tem (a US-75 já documenta: *"pode perder um NPC secundário ou inferir um vínculo indevido"*). O motor de geração ([US-144](./US-144-schema-aventura-shared.md) a [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md)) produz um artefato **estruturado**, com `id`s e vínculos declarados — a fonte correta para popular o ledger deixa de ser "extrair da prosa" e passa a ser "ler o artefato".
+O caminho de semear entidades ao criar uma aventura **já roda** — `extractOpeningEntities` ([ai.service.ts:1112](../../../apps/api/src/ai/ai.service.ts)), chamado em `createForCharacter` ([adventure.service.ts:169](../../../apps/api/src/adventure/adventure.service.ts)), extrai por LLM o que a prosa de abertura estabelece. Mas essa extração é sobre **texto livre gerado sem tools** — ela infere entidades a partir de prosa, com todas as limitações de precisão que uma extração pós-hoc tem (a US-75 já documenta: *"pode perder um NPC secundário ou inferir um vínculo indevido"*). O orquestrador do motor ([US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md), `generateAdventure`) produz um artefato **estruturado**, com `id`s e vínculos declarados — a fonte correta para popular o ledger deixa de ser "extrair da prosa" e passa a ser "ler o artefato".
 
 ### Por que a solução atual não basta
 
@@ -93,6 +93,7 @@ Trocar a **fonte** de `extractOpeningEntities` (extração por LLM da prosa) pel
 
 ## Referências no código
 
+- [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) — `generateAdventure`, quem entrega o `GeneratedAdventure` que esta story lê.
 - [apps/api/src/ai/ai.service.ts:1112](../../../apps/api/src/ai/ai.service.ts) — `extractOpeningEntities`, a função cuja fonte esta story substitui (não remove).
 - [apps/api/src/adventure/adventure.service.ts:164-171](../../../apps/api/src/adventure/adventure.service.ts) — `Promise.all` de extração pós-abertura, onde o branch novo entra.
 - [packages/shared/src/types/character.ts](../../../packages/shared/src/types/character.ts) — `WorldEntity`, o tipo de destino do mapeamento.

@@ -3,7 +3,7 @@
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato validado) · [US-151](./US-151-semear-ledger-segredos-gerados.md) (ledger semeado do artefato)
+**Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure`, a função que esta story chama) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato validado) · [US-151](./US-151-semear-ledger-segredos-gerados.md) (ledger semeado do artefato)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-153) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (o mecanismo que esta story substitui) · [starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) (`resolveInitialHook`, que continua vivo como porta de entrada)
 **Criada em:** 2026-08-15
 
@@ -29,7 +29,7 @@ A [US-28](./US-28-aventura-inicial-baseada-na-classe.md) resolveu bem o problema
 
 ### A proposta
 
-`createForCharacter` para de resolver a aventura por `resolveInitialHook(config, character.class)` e passa a chamar o motor ([US-143](./US-143-adr-aventura-como-dado-gerado.md) a [US-152](./US-152-statblocks-papel-orcamento.md), já compostos). O gancho **continua vivo** como porta de entrada: `openingNarration` do hook vira o `hookSeed` que a [US-148](./US-148-perfil-personagem-entrada-motor.md) consome, explicando por que *aquele* personagem está *nesta* aventura — mas deixa de ser a aventura inteira.
+`createForCharacter` para de resolver a aventura por `resolveInitialHook(config, character.class)` e passa a chamar `generateAdventure` ([US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) — o orquestrador que junta as peças de US-143 a US-152/159/160). O gancho **continua vivo** como porta de entrada: `openingNarration` do hook vira o `hookSeed` que a [US-148](./US-148-perfil-personagem-entrada-motor.md) consome, explicando por que *aquele* personagem está *nesta* aventura — mas deixa de ser a aventura inteira.
 
 ---
 
@@ -37,7 +37,7 @@ A [US-28](./US-28-aventura-inicial-baseada-na-classe.md) resolveu bem o problema
 
 ### Dentro do escopo
 
-- **`createForCharacter` chama o motor** em vez de `resolveInitialHook` sozinho — o gancho é resolvido (continua existindo), mas só alimenta `hookSeed` ([US-148](./US-148-perfil-personagem-entrada-motor.md)), não decide mais a estrutura inteira.
+- **`createForCharacter` chama `generateAdventure`** ([US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md)) em vez de `resolveInitialHook` sozinho — o gancho é resolvido (continua existindo), mas só alimenta `hookSeed` ([US-148](./US-148-perfil-personagem-entrada-motor.md)), não decide mais a estrutura inteira.
 - **Sai a validação que rejeita `initialHookId` diferente do da classe** ([adventure.service.ts:99-101](../../../apps/api/src/adventure/adventure.service.ts)) — não há mais um `initialHookId` escolhido pelo cliente para validar contra; a aventura é sempre gerada.
 - **`CreateAdventureDto`** (hoje `{ initialHookId: string }`, [adventure.service.ts:9-11](../../../apps/api/src/adventure/adventure.service.ts)) perde esse campo e ganha os três campos de registro opcionais da [US-156](./US-156-catalogos-registro-dto-validacao.md) (`setting?`, `tone?`, `areaType?`), todos opcionais.
 - **Critério central:** dois personagens da mesma classe, com `background` diferentes, recebem aventuras diferentes; o mesmo personagem regenerado (mesmo `characterId` + `order`) recebe a mesma — a garantia de determinismo da [US-146](./US-146-seed-deterministico-motor-aventura.md) verificada ponta a ponta neste fluxo.
@@ -46,7 +46,7 @@ A [US-28](./US-28-aventura-inicial-baseada-na-classe.md) resolveu bem o problema
 ### Fora do escopo
 
 - **Remover o campo de gancho do config.** `openingNarration`/`tags` continuam existindo em `InitialAdventureHookSchema` — só os dois campos de quest fixa saem, e isso é escopo da [US-155](./US-155-aposentar-quest-fixa-por-classe.md), não desta story.
-- **A geração em si ([US-143](./US-143-adr-aventura-como-dado-gerado.md) a [US-152](./US-152-statblocks-papel-orcamento.md)).** Esta story só troca o **caminho de chamada** de `createForCharacter` — as stories anteriores já entregam o motor pronto para ser chamado.
+- **A geração em si ([US-143](./US-143-adr-aventura-como-dado-gerado.md) a [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md)).** Esta story só troca o **caminho de chamada** de `createForCharacter` — a US-164 já entrega `generateAdventure` pronto para ser chamado.
 - **A tela de escolha de registro** ([US-157](./US-157-tela-de-mundo-depois-da-revisao.md)) — esta story consome `setting`/`tone`/`areaType` opcionais no DTO, mas a UI que os envia é story separada.
 
 ---
@@ -74,7 +74,7 @@ export interface CreateAdventureDto {
 
 ## Critérios de aceite
 
-- [ ] `createForCharacter` chama o motor de geração (composição de [US-143](./US-143-adr-aventura-como-dado-gerado.md) a [US-152](./US-152-statblocks-papel-orcamento.md)) para produzir a `GeneratedAdventure`, em vez de resolver só `resolveInitialHook`.
+- [ ] `createForCharacter` chama `generateAdventure` ([US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md)) para produzir a `GeneratedAdventure`, em vez de resolver só `resolveInitialHook`.
 - [ ] `resolveInitialHook` continua sendo chamado — seu resultado alimenta `hookSeed` ([US-148](./US-148-perfil-personagem-entrada-motor.md)), não a estrutura da aventura.
 - [ ] A validação que rejeita `initialHookId` diferente do da classe é removida — não existe mais `initialHookId` no DTO.
 - [ ] `CreateAdventureDto` não tem mais `initialHookId`; tem `setting?`, `tone?`, `areaType?`, todos opcionais.
@@ -109,5 +109,6 @@ export interface CreateAdventureDto {
 - [apps/api/src/adventure/adventure.service.ts:76-102](../../../apps/api/src/adventure/adventure.service.ts) — `createForCharacter`, resolução do hook e a validação que sai (`:99-101`).
 - [apps/api/src/adventure/adventure.service.ts:187,211-217](../../../apps/api/src/adventure/adventure.service.ts) — `Adventure.title`, `Quest.title`/`Quest.description`, os pontos que trocam de fonte.
 - [apps/api/src/character/starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) — `resolveInitialHook`, que continua vivo como porta de entrada (`hookSeed`).
+- [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) — `generateAdventure`, a função que esta story passa a chamar.
 - [US-28](./US-28-aventura-inicial-baseada-na-classe.md) — o mecanismo original que esta story substitui.
 - [Backlog — Motor de geração de aventuras one-shot §GEN-10](./backlog-motor-de-geracao-de-aventuras.md) (US-153) — texto de origem.

@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-145](./US-145-sync-lgmrd-notice.md) (`5e_Monster_Builder.json` baixado) · [US-147](./US-147-rolagem-registro-conteudo.md) (conteúdo já rolado, incluindo local/complicação que o encontro habita) · [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (o *Lazy Encounter Benchmark* contra o qual o orçamento é medido)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-152, caminho crítico) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-152, caminho crítico) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-160](./US-160-composer-encontro-usa-limiar-de-soma.md) (corrige o orçamento de `composeEncounterRoles`, descoberto em 2026-08-17 ao validar contra a US-150)
 **Criada em:** 2026-08-15
 
 ---
