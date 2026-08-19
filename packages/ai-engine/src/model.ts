@@ -286,6 +286,26 @@ export const EXTRACTION_PROVIDER_OPTIONS = {
 } as const
 
 /**
+ * 2026-08-19: opções das chamadas do MOTOR de geração de aventura
+ * (`generateLocationsAndNpcs`/`generateSecrets`/`generateClosing`/`generateOpeningBeat`
+ * em `ai.service.ts`) — rodam no `primaryModel` (deepseek-v4-flash), não no
+ * `extractionModel` (qwen). Motivo: essas quatro chamadas amarram ~7 NPCs a ~6
+ * locais/encontros/segredos num único objeto coerente (o gate da US-150 rejeita
+ * NPC/local órfão), tarefa de raciocínio real — qwen3.7-flash esgotava as 3
+ * tentativas do gate com frequência (`adventure_gate_failed` em produção local).
+ * Mesmo `{enabled:false}` de `EXTRACTION_PROVIDER_OPTIONS` (mesma colisão
+ * tool_choice/thinking do modo tool), MAIS o `provider: DEEPSEEK_ROUTE` que a
+ * narração já usa — sem o pin, o OpenRouter roteia livre entre os 22 endpoints do
+ * slug (ADR 008), incluindo os fp4 que a narração exclui por degradação.
+ */
+export const ENGINE_PROVIDER_OPTIONS = {
+  openrouter: {
+    reasoning: { enabled: false },
+    provider: DEEPSEEK_ROUTE,
+  },
+} as const
+
+/**
  * US-114: modelo utilitário para extração estruturada e fecho de turno truncado —
  * `extractOpeningScene`/`extractOpeningEntities`/`reconcileScene`/`completeTruncatedTurn`
  * (`ai.service.ts`) saem do `deepseek-v4-flash` da narração. As quatro são cópia de
@@ -294,6 +314,10 @@ export const EXTRACTION_PROVIDER_OPTIONS = {
  * do antigo `groq('llama-3.1-8b-instant')`, ver comentário dele abaixo) — o lote de
  * overflow da sumarização cresce com a aventura, as quatro chamadas daqui têm
  * entrada pequena e limitada (um texto de abertura, uma narração de um turno).
+ * 2026-08-19: o MOTOR de geração de aventura saiu daqui para `primaryModel` +
+ * `ENGINE_PROVIDER_OPTIONS` acima — ficou maior/mais lento demais pro perfil de
+ * latência que justificou esta story (60s do proxy), mas continua exato pras
+ * quatro chamadas abaixo.
  *
  * `qwen/qwen3.7-flash`, SEM `provider` pin de propósito: endpoint único (Alibaba
  * direto) — `DEEPSEEK_ROUTE` é pin de rota `only: DEEPSEEK_ALLOWED_PROVIDERS`

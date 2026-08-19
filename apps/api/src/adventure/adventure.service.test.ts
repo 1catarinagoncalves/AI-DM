@@ -797,7 +797,8 @@ describe('AdventureService.generateAdventure (US-164)', () => {
         if (overrides.seenSecretsParams) Object.assign(overrides.seenSecretsParams, params)
         return secrets
       },
-      // generateClosing continua recebendo hookSeed sem alteração (US-174, Fora do escopo).
+      // US-175: `hookSeed` para de ser insumo de generateClosing — último ponto do motor
+      // ainda ancorado no catálogo fixo por classe.
       generateClosing: async (params: Record<string, unknown>) => {
         if (overrides.seenClosingParams) Object.assign(overrides.seenClosingParams, params)
         return closing
@@ -868,10 +869,16 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(seenSecretsParams.origin).toBeDefined()
   })
 
-  it('generateClosing continua recebendo hookSeed sem alteração — não-regressão da assinatura (US-174)', async () => {
+  it('generateClosing recebe locations/npcs/secrets/registry/complicacao/premissa — NUNCA hookSeed (US-175)', async () => {
     const seenClosingParams: Record<string, unknown> = {}
     await service(fakeGenAi({ seenClosingParams })).generateAdventure(profile, 'char-1', 1)
-    expect(seenClosingParams.hookSeed).toBe(profile.hookSeed)
+    expect(seenClosingParams).not.toHaveProperty('hookSeed')
+    expect(seenClosingParams.locations).toBeDefined()
+    expect(seenClosingParams.npcs).toBeDefined()
+    expect(seenClosingParams.secrets).toBeDefined()
+    expect(seenClosingParams.registry).toBeDefined()
+    expect(seenClosingParams.complicacao).toBeDefined()
+    expect(seenClosingParams.premissa).toBeDefined()
   })
 
   it('encounters[0].locationId referencia locations[0]; npcIds referencia NPCs do próprio npcs[] final', async () => {

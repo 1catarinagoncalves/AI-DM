@@ -167,7 +167,6 @@ export class AdventureService {
         secrets,
         registry,
         complicacao: content.complicacao,
-        hookSeed: profile.hookSeed,
         premissa: content.premissa,
       }),
       this.ai.generateOpeningBeat({

@@ -166,18 +166,13 @@ function backgroundFieldText(value: CharacterBackground[keyof CharacterBackgroun
  * atualize `REVIEWED_CRAFT_HASH` em `rubric-drift.test.ts` — o guard de drift falha
  * até você fazer isso, forçando a rubrica a acompanhar a barra.
  */
-export const NARRATIVE_CRAFT_SECTION = `## Narrative craft (the quality bar — applies to the OPENING scene AND every turn)
-Every narration — including the very first scene — must meet this bar. Generic, "video-gamey" prose ("You go to the village. Success.") is a FAILURE even when mechanically correct. This bar adds quality on top of the rules below; it never overrides them.
-- Open on the SENSES (rain, cold wet armour, the failing light of dusk), not on exposition.
-- Be concrete and NAME things: the mount, the sword, the holy symbol, the NPC. A specific detail beats a generic one.
-- Class/race/equipment/abilities surface through ACTION and SENSATION, never as a stat list. The class is a LENS: a paladin FEELS nearby evil as a prickle in the chest, not as a number.
-- Show tension before you explain it (a village's wrong, heavy silence comes before we learn why).
-- Give NPCs a voice and a body — movement, emotion, stakes — especially the vulnerable.
-- Vary the rhythm: mix short and long sentences. Stay concise: 3–5 short paragraphs. Immersive ≠ verbose.
-- Close on a LIVING hook: address the character by name, then present the action options.
-- LANGUAGE — when narrating in Portuguese, write NATURAL Brazilian pt-BR: fluent, warm, contemporary. Use "você" (never "tu"/"vós" or the forms "olhas/vês/sabes/tua/teu"). Avoid European/translated constructions ("a fitar-te", "estás", "aperceber-te", "no teu encalço"); prefer the Brazilian form ("te encarando", "está", "perceber", "atrás de você"). Keep the medieval-fantasy tone, but it must never read like a dubbed or literal translation.
-
-### Onomastics — how to NAME people, places and things (applies to the OPENING and every turn)
+/**
+ * US-177: seção de Onomástica extraída para const própria — reusada tanto por
+ * `NARRATIVE_CRAFT_SECTION` (narração ao vivo) quanto por `generateLocationsAndNpcs`
+ * (motor de geração), que antes MINTAVA nome sem regra nenhuma. Texto idêntico ao de
+ * antes da extração — não mexer sem checar `rubric-drift.test.ts` (US-36).
+ */
+export const ONOMASTICS_SECTION = `### Onomastics — how to NAME people, places and things (applies to the OPENING and every turn)
 Naming is where a world proves it has peoples of its own, or exposes itself as AI text. This applies to EVERYTHING with a proper name — NPCs, villages, inns, rivers, swords, ships — not just NPCs. Never rename the player's OWN character (it comes from character creation).
 
 Every time you coin a name, run these three steps:
@@ -199,6 +194,19 @@ Register cheat-sheet — a starting point for the SOUND, calibrate it, never cop
 - Others as the scene needs (Japonic, Egyptian, Mesoamerican, Hebraic/celestial, Sanskrit, Sub-Saharan African…): invent a coherent sound of its own.
 
 OPEN PALETTE, not a closed list: when a scene needs a culture the cheat-sheet skips, INVENT a coherent register of its own and keep it consistent across every name from that people/place. Draw on a sound "in the spirit of" a language — never lift a real religious/historical figure's actual name, never caricature a real culture. The only boundary is slop: it is a FAILURE to fall back on generic default names, or to give NPCs from different cultures the same generic sound.`
+
+export const NARRATIVE_CRAFT_SECTION = `## Narrative craft (the quality bar — applies to the OPENING scene AND every turn)
+Every narration — including the very first scene — must meet this bar. Generic, "video-gamey" prose ("You go to the village. Success.") is a FAILURE even when mechanically correct. This bar adds quality on top of the rules below; it never overrides them.
+- Open on the SENSES (rain, cold wet armour, the failing light of dusk), not on exposition.
+- Be concrete and NAME things: the mount, the sword, the holy symbol, the NPC. A specific detail beats a generic one.
+- Class/race/equipment/abilities surface through ACTION and SENSATION, never as a stat list. The class is a LENS: a paladin FEELS nearby evil as a prickle in the chest, not as a number.
+- Show tension before you explain it (a village's wrong, heavy silence comes before we learn why).
+- Give NPCs a voice and a body — movement, emotion, stakes — especially the vulnerable.
+- Vary the rhythm: mix short and long sentences. Stay concise: 3–5 short paragraphs. Immersive ≠ verbose.
+- Close on a LIVING hook: address the character by name, then present the action options.
+- LANGUAGE — when narrating in Portuguese, write NATURAL Brazilian pt-BR: fluent, warm, contemporary. Use "você" (never "tu"/"vós" or the forms "olhas/vês/sabes/tua/teu"). Avoid European/translated constructions ("a fitar-te", "estás", "aperceber-te", "no teu encalço"); prefer the Brazilian form ("te encarando", "está", "perceber", "atrás de você"). Keep the medieval-fantasy tone, but it must never read like a dubbed or literal translation.
+
+${ONOMASTICS_SECTION}`
 
 /**
  * US-110 — a régua de QUAL teste a situação chama, vinda do texto do SRD 2024

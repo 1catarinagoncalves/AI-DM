@@ -9,12 +9,15 @@ import {
   narrationModels,
   NARRATION_PROVIDER_OPTIONS,
   EXTRACTION_PROVIDER_OPTIONS,
+  ENGINE_PROVIDER_OPTIONS,
   formatProvenance,
   summaryModel,
   extractionModel,
+  primaryModel,
   buildDmSystemPrompt,
   buildTurnStateBlock,
   buildOpeningInstruction,
+  ONOMASTICS_SECTION,
   resolveKnownSpell,
   resolveAdventuresAndAdvancement,
   buildSummaryInput,
@@ -95,9 +98,27 @@ const OPENING_ENTITIES_SCHEMA = z.object({
 const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
 
 // US-158: schema da prosa de locais+NPCs. SEM `id` — quem minta é o código
-// (`generateLocationsAndNpcs`), nunca o modelo. `occupants` referencia NPCs pelo NOME
-// (o `id` ainda não existe neste ponto da chamada); o código resolve nome→id depois.
+// (`generateLocationsAndNpcs`), nunca o modelo.
+//
+// 2026-08-19: `occupants` referenciava NPC pelo NOME (string livre, casado contra
+// `npcs[].name` via `normName` — só normaliza caixa/acento). Com deepseek-v4-flash
+// (trocado nesta data por precisar de mais raciocínio, ver ENGINE_PROVIDER_OPTIONS em
+// model.ts) o nome escrito em `occupants` divergia do `npcs[].name` com frequência
+// maior que o qwen anterior — ex.: "Vesper Thornwood" em occupants vs. um `npcs[].name`
+// que não bate exatamente — e a US-150 trata isso como falha DURA (`checkOccupantReferences`),
+// não órfão: esgotava as 3 tentativas do gate direto. `occupants` agora é ÍNDICE
+// (0-based) em `npcs[]`: sem correspondência de string nenhuma, o modelo só aponta pra
+// uma posição de um array que ele mesmo escreveu — `npcs` vem ANTES de `locations` no
+// schema de propósito, pra já estar "escrito" quando o modelo gera os índices.
 const LOCATIONS_AND_NPCS_SCHEMA = z.object({
+  npcs: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        role: z.string().min(1).describe('Arquétipo de ficção popular + conexão com a aventura, 1 frase curta'),
+      }),
+    )
+    .min(1),
   locations: z
     .array(
       z.object({
@@ -105,15 +126,7 @@ const LOCATIONS_AND_NPCS_SCHEMA = z.object({
         aspects: z.array(z.string()).describe('2-3 aspectos/traços curtos do local, estilo Fate — não frases completas'),
         boxedText: z.string().min(1).describe('Texto de leitura em voz alta ao chegar no local, 2-3 frases'),
         description: z.string().min(1).describe('Notas do mestre sobre o local — NÃO lidas em voz alta'),
-        occupants: z.array(z.string()).describe('Nomes de NPCs presentes aqui, EXATAMENTE como escritos em npcs[].name — [] se nenhum'),
-      }),
-    )
-    .min(1),
-  npcs: z
-    .array(
-      z.object({
-        name: z.string().min(1),
-        role: z.string().min(1).describe('Arquétipo de ficção popular + conexão com a aventura, 1 frase curta'),
+        occupants: z.array(z.number().int().min(0)).describe('Índices (0-based) de npcs[] presentes aqui — NÚMERO, nunca o nome — [] se nenhum'),
       }),
     )
     .min(1),
@@ -237,14 +250,12 @@ function buildClosingPrompt(params: {
   npcs: AdventureNpc[]
   secrets: AdventureSecret[]
   complicacao: { condition: string; description: string; origin: string }
-  hookSeed: string
   premissa: string
 }): string {
   const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
   const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
   const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
   return [
-    `Gancho da aventura: ${params.hookSeed}`,
     `Premissa: ${params.premissa}`,
     `Complicação: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
     '',
@@ -325,13 +336,13 @@ export function applyInventoryDeltas(current: InventoryItem[], changes: { name: 
 }
 
 /**
- * US-103: proveniência das três extrações estruturadas, no mesmo formato da linha do
- * turno. Até a US-114 as três usavam `summaryModel` e o MESMO pin de rota da
- * narração (ADR 008 §3); agora usam `extractionModel` (US-114), sem pin — endpoint
- * único. Esta linha é o que permite conferir por observação qual dos dois serviu.
+ * US-103: proveniência das extrações/chamadas do motor, no mesmo formato da linha do
+ * turno. `model` é passado pelo chamador (2026-08-19: deixou de ser sempre
+ * `extractionModel` — o motor de aventura roda em `primaryModel`, ver
+ * ENGINE_PROVIDER_OPTIONS em model.ts) — sem isso o log mentiria qual dos dois serviu.
  */
-function logExtractionEndpoint(label: string, providerMetadata: unknown): void {
-  console.log(`[AiService][${label}] model=${extractionModel.modelId ?? 'unknown'} ${formatProvenance(providerMetadata)}`)
+function logExtractionEndpoint(label: string, model: { modelId: string }, providerMetadata: unknown): void {
+  console.log(`[AiService][${label}] model=${model.modelId ?? 'unknown'} ${formatProvenance(providerMetadata)}`)
 }
 
 @Injectable()
@@ -1267,7 +1278,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         // nasce nula sempre (medido 04/08/2026 — ver EXTRACTION_PROVIDER_OPTIONS).
         providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
-      logExtractionEndpoint('extractOpeningScene', providerMetadata)
+      logExtractionEndpoint('extractOpeningScene', extractionModel, providerMetadata)
       // Snapshot vazio (prosa sem cena discernível) = tratamos como nulo: nada a ancorar.
       const empty = !object.local.trim() && object.presentes.length === 0 && object.objetos_em_cena.length === 0
       return empty ? null : object
@@ -1303,7 +1314,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         prompt: `Abertura:\n"""\n${text}\n"""${questContext ? `\n\nGancho da aventura (contexto):\n"""\n${questContext}\n"""` : ''}`,
         providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
-      logExtractionEndpoint('extractOpeningEntities', providerMetadata)
+      logExtractionEndpoint('extractOpeningEntities', extractionModel, providerMetadata)
       const seeded = object.entidades
         .filter((e) => e.nome?.trim())
         // A abertura É pública e já vivida: força os dois eixos, não deixa ao extrator.
@@ -1341,16 +1352,17 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       : 'Sem vínculos registrados — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
 
     const { object, providerMetadata } = await generateObject({
-      model: extractionModel,
+      model: primaryModel,
       schema: LOCATIONS_AND_NPCS_SCHEMA,
       system:
         'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
-        `Tom: ${params.registry.tone}. ${bondsInstruction}`,
+        `Tom: ${params.registry.tone}. ${bondsInstruction} ` +
+        ONOMASTICS_SECTION,
       prompt: buildLocationsAndNpcsPrompt(params.rolled),
-      providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+      providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
-    logExtractionEndpoint('generateLocationsAndNpcs', providerMetadata)
+    logExtractionEndpoint('generateLocationsAndNpcs', primaryModel, providerMetadata)
 
     const npcs: AdventureNpc[] = object.npcs.map((npc, i) => ({
       id: `npc-${i + 1}`,
@@ -1358,17 +1370,19 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       role: npc.role,
       interactions: [],
     }))
-    const npcIdByName = new Map(npcs.map((npc) => [normName(npc.name), npc.id]))
 
-    // US-158, Fora do escopo: integridade referencial é "melhor esforço" aqui (gate
-    // fica pra US-150) — nome sem match vira `occupants` cru, não é descartado.
+    // 2026-08-19: índice fora de faixa (o modelo inventa uma posição que `npcs[]` não
+    // tem) é descartado em silêncio, não vira `occupants` cru — ao contrário do antigo
+    // match por nome, um índice inválido não tem "melhor esforço" possível: não há
+    // string nenhuma pra preservar. Gate (US-150) segue sendo quem pega o local que
+    // ficar sem NENHUM occupant válido.
     const locations: AdventureLocation[] = object.locations.map((loc, i) => ({
       id: `loc-${i + 1}`,
       title: loc.title,
       aspects: loc.aspects,
       boxedText: loc.boxedText,
       description: loc.description,
-      occupants: loc.occupants.map((name) => npcIdByName.get(normName(name)) ?? name),
+      occupants: loc.occupants.filter((idx) => idx < npcs.length).map((idx) => npcs[idx]!.id),
     }))
 
     return { locations, npcs }
@@ -1382,7 +1396,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * NUNCA captura erro — falha aqui é motivo de reseed da US-150, não degradação silenciosa.
    * `locations`/`npcs` obrigatórios (não opcionais) força a ordem: esta chamada não roda
    * sem eles. `hookSeed` (gancho fixo por classe) NÃO é insumo — nem no schema, nem no
-   * `system`/`prompt` (US-174: só `generateClosing` ainda recebe `hookSeed`).
+   * `system`/`prompt` (US-174; depois de US-175, nenhuma chamada do motor recebe `hookSeed`).
    */
   async generateSecrets(params: {
     locations: AdventureLocation[]
@@ -1408,7 +1422,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       : 'Sem background/origin registrados — ancore os segredos ao que já foi rolado para esta aventura (registry/local/NPC).'
 
     const { object, providerMetadata } = await generateObject({
-      model: extractionModel,
+      model: primaryModel,
       schema: SECRETS_SCHEMA,
       system:
         'Você é o Mestre de um RPG escrevendo os SEGREDOS de uma aventura one-shot (método Lazy GM Resource Document), a partir de moldes de pergunta. ' +
@@ -1417,9 +1431,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Para segredo de NPC/vilão, use o "(local: ...)" indicado ao lado do NPC se houver; senão, escolha o local mais relevante da lista. ' +
         `${anchorInstruction}`,
       prompt: buildSecretsPrompt(params.locations, params.npcs, params.secretPrompts),
-      providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+      providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
-    logExtractionEndpoint('generateSecrets', providerMetadata)
+    logExtractionEndpoint('generateSecrets', primaryModel, providerMetadata)
 
     return object.secrets.map((secret, i) => ({
       id: `secret-${i + 1}`,
@@ -1431,12 +1445,15 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
   /**
    * US-164, passo 6: escreve o FECHO RAMIFICADO — `conclusion` (prosa) e `followUps[]`
    * (sementes pra próxima aventura, US-151) — a partir de `locations`/`npcs`/`secrets` já
-   * decididos (US-158/US-149), a `complicacao` e `premissa` roladas (US-147) e o
-   * `hookSeed` (US-148). `registry` entra no system prompt, mesma disciplina de
-   * `generateSecrets`/`generateLocationsAndNpcs` — sem ele o fecho pode destoar do tom
-   * fixado. Antagonista não é entidade rastreável aqui (US-164, Questão em aberto #2) —
-   * só cor narrativa via `premissa`. NUNCA captura erro — mesma disciplina de
-   * `generateSecrets`: falha aqui é motivo de reseed na US-150, não degradação silenciosa.
+   * decididos (US-158/US-149) e a `complicacao`/`premissa` roladas (US-147). `registry`
+   * entra no system prompt, mesma disciplina de `generateSecrets`/`generateLocationsAndNpcs`
+   * — sem ele o fecho pode destoar do tom fixado. `hookSeed` (gancho fixo por classe) NÃO é
+   * insumo — nem no schema, nem no `system`/`prompt` de `buildClosingPrompt` (US-175: era o
+   * último insumo do motor ainda ancorado no catálogo fixo por classe, `premissa` já
+   * cumpria a mesma função de cor narrativa). Antagonista não é entidade rastreável aqui
+   * (US-164, Questão em aberto #2) — só cor narrativa via `premissa`. NUNCA captura erro —
+   * mesma disciplina de `generateSecrets`: falha aqui é motivo de reseed na US-150, não
+   * degradação silenciosa.
    */
   async generateClosing(params: {
     locations: AdventureLocation[]
@@ -1444,11 +1461,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     secrets: AdventureSecret[]
     registry: AdventureRegistry
     complicacao: { condition: string; description: string; origin: string }
-    hookSeed: string
     premissa: string
   }): Promise<{ conclusion: string; followUps: string[] }> {
     const { object, providerMetadata } = await generateObject({
-      model: extractionModel,
+      model: primaryModel,
       schema: CLOSING_SCHEMA,
       system:
         'Você é o Mestre de um RPG escrevendo o FECHO RAMIFICADO de uma aventura one-shot (método Lazy GM Resource Document). ' +
@@ -1457,9 +1473,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         `Tom: ${params.registry.tone}. ` +
         'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura.',
       prompt: buildClosingPrompt(params),
-      providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+      providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
-    logExtractionEndpoint('generateClosing', providerMetadata)
+    logExtractionEndpoint('generateClosing', primaryModel, providerMetadata)
 
     return { conclusion: object.conclusion, followUps: object.followUps }
   }
@@ -1467,10 +1483,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
   /**
    * US-172: escreve a ABERTURA (`start`) da aventura a partir de `registry`/`premissa`/
    * `locations`/`npcs`/`secrets` já decididos — `hookSeed` NÃO é parâmetro desta chamada
-   * (ao contrário de `generateClosing`/`generateSecrets`/`generateLocationsAndNpcs`, que
-   * continuam recebendo-o): copiar `hookSeed` verbatim (US-164) deixava `start` sem ver o
-   * `tone` sorteado desta aventura. Instrui abertura *in medias res* (LGMRD "strong
-   * start") ancorada numa das `locations` recebidas, podendo insinuar (não revelar) um
+   * (mesma disciplina que US-175 estendeu a `generateClosing`): copiar `hookSeed` verbatim
+   * (US-164) deixava `start` sem ver o `tone` sorteado desta aventura. Instrui abertura
+   * *in medias res* (LGMRD "strong start") ancorada numa das `locations` recebidas,
+   * podendo insinuar (não revelar) um
    * `secret` — sem isso `start` fica coerente em tom mas solto do resto do artefato.
    * NUNCA captura erro — mesma disciplina de `generateClosing`: falha aqui é motivo de
    * reseed na US-150, não degradação silenciosa.
@@ -1483,7 +1499,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     premissa: string
   }): Promise<{ start: string }> {
     const { object, providerMetadata } = await generateObject({
-      model: extractionModel,
+      model: primaryModel,
       schema: OPENING_BEAT_SCHEMA,
       system:
         'Você é o Mestre de um RPG escrevendo a ABERTURA (start) de uma aventura one-shot (método Lazy GM Resource Document). ' +
@@ -1492,9 +1508,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Sem conflito óbvio na premissa/locations/npcs/secrets recebidos, abra com confronto ou ameaça imediata. ' +
         `Tom: ${params.registry.tone}.`,
       prompt: buildOpeningBeatPrompt(params),
-      providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+      providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
-    logExtractionEndpoint('generateOpeningBeat', providerMetadata)
+    logExtractionEndpoint('generateOpeningBeat', primaryModel, providerMetadata)
 
     return { start: object.start }
   }
@@ -1533,7 +1549,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         prompt: `CENA ATUAL:\n"""\n${baseText}\n"""\n\nNARRAÇÃO MAIS RECENTE:\n"""\n${text}\n"""`,
         providerOptions: EXTRACTION_PROVIDER_OPTIONS,
       })
-      logExtractionEndpoint('reconcileScene', providerMetadata)
+      logExtractionEndpoint('reconcileScene', extractionModel, providerMetadata)
       const next = mergeSceneState(current, scenePatchFromExtraction(object, playerName))
 
       await this.prisma.characterState.update({

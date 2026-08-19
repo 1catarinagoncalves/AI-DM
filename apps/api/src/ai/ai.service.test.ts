@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { AiService, scenePatchFromExtraction, applyInventoryDeltas } from './ai.service'
-import { mergeSceneState, extractionModel } from '@ai-dm/ai-engine'
+import { mergeSceneState, extractionModel, primaryModel, ONOMASTICS_SECTION } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
@@ -348,30 +348,30 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
   it('minta id no código (loc-N/npc-N), nunca deixado ao modelo', async () => {
     genObj.error = undefined
     genObj.result = {
-      locations: [{ title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas do mestre', occupants: ['Marta'] }],
+      locations: [{ title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas do mestre', occupants: [0] }],
       npcs: [{ name: 'Marta', role: 'a arquétipo herborista suspeita' }],
     }
     const { locations, npcs } = await svc().generateLocationsAndNpcs({ rolled, registry })
     expect(npcs[0]!.id).toBe('npc-1')
     expect(locations[0]!.id).toBe('loc-1')
-    expect(locations[0]!.occupants).toEqual(['npc-1']) // resolvido por nome → id
+    expect(locations[0]!.occupants).toEqual(['npc-1']) // resolvido por índice → id
   })
 
-  it('occupant sem NPC correspondente fica cru (melhor esforço — gate é US-150)', async () => {
+  it('índice de occupant fora de faixa é descartado (2026-08-19: sem match por nome pra preservar)', async () => {
     genObj.error = undefined
     genObj.result = {
-      locations: [{ title: 'Torre', aspects: [], boxedText: 'x', description: 'y', occupants: ['Fantasma sem nome'] }],
+      locations: [{ title: 'Torre', aspects: [], boxedText: 'x', description: 'y', occupants: [5] }],
       npcs: [{ name: 'Marta', role: 'papel' }],
     }
     const { locations } = await svc().generateLocationsAndNpcs({ rolled, registry })
-    expect(locations[0]!.occupants).toEqual(['Fantasma sem nome'])
+    expect(locations[0]!.occupants).toEqual([])
   })
 
-  it('usa extractionModel (US-114), não primaryModel', async () => {
+  it('usa primaryModel (2026-08-19), não extractionModel — motor precisa amarrar NPC/local sem órfão (gate US-150)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
     await svc().generateLocationsAndNpcs({ rolled, registry })
-    expect(genObj.model).toBe(extractionModel)
+    expect(genObj.model).toBe(primaryModel)
   })
 
   it('background.bonds presente entra no prompt do modelo', async () => {
@@ -401,6 +401,13 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     genObj.error = new Error('modelo indisponível')
     await expect(svc().generateLocationsAndNpcs({ rolled, registry })).rejects.toThrow('modelo indisponível')
   })
+
+  it('system segue a regra de Onomástica (US-177) — mesma barra da narração ao vivo', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry })
+    expect(genObj.system).toContain(ONOMASTICS_SECTION)
+  })
 })
 
 describe('AiService.generateSecrets (US-149)', () => {
@@ -425,11 +432,11 @@ describe('AiService.generateSecrets (US-149)', () => {
     expect(secrets[0]!.locationId).toBe('loc-1')
   })
 
-  it('usa extractionModel (US-114), não primaryModel', async () => {
+  it('usa primaryModel (2026-08-19), não extractionModel', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
     await svc().generateSecrets({ locations, npcs, secretPrompts })
-    expect(genObj.model).toBe(extractionModel)
+    expect(genObj.model).toBe(primaryModel)
   })
 
   it('background.bonds presente entra no prompt do modelo', async () => {
@@ -491,28 +498,28 @@ describe('AiService.generateClosing (US-164)', () => {
   it('devolve conclusion e followUps do modelo, sem mintar id (sem entidade a referenciar)', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }
-    const closing = await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'Kill a villain' })
+    const closing = await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'Kill a villain' })
     expect(closing).toEqual({ conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] })
   })
 
-  it('usa extractionModel (US-114), não primaryModel', async () => {
+  it('usa primaryModel (2026-08-19), não extractionModel', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
-    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'premissa' })
-    expect(genObj.model).toBe(extractionModel)
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.model).toBe(primaryModel)
   })
 
   it('registry (tone) entra no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
-    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'premissa' })
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
     expect(genObj.system).toContain('grimdark')
   })
 
   it('locais/NPCs/segredos e complicação/premissa entram no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
-    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'Kill a villain' })
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'Kill a villain' })
     expect(genObj.prompt).toContain('loc-1')
     expect(genObj.prompt).toContain('npc-1')
     expect(genObj.prompt).toContain('secret-1')
@@ -523,8 +530,18 @@ describe('AiService.generateClosing (US-164)', () => {
   it('falha propaga erro estruturado — NÃO devolve fecho vazio em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
     await expect(
-      svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'premissa' }),
+      svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' }),
     ).rejects.toThrow('modelo indisponível')
+  })
+
+  it('assinatura não aceita hookSeed — mesmo forçado por cast, nunca chega ao system/prompt do modelo (US-175)', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }
+    const hookSeed = 'A vela curva-se, Elara, numa corte de gelo e etiqueta.'
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'Kill a villain', hookSeed } as never)
+    expect(genObj.system).not.toContain(hookSeed)
+    expect(genObj.prompt).not.toContain(hookSeed)
+    expect(genObj.prompt).not.toContain('Elara')
   })
 })
 
@@ -545,11 +562,11 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
     expect(start).toBe('A porta racha ao meio antes que Marta consiga gritar.')
   })
 
-  it('usa extractionModel (US-114), não primaryModel', async () => {
+  it('usa primaryModel (2026-08-19), não extractionModel', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }
     await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa' })
-    expect(genObj.model).toBe(extractionModel)
+    expect(genObj.model).toBe(primaryModel)
   })
 
   it('registry (tone) entra no prompt do modelo', async () => {

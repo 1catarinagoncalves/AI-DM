@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** nenhuma — mesma disciplina técnica de US-172/US-174, função isolada (`generateClosing`); sobreposição de arquivo com US-174 é possível (merge), não dependência real.
 **Relacionado:** [US-174](./US-174-hookseed-sai-das-outras-chamadas-do-motor.md) (esta story resolve a Questão em aberto #1 dela) · [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (revisita parcialmente a decisão #2 — antagonista via `hookSeed` no fecho) · [US-172](./US-172-abertura-gerada-nao-copia-gancho-fixo.md) (mesma disciplina já aplicada a `start`) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (comentário-fonte da intenção "gancho só ancora a abertura")
 **Criada em:** 2026-08-19 — resolve a Questão em aberto #1 da US-174.
@@ -55,12 +55,12 @@ O próprio comentário de `generateClosing` ([ai.service.ts:1388](../../../apps/
 
 ## Critérios de aceite
 
-- [ ] `generateClosing` não recebe mais `hookSeed` nos parâmetros — verificação estrutural (assinatura da função).
-- [ ] `buildClosingPrompt` não recebe `hookSeed` nem produz a linha "Gancho da aventura" no `prompt` gerado.
-- [ ] Teste: `hookSeed` de fixture claramente distinto de `premissa`/`registry.tone` — `conclusion`/`followUps` gerados não citam elemento específico do `hookSeed` (nome de item/cenário/personagem do gancho fixo).
-- [ ] `adventure.service.ts` (`generateAdventure`) não passa mais `hookSeed` a `generateClosing`.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] `pnpm eval` passa (mudança em prompt do motor de geração — regra do projeto, AGENTS.md).
+- [x] `generateClosing` não recebe mais `hookSeed` nos parâmetros — verificação estrutural (assinatura da função).
+- [x] `buildClosingPrompt` não recebe `hookSeed` nem produz a linha "Gancho da aventura" no `prompt` gerado.
+- [x] Teste: `hookSeed` de fixture claramente distinto de `premissa`/`registry.tone` — `conclusion`/`followUps` gerados não citam elemento específico do `hookSeed` (nome de item/cenário/personagem do gancho fixo).
+- [x] `adventure.service.ts` (`generateAdventure`) não passa mais `hookSeed` a `generateClosing`.
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] `pnpm eval` passa (mudança em prompt do motor de geração — regra do projeto, AGENTS.md).
 
 ---
 
