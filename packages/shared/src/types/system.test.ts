@@ -28,20 +28,19 @@ describe('SystemConfigSchema', () => {
     expect(SystemConfigSchema.parse(config)).toEqual(config)
   })
 
-  // US-156: settings/tones/areaTypes são opcionais (config legado sem eles continua válido)
-  // e, quando presentes, seguem o mesmo contrato de races/classes (SystemCatalogEntry[]).
-  it('aceita settings/tones/areaTypes como catálogos opcionais', () => {
+  // US-156: tones é opcional (config legado sem ele continua válido) e, quando presente,
+  // segue o mesmo contrato de races/classes (SystemCatalogEntry[]). settings/areaTypes
+  // removidos em US-173 — nunca tiveram consumidor fora da geração.
+  it('aceita tones como catálogo opcional', () => {
     const config = {
       attributes: [{ key: 'cool', label: 'Cool', min: 1, max: 10, default: 5 }],
       startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
       tones: [{ key: 'heroic', label: 'Heroic' }],
-      settings: [{ key: 'high-fantasy', label: 'High Fantasy' }],
-      areaTypes: [{ key: 'ruins', label: 'Ruins' }],
     }
     expect(SystemConfigSchema.parse(config)).toEqual(config)
   })
 
-  it('config sem settings/tones/areaTypes (legado) continua válido', () => {
+  it('config sem tones (legado) continua válido', () => {
     const config = {
       attributes: [{ key: 'cool', label: 'Cool', min: 1, max: 10, default: 5 }],
       startingKits: { default: [{ name: 'Adaga', qty: 1 }] },

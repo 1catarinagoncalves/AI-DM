@@ -14,9 +14,8 @@ import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-l
 
 export interface CreateAdventureDto {
   // initialHookId REMOVIDO (US-153): a aventura é sempre gerada, não escolhida pelo cliente.
-  setting?: string // US-156: chave do catálogo, ou ausente = sorteado pelo seed
-  tone?: string
-  areaType?: string
+  // setting/areaType REMOVIDOS (US-173): nunca tinham consumidor fora da geração.
+  tone?: string // US-156: chave do catálogo, ou ausente = sorteado pelo seed
 }
 
 /**
@@ -60,11 +59,11 @@ export class AdventureService {
   }
 
   /**
-   * Valida a chave de setting/tone/areaType contra o catálogo do config (US-156), cópia do
-   * `validateCatalogKey` de `character.service.ts` (mesmo molde de mensagem, catálogo FECHADO,
-   * sem chave `custom`). Config sem o catálogo (`settings`/`tones`/`areaTypes` opcionais, para
-   * não invalidar config legado) aceita o que vier — mesma rede que impede um banco não
-   * re-semeado de bloquear a criação de aventura.
+   * Valida a chave de `tone` contra o catálogo do config (US-156, reduzido em US-173), cópia
+   * do `validateCatalogKey` de `character.service.ts` (mesmo molde de mensagem, catálogo
+   * FECHADO, sem chave `custom`). Config sem o catálogo (`tones` opcional, para não invalidar
+   * config legado) aceita o que vier — mesma rede que impede um banco não re-semeado de
+   * bloquear a criação de aventura.
    */
   private validateCatalogKey(catalog: Array<{ key: string }> | undefined, key: string, field: string): string {
     if (!catalog || catalog.length === 0) return key
@@ -172,9 +171,7 @@ export class AdventureService {
     return GeneratedAdventureSchema.parse({
       id: `${characterId}:${order}`,
       levelRange: { min: profile.level, max: profile.level },
-      setting: registry.setting,
       tone: registry.tone,
-      areaType: registry.areaType,
       summary: content.premissa,
       npcs: allNpcs,
       secrets,
@@ -259,9 +256,7 @@ export class AdventureService {
     // quest. Gate (US-150) antes de persistir; teto de tentativas esgotado → sem fallback
     // estático (ao contrário de generateOpeningNarration, não existe aventura fixa pra cair).
     const gateResult = await this.generateGatedAdventure(profile, characterId, order, {
-      setting: dto.setting ? this.validateCatalogKey(config.settings, dto.setting, 'Cenário') : undefined,
       tone: dto.tone ? this.validateCatalogKey(config.tones, dto.tone, 'Tom') : undefined,
-      areaType: dto.areaType ? this.validateCatalogKey(config.areaTypes, dto.areaType, 'Tipo de área') : undefined,
     })
     if (!gateResult.ok) throw new Error(gateResult.reason)
     const generated = gateResult.adventure

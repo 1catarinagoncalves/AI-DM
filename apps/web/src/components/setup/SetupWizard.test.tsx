@@ -137,12 +137,11 @@ const configWithCam = (budget: number) => ({
   backgroundEquipment: { 'a5e-ag_acolyte': [{ name: 'Símbolo sagrado', qty: 1 }] },
 })
 
-// US-157: config com o catálogo do registro da aventura (US-156) — passo `world`.
+// US-157: config com o catálogo do registro da aventura (US-156, reduzido em US-173 a só
+// `tones` — `settings`/`areaTypes` saíram, nunca tiveram consumidor fora da geração).
 const configWithWorldCatalog = (budget: number) => ({
   ...configWithBudget(budget),
-  settings: [{ key: 'coastal-area', label: 'Área costeira' }, { key: 'underdark', label: 'Subterrâneo' }],
   tones: [{ key: 'heroic', label: 'Heroico' }, { key: 'grim', label: 'Sombrio' }],
-  areaTypes: [{ key: 'ruins', label: 'Ruínas' }, { key: 'settlement', label: 'Povoado' }],
 })
 
 // US-27: config com perícias e orçamento de 2 proficiências.
@@ -573,7 +572,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     await screen.findByRole('heading', { name: 'O mundo da aventura' })
   }
 
-  it('passo Mundo nasce com os três grupos em Aleatório; avançar sem tocar envia o DTO vazio', async () => {
+  it('passo Mundo nasce com o grupo Tom em Aleatório; avançar sem tocar envia o DTO vazio', async () => {
     createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
     await confirmAndReachWorld(configWithWorldCatalog(2))
 
@@ -581,18 +580,16 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(createAdventure).toHaveBeenCalledWith('char-1', {})
   })
 
-  // US-157: selecionar uma opção não-Aleatório em cada grupo manda a `key` correspondente;
-  // nenhuma chave "random" é enviada em nenhum caso.
-  it('selecionar uma opção em cada grupo do Mundo envia as três keys no DTO', async () => {
+  // US-157: selecionar uma opção não-Aleatório manda a `key` correspondente; nenhuma
+  // chave "random" é enviada. US-173: só o grupo Tom sobrevive (setting/areaType saíram).
+  it('selecionar uma opção no grupo Tom envia a key no DTO', async () => {
     createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
     await confirmAndReachWorld(configWithWorldCatalog(2))
 
-    fireEvent.click(screen.getByLabelText('Subterrâneo'))
     fireEvent.click(screen.getByLabelText('Sombrio'))
-    fireEvent.click(screen.getByLabelText('Povoado'))
     fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
 
-    expect(createAdventure).toHaveBeenCalledWith('char-1', { setting: 'underdark', tone: 'grim', areaType: 'settlement' })
+    expect(createAdventure).toHaveBeenCalledWith('char-1', { tone: 'grim' })
   })
 
   // US-127: a revisão espelha o que a ficha vai mostrar depois — atributos e perícias com

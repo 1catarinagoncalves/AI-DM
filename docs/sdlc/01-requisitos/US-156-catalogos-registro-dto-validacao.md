@@ -1,8 +1,10 @@
 # US-156 — Catálogos de registro (setting/tone/areaType), DTO e validação
 
+> ⚠️ **Parcialmente retirada por [US-173](./US-173-registro-fica-so-com-tone.md) (2026-08-19).** US-173 remove os catálogos `settings`/`areaTypes` (e os campos correspondentes de `CreateAdventureDto`/`GeneratedAdventureSchema`) — só `tones` continua vivo. A história abaixo descreve os TRÊS catálogos como foram implementados originalmente; é histórica pros dois que saem. Não reescrita aqui (convenção US-02/US-105) — ver US-173 para o estado atual.
+
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Implementada (2026-08-18)
+**Status:** ✅ Implementada (2026-08-18) — `settings`/`areaTypes` retirados por US-173 (2026-08-19)
 **Depende de:** [US-144](./US-144-schema-aventura-shared.md) (schema da aventura, campos `setting`/`tone`/`areaType`)
 **Bloqueia:** [US-157](./US-157-tela-de-mundo-depois-da-revisao.md)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-156) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (contrato de chave canônica + rótulo por locale, copiado aqui) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate que reprova texto solto no JSX)

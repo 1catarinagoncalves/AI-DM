@@ -1,8 +1,10 @@
 # US-153 — A aventura deixa de ser derivada da classe
 
+> ⚠️ **`CreateAdventureDto.setting`/`.areaType` retirados por [US-173](./US-173-registro-fica-so-com-tone.md) (2026-08-19).** Esta story introduziu os três campos opcionais (`setting?`/`tone?`/`areaType?`); US-173 reduz o DTO a só `tone?`. Histórico abaixo descreve os três como implementados originalmente; não reescrito (convenção US-02/US-105).
+
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Implementada (2026-08-18)
+**Status:** ✅ Implementada (2026-08-18) — `setting`/`areaType` do DTO retirados por US-173 (2026-08-19)
 **Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (✅ implementada 2026-08-18 — `AdventureService.generateAdventure`, a função que esta story chama) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (artefato validado) · [US-151](./US-151-semear-ledger-segredos-gerados.md) (ledger semeado do artefato)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-153) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-28](./US-28-aventura-inicial-baseada-na-classe.md) (o mecanismo que esta story substitui) · [starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts) (`resolveInitialHook`, que continua vivo como porta de entrada)
 **Criada em:** 2026-08-15

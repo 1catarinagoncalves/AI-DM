@@ -54,10 +54,10 @@ function readSrdArtifact(locale: string) {
   ) as Pick<SystemConfig, 'attributes' | 'skills' | 'races' | 'classes' | 'classFeatures' | 'classSpells' | 'startingKits' | 'retiredFeatures' | 'retiredSpells'>
 }
 
-// Catálogos de registro da aventura (US-156): tom, cenário e tipo de área. Sem fonte SRD
-// (não vêm do artefato/ingest) — copiados literalmente de `dhorions/DnDGenerate`
-// (CampaignTones.json/Settings.json/areaType.json, MPL-2.0), rótulo pt-BR por tradução
-// direta. `key` em kebab-case, mesmo padrão de sleight-of-hand/land-vehicle.
+// Catálogo de registro da aventura (US-156, reduzido em US-173 a só tom — `settings`/
+// `areaTypes` saíram, ver US-173). Sem fonte SRD (não vem do artefato/ingest) — copiado
+// literalmente de `dhorions/DnDGenerate` (CampaignTones.json, MPL-2.0), rótulo pt-BR por
+// tradução direta. `key` em kebab-case, mesmo padrão de sleight-of-hand/land-vehicle.
 const registryTones: SystemConfig['tones'] = [
   { key: 'heroic', label: 'Heroic' },
   { key: 'grimdark', label: 'Grimdark' },
@@ -82,55 +82,6 @@ const registryTonesPtBr: SystemConfig['tones'] = [
   { key: 'survival', label: 'Sobrevivência' },
   { key: 'slice-of-life', label: 'Cotidiano' },
 ]
-const registrySettings: SystemConfig['settings'] = [
-  { key: 'high-fantasy', label: 'High Fantasy' },
-  { key: 'dark-fantasy', label: 'Dark Fantasy' },
-  { key: 'steampunk', label: 'Steampunk' },
-  { key: 'urban-fantasy', label: 'Urban Fantasy' },
-  { key: 'post-apocalyptic', label: 'Post-Apocalyptic' },
-  { key: 'historical-fiction', label: 'Historical Fiction' },
-  { key: 'sci-fi-space-opera', label: 'Sci-Fi Space Opera' },
-  { key: 'mythological', label: 'Mythological' },
-  { key: 'alternate-reality', label: 'Alternate Reality' },
-  { key: 'cyberpunk', label: 'Cyberpunk' },
-]
-const registrySettingsPtBr: SystemConfig['settings'] = [
-  { key: 'high-fantasy', label: 'Alta Fantasia' },
-  { key: 'dark-fantasy', label: 'Fantasia Sombria' },
-  { key: 'steampunk', label: 'Steampunk' },
-  { key: 'urban-fantasy', label: 'Fantasia Urbana' },
-  { key: 'post-apocalyptic', label: 'Pós-Apocalíptico' },
-  { key: 'historical-fiction', label: 'Ficção Histórica' },
-  { key: 'sci-fi-space-opera', label: 'Ópera Espacial' },
-  { key: 'mythological', label: 'Mitológico' },
-  { key: 'alternate-reality', label: 'Realidade Alternativa' },
-  { key: 'cyberpunk', label: 'Cyberpunk' },
-]
-const registryAreaTypes: SystemConfig['areaTypes'] = [
-  { key: 'city', label: 'City' },
-  { key: 'forest', label: 'Forest' },
-  { key: 'mountain-range', label: 'Mountain Range' },
-  { key: 'underground-caves', label: 'Underground Caves' },
-  { key: 'desert', label: 'Desert' },
-  { key: 'coastal-area', label: 'Coastal Area' },
-  { key: 'swamp', label: 'Swamp' },
-  { key: 'plains', label: 'Plains' },
-  { key: 'magical-realm', label: 'Magical Realm' },
-  { key: 'ruins', label: 'Ruins' },
-]
-const registryAreaTypesPtBr: SystemConfig['areaTypes'] = [
-  { key: 'city', label: 'Cidade' },
-  { key: 'forest', label: 'Floresta' },
-  { key: 'mountain-range', label: 'Cordilheira' },
-  { key: 'underground-caves', label: 'Cavernas Subterrâneas' },
-  { key: 'desert', label: 'Deserto' },
-  { key: 'coastal-area', label: 'Região Costeira' },
-  { key: 'swamp', label: 'Pântano' },
-  { key: 'plains', label: 'Planícies' },
-  { key: 'magical-realm', label: 'Reino Mágico' },
-  { key: 'ruins', label: 'Ruínas' },
-]
-
 // Os campos de produto não vêm do artefato, mas nem todos são iguais nos dois locales: point-buy e
 // proficiência são NÚMERO (mesmo objeto serve os dois), os ganchos são TEXTO e desdobraram por
 // locale na US-101 — até lá seguiam em PT dentro do config en-US (US-99 "Fora do escopo").
@@ -140,8 +91,6 @@ function dnd5eProductFields(locale: Locale) {
     pointBuy: { budget: 27 },
     initialAdventures: initialAdventuresByLocale[locale],
     tones: locale === 'pt-BR' ? registryTonesPtBr : registryTones,
-    settings: locale === 'pt-BR' ? registrySettingsPtBr : registrySettings,
-    areaTypes: locale === 'pt-BR' ? registryAreaTypesPtBr : registryAreaTypes,
   }
 }
 const dnd5eConfig: SystemConfig = { ...readSrdArtifact('en-US'), ...dnd5eProductFields('en-US') }

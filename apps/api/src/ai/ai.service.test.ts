@@ -339,7 +339,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     complicacao: { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' },
     patronsandnpcs: Array.from({ length: 7 }, () => ({ behavior: 'Sly', ancestry: 'Human' })),
   }
-  const registry = { setting: 'coastal', tone: 'grimdark', areaType: 'ruins' }
+  const registry = { tone: 'grimdark' }
 
   function svc() {
     return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
@@ -463,7 +463,7 @@ describe('AiService.generateClosing (US-164)', () => {
   const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
-  const registry = { setting: 'coastal', tone: 'grimdark', areaType: 'ruins' }
+  const registry = { tone: 'grimdark' }
   const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
 
   function svc() {
@@ -484,13 +484,11 @@ describe('AiService.generateClosing (US-164)', () => {
     expect(genObj.model).toBe(extractionModel)
   })
 
-  it('registry (tone/setting/areaType) entra no prompt do modelo', async () => {
+  it('registry (tone) entra no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
     await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, hookSeed: 'gancho', premissa: 'premissa' })
     expect(genObj.system).toContain('grimdark')
-    expect(genObj.system).toContain('coastal')
-    expect(genObj.system).toContain('ruins')
   })
 
   it('locais/NPCs/segredos e complicação/premissa entram no prompt do modelo', async () => {

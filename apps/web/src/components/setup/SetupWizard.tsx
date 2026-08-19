@@ -22,8 +22,8 @@ import { FeaturesPanel } from '@/components/character/FeaturesPanel'
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
 // `next`/`back` operam por índice (ver abaixo), então reordenar este array já reordena a
 // trilha e a navegação sem tocar nessas funções.
-// US-157: `world` entra ao FINAL, depois de `review` — o registro da aventura (setting/
-// tone/areaType) tem ciclo de decisão distinto do personagem, que `review` já fecha.
+// US-157: `world` entra ao FINAL, depois de `review` — o registro da aventura (tom, US-173)
+// tem ciclo de decisão distinto do personagem, que `review` já fecha.
 type Step = 'system' | 'race-class' | 'background' | 'attributes' | 'skills' | 'review' | 'world'
 const steps: Step[] = ['system', 'race-class', 'background', 'attributes', 'skills', 'review', 'world']
 
@@ -219,10 +219,9 @@ export function SetupWizard() {
   const [charId, setCharId] = useState('')
   const [starting, setStarting] = useState(false)
   // US-157: sentinela 'random' só no estado do componente — nunca serializado no DTO
-  // (ver createWorldAdventure). Estado inicial: os três em Aleatório.
-  const [setting, setSetting] = useState('random')
+  // (ver createWorldAdventure). Estado inicial: Aleatório. `setting`/`areaType` saíram
+  // do registro (US-173) — só `tone` sobrevive.
   const [tone, setTone] = useState('random')
-  const [areaType, setAreaType] = useState('random')
 
   useEffect(() => {
     // US-61: a identidade vem do login (token); o wizard só carrega o catálogo.
@@ -242,11 +241,9 @@ export function SetupWizard() {
   // US-122: catálogo de origens (backgrounds do A5E, US-121). Ausente → seção "Origem" não
   // aparece e a etapa `background` segue livre, mesmo padrão condicional de skillCatalog acima.
   const backgroundCatalog = system?.config?.backgrounds ?? []
-  // US-157: catálogos do registro da aventura (US-156) — mesmo padrão de raceCatalog/
-  // classCatalog acima, consumidos só no passo `world`.
-  const settingCatalog = system?.config?.settings ?? []
+  // US-157: catálogo do registro da aventura (US-156, reduzido em US-173 a só tom) —
+  // mesmo padrão de raceCatalog/classCatalog acima, consumido só no passo `world`.
   const toneCatalog = system?.config?.tones ?? []
-  const areaTypeCatalog = system?.config?.areaTypes ?? []
   // Rótulo da escolha atual, para a revisão e para o subtítulo do gancho — a chave nunca
   // aparece na tela.
   const raceLabel = raceCatalog.find(r => r.key === charData.race)?.label ?? ''
@@ -439,15 +436,13 @@ export function SetupWizard() {
     finally { setLoading(false) }
   }
 
-  // US-157: cada grupo em Aleatório OMITE o campo — nunca envia a chave "random" (mesma
-  // disciplina de ausência = aleatório da US-156).
+  // US-157: Aleatório OMITE o campo — nunca envia a chave "random" (mesma disciplina de
+  // ausência = aleatório da US-156).
   async function createWorldAdventure() {
     setStarting(true); setError('')
     try {
       const dto = {
-        ...(setting !== 'random' && { setting }),
         ...(tone !== 'random' && { tone }),
-        ...(areaType !== 'random' && { areaType }),
       }
       const adv = await api.createAdventure(charId, dto)
       router.push(`/play/${adv.id}?characterId=${charId}`)
@@ -1032,12 +1027,8 @@ export function SetupWizard() {
                 <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
                 <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
                 <div className="mt-6 space-y-6">
-                  <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
-                    catalog={settingCatalog} value={setting} onChange={setSetting} />
                   <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
                     catalog={toneCatalog} value={tone} onChange={setTone} />
-                  <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
-                    catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
                 </div>
               </div>
             )}

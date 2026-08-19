@@ -1299,7 +1299,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       system:
         'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ${bondsInstruction}`,
+        `Tom: ${params.registry.tone}. ${bondsInstruction}`,
       prompt: buildLocationsAndNpcsPrompt(params.rolled),
       providerOptions: EXTRACTION_PROVIDER_OPTIONS,
     })
@@ -1405,7 +1405,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Você é o Mestre de um RPG escrevendo o FECHO RAMIFICADO de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Escreva a CONCLUSÃO (2-3 parágrafos) resolvendo a premissa e a complicação, ancorada nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova. ' +
         'Se a premissa sugerir um antagonista, ele aparece só como PROSA no fecho, não precisa ser um NPC já listado. ' +
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
+        `Tom: ${params.registry.tone}. ` +
         'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura.',
       prompt: buildClosingPrompt(params),
       providerOptions: EXTRACTION_PROVIDER_OPTIONS,

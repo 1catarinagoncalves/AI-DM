@@ -64,9 +64,7 @@ export const ptBR = {
   // US-157: sétimo passo, depois de `review` — cenário/tom/tipo de área da aventura.
   'setup.world.titulo': 'O mundo da aventura',
   'setup.world.subtitulo': 'Escolha cenário, tom e tipo de área — ou deixe cada um no Aleatório.',
-  'setup.world.setting': 'Cenário',
   'setup.world.tone': 'Tom',
-  'setup.world.areaType': 'Tipo de área',
   'setup.world.random': 'Aleatório',
   'setup.world.start': 'Criar aventura',
   'setup.world.starting': 'Criando aventura...',

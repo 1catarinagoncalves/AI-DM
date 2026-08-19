@@ -373,10 +373,10 @@ describe('AdventureService.createForCharacter', () => {
     logSpy.mockRestore()
   })
 
-  // US-153: DTO consome setting/tone/areaType opcionais (US-156) — repassados como
-  // registryOverrides ao motor, fixando o registro em vez de sortear (a UI que os
-  // preenche é a US-157, fora do escopo aqui; esta story só liga o cano).
-  it('setting/tone/areaType do DTO são repassados a generateGatedAdventure como registryOverrides', async () => {
+  // US-153: DTO consome tone opcional (US-156) — repassado como registryOverrides ao
+  // motor, fixando o registro em vez de sortear (a UI que o preenche é a US-157, fora
+  // do escopo aqui; esta story só liga o cano). setting/areaType removidos em US-173.
+  it('tone do DTO é repassado a generateGatedAdventure como registryOverrides', async () => {
     const character = {
       id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 }, system: { config },
@@ -385,24 +385,23 @@ describe('AdventureService.createForCharacter', () => {
     const service = new AdventureService(prisma, fakeAi())
     const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
 
-    await service.createForCharacter('char-1', { setting: 'coastal', tone: 'heroic', areaType: 'ruins' })
+    await service.createForCharacter('char-1', { tone: 'heroic' })
 
     expect(gateSpy).toHaveBeenCalledWith(
-      expect.anything(), 'char-1', 1, { setting: 'coastal', tone: 'heroic', areaType: 'ruins' },
+      expect.anything(), 'char-1', 1, { tone: 'heroic' },
     )
   })
 
-  // US-156: validação server-side de setting/tone/areaType contra o catálogo do sistema —
-  // mesmo molde de validateCatalogKey (character.service.ts), reaplicado do lado da aventura.
-  describe('US-156: catálogo de registro (setting/tone/areaType)', () => {
+  // US-156: validação server-side de tone contra o catálogo do sistema — mesmo molde de
+  // validateCatalogKey (character.service.ts), reaplicado do lado da aventura. setting/
+  // areaType removidos em US-173 (nunca tiveram consumidor fora da geração).
+  describe('US-156: catálogo de registro (tone)', () => {
     const configComCatalogo: SystemConfig = {
       ...config,
       tones: [{ key: 'heroic', label: 'Heroico' }],
-      settings: [{ key: 'high-fantasy', label: 'Alta Fantasia' }],
-      areaTypes: [{ key: 'ruins', label: 'Ruínas' }],
     }
 
-    it('chave válida de cada catálogo: passa a validação, sem 400', async () => {
+    it('chave válida do catálogo: passa a validação, sem 400', async () => {
       const character = {
         id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
         baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
@@ -410,7 +409,7 @@ describe('AdventureService.createForCharacter', () => {
       const { prisma } = fakePrisma(character)
       const service = new AdventureService(prisma, fakeAi())
 
-      await expect(service.createForCharacter('char-1', { tone: 'heroic', setting: 'high-fantasy', areaType: 'ruins' }))
+      await expect(service.createForCharacter('char-1', { tone: 'heroic' }))
         .resolves.toMatchObject({ id: 'adv-1' })
     })
 
@@ -426,31 +425,7 @@ describe('AdventureService.createForCharacter', () => {
         .rejects.toThrow('Tom inválido: "chave-inexistente". Esperado uma chave do catálogo do sistema: heroic')
     })
 
-    it('setting fora do catálogo: BadRequestException (400), não Error genérico', async () => {
-      const character = {
-        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
-        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
-      }
-      const { prisma } = fakePrisma(character)
-      const service = new AdventureService(prisma, fakeAi())
-
-      const err: unknown = await service.createForCharacter('char-1', { setting: 'chave-inexistente' }).catch((e) => e)
-      expect(err).toBeInstanceOf(BadRequestException)
-    })
-
-    it('areaType fora do catálogo: 400', async () => {
-      const character = {
-        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
-        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
-      }
-      const { prisma } = fakePrisma(character)
-      const service = new AdventureService(prisma, fakeAi())
-
-      await expect(service.createForCharacter('char-1', { areaType: 'chave-inexistente' }))
-        .rejects.toThrow('Tipo de área inválido')
-    })
-
-    it('os três campos ausentes: não gera erro, segue para o motor sortear', async () => {
+    it('campo ausente: não gera erro, segue para o motor sortear', async () => {
       const character = {
         id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
         baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
@@ -464,7 +439,7 @@ describe('AdventureService.createForCharacter', () => {
     it('sistema sem catálogo (config legado): aceita qualquer chave, sem 400', async () => {
       const character = {
         id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
-        baseAttributes: { constitution: 14 }, system: { config }, // config sem settings/tones/areaTypes
+        baseAttributes: { constitution: 14 }, system: { config }, // config sem tones
       }
       const { prisma } = fakePrisma(character)
       const service = new AdventureService(prisma, fakeAi())
@@ -796,9 +771,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   it('mesmo characterId+order: registro e encounters[].npcIds deterministicos entre execuções (parte não-LLM)', async () => {
     const a = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7)
     const b = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7)
-    expect(a.setting).toBe(b.setting)
     expect(a.tone).toBe(b.tone)
-    expect(a.areaType).toBe(b.areaType)
     expect(a.encounters[0]!.npcIds).toEqual(b.encounters[0]!.npcIds)
   })
 

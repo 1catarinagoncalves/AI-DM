@@ -8,16 +8,14 @@ describe('rollAdventure (US-147)', () => {
 
   it('registro escolhido manualmente não afeta o determinismo do conteúdo', () => {
     const semOverride = rollAdventure('char-1', 1)
-    const comOverride = rollAdventure('char-1', 1, { tone: 'grimdark', setting: 'urban', areaType: 'dungeon' })
+    const comOverride = rollAdventure('char-1', 1, { tone: 'grimdark' })
     expect(comOverride.content).toEqual(semOverride.content)
-    expect(comOverride.registry).toEqual({ tone: 'grimdark', setting: 'urban', areaType: 'dungeon' })
+    expect(comOverride.registry).toEqual({ tone: 'grimdark' })
   })
 
   it('devolve registro e conteúdo juntos, prontos para as chamadas de modelo seguintes', () => {
     const { registry, content } = rollAdventure('char-1', 1)
-    expect(registry).toHaveProperty('setting')
     expect(registry).toHaveProperty('tone')
-    expect(registry).toHaveProperty('areaType')
     expect(content).toHaveProperty('premissa')
     expect(content).toHaveProperty('locais')
     expect(content).toHaveProperty('monumentos')

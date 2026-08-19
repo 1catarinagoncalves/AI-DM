@@ -1,8 +1,10 @@
 # US-157 — A tela de mundo, depois da revisão
 
+> ⚠️ **Seletores de cenário e tipo de área retirados por [US-173](./US-173-registro-fica-so-com-tone.md) (2026-08-19).** Esta story implementou os três `WorldOptionGroup` (`setting`/`tone`/`areaType`) no `SetupWizard`; US-173 remove os dois primeiros do catálogo/DTO, deixando só o seletor de tom. Histórico abaixo descreve a tela como implementada originalmente; não reescrito (convenção US-02/US-105).
+
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Implementada
+**Status:** ✅ Implementada — seletores de cenário/tipo de área retirados por US-173 (2026-08-19)
 **Depende de:** [US-156](./US-156-catalogos-registro-dto-validacao.md) (catálogos de `settings`/`tones`/`areaTypes` e DTO validado)
 **Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-157) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-46](./US-46-acessibilidade-wcag-aa.md) (WCAG AA) · [US-66](./US-66-telas-mobile-friendly.md) (mobile) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate de string literal no JSX)
 **Criada em:** 2026-08-15

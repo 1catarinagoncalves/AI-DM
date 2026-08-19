@@ -60,9 +60,7 @@ export const enUS: Record<MessageKey, string> = {
   // US-157: seventh step, after `review` — adventure setting/tone/area type.
   'setup.world.titulo': 'The world of the adventure',
   'setup.world.subtitulo': 'Choose setting, tone and area type — or leave each one on Random.',
-  'setup.world.setting': 'Setting',
   'setup.world.tone': 'Tone',
-  'setup.world.areaType': 'Area type',
   'setup.world.random': 'Random',
   'setup.world.start': 'Create adventure',
   'setup.world.starting': 'Creating adventure...',
