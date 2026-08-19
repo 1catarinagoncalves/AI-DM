@@ -664,3 +664,38 @@ describe('US-110 — tabela de testes de habilidade do SRD 2024', () => {
     expect(free).not.toContain('Which check the situation calls for')
   })
 })
+
+// US-168 — abertura narra a aventura GERADA, não o gancho fixo por classe. Metade
+// determinística do critério de regressão (mesmo molde da US-39): confirma o que vai
+// ao PROMPT (mainQuest domina, hookSeed some com ele presente); se a narração de fato
+// HONRA isso depende do modelo — bake-off da US-17, não roda aqui.
+describe('buildOpeningInstruction — mainQuest domina o gancho fixo (US-168)', () => {
+  const hookSeed = 'Um Eladrin convida você para dançar na corte feérica sob a lua cheia.'
+  const mainQuest = 'Proteja a criança Mira dos caçadores que cercam a mina de Kelgrund.'
+
+  it('com mainQuest presente, ele vira a fagulha da cena — hookSeed não é citado em grau nenhum', () => {
+    const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed, mainQuest })
+    expect(p).toContain(mainQuest)
+    expect(p).not.toContain(hookSeed)
+    expect(p).not.toContain('Eladrin')
+  })
+
+  it('sem mainQuest (null/undefined), cai no comportamento atual — hookSeed como fagulha', () => {
+    const semMainQuest = buildOpeningInstruction({ characterName: 'Aria', hookSeed })
+    const mainQuestNulo = buildOpeningInstruction({ characterName: 'Aria', hookSeed, mainQuest: null })
+    expect(semMainQuest).toContain(hookSeed)
+    expect(mainQuestNulo).toContain(hookSeed)
+  })
+})
+
+describe('buildDmSystemPrompt — tone (US-168)', () => {
+  it('com tone presente, instrui o registo numa linha genérica (sem dicionário por valor)', () => {
+    const p = build({ tone: 'grimdark' })
+    expect(p).toMatch(/Narrate in this register: grimdark/)
+  })
+
+  it('sem tone (sistema sem motor de geração, ou aventura anterior a esta story), nenhuma linha extra', () => {
+    const p = build()
+    expect(p).not.toMatch(/Narrate in this register/)
+  })
+})

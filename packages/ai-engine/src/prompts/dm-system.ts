@@ -240,8 +240,14 @@ export function buildDmSystemPrompt(params: {
   originNarrative?: OriginNarrative
   /** US-97: idioma-alvo do turno (`User.locale`). Ausente → pt-BR, o comportamento de todas as mesas até aqui. */
   locale?: Locale
+  /**
+   * US-168: registo/mood sorteado ou escolhido para a aventura (US-156/US-164) —
+   * CONSTANTE pela aventura inteira, camada 2 (ver ADR 007). Ausente → sistema sem
+   * motor de geração (ex. Free) ou aventura anterior a esta story: nenhuma linha extra.
+   */
+  tone?: string
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells, originNarrative } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells, originNarrative, tone } = params
   const locale = params.locale ?? DEFAULT_LOCALE
   const targetLanguage = localeNameForPrompt(locale)
 
@@ -367,7 +373,7 @@ ${abilityCheckTable(attributeLabels)}`
 ## Your role
 - Narrate the adventure in vivid, immersive prose. US-97: the table's language is a PLAYER PREFERENCE, not a guess from the last message — always narrate in ${targetLanguage}, even if the player writes in another language.
 - Keep the player engaged and their choices meaningful.
-- Be fair: outcomes should feel earned, not arbitrary.
+- Be fair: outcomes should feel earned, not arbitrary.${tone ? `\n- Narrate in this register: ${tone}. Let it color mood, pacing and word choice in every turn, not just the opening.` : ''}
 
 ${NARRATIVE_CRAFT_SECTION}
 
@@ -606,23 +612,31 @@ ${summarySection}`.trimEnd()
 }
 
 /**
- * Instrução de usuário que dispara a PRIMEIRA cena da aventura (US-34). O jogador
- * ainda não agiu; passamos a fagulha do gancho da classe como semente e
- * restringimos a saída a prosa + opções (sem tools, dados ou tags internas).
+ * Instrução de usuário que dispara a PRIMEIRA cena da aventura (US-34). Com
+ * `mainQuest` (a aventura GERADA, US-164) presente, ele é a fagulha da cena —
+ * `hookSeed` não é citado em grau nenhum (US-168). Sem `mainQuest` (sistema sem
+ * motor de geração, ex. Free), cai no comportamento anterior: `hookSeed` como
+ * semente. Restringe a saída a prosa + opções (sem tools, dados ou tags internas).
  * Reusa o mesmo system prompt (com a seção de ofício) dos turnos seguintes.
  */
-export function buildOpeningInstruction(params: { characterName: string; hookSeed: string; locale?: Locale }): string {
-  const { characterName, hookSeed } = params
+export function buildOpeningInstruction(params: { characterName: string; hookSeed: string; mainQuest?: string | null; locale?: Locale }): string {
+  const { characterName, hookSeed, mainQuest } = params
   // US-97: a abertura é o único texto que nasce ANTES de o jogador escrever qualquer
   // coisa — não há mensagem de onde inferir idioma. Sem o alvo explícito aqui, a
   // primeira cena de uma mesa em inglês sairia na língua da semente (o gancho, em PT).
   const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
+  // US-168: `mainQuest` (a aventura gerada) domina a fagulha da cena quando presente;
+  // `hookSeed` (gancho fixo por classe) só volta como semente na ausência dele.
+  const spark = mainQuest
+    ? `Use this as the spark for the scene — it is the adventure generated for this character. Expand it into a full cinematic opening that meets the Narrative craft bar; do NOT quote it verbatim:
+"${mainQuest}"`
+    : `Use this seed as the spark for the scene. Expand it into a full cinematic opening that meets the Narrative craft bar; do NOT quote it verbatim:
+"${hookSeed}"`
   return `This is the OPENING of the adventure. The player has NOT acted yet — you are setting the very first scene, before any player action.
 
 Write the scene in ${targetLanguage}. The seed below may be written in another language — that does not change the language of your narration.
 
-Use this seed as the spark for the scene. Expand it into a full cinematic opening that meets the Narrative craft bar; do NOT quote it verbatim:
-"${hookSeed}"
+${spark}
 
 Follow the Narrative craft bar: open on the senses, name concrete things, use ${characterName}'s race and class as a lens on the world, give any NPC a voice and real stakes, then close by addressing ${characterName} by name followed by the action options.
 

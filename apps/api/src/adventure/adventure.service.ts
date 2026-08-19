@@ -283,6 +283,9 @@ export class AdventureService {
       characterClass: className,
       characterRace: raceName,
       mainQuest,
+      // US-168: mesmo ledger que a transação abaixo persiste — a abertura vê o elenco
+      // que o motor já gerou, em vez de inventar um à parte (violando Onomástica).
+      entities: seededEntities,
       inventory: fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
       sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
       hookSeed: profile.hookSeed,
@@ -294,6 +297,9 @@ export class AdventureService {
       // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
       spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
       locale,
+      // US-168: direto de `generated.tone` — a abertura já nasce coerente, sem esperar
+      // o round-trip pelo banco (que só existe depois da transação, abaixo).
+      tone: generated.tone,
     })
     // US-101: o fallback estático já sai no idioma certo — `profile.hookSeed` veio do
     // `config` do locale (linha 85), e o gancho passou a ter versão por idioma. Antes ele
@@ -319,11 +325,14 @@ export class AdventureService {
 
       const adventure = await tx.adventure.create({
         // US-151: ledger semeado do artefato gerado. Vazio → coluna ausente (default do Prisma).
+        // US-168: `generatedAdventure` (ADR 012 §D2/US-144) finalmente escrita — disponível
+        // de graça a todo turno via `streamChat` (SELECT * implícito, sem query nova).
         data: {
           systemId: character.systemId,
           creatorId: character.userId,
           title: generated.summary,
           order,
+          generatedAdventure: generated as unknown as object,
           ...(seededEntities.length > 0 ? { entities: seededEntities as unknown as object } : {}),
         },
       })

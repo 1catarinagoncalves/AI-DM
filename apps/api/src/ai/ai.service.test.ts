@@ -509,3 +509,60 @@ describe('AiService.generateClosing (US-164)', () => {
     ).rejects.toThrow('modelo indisponível')
   })
 })
+
+// US-168 — a abertura passa a receber `entities` (o mesmo ledger que o turno 1 persiste)
+// e `tone` (registo da aventura gerada), e repassa `mainQuest` para `buildOpeningInstruction`
+// em vez de só `hookSeed`. Metade determinística (o que chega ao PROMPT) — a narração de
+// fato honrar isso é o bake-off da US-17.
+describe('AiService.generateOpeningNarration (US-168)', () => {
+  function svc() {
+    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+  }
+
+  const baseParams = {
+    systemName: 'D&D 5e',
+    characterName: 'Aria',
+    characterGender: 'feminino',
+    characterClass: 'bardo',
+    characterRace: 'humana',
+    inventory: [],
+    sheet: { level: 1, hp: 10, maxHp: 10, attributes: {}, conditions: [] },
+    hookSeed: 'Um Eladrin convida você para dançar na corte feérica.',
+  }
+
+  it('mainQuest presente vira a fagulha do prompt de abertura — hookSeed some dele', async () => {
+    salvage.text = 'abertura gerada'
+    const mainQuest = 'Proteja a criança Mira dos caçadores que cercam a mina de Kelgrund.'
+
+    await svc().generateOpeningNarration({ ...baseParams, mainQuest })
+
+    expect(salvage.prompt).toContain(mainQuest)
+    expect(salvage.prompt).not.toContain(baseParams.hookSeed)
+  })
+
+  it('entities (ledger semeado) entra no turn-state do prompt de abertura', async () => {
+    salvage.text = 'abertura gerada'
+    const entities = [{ nome: 'Mira', tipo: 'npc' as const, local: 'Mina de Kelgrund', sabido: 'publico' as const, revelado: true, atualizadoEm: new Date().toISOString() }]
+
+    await svc().generateOpeningNarration({ ...baseParams, entities })
+
+    expect(salvage.prompt).toContain('Mira')
+    expect(salvage.prompt).toContain('Mina de Kelgrund')
+  })
+
+  it('sem entities, cai no ramo "nenhuma entidade registrada" (comportamento atual, sem quebrar)', async () => {
+    salvage.text = 'abertura gerada'
+
+    await svc().generateOpeningNarration({ ...baseParams })
+
+    expect(salvage.prompt).toMatch(/nenhuma entidade registrada ainda/)
+  })
+
+  it('tone entra no system prompt da abertura (mesmo campo que os turnos normais)', async () => {
+    salvage.text = 'abertura gerada'
+
+    await svc().generateOpeningNarration({ ...baseParams, tone: 'grimdark' })
+
+    expect(salvage.system).toMatch(/Narrate in this register: grimdark/)
+  })
+})

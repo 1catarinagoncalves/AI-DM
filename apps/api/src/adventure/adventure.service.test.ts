@@ -299,6 +299,62 @@ describe('AdventureService.createForCharacter', () => {
     expect(seen['characterRace']).toBe('Humano')
   })
 
+  // US-168: a abertura passa a ver o mesmo ledger que a transação persiste — antes,
+  // `entities` nunca chegava a `generateOpeningNarration`, então a abertura escrevia
+  // cega ao elenco já gerado (Marta/secret-1, fixos em `fakeAi`).
+  it('US-168: seededEntities (Marta/secret-1) chega a generateOpeningNarration como entities', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const seen: Record<string, unknown> = {}
+    const service = new AdventureService(prisma, fakeAi(null, null, null, seen))
+
+    await service.createForCharacter('char-1', {})
+
+    expect(seen['entities']).toEqual([
+      expect.objectContaining({ nome: 'secret-1' }),
+      expect.objectContaining({ nome: 'Marta' }),
+    ])
+  })
+
+  // US-168: `tone` (registo da aventura gerada) chega direto de `generated.tone`, sem
+  // esperar o round-trip pelo banco — a abertura já nasce coerente.
+  it('US-168: generated.tone chega a generateOpeningNarration como tone', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const seen: Record<string, unknown> = {}
+    const service = new AdventureService(prisma, fakeAi(null, null, null, seen))
+
+    await service.createForCharacter('char-1', {})
+
+    const { registry } = rollAdventure('char-1', 1)
+    expect(seen['tone']).toBe(registry.tone)
+  })
+
+  // US-168: a coluna `generatedAdventure` (ADR 012/US-144), reservada e nunca escrita
+  // até esta story, passa a persistir o artefato inteiro.
+  it('US-168: tx.adventure.create grava generatedAdventure com o artefato gerado', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+
+    await service.createForCharacter('char-1', {})
+
+    expect(recorded.adventureCreate?.['generatedAdventure']).toMatchObject({
+      id: 'char-1:1',
+      summary: expect.any(String),
+      start: expect.any(String),
+    })
+  })
+
   it('rejeita quando o personagem não existe', async () => {
     const { prisma } = fakePrisma(null)
     const service = new AdventureService(prisma, fakeAi())

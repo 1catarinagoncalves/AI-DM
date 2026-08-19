@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
-import type { AdventureLocation, AdventureNpc, AdventureSecret, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
+import type { AdventureLocation, AdventureNpc, AdventureSecret, GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
 import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
@@ -521,6 +521,9 @@ export class AiService {
       // US-97: camada 1 do prompt (estável por usuário) — trocar de idioma invalida o
       // cache do prefixo uma vez, e é evento raro (ADR 007).
       locale,
+      // US-168: já disponível de graça no SELECT * implícito do findUnique acima —
+      // nenhuma query nova. Ausente/sistema sem motor de geração → sem linha extra.
+      tone: (adventure.generatedAdventure as GeneratedAdventure | null)?.tone,
     })
 
     // US-56: bloco de estado volátil do turno, prefixado à AÇÃO CRUA do jogador. A ação
@@ -1134,6 +1137,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     characterClass: string
     characterRace: string
     mainQuest?: string | null
+    /** US-168: ledger semeado do artefato gerado (`seedLedgerFromGeneratedAdventure`) — a
+     * abertura passa a ver o mesmo elenco que o turno 1 vai persistir, em vez de escrever
+     * cego (ramo "nenhuma entidade registrada ainda" do turn-state). */
+    entities?: WorldEntity[] | null
     inventory: string[]
     sheet: DmCharacterSheet
     hookSeed: string
@@ -1143,6 +1150,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     spells?: KnownSpell[]
     /** US-97: idioma-alvo. A semente (gancho) é PT autoral — a cena sai no idioma do jogador. */
     locale?: Locale
+    /** US-168: registo/mood da aventura gerada (`generated.tone`) — a abertura já nasce
+     * coerente, sem esperar o round-trip pelo banco (ver `streamChat`). */
+    tone?: string
   }): Promise<string | null> {
     try {
       const system = buildDmSystemPrompt({
@@ -1157,20 +1167,22 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         features: params.features,
         spells: params.spells,
         locale: params.locale,
+        tone: params.tone,
       })
       // US-56: o estado volátil saiu do system. Na abertura não há cena/histórico/HP
-      // dinâmico, mas a main quest e o equipamento inicial ainda são contexto útil —
-      // então prefixamos o bloco de estado ao prompt de abertura (mesma convenção dos
-      // turnos: estado na mensagem, não no system).
+      // dinâmico, mas a main quest, o elenco semeado e o equipamento inicial ainda são
+      // contexto útil — então prefixamos o bloco de estado ao prompt de abertura (mesma
+      // convenção dos turnos: estado na mensagem, não no system).
       const turnState = buildTurnStateBlock({
         sheet: params.sheet,
         sceneState: null,
+        entities: params.entities ?? null,
         mainQuest: params.mainQuest ?? null,
         activeQuests: [],
         inventory: params.inventory,
         memorySummary: null,
       })
-      const prompt = `${turnState}\n\n${buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed, locale: params.locale })}`
+      const prompt = `${turnState}\n\n${buildOpeningInstruction({ characterName: params.characterName, hookSeed: params.hookSeed, mainQuest: params.mainQuest, locale: params.locale })}`
       // Percorre a MESMA escada de modelos dos turnos (narrationModels): o primário
       // pode estar indisponível para a conta (ex.: gpt-oss-120b sem acesso no OpenRouter)
       // e é justamente esse fallback que mantém a narração dos turnos viva. Sem a
