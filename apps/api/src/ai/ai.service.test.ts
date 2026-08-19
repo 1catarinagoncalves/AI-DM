@@ -510,6 +510,68 @@ describe('AiService.generateClosing (US-164)', () => {
   })
 })
 
+describe('AiService.generateOpeningBeat (US-172)', () => {
+  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
+  const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+  const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
+  const registry = { tone: 'terror' }
+
+  function svc() {
+    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+  }
+
+  it('devolve start do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'A porta racha ao meio antes que Marta consiga gritar.' }
+    const { start } = await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'Sobreviver à noite' })
+    expect(start).toBe('A porta racha ao meio antes que Marta consiga gritar.')
+  })
+
+  it('usa extractionModel (US-114), não primaryModel', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa' })
+    expect(genObj.model).toBe(extractionModel)
+  })
+
+  it('registry (tone) entra no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa' })
+    expect(genObj.system).toContain('terror')
+  })
+
+  it('locais/NPCs/segredos e premissa entram no prompt do modelo — ancoragem (US-172)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'Sobreviver à noite' })
+    expect(genObj.prompt).toContain('loc-1')
+    expect(genObj.prompt).toContain('npc-1')
+    expect(genObj.prompt).toContain('secret-1')
+    expect(genObj.prompt).toContain('Sobreviver à noite')
+  })
+
+  it('assinatura não aceita hookSeed — mesmo forçado por cast, nunca chega ao system/prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    const hookSeed = 'A vela curva-se, Elara, numa corte de gelo e etiqueta.'
+    // O tipo de `generateOpeningBeat` não tem campo `hookSeed` (US-172, Escopo) — um
+    // objeto literal normal já seria rejeitado em compile-time (excess property check).
+    // O cast `as never` simula o pior caso (alguém força a passagem) pra provar que a
+    // implementação também não LÊ a chave, mesmo que ela chegue ao runtime.
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa', hookSeed } as never)
+    expect(genObj.system).not.toContain(hookSeed)
+    expect(genObj.prompt).not.toContain(hookSeed)
+  })
+
+  it('falha propaga erro estruturado — NÃO devolve abertura vazia em silêncio', async () => {
+    genObj.error = new Error('modelo indisponível')
+    await expect(
+      svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa' }),
+    ).rejects.toThrow('modelo indisponível')
+  })
+})
+
 // US-168 — a abertura passa a receber `entities` (o mesmo ledger que o turno 1 persiste)
 // e `tone` (registo da aventura gerada), e repassa `mainQuest` para `buildOpeningInstruction`
 // em vez de só `hookSeed`. Metade determinística (o que chega ao PROMPT) — a narração de

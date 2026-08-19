@@ -81,7 +81,7 @@ As duas primeiras chamadas (`generateLocationsAndNpcs`, `generateSecrets`) usam 
 ## Questões em aberto
 
 1. ~~`generateClosing` deve parar de receber `hookSeed` também?~~ **Resolvida — sim, ver [US-175](./US-175-generateclosing-perde-hookseed-antagonista-so-premissa.md).** `premissa` já é documentada (comentário em `generateClosing`, [ai.service.ts:1388](../../../apps/api/src/ai/ai.service.ts)) como a fonte primária de cor pro antagonista — `hookSeed` era redundante com essa função, não essencial a ela. US-175 remove `hookSeed` de `generateClosing`/`buildClosingPrompt` como story dedicada, deixando a decisão de rastreabilidade da US-164 #2 intocada.
-2. Instrução genérica de `bondsInstruction`/`anchorInstruction` sem citar `hookSeed` — texto exato fica pra implementação, não bloqueante.
+2. ~~Instrução genérica de `bondsInstruction`/`anchorInstruction` sem citar `hookSeed` — texto exato fica pra implementação, não bloqueante.~~ **Resolvida —** espelha o padrão já existente nos dois comentários "rede de segurança" ([ai.service.ts:1330-1331](../../../apps/api/src/ai/ai.service.ts) e [ai.service.ts:1396-1397](../../../apps/api/src/ai/ai.service.ts)): ancora em `registry`/local/NPC já rolados para a aventura, sem citar gancho de classe. Ex.: `"Sem vínculos registrados — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC)."` / `"Sem background/origin registrados — ancore os segredos ao que já foi rolado para esta aventura (registry/local/NPC)."`
 
 ---
 

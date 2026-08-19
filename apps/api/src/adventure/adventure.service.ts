@@ -158,15 +158,28 @@ export class AdventureService {
       { id: 'encounter-1', locationId: locations[0]!.id, npcIds: encounterNpcs.map((npc) => npc.id) },
     ]
 
-    const { conclusion, followUps } = await this.ai.generateClosing({
-      locations,
-      npcs: allNpcs,
-      secrets,
-      registry,
-      complicacao: content.complicacao,
-      hookSeed: profile.hookSeed,
-      premissa: content.premissa,
-    })
+    // US-172: `generateClosing` e `generateOpeningBeat` não dependem uma da outra — as duas
+    // só precisam de locations/npcs/secrets/registry/premissa, já prontos aqui. `Promise.all`
+    // no lugar de dois `await` sequenciais: soma uma 4ª chamada de IA ao fluxo, mas paralela
+    // não adiciona latência de rede sequencial sobre o `await` que já existia.
+    const [{ conclusion, followUps }, { start }] = await Promise.all([
+      this.ai.generateClosing({
+        locations,
+        npcs: allNpcs,
+        secrets,
+        registry,
+        complicacao: content.complicacao,
+        hookSeed: profile.hookSeed,
+        premissa: content.premissa,
+      }),
+      this.ai.generateOpeningBeat({
+        locations,
+        npcs: allNpcs,
+        secrets,
+        registry,
+        premissa: content.premissa,
+      }),
+    ])
 
     return GeneratedAdventureSchema.parse({
       id: `${characterId}:${order}`,
@@ -177,7 +190,7 @@ export class AdventureService {
       secrets,
       locations,
       encounters,
-      start: profile.hookSeed,
+      start,
       conclusion,
       followUps,
     })

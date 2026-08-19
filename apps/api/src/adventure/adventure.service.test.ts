@@ -32,6 +32,7 @@ function fakeAi(
     generateLocationsAndNpcs: async () => ({ locations, npcs }),
     generateSecrets: async () => secrets,
     generateClosing: async () => closing,
+    generateOpeningBeat: async () => ({ start: 'A porta racha ao meio antes que alguém grite.' }),
   } as unknown as AiService
 }
 
@@ -150,9 +151,10 @@ describe('AdventureService.createForCharacter', () => {
       characterId: 'char-1', adventureId: 'adv-1', hp: 12, maxHp: 12,
       inventory: [{ name: 'Adaga', qty: 1 }], // 'Mago'→wizard, e o config só tem kit 'fighter' → default
     })
-    // Quest.title = summary (mesma premissa); Quest.description = start (o hookSeed, US-153 #4).
+    // Quest.title = summary (mesma premissa); Quest.description = start — gerado por
+    // ai.generateOpeningBeat desde US-172, não mais o hookSeed copiado (US-153 #4).
     expect(recorded.questCreate).toMatchObject({
-      adventureId: 'adv-1', title: content.premissa, description: 'A vela curva-se, Elara.', isPrimary: true,
+      adventureId: 'adv-1', title: content.premissa, description: 'A porta racha ao meio antes que alguém grite.', isPrimary: true,
     })
     // Placeholder {characterName} resolvido antes de persistir (hookSeed continua vindo do gancho).
     expect(recorded.eventLogCreate).toMatchObject({
@@ -417,6 +419,7 @@ describe('AdventureService.createForCharacter', () => {
       }),
       generateSecrets: async () => [{ id: 'secret-1', locationId: 'loc-1', text: 'segredo' }],
       generateClosing: async () => ({ conclusion: 'fim', followUps: [] }),
+      generateOpeningBeat: async () => ({ start: 'abertura' }),
     } as unknown as AiService
     const service = new AdventureService(prisma, orphanAi)
 
@@ -772,15 +775,24 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     npcs?: Record<string, unknown>[]
     secrets?: Record<string, unknown>[]
     closing?: { conclusion: string; followUps: string[] }
+    start?: string
+    seenOpeningParams?: Record<string, unknown>
   } = {}): AiService {
     const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas', occupants: [] }]
     const npcs = overrides.npcs ?? [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
     const secrets = overrides.secrets ?? [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
     const closing = overrides.closing ?? { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }
+    const start = overrides.start ?? 'A porta racha ao meio antes que alguém grite.'
     return {
       generateLocationsAndNpcs: async () => ({ locations, npcs }),
       generateSecrets: async () => secrets,
       generateClosing: async () => closing,
+      // US-172: captura os params recebidos por generateOpeningBeat — usado pra provar
+      // estruturalmente que `hookSeed` NUNCA chega a esta chamada.
+      generateOpeningBeat: async (params: Record<string, unknown>) => {
+        if (overrides.seenOpeningParams) Object.assign(overrides.seenOpeningParams, params)
+        return { start }
+      },
     } as unknown as AiService
   }
 
@@ -794,12 +806,29 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
 
-  it('id = characterId:order; levelRange = { min, max } = profile.level; summary/start vêm do rolado/perfil', async () => {
+  it('id = characterId:order; levelRange = { min, max } = profile.level; summary vem do rolado', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 2)
     expect(adventure.id).toBe('char-1:2')
     expect(adventure.levelRange).toEqual({ min: 1, max: 1 })
     expect(adventure.summary.length).toBeGreaterThan(0)
-    expect(adventure.start).toBe('A vela curva-se, Elara.')
+  })
+
+  // US-172: `start` deixou de ser `profile.hookSeed` copiado — vem de `ai.generateOpeningBeat`.
+  it('start vem de ai.generateOpeningBeat, não mais de profile.hookSeed', async () => {
+    const adventure = await service(fakeGenAi({ start: 'A porta racha ao meio.' })).generateAdventure(profile, 'char-1', 2)
+    expect(adventure.start).toBe('A porta racha ao meio.')
+    expect(adventure.start).not.toBe(profile.hookSeed)
+  })
+
+  it('generateOpeningBeat recebe registry/premissa/locations/npcs/secrets — NUNCA hookSeed', async () => {
+    const seenOpeningParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ seenOpeningParams })).generateAdventure(profile, 'char-1', 1)
+    expect(seenOpeningParams).not.toHaveProperty('hookSeed')
+    expect(seenOpeningParams.registry).toBeDefined()
+    expect(seenOpeningParams.premissa).toBeDefined()
+    expect(seenOpeningParams.locations).toBeDefined()
+    expect(seenOpeningParams.npcs).toBeDefined()
+    expect(seenOpeningParams.secrets).toBeDefined()
   })
 
   it('encounters[0].locationId referencia locations[0]; npcIds referencia NPCs do próprio npcs[] final', async () => {
@@ -852,6 +881,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
       generateLocationsAndNpcs: vi.fn(async () => ({ locations, npcs })),
       generateSecrets: vi.fn(async () => secrets),
       generateClosing: vi.fn(async () => closing),
+      generateOpeningBeat: vi.fn(async () => ({ start: 'abertura' })),
     } as unknown as AiService
   }
 

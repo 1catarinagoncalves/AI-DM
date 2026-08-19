@@ -197,6 +197,34 @@ const CLOSING_SCHEMA = z.object({
   followUps: z.array(z.string()).min(1),
 })
 
+// US-172: schema da ABERTURA (`start`). SEM `id` (não referencia nada, é prosa livre).
+// `hookSeed` NÃO é insumo desta chamada — nem no schema, nem no `system`/`prompt` de
+// `buildOpeningBeatPrompt`/`generateOpeningBeat` abaixo (zero influência, ver US-172).
+const OPENING_BEAT_SCHEMA = z.object({
+  start: z.string().min(1),
+})
+
+function buildOpeningBeatPrompt(params: {
+  locations: AdventureLocation[]
+  npcs: AdventureNpc[]
+  secrets: AdventureSecret[]
+  registry: AdventureRegistry
+  premissa: string
+}): string {
+  const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
+  const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
+  const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
+  return [
+    `Premissa: ${params.premissa}`,
+    '',
+    `Locais disponíveis:\n${locationLines}`,
+    '',
+    `NPCs disponíveis:\n${npcLines}`,
+    '',
+    `Segredos já escritos (pode insinuar, NUNCA revelar):\n${secretLines}`,
+  ].join('\n')
+}
+
 function buildClosingPrompt(params: {
   locations: AdventureLocation[]
   npcs: AdventureNpc[]
@@ -1425,6 +1453,41 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     logExtractionEndpoint('generateClosing', providerMetadata)
 
     return { conclusion: object.conclusion, followUps: object.followUps }
+  }
+
+  /**
+   * US-172: escreve a ABERTURA (`start`) da aventura a partir de `registry`/`premissa`/
+   * `locations`/`npcs`/`secrets` já decididos — `hookSeed` NÃO é parâmetro desta chamada
+   * (ao contrário de `generateClosing`/`generateSecrets`/`generateLocationsAndNpcs`, que
+   * continuam recebendo-o): copiar `hookSeed` verbatim (US-164) deixava `start` sem ver o
+   * `tone` sorteado desta aventura. Instrui abertura *in medias res* (LGMRD "strong
+   * start") ancorada numa das `locations` recebidas, podendo insinuar (não revelar) um
+   * `secret` — sem isso `start` fica coerente em tom mas solto do resto do artefato.
+   * NUNCA captura erro — mesma disciplina de `generateClosing`: falha aqui é motivo de
+   * reseed na US-150, não degradação silenciosa.
+   */
+  async generateOpeningBeat(params: {
+    locations: AdventureLocation[]
+    npcs: AdventureNpc[]
+    secrets: AdventureSecret[]
+    registry: AdventureRegistry
+    premissa: string
+  }): Promise<{ start: string }> {
+    const { object, providerMetadata } = await generateObject({
+      model: extractionModel,
+      schema: OPENING_BEAT_SCHEMA,
+      system:
+        'Você é o Mestre de um RPG escrevendo a ABERTURA (start) de uma aventura one-shot (método Lazy GM Resource Document). ' +
+        'Escreva 1-2 parágrafos que joguem a cena já EM AÇÃO (in medias res) — nunca descrição estática de cenário parado. ' +
+        'Ancore a cena numa das locations recebidas (cite ou situe o local) e, se fizer sentido, insinue (sem revelar) um dos secrets. ' +
+        'Sem conflito óbvio na premissa/locations/npcs/secrets recebidos, abra com confronto ou ameaça imediata. ' +
+        `Tom: ${params.registry.tone}.`,
+      prompt: buildOpeningBeatPrompt(params),
+      providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+    })
+    logExtractionEndpoint('generateOpeningBeat', providerMetadata)
+
+    return { start: object.start }
   }
 
   /**

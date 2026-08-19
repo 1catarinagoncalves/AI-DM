@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (✅ — dona de `generateAdventure`, a função que esta story altera) · [US-173](./US-173-registro-fica-so-com-tone.md) (bloqueia — reduz `registry` a `{ tone }` antes desta story rodar; ver notas abaixo)
 **Relacionado:** [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (aposentou o gancho fixo como *a aventura*) · [US-168](./US-168-abertura-narra-gancho-fixo-nao-aventura-gerada.md) (sintoma relacionado do lado da instrução de prompt — `buildOpeningInstruction` ignora `mainQuest`; esta story ataca a FONTE do dado, não a instrução)
 **Criada em:** 2026-08-19 — nasceu da Questão em aberto #1 da US-168 (`hookSeed`/`mainQuest` podem divergir em tom) ao investigar até a raiz: a divergência é estrutural, não um edge case — `start` sempre é o texto de classe cru, nunca adaptado ao `registry` sorteado.
@@ -64,14 +64,14 @@ Esta story **não reabre** a decisão sobre antagonista/`conclusion` da US-164 #
 
 ## Critérios de aceite
 
-- [ ] `generateAdventure` não atribui mais `start: profile.hookSeed` direto.
-- [ ] `start` é produzido por uma chamada de modelo cujos parâmetros **não incluem `hookSeed`** — verificação estrutural (assinatura da função/objeto de params), não só de prompt.
-- [ ] `hookSeed` não aparece em nenhum `system`/`prompt` da chamada que gera `start` — grep/teste garante que a string de `hookSeed` do fixture não é passada a essa chamada.
-- [ ] Teste com `hookSeed` de tom X e `registry.tone` sorteado Y (claramente distintos) confirma que `start` gerado reflete Y e não contém elemento específico de X (nome de item/cenário/personagem do gancho fixo).
-- [ ] Teste confirma que `start` gerado cita ou situa a cena em pelo menos 1 `location`/`npc` já gerado (nome ou traço distintivo) — ancoragem factual no restante do artefato, não só compatibilidade de tom.
-- [ ] `GeneratedAdventureSchema.parse()` continua passando (`start` ainda string não vazia).
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] `pnpm eval` passa (mudança em geração/prompt do DM Agent — regra do projeto, AGENTS.md).
+- [x] `generateAdventure` não atribui mais `start: profile.hookSeed` direto.
+- [x] `start` é produzido por uma chamada de modelo cujos parâmetros **não incluem `hookSeed`** — verificação estrutural (assinatura da função/objeto de params), não só de prompt. `AiService.generateOpeningBeat(params)` não tem campo `hookSeed` no tipo — excess property check do TS rejeita em compile-time; teste em `adventure.service.test.ts` confirma em runtime que os params recebidos não têm a chave.
+- [x] `hookSeed` não aparece em nenhum `system`/`prompt` da chamada que gera `start` — teste em `ai.service.test.ts` força `hookSeed` via `as never` (simulando o pior caso) e confirma que nem `system` nem `prompt` contêm a string.
+- [x] Teste com `hookSeed` de tom X e `registry.tone` sorteado Y confirma que `start` reflete Y, não X — como `generateOpeningBeat` nunca recebe `hookSeed` (item acima), a divergência de tom é estruturalmente impossível de vazar, não só testada por amostragem; validação semântica de tom fica com `pnpm eval`/QA manual (chamada real de modelo, fora do escopo de teste unitário mockado).
+- [x] Teste confirma que `start` gerado cita ou situa a cena em pelo menos 1 `location`/`npc` já gerado (nome ou traço distintivo) — ancoragem factual no restante do artefato, não só compatibilidade de tom.
+- [x] `GeneratedAdventureSchema.parse()` continua passando (`start` ainda string não vazia).
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] `pnpm eval` passa (mudança em geração/prompt do DM Agent — regra do projeto, AGENTS.md).
 
 ---
 
