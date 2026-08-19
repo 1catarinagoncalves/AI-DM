@@ -351,7 +351,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
       locations: [{ title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas do mestre', occupants: ['Marta'] }],
       npcs: [{ name: 'Marta', role: 'a arquétipo herborista suspeita' }],
     }
-    const { locations, npcs } = await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })
+    const { locations, npcs } = await svc().generateLocationsAndNpcs({ rolled, registry })
     expect(npcs[0]!.id).toBe('npc-1')
     expect(locations[0]!.id).toBe('loc-1')
     expect(locations[0]!.occupants).toEqual(['npc-1']) // resolvido por nome → id
@@ -363,34 +363,43 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
       locations: [{ title: 'Torre', aspects: [], boxedText: 'x', description: 'y', occupants: ['Fantasma sem nome'] }],
       npcs: [{ name: 'Marta', role: 'papel' }],
     }
-    const { locations } = await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })
+    const { locations } = await svc().generateLocationsAndNpcs({ rolled, registry })
     expect(locations[0]!.occupants).toEqual(['Fantasma sem nome'])
   })
 
   it('usa extractionModel (US-114), não primaryModel', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })
+    await svc().generateLocationsAndNpcs({ rolled, registry })
     expect(genObj.model).toBe(extractionModel)
   })
 
   it('background.bonds presente entra no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho', background: { bonds: ['jurou vingança contra o culto'] } })
+    await svc().generateLocationsAndNpcs({ rolled, registry, background: { bonds: ['jurou vingança contra o culto'] } })
     expect(genObj.system).toContain('jurou vingança contra o culto')
   })
 
-  it('background/origin vazios cai no hookSeed como âncora (US-148)', async () => {
+  it('background vazio cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho da abertura' })
-    expect(genObj.system).toContain('gancho da abertura')
+    await svc().generateLocationsAndNpcs({ rolled, registry })
+    expect(genObj.system).toContain('já foi rolado para esta aventura')
+  })
+
+  it('assinatura não aceita hookSeed — mesmo forçado por cast, nunca chega ao system/prompt do modelo (US-174)', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    const hookSeed = 'A vela curva-se, Elara, numa corte de gelo e etiqueta.'
+    await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed } as never)
+    expect(genObj.system).not.toContain(hookSeed)
+    expect(genObj.prompt).not.toContain(hookSeed)
   })
 
   it('falha propaga erro estruturado — NÃO devolve array vazio em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
-    await expect(svc().generateLocationsAndNpcs({ rolled, registry, hookSeed: 'gancho' })).rejects.toThrow('modelo indisponível')
+    await expect(svc().generateLocationsAndNpcs({ rolled, registry })).rejects.toThrow('modelo indisponível')
   })
 })
 
@@ -411,7 +420,7 @@ describe('AiService.generateSecrets (US-149)', () => {
   it('minta id no código (secret-N), nunca deixado ao modelo', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }] }
-    const secrets = await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })
+    const secrets = await svc().generateSecrets({ locations, npcs, secretPrompts })
     expect(secrets[0]!.id).toBe('secret-1')
     expect(secrets[0]!.locationId).toBe('loc-1')
   })
@@ -419,43 +428,52 @@ describe('AiService.generateSecrets (US-149)', () => {
   it('usa extractionModel (US-114), não primaryModel', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })
+    await svc().generateSecrets({ locations, npcs, secretPrompts })
     expect(genObj.model).toBe(extractionModel)
   })
 
   it('background.bonds presente entra no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho', background: { bonds: ['jurou vingança contra o culto'] } })
+    await svc().generateSecrets({ locations, npcs, secretPrompts, background: { bonds: ['jurou vingança contra o culto'] } })
     expect(genObj.system).toContain('jurou vingança contra o culto')
   })
 
   it('origin.connection/memento presentes entram no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho', origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' } })
+    await svc().generateSecrets({ locations, npcs, secretPrompts, origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' } })
     expect(genObj.system).toContain('um sacerdote amado')
     expect(genObj.system).toContain('um livro de orações')
   })
 
-  it('background/origin vazios cai no hookSeed como âncora (US-148)', async () => {
+  it('background/origin vazios cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho da abertura' })
-    expect(genObj.system).toContain('gancho da abertura')
+    await svc().generateSecrets({ locations, npcs, secretPrompts })
+    expect(genObj.system).toContain('já foi rolado para esta aventura')
+  })
+
+  it('assinatura não aceita hookSeed — mesmo forçado por cast, nunca chega ao system/prompt do modelo (US-174)', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    const hookSeed = 'A vela curva-se, Elara, numa corte de gelo e etiqueta.'
+    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed } as never)
+    expect(genObj.system).not.toContain(hookSeed)
+    expect(genObj.prompt).not.toContain(hookSeed)
   })
 
   it('instrui o split fixo 3+3+3+2 por categoria no prompt', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })
+    await svc().generateSecrets({ locations, npcs, secretPrompts })
     expect(genObj.prompt).toContain('escreva exatamente 3')
     expect(genObj.prompt).toContain('escreva exatamente 2')
   })
 
   it('falha propaga erro estruturado — NÃO devolve array vazio em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
-    await expect(svc().generateSecrets({ locations, npcs, secretPrompts, hookSeed: 'gancho' })).rejects.toThrow('modelo indisponível')
+    await expect(svc().generateSecrets({ locations, npcs, secretPrompts })).rejects.toThrow('modelo indisponível')
   })
 })
 

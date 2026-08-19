@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma — mexe em chamadas diferentes de `generateAdventure` das que a US-172 altera; sobreposição de arquivo é possível (merge), não dependência real.
 **Relacionado:** [US-172](./US-172-abertura-gerada-nao-copia-gancho-fixo.md) (story irmã — fonte literal do item "Fora do escopo" que originou esta story) · [US-175](./US-175-generateclosing-perde-hookseed-antagonista-so-premissa.md) (resolve a Questão em aberto #1 desta story — `generateClosing`) · [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (Questão em aberto #2, decisão revisitada por US-175) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (comentário-fonte da intenção "gancho só ancora a abertura") · [US-148](./US-148-perfil-personagem-entrada-motor.md) (`buildAdventureProfile`, dono de `hookSeed`)
 **Criada em:** 2026-08-19 — nasceu do item "Fora do escopo" da US-172: *"Remover `hookSeed` das OUTRAS chamadas do motor (`generateLocationsAndNpcs`, `generateSecrets`, `generateClosing`) — elas continuam recebendo `hookSeed` exatamente como hoje; esta story mexe só na geração de `start`."*
@@ -60,13 +60,13 @@ As duas primeiras chamadas (`generateLocationsAndNpcs`, `generateSecrets`) usam 
 
 ## Critérios de aceite
 
-- [ ] `generateLocationsAndNpcs` não recebe mais `hookSeed` nos parâmetros — verificação estrutural (assinatura da função), não só de prompt.
-- [ ] `generateSecrets` não recebe mais `hookSeed` nos parâmetros, nem `buildSecretsPrompt`.
-- [ ] `hookSeed` não aparece em nenhum `system`/`prompt` dessas duas chamadas — teste garante que a string de `hookSeed` do fixture não é passada a elas.
-- [ ] Teste: personagem sem `bonds` e sem `background`/`origin` — locais/NPCs/segredos gerados não citam elemento específico do `hookSeed` do fixture, e a geração não falha nem produz instrução vazia na ausência dele.
-- [ ] `generateClosing` continua recebendo `hookSeed` sem alteração — teste de não-regressão da assinatura.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] `pnpm eval` passa (mudança em prompt do motor de geração — regra do projeto, AGENTS.md).
+- [x] `generateLocationsAndNpcs` não recebe mais `hookSeed` nos parâmetros — verificação estrutural (assinatura da função), não só de prompt.
+- [x] `generateSecrets` não recebe mais `hookSeed` nos parâmetros, nem `buildSecretsPrompt`.
+- [x] `hookSeed` não aparece em nenhum `system`/`prompt` dessas duas chamadas — teste garante que a string de `hookSeed` do fixture não é passada a elas.
+- [x] Teste: personagem sem `bonds` e sem `background`/`origin` — locais/NPCs/segredos gerados não citam elemento específico do `hookSeed` do fixture, e a geração não falha nem produz instrução vazia na ausência dele.
+- [x] `generateClosing` continua recebendo `hookSeed` sem alteração — teste de não-regressão da assinatura.
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] `pnpm eval` passa (mudança em prompt do motor de geração — regra do projeto, AGENTS.md).
 
 ---
 

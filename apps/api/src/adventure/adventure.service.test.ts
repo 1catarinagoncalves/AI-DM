@@ -777,6 +777,9 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     closing?: { conclusion: string; followUps: string[] }
     start?: string
     seenOpeningParams?: Record<string, unknown>
+    seenLocationsParams?: Record<string, unknown>
+    seenSecretsParams?: Record<string, unknown>
+    seenClosingParams?: Record<string, unknown>
   } = {}): AiService {
     const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas', occupants: [] }]
     const npcs = overrides.npcs ?? [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
@@ -784,9 +787,21 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     const closing = overrides.closing ?? { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }
     const start = overrides.start ?? 'A porta racha ao meio antes que alguém grite.'
     return {
-      generateLocationsAndNpcs: async () => ({ locations, npcs }),
-      generateSecrets: async () => secrets,
-      generateClosing: async () => closing,
+      // US-174: captura os params recebidos por generateLocationsAndNpcs/generateSecrets —
+      // prova estruturalmente que `hookSeed` NUNCA chega a essas duas chamadas.
+      generateLocationsAndNpcs: async (params: Record<string, unknown>) => {
+        if (overrides.seenLocationsParams) Object.assign(overrides.seenLocationsParams, params)
+        return { locations, npcs }
+      },
+      generateSecrets: async (params: Record<string, unknown>) => {
+        if (overrides.seenSecretsParams) Object.assign(overrides.seenSecretsParams, params)
+        return secrets
+      },
+      // generateClosing continua recebendo hookSeed sem alteração (US-174, Fora do escopo).
+      generateClosing: async (params: Record<string, unknown>) => {
+        if (overrides.seenClosingParams) Object.assign(overrides.seenClosingParams, params)
+        return closing
+      },
       // US-172: captura os params recebidos por generateOpeningBeat — usado pra provar
       // estruturalmente que `hookSeed` NUNCA chega a esta chamada.
       generateOpeningBeat: async (params: Record<string, unknown>) => {
@@ -829,6 +844,34 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(seenOpeningParams.locations).toBeDefined()
     expect(seenOpeningParams.npcs).toBeDefined()
     expect(seenOpeningParams.secrets).toBeDefined()
+  })
+
+  // US-174: `hookSeed` para de ser insumo de generateLocationsAndNpcs/generateSecrets —
+  // mesma garantia estrutural que a US-172 já trouxe pra generateOpeningBeat.
+  it('generateLocationsAndNpcs recebe rolled/registry/background — NUNCA hookSeed (US-174)', async () => {
+    const seenLocationsParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ seenLocationsParams })).generateAdventure(profile, 'char-1', 1)
+    expect(seenLocationsParams).not.toHaveProperty('hookSeed')
+    expect(seenLocationsParams.rolled).toBeDefined()
+    expect(seenLocationsParams.registry).toBeDefined()
+    expect(seenLocationsParams.background).toBeDefined()
+  })
+
+  it('generateSecrets recebe locations/npcs/secretPrompts/background/origin — NUNCA hookSeed (US-174)', async () => {
+    const seenSecretsParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ seenSecretsParams })).generateAdventure(profile, 'char-1', 1)
+    expect(seenSecretsParams).not.toHaveProperty('hookSeed')
+    expect(seenSecretsParams.locations).toBeDefined()
+    expect(seenSecretsParams.npcs).toBeDefined()
+    expect(seenSecretsParams.secretPrompts).toBeDefined()
+    expect(seenSecretsParams.background).toBeDefined()
+    expect(seenSecretsParams.origin).toBeDefined()
+  })
+
+  it('generateClosing continua recebendo hookSeed sem alteração — não-regressão da assinatura (US-174)', async () => {
+    const seenClosingParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ seenClosingParams })).generateAdventure(profile, 'char-1', 1)
+    expect(seenClosingParams.hookSeed).toBe(profile.hookSeed)
   })
 
   it('encounters[0].locationId referencia locations[0]; npcIds referencia NPCs do próprio npcs[] final', async () => {

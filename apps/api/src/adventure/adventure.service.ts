@@ -140,7 +140,6 @@ export class AdventureService {
       rolled: content,
       registry,
       background: profile.background,
-      hookSeed: profile.hookSeed,
     })
 
     const secrets = await this.ai.generateSecrets({
@@ -149,7 +148,6 @@ export class AdventureService {
       secretPrompts: readSecretPrompts(),
       background: profile.background,
       origin: profile.origin,
-      hookSeed: profile.hookSeed,
     })
 
     const encounterNpcs = buildEncounterNpcs(composeEncounterRoles(profile.level), npcs)

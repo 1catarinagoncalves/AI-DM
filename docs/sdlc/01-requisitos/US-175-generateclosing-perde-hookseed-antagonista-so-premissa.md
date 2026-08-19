@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** nenhuma — mesma disciplina técnica de US-172/US-174, função isolada (`generateClosing`); sobreposição de arquivo com US-174 é possível (merge), não dependência real.
 **Relacionado:** [US-174](./US-174-hookseed-sai-das-outras-chamadas-do-motor.md) (esta story resolve a Questão em aberto #1 dela) · [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (revisita parcialmente a decisão #2 — antagonista via `hookSeed` no fecho) · [US-172](./US-172-abertura-gerada-nao-copia-gancho-fixo.md) (mesma disciplina já aplicada a `start`) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (comentário-fonte da intenção "gancho só ancora a abertura")
 **Criada em:** 2026-08-19 — resolve a Questão em aberto #1 da US-174.
@@ -41,6 +41,7 @@ O próprio comentário de `generateClosing` ([ai.service.ts:1388](../../../apps/
 - `buildClosingPrompt` ([ai.service.ts:200-222](../../../apps/api/src/ai/ai.service.ts)) perde o parâmetro `hookSeed` e a linha `` `Gancho da aventura: ${hookSeed}` ``.
 - `adventure.service.ts:161-169` — a chamada dentro de `generateAdventure` para de passar `hookSeed: profile.hookSeed` a `generateClosing`.
 - Comentário de `generateClosing` ([ai.service.ts:1382-1391](../../../apps/api/src/ai/ai.service.ts)) atualizado — hoje cita `hookSeed` (US-148) como um dos insumos; deixa de ser verdade.
+- Comentário de `generateSecrets` ([ai.service.ts:1385](../../../apps/api/src/ai/ai.service.ts)) atualizado — hoje diz *"US-174: só `generateClosing` ainda recebe `hookSeed`"*; depois desta story ninguém mais recebe, frase fica falsa. Achado durante checagem de dúvidas da story (2026-08-19), não estava nas Referências originais.
 - Teste de regressão: fixture com `hookSeed` de um tom claramente distinto de `premissa`/`registry.tone` — confirma que `conclusion`/`followUps` gerados não citam nenhum elemento específico do `hookSeed` do fixture, e a chamada não falha nem produz prompt vazio na ausência dele.
 
 ### Fora do escopo
@@ -67,6 +68,8 @@ O próprio comentário de `generateClosing` ([ai.service.ts:1388](../../../apps/
 
 - Pontos exatos: [ai.service.ts:200-222](../../../apps/api/src/ai/ai.service.ts) (`buildClosingPrompt`), [ai.service.ts:1392-1416](../../../apps/api/src/ai/ai.service.ts) (`generateClosing`), [adventure.service.ts:161-169](../../../apps/api/src/adventure/adventure.service.ts) (chamada).
 - Depois desta story **e** da US-174, `profile.hookSeed` só é consumido em dois lugares: `buildOpeningInstruction` (caminho sem `mainQuest`) e o fallback estático `openingText`. Vale atualizar o comentário de `buildAdventureProfile` ([adventure.service.ts:88-94](../../../apps/api/src/adventure/adventure.service.ts)) se ele ainda descrever `hookSeed` como insumo de "outras chamadas do motor" no plural — depois desta story elas não existem mais.
+  - **Checado em 2026-08-19**: comentário atual ([adventure.service.ts:89-94](../../../apps/api/src/adventure/adventure.service.ts)) já não usa essa frase no plural — nada a mudar aí, esta nota não se aplica mais.
+- **Achado adicional (2026-08-19, fora das Referências originais)**: docblock de `generateSecrets` ([ai.service.ts:1385](../../../apps/api/src/ai/ai.service.ts)) cita *"US-174: só `generateClosing` ainda recebe `hookSeed`"* — fica falso depois desta story (ninguém mais recebe). Atualizar junto no mesmo commit, mesma disciplina de comentário nunca ficar mentiroso.
 - Testes existentes de `generateClosing` ([ai.service.test.ts:462-511](../../../apps/api/src/ai/ai.service.test.ts)) já não fazem nenhuma asserção sobre a string `hookSeed`/"gancho" aparecer no `prompt` — só passam `hookSeed` como parâmetro. Atualizar essas chamadas pra não passar mais `hookSeed` é o essencial da migração de teste, baixo risco de quebrar asserção existente.
 
 ---
@@ -81,6 +84,7 @@ Nenhuma — esta story resolve a Questão em aberto #1 da US-174.
 
 - [apps/api/src/ai/ai.service.ts:200-222](../../../apps/api/src/ai/ai.service.ts) — `buildClosingPrompt`, a mudar.
 - [apps/api/src/ai/ai.service.ts:1382-1416](../../../apps/api/src/ai/ai.service.ts) — `generateClosing` + seu comentário, a mudar.
+- [apps/api/src/ai/ai.service.ts:1385](../../../apps/api/src/ai/ai.service.ts) — comentário de `generateSecrets`, cita "só `generateClosing` ainda recebe `hookSeed`"; fica falso, a mudar (achado 2026-08-19, fora do escopo original).
 - [apps/api/src/adventure/adventure.service.ts:161-169](../../../apps/api/src/adventure/adventure.service.ts) — a chamada dentro de `generateAdventure` que esta story altera.
 - [apps/api/src/adventure/adventure.service.ts:88-94](../../../apps/api/src/adventure/adventure.service.ts) — comentário de `buildAdventureProfile`, candidato a atualização (ver Notas de implementação).
 - [apps/api/src/ai/ai.service.test.ts:462-511](../../../apps/api/src/ai/ai.service.test.ts) — testes existentes de `generateClosing`, a migrar.

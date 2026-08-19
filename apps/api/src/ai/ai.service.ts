@@ -167,15 +167,22 @@ const SECRET_CATEGORY_COUNT: Record<keyof SecretPrompts, number> = {
   plotandstorysecrets: 2,
 }
 
-function buildSecretsPrompt(locations: AdventureLocation[], npcs: AdventureNpc[], secretPrompts: SecretPrompts, hookSeed: string): string {
+function buildSecretsPrompt(locations: AdventureLocation[], npcs: AdventureNpc[], secretPrompts: SecretPrompts): string {
   const locationLines = locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
-  const npcLines = npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
+  // Reverse-lookup do local do NPC (mesmo padrão de seed-ledger.ts:43) — sem isso, segredos de
+  // NPC/vilão não têm locationId óbvio e o modelo chuta o id do NPC no campo (visto em prod
+  // 2026-08-19: "segredo referencia locationId inexistente npc-1").
+  const npcLines = npcs
+    .map((npc) => {
+      const location = locations.find((loc) => loc.occupants.includes(npc.id))
+      const locationHint = location ? ` (local: ${location.id})` : ''
+      return `${npc.id}: ${npc.name} — ${npc.role}${locationHint}`
+    })
+    .join('\n')
   const categoryBlock = (category: keyof SecretPrompts) =>
     `${SECRET_CATEGORY_LABEL[category]} — escreva exatamente ${SECRET_CATEGORY_COUNT[category]}, escolhendo entre estes moldes:\n` +
     secretPrompts[category].map((p, i) => `${i + 1}. ${p}`).join('\n')
   return [
-    `Gancho da aventura: ${hookSeed}`,
-    '',
     `Locais disponíveis (use o id em locationId):\n${locationLines}`,
     '',
     `NPCs disponíveis:\n${npcLines}`,
@@ -1324,14 +1331,14 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     rolled: RolledAdventureContent
     registry: AdventureRegistry
     background?: CharacterBackground
-    hookSeed: string
   }): Promise<{ locations: AdventureLocation[]; npcs: AdventureNpc[] }> {
     const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
-    // Rede de segurança quando `background`/`origin` vêm vazios (US-148): o gancho
-    // segue sendo a âncora, mesma garantia que a US-148 já estabelece na entrada.
+    // US-174: rede de segurança quando `background` vem vazio deixou de citar o gancho
+    // fixo por classe (`hookSeed`) — vira instrução genérica ancorada no que já foi
+    // rolado para ESTA aventura, não no catálogo por classe (US-153).
     const bondsInstruction = bonds.length > 0
       ? `Vínculos da personagem — amarre AO MENOS UM NPC (por nome ou papel) a um destes: ${bonds.join('; ')}.`
-      : `Personagem sem vínculos registrados — amarre ao menos um NPC ao gancho da aventura: "${params.hookSeed}".`
+      : 'Sem vínculos registrados — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
 
     const { object, providerMetadata } = await generateObject({
       model: extractionModel,
@@ -1370,11 +1377,12 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
   /**
    * US-149: escreve os ~11 segredos da aventura a partir dos 40 prompts-molde do LGMRD,
    * usando `locations`/`npcs` já decididos (US-158) como âncora referencial e
-   * `background`/`origin`/`hookSeed` como âncora narrativa. Mesma disciplina de
+   * `background`/`origin` como âncora narrativa. Mesma disciplina de
    * `generateLocationsAndNpcs`: minta `id` (`secret-N`) no CÓDIGO, nunca no modelo, e
    * NUNCA captura erro — falha aqui é motivo de reseed da US-150, não degradação silenciosa.
    * `locations`/`npcs` obrigatórios (não opcionais) força a ordem: esta chamada não roda
-   * sem eles.
+   * sem eles. `hookSeed` (gancho fixo por classe) NÃO é insumo — nem no schema, nem no
+   * `system`/`prompt` (US-174: só `generateClosing` ainda recebe `hookSeed`).
    */
   async generateSecrets(params: {
     locations: AdventureLocation[]
@@ -1382,7 +1390,6 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     secretPrompts: SecretPrompts
     background?: CharacterBackground
     origin?: { connection?: string; memento?: string }
-    hookSeed: string
   }): Promise<AdventureSecret[]> {
     const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
     const flaws = (params.background?.flaws ?? []).filter((f) => f.trim())
@@ -1393,11 +1400,12 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       params.origin?.connection?.trim() && `Conexão de origem: ${params.origin.connection}`,
       params.origin?.memento?.trim() && `Memento de origem: ${params.origin.memento}`,
     ].filter((line): line is string => Boolean(line))
-    // Rede de segurança quando `background`/`origin` vêm vazios (US-148): o gancho
-    // segue sendo a âncora, mesma garantia que `generateLocationsAndNpcs` já estabelece.
+    // US-174: rede de segurança quando `background`/`origin` vêm vazios deixou de citar
+    // o gancho fixo por classe (`hookSeed`) — vira instrução genérica ancorada no que já
+    // foi rolado para ESTA aventura, mesmo padrão de `generateLocationsAndNpcs`.
     const anchorInstruction = anchors.length > 0
       ? `Contexto da personagem — ancore ao menos um segredo a um destes: ${anchors.join('; ')}.`
-      : `Personagem sem background/origin registrados — ancore os segredos ao gancho da aventura: "${params.hookSeed}".`
+      : 'Sem background/origin registrados — ancore os segredos ao que já foi rolado para esta aventura (registry/local/NPC).'
 
     const { object, providerMetadata } = await generateObject({
       model: extractionModel,
@@ -1405,9 +1413,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       system:
         'Você é o Mestre de um RPG escrevendo os SEGREDOS de uma aventura one-shot (método Lazy GM Resource Document), a partir de moldes de pergunta. ' +
         'Para cada segredo, responda a UMA das perguntas-molde dadas, ancorando o fato em um local ou NPC REAL da lista recebida — nunca invente local, NPC ou fato fora do que foi dado. ' +
-        '`locationId` DEVE ser um dos ids de locais recebidos, o mais relevante ao segredo — nunca invente um id novo. ' +
+        '`locationId` DEVE ser um dos ids de LOCAIS recebidos (nunca um id de NPC), o mais relevante ao segredo. ' +
+        'Para segredo de NPC/vilão, use o "(local: ...)" indicado ao lado do NPC se houver; senão, escolha o local mais relevante da lista. ' +
         `${anchorInstruction}`,
-      prompt: buildSecretsPrompt(params.locations, params.npcs, params.secretPrompts, params.hookSeed),
+      prompt: buildSecretsPrompt(params.locations, params.npcs, params.secretPrompts),
       providerOptions: EXTRACTION_PROVIDER_OPTIONS,
     })
     logExtractionEndpoint('generateSecrets', providerMetadata)
