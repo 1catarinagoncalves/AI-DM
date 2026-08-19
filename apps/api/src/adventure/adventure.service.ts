@@ -174,6 +174,9 @@ export class AdventureService {
         npcs: allNpcs,
         secrets,
         registry,
+        background: profile.background,
+        origin: profile.origin,
+        complicacao: content.complicacao,
         premissa: content.premissa,
       }),
     ])

@@ -210,6 +210,26 @@ function buildSecretsPrompt(locations: AdventureLocation[], npcs: AdventureNpc[]
   ].join('\n')
 }
 
+// US-180: lista de âncoras pessoais da personagem (`story`/`bonds`/`flaws`/
+// `origin.connection`/`origin.memento`) — usada por `generateSecrets` (US-149) e
+// `generateOpeningBeat` (US-180) pra montar a própria frase de instrução. Extraída pra
+// função pura porque as duas listas eram quase-idênticas e arriscavam divergir com o
+// tempo (mesma disciplina de reuso da seção compartilhada de `dm-system.ts`, US-177/US-179).
+function characterAnchors(params: {
+  background?: CharacterBackground
+  origin?: { connection?: string; memento?: string }
+}): string[] {
+  const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
+  const flaws = (params.background?.flaws ?? []).filter((f) => f.trim())
+  return [
+    params.background?.story?.trim() && `História: ${params.background.story}`,
+    bonds.length > 0 && `Vínculos: ${bonds.join('; ')}`,
+    flaws.length > 0 && `Fraquezas: ${flaws.join('; ')}`,
+    params.origin?.connection?.trim() && `Conexão de origem: ${params.origin.connection}`,
+    params.origin?.memento?.trim() && `Memento de origem: ${params.origin.memento}`,
+  ].filter((line): line is string => Boolean(line))
+}
+
 // US-164, passo 6: schema do FECHO RAMIFICADO. SEM `id` — `followUps[]` não referencia
 // nada, é semente pra PRÓXIMA aventura (US-151 consome como texto, não por id).
 const CLOSING_SCHEMA = z.object({
@@ -229,6 +249,7 @@ function buildOpeningBeatPrompt(params: {
   npcs: AdventureNpc[]
   secrets: AdventureSecret[]
   registry: AdventureRegistry
+  complicacao: { condition: string; description: string; origin: string }
   premissa: string
 }): string {
   const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
@@ -236,6 +257,10 @@ function buildOpeningBeatPrompt(params: {
   const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
   return [
     `Premissa: ${params.premissa}`,
+    // US-180: sem esta linha, `complicacao` chega só como TIPO em `params` — o modelo
+    // nunca lê condition/description/origin e não tem como escolher entre Enraizada e
+    // Confronto. Mesmo formato que `buildClosingPrompt` já usa para o mesmo campo.
+    `Complicação: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
     '',
     `Locais disponíveis:\n${locationLines}`,
     '',
@@ -1405,15 +1430,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     background?: CharacterBackground
     origin?: { connection?: string; memento?: string }
   }): Promise<AdventureSecret[]> {
-    const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
-    const flaws = (params.background?.flaws ?? []).filter((f) => f.trim())
-    const anchors = [
-      params.background?.story?.trim() && `História: ${params.background.story}`,
-      bonds.length > 0 && `Vínculos: ${bonds.join('; ')}`,
-      flaws.length > 0 && `Fraquezas: ${flaws.join('; ')}`,
-      params.origin?.connection?.trim() && `Conexão de origem: ${params.origin.connection}`,
-      params.origin?.memento?.trim() && `Memento de origem: ${params.origin.memento}`,
-    ].filter((line): line is string => Boolean(line))
+    const anchors = characterAnchors(params)
     // US-174: rede de segurança quando `background`/`origin` vêm vazios deixou de citar
     // o gancho fixo por classe (`hookSeed`) — vira instrução genérica ancorada no que já
     // foi rolado para ESTA aventura, mesmo padrão de `generateLocationsAndNpcs`.
@@ -1490,14 +1507,30 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * `secret` — sem isso `start` fica coerente em tom mas solto do resto do artefato.
    * NUNCA captura erro — mesma disciplina de `generateClosing`: falha aqui é motivo de
    * reseed na US-150, não degradação silenciosa.
+   *
+   * US-180: ganha `background`/`origin` (mesmos tipos de `generateSecrets`) pra ancorar a
+   * cena num vínculo pessoal da personagem quando existir (`characterAnchors`, molde de
+   * `generateSecrets`) — sem isso a abertura podia ancorar em local/NPC sem relação
+   * nenhuma com quem joga. Ganha também `complicacao` (mesmo tipo de `generateClosing`):
+   * o fallback único "sem conflito óbvio, abra com confronto" (herdado literal do LGMRD)
+   * vira dois estilos nomeados, Enraizada e Confronto — o artigo que motivou esta story
+   * argumenta contra empurrar todo grupo pra um confronto fixo quando nada se destaca.
    */
   async generateOpeningBeat(params: {
     locations: AdventureLocation[]
     npcs: AdventureNpc[]
     secrets: AdventureSecret[]
     registry: AdventureRegistry
+    background?: CharacterBackground
+    origin?: { connection?: string; memento?: string }
+    complicacao: { condition: string; description: string; origin: string }
     premissa: string
   }): Promise<{ start: string }> {
+    const anchors = characterAnchors(params)
+    const anchorInstruction = anchors.length > 0
+      ? `Vínculo pessoal da personagem — prefira ancorar a cena no local/NPC mais alinhado a um destes: ${anchors.join('; ')}.`
+      : 'Sem vínculo pessoal registrado — ancore a cena ao que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
+
     const { object, providerMetadata } = await generateObject({
       model: primaryModel,
       schema: OPENING_BEAT_SCHEMA,
@@ -1505,7 +1538,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Você é o Mestre de um RPG escrevendo a ABERTURA (start) de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Escreva 1-2 parágrafos que joguem a cena já EM AÇÃO (in medias res) — nunca descrição estática de cenário parado. ' +
         'Ancore a cena numa das locations recebidas (cite ou situe o local) e, se fizer sentido, insinue (sem revelar) um dos secrets. ' +
-        'Sem conflito óbvio na premissa/locations/npcs/secrets recebidos, abra com confronto ou ameaça imediata. ' +
+        `${anchorInstruction} ` +
+        'Escolha o ESTILO da abertura pelo que premissa/complicação sugerir, sem viés padrão para violência: ' +
+        'ENRAIZADA (preferida quando nada aponta violência) — chegada a um local vivo ou encontro com um NPC, de preferência o ligado ao vínculo pessoal acima, com a complicação já pairando como tensão perceptível, sem exigir luta. ' +
+        'CONFRONTO (quando premissa/complicação/secrets tornarem a violência a leitura mais natural — perseguição, ataque em curso, monstro solto) — ameaça ou luta já em ação. ' +
         `Tom: ${params.registry.tone}.`,
       prompt: buildOpeningBeatPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,

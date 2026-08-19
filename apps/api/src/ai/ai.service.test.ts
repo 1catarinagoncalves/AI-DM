@@ -550,6 +550,7 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   const registry = { tone: 'terror' }
+  const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
 
   function svc() {
     return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
@@ -558,28 +559,28 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
   it('devolve start do modelo', async () => {
     genObj.error = undefined
     genObj.result = { start: 'A porta racha ao meio antes que Marta consiga gritar.' }
-    const { start } = await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'Sobreviver à noite' })
+    const { start } = await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'Sobreviver à noite' })
     expect(start).toBe('A porta racha ao meio antes que Marta consiga gritar.')
   })
 
   it('usa primaryModel (2026-08-19), não extractionModel', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa' })
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
     expect(genObj.model).toBe(primaryModel)
   })
 
   it('registry (tone) entra no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa' })
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
     expect(genObj.system).toContain('terror')
   })
 
   it('locais/NPCs/segredos e premissa entram no prompt do modelo — ancoragem (US-172)', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'Sobreviver à noite' })
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'Sobreviver à noite' })
     expect(genObj.prompt).toContain('loc-1')
     expect(genObj.prompt).toContain('npc-1')
     expect(genObj.prompt).toContain('secret-1')
@@ -594,7 +595,7 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
     // objeto literal normal já seria rejeitado em compile-time (excess property check).
     // O cast `as never` simula o pior caso (alguém força a passagem) pra provar que a
     // implementação também não LÊ a chave, mesmo que ela chegue ao runtime.
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa', hookSeed } as never)
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', hookSeed } as never)
     expect(genObj.system).not.toContain(hookSeed)
     expect(genObj.prompt).not.toContain(hookSeed)
   })
@@ -602,8 +603,56 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
   it('falha propaga erro estruturado — NÃO devolve abertura vazia em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
     await expect(
-      svc().generateOpeningBeat({ locations, npcs, secrets, registry, premissa: 'premissa' }),
+      svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' }),
     ).rejects.toThrow('modelo indisponível')
+  })
+
+  // US-180: `complicacao` precisa entrar no PROMPT (não só o tipo em `params`), senão o
+  // modelo nunca lê condition/description/origin — mesmo formato de `generateClosing`.
+  it('complicação entra no prompt do modelo (US-180)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.prompt).toContain('Drenched')
+    expect(genObj.prompt).toContain('Horrific')
+    expect(genObj.prompt).toContain('Aberrant')
+  })
+
+  it('background.bonds presente entra no system — instrução de ancorar a cena no vínculo (US-180)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({
+      locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
+      background: { bonds: ['jurou vingança contra o culto'] },
+    })
+    expect(genObj.system).toContain('jurou vingança contra o culto')
+  })
+
+  it('origin.connection/memento presentes entram no system — instrução de ancorar a cena no vínculo (US-180)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({
+      locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
+      origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' },
+    })
+    expect(genObj.system).toContain('um sacerdote amado')
+    expect(genObj.system).toContain('um livro de orações')
+  })
+
+  it('background/origin vazios cai em instrução genérica de ancoragem, SEM gancho da classe (US-180)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.system).toContain('já foi rolado para esta aventura')
+  })
+
+  it('system não tem mais fallback único de combate — oferece Enraizada e Confronto nomeados (US-180)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.system).not.toContain('Sem conflito óbvio na premissa/locations/npcs/secrets recebidos, abra com confronto ou ameaça imediata.')
+    expect(genObj.system).toContain('ENRAIZADA')
+    expect(genObj.system).toContain('CONFRONTO')
   })
 })
 

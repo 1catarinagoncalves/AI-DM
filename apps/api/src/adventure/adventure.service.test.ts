@@ -847,6 +847,17 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(seenOpeningParams.secrets).toBeDefined()
   })
 
+  // US-180: generateOpeningBeat ganha background/origin/complicacao — mesmo padrão de
+  // encanamento que generateSecrets (background/origin) e generateClosing (complicacao)
+  // já tinham antes desta story.
+  it('generateOpeningBeat recebe background/origin/complicacao (US-180)', async () => {
+    const seenOpeningParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ seenOpeningParams })).generateAdventure(profile, 'char-1', 1)
+    expect(seenOpeningParams.background).toBeDefined()
+    expect(seenOpeningParams.origin).toBeDefined()
+    expect(seenOpeningParams.complicacao).toBeDefined()
+  })
+
   // US-174: `hookSeed` para de ser insumo de generateLocationsAndNpcs/generateSecrets —
   // mesma garantia estrutural que a US-172 já trouxe pra generateOpeningBeat.
   it('generateLocationsAndNpcs recebe rolled/registry/background — NUNCA hookSeed (US-174)', async () => {
