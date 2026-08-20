@@ -48,7 +48,14 @@ export const { handlers, auth } = NextAuth({
     // Primeiro toque do Google verificado: chama o /auth/sync da API para fazer
     // upsert do User (por email @unique) e, no primeiro login, absorver órfãos
     // da era anônima (D1). Guarda o `userId` real devolvido no token.
-    async jwt({ token, profile }) {
+    async jwt({ token, profile, trigger, session }) {
+      // US-97: `update({ locale })` do cliente (LocaleProvider) sincroniza o token
+      // logo após o PATCH /auth/locale — sem isto, o JWT (cookie, 30 dias) fica preso
+      // no idioma do login e o reload reverte a troca feita depois dele.
+      if (trigger === 'update' && isLocale(session?.locale)) {
+        token.locale = session.locale
+        return token
+      }
       if (profile?.email && !token.userId) {
         // Token de bootstrap: prova (via AUTH_SECRET) que a chamada veio do nosso
         // web com um email Google verificado. Ainda sem `sub` — só email/name.

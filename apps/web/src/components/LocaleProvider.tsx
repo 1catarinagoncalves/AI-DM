@@ -62,7 +62,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   // abaixo corrige no primeiro paint do cliente, como o ThemeProvider já faz.
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE)
   const [switches, setSwitches] = useState(0)
-  const { data: session } = useSession()
+  const { data: session, update: updateSession } = useSession()
   const accountLocale = session?.locale
 
   useEffect(() => {
@@ -88,9 +88,11 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       rememberLocale(next)
       // Autenticado → a conta é a fonte de verdade e precisa acompanhar. Falha de
       // rede não desfaz a escolha local: o jogador já está a jogar no idioma novo.
-      if (session?.userId) api.setLocale(next).catch(() => {})
+      // update() sincroniza o JWT (cookie, 30 dias) — sem isto, o valor gravado no
+      // banco diverge do token, e um reload traz de volta o idioma velho do login.
+      if (session?.userId) api.setLocale(next).then(() => updateSession({ locale: next })).catch(() => {})
     },
-    [session?.userId],
+    [session?.userId, updateSession],
   )
 
   return <LocaleContext.Provider value={{ locale, setLocale, switches }}>{children}</LocaleContext.Provider>
