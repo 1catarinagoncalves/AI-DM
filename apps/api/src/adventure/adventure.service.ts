@@ -146,6 +146,7 @@ export class AdventureService {
       locations,
       npcs,
       secretPrompts: readSecretPrompts(),
+      registry,
       background: profile.background,
       origin: profile.origin,
     })

@@ -1427,6 +1427,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` ‚
     locations: AdventureLocation[]
     npcs: AdventureNpc[]
     secretPrompts: SecretPrompts
+    registry: AdventureRegistry
     background?: CharacterBackground
     origin?: { connection?: string; memento?: string }
   }): Promise<AdventureSecret[]> {
@@ -1446,7 +1447,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` ‚
         'Para cada segredo, responda a UMA das perguntas-molde dadas, ancorando o fato em um local ou NPC REAL da lista recebida ‚Äî nunca invente local, NPC ou fato fora do que foi dado. ' +
         '`locationId` DEVE ser um dos ids de LOCAIS recebidos (nunca um id de NPC), o mais relevante ao segredo. ' +
         'Para segredo de NPC/vil√£o, use o "(local: ...)" indicado ao lado do NPC se houver; sen√£o, escolha o local mais relevante da lista. ' +
-        `${anchorInstruction}`,
+        `Tom: ${params.registry.tone}. ${anchorInstruction}`,
       prompt: buildSecretsPrompt(params.locations, params.npcs, params.secretPrompts),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
