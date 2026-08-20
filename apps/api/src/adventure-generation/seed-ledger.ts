@@ -7,8 +7,11 @@ import { MONSTER_ROLE_CR } from './monster-roles'
  * aventura vem do motor: leitura determinística de um objeto estruturado, não extração
  * por LLM de prosa livre. Síncrona de propósito (sem chamada de rede).
  *
- * NPC de combate (`role` ∈ `MONSTER_ROLE_CR`) é filtrado — não é entidade nomeada durável,
- * é um combatente genérico ("Brute", "Soldier") que morre no próprio encontro.
+ * NPC de combate (`role` ∈ `MONSTER_ROLE_CR`) é filtrado de `npcEntities` — não é entidade
+ * nomeada durável, é um combatente genérico ("Brute", "Soldier") que morre no próprio
+ * encontro. US-171: mas a AMEAÇA em si precisa chegar ao Mestre antes do confronto —
+ * ver `encounterNpcEntities` abaixo, semeada de `adventure.encounters` (não de `npcs[]`
+ * direto), `revelado: false` (ameaça ainda não descoberta).
  */
 export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure): WorldEntity[] {
   const now = new Date().toISOString()
@@ -45,7 +48,25 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
     atualizadoEm: now,
   }))
 
-  return [...secretEntities, ...npcEntities, ...locationEntities]
+  // US-171: itera `encounters[]`, não `npcs[]` — só um combatente ORÇADO NUM ENCONTRO
+  // vira ameaça no ledger (o filtro acima já barrou combatente narrativo solto, que não
+  // existe). `nome` inclui o `id` porque `role` se repete no mesmo encontro (3 Soldier).
+  const encounterNpcEntities: WorldEntity[] = adventure.encounters.flatMap((encounter) => {
+    const local = locationTitleById.get(encounter.locationId)
+    return encounter.npcIds
+      .map((npcId) => adventure.npcs.find((npc) => npc.id === npcId))
+      .filter((npc): npc is (typeof adventure.npcs)[number] => npc !== undefined)
+      .map((npc) => ({
+        nome: `${npc.role} (${npc.id})`,
+        tipo: 'npc' as const,
+        local,
+        nota: npc.role,
+        revelado: false,
+        atualizadoEm: now,
+      }))
+  })
+
+  return [...secretEntities, ...npcEntities, ...locationEntities, ...encounterNpcEntities]
 }
 
 // NPC narrativo nunca aparece em `encounters[].npcIds` (só combate aparece lá) — o

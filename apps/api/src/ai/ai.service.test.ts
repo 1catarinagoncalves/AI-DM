@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { AiService, scenePatchFromExtraction, applyInventoryDeltas } from './ai.service'
 import { mergeSceneState, extractionModel, primaryModel, ONOMASTICS_SECTION, CRAFT_CORE_SECTION, NPC_VOICE_BULLET } from '@ai-dm/ai-engine'
-import type { InventoryItem, SceneState } from '@ai-dm/shared'
+import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
 import type { EventLog } from '../generated/prisma/client'
@@ -328,6 +328,114 @@ describe('scenePatchFromExtraction + reconcile (US-73)', () => {
     const extracted = { local: 'clareira', ambiente: 'externo' as const, periodo: 'manhã', presentes: [], objetos_em_cena: [] }
     const next = mergeSceneState(stale, scenePatchFromExtraction(extracted))
     expect(next.presentes).toEqual([]) // ninguém além da personagem
+  })
+})
+
+describe('AiService.reconcileEncounterLedger (US-171)', () => {
+  const soldier: WorldEntity = {
+    nome: 'Soldier (npc-2)',
+    tipo: 'npc',
+    local: 'Ruína',
+    nota: 'Soldier',
+    revelado: false,
+    atualizadoEm: '2026-01-01T00:00:00.000Z',
+  }
+
+  function ledgerService(entities: WorldEntity[] | null) {
+    const updates: WorldEntity[][] = []
+    const prisma = {
+      adventure: {
+        findUnique: async () => ({ entities }),
+        update: async ({ data }: { data: { entities: WorldEntity[] } }) => {
+          updates.push(data.entities)
+          return { entities: data.entities }
+        },
+      },
+    } as unknown as PrismaService
+    const svc = new AiService(prisma, {} as unknown as DiceService)
+    const reconcile = (svc as unknown as {
+      reconcileEncounterLedger: (
+        adventureId: string,
+        presentesBefore: string[] | null | undefined,
+        presentesAfter: string[] | null | undefined,
+      ) => Promise<void>
+    }).reconcileEncounterLedger.bind(svc)
+    return { reconcile, updates }
+  }
+
+  it('combatente de encontro que SAI de presentes ganha estado "fora de cena"', async () => {
+    const { reconcile, updates } = ledgerService([soldier])
+    await reconcile('adv-1', ['Soldier (npc-2)'], [])
+    expect(updates).toHaveLength(1)
+    expect(updates[0]!.find((e) => e.nome === 'Soldier (npc-2)')?.estado).toBe('fora de cena')
+  })
+
+  it('combatente NUNCA engajado (nunca esteve em presentes) fica intocado', async () => {
+    const { reconcile, updates } = ledgerService([soldier])
+    await reconcile('adv-1', [], [])
+    expect(updates).toHaveLength(0)
+  })
+
+  it('combatente que já saiu num turno anterior não é tocado de novo (não sobrescreve estado manual)', async () => {
+    // `presentesBefore` já não lista o combatente — a transição presente→ausente já
+    // foi processada num turno passado, que pode ter deixado um `estado` mais
+    // específico via `recordEntity` manual.
+    const jaResolvido: WorldEntity = { ...soldier, estado: 'negociou rendição' }
+    const { reconcile, updates } = ledgerService([jaResolvido])
+    await reconcile('adv-1', [], [])
+    expect(updates).toHaveLength(0)
+  })
+
+  it('NPC que não é combatente de encontro (nota fora de MONSTER_ROLE_CR) não é tocado', async () => {
+    const marta: WorldEntity = {
+      nome: 'Marta',
+      tipo: 'npc',
+      nota: 'herborista suspeita',
+      revelado: true,
+      atualizadoEm: '2026-01-01T00:00:00.000Z',
+    }
+    const { reconcile, updates } = ledgerService([marta])
+    await reconcile('adv-1', ['Marta'], [])
+    expect(updates).toHaveLength(0)
+  })
+})
+
+describe('AiService.reconcileScene → reconcileEncounterLedger, encadeamento (US-171)', () => {
+  it('presentes ANTES (sceneState prévio) vs DEPOIS (extração) decide o patch do ledger', async () => {
+    const soldier: WorldEntity = {
+      nome: 'Soldier (npc-2)',
+      tipo: 'npc',
+      local: 'Ruína',
+      nota: 'Soldier',
+      revelado: false,
+      atualizadoEm: '2026-01-01T00:00:00.000Z',
+    }
+    const adventureUpdates: WorldEntity[][] = []
+    const prisma = {
+      characterState: {
+        findUnique: async () => ({
+          sceneState: { local: 'Ruína', ambiente: 'interno', periodo: 'noite', presentes: ['Soldier (npc-2)'], objetos_em_cena: [] },
+        }),
+        update: async () => ({}),
+      },
+      adventure: {
+        findUnique: async () => ({ entities: [soldier] }),
+        update: async ({ data }: { data: { entities: WorldEntity[] } }) => {
+          adventureUpdates.push(data.entities)
+          return {}
+        },
+      },
+    } as unknown as PrismaService
+    const svc = new AiService(prisma, {} as unknown as DiceService)
+    genObj.error = undefined
+    genObj.result = { local: 'Ruína', ambiente: 'interno', periodo: 'noite', presentes: [], objetos_em_cena: [] }
+
+    await (svc as unknown as {
+      reconcileScene: (adventureId: string, characterId: string, narration: string, playerName: string, turnId?: string) => Promise<void>
+    }).reconcileScene('adv-1', 'char-1', 'O Soldier foge pelo corredor escuro.', 'Seraphine', undefined)
+
+    expect(adventureUpdates).toHaveLength(1)
+    expect(adventureUpdates[0]!.find((e) => e.nome === 'Soldier (npc-2)')?.estado).toBe('fora de cena')
   })
 })
 

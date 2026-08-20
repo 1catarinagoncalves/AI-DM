@@ -7,7 +7,9 @@ import type { WorldEntity, EntityEdge } from '@ai-dm/shared'
 export type EdgePatch = Omit<EntityEdge, 'atualizadoEm'>
 export type EntityPatch = Omit<WorldEntity, 'atualizadoEm' | 'relacoes'> & { relacoes?: EdgePatch[] }
 
-const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
+// Exportado: US-171 reusa este match (accent/case tolerant) em `reconcileScene`
+// (ai.service.ts) pra diffar `sceneState.presentes` contra `WorldEntity.nome`.
+export const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
 
 /**
  * Funde arestas (US-113) por chave `(relacao, para)` normalizada — mesma tolerância

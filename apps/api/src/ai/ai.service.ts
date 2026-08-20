@@ -26,6 +26,7 @@ import {
   mergeSceneState,
   formatSceneState,
   mergeEntities,
+  norm,
   judgeModel,
   judgeTurn,
   meanOfScore,
@@ -48,6 +49,7 @@ import { configForLocale } from '../system/system-locale'
 import type { RolledAdventureContent } from '../adventure-generation/roll-content'
 import type { AdventureRegistry } from '../adventure-generation/roll-registry'
 import type { SecretPrompts } from '../adventure-generation/lgmrd-tables'
+import { MONSTER_ROLE_CR } from '../adventure-generation/monster-roles'
 
 export interface ChatInput {
   adventureId: string
@@ -1615,12 +1617,60 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         where: { characterId_adventureId: { characterId, adventureId } },
         data: { sceneState: next as unknown as object },
       })
+      await this.reconcileEncounterLedger(adventureId, current?.presentes, next.presentes)
       console.log(
         JSON.stringify({ event: 'scene_reconciled', turnId, timestamp: new Date().toISOString(), local: next.local, presentes: next.presentes }),
       )
     } catch (err) {
       logLlmFailure('reconcileScene', 'a cena não sincroniza com a narração deste turno', err, turnId)
     }
+  }
+
+  /**
+   * US-171 (segunda metade): reconcilia o ledger de combatentes de encontro junto do
+   * `sceneState` — resolve o risco de "ressurreição" (combatente derrotado
+   * narrativamente continuava listado como ameaça ativa pra sempre). Compara
+   * `presentes` ANTES/DEPOIS desta passagem e, pra todo `WorldEntity` de combatente
+   * (`nota` ∈ papel de `MONSTER_ROLE_CR`) que SAIU de `presentes` NESTA transição,
+   * marca `estado: 'fora de cena'` — neutro de propósito (não afirma derrota, fuga
+   * nem negociação, só que não está mais na cena; sem statblock/HP pra saber o
+   * desfecho, ver US-171 Fora do escopo).
+   *
+   * Só toca na TRANSIÇÃO: um combatente que já saiu num turno anterior não está mais
+   * em `presentesBefore` (o `sceneState` daquele turno já não o listava), então não é
+   * tocado de novo — não sobrescreve um `estado` mais específico que o Mestre tenha
+   * registrado depois via `recordEntity`. Combatente nunca engajado (nunca esteve em
+   * `presentes`) também fica intocado, pelo mesmo motivo.
+   */
+  private async reconcileEncounterLedger(
+    adventureId: string,
+    presentesBefore: string[] | null | undefined,
+    presentesAfter: string[] | null | undefined,
+  ): Promise<void> {
+    const before = presentesBefore ?? []
+    if (before.length === 0) return
+    const afterNorm = new Set((presentesAfter ?? []).map(norm))
+    const departedNorm = new Set(before.filter((name) => !afterNorm.has(norm(name))).map(norm))
+    if (departedNorm.size === 0) return
+
+    const fresh = await this.prisma.adventure.findUnique({
+      where: { id: adventureId },
+      select: { entities: true },
+    })
+    const current = (fresh?.entities ?? null) as WorldEntity[] | null
+    if (!current) return
+
+    const roles = new Set(Object.keys(MONSTER_ROLE_CR))
+    const patches: EntityPatch[] = current
+      .filter((e) => e.nota !== undefined && roles.has(e.nota) && departedNorm.has(norm(e.nome)))
+      .map((e) => ({ nome: e.nome, tipo: 'npc', estado: 'fora de cena' }))
+    if (patches.length === 0) return
+
+    const next = mergeEntities(current, patches)
+    await this.prisma.adventure.update({
+      where: { id: adventureId },
+      data: { entities: next as unknown as object },
+    })
   }
 
   /**

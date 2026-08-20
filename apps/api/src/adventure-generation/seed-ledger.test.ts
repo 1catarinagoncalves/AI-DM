@@ -34,9 +34,9 @@ function adventureFixture(overrides: Partial<GeneratedAdventure> = {}): Generate
 }
 
 describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
-  it('produz exatamente 7 entidades: 3 segredos + 2 NPCs narrativos + 2 locais, NPC de combate fora', () => {
+  it('produz exatamente 8 entidades: 3 segredos + 2 NPCs narrativos + 2 locais + 1 combatente de encontro', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
-    expect(entities).toHaveLength(7)
+    expect(entities).toHaveLength(8)
     expect(entities.some((e) => e.nome === 'npc-2' || e.nome === 'Soldier')).toBe(false)
   })
 
@@ -105,5 +105,56 @@ describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
       encounters: [],
     }))
     expect(entities).toEqual([])
+  })
+})
+
+describe('seedLedgerFromGeneratedAdventure — combatentes de encontro (US-171)', () => {
+  it('mapeia combatente de encontro com tipo npc, local do encontro, nota=role, revelado false', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
+    const soldier = entities.find((e) => e.nome === 'Soldier (npc-2)')
+    expect(soldier).toEqual({
+      nome: 'Soldier (npc-2)',
+      tipo: 'npc',
+      local: 'Ruína', // loc-2, o local do encounter-1
+      nota: 'Soldier',
+      revelado: false,
+      atualizadoEm: expect.any(String),
+    })
+  })
+
+  it('papel repetido no mesmo encontro gera nomes ÚNICOS (id desambigua)', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture({
+      npcs: [
+        { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },
+        { id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] },
+        { id: 'npc-4', name: 'Soldier', role: 'Soldier', interactions: [] },
+      ],
+      encounters: [{ id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2', 'npc-4'] }],
+    }))
+    const soldiers = entities.filter((e) => e.nota === 'Soldier')
+    expect(soldiers).toHaveLength(2)
+    expect(new Set(soldiers.map((e) => e.nome)).size).toBe(2)
+  })
+
+  it('funciona para N encontros sem mudança — itera adventure.encounters genericamente', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture({
+      npcs: [
+        { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },
+        { id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] },
+        { id: 'npc-4', name: 'Brute', role: 'Brute', interactions: [] },
+      ],
+      encounters: [
+        { id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2'] },
+        { id: 'encounter-2', locationId: 'loc-1', npcIds: ['npc-4'] },
+      ],
+    }))
+    const brute = entities.find((e) => e.nota === 'Brute')
+    expect(brute?.local).toBe('Clareira') // loc-1, o local do encounter-2
+    expect(entities.filter((e) => e.tipo === 'npc' && (e.nota === 'Soldier' || e.nota === 'Brute'))).toHaveLength(2)
+  })
+
+  it('encounters vazio não gera combatente algum', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture({ encounters: [] }))
+    expect(entities.some((e) => e.nota === 'Soldier')).toBe(false)
   })
 })
