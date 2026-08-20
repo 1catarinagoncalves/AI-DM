@@ -447,8 +447,24 @@ describe('AdventureService.createForCharacter', () => {
     await service.createForCharacter('char-1', { tone: 'heroic' })
 
     expect(gateSpy).toHaveBeenCalledWith(
-      expect.anything(), 'char-1', 1, { tone: 'heroic' },
+      expect.anything(), 'char-1', 1, 'pt-BR', { tone: 'heroic' },
     )
+  })
+
+  // US-178: locale do jogador (User.locale, já resolvido na linha 230) chega ao motor de
+  // geração — mesma variável que generateOpeningNarration já usava antes desta story.
+  it('locale de User.locale (en-US) é repassado a generateGatedAdventure (US-178)', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config }, user: { locale: 'en-US' },
+    }
+    const { prisma } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+    const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
+
+    await service.createForCharacter('char-1', {})
+
+    expect(gateSpy).toHaveBeenCalledWith(expect.anything(), 'char-1', 1, 'en-US', expect.anything())
   })
 
   // US-156: validação server-side de tone contra o catálogo do sistema — mesmo molde de
@@ -818,12 +834,12 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   }
 
   it('monta um GeneratedAdventure que passa em .parse() (US-144)', async () => {
-    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1)
+    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
 
   it('id = characterId:order; levelRange = { min, max } = profile.level; summary vem do rolado', async () => {
-    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 2)
+    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 2, 'pt-BR')
     expect(adventure.id).toBe('char-1:2')
     expect(adventure.levelRange).toEqual({ min: 1, max: 1 })
     expect(adventure.summary.length).toBeGreaterThan(0)
@@ -831,14 +847,14 @@ describe('AdventureService.generateAdventure (US-164)', () => {
 
   // US-172: `start` deixou de ser `profile.hookSeed` copiado — vem de `ai.generateOpeningBeat`.
   it('start vem de ai.generateOpeningBeat, não mais de profile.hookSeed', async () => {
-    const adventure = await service(fakeGenAi({ start: 'A porta racha ao meio.' })).generateAdventure(profile, 'char-1', 2)
+    const adventure = await service(fakeGenAi({ start: 'A porta racha ao meio.' })).generateAdventure(profile, 'char-1', 2, 'pt-BR')
     expect(adventure.start).toBe('A porta racha ao meio.')
     expect(adventure.start).not.toBe(profile.hookSeed)
   })
 
   it('generateOpeningBeat recebe registry/premissa/locations/npcs/secrets — NUNCA hookSeed', async () => {
     const seenOpeningParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ seenOpeningParams })).generateAdventure(profile, 'char-1', 1)
+    await service(fakeGenAi({ seenOpeningParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenOpeningParams).not.toHaveProperty('hookSeed')
     expect(seenOpeningParams.registry).toBeDefined()
     expect(seenOpeningParams.premissa).toBeDefined()
@@ -852,7 +868,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   // já tinham antes desta story.
   it('generateOpeningBeat recebe background/origin/complicacao (US-180)', async () => {
     const seenOpeningParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ seenOpeningParams })).generateAdventure(profile, 'char-1', 1)
+    await service(fakeGenAi({ seenOpeningParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenOpeningParams.background).toBeDefined()
     expect(seenOpeningParams.origin).toBeDefined()
     expect(seenOpeningParams.complicacao).toBeDefined()
@@ -862,7 +878,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   // mesma garantia estrutural que a US-172 já trouxe pra generateOpeningBeat.
   it('generateLocationsAndNpcs recebe rolled/registry/background — NUNCA hookSeed (US-174)', async () => {
     const seenLocationsParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ seenLocationsParams })).generateAdventure(profile, 'char-1', 1)
+    await service(fakeGenAi({ seenLocationsParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenLocationsParams).not.toHaveProperty('hookSeed')
     expect(seenLocationsParams.rolled).toBeDefined()
     expect(seenLocationsParams.registry).toBeDefined()
@@ -871,7 +887,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
 
   it('generateSecrets recebe locations/npcs/secretPrompts/background/origin — NUNCA hookSeed (US-174)', async () => {
     const seenSecretsParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ seenSecretsParams })).generateAdventure(profile, 'char-1', 1)
+    await service(fakeGenAi({ seenSecretsParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenSecretsParams).not.toHaveProperty('hookSeed')
     expect(seenSecretsParams.locations).toBeDefined()
     expect(seenSecretsParams.npcs).toBeDefined()
@@ -882,7 +898,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
 
   it('generateClosing recebe locations/npcs/secrets/registry/complicacao/premissa — NUNCA hookSeed (US-175)', async () => {
     const seenClosingParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ seenClosingParams })).generateAdventure(profile, 'char-1', 1)
+    await service(fakeGenAi({ seenClosingParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenClosingParams).not.toHaveProperty('hookSeed')
     expect(seenClosingParams.locations).toBeDefined()
     expect(seenClosingParams.npcs).toBeDefined()
@@ -893,7 +909,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   })
 
   it('encounters[0].locationId referencia locations[0]; npcIds referencia NPCs do próprio npcs[] final', async () => {
-    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1)
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
     expect(adventure.encounters).toHaveLength(1)
     expect(adventure.encounters[0]!.locationId).toBe('loc-1')
     expect(adventure.encounters[0]!.npcIds.length).toBeGreaterThan(0) // nível 5, modo aventura: limiar > 0
@@ -903,26 +919,26 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   })
 
   it('nível 1-3 (limiar de soma zero, US-160): encontro existe mas npcIds vazio, sem quebrar o parse', async () => {
-    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 1 }, 'char-1', 1)
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 1 }, 'char-1', 1, 'pt-BR')
     expect(adventure.encounters).toHaveLength(1)
     expect(adventure.encounters[0]!.npcIds).toEqual([])
   })
 
   it('npcs[] final inclui os NPCs do passo 2 (locais/NPCs) e os do passo 4 (combate)', async () => {
-    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1)
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
     expect(adventure.npcs.some((n) => n.id === 'npc-1')).toBe(true)
     expect(adventure.npcs.length).toBeGreaterThan(1)
   })
 
   it('mesmo characterId+order: registro e encounters[].npcIds deterministicos entre execuções (parte não-LLM)', async () => {
-    const a = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7)
-    const b = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7)
+    const a = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7, 'pt-BR')
+    const b = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7, 'pt-BR')
     expect(a.tone).toBe(b.tone)
     expect(a.encounters[0]!.npcIds).toEqual(b.encounters[0]!.npcIds)
   })
 
   it('registryOverrides é repassado ao rollAdventure — registro fixado, não sorteado', async () => {
-    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, { tone: 'heroic' })
+    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', { tone: 'heroic' })
     expect(adventure.tone).toBe('heroic')
   })
 })
@@ -954,7 +970,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
   it('grafo fechado (npc ocupa o local): gate passa na 1ª tentativa, sem reseed', async () => {
     const ai = fakeGenAi({ locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }] })
 
-    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1)
+    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1, 'pt-BR')
 
     expect(result.ok).toBe(true)
     expect(ai.generateLocationsAndNpcs).toHaveBeenCalledTimes(1)
@@ -964,7 +980,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
     const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const ai = fakeGenAi() // occupants: [] — npc-1 nunca referenciado, mesmo resultado em toda tentativa
 
-    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1)
+    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1, 'pt-BR')
 
     expect(result.ok).toBe(false)
     if (!result.ok) {

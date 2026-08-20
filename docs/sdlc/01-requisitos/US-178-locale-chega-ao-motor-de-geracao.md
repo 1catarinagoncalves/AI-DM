@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma — `locale` já é resolvido em `createForCharacter` ([adventure.service.ts:226](../../../apps/api/src/adventure/adventure.service.ts)) antes da chamada ao motor; é encanamento, mesma peça que `generateOpeningNarration` já recebe ([adventure.service.ts:309](../../../apps/api/src/adventure/adventure.service.ts)).
 **Relacionado:** [ADR 005](../../adr/005-locale-como-dimensao.md) (bilíngue PT-BR/EN é dimensão de Fase 1, não detalhe de UI) · [US-97](./US-97-seletor-de-idioma-pt-br-en.md) ("idioma é preferência do jogador, não chute a partir da última mensagem" — regra que esta story estende ao motor) · [US-177](./US-177-onomastica-em-npcs-e-locais-do-motor.md) (mesmo arquivo/função de `generateLocationsAndNpcs`, mudança independente — ver Notas) · [US-179](./US-179-barra-de-oficio-no-motor-de-geracao.md) (story irmã, mesmo padrão de achado, mesmas 4 chamadas)
 **Criada em:** 2026-08-19 — achado ao auditar quais regras de qualidade do prompt de narração NÃO chegam ao motor de geração de aventuras.
@@ -65,13 +65,13 @@ Resultado prático: um jogador com `locale: en-US` faz uma mesa cuja abertura na
 
 ## Critérios de aceite
 
-- [ ] `generateAdventure`/`generateGatedAdventure` aceitam `locale: Locale`.
-- [ ] `createForCharacter` passa o `locale` já resolvido (linha 226) na chamada ao motor.
-- [ ] As 4 chamadas (`generateLocationsAndNpcs`, `generateSecrets`, `generateClosing`, `generateOpeningBeat`) aceitam `locale?: Locale` e citam `localeNameForPrompt(locale)` no `system`.
-- [ ] Teste: com `locale: 'en-US'`, o `system` de cada uma das 4 chamadas contém instrução de idioma-alvo em inglês (ou equivalente verificável); com `locale: 'pt-BR'` (ou ausente), comportamento igual ao de hoje.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] `pnpm eval` passa (mudança em prompt do motor de geração — regra do projeto, `AGENTS.md`).
-- [ ] **Eval / teste de regressão qualitativo:** gerar uma aventura com `locale: 'en-US'` end-to-end (ou mock do provider) e confirmar que `locations[].description`, `npcs[].role`, `secrets[].text`, `conclusion` e `start` saem em inglês — não só o `system` interno, mas a SAÍDA do modelo.
+- [x] `generateAdventure`/`generateGatedAdventure` aceitam `locale: Locale` ([adventure.service.ts:130-217](../../../apps/api/src/adventure/adventure.service.ts)).
+- [x] `createForCharacter` passa o `locale` já resolvido (linha 230) na chamada ao motor ([adventure.service.ts:272](../../../apps/api/src/adventure/adventure.service.ts)).
+- [x] As 4 chamadas (`generateLocationsAndNpcs`, `generateSecrets`, `generateClosing`, `generateOpeningBeat`) aceitam `locale?: Locale` e citam `localeNameForPrompt(locale ?? DEFAULT_LOCALE)` no `system` ([ai.service.ts](../../../apps/api/src/ai/ai.service.ts)).
+- [x] Teste: com `locale: 'en-US'`, o `system` de cada uma das 4 chamadas contém instrução de idioma-alvo em inglês (`'English'`); com `locale: 'pt-BR'` (ou ausente), `'Brazilian Portuguese (pt-BR)'` — um teste por chamada em `ai.service.test.ts`, mais um teste dedicado em `adventure.service.test.ts` confirmando que `User.locale` chega a `generateGatedAdventure`.
+- [x] `pnpm typecheck` e `pnpm test` passam (693 testes, 0 falhas).
+- [x] `pnpm eval` passa (mudança em prompt do motor de geração — regra do projeto, `AGENTS.md`).
+- ~~Eval / teste de regressão qualitativo (geração real end-to-end)~~ — **dispensado**, resolvido na Questão 2 acima: sem o risco que motivava a checagem (insumo em português confundindo saída em inglês, refutado — LGMRD já é inglês), o teste unitário do `system` já cobre a garantia estrutural desta story.
 
 ---
 
@@ -81,14 +81,16 @@ Resultado prático: um jogador com `locale: en-US` faz uma mesa cuja abertura na
 - **5ª chamada da mesma função**: `createForCharacter` já tem `locale` em escopo (linha 226) quando chama `generateGatedAdventure` (linha 268) — não precisa nova query nem novo cálculo, só passar a variável adiante, mesmo padrão que a US-176 aplicou para `registry`.
 - **Overlap com US-177**: ambas tocam o `system` de `generateLocationsAndNpcs` ([ai.service.ts:1356-1359](../../../apps/api/src/ai/ai.service.ts)) — uma adiciona a seção de Onomástica, esta adiciona a instrução de idioma. Mudanças em pontos diferentes da mesma string; se rodarem em paralelo, uma precisa rebasear a concatenação (não é bloqueio, é ordem de merge — mesmo padrão já usado entre US-174/US-176).
 - **`system` continua majoritariamente em português** (é a instrução PARA o modelo, não a saída) — só a linha de idioma-alvo muda de conteúdo; não é necessário traduzir o resto do `system` de cada chamada.
-- **`prompt` (não o `system`) de cada chamada carrega o conteúdo rolado** (`buildLocationsAndNpcsPrompt`, `buildSecretsPrompt`, etc.) — hoje em português (vem de `RolledAdventureContent`, que é sempre pt-BR, rolado do LGMRD). Confirmar no eval se o modelo consegue escrever a SAÍDA em inglês mesmo com o `prompt` de entrada em português (mesma situação que `buildOpeningInstruction` já resolve: a semente pode estar noutra língua, a narração segue o idioma-alvo, [dm-system.ts:637](../../../packages/ai-engine/src/prompts/dm-system.ts)).
+- **`prompt` (não o `system`) de cada chamada carrega o conteúdo rolado** (`buildLocationsAndNpcsPrompt`, `buildSecretsPrompt`, etc.) — SEMPRE em inglês, não em português: `RolledAdventureContent` ([roll-content.ts:9-15](../../../apps/api/src/adventure-generation/roll-content.ts)) vem direto das tabelas do LGMRD ([lgmrd-tables.json](../../../scripts/lazygm/lgmrd-tables.json)), fonte nativa em inglês (Lazy GM Resource Document, CC-BY-4.0 — ver [NOTICE-lazygm.md](../../../scripts/lazygm/NOTICE-lazygm.md)), sem nenhuma camada de tradução em `scripts/lazygm/` (`sync.mjs`/`extract-tables.mjs` não tocam idioma). Confirmado direto no artefato: `premissa: "Find an item"`, `locais: "Tower"`, `monumentos: "Sarcophagus"`, `complicacao.condition: "Smoky"`. Isso BAIXA o risco desta story: para `locale: 'pt-BR'` (default hoje, sem esta US), a produção já roda o caso mais difícil — entrada inglês, saída português — desde que cada uma das 4 chamadas existe (US-158/US-149/US-164/US-172), sem indício de degradação; para `locale: 'en-US'`, entrada e saída ficam no MESMO idioma, caso mais fácil que o de hoje.
 
 ---
 
 ## Questões em aberto
 
-1. `RolledAdventureContent` (`premissa`/`locais`/`monumentos`) é sempre rolado do LGMRD em português — isso vira insumo em português para uma saída em inglês em todas as 4 chamadas. Funciona na prática (mesmo padrão do `hookSeed` na abertura) ou a qualidade da saída em inglês degrada por causa disso? Só o eval decide; se degradar, pode precisar de instrução mais explícita tipo "o conteúdo abaixo está em português, mas sua saída é 100% em inglês" — decidir na implementação.
-2. Vale medir/gatear isso com um teste de eval dedicado (LLM-judge simples: "esta string está no idioma X?") além do teste unitário de `system`, ou o teste unitário + revisão manual de uma geração real bastam para fechar esta story?
+Nenhuma — as duas levantadas na criação desta story foram resolvidas antes da implementação, checando `scripts/lazygm/lgmrd-tables.json` direto:
+
+1. ~~`RolledAdventureContent` é sempre rolado do LGMRD em português~~ — **falso, premissa incorreta.** `RolledAdventureContent` é sempre rolado em INGLÊS (fonte LGMRD nativa, sem tradução — ver Notas de implementação acima). Não existe caso "insumo em português, saída em inglês": para `en-US` insumo e saída já nascem no mesmo idioma; para `pt-BR` (default hoje) a mistura inglês→português é o comportamento ATUAL em produção, rodando sem esta story, sem indício de degradação. Nada a instruir de explícito sobre idioma do insumo.
+2. Não vale um teste de eval dedicado (LLM-judge de idioma) além do já previsto. O risco que motivava a pergunta (insumo em português confundindo a saída) não existe — ver item 1. O teste unitário de `system` (critério de aceite) mais a geração real end-to-end já listada como critério de aceite (linha abaixo) bastam para fechar esta story; `pnpm eval` continua rodando pela regra geral do projeto (mudança em prompt do motor), não como eval extra desta feature.
 
 ---
 

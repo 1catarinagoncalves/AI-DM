@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type GeneratedAdventure } from '@ai-dm/shared'
+import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
@@ -131,6 +131,7 @@ export class AdventureService {
     profile: AdventureProfile,
     characterId: string,
     order: number,
+    locale: Locale,
     registryOverrides: AdventureRegistryOverrides = {},
     attempt = 0,
   ): Promise<GeneratedAdventure> {
@@ -140,6 +141,7 @@ export class AdventureService {
       rolled: content,
       registry,
       background: profile.background,
+      locale,
     })
 
     const secrets = await this.ai.generateSecrets({
@@ -149,6 +151,7 @@ export class AdventureService {
       registry,
       background: profile.background,
       origin: profile.origin,
+      locale,
     })
 
     const encounterNpcs = buildEncounterNpcs(composeEncounterRoles(profile.level), npcs)
@@ -169,6 +172,7 @@ export class AdventureService {
         registry,
         complicacao: content.complicacao,
         premissa: content.premissa,
+        locale,
       }),
       this.ai.generateOpeningBeat({
         locations,
@@ -179,6 +183,7 @@ export class AdventureService {
         origin: profile.origin,
         complicacao: content.complicacao,
         premissa: content.premissa,
+        locale,
       }),
     ])
 
@@ -207,11 +212,12 @@ export class AdventureService {
     profile: AdventureProfile,
     characterId: string,
     order: number,
+    locale: Locale,
     registryOverrides: AdventureRegistryOverrides = {},
     maxAttempts = 3,
   ): Promise<GateResult> {
     return generateWithGate(
-      (attempt) => this.generateAdventure(profile, characterId, order, registryOverrides, attempt),
+      (attempt) => this.generateAdventure(profile, characterId, order, locale, registryOverrides, attempt),
       maxAttempts,
     )
   }
@@ -269,7 +275,7 @@ export class AdventureService {
     // gancho (`profile.hookSeed`) só ancora a abertura, não decide mais locais/NPCs/segredos/
     // quest. Gate (US-150) antes de persistir; teto de tentativas esgotado → sem fallback
     // estático (ao contrário de generateOpeningNarration, não existe aventura fixa pra cair).
-    const gateResult = await this.generateGatedAdventure(profile, characterId, order, {
+    const gateResult = await this.generateGatedAdventure(profile, characterId, order, locale, {
       tone: dto.tone ? this.validateCatalogKey(config.tones, dto.tone, 'Tom') : undefined,
     })
     if (!gateResult.ok) throw new Error(gateResult.reason)

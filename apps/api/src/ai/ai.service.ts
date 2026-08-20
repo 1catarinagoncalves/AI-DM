@@ -3,7 +3,7 @@ import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
 import type { AdventureLocation, AdventureNpc, AdventureSecret, GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
-import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, type Locale } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, DEFAULT_LOCALE, localeNameForPrompt, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -1367,6 +1367,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     rolled: RolledAdventureContent
     registry: AdventureRegistry
     background?: CharacterBackground
+    locale?: Locale
   }): Promise<{ locations: AdventureLocation[]; npcs: AdventureNpc[] }> {
     const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
     // US-174: rede de segurança quando `background` vem vazio deixou de citar o gancho
@@ -1375,6 +1376,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     const bondsInstruction = bonds.length > 0
       ? `Vínculos da personagem — amarre AO MENOS UM NPC (por nome ou papel) a um destes: ${bonds.join('; ')}.`
       : 'Sem vínculos registrados — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
+    // US-178: `system` continua em português (instrução PARA o modelo) — só a SAÍDA segue
+    // o locale do jogador, mesmo padrão de `buildDmSystemPrompt` (dm-system.ts:260).
+    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
     const { object, providerMetadata } = await generateObject({
       model: primaryModel,
@@ -1383,6 +1387,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
         `Tom: ${params.registry.tone}. ${bondsInstruction} ` +
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a regra de Onomástica abaixo, não o idioma-alvo. ` +
         ONOMASTICS_SECTION,
       prompt: buildLocationsAndNpcsPrompt(params.rolled),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
@@ -1430,6 +1435,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     registry: AdventureRegistry
     background?: CharacterBackground
     origin?: { connection?: string; memento?: string }
+    locale?: Locale
   }): Promise<AdventureSecret[]> {
     const anchors = characterAnchors(params)
     // US-174: rede de segurança quando `background`/`origin` vêm vazios deixou de citar
@@ -1438,6 +1444,8 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     const anchorInstruction = anchors.length > 0
       ? `Contexto da personagem — ancore ao menos um segredo a um destes: ${anchors.join('; ')}.`
       : 'Sem background/origin registrados — ancore os segredos ao que já foi rolado para esta aventura (registry/local/NPC).'
+    // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
+    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
     const { object, providerMetadata } = await generateObject({
       model: primaryModel,
@@ -1447,7 +1455,8 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Para cada segredo, responda a UMA das perguntas-molde dadas, ancorando o fato em um local ou NPC REAL da lista recebida — nunca invente local, NPC ou fato fora do que foi dado. ' +
         '`locationId` DEVE ser um dos ids de LOCAIS recebidos (nunca um id de NPC), o mais relevante ao segredo. ' +
         'Para segredo de NPC/vilão, use o "(local: ...)" indicado ao lado do NPC se houver; senão, escolha o local mais relevante da lista. ' +
-        `Tom: ${params.registry.tone}. ${anchorInstruction}`,
+        `Tom: ${params.registry.tone}. ${anchorInstruction} ` +
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.`,
       prompt: buildSecretsPrompt(params.locations, params.npcs, params.secretPrompts),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
@@ -1480,7 +1489,11 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     registry: AdventureRegistry
     complicacao: { condition: string; description: string; origin: string }
     premissa: string
+    locale?: Locale
   }): Promise<{ conclusion: string; followUps: string[] }> {
+    // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
+    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
+
     const { object, providerMetadata } = await generateObject({
       model: primaryModel,
       schema: CLOSING_SCHEMA,
@@ -1489,7 +1502,8 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Escreva a CONCLUSÃO (2-3 parágrafos) resolvendo a premissa e a complicação, ancorada nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova. ' +
         'Se a premissa sugerir um antagonista, ele aparece só como PROSA no fecho, não precisa ser um NPC já listado. ' +
         `Tom: ${params.registry.tone}. ` +
-        'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura.',
+        'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura. ' +
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.`,
       prompt: buildClosingPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
@@ -1526,11 +1540,14 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     origin?: { connection?: string; memento?: string }
     complicacao: { condition: string; description: string; origin: string }
     premissa: string
+    locale?: Locale
   }): Promise<{ start: string }> {
     const anchors = characterAnchors(params)
     const anchorInstruction = anchors.length > 0
       ? `Vínculo pessoal da personagem — prefira ancorar a cena no local/NPC mais alinhado a um destes: ${anchors.join('; ')}.`
       : 'Sem vínculo pessoal registrado — ancore a cena ao que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
+    // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
+    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
     const { object, providerMetadata } = await generateObject({
       model: primaryModel,
@@ -1543,7 +1560,8 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Escolha o ESTILO da abertura pelo que premissa/complicação sugerir, sem viés padrão para violência: ' +
         'ENRAIZADA (preferida quando nada aponta violência) — chegada a um local vivo ou encontro com um NPC, de preferência o ligado ao vínculo pessoal acima, com a complicação já pairando como tensão perceptível, sem exigir luta. ' +
         'CONFRONTO (quando premissa/complicação/secrets tornarem a violência a leitura mais natural — perseguição, ataque em curso, monstro solto) — ameaça ou luta já em ação. ' +
-        `Tom: ${params.registry.tone}.`,
+        `Tom: ${params.registry.tone}. ` +
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.`,
       prompt: buildOpeningBeatPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })

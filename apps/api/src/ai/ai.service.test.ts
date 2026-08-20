@@ -408,6 +408,16 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     await svc().generateLocationsAndNpcs({ rolled, registry })
     expect(genObj.system).toContain(ONOMASTICS_SECTION)
   })
+
+  it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR (US-178)', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry, locale: 'en-US' })
+    expect(genObj.system).toContain('English')
+
+    await svc().generateLocationsAndNpcs({ rolled, registry })
+    expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
+  })
 })
 
 describe('AiService.generateSecrets (US-149)', () => {
@@ -490,6 +500,16 @@ describe('AiService.generateSecrets (US-149)', () => {
     genObj.error = new Error('modelo indisponível')
     await expect(svc().generateSecrets({ locations, npcs, secretPrompts, registry })).rejects.toThrow('modelo indisponível')
   })
+
+  it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR (US-178)', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, registry, locale: 'en-US' })
+    expect(genObj.system).toContain('English')
+
+    await svc().generateSecrets({ locations, npcs, secretPrompts, registry })
+    expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
+  })
 })
 
 describe('AiService.generateClosing (US-164)', () => {
@@ -550,6 +570,16 @@ describe('AiService.generateClosing (US-164)', () => {
     expect(genObj.system).not.toContain(hookSeed)
     expect(genObj.prompt).not.toContain(hookSeed)
     expect(genObj.prompt).not.toContain('Elara')
+  })
+
+  it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR (US-178)', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', locale: 'en-US' })
+    expect(genObj.system).toContain('English')
+
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
   })
 })
 
@@ -661,6 +691,16 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
     expect(genObj.system).not.toContain('Sem conflito óbvio na premissa/locations/npcs/secrets recebidos, abra com confronto ou ameaça imediata.')
     expect(genObj.system).toContain('ENRAIZADA')
     expect(genObj.system).toContain('CONFRONTO')
+  })
+
+  it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR (US-178)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', locale: 'en-US' })
+    expect(genObj.system).toContain('English')
+
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
   })
 })
 
