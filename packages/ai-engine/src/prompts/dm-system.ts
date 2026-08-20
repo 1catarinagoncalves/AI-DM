@@ -635,10 +635,15 @@ export function buildOpeningInstruction(params: { characterName: string; hookSee
   const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
   // US-168: `mainQuest` (a aventura gerada) domina a fagulha da cena quando presente;
   // `hookSeed` (gancho fixo por classe) só volta como semente na ausência dele.
+  // "Expand" contradizia o "Stay concise: 3-5 short paragraphs" do NARRATIVE_CRAFT_SECTION
+  // logo abaixo (mesmo system prompt) — o modelo lia "inflar" e "ser conciso" ao mesmo
+  // tempo. `mainQuest` já chega como beat pronto (generateOpeningBeat, 1-2 parágrafos);
+  // pedir para RENDERIZAR essa cena, não para expandi-la, tira a instrução que empurrava
+  // pra prosa mais longa que a própria régua permite.
   const spark = mainQuest
-    ? `Use this as the spark for the scene — it is the adventure generated for this character. Expand it into a full cinematic opening that meets the Narrative craft bar; do NOT quote it verbatim:
+    ? `Use this as the spark for the scene — it is the adventure generated for this character. Render it as the opening scene, matching the Narrative craft bar; do NOT quote it verbatim:
 "${mainQuest}"`
-    : `Use this seed as the spark for the scene. Expand it into a full cinematic opening that meets the Narrative craft bar; do NOT quote it verbatim:
+    : `Use this seed as the spark for the scene. Render it as the opening scene, matching the Narrative craft bar; do NOT quote it verbatim:
 "${hookSeed}"`
   return `This is the OPENING of the adventure. The player has NOT acted yet — you are setting the very first scene, before any player action.
 
@@ -646,7 +651,7 @@ Write the scene in ${targetLanguage}. The seed below may be written in another l
 
 ${spark}
 
-Follow the Narrative craft bar: open on the senses, name concrete things, use ${characterName}'s race and class as a lens on the world, give any NPC a voice and real stakes, then close by addressing ${characterName} by name followed by the action options.
+Follow the Narrative craft bar: open on the senses, name concrete things, use ${characterName}'s race and class as a lens on the world, give any NPC a voice and real stakes, stay within 3-5 short paragraphs, then close by addressing ${characterName} by name followed by the action options.
 
 Obey the Onomastics rule from the first scene: any NPC, place or thing you name must be an ORIGINAL name (never a generic default name) whose SOUND fits ${characterName}'s race/class and the scene's setting — pick the register on purpose, don't fall back to generic fantasy names.
 
