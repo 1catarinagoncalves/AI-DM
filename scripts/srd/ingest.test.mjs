@@ -336,12 +336,9 @@ test('artefato: en-US traz o kit em inglês', () => {
 
 // US-139: a troca de fonte (5.2 → 5.1 + a5e-ag) mudou o TEXTO CRU do equipamento inicial das
 // 13 classes (de linha de tabela pra prosa com bullets) — o overlay `kitItems` curado pro
-// formato antigo não casa mais com as chaves novas. Kit inicial não é MT_DOMAINS (mesma decisão
-// da US-134 pra `tools`: curadoria manual, "grande demais pra uma sentada só"), então esta
-// lacuna NÃO é gate de teste — é gate de `--strict` (o mesmo mecanismo genérico de fallback que
-// já cobre features/spells/backgrounds/tools, ver `resolve()`), igual a todo outro domínio.
-// Pendência registrada: `pnpm srd:ingest --strict` falha até a curadoria de `locale/pt-BR.json`
-// → `kitItems` cobrir as novas chaves (ver relatório "FALLBACK EN" do ingest).
+// formato antigo não casava mais com as chaves novas, e as 13 classes caíam em fallback EN
+// silencioso (só visível no relatório de console do ingest, ninguém é obrigado a ler). Curadoria
+// feita — ver teste abaixo, que fecha o mesmo gate que já protegia `parseBackgroundEquipment`.
 
 // A chave de feature é prefixada pela classe (duas classes têm "Defesa sem Armadura"); a de
 // magia não (a mesma `light` serve mago e clérigo). Trocar isso quebra o casamento com o overlay.
@@ -859,6 +856,23 @@ test('parseBackgroundEquipment: nenhum item novo de equipamento fica sem traduç
   }
   const untranslated = [...names].filter((n) => !overlay.kitItems?.[n])
   assert.deepEqual(untranslated, [], `item(ns) de equipamento sem entrada em kitItems: ${untranslated.join(', ')}`)
+})
+
+// US-139 (regressão): mesmo gate acima, agora para o equipamento inicial de CLASSE
+// (`buildStartingKits`) — a lacuna que deixou as 13 classes em fallback EN silencioso.
+test('parseSrdEquipmentBullets/parseA5ePackageEquipment: nenhum item de kit de classe fica sem tradução em kitItems', () => {
+  const featuresRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeature.json'), 'utf8'))
+    .concat(JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeature.a5e-ag.json'), 'utf8')))
+  const overlay = JSON.parse(readFileSync(OVERLAY_PATH, 'utf8'))
+  const kitFeatures = featuresRaw.filter((f) => f.fields.feature_type === 'STARTING_EQUIPMENT')
+  assert.equal(kitFeatures.length, 13, 'dataset mudou de tamanho — reveja as 13 classes')
+  const names = new Set()
+  for (const f of kitFeatures) {
+    const items = f.fields.document === 'a5e-ag' ? parseA5ePackageEquipment(f.fields.desc) : parseSrdEquipmentBullets(f.fields.desc)
+    for (const item of items) names.add(item.name)
+  }
+  const untranslated = [...names].filter((n) => !overlay.kitItems?.[n])
+  assert.deepEqual(untranslated, [], `item(ns) de kit de classe sem entrada em kitItems: ${untranslated.join(', ')}`)
 })
 
 // --- US-130 — Culture/Engineering: literal A5E fora do Skill.json, mesma resolução via overlay ---

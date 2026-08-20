@@ -4378,55 +4378,55 @@
   "startingKits": {
     "barbarian": [
       {
-        "name": "Greataxe",
+        "name": "Machado Grande",
         "qty": 1
       },
       {
-        "name": "Two Handaxes",
+        "name": "Duas Machadinhas",
         "qty": 1
       },
       {
-        "name": "Explorer’s Pack and Four Javelins",
+        "name": "Mochila de Explorador e Quatro Azagaias",
         "qty": 1
       }
     ],
     "bard": [
       {
-        "name": "Rapier",
+        "name": "Rapieira",
         "qty": 1
       },
       {
-        "name": "Diplomat’s Pack",
+        "name": "Mochila de Diplomata",
         "qty": 1
       },
       {
-        "name": "Lute",
+        "name": "Alaúde",
         "qty": 1
       },
       {
-        "name": "Leather Armor and a Dagger",
+        "name": "Armadura de Couro e Uma Adaga",
         "qty": 1
       }
     ],
     "cleric": [
       {
-        "name": "Mace",
+        "name": "Maça",
         "qty": 1
       },
       {
-        "name": "Scale Mail",
+        "name": "Cota de Escamas",
         "qty": 1
       },
       {
-        "name": "Light Crossbow and 20 Bolts",
+        "name": "Besta Leve e 20 Virotes",
         "qty": 1
       },
       {
-        "name": "Priest’s Pack",
+        "name": "Mochila de Sacerdote",
         "qty": 1
       },
       {
-        "name": "Shield and a Holy Symbol",
+        "name": "Escudo e Um Símbolo Sagrado",
         "qty": 1
       }
     ],
@@ -4450,201 +4450,201 @@
     ],
     "druid": [
       {
-        "name": "Wooden Shield",
+        "name": "Escudo de Madeira",
         "qty": 1
       },
       {
-        "name": "Scimitar",
+        "name": "Cimitarra",
         "qty": 1
       },
       {
-        "name": "Leather Armor",
+        "name": "Armadura de Couro",
         "qty": 1
       },
       {
-        "name": "Explorer’s Pack",
+        "name": "Mochila de Explorador",
         "qty": 1
       },
       {
-        "name": "Druidic Focus",
+        "name": "Foco Druídico",
         "qty": 1
       }
     ],
     "fighter": [
       {
-        "name": "Chain Mail",
+        "name": "Cota de Malha",
         "qty": 1
       },
       {
-        "name": "Martial Weapon and a Shield",
+        "name": "Arma Marcial e Um Escudo",
         "qty": 1
       },
       {
-        "name": "Light Crossbow and 20 Bolts",
+        "name": "Besta Leve e 20 Virotes",
         "qty": 1
       },
       {
-        "name": "Dungeoneer’s Pack",
+        "name": "Mochila de Masmorra",
         "qty": 1
       }
     ],
     "marshal": [
       {
-        "name": "Javelin",
+        "name": "Azagaia",
         "qty": 6
       },
       {
-        "name": "Longsword",
+        "name": "Espada Longa",
         "qty": 1
       },
       {
-        "name": "Hauberk",
+        "name": "Cota de Malha Longa",
         "qty": 1
       },
       {
-        "name": "Light Shield",
+        "name": "Escudo Leve",
         "qty": 1
       },
       {
-        "name": "Explorer's Pack",
+        "name": "Mochila de Explorador",
         "qty": 1
       }
     ],
     "monk": [
       {
-        "name": "Shortsword",
+        "name": "Espada Curta",
         "qty": 1
       },
       {
-        "name": "Dungeoneer’s Pack",
+        "name": "Mochila de Masmorra",
         "qty": 1
       },
       {
-        "name": "Dart",
+        "name": "Dardo",
         "qty": 10
       }
     ],
     "paladin": [
       {
-        "name": "Martial Weapon and a Shield",
+        "name": "Arma Marcial e Um Escudo",
         "qty": 1
       },
       {
-        "name": "Five Javelins",
+        "name": "Cinco Azagaias",
         "qty": 1
       },
       {
-        "name": "Priest’s Pack",
+        "name": "Mochila de Sacerdote",
         "qty": 1
       },
       {
-        "name": "Chain Mail and a Holy Symbol",
+        "name": "Cota de Malha e Um Símbolo Sagrado",
         "qty": 1
       }
     ],
     "ranger": [
       {
-        "name": "Scale Mail",
+        "name": "Cota de Escamas",
         "qty": 1
       },
       {
-        "name": "Two Shortswords",
+        "name": "Duas Espadas Curtas",
         "qty": 1
       },
       {
-        "name": "Dungeoneer’s Pack",
+        "name": "Mochila de Masmorra",
         "qty": 1
       },
       {
-        "name": "Longbow and a Quiver of 20 Arrows",
+        "name": "Arco Longo e Uma Aljava com 20 Flechas",
         "qty": 1
       }
     ],
     "rogue": [
       {
-        "name": "Rapier",
+        "name": "Rapieira",
         "qty": 1
       },
       {
-        "name": "Shortbow and Quiver of 20 Arrows",
+        "name": "Arco Curto e Uma Aljava com 20 Flechas",
         "qty": 1
       },
       {
-        "name": "Burglar’s Pack",
+        "name": "Mochila de Ladrão",
         "qty": 1
       },
       {
-        "name": "Leather Armor",
+        "name": "Armadura de Couro",
         "qty": 1
       },
       {
-        "name": "Two Daggers",
+        "name": "Duas Adagas",
         "qty": 1
       },
       {
-        "name": "Thieves’ Tools",
+        "name": "Ferramentas de Ladrão",
         "qty": 1
       }
     ],
     "sorcerer": [
       {
-        "name": "Light Crossbow and 20 Bolts",
+        "name": "Besta Leve e 20 Virotes",
         "qty": 1
       },
       {
-        "name": "Component Pouch",
+        "name": "Bolsa de Componentes",
         "qty": 1
       },
       {
-        "name": "Dungeoneer’s Pack",
+        "name": "Mochila de Masmorra",
         "qty": 1
       },
       {
-        "name": "Two Daggers",
+        "name": "Duas Adagas",
         "qty": 1
       }
     ],
     "warlock": [
       {
-        "name": "Light Crossbow and 20 Bolts",
+        "name": "Besta Leve e 20 Virotes",
         "qty": 1
       },
       {
-        "name": "Component Pouch",
+        "name": "Bolsa de Componentes",
         "qty": 1
       },
       {
-        "name": "Scholar’s Pack",
+        "name": "Mochila de Erudito",
         "qty": 1
       },
       {
-        "name": "Leather Armor",
+        "name": "Armadura de Couro",
         "qty": 1
       },
       {
-        "name": "Any Simple Weapon",
+        "name": "Qualquer Arma Simples",
         "qty": 1
       },
       {
-        "name": "Two Daggers",
+        "name": "Duas Adagas",
         "qty": 1
       }
     ],
     "wizard": [
       {
-        "name": "Quarterstaff",
+        "name": "Bordão",
         "qty": 1
       },
       {
-        "name": "Component Pouch",
+        "name": "Bolsa de Componentes",
         "qty": 1
       },
       {
-        "name": "Scholar’s Pack",
+        "name": "Mochila de Erudito",
         "qty": 1
       },
       {
-        "name": "Spellbook",
+        "name": "Grimório",
         "qty": 1
       }
     ]
