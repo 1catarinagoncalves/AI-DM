@@ -245,6 +245,10 @@ describe('AdventureService.createForCharacter', () => {
         nome: 'Marta', tipo: 'npc', local: 'Enseada Cinzenta',
         nota: 'herborista suspeita', revelado: true, atualizadoEm: expect.any(String),
       },
+      {
+        nome: 'Enseada Cinzenta', tipo: 'local',
+        nota: 'x', revelado: false, atualizadoEm: expect.any(String),
+      },
     ])
   })
 
@@ -318,6 +322,7 @@ describe('AdventureService.createForCharacter', () => {
     expect(seen['entities']).toEqual([
       expect.objectContaining({ nome: 'secret-1' }),
       expect.objectContaining({ nome: 'Marta' }),
+      expect.objectContaining({ nome: 'Enseada Cinzenta' }),
     ])
   })
 

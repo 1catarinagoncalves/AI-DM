@@ -35,7 +35,17 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
       atualizadoEm: now,
     }))
 
-  return [...secretEntities, ...npcEntities]
+  // US-170: prosa de `boxedText`/`aspects` (US-158) ficava órfã — nunca lida fora do
+  // teste. `revelado: false` sempre: nenhum local nasce "conhecido" (Questão #1 da US).
+  const locationEntities: WorldEntity[] = adventure.locations.map((location) => ({
+    nome: location.title,
+    tipo: 'local',
+    nota: [location.boxedText, location.aspects.join(', ')].filter(Boolean).join(' — '),
+    revelado: false,
+    atualizadoEm: now,
+  }))
+
+  return [...secretEntities, ...npcEntities, ...locationEntities]
 }
 
 // NPC narrativo nunca aparece em `encounters[].npcIds` (só combate aparece lá) — o

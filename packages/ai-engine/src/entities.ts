@@ -61,7 +61,12 @@ export function mergeEntities(
   for (const patch of patches) {
     const nome = patch.nome?.trim()
     if (!nome) continue
-    const idx = result.findIndex((e) => norm(e.nome) === norm(nome))
+    // US-170: patch com `tipo` desambigua nome colidindo entre tipos (ex.: local "O
+    // Bruxo" e NPC "O Bruxo"). Sem `tipo` no patch, casa só por nome (retrocompat —
+    // ~20 patches de teste existentes atualizam campo sem reenviar `tipo`).
+    const idx = result.findIndex((e) =>
+      norm(e.nome) === norm(nome) && (patch.tipo === undefined || e.tipo === patch.tipo),
+    )
     if (idx === -1) {
       const { relacoes: relacoesPatch, ...rest } = patch
       result.push({ ...rest, nome, relacoes: mergeEdges(undefined, relacoesPatch, now), atualizadoEm: now })

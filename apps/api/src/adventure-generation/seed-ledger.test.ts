@@ -34,9 +34,9 @@ function adventureFixture(overrides: Partial<GeneratedAdventure> = {}): Generate
 }
 
 describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
-  it('produz exatamente 5 entidades: 3 segredos + 2 NPCs narrativos, NPC de combate fora', () => {
+  it('produz exatamente 7 entidades: 3 segredos + 2 NPCs narrativos + 2 locais, NPC de combate fora', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
-    expect(entities).toHaveLength(5)
+    expect(entities).toHaveLength(7)
     expect(entities.some((e) => e.nome === 'npc-2' || e.nome === 'Soldier')).toBe(false)
   })
 
@@ -71,6 +71,30 @@ describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
     const orfao = entities.find((e) => e.nome === 'Órfão')
     expect(orfao).toBeDefined()
     expect(orfao?.local).toBeUndefined()
+  })
+
+  it('mapeia local com tipo local, revelado false, sem campo local próprio, nota combina boxedText+aspects', () => {
+    const [, , , , , clareira] = seedLedgerFromGeneratedAdventure(adventureFixture())
+    expect(clareira).toEqual({
+      nome: 'Clareira',
+      tipo: 'local',
+      nota: 'Você chega à clareira. — névoa',
+      revelado: false,
+      atualizadoEm: expect.any(String),
+    })
+  })
+
+  it('local sem aspects produz nota só com boxedText, sem local próprio (undefined)', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
+    const ruina = entities.find((e) => e.nome === 'Ruína')
+    expect(ruina).toEqual({
+      nome: 'Ruína',
+      tipo: 'local',
+      nota: 'x',
+      revelado: false,
+      atualizadoEm: expect.any(String),
+    })
+    expect(ruina?.local).toBeUndefined()
   })
 
   it('artefato sem segredos nem NPCs narrativos produz ledger vazio', () => {

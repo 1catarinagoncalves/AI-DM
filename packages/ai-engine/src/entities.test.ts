@@ -65,6 +65,31 @@ describe('mergeEntities', () => {
     expect(spread[0]).toMatchObject({ sabido: 'publico', revelado: true })
   })
 
+  // US-170: nome colide entre tipos (local nomeado pelo ocupante, ex. "O Bruxo" NPC
+  // e "O Bruxo" local). Patch com `tipo` desambigua; sem `tipo`, casa por nome só
+  // (comportamento antigo, primeira colisão — ambíguo quando o modelo não diz o tipo).
+  it('patch com tipo casa só a entidade do tipo certo quando nome colide entre tipos', () => {
+    const current: WorldEntity[] = [
+      { nome: 'O Bruxo', tipo: 'npc', estado: 'hostil', atualizadoEm: '2020-01-01' },
+      { nome: 'O Bruxo', tipo: 'local', nota: 'cabana no pântano', atualizadoEm: '2020-01-01' },
+    ]
+    const out = mergeEntities(current, [{ nome: 'O Bruxo', tipo: 'local', nota: 'cabana em chamas' }])
+    expect(out).toHaveLength(2)
+    expect(out.find((e) => e.tipo === 'npc')).toMatchObject({ estado: 'hostil' })
+    expect(out.find((e) => e.tipo === 'local')).toMatchObject({ nota: 'cabana em chamas' })
+  })
+
+  it('patch sem tipo casa pela primeira colisão de nome (comportamento antigo preservado)', () => {
+    const current: WorldEntity[] = [
+      { nome: 'O Bruxo', tipo: 'npc', estado: 'hostil', atualizadoEm: '2020-01-01' },
+      { nome: 'O Bruxo', tipo: 'local', nota: 'cabana no pântano', atualizadoEm: '2020-01-01' },
+    ]
+    const out = mergeEntities(current, [{ nome: 'O Bruxo', estado: 'morto' }])
+    expect(out).toHaveLength(2)
+    expect(out[0]).toMatchObject({ tipo: 'npc', estado: 'morto' })
+    expect(out[1]).toMatchObject({ tipo: 'local', nota: 'cabana no pântano' })
+  })
+
   // US-113: retrocompat — entidade gravada antes desta US não tem `relacoes`, e um
   // patch que não toca `relacoes` não pode inventar a chave.
   it('preserva entidade sem relacoes quando o patch não menciona relacoes', () => {
