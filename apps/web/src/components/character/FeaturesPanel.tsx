@@ -9,10 +9,12 @@ import { useLocale, useT } from '@/components/LocaleProvider'
 // persistência (US-100), sem papel na exibição.
 // US-136: `origin` é opcional — só `resolveCharacterFeatures` o preenche; qualquer outro
 // chamador (nenhum conhecido hoje) continua funcionando sem badge.
+// US-142: traço de raça também chega marcado `origin: 'race'`, mas esta aba é só classe/origem
+// (US-41/US-136 nunca cobriram raça) — filtrado antes de renderizar, não vira badge novo.
 export interface ClassFeature {
   name: string
   description: string
-  origin?: 'class' | 'background'
+  origin?: 'class' | 'background' | 'race'
 }
 
 // US-41/US-50: painel da aba Features da ficha. Read-only, awareness — nome + descrição curta.
@@ -29,7 +31,7 @@ export function FeaturesPanel({ features, spells }: { features?: ClassFeature[];
   // US-100: o nome da magia chega já resolvido no locale (a página resolve a chave da ficha);
   // o rótulo de nível é o único texto desta lista que se monta aqui — e acompanha.
   const { locale } = useLocale()
-  const featureList = (features ?? []).filter(f => f?.name?.trim())
+  const featureList = (features ?? []).filter(f => f?.name?.trim() && f.origin !== 'race')
   // Ordem estável por nível e depois nome (os 20 truques do mago não podem sair
   // arbitrários). Cópia — a prop não é mutada.
   const spellList = [...(spells ?? [])]

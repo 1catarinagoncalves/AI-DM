@@ -29,4 +29,26 @@ describe('FeaturesPanel — tag de origem (US-136)', () => {
     expect(screen.queryByText('Classe')).toBeNull()
     expect(screen.queryByText('Origem')).toBeNull()
   })
+
+  // US-142: traço de raça chega marcado origin: 'race' (mesmo pipeline de Character.features),
+  // mas a aba Features nunca cobriu raça (US-41/US-136) — item some da lista, não vira badge novo.
+  it('item com origin: race não aparece na lista', () => {
+    render(
+      <FeaturesPanel
+        features={[
+          { name: 'Impor as Mãos', description: 'Cura ao toque.', origin: 'class' },
+          { name: 'Visão no Escuro', description: '18m.', origin: 'race' },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText('Impor as Mãos')).toBeTruthy()
+    expect(screen.queryByText('Visão no Escuro')).toBeNull()
+  })
+
+  it('lista só com traços de raça mostra o empty state', () => {
+    render(<FeaturesPanel features={[{ name: 'Visão no Escuro', description: '18m.', origin: 'race' }]} />)
+
+    expect(screen.queryByText('Visão no Escuro')).toBeNull()
+  })
 })

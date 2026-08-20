@@ -69,32 +69,39 @@ export function getRaceFeatures(config: SystemConfig, raceKey: string): string[]
   return (map[raceKey] ?? []).map((f) => f.key)
 }
 
-/** US-136: `SystemClassFeature` + de qual catálogo a chave veio, calculado ANTES do merge. */
-export type CharacterFeature = SystemClassFeature & { origin: 'class' | 'background' }
+/** US-136/US-142: `SystemClassFeature` + de qual catálogo a chave veio, calculado ANTES do merge. */
+export type CharacterFeature = SystemClassFeature & { origin: 'class' | 'background' | 'race' }
 
 /**
- * Resolve `Character.features` (chaves de classe E de origem misturadas, US-135) contra a
- * UNIÃO dos dois catálogos — `resolveSheetEntries` sozinho só enxerga um mapa por vez, e uma
- * chave de origem passada contra `classFeatures` cairia no fallback `{key, name: key}`. Mapa
- * sintético de uma entrada por trás, mesmo `retiredFeatures` servindo as duas fontes (US-100).
+ * Resolve `Character.features` (chaves de classe, de origem e de raça misturadas, US-135/US-142)
+ * contra a UNIÃO dos três catálogos — `resolveSheetEntries` sozinho só enxerga um mapa por vez, e
+ * uma chave de origem/raça passada contra `classFeatures` cairia no fallback `{key, name: key}`.
+ * Mapa sintético de uma entrada por trás, mesmo `retiredFeatures` servindo as três fontes (US-100).
  *
- * US-136: `origin` marca cada item como `'class'` ou `'background'` por pertencimento aos
- * `Set`s de chave de `classList`/`originList` — NUNCA por parsing de prefixo (`a5e-ag_*` vs
- * `<classe>_*`), que é detalhe de formato do dataset, não contrato. Calculado sobre as chaves
- * de entrada (que cobrem também `retiredFeatures` indiretamente, US-100), não sobre o
- * resultado já resolvido.
+ * US-136: `origin` marca cada item como `'class'`, `'background'` ou `'race'` por pertencimento
+ * aos `Set`s de chave de `classList`/`originList`/`raceList` — NUNCA por parsing de prefixo
+ * (`a5e-ag_*` vs `<classe>_*`), que é detalhe de formato do dataset, não contrato. Calculado sobre
+ * as chaves de entrada (que cobrem também `retiredFeatures` indiretamente, US-100), não sobre o
+ * resultado já resolvido. `raceKey` é opcional (US-142 chegou depois): sem ele, traço de raça cai
+ * no fallback `'background'` de antes — chamador que não passa raça continua como estava.
  */
 export function resolveCharacterFeatures(
   config: SystemConfig,
   classKey: string,
   originKey: string | undefined,
   featureKeys: string[],
+  raceKey?: string,
 ): CharacterFeature[] {
   const classList = config.classFeatures?.[classKey] ?? config.classFeatures?.default ?? []
   const originList = originKey ? (config.backgroundFeatures?.[originKey] ?? []) : []
+  const raceList = raceKey ? (config.raceFeatures?.[raceKey] ?? []) : []
   const classKeys = new Set(classList.map((f) => f.key))
-  const resolved = resolveSheetEntries({ combined: [...classList, ...originList] }, config.retiredFeatures, 'combined', featureKeys)
-  return resolved.map((f) => ({ ...f, origin: classKeys.has(f.key) ? 'class' : 'background' }))
+  const raceKeys = new Set(raceList.map((f) => f.key))
+  const resolved = resolveSheetEntries({ combined: [...classList, ...originList, ...raceList] }, config.retiredFeatures, 'combined', featureKeys)
+  return resolved.map((f) => ({
+    ...f,
+    origin: classKeys.has(f.key) ? 'class' : raceKeys.has(f.key) ? 'race' : 'background',
+  }))
 }
 
 /**

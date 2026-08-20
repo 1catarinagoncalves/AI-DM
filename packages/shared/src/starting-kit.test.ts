@@ -189,6 +189,9 @@ describe('resolveCharacterFeatures (US-135)', () => {
     backgroundFeatures: {
       a5e_ag_criminal: [{ key: 'a5e_ag_criminal_thieves-cant', source: 'a5e-ag', name: "Thieves' Cant", description: 'Código secreto.' }],
     },
+    raceFeatures: {
+      'high-elf': [{ key: 'darkvision', source: 'elf', name: 'Visão no Escuro', description: '18m.' }],
+    },
     retiredFeatures: {
       paladin_retired: { key: 'paladin_retired', source: 'srd', name: 'Aposentada', description: 'x' },
     },
@@ -220,6 +223,18 @@ describe('resolveCharacterFeatures (US-135)', () => {
 
   it('feature aposentada (fora de classList/originList) recebe origin coerente por eliminação', () => {
     const out = resolveCharacterFeatures(config, 'paladin', undefined, ['paladin_retired'])
+    expect(out.map(f => f.origin)).toEqual(['background'])
+  })
+
+  // US-142: sem raceKey, traço de raça caía no fallback 'background' por eliminação (bug —
+  // aparecia na aba Features com a tag errada). Com raceKey, marca origin: 'race' corretamente.
+  it('marca origin: race para chave de raceFeatures quando raceKey é passado', () => {
+    const out = resolveCharacterFeatures(config, 'paladin', undefined, ['darkvision'], 'high-elf')
+    expect(out.map(f => f.origin)).toEqual(['race'])
+  })
+
+  it('sem raceKey, chave de raceFeatures cai no fallback background (compatibilidade)', () => {
+    const out = resolveCharacterFeatures(config, 'paladin', undefined, ['darkvision'])
     expect(out.map(f => f.origin)).toEqual(['background'])
   })
 
