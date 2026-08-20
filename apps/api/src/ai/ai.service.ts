@@ -18,6 +18,8 @@ import {
   buildTurnStateBlock,
   buildOpeningInstruction,
   ONOMASTICS_SECTION,
+  CRAFT_CORE_SECTION,
+  NPC_VOICE_BULLET,
   resolveKnownSpell,
   resolveAdventuresAndAdvancement,
   buildSummaryInput,
@@ -1387,8 +1389,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
         `Tom: ${params.registry.tone}. ${bondsInstruction} ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a regra de Onomástica abaixo, não o idioma-alvo. ` +
-        ONOMASTICS_SECTION,
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a regra de Onomástica abaixo, não o idioma-alvo.\n\n` +
+        // US-179: boxedText é lido em voz alta (método LGMRD) — vale a MESMA barra
+        // abaixo, não uma versão mais fraca por ser um trecho curto.
+        `A prosa de local (boxedText/description) e o role do NPC seguem esta barra de qualidade:\n${CRAFT_CORE_SECTION}\n${NPC_VOICE_BULLET}\n\n${ONOMASTICS_SECTION}`,
       prompt: buildLocationsAndNpcsPrompt(params.rolled),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
@@ -1456,7 +1460,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         '`locationId` DEVE ser um dos ids de LOCAIS recebidos (nunca um id de NPC), o mais relevante ao segredo. ' +
         'Para segredo de NPC/vilão, use o "(local: ...)" indicado ao lado do NPC se houver; senão, escolha o local mais relevante da lista. ' +
         `Tom: ${params.registry.tone}. ${anchorInstruction} ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.`,
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildSecretsPrompt(params.locations, params.npcs, params.secretPrompts),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
@@ -1503,7 +1507,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Se a premissa sugerir um antagonista, ele aparece só como PROSA no fecho, não precisa ser um NPC já listado. ' +
         `Tom: ${params.registry.tone}. ` +
         'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura. ' +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.`,
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildClosingPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
@@ -1561,7 +1565,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'ENRAIZADA (preferida quando nada aponta violência) — chegada a um local vivo ou encontro com um NPC, de preferência o ligado ao vínculo pessoal acima, com a complicação já pairando como tensão perceptível, sem exigir luta. ' +
         'CONFRONTO (quando premissa/complicação/secrets tornarem a violência a leitura mais natural — perseguição, ataque em curso, monstro solto) — ameaça ou luta já em ação. ' +
         `Tom: ${params.registry.tone}. ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.`,
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildOpeningBeatPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })

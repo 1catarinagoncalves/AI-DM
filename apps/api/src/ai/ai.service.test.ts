@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { AiService, scenePatchFromExtraction, applyInventoryDeltas } from './ai.service'
-import { mergeSceneState, extractionModel, primaryModel, ONOMASTICS_SECTION } from '@ai-dm/ai-engine'
+import { mergeSceneState, extractionModel, primaryModel, ONOMASTICS_SECTION, CRAFT_CORE_SECTION, NPC_VOICE_BULLET } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
@@ -409,6 +409,14 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     expect(genObj.system).toContain(ONOMASTICS_SECTION)
   })
 
+  it('system segue a barra de ofício de geração (US-179) — concretude/sensorial e voz do NPC', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry })
+    expect(genObj.system).toContain(CRAFT_CORE_SECTION)
+    expect(genObj.system).toContain(NPC_VOICE_BULLET)
+  })
+
   it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR (US-178)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
@@ -510,6 +518,13 @@ describe('AiService.generateSecrets (US-149)', () => {
     await svc().generateSecrets({ locations, npcs, secretPrompts, registry })
     expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
   })
+
+  it('system segue a barra de ofício de geração (US-179)', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, registry })
+    expect(genObj.system).toContain(CRAFT_CORE_SECTION)
+  })
 })
 
 describe('AiService.generateClosing (US-164)', () => {
@@ -580,6 +595,13 @@ describe('AiService.generateClosing (US-164)', () => {
 
     await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
     expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
+  })
+
+  it('system segue a barra de ofício de geração (US-179)', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.system).toContain(CRAFT_CORE_SECTION)
   })
 })
 
@@ -701,6 +723,13 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
 
     await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
     expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
+  })
+
+  it('system segue a barra de ofício de geração (US-179)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.system).toContain(CRAFT_CORE_SECTION)
   })
 })
 

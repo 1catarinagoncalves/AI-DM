@@ -195,13 +195,32 @@ Register cheat-sheet — a starting point for the SOUND, calibrate it, never cop
 
 OPEN PALETTE, not a closed list: when a scene needs a culture the cheat-sheet skips, INVENT a coherent register of its own and keep it consistent across every name from that people/place. Draw on a sound "in the spirit of" a language — never lift a real religious/historical figure's actual name, never caricature a real culture. The only boundary is slop: it is a FAILURE to fall back on generic default names, or to give NPCs from different cultures the same generic sound.`
 
+/**
+ * US-179: núcleo da barra de ofício aplicável a PROSA GERADA UMA VEZ (motor de
+ * geração de aventura) — sensorial, concretude, mostrar-tensão. Extraído de
+ * `NARRATIVE_CRAFT_SECTION` (mesmo padrão de `ONOMASTICS_SECTION`, US-177) e
+ * interpolado de volta no lugar dos bullets equivalentes, então o texto final de
+ * `NARRATIVE_CRAFT_SECTION` continua sendo a única fonte de verdade da narração
+ * ao vivo. NÃO inclui: bullet de classe/raça (é lente do personagem-jogador, não
+ * existe fora de um turno), NPC (bullet à parte, ver `NPC_VOICE_BULLET`), ritmo/
+ * hook/idioma (regras específicas de turno interativo, US-179 Fora do escopo).
+ */
+export const CRAFT_CORE_SECTION = `- Open on the SENSES (rain, cold wet armour, the failing light of dusk), not on exposition.
+- Be concrete and NAME things: the mount, the sword, the holy symbol, the NPC. A specific detail beats a generic one.
+- Show tension before you explain it (a village's wrong, heavy silence comes before we learn why).`
+
+/**
+ * US-179: bullet de voz/corpo/aposta do NPC, extraído para reuso pontual só em
+ * `generateLocationsAndNpcs` (motor) — as outras 3 chamadas do motor não geram NPC.
+ * Mesmo padrão de concatenação condicional que `ONOMASTICS_SECTION` já usa ali.
+ */
+export const NPC_VOICE_BULLET = '- Give NPCs a voice and a body — movement, emotion, stakes — especially the vulnerable.'
+
 export const NARRATIVE_CRAFT_SECTION = `## Narrative craft (the quality bar — applies to the OPENING scene AND every turn)
 Every narration — including the very first scene — must meet this bar. Generic, "video-gamey" prose ("You go to the village. Success.") is a FAILURE even when mechanically correct. This bar adds quality on top of the rules below; it never overrides them.
-- Open on the SENSES (rain, cold wet armour, the failing light of dusk), not on exposition.
-- Be concrete and NAME things: the mount, the sword, the holy symbol, the NPC. A specific detail beats a generic one.
+${CRAFT_CORE_SECTION}
 - Class/race/equipment/abilities surface through ACTION and SENSATION, never as a stat list. The class is a LENS: a paladin FEELS nearby evil as a prickle in the chest, not as a number.
-- Show tension before you explain it (a village's wrong, heavy silence comes before we learn why).
-- Give NPCs a voice and a body — movement, emotion, stakes — especially the vulnerable.
+${NPC_VOICE_BULLET}
 - Vary the rhythm: mix short and long sentences. Stay concise: 3–5 short paragraphs. Immersive ≠ verbose.
 - Close on a LIVING hook: address the character by name, then present the action options.
 - LANGUAGE — when narrating in Portuguese, write NATURAL Brazilian pt-BR: fluent, warm, contemporary. Use "você" (never "tu"/"vós" or the forms "olhas/vês/sabes/tua/teu"). Avoid European/translated constructions ("a fitar-te", "estás", "aperceber-te", "no teu encalço"); prefer the Brazilian form ("te encarando", "está", "perceber", "atrás de você"). Keep the medieval-fantasy tone, but it must never read like a dubbed or literal translation.
