@@ -12,8 +12,10 @@
 ## História
 
 > **Como** mantenedora,
-> **quero** montar, a partir do personagem, o perfil que o motor de geração recebe — nível, chave de classe, `background`, `origin` (conexão/memento/gancho de origem, [US-124](./US-124-exibir-beneficios-narrativos-origem.md)/[US-125](./US-125-beneficios-origem-no-system-prompt.md)) e o `hookSeed` do gancho de classe —,
+> **quero** montar, a partir do personagem, o perfil que o motor de geração recebe — nível, chave de classe, `background`, `origin` (gancho de origem do catálogo, [US-124](./US-124-exibir-beneficios-narrativos-origem.md)/[US-125](./US-125-beneficios-origem-no-system-prompt.md)) e o `hookSeed` do gancho de classe —,
 > **para que** os 40 prompts de segredo ([US-149](./US-149-segredos-40-prompts-lgmrd.md)) tenham `story`/`bonds`/`flaws`/`origin` no contexto, e um personagem com `background`/`origin` vazios ainda gere uma aventura completa.
+
+**Atualização 2026-08-20:** `origin` no perfil do motor passou a carregar só `adventuresAndAdvancement` (gancho fixo do catálogo). `connection`/`memento` (texto livre escolhido no wizard, US-124) saíram do perfil — continuam intactos em `Character.origin`, mas alimentam só a narração de turno ao vivo ([ai.service.ts:344-356](../../../apps/api/src/ai/ai.service.ts)), não o motor de geração. Ver *Modelo de dados proposto* e *Notas de implementação* abaixo.
 
 ---
 
@@ -31,7 +33,7 @@
 
 ### A proposta
 
-Um **método privado** `buildAdventureProfile(character, config)` (dentro de `AdventureService`, não função livre) que monta `{ level, classKey, background, origin, hookSeed }`, com `hookSeed` sempre presente como rede de segurança para quando `background` e `origin` estão vazios. `origin` é resolvido com o **mesmo padrão** já usado em `ai.service.ts:352-356` (`resolveAdventuresAndAdvancement(config.backgrounds, origin.key)` + `connection`/`memento` brutos) — esta story reusa a função existente, não a reimplementa.
+Um **método privado** `buildAdventureProfile(character, config)` (dentro de `AdventureService`, não função livre) que monta `{ level, classKey, background, origin, hookSeed }`, com `hookSeed` sempre presente como rede de segurança para quando `background` e `origin` estão vazios. `origin` é resolvido com o **mesmo padrão** já usado em `ai.service.ts:352-356` (`resolveAdventuresAndAdvancement(config.backgrounds, origin.key)`) — esta story reusa a função existente, não a reimplementa. (Atualização 2026-08-20: `connection`/`memento` deixaram de entrar no perfil — só o gancho de catálogo alimenta o motor.)
 
 `hookSeed` é o `openingNarration` **resolvido** (placeholders `{characterName}`/`{characterClass}` já substituídos), não o texto cru de `resolveInitialHook`. Motivo: o perfil alimenta um prompt de LLM (US-149) — texto cru vazaria `{characterName}` literal no contexto. Resolvido via `this.resolveHook(rawHook, character.name, className)`, já existente ([adventure.service.ts:64-74](../../../apps/api/src/adventure/adventure.service.ts)) e usado com o mesmo objetivo em `createForCharacter` (linha 142) — motivo pelo qual `buildAdventureProfile` precisa ser método da classe (acesso a `this.resolveHook`), não função livre.
 
@@ -41,7 +43,7 @@ Um **método privado** `buildAdventureProfile(character, config)` (dentro de `Ad
 
 ### Dentro do escopo
 
-- **`buildAdventureProfile(character, config): AdventureProfile`** — **método privado de `AdventureService`** (precisa de `this.resolveHook`, não função livre). Monta o perfil: `level` (de `Character.level`), `classKey` (de `Character.class`, já chave canônica desde a [US-105](./US-105-raca-e-classe-por-chave-do-srd.md)), `background` (de `Character.background`, tipado como `CharacterBackground` de `@ai-dm/ai-engine`, já usado por `generateOpeningNarration`), `origin` (de `Character.origin`, resolvido para `OriginNarrative` de `@ai-dm/ai-engine` — `adventuresAndAdvancement` via `resolveAdventuresAndAdvancement(config.backgrounds, origin.key)`, `connection`/`memento` copiados brutos), `hookSeed` (`resolveInitialHook(config, classKey)`, com placeholders resolvidos via `this.resolveHook(rawHook, character.name, className)` — mesmo padrão de `createForCharacter:142` — `className` vem de `catalogLabel(config.classes, classKey)`). `character` precisa expor `name` além de `level`/`class`/`background`/`origin`.
+- **`buildAdventureProfile(character, config): AdventureProfile`** — **método privado de `AdventureService`** (precisa de `this.resolveHook`, não função livre). Monta o perfil: `level` (de `Character.level`), `classKey` (de `Character.class`, já chave canônica desde a [US-105](./US-105-raca-e-classe-por-chave-do-srd.md)), `background` (de `Character.background`, tipado como `CharacterBackground` de `@ai-dm/ai-engine`, já usado por `generateOpeningNarration`), `origin` (de `Character.origin`, resolvido para `OriginNarrative` de `@ai-dm/ai-engine` — só `adventuresAndAdvancement` via `resolveAdventuresAndAdvancement(config.backgrounds, origin.key)`; **`connection`/`memento` de propósito FORA do perfil desde 2026-08-20** — continuam em `Character.origin`, mas só a narração de turno ao vivo os lê), `hookSeed` (`resolveInitialHook(config, classKey)`, com placeholders resolvidos via `this.resolveHook(rawHook, character.name, className)` — mesmo padrão de `createForCharacter:142` — `className` vem de `catalogLabel(config.classes, classKey)`). `character` precisa expor `name` além de `level`/`class`/`background`/`origin`.
 - **Critério que não pode faltar:** personagem com `background` vazio (`{}`) **e** `origin` vazio (`{}`) gera perfil válido, caindo no `hookSeed` da classe como única fonte de contexto narrativo — nunca lança nem devolve perfil incompleto.
 - **Assinatura recebe nível desde já**, com valor 1 enquanto a D1 (progressão de nível, sem dono, ver *Depende de* no backlog) não existir — o motor não é bloqueado por progressão ausente, só limitado a gerar para nível 1 até ela chegar.
 - **Local:** dentro de `adventure.service.ts` (301 linhas hoje, longe do teto de 500) — não arquivo próprio. Precedente já no mesmo arquivo: leitura de `origin` pra equipamento (linhas 116-120) também é inline. Sem consumidor externo além da própria criação de aventura, arquivo dedicado (`adventure-profile.ts`) fica prematuro. Consumido pela [US-149](./US-149-segredos-40-prompts-lgmrd.md).
@@ -63,7 +65,7 @@ export interface AdventureProfile {
   level: number
   classKey: string
   background: CharacterBackground // {story?, ideals?, bonds?, flaws?, deity?}, de @ai-dm/ai-engine
-  origin: OriginNarrative // {adventuresAndAdvancement?, connection?, memento?}, de @ai-dm/ai-engine
+  origin: OriginNarrative // tipo permite {adventuresAndAdvancement?, connection?, memento?}, mas o perfil só popula adventuresAndAdvancement (2026-08-20)
   hookSeed: string
 }
 ```
@@ -73,7 +75,7 @@ export interface AdventureProfile {
 | `level` | number | `Character.level`, hoje sempre 1 (D1 ausente). |
 | `classKey` | string | `Character.class`, chave canônica EN (US-105). |
 | `background` | `CharacterBackground` | `Character.background` bruto — pode ser `{}`. |
-| `origin` | `OriginNarrative` | `Character.origin` resolvido: `adventuresAndAdvancement` vem do catálogo (`resolveAdventuresAndAdvancement`), `connection`/`memento` são o texto escolhido no wizard (US-124) — todos opcionais, `origin: {}` produz os três `undefined`. |
+| `origin` | `OriginNarrative` | `Character.origin` resolvido: só `adventuresAndAdvancement`, vindo do catálogo (`resolveAdventuresAndAdvancement`) — opcional, `origin: {}` ou `origin.key` fora do catálogo produz `undefined`. `connection`/`memento` (texto escolhido no wizard, US-124) **não** entram aqui desde 2026-08-20 — ficam de fora do perfil de propósito, seguem servindo só a narração de turno ao vivo. |
 | `hookSeed` | string | `resolveInitialHook(config, classKey)?.openingNarration`, **resolvido** via `this.resolveHook` (placeholders `{characterName}`/`{characterClass}` substituídos, nunca cru) — sempre presente quando o sistema tem catálogo de ganchos; rede de segurança para `background`/`origin` vazios. |
 
 **Persistência:** nenhuma — objeto efêmero, montado dentro da chamada de criação da aventura, passado à [US-149](./US-149-segredos-40-prompts-lgmrd.md).
@@ -86,6 +88,7 @@ export interface AdventureProfile {
 - [x] `hookSeed` vem resolvido (via `this.resolveHook`) — nenhum placeholder `{characterName}`/`{characterClass}` sobrevive no valor devolvido.
 - [x] Personagem com `background: {}` **e** `origin: {}` produz `AdventureProfile` válido — `hookSeed` presente, sem lançar exceção, sem campo `undefined` inesperado.
 - [x] `origin.adventuresAndAdvancement` só aparece quando `origin.key` existe no catálogo (`config.backgrounds`) — mesma resolução de `resolveAdventuresAndAdvancement`, sem reimplementar o lookup.
+- [x] **(Atualização 2026-08-20)** `origin.connection`/`origin.memento` NÃO aparecem no `AdventureProfile` — perfil carrega só `adventuresAndAdvancement`; os dois campos continuam em `Character.origin`, intactos, fora do perfil de propósito.
 - [x] `level` reflete `Character.level` (hoje sempre 1); a assinatura não assume valor fixo internamente (aceita o campo, não hardcoda `1`).
 - [x] `classKey` é a chave canônica de `Character.class`, sem passar por matcher de texto (mesmo lookup direto da US-105).
 - [x] **Eval / teste de regressão:** teste unitário com personagem de `background`/`origin` totalmente preenchidos (story, bonds, flaws, deity, connection, memento, origin.key válido) e outro com `background: {}`/`origin: {}` — os dois produzem `AdventureProfile` válido, e o segundo tem `hookSeed` não-vazio mesmo sem nenhum campo de `background`/`origin`.
@@ -99,7 +102,8 @@ export interface AdventureProfile {
 - **`background` e `origin` são campos SEPARADOS** de `Character` (schema.prisma:40-43, US-122 §Nomenclatura) — o perfil os carrega como dois campos irmãos, nunca mesclados num objeto só.
 - **`resolveInitialHook`** ([starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts)) já faz o lookup com fallback `default` — esta story só chama a função existente, não reimplementa a resolução de gancho.
 - **`hookSeed` reusa `this.resolveHook`** ([adventure.service.ts:64-74](../../../apps/api/src/adventure/adventure.service.ts)) para substituir os placeholders do template — mesma chamada que `createForCharacter` já faz antes de mandar `openingNarration` pro LLM (linha 142). É o motivo de `buildAdventureProfile` ser método de `AdventureService`, não função livre: sem acesso a `this.resolveHook`, ou duplicaria `resolveHookTemplate` ou devolveria hookSeed com `{characterName}` cru — nenhum dos dois aceitável, já que o perfil alimenta prompt de LLM na US-149.
-- **`background.deity` é o encaixe mais forte**, segundo o backlog: `{name, portfolio}` é uma divindade com domínio declarada pelo jogador, e é o eixo natural para o antagonista e o fecho da aventura saírem de quem o personagem é. Vale nota de implementação para quem escrever a [US-149](./US-149-segredos-40-prompts-lgmrd.md): o perfil carrega `deity` intacto dentro de `background`, sem desmontar o objeto. `origin.connection`/`memento` são o equivalente do lado `origin` — vínculo concreto (uma pessoa, um objeto) que um NPC ou segredo pode ancorar do mesmo jeito que `bonds`.
+- **`background.deity` é o encaixe mais forte**, segundo o backlog: `{name, portfolio}` é uma divindade com domínio declarada pelo jogador, e é o eixo natural para o antagonista e o fecho da aventura saírem de quem o personagem é. Vale nota de implementação para quem escrever a [US-149](./US-149-segredos-40-prompts-lgmrd.md): o perfil carrega `deity` intacto dentro de `background`, sem desmontar o objeto.
+- **Atualização 2026-08-20 — `origin.connection`/`memento` saíram do perfil.** Motivo: só `adventuresAndAdvancement` (gancho fixo do catálogo, "Aventura e Avanço") deve alimentar o motor de geração; `connection`/`memento` (vínculo/objeto escolhidos no wizard) continuam existindo em `Character.origin` e continuam sendo lidos pela narração de turno ao vivo ([ai.service.ts:344-356](../../../apps/api/src/ai/ai.service.ts), monta seu próprio `originNarrative` direto de `Character.origin`, independente deste perfil) — só param de chegar ao motor de geração (`buildAdventureProfile` → [US-149](./US-149-segredos-40-prompts-lgmrd.md)). `characterAnchors()` em `ai.service.ts` (compartilhada por `generateSecrets` e `generateOpeningBeat`) foi ajustada no mesmo commit para ler `origin.adventuresAndAdvancement` em vez de `connection`/`memento`.
 
 ---
 

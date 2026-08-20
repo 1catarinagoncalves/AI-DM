@@ -748,10 +748,10 @@ describe('AdventureService.buildAdventureProfile', () => {
       level: 3,
       classKey: 'wizard',
       background: character.background,
+      // connection/memento ficam de fora do perfil de propósito (só adventuresAndAdvancement
+      // alimenta o motor) — continuam intactos em Character.origin, só não entram aqui.
       origin: {
         adventuresAndAdvancement: 'O templo pede um favor.',
-        connection: 'O templo que a criou',
-        memento: 'Um símbolo sagrado gasto',
       },
       hookSeed: 'A vela curva-se, Elara.', // placeholder {characterName} resolvido, não cru
     })
@@ -765,7 +765,7 @@ describe('AdventureService.buildAdventureProfile', () => {
     expect(profile['level']).toBe(1)
     expect(profile['classKey']).toBe('wizard')
     expect(profile['background']).toEqual({})
-    expect(profile['origin']).toEqual({ adventuresAndAdvancement: undefined, connection: undefined, memento: undefined })
+    expect(profile['origin']).toEqual({ adventuresAndAdvancement: undefined })
     expect(profile['hookSeed']).toBe('A vela curva-se, Nyx.')
     expect((profile['hookSeed'] as string).length).toBeGreaterThan(0)
   })

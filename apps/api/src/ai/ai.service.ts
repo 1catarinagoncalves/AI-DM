@@ -215,13 +215,15 @@ function buildSecretsPrompt(locations: AdventureLocation[], npcs: AdventureNpc[]
 }
 
 // US-180: lista de âncoras pessoais da personagem (`story`/`bonds`/`flaws`/
-// `origin.connection`/`origin.memento`) — usada por `generateSecrets` (US-149) e
+// `origin.adventuresAndAdvancement`) — usada por `generateSecrets` (US-149) e
 // `generateOpeningBeat` (US-180) pra montar a própria frase de instrução. Extraída pra
 // função pura porque as duas listas eram quase-idênticas e arriscavam divergir com o
 // tempo (mesma disciplina de reuso da seção compartilhada de `dm-system.ts`, US-177/US-179).
+// `connection`/`memento` NÃO entram aqui — só `adventuresAndAdvancement` alimenta o motor
+// de geração; os outros dois continuam servindo só a narração de turno ao vivo (ai.service.ts:344-356).
 function characterAnchors(params: {
   background?: CharacterBackground
-  origin?: { connection?: string; memento?: string }
+  origin?: { adventuresAndAdvancement?: string }
 }): string[] {
   const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
   const flaws = (params.background?.flaws ?? []).filter((f) => f.trim())
@@ -229,8 +231,7 @@ function characterAnchors(params: {
     params.background?.story?.trim() && `História: ${params.background.story}`,
     bonds.length > 0 && `Vínculos: ${bonds.join('; ')}`,
     flaws.length > 0 && `Fraquezas: ${flaws.join('; ')}`,
-    params.origin?.connection?.trim() && `Conexão de origem: ${params.origin.connection}`,
-    params.origin?.memento?.trim() && `Memento de origem: ${params.origin.memento}`,
+    params.origin?.adventuresAndAdvancement?.trim() && `Aventura e avanço da origem: ${params.origin.adventuresAndAdvancement}`,
   ].filter((line): line is string => Boolean(line))
 }
 
@@ -1440,7 +1441,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     secretPrompts: SecretPrompts
     registry: AdventureRegistry
     background?: CharacterBackground
-    origin?: { connection?: string; memento?: string }
+    origin?: { adventuresAndAdvancement?: string }
     locale?: Locale
   }): Promise<AdventureSecret[]> {
     const anchors = characterAnchors(params)
@@ -1543,7 +1544,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     secrets: AdventureSecret[]
     registry: AdventureRegistry
     background?: CharacterBackground
-    origin?: { connection?: string; memento?: string }
+    origin?: { adventuresAndAdvancement?: string }
     complicacao: { condition: string; description: string; origin: string }
     premissa: string
     locale?: Locale

@@ -105,10 +105,11 @@ export class AdventureService {
       level: character.level,
       classKey: character.class,
       background: (character.background ?? {}) as CharacterBackground,
+      // `connection`/`memento` ficam de fora do perfil de propósito: só `adventuresAndAdvancement`
+      // alimenta o motor de geração — os outros dois continuam servindo só a narração de
+      // turno ao vivo (ai.service.ts:344-356, lê `Character.origin` direto, não este perfil).
       origin: {
         adventuresAndAdvancement: resolveAdventuresAndAdvancement(config.backgrounds, origin.key),
-        connection: origin.connection,
-        memento: origin.memento,
       },
       hookSeed,
     }

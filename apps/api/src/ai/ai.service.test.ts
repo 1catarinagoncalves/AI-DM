@@ -573,12 +573,22 @@ describe('AiService.generateSecrets (US-149)', () => {
     expect(genObj.system).toContain('jurou vingança contra o culto')
   })
 
-  it('origin.connection/memento presentes entram no prompt do modelo', async () => {
+  it('origin.adventuresAndAdvancement presente entra no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, registry, origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' } })
-    expect(genObj.system).toContain('um sacerdote amado')
-    expect(genObj.system).toContain('um livro de orações')
+    await svc().generateSecrets({ locations, npcs, secretPrompts, registry, origin: { adventuresAndAdvancement: 'pode ser promovido dentro da ordem' } })
+    expect(genObj.system).toContain('pode ser promovido dentro da ordem')
+  })
+
+  it('origin.connection/memento NÃO entram no prompt do modelo (só adventuresAndAdvancement alimenta o motor)', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({
+      locations, npcs, secretPrompts, registry,
+      origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' } as never,
+    })
+    expect(genObj.system).not.toContain('um sacerdote amado')
+    expect(genObj.system).not.toContain('um livro de orações')
   })
 
   it('background/origin vazios cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
@@ -796,15 +806,25 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
     expect(genObj.system).toContain('jurou vingança contra o culto')
   })
 
-  it('origin.connection/memento presentes entram no system — instrução de ancorar a cena no vínculo (US-180)', async () => {
+  it('origin.adventuresAndAdvancement presente entra no system — instrução de ancorar a cena no vínculo (US-180)', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }
     await svc().generateOpeningBeat({
       locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
-      origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' },
+      origin: { adventuresAndAdvancement: 'pode ser promovido dentro da ordem' },
     })
-    expect(genObj.system).toContain('um sacerdote amado')
-    expect(genObj.system).toContain('um livro de orações')
+    expect(genObj.system).toContain('pode ser promovido dentro da ordem')
+  })
+
+  it('origin.connection/memento NÃO entram no system (só adventuresAndAdvancement alimenta o motor)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({
+      locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
+      origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' } as never,
+    })
+    expect(genObj.system).not.toContain('um sacerdote amado')
+    expect(genObj.system).not.toContain('um livro de orações')
   })
 
   it('background/origin vazios cai em instrução genérica de ancoragem, SEM gancho da classe (US-180)', async () => {
