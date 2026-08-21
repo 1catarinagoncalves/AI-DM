@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-180](./US-180-abertura-ignora-vinculos-do-personagem.md) (`generateOpeningBeat`, estado atual — já resolve tom, ancoragem factual, vínculo pessoal e o dilema Enraizada/Confronto; esta story acrescenta um eixo que nenhuma das anteriores cobre)
 **Relacionado:** [US-172](./US-172-abertura-gerada-nao-copia-gancho-fixo.md) (dona original de `generateOpeningBeat`; instituiu a exigência *in medias res*/"strong start", que é URGÊNCIA — esta story soma um segundo eixo, não substitui) · [US-149](./US-149-segredos-40-prompts-lgmrd.md) (`anchorInstruction`/`characterAnchors`, molde de instrução reusado por `generateOpeningBeat` — esta story soma outra instrução no mesmo `system`, não mexe nessa)
 **Criada em:** 2026-08-20 — a partir de notas de design trazidas pela mantenedora: um gancho de abertura eficaz precisa de dois elementos — urgência (já coberta pela US-172, "abra em ação") e apelo, que se divide em três motivos clássicos de jogador: recompensa (ganhar algo), heroísmo (agir bem, salvar alguém, corrigir um erro) e descoberta (desvendar um segredo/mistério). `generateOpeningBeat` hoje só garante o primeiro elemento — nada instrui o modelo a mirar o segundo.
@@ -64,12 +64,12 @@ Nenhum. Mudança é só na string do `system` de `generateOpeningBeat` — `OPEN
 
 ## Critérios de aceite
 
-- [ ] `system` de `generateOpeningBeat` contém instrução exigindo ao menos 2 de recompensa/heroísmo/descoberta, com os três rótulos nomeados e cada um definido em 1 frase.
-- [ ] A instrução deixa claro que os apelos vêm do que já foi gerado (`locations`/`npcs`/`secrets`) — nunca elemento inventado fora da lista recebida.
-- [ ] Instrução de estilo (Enraizada/Confronto, US-180) e de vínculo pessoal (`anchorInstruction`, US-180) continuam presentes e inalteradas — esta story soma, não substitui.
-- [ ] **Teste de regressão (estrutural):** o `system` gerado por `buildOpeningBeatPrompt`/dentro de `generateOpeningBeat` contém os três rótulos e a exigência "ao menos 2" — mesmo padrão de teste estrutural da US-180 (não mede a saída real do modelo).
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] `pnpm eval` passa.
+- [x] `system` de `generateOpeningBeat` contém instrução exigindo ao menos 2 de recompensa/heroísmo/descoberta, com os três rótulos nomeados e cada um definido em 1 frase.
+- [x] A instrução deixa claro que os apelos vêm do que já foi gerado (`locations`/`npcs`/`secrets`) — nunca elemento inventado fora da lista recebida.
+- [x] Instrução de estilo (Enraizada/Confronto, US-180) e de vínculo pessoal (`anchorInstruction`, US-180) continuam presentes e inalteradas — esta story soma, não substitui.
+- [x] **Teste de regressão (estrutural):** o `system` gerado por `buildOpeningBeatPrompt`/dentro de `generateOpeningBeat` contém os três rótulos e a exigência "ao menos 2" — mesmo padrão de teste estrutural da US-180 (não mede a saída real do modelo).
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] `pnpm eval` passa.
 
 ---
 

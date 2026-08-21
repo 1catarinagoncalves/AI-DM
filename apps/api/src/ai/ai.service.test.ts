@@ -867,6 +867,16 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
     expect(genObj.system).toContain('CONFRONTO')
   })
 
+  it('system exige mirar pelo menos 2 de recompensa/heroísmo/descoberta (US-182)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.system).toContain('RECOMPENSA')
+    expect(genObj.system).toContain('HEROÍSMO')
+    expect(genObj.system).toContain('DESCOBERTA')
+    expect(genObj.system).toContain('pelo menos 2')
+  })
+
   it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR (US-178)', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }

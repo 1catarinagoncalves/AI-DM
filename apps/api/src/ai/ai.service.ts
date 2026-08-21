@@ -1535,6 +1535,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * o fallback único "sem conflito óbvio, abra com confronto" (herdado literal do LGMRD)
    * vira dois estilos nomeados, Enraizada e Confronto — o artigo que motivou esta story
    * argumenta contra empurrar todo grupo pra um confronto fixo quando nada se destaca.
+   *
+   * US-182: *in medias res* garante urgência, não apelo — soma instrução exigindo mirar
+   * pelo menos 2 dos 3 apelos clássicos (recompensa/heroísmo/descoberta), sempre ancorados
+   * no que já foi gerado, nunca elemento novo — eixo ortogonal a tom/ancoragem/vínculo/estilo.
    */
   async generateOpeningBeat(params: {
     locations: AdventureLocation[]
@@ -1565,6 +1569,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Escolha o ESTILO da abertura pelo que premissa/complicação sugerir, sem viés padrão para violência: ' +
         'ENRAIZADA (preferida quando nada aponta violência) — chegada a um local vivo ou encontro com um NPC, de preferência o ligado ao vínculo pessoal acima, com a complicação já pairando como tensão perceptível, sem exigir luta. ' +
         'CONFRONTO (quando premissa/complicação/secrets tornarem a violência a leitura mais natural — perseguição, ataque em curso, monstro solto) — ameaça ou luta já em ação. ' +
+        'A cena também precisa mirar pelo menos 2 dos 3 apelos a seguir, usando só o que já foi gerado (locations/npcs/secrets recebidos), nunca elemento novo: ' +
+        'RECOMPENSA — algo a ganhar (riqueza, poder, um item, um favor). ' +
+        'HEROÍSMO — a chance de agir bem (proteger alguém, corrigir um erro, impedir um dano). ' +
+        'DESCOBERTA — um segredo ou mistério que a cena já insinua, sem revelar. ' +
         `Tom: ${params.registry.tone}. ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildOpeningBeatPrompt(params),
