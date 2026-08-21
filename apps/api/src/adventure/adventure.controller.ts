@@ -7,10 +7,12 @@ import { AuthGuard } from '../auth/auth.guard'
 import { CurrentUser, type AuthUser } from '../auth/current-user.decorator'
 
 // US-153: a aventura é sempre gerada (US-164) — sem initialHookId escolhido pelo cliente.
-// `tone` é opcional (US-156): ausente = sorteado pelo seed determinístico. `setting`/`areaType`
-// saíram do registro (US-173): nunca tinham consumidor fora da geração.
+// `tone`/`setting`/`areaType` são opcionais (US-156; `setting`/`areaType` voltaram na US-184):
+// ausente = sorteado pelo seed determinístico.
 const CreateAdventureSchema = z.object({
   tone: z.string().min(1).optional(),
+  setting: z.string().min(1).optional(),
+  areaType: z.string().min(1).optional(),
 })
 
 @ApiTags('Aventuras')
@@ -21,7 +23,7 @@ export class AdventureController {
   constructor(private readonly adventureService: AdventureService) {}
 
   @ApiOperation({ summary: 'Gera e inicia a aventura inicial do personagem via motor de geração (US-164), ancorada no personagem.' })
-  @ApiBody({ schema: zodBody(CreateAdventureSchema, { tone: 'heroic' }) })
+  @ApiBody({ schema: zodBody(CreateAdventureSchema, { tone: 'heroic', setting: 'fantasy', areaType: 'dungeon' }) })
   @Post()
   async create(@Param('characterId') characterId: string, @Body() body: unknown, @CurrentUser() user: AuthUser) {
     await this.assertOwner(characterId, user)

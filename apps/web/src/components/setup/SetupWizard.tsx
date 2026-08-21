@@ -219,9 +219,11 @@ export function SetupWizard() {
   const [charId, setCharId] = useState('')
   const [starting, setStarting] = useState(false)
   // US-157: sentinela 'random' só no estado do componente — nunca serializado no DTO
-  // (ver createWorldAdventure). Estado inicial: Aleatório. `setting`/`areaType` saíram
-  // do registro (US-173) — só `tone` sobrevive.
+  // (ver createWorldAdventure). Estado inicial: Aleatório. `setting`/`areaType` voltaram
+  // ao registro na US-184, mesmo padrão de `tone`.
+  const [setting, setSetting] = useState('random')
   const [tone, setTone] = useState('random')
+  const [areaType, setAreaType] = useState('random')
 
   useEffect(() => {
     // US-61: a identidade vem do login (token); o wizard só carrega o catálogo.
@@ -241,9 +243,11 @@ export function SetupWizard() {
   // US-122: catálogo de origens (backgrounds do A5E, US-121). Ausente → seção "Origem" não
   // aparece e a etapa `background` segue livre, mesmo padrão condicional de skillCatalog acima.
   const backgroundCatalog = system?.config?.backgrounds ?? []
-  // US-157: catálogo do registro da aventura (US-156, reduzido em US-173 a só tom) —
-  // mesmo padrão de raceCatalog/classCatalog acima, consumido só no passo `world`.
+  // US-157: catálogo do registro da aventura (US-156; `settings`/`areaTypes` voltaram na
+  // US-184) — mesmo padrão de raceCatalog/classCatalog acima, consumido só no passo `world`.
   const toneCatalog = system?.config?.tones ?? []
+  const settingCatalog = system?.config?.settings ?? []
+  const areaTypeCatalog = system?.config?.areaTypes ?? []
   // Rótulo da escolha atual, para a revisão e para o subtítulo do gancho — a chave nunca
   // aparece na tela.
   const raceLabel = raceCatalog.find(r => r.key === charData.race)?.label ?? ''
@@ -437,12 +441,14 @@ export function SetupWizard() {
   }
 
   // US-157: Aleatório OMITE o campo — nunca envia a chave "random" (mesma disciplina de
-  // ausência = aleatório da US-156).
+  // ausência = aleatório da US-156). US-184: mesma regra para `setting`/`areaType`.
   async function createWorldAdventure() {
     setStarting(true); setError('')
     try {
       const dto = {
+        ...(setting !== 'random' && { setting }),
         ...(tone !== 'random' && { tone }),
+        ...(areaType !== 'random' && { areaType }),
       }
       const adv = await api.createAdventure(charId, dto)
       router.push(`/play/${adv.id}?characterId=${charId}`)
@@ -1027,8 +1033,12 @@ export function SetupWizard() {
                 <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
                 <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
                 <div className="mt-6 space-y-6">
+                  <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
+                    catalog={settingCatalog} value={setting} onChange={setSetting} />
                   <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
                     catalog={toneCatalog} value={tone} onChange={setTone} />
+                  <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
+                    catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
                 </div>
               </div>
             )}

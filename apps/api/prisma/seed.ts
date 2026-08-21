@@ -54,10 +54,10 @@ function readSrdArtifact(locale: string) {
   ) as Pick<SystemConfig, 'attributes' | 'skills' | 'races' | 'classes' | 'classFeatures' | 'classSpells' | 'startingKits' | 'retiredFeatures' | 'retiredSpells'>
 }
 
-// Catálogo de registro da aventura (US-156, reduzido em US-173 a só tom — `settings`/
-// `areaTypes` saíram, ver US-173). Sem fonte SRD (não vem do artefato/ingest) — copiado
-// literalmente de `dhorions/DnDGenerate` (CampaignTones.json, MPL-2.0), rótulo pt-BR por
-// tradução direta. `key` em kebab-case, mesmo padrão de sleight-of-hand/land-vehicle.
+// Catálogo de registro da aventura (US-156; `settings`/`areaTypes` cortados em US-173,
+// devolvidos em US-184). Sem fonte SRD (não vem do artefato/ingest) — copiado literalmente
+// de `dhorions/DnDGenerate` (CampaignTones.json, MPL-2.0), rótulo pt-BR por tradução direta.
+// `key` em kebab-case, mesmo padrão de sleight-of-hand/land-vehicle.
 const registryTones: SystemConfig['tones'] = [
   { key: 'heroic', label: 'Heroic' },
   { key: 'grimdark', label: 'Grimdark' },
@@ -82,6 +82,37 @@ const registryTonesPtBr: SystemConfig['tones'] = [
   { key: 'survival', label: 'Sobrevivência' },
   { key: 'slice-of-life', label: 'Cotidiano' },
 ]
+// US-184: mesma origem/rótulo direto de `SETTINGS` (registry-catalog.ts) — `underdark` vira
+// "Submundo" (tradução PT-BR usual do termo D&D), o resto é cognato direto.
+const registrySettings: SystemConfig['settings'] = [
+  { key: 'fantasy', label: 'Fantasy' },
+  { key: 'urban', label: 'Urban' },
+  { key: 'wilderness', label: 'Wilderness' },
+  { key: 'underdark', label: 'Underdark' },
+  { key: 'coastal', label: 'Coastal' },
+  { key: 'planar', label: 'Planar' },
+]
+const registrySettingsPtBr: SystemConfig['settings'] = [
+  { key: 'fantasy', label: 'Fantasia' },
+  { key: 'urban', label: 'Urbano' },
+  { key: 'wilderness', label: 'Natureza Selvagem' },
+  { key: 'underdark', label: 'Submundo' },
+  { key: 'coastal', label: 'Costeiro' },
+  { key: 'planar', label: 'Planar' },
+]
+// US-184: mesma origem/rótulo direto de `AREA_TYPES` (registry-catalog.ts).
+const registryAreaTypes: SystemConfig['areaTypes'] = [
+  { key: 'dungeon', label: 'Dungeon' },
+  { key: 'settlement', label: 'Settlement' },
+  { key: 'wilderness', label: 'Wilderness' },
+  { key: 'ruins', label: 'Ruins' },
+]
+const registryAreaTypesPtBr: SystemConfig['areaTypes'] = [
+  { key: 'dungeon', label: 'Masmorra' },
+  { key: 'settlement', label: 'Povoado' },
+  { key: 'wilderness', label: 'Natureza Selvagem' },
+  { key: 'ruins', label: 'Ruínas' },
+]
 // Os campos de produto não vêm do artefato, mas nem todos são iguais nos dois locales: point-buy e
 // proficiência são NÚMERO (mesmo objeto serve os dois), os ganchos são TEXTO e desdobraram por
 // locale na US-101 — até lá seguiam em PT dentro do config en-US (US-99 "Fora do escopo").
@@ -91,6 +122,8 @@ function dnd5eProductFields(locale: Locale) {
     pointBuy: { budget: 27 },
     initialAdventures: initialAdventuresByLocale[locale],
     tones: locale === 'pt-BR' ? registryTonesPtBr : registryTones,
+    settings: locale === 'pt-BR' ? registrySettingsPtBr : registrySettings,
+    areaTypes: locale === 'pt-BR' ? registryAreaTypesPtBr : registryAreaTypes,
   }
 }
 const dnd5eConfig: SystemConfig = { ...readSrdArtifact('en-US'), ...dnd5eProductFields('en-US') }

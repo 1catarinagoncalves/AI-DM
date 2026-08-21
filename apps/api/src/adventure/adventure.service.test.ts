@@ -439,7 +439,8 @@ describe('AdventureService.createForCharacter', () => {
 
   // US-153: DTO consome tone opcional (US-156) — repassado como registryOverrides ao
   // motor, fixando o registro em vez de sortear (a UI que o preenche é a US-157, fora
-  // do escopo aqui; esta story só liga o cano). setting/areaType removidos em US-173.
+  // do escopo aqui; esta story só liga o cano). setting/areaType voltaram na US-184
+  // (ver teste abaixo).
   it('tone do DTO é repassado a generateGatedAdventure como registryOverrides', async () => {
     const character = {
       id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
@@ -453,6 +454,23 @@ describe('AdventureService.createForCharacter', () => {
 
     expect(gateSpy).toHaveBeenCalledWith(
       expect.anything(), 'char-1', 1, 'pt-BR', { tone: 'heroic' },
+    )
+  })
+
+  // US-184: mesmo cano do teste acima, agora para setting/areaType — revert do corte da US-173.
+  it('setting/areaType do DTO são repassados a generateGatedAdventure como registryOverrides', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+    const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
+
+    await service.createForCharacter('char-1', { setting: 'urban', areaType: 'dungeon' })
+
+    expect(gateSpy).toHaveBeenCalledWith(
+      expect.anything(), 'char-1', 1, 'pt-BR', { setting: 'urban', areaType: 'dungeon' },
     )
   })
 
@@ -474,7 +492,7 @@ describe('AdventureService.createForCharacter', () => {
 
   // US-156: validação server-side de tone contra o catálogo do sistema — mesmo molde de
   // validateCatalogKey (character.service.ts), reaplicado do lado da aventura. setting/
-  // areaType removidos em US-173 (nunca tiveram consumidor fora da geração).
+  // areaType ganham o mesmo tratamento no describe seguinte (US-184).
   describe('US-156: catálogo de registro (tone)', () => {
     const configComCatalogo: SystemConfig = {
       ...config,
@@ -525,6 +543,74 @@ describe('AdventureService.createForCharacter', () => {
       const service = new AdventureService(prisma, fakeAi())
 
       await expect(service.createForCharacter('char-1', { tone: 'qualquer-coisa' }))
+        .resolves.toMatchObject({ id: 'adv-1' })
+    })
+  })
+
+  // US-184: mesmo molde do describe acima, reaplicado a setting/areaType (revert do corte da US-173).
+  describe('US-184: catálogo de registro (setting/areaType)', () => {
+    const configComCatalogo: SystemConfig = {
+      ...config,
+      settings: [{ key: 'urban', label: 'Urbano' }],
+      areaTypes: [{ key: 'dungeon', label: 'Masmorra' }],
+    }
+
+    it('chaves válidas do catálogo: passam a validação, sem 400', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', { setting: 'urban', areaType: 'dungeon' }))
+        .resolves.toMatchObject({ id: 'adv-1' })
+    })
+
+    it('setting fora do catálogo: 400 com o valor ofensor e as chaves esperadas', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', { setting: 'chave-inexistente' }))
+        .rejects.toThrow('Cenário inválido: "chave-inexistente". Esperado uma chave do catálogo do sistema: urban')
+    })
+
+    it('areaType fora do catálogo: 400 com o valor ofensor e as chaves esperadas', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', { areaType: 'chave-inexistente' }))
+        .rejects.toThrow('Tipo de Área inválido: "chave-inexistente". Esperado uma chave do catálogo do sistema: dungeon')
+    })
+
+    it('campos ausentes: não gera erro, segue para o motor sortear', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configComCatalogo },
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', {})).resolves.toMatchObject({ id: 'adv-1' })
+    })
+
+    it('sistema sem catálogo (config legado): aceita qualquer chave, sem 400', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config }, // config sem settings/areaTypes
+      }
+      const { prisma } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await expect(service.createForCharacter('char-1', { setting: 'qualquer-coisa', areaType: 'qualquer-coisa' }))
         .resolves.toMatchObject({ id: 'adv-1' })
     })
   })

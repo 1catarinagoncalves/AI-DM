@@ -14,8 +14,10 @@ import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-l
 
 export interface CreateAdventureDto {
   // initialHookId REMOVIDO (US-153): a aventura é sempre gerada, não escolhida pelo cliente.
-  // setting/areaType REMOVIDOS (US-173): nunca tinham consumidor fora da geração.
+  // setting/areaType voltaram na US-184 (revert do corte da US-173).
   tone?: string // US-156: chave do catálogo, ou ausente = sorteado pelo seed
+  setting?: string
+  areaType?: string
 }
 
 /**
@@ -59,11 +61,11 @@ export class AdventureService {
   }
 
   /**
-   * Valida a chave de `tone` contra o catálogo do config (US-156, reduzido em US-173), cópia
-   * do `validateCatalogKey` de `character.service.ts` (mesmo molde de mensagem, catálogo
-   * FECHADO, sem chave `custom`). Config sem o catálogo (`tones` opcional, para não invalidar
-   * config legado) aceita o que vier — mesma rede que impede um banco não re-semeado de
-   * bloquear a criação de aventura.
+   * Valida a chave de `tone`/`setting`/`areaType` contra o catálogo do config (US-156),
+   * cópia do `validateCatalogKey` de `character.service.ts` (mesmo molde de mensagem,
+   * catálogo FECHADO, sem chave `custom`). Config sem o catálogo (campos opcionais, para
+   * não invalidar config legado) aceita o que vier — mesma rede que impede um banco não
+   * re-semeado de bloquear a criação de aventura.
    */
   private validateCatalogKey(catalog: Array<{ key: string }> | undefined, key: string, field: string): string {
     if (!catalog || catalog.length === 0) return key
@@ -278,6 +280,8 @@ export class AdventureService {
     // estático (ao contrário de generateOpeningNarration, não existe aventura fixa pra cair).
     const gateResult = await this.generateGatedAdventure(profile, characterId, order, locale, {
       tone: dto.tone ? this.validateCatalogKey(config.tones, dto.tone, 'Tom') : undefined,
+      setting: dto.setting ? this.validateCatalogKey(config.settings, dto.setting, 'Cenário') : undefined,
+      areaType: dto.areaType ? this.validateCatalogKey(config.areaTypes, dto.areaType, 'Tipo de Área') : undefined,
     })
     if (!gateResult.ok) throw new Error(gateResult.reason)
     const generated = gateResult.adventure

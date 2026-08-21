@@ -208,11 +208,13 @@ export const SystemConfigSchema = z.object({
         message: 'initialAdventures.hooks precisa de um hook com classKey "default"',
       }),
   }).optional(),
-  // Catálogo de registro da aventura (US-156, reduzido em US-173 a só `tones` — `settings`/
-  // `areaTypes` nunca tiveram consumidor fora da geração, ver US-173). Mesmo contrato de
-  // races/classes. "Aleatório" nunca é entrada de catálogo: campo omitido no DTO é quem
-  // sinaliza sorteio (US-147), nunca uma chave `random` aqui dentro.
+  // Catálogo de registro da aventura (US-156; `settings`/`areaTypes` cortados em US-173 e
+  // devolvidos em US-184 junto do registro completo). Mesmo contrato de races/classes.
+  // "Aleatório" nunca é entrada de catálogo: campo omitido no DTO é quem sinaliza sorteio
+  // (US-147), nunca uma chave `random` aqui dentro.
   tones: z.array(SystemCatalogEntrySchema).optional(),
+  settings: z.array(SystemCatalogEntrySchema).optional(),
+  areaTypes: z.array(SystemCatalogEntrySchema).optional(),
 })
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>

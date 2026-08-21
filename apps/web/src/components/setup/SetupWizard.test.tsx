@@ -137,11 +137,13 @@ const configWithCam = (budget: number) => ({
   backgroundEquipment: { 'a5e-ag_acolyte': [{ name: 'Símbolo sagrado', qty: 1 }] },
 })
 
-// US-157: config com o catálogo do registro da aventura (US-156, reduzido em US-173 a só
-// `tones` — `settings`/`areaTypes` saíram, nunca tiveram consumidor fora da geração).
+// US-157: config com o catálogo do registro da aventura (US-156; `settings`/`areaTypes`
+// voltaram na US-184, mesmo contrato de `tones`).
 const configWithWorldCatalog = (budget: number) => ({
   ...configWithBudget(budget),
+  settings: [{ key: 'fantasy', label: 'Fantasia' }, { key: 'urban', label: 'Urbano' }],
   tones: [{ key: 'heroic', label: 'Heroico' }, { key: 'grim', label: 'Sombrio' }],
+  areaTypes: [{ key: 'dungeon', label: 'Masmorra' }, { key: 'ruins', label: 'Ruínas' }],
 })
 
 // US-27: config com perícias e orçamento de 2 proficiências.
@@ -572,7 +574,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     await screen.findByRole('heading', { name: 'O mundo da aventura' })
   }
 
-  it('passo Mundo nasce com o grupo Tom em Aleatório; avançar sem tocar envia o DTO vazio', async () => {
+  it('passo Mundo nasce com os três grupos em Aleatório; avançar sem tocar envia o DTO vazio', async () => {
     createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
     await confirmAndReachWorld(configWithWorldCatalog(2))
 
@@ -580,8 +582,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(createAdventure).toHaveBeenCalledWith('char-1', {})
   })
 
-  // US-157: selecionar uma opção não-Aleatório manda a `key` correspondente; nenhuma
-  // chave "random" é enviada. US-173: só o grupo Tom sobrevive (setting/areaType saíram).
+  // US-157/US-184: selecionar uma opção não-Aleatório manda a `key` correspondente;
+  // nenhuma chave "random" é enviada.
   it('selecionar uma opção no grupo Tom envia a key no DTO', async () => {
     createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
     await confirmAndReachWorld(configWithWorldCatalog(2))
@@ -590,6 +592,18 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
 
     expect(createAdventure).toHaveBeenCalledWith('char-1', { tone: 'grim' })
+  })
+
+  // US-184: mesma disciplina do grupo Tom, agora para Cenário e Tipo de Área.
+  it('selecionar opções nos grupos Cenário e Tipo de Área envia as keys no DTO', async () => {
+    createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
+    await confirmAndReachWorld(configWithWorldCatalog(2))
+
+    fireEvent.click(screen.getByLabelText('Urbano'))
+    fireEvent.click(screen.getByLabelText('Ruínas'))
+    fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+
+    expect(createAdventure).toHaveBeenCalledWith('char-1', { setting: 'urban', areaType: 'ruins' })
   })
 
   // US-127: a revisão espelha o que a ficha vai mostrar depois — atributos e perícias com
