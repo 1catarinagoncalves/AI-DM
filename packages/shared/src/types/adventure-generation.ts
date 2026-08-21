@@ -40,16 +40,23 @@ export const AdventureEncounterSchema = z.object({
   npcIds: z.array(z.string()),
 })
 
+// `setting`/`tone`/`areaType` guardam a CHAVE canônica, mesmo contrato de catalogLabel
+// (US-105) — rótulo se resolve na leitura, não aqui.
+export const AdventureRegistrySchema = z.object({
+  setting: z.string().min(1),
+  tone: z.string().min(1),
+  areaType: z.string().min(1),
+})
+
 // US-144 / ADR-012: schema único do artefato de aventura gerada (os Eight Steps do LGMRD).
 // Referência cruzada é sempre por `id` (nunca texto livre) — o grafo fechar é responsabilidade
-// do gate da US-150, não deste schema. `tone` guarda a CHAVE canônica, mesmo contrato de
-// catalogLabel (US-105) — rótulo se resolve na leitura, não aqui. `setting`/`areaType` saíram
-// do registro (US-173): nunca tinham consumidor fora da geração, e sem gate de coerência com
-// o conteúdo gerado (ver US-173 para o achado).
+// do gate da US-150, não deste schema. `registry` é o mesmo objeto decidido por `rollRegistry`
+// antes de qualquer rolagem de conteúdo — o artefato final carrega o registro inteiro, não só
+// o `tone` extraído dele.
 export const GeneratedAdventureSchema = z.object({
   id: z.string().min(1),
   levelRange: z.object({ min: z.number().int().min(1), max: z.number().int().min(1) }),
-  tone: z.string().min(1),
+  registry: AdventureRegistrySchema,
   summary: z.string().min(1),
   npcs: z.array(AdventureNpcSchema),
   secrets: z.array(AdventureSecretSchema),
@@ -64,4 +71,5 @@ export type AdventureNpc = z.infer<typeof AdventureNpcSchema>
 export type AdventureSecret = z.infer<typeof AdventureSecretSchema>
 export type AdventureLocation = z.infer<typeof AdventureLocationSchema>
 export type AdventureEncounter = z.infer<typeof AdventureEncounterSchema>
+export type AdventureRegistry = z.infer<typeof AdventureRegistrySchema>
 export type GeneratedAdventure = z.infer<typeof GeneratedAdventureSchema>

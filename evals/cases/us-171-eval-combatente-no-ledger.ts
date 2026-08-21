@@ -17,7 +17,7 @@ const sheet: Pick<DmCharacterSheet, 'hp' | 'maxHp' | 'conditions'> = { hp: 10, m
 const adventure: GeneratedAdventure = {
   id: 'seed-fixture:1',
   levelRange: { min: 3, max: 3 },
-  tone: 'sombrio',
+  registry: { setting: 'floresta', tone: 'sombrio', areaType: 'ruins' },
   summary: 'Uma emboscada espera na ruína.',
   npcs: [{ id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] }],
   secrets: [],

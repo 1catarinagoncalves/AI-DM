@@ -16,7 +16,7 @@ const sheet: Pick<DmCharacterSheet, 'hp' | 'maxHp' | 'conditions'> = { hp: 10, m
 const adventure: GeneratedAdventure = {
   id: 'seed-fixture:1',
   levelRange: { min: 3, max: 3 },
-  tone: 'sombrio',
+  registry: { setting: 'floresta', tone: 'sombrio', areaType: 'settlement' },
   summary: 'Uma vila à beira da floresta esconde mais do que aparenta.',
   npcs: [{ id: 'npc-1', name: 'Ilvaine Torncroft', role: 'anciã da vila', interactions: [] }],
   secrets: [],

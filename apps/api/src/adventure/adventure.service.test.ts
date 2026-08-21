@@ -938,13 +938,13 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   it('mesmo characterId+order: registro e encounters[].npcIds deterministicos entre execuções (parte não-LLM)', async () => {
     const a = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7, 'pt-BR')
     const b = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7, 'pt-BR')
-    expect(a.tone).toBe(b.tone)
+    expect(a.registry.tone).toBe(b.registry.tone)
     expect(a.encounters[0]!.npcIds).toEqual(b.encounters[0]!.npcIds)
   })
 
   it('registryOverrides é repassado ao rollAdventure — registro fixado, não sorteado', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', { tone: 'heroic' })
-    expect(adventure.tone).toBe('heroic')
+    expect(adventure.registry.tone).toBe('heroic')
   })
 })
 

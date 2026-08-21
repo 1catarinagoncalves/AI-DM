@@ -447,7 +447,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     complicacao: { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' },
     patronsandnpcs: Array.from({ length: 7 }, () => ({ behavior: 'Sly', ancestry: 'Human' })),
   }
-  const registry = { tone: 'grimdark' }
+  const registry = { tone: 'grimdark', setting: 'coastal', areaType: 'settlement' }
 
   function svc() {
     return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
@@ -546,7 +546,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
 describe('AiService.generateSecrets (US-149)', () => {
   const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
-  const registry = { tone: 'comedic' }
+  const registry = { tone: 'comedic', setting: 'coastal', areaType: 'settlement' }
   const secretPrompts = {
     charactersecrets: Array.from({ length: 10 }, (_, i) => `character prompt ${i + 1}`),
     historicalsecrets: Array.from({ length: 10 }, (_, i) => `historical prompt ${i + 1}`),
@@ -663,7 +663,7 @@ describe('AiService.generateClosing (US-164)', () => {
   const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
-  const registry = { tone: 'grimdark' }
+  const registry = { tone: 'grimdark', setting: 'coastal', areaType: 'settlement' }
   const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
 
   function svc() {
@@ -741,7 +741,7 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
   const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
-  const registry = { tone: 'terror' }
+  const registry = { tone: 'terror', setting: 'coastal', areaType: 'settlement' }
   const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
 
   function svc() {

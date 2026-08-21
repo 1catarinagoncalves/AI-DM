@@ -9,7 +9,7 @@ function adventureFixture(overrides: Partial<GeneratedAdventure> = {}): Generate
   return {
     id: 'char-1:1',
     levelRange: { min: 5, max: 5 },
-    tone: 'heroico',
+    registry: { tone: 'heroico', setting: 'fantasy', areaType: 'wilderness' },
     summary: 'Uma ameaça desperta.',
     npcs: [
       { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },

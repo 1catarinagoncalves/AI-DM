@@ -9,7 +9,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
     const adventure = {
       id: 'adv-1',
       levelRange: { min: 1, max: 3 },
-      tone: 'mystery',
+      registry: { setting: 'fantasy', tone: 'mystery', areaType: 'settlement' },
       summary: 'Uma vila à beira da floresta esconde um pacto antigo.',
       npcs: [{
         id: 'npc-1',
@@ -42,7 +42,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
     const adventure = {
       id: 'adv-2',
       levelRange: { min: 1, max: 3 },
-      tone: 'mystery',
+      registry: { setting: 'fantasy', tone: 'mystery', areaType: 'settlement' },
       summary: 'A village at the edge of the forest hides an old pact.',
       npcs: [{
         id: 'npc-1',
@@ -77,7 +77,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
     const adventure = {
       id: 'adv-3',
       levelRange: { min: 1, max: 1 },
-      tone: 'mystery',
+      registry: { setting: 'fantasy', tone: 'mystery', areaType: 'settlement' },
       summary: 'Aventura mínima.',
       npcs: [{ id: 'npc-1', name: 'Elenora', role: 'anciã', interactions: [] }],
       secrets: [{ id: 'secret-1', locationId: 'loc-inexistente', text: 'Segredo órfão.' }],

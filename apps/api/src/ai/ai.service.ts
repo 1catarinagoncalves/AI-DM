@@ -596,7 +596,7 @@ export class AiService {
       locale,
       // US-168: já disponível de graça no SELECT * implícito do findUnique acima —
       // nenhuma query nova. Ausente/sistema sem motor de geração → sem linha extra.
-      tone: (adventure.generatedAdventure as GeneratedAdventure | null)?.tone,
+      tone: (adventure.generatedAdventure as GeneratedAdventure | null)?.registry.tone,
     })
 
     // US-56: bloco de estado volátil do turno, prefixado à AÇÃO CRUA do jogador. A ação

@@ -191,7 +191,7 @@ export class AdventureService {
     return GeneratedAdventureSchema.parse({
       id: `${characterId}:${order}`,
       levelRange: { min: profile.level, max: profile.level },
-      tone: registry.tone,
+      registry,
       summary: content.premissa,
       npcs: allNpcs,
       secrets,
@@ -318,9 +318,9 @@ export class AdventureService {
       // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
       spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
       locale,
-      // US-168: direto de `generated.tone` — a abertura já nasce coerente, sem esperar
+      // US-168: direto de `generated.registry.tone` — a abertura já nasce coerente, sem esperar
       // o round-trip pelo banco (que só existe depois da transação, abaixo).
-      tone: generated.tone,
+      tone: generated.registry.tone,
     })
     // US-101: o fallback estático já sai no idioma certo — `profile.hookSeed` veio do
     // `config` do locale (linha 85), e o gancho passou a ter versão por idioma. Antes ele

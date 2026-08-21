@@ -10,7 +10,7 @@ function validAdventure(overrides: Partial<GeneratedAdventure> = {}): GeneratedA
   return {
     id: 'char-1:1',
     levelRange: { min: 5, max: 5 },
-    tone: 'heroico',
+    registry: { tone: 'heroico', setting: 'fantasy', areaType: 'wilderness' },
     summary: 'Uma ameaça desperta.',
     npcs: [
       { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },

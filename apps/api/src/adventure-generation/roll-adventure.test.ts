@@ -10,7 +10,7 @@ describe('rollAdventure (US-147)', () => {
     const semOverride = rollAdventure('char-1', 1)
     const comOverride = rollAdventure('char-1', 1, { tone: 'grimdark' })
     expect(comOverride.content).toEqual(semOverride.content)
-    expect(comOverride.registry).toEqual({ tone: 'grimdark' })
+    expect(comOverride.registry).toMatchObject({ tone: 'grimdark' })
   })
 
   it('devolve registro e conteúdo juntos, prontos para as chamadas de modelo seguintes', () => {

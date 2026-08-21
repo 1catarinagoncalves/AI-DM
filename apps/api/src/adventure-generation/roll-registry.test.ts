@@ -14,9 +14,19 @@ describe('rollRegistry (US-147)', () => {
     expect(tones.size).toBeGreaterThan(1)
   })
 
-  it('override de tone é respeitado', () => {
+  it('cada campo aceita override independente — sem exigir que os três venham juntos', () => {
     const result = rollRegistry('char-1', 1, { tone: 'horror' })
     expect(result.tone).toBe('horror')
+    // setting/areaType continuam vindo do sorteio, não ficam vazios por causa do override de tone
+    expect(result.setting).toBe(rollRegistry('char-1', 1).setting)
+    expect(result.areaType).toBe(rollRegistry('char-1', 1).areaType)
+  })
+
+  it('override de um campo não desloca o sorteio dos outros dois', () => {
+    const semOverride = rollRegistry('char-1', 1)
+    const comOverrideDeTone = rollRegistry('char-1', 1, { tone: 'comedic' })
+    expect(comOverrideDeTone.setting).toBe(semOverride.setting)
+    expect(comOverrideDeTone.areaType).toBe(semOverride.areaType)
   })
 
   it('o módulo não chama Math.random', () => {
