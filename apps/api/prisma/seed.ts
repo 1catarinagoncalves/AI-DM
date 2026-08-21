@@ -82,35 +82,55 @@ const registryTonesPtBr: SystemConfig['tones'] = [
   { key: 'survival', label: 'Sobrevivência' },
   { key: 'slice-of-life', label: 'Cotidiano' },
 ]
-// US-184: mesma origem/rótulo direto de `SETTINGS` (registry-catalog.ts) — `underdark` vira
-// "Submundo" (tradução PT-BR usual do termo D&D), o resto é cognato direto.
+// US-156: dez chaves copiadas de `Settings.json` (dhorions/DnDGenerate, MPL-2.0), mesma
+// origem/molde de `registryTones` acima — rótulo pt-BR por tradução direta.
 const registrySettings: SystemConfig['settings'] = [
-  { key: 'fantasy', label: 'Fantasy' },
-  { key: 'urban', label: 'Urban' },
-  { key: 'wilderness', label: 'Wilderness' },
-  { key: 'underdark', label: 'Underdark' },
-  { key: 'coastal', label: 'Coastal' },
-  { key: 'planar', label: 'Planar' },
+  { key: 'high-fantasy', label: 'High Fantasy' },
+  { key: 'dark-fantasy', label: 'Dark Fantasy' },
+  { key: 'steampunk', label: 'Steampunk' },
+  { key: 'urban-fantasy', label: 'Urban Fantasy' },
+  { key: 'post-apocalyptic', label: 'Post-Apocalyptic' },
+  { key: 'historical-fiction', label: 'Historical Fiction' },
+  { key: 'sci-fi-space-opera', label: 'Sci-Fi Space Opera' },
+  { key: 'mythological', label: 'Mythological' },
+  { key: 'alternate-reality', label: 'Alternate Reality' },
+  { key: 'cyberpunk', label: 'Cyberpunk' },
 ]
 const registrySettingsPtBr: SystemConfig['settings'] = [
-  { key: 'fantasy', label: 'Fantasia' },
-  { key: 'urban', label: 'Urbano' },
-  { key: 'wilderness', label: 'Natureza Selvagem' },
-  { key: 'underdark', label: 'Submundo' },
-  { key: 'coastal', label: 'Costeiro' },
-  { key: 'planar', label: 'Planar' },
+  { key: 'high-fantasy', label: 'Alta Fantasia' },
+  { key: 'dark-fantasy', label: 'Fantasia Sombria' },
+  { key: 'steampunk', label: 'Steampunk' },
+  { key: 'urban-fantasy', label: 'Fantasia Urbana' },
+  { key: 'post-apocalyptic', label: 'Pós-Apocalíptico' },
+  { key: 'historical-fiction', label: 'Ficção Histórica' },
+  { key: 'sci-fi-space-opera', label: 'Ópera Espacial' },
+  { key: 'mythological', label: 'Mitológico' },
+  { key: 'alternate-reality', label: 'Realidade Alternativa' },
+  { key: 'cyberpunk', label: 'Cyberpunk' },
 ]
-// US-184: mesma origem/rótulo direto de `AREA_TYPES` (registry-catalog.ts).
+// US-156: dez chaves copiadas de `areaType.json` (dhorions/DnDGenerate, MPL-2.0), mesma origem/molde acima.
 const registryAreaTypes: SystemConfig['areaTypes'] = [
-  { key: 'dungeon', label: 'Dungeon' },
-  { key: 'settlement', label: 'Settlement' },
-  { key: 'wilderness', label: 'Wilderness' },
+  { key: 'city', label: 'City' },
+  { key: 'forest', label: 'Forest' },
+  { key: 'mountain-range', label: 'Mountain Range' },
+  { key: 'underground-caves', label: 'Underground Caves' },
+  { key: 'desert', label: 'Desert' },
+  { key: 'coastal-area', label: 'Coastal Area' },
+  { key: 'swamp', label: 'Swamp' },
+  { key: 'plains', label: 'Plains' },
+  { key: 'magical-realm', label: 'Magical Realm' },
   { key: 'ruins', label: 'Ruins' },
 ]
 const registryAreaTypesPtBr: SystemConfig['areaTypes'] = [
-  { key: 'dungeon', label: 'Masmorra' },
-  { key: 'settlement', label: 'Povoado' },
-  { key: 'wilderness', label: 'Natureza Selvagem' },
+  { key: 'city', label: 'Cidade' },
+  { key: 'forest', label: 'Floresta' },
+  { key: 'mountain-range', label: 'Cordilheira' },
+  { key: 'underground-caves', label: 'Cavernas Subterrâneas' },
+  { key: 'desert', label: 'Deserto' },
+  { key: 'coastal-area', label: 'Região Costeira' },
+  { key: 'swamp', label: 'Pântano' },
+  { key: 'plains', label: 'Planícies' },
+  { key: 'magical-realm', label: 'Reino Mágico' },
   { key: 'ruins', label: 'Ruínas' },
 ]
 // Os campos de produto não vêm do artefato, mas nem todos são iguais nos dois locales: point-buy e

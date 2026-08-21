@@ -1,6 +1,6 @@
 import { GeneratedAdventureSchema, type GeneratedAdventure } from '@ai-dm/shared'
 import { encounterDeadlyThreshold, singleMonsterCrCap } from './lazy-encounter-benchmark'
-import { MONSTER_ROLE_CR, totalCr, type MonsterRole } from './monster-roles'
+import { MONSTER_ROLE_CR, totalCr, type MonsterRole, type EncounterChallenge } from './monster-roles'
 
 /**
  * US-150: resultado público do gate — o que o chamador (futuro consumidor de
@@ -26,7 +26,7 @@ type GateCheckResult =
  * crescente do backlog. A 4ª verificação do backlog (piso de quantidade por seção) é
  * responsabilidade do PROMPT (US-149), não deste gate (ver Escopo da US-150).
  */
-export function runAdventureGate(candidate: unknown): GateCheckResult {
+export function runAdventureGate(candidate: unknown, challenge: EncounterChallenge = 'adventure'): GateCheckResult {
   const parsed = GeneratedAdventureSchema.safeParse(candidate)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
@@ -37,7 +37,7 @@ export function runAdventureGate(candidate: unknown): GateCheckResult {
   const graphReason = checkAdventureGraph(parsed.data)
   if (graphReason) return { ok: false, reason: graphReason, stage: 'graph' }
 
-  const budgetReason = checkEncounterBudget(parsed.data)
+  const budgetReason = checkEncounterBudget(parsed.data, challenge)
   if (budgetReason) return { ok: false, reason: budgetReason, stage: 'budget' }
 
   return { ok: true, adventure: parsed.data }
@@ -131,15 +131,19 @@ function checkNoOrphanNpcs(adventure: GeneratedAdventure): string | null {
 }
 
 /**
- * Verificação 3 (US-159): soma de CR dos monstros do encontro não pode EXCEDER (`>`)
- * `encounterDeadlyThreshold`; CR de monstro único não pode ALCANÇAR OU PASSAR (`>=`)
- * `singleMonsterCrCap` — mesmos operadores do LGMRD, para UM personagem no nível da aventura.
- * NPCs narrativos (role fora de `MONSTER_ROLE_CR`) não têm CR e não entram na soma.
+ * Verificação 3 (US-159/US-167): soma de CR dos monstros do encontro não pode EXCEDER (`>`)
+ * o orçamento do MESMO dial que `composeEncounterRoles` usou para montar o encontro —
+ * `encounterDeadlyThreshold` em modo `'adventure'`, `singleMonsterCrCap` em modo `'challenge'`
+ * (sem isto, um encontro montado sob orçamento maior de propósito seria sempre rejeitado
+ * contra o limiar menor). CR de monstro único não pode ALCANÇAR OU PASSAR (`>=`)
+ * `singleMonsterCrCap` — mesmos operadores do LGMRD, para UM personagem no nível da aventura,
+ * independente do dial (regra mais forte, não a que o dial troca). NPCs narrativos (role fora
+ * de `MONSTER_ROLE_CR`) não têm CR e não entram na soma.
  */
-function checkEncounterBudget(adventure: GeneratedAdventure): string | null {
+function checkEncounterBudget(adventure: GeneratedAdventure, challenge: EncounterChallenge): string | null {
   const level = adventure.levelRange.min
-  const deadlyThreshold = encounterDeadlyThreshold(level)
   const soloCap = singleMonsterCrCap(level)
+  const sumBudget = challenge === 'challenge' ? soloCap : encounterDeadlyThreshold(level)
   const roleByNpcId = new Map(adventure.npcs.map((n) => [n.id, n.role]))
 
   for (const encounter of adventure.encounters) {
@@ -151,7 +155,7 @@ function checkEncounterBudget(adventure: GeneratedAdventure): string | null {
     if (oversized) return `encontro "${encounter.id}" tem monstro único CR ${MONSTER_ROLE_CR[oversized]} >= teto ${soloCap} (nível ${level})`
 
     const sum = totalCr(roles)
-    if (sum > deadlyThreshold) return `encontro "${encounter.id}" soma CR ${sum} excede limiar ${deadlyThreshold} (nível ${level})`
+    if (sum > sumBudget) return `encontro "${encounter.id}" soma CR ${sum} excede limiar ${sumBudget} (nível ${level})`
   }
   return null
 }
@@ -162,10 +166,14 @@ function logGateFailure(reason: string, attempt: number): void {
   console.error(JSON.stringify({ event: 'adventure_gate_failed', timestamp: new Date().toISOString(), attempt, reason }))
 }
 
-async function runGateAttempt(generate: (attempt: number) => Promise<GeneratedAdventure>, attempt: number): Promise<GateCheckResult> {
+async function runGateAttempt(
+  generate: (attempt: number) => Promise<GeneratedAdventure>,
+  attempt: number,
+  challenge: EncounterChallenge,
+): Promise<GateCheckResult> {
   try {
     const adventure = await generate(attempt)
-    return runAdventureGate(adventure)
+    return runAdventureGate(adventure, challenge)
   } catch (err) {
     return { ok: false, reason: err instanceof Error ? err.message : String(err), stage: 'parse' }
   }
@@ -180,11 +188,12 @@ async function runGateAttempt(generate: (attempt: number) => Promise<GeneratedAd
 export async function generateWithGate(
   generate: (attempt: number) => Promise<GeneratedAdventure>,
   maxAttempts = 3,
+  challenge: EncounterChallenge = 'adventure',
 ): Promise<GateResult> {
   let lastReason = 'nenhuma tentativa executada'
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const check = await runGateAttempt(generate, attempt)
+    const check = await runGateAttempt(generate, attempt, challenge)
     if (check.ok) return { ok: true, adventure: check.adventure }
 
     lastReason = check.reason

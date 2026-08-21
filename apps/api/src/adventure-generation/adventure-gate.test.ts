@@ -151,6 +151,28 @@ describe('runAdventureGate (US-150)', () => {
     })
     expect(runAdventureGate(adventure).ok).toBe(true)
   })
+
+  // US-167: sem o segundo argumento, verificação 3 sempre validava contra encounterDeadlyThreshold
+  // (bug pré-existente — nunca soube do dial de challenge da US-161). Mesma composição de nível 1
+  // que composeEncounterRoles('challenge') realmente produz (Soldier + 3 Minions, soma 0.875,
+  // ver monster-roles.test.ts): rejeitada em modo 'adventure' (limiar 0), aceita em 'challenge'
+  // (singleMonsterCrCap(1) = 1).
+  it('challenge "challenge" no nível 1: soma 0.875 passa contra singleMonsterCrCap, não encounterDeadlyThreshold (US-167)', () => {
+    const adventure = validAdventure({
+      levelRange: { min: 1, max: 1 },
+      npcs: [
+        { id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] },
+        { id: 'npc-3', name: 'Minion', role: 'Minion', interactions: [] },
+        { id: 'npc-4', name: 'Minion', role: 'Minion', interactions: [] },
+        { id: 'npc-5', name: 'Minion', role: 'Minion', interactions: [] },
+      ],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2', 'npc-3', 'npc-4', 'npc-5'] }],
+    })
+
+    expect(runAdventureGate(adventure).ok).toBe(false) // default 'adventure': limiar 0, sem regressão
+    expect(runAdventureGate(adventure, 'challenge').ok).toBe(true)
+  })
 })
 
 describe('generateWithGate (US-150, reseed)', () => {
@@ -216,6 +238,28 @@ describe('generateWithGate (US-150, reseed)', () => {
     }
     expect(generate).toHaveBeenCalledTimes(1) // nenhuma tentativa extra gasta num bug estrutural
     expect(logSpy).toHaveBeenCalled() // falha registrada (US-120)
+  })
+
+  // US-167: terceiro parâmetro de generateWithGate chega até checkEncounterBudget — mesma
+  // fixture do teste acima de runAdventureGate, agora fim a fim pelo reseed loop.
+  it('challenge repassado a runAdventureGate: encontro nível 1 que falharia em modo adventure passa em modo challenge', async () => {
+    const adventure = validAdventure({
+      levelRange: { min: 1, max: 1 },
+      npcs: [
+        { id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] },
+        { id: 'npc-3', name: 'Minion', role: 'Minion', interactions: [] },
+        { id: 'npc-4', name: 'Minion', role: 'Minion', interactions: [] },
+        { id: 'npc-5', name: 'Minion', role: 'Minion', interactions: [] },
+      ],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2', 'npc-3', 'npc-4', 'npc-5'] }],
+    })
+    const generate = vi.fn(async () => adventure)
+
+    const result = await generateWithGate(generate, 3, 'challenge')
+
+    expect(result.ok).toBe(true)
+    expect(generate).toHaveBeenCalledTimes(1)
   })
 
   it('teto de tentativas esgotado: falha registrada com o motivo da última tentativa, sem travar', async () => {

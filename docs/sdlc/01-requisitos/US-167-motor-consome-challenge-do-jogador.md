@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-165](./US-165-tela-escolhe-nivel-de-desafio.md) (`CreateAdventureDto.challenge` chega ao backend — sem ela não há valor real pra esta story ler) · [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure`/`AdventureProfile`, os dois pontos que esta story muda)
 **Relacionado:** [US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) (`composeEncounterRoles(level, challenge)` já parametrizada, ✅ — esta story só passa o segundo argumento que falta) · [US-166](./US-166-motor-gera-multiplos-encontros.md) (N encontros — cada chamada de `composeEncounterRoles` no loop passa o mesmo `challenge`, sem reabrir aquela story)
 **Criada em:** 2026-08-18 — *Fora do escopo* da US-165 (*"Consumir `challenge` na geração real — nenhum orquestrador (US-164) ou `createForCharacter` lê esse campo do DTO ainda; esta story só garante que o valor chega ao backend, não que ele é usado"*) e Questão em aberto #2 da US-161 (*"Quando o orquestrador (US-164) ganha `challenge` como parâmetro real — story própria, não estimada aqui"*).
@@ -113,32 +113,53 @@ já ganhou `challenge?: 'adventure' | 'challenge'` na US-165.
 
 ## Critérios de aceite
 
-- [ ] `AdventureProfile` tem o campo `challenge: 'adventure' | 'challenge'`.
-- [ ] `createForCharacter` com `dto.challenge` ausente monta profile com `challenge:
+- [x] `AdventureProfile` tem o campo `challenge: 'adventure' | 'challenge'`.
+- [x] `createForCharacter` com `dto.challenge` ausente monta profile com `challenge:
       'adventure'` — nenhuma mudança de comportamento pros callers de hoje.
-- [ ] `createForCharacter` com `dto.challenge === 'challenge'` monta profile com `challenge:
+- [x] `createForCharacter` com `dto.challenge === 'challenge'` monta profile com `challenge:
       'challenge'`.
-- [ ] `generateAdventure` chama `composeEncounterRoles(profile.level, profile.challenge)` —
+- [x] `generateAdventure` chama `composeEncounterRoles(profile.level, profile.challenge)` —
       não mais `composeEncounterRoles(profile.level)` sozinho.
-- [ ] Fixture de nível 1–3 com `challenge: 'challenge'`: `encounters[0].npcIds` não vazio
+- [x] Fixture de nível 1–3 com `challenge: 'challenge'`: `encounters[0].npcIds` não vazio
       (hoje vazio nesse nível, independente da escolha do jogador).
-- [ ] Fixture com `challenge` omitido: mesmo `GeneratedAdventure` que os testes atuais de
+- [x] Fixture com `challenge` omitido: mesmo `GeneratedAdventure` que os testes atuais de
       `createForCharacter`/`generateAdventure` já esperam — sem regressão.
-- [ ] `pnpm typecheck` e `pnpm test` (api) passam.
-- [ ] **Eval / teste de regressão:** teste de `adventure.service.test.ts` cobrindo os dois
+- [x] `pnpm typecheck` e `pnpm test` (api) passam.
+- [x] **Eval / teste de regressão:** teste de `adventure.service.test.ts` cobrindo os dois
       valores de `challenge` fim a fim (`createForCharacter` → `generateAdventure` →
       `composeEncounterRoles`), não só o composer isolado (já coberto pela US-161).
+
+### Descobertas na implementação (o escopo original não previa)
+
+- **`CreateAdventureSchema` (`adventure.controller.ts`) NÃO tinha `challenge`** — ao contrário
+  do que a linha 80-82 (Fora do escopo) afirmava, a US-165 só chegou a `apps/web`; o zod do
+  controller descartava o campo silenciosamente antes de `createForCharacter` vê-lo. Corrigido
+  aqui: `challenge: z.enum(['adventure', 'challenge']).optional()`.
+- **Gate (verificação 3, `adventure-gate.ts`) não sabia de `challenge`** — `checkEncounterBudget`
+  sempre validava a soma de CR contra `encounterDeadlyThreshold`, nunca contra
+  `singleMonsterCrCap`. Resultado: `composeEncounterRoles(level, 'challenge')` em nível 1-3
+  produzia um encontro não vazio, mas o PRÓPRIO gate rejeitava esse encontro sempre (soma > 0 >
+  limiar 0), lançando erro em `createForCharacter`. Sem este fix o critério de aceite "npcIds
+  não vazio" nunca teria passado fim a fim. `checkEncounterBudget`/`runAdventureGate`/
+  `runGateAttempt`/`generateWithGate` ganharam um parâmetro `challenge` (default `'adventure'`,
+  preserva o comportamento de todo chamador existente); `generateGatedAdventure` passa
+  `profile.challenge`. Teste de regressão em `adventure-gate.test.ts`.
 
 ---
 
 ## Notas de implementação
 
-- **Só dois arquivos tocam:** [`apps/api/src/adventure/adventure.service.ts`](../../../apps/api/src/adventure/adventure.service.ts)
-  (`AdventureProfile`, `buildAdventureProfile`, `createForCharacter`, `generateAdventure`) e o
-  teste correspondente. `monster-roles.ts` (US-161/US-152) não muda — já aceita o parâmetro.
-- **`generateGatedAdventure`** ([adventure.service.ts:195](../../../apps/api/src/adventure/adventure.service.ts))
-  não precisa de mudança de assinatura — já recebe `profile` inteiro e repassa pra
-  `generateAdventure`; `challenge` viaja de graça dentro do `profile`.
+- **Arquivos tocados de fato:** [`apps/api/src/adventure/adventure.service.ts`](../../../apps/api/src/adventure/adventure.service.ts)
+  (`AdventureProfile`, `buildAdventureProfile`, `createForCharacter`, `generateAdventure`,
+  `generateGatedAdventure`), [`adventure.controller.ts`](../../../apps/api/src/adventure/adventure.controller.ts)
+  (`CreateAdventureSchema` — ver *Descobertas na implementação*) e
+  [`adventure-gate.ts`](../../../apps/api/src/adventure-generation/adventure-gate.ts)
+  (verificação 3 — idem), além dos testes correspondentes. `monster-roles.ts` (US-161/US-152)
+  não mudou — já aceitava o parâmetro.
+- **`generateGatedAdventure`** ([adventure.service.ts:215](../../../apps/api/src/adventure/adventure.service.ts))
+  não precisou de mudança de assinatura — já recebe `profile` inteiro; só passou a repassar
+  `profile.challenge` como 3º argumento de `generateWithGate` (o gate é quem ganhou o
+  parâmetro novo, não este método).
 - **US-166 não precisa saber disto:** quando implementada, o loop de N encontros chama
   `composeEncounterRoles(profile.level, profile.challenge)` do mesmo jeito, sem parâmetro
   extra — a generalização já foi pensada pra `level`/`challenge` juntos, não só `level`.

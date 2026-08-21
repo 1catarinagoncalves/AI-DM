@@ -474,6 +474,52 @@ describe('AdventureService.createForCharacter', () => {
     )
   })
 
+  // US-167: challenge do DTO chega ao profile que generateGatedAdventure recebe — sem esta
+  // story o motor sempre empacota contra encounterDeadlyThreshold, nunca singleMonsterCrCap.
+  it('challenge ausente no DTO: profile.challenge é "adventure" (default, sem regressão)', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+    const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
+
+    await service.createForCharacter('char-1', {})
+
+    expect(gateSpy.mock.calls[0]?.[0]).toMatchObject({ challenge: 'adventure' })
+  })
+
+  it('challenge "challenge" no DTO: profile.challenge chega como "challenge" a generateGatedAdventure (US-167)', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+    const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
+
+    await service.createForCharacter('char-1', { challenge: 'challenge' })
+
+    expect(gateSpy.mock.calls[0]?.[0]).toMatchObject({ challenge: 'challenge' })
+  })
+
+  // US-167: fim a fim — nível 1 com challenge 'challenge' produz encontro com NPC de combate
+  // (hoje vazio nesse nível, US-159/US-160, independente do que o jogador escolhe na tela).
+  it('challenge "challenge" em nível 1: aventura persistida tem encounters[0].npcIds não vazio (US-167)', async () => {
+    const character = {
+      id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+      baseAttributes: { constitution: 14 }, system: { config },
+    }
+    const { prisma, recorded } = fakePrisma(character)
+    const service = new AdventureService(prisma, fakeAi())
+
+    await service.createForCharacter('char-1', { challenge: 'challenge' })
+
+    const generated = recorded.adventureCreate?.['generatedAdventure'] as { encounters: Array<{ npcIds: string[] }> }
+    expect(generated.encounters[0]!.npcIds.length).toBeGreaterThan(0)
+  })
+
   // US-178: locale do jogador (User.locale, já resolvido na linha 230) chega ao motor de
   // geração — mesma variável que generateOpeningNarration já usava antes desta story.
   it('locale de User.locale (en-US) é repassado a generateGatedAdventure (US-178)', async () => {
@@ -816,9 +862,9 @@ describe('AdventureService.getTurns', () => {
 // (mesmo padrão de teste direto dos outros métodos privados não existe ainda no
 // arquivo; este é o primeiro, daí o cast explícito em vez de invenção de helper).
 describe('AdventureService.buildAdventureProfile', () => {
-  function service(): { buildAdventureProfile: (character: Record<string, unknown>, config: SystemConfig) => unknown } {
+  function service(): { buildAdventureProfile: (character: Record<string, unknown>, config: SystemConfig, challenge: 'adventure' | 'challenge') => unknown } {
     const { prisma } = fakePrisma(null)
-    return new AdventureService(prisma, fakeAi()) as unknown as { buildAdventureProfile: (character: Record<string, unknown>, config: SystemConfig) => unknown }
+    return new AdventureService(prisma, fakeAi()) as unknown as { buildAdventureProfile: (character: Record<string, unknown>, config: SystemConfig, challenge: 'adventure' | 'challenge') => unknown }
   }
 
   it('personagem com background e origin preenchidos: perfil carrega os cinco campos, hookSeed resolvido', () => {
@@ -828,7 +874,7 @@ describe('AdventureService.buildAdventureProfile', () => {
       origin: { key: 'a5e-ag_acolyte', connection: 'O templo que a criou', memento: 'Um símbolo sagrado gasto' },
     }
 
-    const profile = service().buildAdventureProfile(character, config) as Record<string, unknown>
+    const profile = service().buildAdventureProfile(character, config, 'adventure') as Record<string, unknown>
 
     expect(profile).toEqual({
       level: 3,
@@ -840,13 +886,14 @@ describe('AdventureService.buildAdventureProfile', () => {
         adventuresAndAdvancement: 'O templo pede um favor.',
       },
       hookSeed: 'A vela curva-se, Elara.', // placeholder {characterName} resolvido, não cru
+      challenge: 'adventure',
     })
   })
 
   it('background {} e origin {} (rede de segurança): perfil válido, hookSeed da classe não-vazio, sem lançar', () => {
     const character = { name: 'Nyx', level: 1, class: 'wizard', background: {}, origin: {} }
 
-    const profile = service().buildAdventureProfile(character, config) as Record<string, unknown>
+    const profile = service().buildAdventureProfile(character, config, 'adventure') as Record<string, unknown>
 
     expect(profile['level']).toBe(1)
     expect(profile['classKey']).toBe('wizard')
@@ -859,9 +906,18 @@ describe('AdventureService.buildAdventureProfile', () => {
   it('origin.key fora do catálogo: adventuresAndAdvancement ausente, sem lançar (mesmo lookup de resolveAdventuresAndAdvancement)', () => {
     const character = { name: 'Elara', level: 1, class: 'wizard', background: {}, origin: { key: 'chave-inexistente' } }
 
-    const profile = service().buildAdventureProfile(character, config) as Record<string, unknown>
+    const profile = service().buildAdventureProfile(character, config, 'adventure') as Record<string, unknown>
 
     expect((profile['origin'] as Record<string, unknown>)['adventuresAndAdvancement']).toBeUndefined()
+  })
+
+  // US-167: terceiro parâmetro só é escrito no profile — createForCharacter resolve o default.
+  it('challenge repassado tal qual — função não decide default', () => {
+    const character = { name: 'Elara', level: 1, class: 'wizard', background: {}, origin: {} }
+
+    const profile = service().buildAdventureProfile(character, config, 'challenge') as Record<string, unknown>
+
+    expect(profile['challenge']).toBe('challenge')
   })
 })
 
@@ -875,6 +931,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     background: {},
     origin: {},
     hookSeed: 'A vela curva-se, Elara.',
+    challenge: 'adventure',
   }
 
   function fakeGenAi(overrides: {
@@ -1010,9 +1067,16 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   })
 
   it('nível 1-3 (limiar de soma zero, US-160): encontro existe mas npcIds vazio, sem quebrar o parse', async () => {
-    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 1 }, 'char-1', 1, 'pt-BR')
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 1, challenge: 'adventure' }, 'char-1', 1, 'pt-BR')
     expect(adventure.encounters).toHaveLength(1)
     expect(adventure.encounters[0]!.npcIds).toEqual([])
+  })
+
+  // US-167: critério de aceite — challenge: 'challenge' usa singleMonsterCrCap (US-161), sempre
+  // > 0, então nível 1-3 deixa de ser combate zerado quando o jogador escolheu Modo desafio.
+  it('nível 1-3 com challenge "challenge" (US-167): npcIds não vazio — escolha do jogador chega ao composer', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 1, challenge: 'challenge' }, 'char-1', 1, 'pt-BR')
+    expect(adventure.encounters[0]!.npcIds.length).toBeGreaterThan(0)
   })
 
   it('npcs[] final inclui os NPCs do passo 2 (locais/NPCs) e os do passo 4 (combate)', async () => {
@@ -1038,7 +1102,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
 // adventure-gate.test.ts) — só confirma que a integração real (rollAdventure + AiService
 // mockado) chega no gate e reage certo aos dois desfechos, sem mockar o gate em si.
 describe('AdventureService.generateGatedAdventure (US-150)', () => {
-  const profile: AdventureProfile = { level: 1, classKey: 'wizard', background: {}, origin: {}, hookSeed: 'A vela curva-se, Elara.' }
+  const profile: AdventureProfile = { level: 1, classKey: 'wizard', background: {}, origin: {}, hookSeed: 'A vela curva-se, Elara.', challenge: 'adventure' }
 
   function fakeGenAi(overrides: { locations?: Record<string, unknown>[] } = {}): AiService {
     const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [] }]

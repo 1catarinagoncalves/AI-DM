@@ -6,7 +6,7 @@ import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 import { rollAdventure } from '../adventure-generation/roll-adventure'
-import { composeEncounterRoles, buildEncounterNpcs } from '../adventure-generation/monster-roles'
+import { composeEncounterRoles, buildEncounterNpcs, type EncounterChallenge } from '../adventure-generation/monster-roles'
 import { readSecretPrompts } from '../adventure-generation/lgmrd-tables'
 import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
@@ -31,6 +31,7 @@ export interface AdventureProfile {
   background: CharacterBackground
   origin: OriginNarrative
   hookSeed: string
+  challenge: EncounterChallenge // US-167: default 'adventure', resolvido em createForCharacter
 }
 
 @Injectable()
@@ -98,6 +99,7 @@ export class AdventureService {
   private buildAdventureProfile(
     character: { name: string; level: number; class: string; background: unknown; origin: unknown },
     config: SystemConfig,
+    challenge: EncounterChallenge,
   ): AdventureProfile {
     const origin = (character.origin ?? {}) as { key?: string; connection?: string; memento?: string }
     const rawHook = resolveInitialHook(config, character.class)
@@ -115,6 +117,7 @@ export class AdventureService {
         adventuresAndAdvancement: resolveAdventuresAndAdvancement(config.backgrounds, origin.key),
       },
       hookSeed,
+      challenge,
     }
   }
 
@@ -158,7 +161,7 @@ export class AdventureService {
       locale,
     })
 
-    const encounterNpcs = buildEncounterNpcs(composeEncounterRoles(profile.level), npcs)
+    const encounterNpcs = buildEncounterNpcs(composeEncounterRoles(profile.level, profile.challenge), npcs)
     const allNpcs = [...npcs, ...encounterNpcs]
     const encounters: AdventureEncounter[] = [
       { id: 'encounter-1', locationId: locations[0]!.id, npcIds: encounterNpcs.map((npc) => npc.id) },
@@ -223,6 +226,7 @@ export class AdventureService {
     return generateWithGate(
       (attempt) => this.generateAdventure(profile, characterId, order, locale, registryOverrides, attempt),
       maxAttempts,
+      profile.challenge,
     )
   }
 
@@ -273,7 +277,7 @@ export class AdventureService {
     // lock (LLM é lento, mesma disciplina de generateOpeningNarration abaixo) e precisa
     // do valor pronto; a transação recebe este MESMO `order`, não recalcula.
     const order = (await this.prisma.adventureParticipant.count({ where: { characterId } })) + 1
-    const profile = this.buildAdventureProfile(character, config)
+    const profile = this.buildAdventureProfile(character, config, dto.challenge ?? 'adventure')
 
     // US-153: motor de geração (US-164) substitui o catálogo fixo por classe (US-28) — o
     // gancho (`profile.hookSeed`) só ancora a abertura, não decide mais locais/NPCs/segredos/

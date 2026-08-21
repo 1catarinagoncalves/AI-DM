@@ -13,6 +13,9 @@ const CreateAdventureSchema = z.object({
   tone: z.string().min(1).optional(),
   setting: z.string().min(1).optional(),
   areaType: z.string().min(1).optional(),
+  // US-167: sem isto o zod descarta o campo antes de chegar a createForCharacter — a
+  // escolha da tela (US-165) nunca alcançaria o motor, mesmo com o service já pronto.
+  challenge: z.enum(['adventure', 'challenge']).optional(),
 })
 
 @ApiTags('Aventuras')
@@ -23,7 +26,7 @@ export class AdventureController {
   constructor(private readonly adventureService: AdventureService) {}
 
   @ApiOperation({ summary: 'Gera e inicia a aventura inicial do personagem via motor de geração (US-164), ancorada no personagem.' })
-  @ApiBody({ schema: zodBody(CreateAdventureSchema, { tone: 'heroic', setting: 'fantasy', areaType: 'dungeon' }) })
+  @ApiBody({ schema: zodBody(CreateAdventureSchema, { tone: 'heroic', setting: 'high-fantasy', areaType: 'city' }) })
   @Post()
   async create(@Param('characterId') characterId: string, @Body() body: unknown, @CurrentUser() user: AuthUser) {
     await this.assertOwner(characterId, user)
