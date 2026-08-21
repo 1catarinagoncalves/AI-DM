@@ -330,6 +330,9 @@ export class AdventureService {
       // US-168: direto de `generated.registry.tone` — a abertura já nasce coerente, sem esperar
       // o round-trip pelo banco (que só existe depois da transação, abaixo).
       tone: generated.registry.tone,
+      // US-185: mesmo registry do tone acima.
+      setting: generated.registry.setting,
+      areaType: generated.registry.areaType,
     })
     // US-101: o fallback estático já sai no idioma certo — `profile.hookSeed` veio do
     // `config` do locale (linha 85), e o gancho passou a ter versão por idioma. Antes ele

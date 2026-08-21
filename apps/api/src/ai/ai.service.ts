@@ -597,6 +597,9 @@ export class AiService {
       // US-168: já disponível de graça no SELECT * implícito do findUnique acima —
       // nenhuma query nova. Ausente/sistema sem motor de geração → sem linha extra.
       tone: (adventure.generatedAdventure as GeneratedAdventure | null)?.registry.tone,
+      // US-185: mesmo registry do tone acima, mesma condição de ausência.
+      setting: (adventure.generatedAdventure as GeneratedAdventure | null)?.registry.setting,
+      areaType: (adventure.generatedAdventure as GeneratedAdventure | null)?.registry.areaType,
     })
 
     // US-56: bloco de estado volátil do turno, prefixado à AÇÃO CRUA do jogador. A ação
@@ -1226,6 +1229,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     /** US-168: registo/mood da aventura gerada (`generated.tone`) — a abertura já nasce
      * coerente, sem esperar o round-trip pelo banco (ver `streamChat`). */
     tone?: string
+    /** US-185: mesmo registry do `tone` acima — cenário/tipo de área da aventura gerada. */
+    setting?: string
+    areaType?: string
   }): Promise<string | null> {
     try {
       const system = buildDmSystemPrompt({
@@ -1241,6 +1247,8 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         spells: params.spells,
         locale: params.locale,
         tone: params.tone,
+        setting: params.setting,
+        areaType: params.areaType,
       })
       // US-56: o estado volátil saiu do system. Na abertura não há cena/histórico/HP
       // dinâmico, mas a main quest, o elenco semeado e o equipamento inicial ainda são

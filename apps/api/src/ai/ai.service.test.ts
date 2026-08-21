@@ -950,4 +950,13 @@ describe('AiService.generateOpeningNarration (US-168)', () => {
 
     expect(salvage.system).toMatch(/Narrate in this register: grimdark/)
   })
+
+  it('setting/areaType entram no system prompt da abertura (US-185, mesmo campo dos turnos normais)', async () => {
+    salvage.text = 'abertura gerada'
+
+    await svc().generateOpeningNarration({ ...baseParams, setting: 'underdark', areaType: 'dungeon' })
+
+    expect(salvage.system).toContain('underdark')
+    expect(salvage.system).toContain('dungeon')
+  })
 })

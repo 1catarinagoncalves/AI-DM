@@ -273,8 +273,16 @@ export function buildDmSystemPrompt(params: {
    * motor de geração (ex. Free) ou aventura anterior a esta story: nenhuma linha extra.
    */
   tone?: string
+  /**
+   * US-185: cenário/tipo de área sorteados ou escolhidos pra aventura (mesmo registry
+   * do `tone`, US-168) — CONSTANTES pela aventura inteira. Ausente → sistema sem motor
+   * de geração ou aventura anterior a esta story: nenhuma linha extra. Os dois sempre
+   * vêm juntos (`AdventureRegistrySchema` exige ambos), por isso uma frase só.
+   */
+  setting?: string
+  areaType?: string
 }): string {
-  const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells, originNarrative, tone } = params
+  const { systemName, characterName, characterClass, characterRace, characterGender, sheet, attributeLabels, background, features, spells, originNarrative, tone, setting, areaType } = params
   const locale = params.locale ?? DEFAULT_LOCALE
   const targetLanguage = localeNameForPrompt(locale)
 
@@ -400,7 +408,7 @@ ${abilityCheckTable(attributeLabels)}`
 ## Your role
 - Narrate the adventure in vivid, immersive prose. US-97: the table's language is a PLAYER PREFERENCE, not a guess from the last message — always narrate in ${targetLanguage}, even if the player writes in another language.
 - Keep the player engaged and their choices meaningful.
-- Be fair: outcomes should feel earned, not arbitrary.${tone ? `\n- Narrate in this register: ${tone}. Let it color mood, pacing and word choice in every turn, not just the opening.` : ''}
+- Be fair: outcomes should feel earned, not arbitrary.${tone ? `\n- Narrate in this register: ${tone}. Let it color mood, pacing and word choice in every turn, not just the opening.` : ''}${setting && areaType ? `\n- Setting: ${setting}, area type: ${areaType}. Ground every description in this world in every turn, not just the opening — never contradict it.` : ''}
 
 ${NARRATIVE_CRAFT_SECTION}
 

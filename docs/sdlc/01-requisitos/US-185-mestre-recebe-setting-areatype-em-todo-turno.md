@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (21/08/2026). `pnpm typecheck` + `pnpm test` (128 shared, 148 ai-engine, 119 web, 347 api — todos verdes) + `pnpm eval` (67 passam, 2 skipped pré-existentes) verdes.
 **Depende de:** Nenhuma story de código — `AdventureRegistry`/`GeneratedAdventureSchema.registry` já carregam `setting`/`areaType` (restaurados em 21/08/2026, ver [roll-registry.ts](../../../apps/api/src/adventure-generation/roll-registry.ts)/[adventure-generation.ts](../../../packages/shared/src/types/adventure-generation.ts)). Esta story só planeja o consumo que falta.
 **Relacionado:** [US-187](./US-187-distribuicao-tematica-de-locationid-baseada-em-registry.md) (mesmo achado — `registry.setting`/`areaType` sem consumidor — endereçado num consumidor diferente: locais gerados, não narração de turno) · [US-186](./US-186-decisao-rollcontent-nao-recebe-setting-areatype.md) (mesma investigação, decisão de NÃO mexer na camada de rolagem de tabela) · [US-172](./US-172-abertura-gerada-nao-copia-gancho-fixo.md) (`generateOpeningBeat`, outro consumidor de `registry.tone` só) · [US-168, histórico] (`tone` chegou a `buildDmSystemPrompt`/`generateOpeningNarration`, sem `setting`/`areaType`)
 **Criada em:** 2026-08-21 — levantado pela mantenedora ao perguntar "onde mais o registry precisa chegar pra a aventura fazer sentido tematicamente", depois de `setting`/`areaType` terem sido restaurados em `AdventureRegistry`/`GeneratedAdventureSchema` no mesmo dia.
@@ -49,7 +49,7 @@ O jogador (ou o sorteio) fixa `setting` (`fantasy`/`urban`/`wilderness`/`underda
 ### Dentro do escopo
 
 - `buildDmSystemPrompt` ([dm-system.ts:270-280](../../../packages/ai-engine/src/prompts/dm-system.ts) aprox., assinatura de `DmSystemPromptParams`) ganha `setting?: string` e `areaType?: string`.
-- Instrução nova ao lado da linha do `tone` ([dm-system.ts:403](../../../packages/ai-engine/src/prompts/dm-system.ts)), citando `setting`/`areaType` quando presentes — mesma condicional (`${x ? \`...\` : ''}`) que `tone` já usa, mesma promessa de "todo turno".
+- Instrução nova ao lado da linha do `tone` ([dm-system.ts:403](../../../packages/ai-engine/src/prompts/dm-system.ts)) — **uma frase só**, combinando `setting`+`areaType` numa condicional só (decidido, ver Questões em aberto #1), não irmã isolada de `tone`. Mesma condicional (`${x ? \`...\` : ''}`) que `tone` já usa, mesma promessa de "todo turno".
 - `streamChat` ([ai.service.ts:599](../../../apps/api/src/ai/ai.service.ts)): passa `setting`/`areaType` de `adventure.generatedAdventure?.registry`, ao lado do `tone` já passado.
 - `generateOpeningNarration` ([ai.service.ts:1206-1244](../../../apps/api/src/ai/ai.service.ts)): parâmetro ganha `setting?: string`/`areaType?: string` (mesmo padrão de `tone?`), repassados a `buildDmSystemPrompt`.
 - `createForCharacter` ([adventure.service.ts:300-324](../../../apps/api/src/adventure/adventure.service.ts)): passa `generated.registry.setting`/`generated.registry.areaType` na chamada de `generateOpeningNarration`, ao lado de `tone: generated.registry.tone` já existente ([linha 323](../../../apps/api/src/adventure/adventure.service.ts)).
@@ -83,14 +83,14 @@ Nenhum schema Zod novo — `AdventureRegistry`/`GeneratedAdventureSchema.registr
 
 ## Critérios de aceite
 
-- [ ] `buildDmSystemPrompt` aceita `setting?`/`areaType?`; quando presentes, aparecem no texto do `system` — mesma frase/bloco que hoje cita `tone`, ou frase irmã ao lado.
-- [ ] Instrução deixa explícito que vale **todo turno**, não só a abertura — mesma redação de intenção que `tone` já tem.
-- [ ] `setting`/`areaType` ausentes (aventura sem `generatedAdventure` — sistema legado, criação anterior à existência do motor): `system` sai igual ao comportamento de hoje, sem frase quebrada.
-- [ ] `streamChat` repassa `registry.setting`/`registry.areaType` de `adventure.generatedAdventure`, ao lado de `registry.tone` já repassado.
-- [ ] `generateOpeningNarration` aceita `setting?`/`areaType?` e repassa a `buildDmSystemPrompt`; `createForCharacter` os passa a partir de `generated.registry`.
-- [ ] **Teste de regressão:** `dm-system.test.ts` cobre presença/ausência dos dois campos novos, mesmo padrão dos testes de `tone` existentes; `ai.service.test.ts` cobre `streamChat`/`generateOpeningNarration` repassando os três campos do registro.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] `pnpm eval` passa (muda prompt usado em todo turno — regra do projeto, `AGENTS.md`).
+- [x] `buildDmSystemPrompt` aceita `setting?`/`areaType?`; quando presentes, aparecem no texto do `system` numa frase só combinando os dois campos (decidido, Questões em aberto #1) — não frase irmã isolada de `tone`.
+- [x] Instrução deixa explícito que vale **todo turno**, não só a abertura — mesma redação de intenção que `tone` já tem.
+- [x] `setting`/`areaType` ausentes (aventura sem `generatedAdventure` — sistema legado, criação anterior à existência do motor): `system` sai igual ao comportamento de hoje, sem frase quebrada.
+- [x] `streamChat` repassa `registry.setting`/`registry.areaType` de `adventure.generatedAdventure`, ao lado de `registry.tone` já repassado.
+- [x] `generateOpeningNarration` aceita `setting?`/`areaType?` e repassa a `buildDmSystemPrompt`; `createForCharacter` os passa a partir de `generated.registry`.
+- [x] **Teste de regressão:** `dm-system.test.ts` cobre presença/ausência dos dois campos novos, mesmo padrão dos testes de `tone` existentes; `ai.service.test.ts` cobre `generateOpeningNarration` repassando os três campos do registro. `streamChat` **não** ganhou teste direto — achado na implementação: nem `tone` tem ([ai.service.test.ts:216](../../../apps/api/src/ai/ai.service.test.ts), comentário explícito: exige montar personagem/aventura/quests inteiros pro `onFinish` rodar); `setting`/`areaType` seguem a mesma linha já passada sem teste dedicado, coberta por `typecheck`.
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] `pnpm eval` passa (muda prompt usado em todo turno — regra do projeto, `AGENTS.md`).
 
 ---
 
@@ -99,13 +99,15 @@ Nenhum schema Zod novo — `AdventureRegistry`/`GeneratedAdventureSchema.registr
 - **Reusa o padrão condicional exato de `tone`** ([dm-system.ts:403](../../../packages/ai-engine/src/prompts/dm-system.ts), `${tone ? \`...\` : ''}`) — `setting`/`areaType` entram do mesmo jeito, sem introduzir um segundo estilo de instrução condicional no mesmo arquivo.
 - **`setting`/`areaType` guardam a CHAVE canônica** (`underdark`, não "Undercomum"/rótulo) — mesmo contrato que `tone` já segue (`catalogLabel`, US-105). Se algum dia a instrução quiser o RÓTULO em vez da chave, é resolução de leitura no ponto de uso, não mudança de schema.
 - **Sem sub-seed nem RNG novo** — os três campos já existem prontos em `GeneratedAdventure.registry`, só faltava o cano até `buildDmSystemPrompt`.
+- **`setting`+`areaType` numa frase só, combinados** (decidido — Questões em aberto #1) — não uma instrução por campo. Os dois são par correlato (masmorra subterrânea vs. cidade costeira já embutem ambos) e vêm do mesmo `registry`, sem caso de só um presente; `tone` continua isolado por ser eixo ortogonal (US-147/US-156).
+- **Sem exemplo negativo (o que EVITAR) por agora** (decidido — Questões em aberto #2) — implementa só a instrução afirmativa. Só volta a considerar exemplo negativo se `pnpm eval` mostrar contradição de ambiente de fato (ex.: sol num `underdark`), mesma cautela de US-180/US-182.
 
 ---
 
 ## Questões em aberto
 
-1. **Uma frase só (`"Cenário: X, tipo de área: Y."`) ou duas instruções separadas** (uma por campo, como `tone` já é isolado)? Não decidido — detalhe de redação, resolve na implementação; não deveria mudar o critério de aceite (os dois valores aparecem no `system`).
-2. **Reforçar a instrução com exemplo negativo** (o que EVITAR — ex. "não narre luz de sol solar num `underdark`")? Mesma cautela que outras stories de prompt (US-180/US-182) registraram: cedo pra prescrever sem ver a saída real; decidir depois de rodar `pnpm eval`.
+1. ~~Uma frase só ou duas instruções separadas?~~ **Decidido: uma frase só**, combinando `setting`+`areaType` numa condicional (não irmã isolada de `tone`). Razão: os dois são par correlato — masmorra subterrânea vs. cidade costeira já embutem ambos —, enquanto `tone` é eixo ortogonal (US-147/US-156); os dois campos vêm do mesmo `registry`, sem caso de só um presente, então uma condicional combinada basta.
+2. ~~Reforçar com exemplo negativo?~~ **Decidido: não, por agora.** Mesma cautela que US-180/US-182 registraram: cedo pra prescrever sem ver saída real. Implementa sem exemplo negativo, roda `pnpm eval`, só adiciona se o eval mostrar contradição de ambiente de fato (ex.: sol num `underdark`).
 
 ---
 

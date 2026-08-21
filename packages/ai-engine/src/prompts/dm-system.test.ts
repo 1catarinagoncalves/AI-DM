@@ -699,3 +699,16 @@ describe('buildDmSystemPrompt — tone (US-168)', () => {
     expect(p).not.toMatch(/Narrate in this register/)
   })
 })
+
+describe('buildDmSystemPrompt — setting/areaType (US-185)', () => {
+  it('com setting/areaType presentes, instrui os dois numa frase só', () => {
+    const p = build({ setting: 'underdark', areaType: 'dungeon' })
+    expect(p).toMatch(/underdark/)
+    expect(p).toMatch(/dungeon/)
+  })
+
+  it('sem setting/areaType (sistema sem motor de geração, ou aventura anterior a esta story), nenhuma linha extra', () => {
+    const p = build()
+    expect(p).not.toMatch(/Setting:/)
+  })
+})
