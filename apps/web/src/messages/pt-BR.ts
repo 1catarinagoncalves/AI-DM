@@ -68,6 +68,11 @@ export const ptBR = {
   'setup.world.tone': 'Tom',
   'setup.world.areaType': 'Tipo de Área',
   'setup.world.random': 'Aleatório',
+  'setup.world.challenge': 'Desafio',
+  'setup.world.challenge.adventure.label': 'Modo aventura',
+  'setup.world.challenge.adventure.hint': 'pode não ter combate',
+  'setup.world.challenge.challenge.label': 'Modo desafio',
+  'setup.world.challenge.challenge.hint': 'combate garantido',
   'setup.world.start': 'Criar aventura',
   'setup.world.starting': 'Criando aventura...',
 

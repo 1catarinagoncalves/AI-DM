@@ -124,6 +124,32 @@ function WorldOptionGroup({ name, legend, randomLabel, catalog, value, onChange 
   )
 }
 
+// US-165: grupo de rádio do passo `world` pro risco de combate (US-161) — 2 valores fixos,
+// não catálogo (`challenge` é constante de domínio, não `SystemCatalogEntry`, ver notas de
+// implementação da US-165). Cada opção mostra um hint da diferença mecânica (combate
+// garantido ou não), não só rótulo — WorldOptionGroup não serve porque sempre acrescenta
+// "Aleatório" (fora de escopo aqui) e não tem hint.
+function ChallengeOptionGroup({ name, legend, value, onChange, options }: {
+  name: string; legend: string; value: string; onChange: (key: string) => void
+  options: { key: string; label: string; hint: string }[]
+}) {
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-medium text-parchment">{legend}</legend>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {options.map(entry => (
+          <label key={entry.key} className={optionCardClass(value === entry.key)}>
+            <input type="radio" name={name} value={entry.key} checked={value === entry.key}
+              onChange={() => onChange(entry.key)} className="sr-only" />
+            <span className="block font-medium">{entry.label}</span>
+            <span className="mt-1 block text-xs text-muted-foreground">{entry.hint}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
 // US-40: campo único "Divindade/Patrono" → {name, portfolio}. Split na PRIMEIRA
 // vírgula: antes = name, depois (trim) = portfolio. Sem vírgula → só name.
 // Vazio → undefined (sem objeto). Vírgulas seguintes ficam dentro do portfolio.
@@ -224,6 +250,8 @@ export function SetupWizard() {
   const [setting, setSetting] = useState('random')
   const [tone, setTone] = useState('random')
   const [areaType, setAreaType] = useState('random')
+  // US-165: sem sentinela 'random' — Modo aventura é o default real (US-161), não sorteio.
+  const [challenge, setChallenge] = useState<'adventure' | 'challenge'>('adventure')
 
   useEffect(() => {
     // US-61: a identidade vem do login (token); o wizard só carrega o catálogo.
@@ -449,6 +477,8 @@ export function SetupWizard() {
         ...(setting !== 'random' && { setting }),
         ...(tone !== 'random' && { tone }),
         ...(areaType !== 'random' && { areaType }),
+        // US-165: Modo aventura (default) omite o campo — mesmo contrato de default da US-161.
+        ...(challenge !== 'adventure' && { challenge }),
       }
       const adv = await api.createAdventure(charId, dto)
       router.push(`/play/${adv.id}?characterId=${charId}`)
@@ -1039,6 +1069,12 @@ export function SetupWizard() {
                     catalog={toneCatalog} value={tone} onChange={setTone} />
                   <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
                     catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
+                  <ChallengeOptionGroup name="challenge" legend={t('setup.world.challenge')} value={challenge}
+                    onChange={key => setChallenge(key as 'adventure' | 'challenge')}
+                    options={[
+                      { key: 'adventure', label: t('setup.world.challenge.adventure.label'), hint: t('setup.world.challenge.adventure.hint') },
+                      { key: 'challenge', label: t('setup.world.challenge.challenge.label'), hint: t('setup.world.challenge.challenge.hint') },
+                    ]} />
                 </div>
               </div>
             )}

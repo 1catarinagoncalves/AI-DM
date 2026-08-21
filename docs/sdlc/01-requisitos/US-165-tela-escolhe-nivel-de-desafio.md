@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) (`composeEncounterRoles(level, challenge)` parametrizada — sem ela não há valor real pra esta tela emitir) · [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (passo `world` do `SetupWizard`, onde o grupo de rádio desta story entra)
 **Relacionado:** [US-156](./US-156-catalogos-registro-dto-validacao.md) (precedente de forma — catálogo+DTO+tela — mas não reusado literalmente: `challenge` não vem de catálogo, é enum fixo de dois valores) · [US-162](./US-162-jogador-escolhe-quantidade-de-segredos.md)/[US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) (dials irmãos com a mesma lacuna de tela — cada um ganha story própria quando a função subjacente estiver parametrizada, esta story não antecipa as deles) · [US-46](./US-46-acessibilidade-wcag-aa.md) (WCAG AA) · [US-66](./US-66-telas-mobile-friendly.md) (mobile) · [US-102](./US-102-gate-de-string-literal-no-jsx.md) (gate de string literal no JSX) · [US-167](./US-167-motor-consome-challenge-do-jogador.md) (fecha a Questão em aberto #2 desta story — orquestrador passa a ler `challenge` do DTO)
 **Criada em:** 2026-08-18
@@ -54,11 +54,13 @@ Um quarto grupo de rádio no passo `world` que a US-157 introduz — **Desafio**
 
 ## Modelo de dados proposto
 
-Sem schema de banco novo. `CreateAdventureDto` ([adventure.service.ts:13-16](../../../apps/api/src/adventure/adventure.service.ts)) ganha um campo:
+Sem schema de banco novo. `CreateAdventureDto` ([adventure.service.ts:15-21](../../../apps/api/src/adventure/adventure.service.ts)) ganha um campo — `initialHookId` já não existe ali (removido na US-153, antes desta story); os campos reais são `tone`/`setting`/`areaType` (US-156/US-184):
 
 ```ts
 export interface CreateAdventureDto {
-  initialHookId: string
+  tone?: string
+  setting?: string
+  areaType?: string
   challenge?: 'adventure' | 'challenge' // 'adventure' = modo aventura, 'challenge' = modo desafio (US-161)
 }
 ```
@@ -67,15 +69,15 @@ export interface CreateAdventureDto {
 
 ## Critérios de aceite
 
-- [ ] Passo `world` (US-157) mostra um quarto grupo de rádio, **Desafio**, com Modo aventura / Modo desafio.
-- [ ] Cada opção mostra texto de apoio explicando a diferença mecânica: Modo aventura pode não ter combate; Modo desafio garante combate.
-- [ ] Estado inicial é Modo aventura; avançar sem alterar nada não muda o comportamento de hoje (equivalente a `challenge` omitido).
-- [ ] Selecionar Modo desafio envia `challenge` correspondente no `CreateAdventureDto`.
-- [ ] Grupo de rádio tem rótulo associado — auditável por teste de acessibilidade.
-- [ ] Todo texto vem de `setup.world.challenge.*` (dicionário), nos dois locales — gate US-102.
-- [ ] Tela responde ao layout mobile (US-66) e passa nos critérios de contraste/foco (US-46).
-- [ ] `pnpm typecheck` e `pnpm test` (web) passam.
-- [ ] **Eval / teste de regressão:** teste de componente confirma que o DTO carrega `challenge` correto para cada seleção, e que o valor default não quebra o caminho de um clique do passo `world`.
+- [x] Passo `world` (US-157) mostra um quarto grupo de rádio, **Desafio**, com Modo aventura / Modo desafio.
+- [x] Cada opção mostra texto de apoio explicando a diferença mecânica: Modo aventura pode não ter combate; Modo desafio garante combate.
+- [x] Estado inicial é Modo aventura; avançar sem alterar nada não muda o comportamento de hoje (equivalente a `challenge` omitido).
+- [x] Selecionar Modo desafio envia `challenge` correspondente no `CreateAdventureDto`.
+- [x] Grupo de rádio tem rótulo associado — auditável por teste de acessibilidade.
+- [x] Todo texto vem de `setup.world.challenge.*` (dicionário), nos dois locales — gate US-102.
+- [x] Tela responde ao layout mobile (US-66) e passa nos critérios de contraste/foco (US-46) — mesma classe `optionCardClass`/grid responsivo dos outros três grupos do passo `world`.
+- [x] `pnpm typecheck` e `pnpm test` (web) passam.
+- [x] **Eval / teste de regressão:** teste de componente confirma que o DTO carrega `challenge` correto para cada seleção, e que o valor default não quebra o caminho de um clique do passo `world`.
 
 ---
 

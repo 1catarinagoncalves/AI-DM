@@ -64,6 +64,11 @@ export const enUS: Record<MessageKey, string> = {
   'setup.world.tone': 'Tone',
   'setup.world.areaType': 'Area Type',
   'setup.world.random': 'Random',
+  'setup.world.challenge': 'Challenge',
+  'setup.world.challenge.adventure.label': 'Adventure mode',
+  'setup.world.challenge.adventure.hint': 'may have no combat',
+  'setup.world.challenge.challenge.label': 'Challenge mode',
+  'setup.world.challenge.challenge.hint': 'combat guaranteed',
   'setup.world.start': 'Create adventure',
   'setup.world.starting': 'Creating adventure...',
 

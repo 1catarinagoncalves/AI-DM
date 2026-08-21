@@ -606,6 +606,39 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(createAdventure).toHaveBeenCalledWith('char-1', { setting: 'urban', areaType: 'ruins' })
   })
 
+  // US-165: quarto grupo do passo Mundo — risco de combate (US-161), hardcoded (não
+  // catálogo). Cada opção mostra o hint da diferença mecânica, não só o rótulo.
+  it('passo Mundo mostra o grupo Desafio com hint de cada opção, Modo aventura selecionado', async () => {
+    await confirmAndReachWorld(configWithWorldCatalog(2))
+
+    const adventureOption = screen.getByRole('radio', { name: /Modo aventura/ })
+    const challengeOption = screen.getByRole('radio', { name: /Modo desafio/ })
+    expect((adventureOption as HTMLInputElement).checked).toBe(true)
+    expect((challengeOption as HTMLInputElement).checked).toBe(false)
+    expect(screen.getByText('pode não ter combate')).toBeTruthy()
+    expect(screen.getByText('combate garantido')).toBeTruthy()
+  })
+
+  // US-165: Modo aventura é default — avançar sem tocar não manda `challenge` no DTO
+  // (equivalente a omitido, mesmo contrato de default da US-161).
+  it('Modo aventura (default) não envia challenge no DTO', async () => {
+    createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
+    await confirmAndReachWorld(configWithWorldCatalog(2))
+
+    fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+    expect(createAdventure).toHaveBeenCalledWith('char-1', {})
+  })
+
+  it('selecionar Modo desafio envia challenge no DTO', async () => {
+    createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
+    await confirmAndReachWorld(configWithWorldCatalog(2))
+
+    fireEvent.click(screen.getByRole('radio', { name: /Modo desafio/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+
+    expect(createAdventure).toHaveBeenCalledWith('char-1', { challenge: 'challenge' })
+  })
+
   // US-127: a revisão espelha o que a ficha vai mostrar depois — atributos e perícias com
   // modificador, não só o valor cru.
   it('revisão mostra atributos e perícias escolhidas com modificador', async () => {

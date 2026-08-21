@@ -69,7 +69,7 @@ export const api = {
 
   // US-157: dto omite o campo quando o jogador deixa o grupo em Aleatório — nunca envia
   // uma chave "random" (mesma disciplina de ausência = aleatório da US-156).
-  createAdventure: (characterId: string, dto: { tone?: string; setting?: string; areaType?: string }) =>
+  createAdventure: (characterId: string, dto: { tone?: string; setting?: string; areaType?: string; challenge?: 'adventure' | 'challenge' }) =>
     post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, dto),
 
   // US-61: as fichas do próprio utilizador, derivadas do token (sem userId no caminho).

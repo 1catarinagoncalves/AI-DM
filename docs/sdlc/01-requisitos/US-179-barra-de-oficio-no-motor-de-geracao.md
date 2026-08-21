@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma — `NARRATIVE_CRAFT_SECTION` já existe pronta em [dm-system.ts:169-178](../../../packages/ai-engine/src/prompts/dm-system.ts); é extração + adaptação, não peça nova.
 **Relacionado:** [US-34](./US-34-qualidade-da-narracao-do-dm.md) (origem da barra de ofício) · [US-36](./US-36-eval-de-qualidade-da-narracao.md) (rubrica `DIMENSIONS` que mede a barra) · [US-177](./US-177-onomastica-em-npcs-e-locais-do-motor.md) (mesmo padrão de achado — a seção-irmã `### Onomastics`, dentro da MESMA `NARRATIVE_CRAFT_SECTION`, já ganhou story própria; esta story cobre o resto da seção) · [US-178](./US-178-locale-chega-ao-motor-de-geracao.md) (story irmã, mesmas 4 chamadas, achado no mesmo levantamento)
 
@@ -81,19 +81,13 @@ Adaptar o subconjunto de `NARRATIVE_CRAFT_SECTION` aplicável a PROSA GERADA UMA
 ## Notas de implementação
 
 - **Pontos exatos:** `system` de cada chamada — [ai.service.ts:1356-1359](../../../apps/api/src/ai/ai.service.ts) (`generateLocationsAndNpcs`), [:1425-1430](../../../apps/api/src/ai/ai.service.ts) (`generateSecrets`), [:1467-1472](../../../apps/api/src/ai/ai.service.ts) (`generateClosing`), [:1502-1507](../../../apps/api/src/ai/ai.service.ts) (`generateOpeningBeat`).
-- **Duas formas de extrair, decidir na implementação:**
-  1. Const nova em `dm-system.ts` com o subconjunto adaptado (paralelo ao que a US-177 propõe para `ONOMASTICS_SECTION`) — mantém uma fonte de verdade única, mas o texto de `NARRATIVE_CRAFT_SECTION` é escrito para "the OPENING scene AND every turn"; extrair só o subconjunto exige reescrever a frase de abertura da seção, então NÃO é extração byte-a-byte como a Onomástica — o guard de drift da US-36 (`rubric-drift.test.ts`) NÃO se aplica aqui do mesmo jeito, porque o texto muda.
-  2. Escrever a seção adaptada direto em `ai.service.ts`, sem tocar em `dm-system.ts` — menos reuso, mas evita qualquer risco de mexer em `NARRATIVE_CRAFT_SECTION`/`REVIEWED_CRAFT_HASH`.
-  - Preferência: opção 1 SE a reescrita da frase de abertura for pequena o bastante para não arriscar o hash da US-36; senão, opção 2.
+- **Decidido na análise de implementação (checado contra o código, não mais em aberto):** `rubric-drift.test.ts:23` hasheia `NARRATIVE_CRAFT_SECTION` já RESOLVIDA (string final, pós-interpolação de `ONOMASTICS_SECTION`) — não o literal-fonte. Logo dá pra fatorar um sub-const novo, `CRAFT_CORE_SECTION` (sensorial, concretude, mostrar-tensão — SEM NPC, SEM idioma, SEM ritmo/hook), e interpolá-lo DENTRO de `NARRATIVE_CRAFT_SECTION` no lugar dos bullets equivalentes: o texto final não muda, `REVIEWED_CRAFT_HASH` não quebra. Isso é a opção 1 do levantamento original (fonte única em `dm-system.ts`) SEM o risco que motivava a opção 2 — mesmo padrão de fatoração que a US-177 já usou para `ONOMASTICS_SECTION`. A frase de abertura ("OPENING scene AND every turn") e os bullets de ritmo/hook/idioma ficam de fora do sub-const, exclusivos de `NARRATIVE_CRAFT_SECTION`.
+  - **NPC (voice/body/stakes):** `CRAFT_CORE_SECTION` fica SEM o bullet de NPC. Mesmo padrão já usado por `ONOMASTICS_SECTION` (concatenada como string extra só no `system` de `generateLocationsAndNpcs`, ai.service.ts:1391): o bullet de NPC é uma string separada, concatenada só no `system` dessa chamada — não embutida condicionalmente dentro do const.
+  - **Teste:** padrão já existe em `ai.service.test.ts:409` (`expect(genObj.system).toContain(ONOMASTICS_SECTION)`) — repetir para `CRAFT_CORE_SECTION` nas 4 chamadas.
 - **Overlap com US-177:** ambas tocam o `system` de `generateLocationsAndNpcs` (mesma string concatenada); mudanças em conteúdo diferente (Onomástica vs. barra de ofício geral) — mesma disciplina de "overlap sem dependência, ordem de merge decide" já usada entre US-174/US-176.
 - **`boxedText` merece atenção especial** — é o único campo entre os 4 que o método LGMRD define como texto para LER EM VOZ ALTA (não paráfrase do Mestre); a seção adaptada deveria deixar claro que vale a MESMA barra de concretude sensorial, não uma versão mais fraca por ser "só um trecho curto".
-
----
-
-## Questões em aberto
-
-1. A barra adaptada deve ser uma const ÚNICA reusada nas 4 chamadas, ou cada chamada precisa de uma REDAÇÃO própria (já que `generateSecrets`/`generateClosing`/`generateOpeningBeat` não têm NPC pra dar voz/corpo, só `generateLocationsAndNpcs` tem)? Decidir olhando se a versão genérica (sem a parte de NPC) ainda faz sentido nas outras 3, ou se fica vago demais.
-2. Vale medir isso com eval dedicado (LLM-judge, rubrica nova ou adaptada da US-36) além do teste unitário de presença da seção no `system`? A US-36 mede a narração ao vivo; replicar a disciplina pro motor é trabalho de eval considerável — avaliar se cabe nesta story ou vira story própria depois de observar a saída real em produção.
+- **Const ÚNICA reusada nas 4 chamadas** (não redação própria por chamada), com a parte de NPC removida/generalizada. As 3 chamadas sem NPC (`generateSecrets`/`generateClosing`/`generateOpeningBeat`) ainda são cobertas pelo genérico (concretude sensorial, mostrar-não-contar, ritmo de prosa); NPC é só um caso específico de aplicação, não o núcleo da barra. Fonte única também evita a barra divergir entre as 4 chamadas com o tempo, e garante que `boxedText` receba a MESMA barra (não uma versão enfraquecida) sem depender de 4 redações mantidas em sincronia manualmente. Reabrir para redação própria por chamada apenas se, na escrita, a versão sem NPC soar vaga demais nas outras 3.
+- **Sem eval dedicado nesta story** — teste unitário de presença da seção no `system` basta. Replicar a disciplina de LLM-judge da US-36 pro motor é trabalho de eval considerável; não cabe nesta story. Se a saída em produção mostrar a barra não sendo seguida de fato, eval dedicado vira story própria depois, informada por exemplos reais (não especulação agora).
 
 ---
 

@@ -3,7 +3,7 @@
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Depende de:** nenhuma
+**Depende de:** [US-181](./US-181-antagonista-ganha-want-e-method-estruturados.md) (`antagonist.want`/`antagonist.method`, campo novo em `GeneratedAdventure` — decidido implementar antes desta: `objective` deve citar motivo/método do antagonista desde a primeira versão, não como retrabalho depois. Ver *Notas de implementação*)
 **Relacionado:** [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (dono de `Quest.title`/`Quest.description` como estão hoje; *Questões em aberto* #4 já adiou `conclusion` explicitamente pra "consumo futuro") · [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateClosing`, a função que ganha o campo novo) · [US-168](./US-168-abertura-narra-gancho-fixo-nao-aventura-gerada.md) (mexe nos mesmos arquivos — `buildOpeningInstruction`, `buildTurnStateBlock`, região de `generateClosing`/`createForCharacter`; sequenciar depois dela evita conflito de merge, mas não é bloqueio técnico: os dois campos que faltam — `objective` aqui, `mainQuest`/`entities` lá — são independentes)
 **Criada em:** 2026-08-18 — achado ao revisar `generateAdventure()` com a mantenedora: `summary` é só o TIPO da missão ("Rescue an NPC", rótulo cru da tabela `1d20quests`), `start` é o gancho fixo por classe — nenhum dos dois amarra a um alvo concreto da aventura REALMENTE gerada (ex.: "ajudar Marta", "acabar com o culto da Enseada Cinzenta"). E mesmo que amarrasse, não existe hoje nenhum tool que deixe o Mestre marcar a quest como concluída — `Quest.status` existe no schema e nunca é escrito.
 
@@ -33,7 +33,7 @@ Mesmo com um objetivo concreto sintetizado, não há como o Mestre AGIR sobre el
 
 ### A proposta
 
-1. `generateClosing` ganha um campo novo no seu retorno — `objective: string` — um objetivo concreto e verificável, sintetizado a partir de `locations`/`npcs`/`secrets`/`complicacao` (ex.: `"Ajudar Marta a se livrar da dívida com o culto da Enseada Cinzenta"`), na mesma chamada de IA que já produz `conclusion`/`followUps` (nenhum round-trip novo).
+1. `generateClosing` ganha um campo novo no seu retorno — `objective: string` — um objetivo concreto e verificável, sintetizado a partir de `locations`/`npcs`/`secrets`/`complicacao`/`antagonist` (US-181 — `want`/`method`, não só `name`) (ex.: `"Impedir que Malvora drene a vila de Enseada Cinzenta pra alimentar seu ritual"`), na mesma chamada de IA que já produz `conclusion`/`followUps`/`antagonist` (nenhum round-trip novo).
 2. `GeneratedAdventureSchema` ganha `objective: z.string().min(1)` — cai automaticamente sob o gate da US-150 (`GeneratedAdventureSchema.parse`), sem checagem nova.
 3. `Quest` ganha duas colunas: `objective String` (o texto novo, exposto ao Mestre todo turno) e `conclusionHint String` (= `generated.conclusion`, guardado mas NUNCA exposto em `buildTurnStateBlock` — só devolvido pelo tool novo quando o Mestre chama).
 4. Tool novo `completeQuest` em `ai.service.ts` (mesmo padrão de `updateScene`/`recordEntity`): o Mestre chama quando a fdefinição JULGA que o objetivo foi cumprido ou fracassado na fábula; `execute` grava `status`/`completedAt` na quest primária e DEVOLVE `conclusionHint` — o texto que o motor já escreveu pra esse desfecho — pro Mestre expandir na narração do MESMO turno (mesma disciplina de "não citar verbatim" que `buildOpeningInstruction` já usa pro `hookSeed`).
@@ -47,11 +47,12 @@ Mesmo com um objetivo concreto sintetizado, não há como o Mestre AGIR sobre el
 
 - `generateClosing` (`ai.service.ts`) e o schema Zod do seu `generateObject` interno ganham `objective`.
 - `GeneratedAdventureSchema` (`packages/shared`) ganha `objective: z.string().min(1)`.
-- Migração Prisma: `Quest.objective String`, `Quest.conclusionHint String` (sem default — toda quest nova passa a exigir os dois; quests já existentes no banco, se houver, recebem valor vazio/placeholder na migração — ver Notas).
+- Migração Prisma: `Quest.objective String?`, `Quest.conclusionHint String?` (opcionais — confirmado no Neon em 2026-08-20: 6 quests já existem, todas `OPEN`; NOT NULL exigiria placeholder fictício nelas, ver Notas).
 - `createForCharacter` (`adventure.service.ts`) grava `objective: generated.objective`, `conclusionHint: generated.conclusion` no `tx.quest.create`.
-- Novo tool `completeQuest` (`ai.service.ts`, mesma seção dos outros tools): parâmetros `{ outcome: 'success' | 'failure' }`; localiza a quest `isPrimary: true` da aventura corrente, atualiza `status` (`COMPLETED`/`FAILED`) e `completedAt`, grava `EventLog` tipo `CHARACTER_UPDATE` (mesmo padrão de `updateScene`), devolve `{ conclusion: quest.conclusionHint }`.
+- Novo tool `completeQuest` (`ai.service.ts`, mesma seção dos outros tools): parâmetros `{ outcome: 'success' | 'failure', reason?: string }`; localiza a quest `isPrimary: true` da aventura corrente, atualiza `status` (`COMPLETED`/`FAILED`) e `completedAt`, grava `EventLog` tipo `CHARACTER_UPDATE` (mesmo padrão de `updateScene`) com `reason` no `payload` (sem coluna nova em `Quest`), devolve `{ conclusion: quest.conclusionHint }`.
 - `buildTurnStateBlock` (`dm-system.ts`): `## Main quest` passa a incluir `objective` junto de `title`/`description`; instrução do bloco de ofício ganha uma linha dizendo ao modelo pra chamar `completeQuest` quando a fábula resolver o objetivo — e a usar o texto devolvido como base da narração de fecho (sem citar verbatim, mesmo padrão do `hookSeed`).
 - `activeQuests`/quests secundárias (`isPrimary: false`) NÃO ganham objetivo/tool nesta story — só a primária.
+- Teste de regressão (estrutural, sem chamada de modelo): fixture com `antagonist.want`/`antagonist.method` preenchidos e um `objective` gerado que cite só `antagonist.name` → teste FALHA (heurística mínima: `objective` deve conter alguma palavra de `want` ou `method` além do nome; ajuste de heurística é implementação, não critério fechado, mas a checagem em si é obrigatória). Ver critério de aceite dedicado acima — evita que a dependência da US-181 vire só prosa esquecível.
 - Eval/teste de regressão: cenário onde a ação do jogador cumpre claramente o `objective` gerado → confirma que o modelo chama `completeQuest`, que `Quest.status` vira `COMPLETED` no banco, e que a narração do turno referencia o `conclusion` sem citá-lo palavra por palavra.
 - Eval/teste de regressão: cenário onde o jogador NÃO cumpriu o objetivo ainda → confirma que `completeQuest` NÃO é chamado (falso positivo é pior que um final tardio).
 
@@ -68,10 +69,11 @@ Mesmo com um objetivo concreto sintetizado, não há como o Mestre AGIR sobre el
 ## Critérios de aceite
 
 - [ ] `generateClosing` devolve `objective` além de `conclusion`/`followUps`, sintetizado a partir de `locations`/`npcs`/`secrets`/`complicacao` já disponíveis na chamada.
+- [ ] **`objective` cita `antagonist.want`/`antagonist.method` (US-181), não só `antagonist.name`** — critério de aceite próprio, não só nota de implementação: teste de regressão falha se o texto de `objective` reduzir o antagonista ao nome (ex. rejeita `"Impedir Malvora"` sozinho como saída válida de fixture; aceita `"Impedir que Malvora drene a vila pra alimentar seu ritual"`, que referencia `want`/`method`). Sem este critério, a dependência da US-181 fica só documentada em prosa (ver *Notas de implementação*) e pode ser esquecida na implementação.
 - [ ] `GeneratedAdventureSchema.parse` exige `objective` — falha o gate (US-150) se ausente, mesmo tratamento de reseed que qualquer outro campo obrigatório.
-- [ ] `Quest` (schema.prisma) ganha `objective String` e `conclusionHint String`; migração aplicada.
+- [ ] `Quest` (schema.prisma) ganha `objective String?` e `conclusionHint String?`; migração aplicada.
 - [ ] `createForCharacter` grava os dois campos na criação da quest primária.
-- [ ] Tool `completeQuest` existe, aceita `outcome: 'success' | 'failure'`, atualiza `status`/`completedAt` da quest primária da aventura corrente, grava `EventLog`, devolve `conclusionHint`.
+- [ ] Tool `completeQuest` existe, aceita `outcome: 'success' | 'failure'` (desistência/fuga/abandono do objetivo conta como `failure`) e `reason?: string` opcional, atualiza `status`/`completedAt` da quest primária da aventura corrente, grava `EventLog` (com `reason` no `payload`, se enviado), devolve `conclusionHint`.
 - [ ] `## Main quest` no turn state block mostra `objective`.
 - [ ] Instrução de ofício no system prompt diz ao modelo pra chamar `completeQuest` ao reconhecer o objetivo cumprido/fracassado, e usar o `conclusion` devolvido como base (não verbatim) da narração de fecho.
 - [ ] **Eval:** ação do jogador cumpre o `objective` → `completeQuest` chamado, `Quest.status = COMPLETED` no banco, narração referencia o `conclusion` sem repeti-lo literalmente.
@@ -83,7 +85,9 @@ Mesmo com um objetivo concreto sintetizado, não há como o Mestre AGIR sobre el
 ## Notas de implementação
 
 - `objective` deve nascer JÁ referenciando nomes concretos do artefato gerado (o NPC pelo nome, o vilão/facção pelo nome) — senão vira só uma paráfrase de `summary` e não resolve o problema original (ex.: "Ajudar Marta" é melhor que "Ajudar uma NPC").
-- Migração do `Quest`: como `objective`/`conclusionHint` não têm valor óbvio pra linhas já existentes (aventuras criadas ANTES desta story, se o banco de dev/produção tiver alguma), considerar `String?` opcional em vez de obrigatório — evita escrever uma migração de dados fictícia. Confirmar com a mantenedora se há aventuras ativas no Neon antes de decidir NOT NULL vs opcional.
+- **Depende de US-181 (decisão de ordem, 2026-08-20):** `objective` deve citar `antagonist.want`/`antagonist.method` — não só `antagonist.name` — desde a primeira implementação ("Impedir que Malvora drene a vila pra alimentar seu ritual" é melhor que só "Impedir Malvora"). Implementar US-169 antes da US-181 produziria um `objective` mais pobre (só nome) que precisaria de retrabalho de prompt assim que `antagonist` existisse — mais barato inverter a ordem agora do que reabrir esta story depois. `generateClosing` já monta `antagonist` e `objective` na MESMA chamada (nenhum custo extra de round-trip por causa da dependência).
+- Migração do `Quest`: `objective`/`conclusionHint` são `String?` opcionais — confirmado no Neon (2026-08-20): 6 quests já existem, todas `status = OPEN`, sem valor óbvio pra preencher retroativamente. NOT NULL exigiria placeholder fictício nessas 6 linhas; opcional evita isso.
+- `completeQuest`, ao devolver `conclusionHint`, pode receber `null` pra essas 6 quests legadas (criadas antes desta story) — o Mestre não tem desfecho pré-escrito pra elas; tratar como "sem hint disponível", não como erro.
 - `completeQuest` segue o MESMO padrão de idempotência que `recordEntity`: se chamado duas vezes (ex.: o modelo "confirma" a conclusão em dois turnos seguidos por engano), o segundo `update` é inofensivo (mesmo `status`, `completedAt` reescrito) — não precisa de guarda especial.
 - Cuidado com o texto de `conclusionHint` na resposta do tool: ele SÓ deve chegar ao modelo depois de `completeQuest` ser chamado, nunca antes (nem em `buildTurnStateBlock`, nem em nenhum bloco passivo) — é exatamente o vazamento que a US-153 (Questões em aberto #4) evitou de propósito ao não gravar `conclusion` em `Quest.description`.
 - Arquivo principal: [ai.service.ts](../../../apps/api/src/ai/ai.service.ts) — `generateClosing` (~1383), novo tool `completeQuest` (ao lado de `updateScene`, ~681).
@@ -95,9 +99,9 @@ Mesmo com um objetivo concreto sintetizado, não há como o Mestre AGIR sobre el
 
 ## Questões em aberto
 
-1. `completeQuest` deve aceitar UM `outcome` só (sucesso/fracasso), ou também um `reason: string` livre pro modelo registrar COMO terminou (relevante se `followUps` de uma aventura futura quiser puxar gancho daqui)? Threshold: se `followUps` nunca é lido em runtime (confirmar — hoje parece gerado e também descartado, mesmo destino que `conclusion` tinha antes desta story), talvez não valha a pena guardar `reason` ainda.
-2. Existe caso onde a aventura deveria encerrar SEM o jogador "vencer" explicitamente (ex.: ele foge, abandona) — isso conta como `failure` ou precisa de um terceiro outcome? `QuestStatus` já tem só `OPEN`/`COMPLETED`/`FAILED`, sem `ABANDONED` — decidir se cabe no schema atual ou se é escopo de outra story.
-3. Migração de dados (Notas de implementação, item 1) — depende de quantas aventuras já existem no Neon com `Quest` sem os campos novos. Checar antes de escrever o `prisma migrate`.
+1. ~~`completeQuest` deve aceitar UM `outcome` só (sucesso/fracasso), ou também um `reason: string` livre pro modelo registrar COMO terminou?~~ **Decidido (mantenedora, 2026-08-20): sim, adicionar `reason: string` opcional.** Custo é baixo — não vai em coluna nova de `Quest` (evita migração pra campo que ninguém lê ainda), vai no `payload` (`Json`, já livre) do `EventLog` que `completeQuest` grava. Sem leitura em runtime hoje, mas fica pronto pro dia que `followUps` for consumido por uma aventura futura sem precisar reabrir esta story.
+2. ~~Existe caso onde a aventura deveria encerrar SEM o jogador "vencer" explicitamente (ex.: ele foge, abandona) — isso conta como `failure` ou precisa de um terceiro outcome?~~ **Decidido (mantenedora, 2026-08-20): desistência conta como `failure`.** Sem `ABANDONED` no schema — `outcome: 'failure'` cobre tanto derrota quanto abandono/fuga do objetivo. `completeQuest` deve ser chamado também quando o jogador claramente desiste do objetivo primário (foge, recusa continuar, muda de rumo de forma irreversível), não só quando é derrotado na fábula.
+3. ~~Migração de dados — depende de quantas aventuras já existem no Neon com `Quest` sem os campos novos.~~ **Decidido (checado no Neon, 2026-08-20): 6 quests existentes, todas `OPEN`.** `objective`/`conclusionHint` viram `String?` opcionais — sem migração de dados fictícia.
 
 ---
 

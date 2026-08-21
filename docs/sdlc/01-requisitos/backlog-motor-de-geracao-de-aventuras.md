@@ -605,16 +605,17 @@ pedido.
 Depende de: US-149. Não entra no corte mínimo — enhancement, motor roda sem ela (default
 reproduz o comportamento de hoje).
 
-**✱ US-163 — jogador escolhe o tamanho da aventura (locais e NPCs)**
-*(descoberto em 2026-08-17, mesma discussão de produto da US-161/US-162)*
-Dois pontos, formas diferentes: `NPC_ROLL_COUNT=7` (`roll-content.ts:20`) vira função da mesma
-preferência de tamanho — parametrização direta, mesmo padrão dos dials irmãos. Contagem de
-locais **não tem controle hoje** (`locais`/`monumentos` vêm de uma única linha rolada, sem
-instrução de quantidade no prompt) — esta story fecha essa lacuna, adicionando instrução de
-quantidade-alvo em `buildLocationsAndNpcsPrompt` espelhando a que já existe pros NPCs. É a única
-peça dos três dials descobertos em 17/08 que não é só trocar uma constante existente.
+**✱ US-163 — jogador escolhe o tamanho da aventura (NPCs de história)**
+*(descoberto em 2026-08-17, mesma discussão de produto da US-161/US-162; escopo de locais saiu
+daqui em 20/08/2026)*
+`NPC_ROLL_COUNT=7` (`roll-content.ts:20`) vira função da mesma preferência de tamanho —
+parametrização direta, mesmo padrão dos dials irmãos.
 Depende de: US-158. Não entra no corte mínimo — enhancement, motor roda sem ela (default
-reproduz `NPC_ROLL_COUNT=7` de hoje; locais seguem no "~6" por elaboração livre do modelo).
+reproduz `NPC_ROLL_COUNT=7` de hoje).
+Contagem de locais **não tem controle hoje** (`locais`/`monumentos` vêm de uma única linha
+rolada, sem instrução de quantidade no prompt) — não é mais escopo desta story: virou piso fixo
+(8, não preferência) na [US-166](./US-166-motor-gera-multiplos-encontros.md), que precisa dele
+pra cobrir os 8 encontros sem repetição de local.
 
 **✱ US-153 — a aventura deixa de ser derivada da classe**
 `createForCharacter` para de resolver a aventura por `resolveInitialHook(config, character.class)`

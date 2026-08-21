@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída
+**Status:** ✅ Implementada
 **Depende de:** nenhuma
 **Relacionado:** [US-151](./US-151-semear-ledger-segredos-gerados.md) (dona de `seedLedgerFromGeneratedAdventure`, ✅ — terceira story a estender a mesma função, depois da US-170) · [US-170](./US-170-locais-gerados-entram-no-ledger.md) (mesmo gap de origem, mesmo padrão de correção — locais em vez de combatentes) · [US-152](./US-152-statblocks-papel-orcamento.md)/[US-160](./US-160-composer-encontro-usa-limiar-de-soma.md)/[US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) (composer que gera os papéis Minion/Soldier/Brute — trabalho hoje descartado) · [US-166](./US-166-motor-gera-multiplos-encontros.md) (Backlog — motor passa de 1 pra N encontros; esta story deve funcionar pra N sem mudança, já que itera `adventure.encounters` genericamente)
 **Criada em:** 2026-08-18 — achado ao mapear campo a campo o que de `GeneratedAdventure` chega ao Mestre: `npcs[]` de combate (role ∈ `Minion`/`Soldier`/`Brute`) são FILTRADOS pra fora do ledger (`seedLedgerFromGeneratedAdventure`), e `encounters[]` só é lido pelo gate de validação (US-150) — o Mestre nunca sabe que uma ameaça foi orçada e montada num local, mesmo já tendo `rollDice`/`updateCharacterHp` disponíveis pra narrar um confronto hoje, sem esperar por um sistema de combate por turno.

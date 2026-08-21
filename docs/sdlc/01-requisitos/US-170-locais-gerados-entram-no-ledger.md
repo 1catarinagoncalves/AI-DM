@@ -2,9 +2,9 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída
+**Status:** ✅ Implementada
 **Depende de:** nenhuma
-**Relacionado:** [US-151](./US-151-semear-ledger-segredos-gerados.md) (dona de `seedLedgerFromGeneratedAdventure` — já implementada, ✅, mas só emite `npc`/`outro`; esta story fecha o `tipo: 'local'` que faltou) · [US-168](./US-168-abertura-narra-gancho-fixo-nao-aventura-gerada.md) (aponta o gap explicitamente como fora do seu escopo: *"`seedLedgerFromGeneratedAdventure` não emite `WorldEntity` de tipo `'local'` para `adventure.locations` (só NPCs e segredos) — gap real, mas de outra story"*)
+**Relacionado:** [US-151](./US-151-semear-ledger-segredos-gerados.md) (dona de `seedLedgerFromGeneratedAdventure` — já implementada, ✅, mas só emite `npc`/`outro`; esta story fecha o `tipo: 'local'` que faltou) · [US-168](./US-168-abertura-narra-gancho-fixo-nao-aventura-gerada.md) (aponta o gap explicitamente como fora do seu escopo: *"`seedLedgerFromGeneratedAdventure` não emite `WorldEntity` de tipo `'local'` para `adventure.locations` (só NPCs e segredos) — gap real, mas de outra story"*) · [US-166](./US-166-motor-gera-multiplos-encontros.md) (consumidora futura, atualizado 2026-08-21 — acrescenta ao `nota` de `locationEntities` que esta story monta um segmento por encontro que referencia o local (`"{type} — objetivo: {goal}; comportamento: {behaviors}; complicação: {complications}"`), pra todo `type`, não só `skill`/`social`; reusa a mesma entidade, não muda nada desta story)
 **Criada em:** 2026-08-18 — achado ao mapear, campo a campo, o que de `GeneratedAdventure` chega ao Mestre em runtime: `locations[].title` sobrevive só como o campo `local` (string) de um NPC/segredo; `boxedText`/`description`/`aspects` — a prosa do LOCAL em si — nunca é lida por ninguém depois de gerada.
 
 ---

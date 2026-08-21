@@ -18,6 +18,7 @@ export interface CreateAdventureDto {
   tone?: string // US-156: chave do catálogo, ou ausente = sorteado pelo seed
   setting?: string
   areaType?: string
+  challenge?: 'adventure' | 'challenge' // US-165: risco de combate (US-161); ausente = 'adventure'
 }
 
 /**

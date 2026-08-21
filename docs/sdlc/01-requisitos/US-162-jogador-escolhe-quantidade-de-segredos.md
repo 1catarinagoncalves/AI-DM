@@ -47,7 +47,7 @@ Parametrizar `SECRET_CATEGORY_COUNT`: em vez de constante de módulo, vira funç
 
 - **Tela/DTO/i18n pra capturar a escolha** — decidido *onde* a preferência mora (por aventura gerada, ver *Questões em aberto* #2), mas a tela em si segue fora: depende primeiro da Questão em aberto #1 (mesmo dial que a US-163, ou independente) pra saber se é um campo ou dois. Story própria quando resolvido; precedente de forma: US-156/US-157.
 - **Mudar o texto dos 40 prompts-molde ou a distribuição por categoria em si (quais categorias existem)** — isso é [US-149](./US-149-segredos-40-prompts-lgmrd.md)/texto-fonte do LGMRD, intocado aqui; esta story só varia o **número por categoria já definida**.
-- **Refletir a densidade em `locations`/`npcs`** (mais segredos "densos" pedindo mais locais/NPCs pra ancorar) — é a pergunta em aberto #1 abaixo, resolve se cruza com a [US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md).
+- **Refletir a densidade em `npcs`** (mais segredos "densos" pedindo mais NPCs pra ancorar) — é a pergunta em aberto #1 abaixo, resolve se cruza com a [US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) (NPCs de história; contagem de locais não é mais escopo dela, ver nota de 2026-08-20 lá — virou piso fixo da [US-166](./US-166-motor-gera-multiplos-encontros.md)).
 
 ---
 
@@ -78,7 +78,7 @@ Sem schema novo — `AdventureSecretSchema` ([US-144](./US-144-schema-aventura-s
 
 ## Questões em aberto
 
-1. Este dial e o de tamanho de locais/NPCs ([US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md)) são a **mesma** preferência do jogador (uma única escolha "tamanho da aventura" que move os dois) ou dois controles independentes (jogador pode querer poucos segredos mas muitos NPCs)? Não decidido — as duas stories ficam implementáveis de forma independente até essa decisão de produto vir.
+1. Este dial e o de NPCs de história ([US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md)) são a **mesma** preferência do jogador (uma única escolha "tamanho da aventura" que move os dois) ou dois controles independentes (jogador pode querer poucos segredos mas muitos NPCs)? Não decidido — as duas stories ficam implementáveis de forma independente até essa decisão de produto vir.
 2. ~~Mesma pergunta da US-161 #1: preferência por personagem ou por aventura gerada?~~ **Resolvido: por aventura gerada**, mesma decisão da US-161 — não persiste em `Character`.
 3. Nomes dos níveis de densidade — resolver na implementação, mesmo padrão de chave canônica EN do repo ([US-54](./US-54-chaves-canonicas-em-ingles.md)).
 
@@ -91,4 +91,4 @@ Sem schema novo — `AdventureSecretSchema` ([US-144](./US-144-schema-aventura-s
 - [`apps/api/src/ai/ai.service.ts:1308`](../../../apps/api/src/ai/ai.service.ts) — `generateSecrets`, assinatura que ganha o parâmetro de densidade.
 - [US-149](./US-149-segredos-40-prompts-lgmrd.md) — story original dos segredos, cujo orçamento fixo esta story parametriza; também a fonte do teto de 10 por categoria (40 prompts ÷ 4 categorias).
 - [US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) — dial irmão (desafio de combate), mesmo padrão de reaproveitar constante já existente como opção.
-- [US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) — dial de tamanho de locais/NPCs; questão em aberto #1 acima cruza as duas.
+- [US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) — dial de NPCs de história; questão em aberto #1 acima cruza as duas.
