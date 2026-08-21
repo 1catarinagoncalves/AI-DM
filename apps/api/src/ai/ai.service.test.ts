@@ -482,11 +482,18 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     expect(genObj.model).toBe(primaryModel)
   })
 
-  it('background.bonds presente entra no prompt do modelo', async () => {
+  it('background.story presente entra no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry, background: { story: 'jurou vingança contra o culto' } })
+    expect(genObj.system).toContain('jurou vingança contra o culto')
+  })
+
+  it('background.bonds NÃO entra no prompt — motor de geração só consome story', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
     await svc().generateLocationsAndNpcs({ rolled, registry, background: { bonds: ['jurou vingança contra o culto'] } })
-    expect(genObj.system).toContain('jurou vingança contra o culto')
+    expect(genObj.system).not.toContain('jurou vingança contra o culto')
   })
 
   it('background vazio cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
@@ -566,11 +573,18 @@ describe('AiService.generateSecrets (US-149)', () => {
     expect(genObj.model).toBe(primaryModel)
   })
 
-  it('background.bonds presente entra no prompt do modelo', async () => {
+  it('background.story presente entra no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, registry, background: { story: 'jurou vingança contra o culto' } })
+    expect(genObj.system).toContain('jurou vingança contra o culto')
+  })
+
+  it('background.bonds NÃO entra no prompt — motor de geração só consome story', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
     await svc().generateSecrets({ locations, npcs, secretPrompts, registry, background: { bonds: ['jurou vingança contra o culto'] } })
-    expect(genObj.system).toContain('jurou vingança contra o culto')
+    expect(genObj.system).not.toContain('jurou vingança contra o culto')
   })
 
   it('origin.adventuresAndAdvancement presente entra no prompt do modelo', async () => {
@@ -796,14 +810,24 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
     expect(genObj.prompt).toContain('Aberrant')
   })
 
-  it('background.bonds presente entra no system — instrução de ancorar a cena no vínculo (US-180)', async () => {
+  it('background.story presente entra no system — instrução de ancorar a cena no vínculo (US-180)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({
+      locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
+      background: { story: 'jurou vingança contra o culto' },
+    })
+    expect(genObj.system).toContain('jurou vingança contra o culto')
+  })
+
+  it('background.bonds NÃO entra no system — motor de geração só consome story', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }
     await svc().generateOpeningBeat({
       locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
       background: { bonds: ['jurou vingança contra o culto'] },
     })
-    expect(genObj.system).toContain('jurou vingança contra o culto')
+    expect(genObj.system).not.toContain('jurou vingança contra o culto')
   })
 
   it('origin.adventuresAndAdvancement presente entra no system — instrução de ancorar a cena no vínculo (US-180)', async () => {

@@ -214,23 +214,20 @@ function buildSecretsPrompt(locations: AdventureLocation[], npcs: AdventureNpc[]
   ].join('\n')
 }
 
-// US-180: lista de âncoras pessoais da personagem (`story`/`bonds`/`flaws`/
-// `origin.adventuresAndAdvancement`) — usada por `generateSecrets` (US-149) e
-// `generateOpeningBeat` (US-180) pra montar a própria frase de instrução. Extraída pra
-// função pura porque as duas listas eram quase-idênticas e arriscavam divergir com o
-// tempo (mesma disciplina de reuso da seção compartilhada de `dm-system.ts`, US-177/US-179).
-// `connection`/`memento` NÃO entram aqui — só `adventuresAndAdvancement` alimenta o motor
-// de geração; os outros dois continuam servindo só a narração de turno ao vivo (ai.service.ts:344-356).
+// US-180: lista de âncoras pessoais da personagem (`story`/`origin.adventuresAndAdvancement`)
+// — usada por `generateSecrets` (US-149) e `generateOpeningBeat` (US-180) pra montar a
+// própria frase de instrução. Extraída pra função pura porque as duas listas eram
+// quase-idênticas e arriscavam divergir com o tempo (mesma disciplina de reuso da seção
+// compartilhada de `dm-system.ts`, US-177/US-179).
+// `bonds`/`flaws`/`deity` NÃO entram aqui — motor de geração só consome `story` do
+// background (o resto continua servindo só a narração de turno ao vivo). `connection`/
+// `memento` do origin também ficam de fora, mesma razão.
 function characterAnchors(params: {
   background?: CharacterBackground
   origin?: { adventuresAndAdvancement?: string }
 }): string[] {
-  const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
-  const flaws = (params.background?.flaws ?? []).filter((f) => f.trim())
   return [
     params.background?.story?.trim() && `História: ${params.background.story}`,
-    bonds.length > 0 && `Vínculos: ${bonds.join('; ')}`,
-    flaws.length > 0 && `Fraquezas: ${flaws.join('; ')}`,
     params.origin?.adventuresAndAdvancement?.trim() && `Aventura e avanço da origem: ${params.origin.adventuresAndAdvancement}`,
   ].filter((line): line is string => Boolean(line))
 }
@@ -1374,13 +1371,14 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     background?: CharacterBackground
     locale?: Locale
   }): Promise<{ locations: AdventureLocation[]; npcs: AdventureNpc[] }> {
-    const bonds = (params.background?.bonds ?? []).filter((b) => b.trim())
+    const story = params.background?.story?.trim()
     // US-174: rede de segurança quando `background` vem vazio deixou de citar o gancho
     // fixo por classe (`hookSeed`) — vira instrução genérica ancorada no que já foi
-    // rolado para ESTA aventura, não no catálogo por classe (US-153).
-    const bondsInstruction = bonds.length > 0
-      ? `Vínculos da personagem — amarre AO MENOS UM NPC (por nome ou papel) a um destes: ${bonds.join('; ')}.`
-      : 'Sem vínculos registrados — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
+    // rolado para ESTA aventura, não no catálogo por classe (US-153). Motor de geração só
+    // consome `story` do background (bonds/flaws/deity ficam de fora, ver characterAnchors).
+    const storyInstruction = story
+      ? `História da personagem — amarre AO MENOS UM NPC (por nome ou papel) a este contexto: ${story}.`
+      : 'Sem história registrada — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
     // US-178: `system` continua em português (instrução PARA o modelo) — só a SAÍDA segue
     // o locale do jogador, mesmo padrão de `buildDmSystemPrompt` (dm-system.ts:260).
     const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
@@ -1391,7 +1389,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       system:
         'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
-        `Tom: ${params.registry.tone}. ${bondsInstruction} ` +
+        `Tom: ${params.registry.tone}. ${storyInstruction} ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a regra de Onomástica abaixo, não o idioma-alvo.\n\n` +
         // US-179: boxedText é lido em voz alta (método LGMRD) — vale a MESMA barra
         // abaixo, não uma versão mais fraca por ser um trecho curto.
