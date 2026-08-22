@@ -28,6 +28,7 @@ const adventure: GeneratedAdventure = {
   start: 'A trilha termina na ruína.',
   conclusion: 'A ameaça é contida.',
   followUps: [],
+  antagonist: { name: 'Malvora', want: 'poder sobre a ruína', method: 'reunir soldados', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' },
 }
 
 // Reimplementado (não importado): `seedLedgerFromGeneratedAdventure` vive em apps/api,

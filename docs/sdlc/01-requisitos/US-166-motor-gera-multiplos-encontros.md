@@ -3,14 +3,13 @@
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure`, [adventure.service.ts:131-204](../../../apps/api/src/adventure/adventure.service.ts) — estende o array de 1 elemento pra 8; `generateClosing`, já dentro do `Promise.all` das linhas 164-189, ganha `encounterSkeleton`/`encounterSituations`) · [US-152](./US-152-statblocks-papel-orcamento.md)/[US-160](./US-160-composer-encontro-usa-limiar-de-soma.md)/[US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) (`composeEncounterRoles`/`buildEncounterNpcs`, ✅ implementadas, reusadas nos slots `combat`) · [US-144](./US-144-schema-aventura-shared.md) (`AdventureEncounterSchema` — MUDA, ganha `behaviors`/`goal`/`complications`) · [US-158](./US-158-locais-npcs-prosa-motor.md) (`generateLocationsAndNpcs`, ✅ implementada — fonte de `locationId`/`npcIds` via `location.occupants`) · [US-149](./US-149-segredos-40-prompts-lgmrd.md) (`generateSecrets`, ✅ implementada — `secrets[]` já é parâmetro de `generateClosing` DESDE ANTES desta story, US-166 só reaproveita) · [US-181](./US-181-antagonista-ganha-want-e-method-estruturados.md) (`antagonist: {name, want, method}`, 📋 **NÃO implementada** — bloqueia esta story mais que os outros itens: sem ela, `CLOSING_SCHEMA` não tem `antagonist` pra a posição 8 ecoar) · [US-170](./US-170-locais-gerados-entram-no-ledger.md) (`seedLedgerFromGeneratedAdventure`/`locationEntities`, ✅ implementada — muda o `nota`) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (modelo barato, molde de `generateClosing`)
-**Relacionado:** [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (gate — verificação 3 filtra `type === 'combat'`) · [US-171](./US-171-encontros-de-combate-entram-no-ledger.md) (`encounterNpcEntities` MUDA, ganha filtro `type === 'combat'`) · [US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) (dial de NPCs de história — o eixo de locais que essa story propunha saiu de lá em 2026-08-20; `N` de encontros é 8 fixo, decidido, não negociável nem por esta story)
-**Criada em:** 2026-08-18 — questão em aberto #3 da US-164 (*"um encontro ou 4-5?"*), respondida "4-5" e destacada como story própria por tocar contrato/custo além do escopo do orquestrador.
-**Atualizada em:** 2026-08-20 — define a estrutura fixa: **8 encontros** (não mais 4-5), sequência de tipo `combat/skill/social/combat/skill/social/skill/combat` sem repetição adjacente, sempre fechando em combate. Piso de locais fixado em 8 (absorve o eixo de locais que a US-163 propunha; ela fica só com o dial de NPCs de história).
-**Atualizada em (2):** 2026-08-21 — reescrita de fundo, a pedido da mantenedora. A story deixa de amarrar cada encontro a uma perícia testada (`testedSkill`, tentado e abandonado no mesmo dia) e passa a gerar 8 **situações** completas, framework Sly Flourish (Location/Inhabitants/Behaviors/Goal/Complications — ver *Referências externas*): `location` = `locationId`, `inhabitants` = `npcIds` (`combat` via composer, `social` via `location.occupants` com fallback round-robin, `skill` vazio), e três campos novos — `behaviors`/`goal`/`complications` — prosa do modelo (US-114). Perícia testada volta a ser 100% emergente no turno, sem sinal estruturado — a garantia de "toda perícia proficiente é convocada" (motivo original desta story, US-164) deixa de ser resolvida por ela.
-**Atualizada em (3):** 2026-08-21, mesmo dia — `generateEncounterSituations` ganha `secrets`/`antagonist` como contexto, decisão da mantenedora. `secrets` é barato (já existe no passo 4, antes dos encontros — sem conflito de ordem). `antagonist` (US-181) só existe DEPOIS de `generateClosing` rodar, e essa chamada estava planejada pra rodar em PARALELO com `generateEncounterSituations` — escolhida a opção que quebra o paralelo: `generateEncounterSituations` passa a rodar SEQUENCIAL, depois do `Promise.all([generateClosing, generateOpeningBeat])`, não mais dentro dele. Custo aceito: 1 round-trip sequencial a mais (a latência que a reescrita (2) evitava de propósito). Ganho: encontro pode ecoar `antagonist.want`/`method` de verdade, não só tom genérico.
-**Atualizada em (4):** 2026-08-21, mesmo dia — decisão da mantenedora, resolve *Questão em aberto* #1 (agora removida): a sequência de `type` deixa de ser constante fixa e passa a ser SORTEADA por seed determinístico (mesmo par `characterId`+`order` → mesma sequência, mesmo padrão de `tableSeed`/`createSeededRandom` que o resto do motor já usa, US-146). Posição 8 continua sempre `combat`, mas agora FIXA por construção (não sorteada) — porque vira o **confronto final com o antagonista**: a situação instrui esse encontro específico a ecoar `antagonist.want`/`method` diretamente, não só "pode". Posições 1-7 sorteiam o multiset `{combat×2, skill×3, social×2}` (mesma proporção 3/3/2 de antes, já que 1 combat foi reservado pra posição 8), respeitando "nunca dois tipos iguais adjacentes" — incluindo contra a posição 8 fixa.
-**Atualizada em (5):** 2026-08-21, mesmo dia — fecha as questões em aberto restantes. A mais relevante muda desenho: `generateEncounterSituations` deixa de ser função nova — vira mais dois campos (`encounterSkeleton` de entrada, `encounterSituations` de saída) no MESMO `generateClosing` que a US-181 já estende com `antagonist`. Volta a rodar dentro do `Promise.all([generateClosing, generateOpeningBeat])` original — **nenhum round-trip sequencial a mais**, resolve o custo/latência da reescrita (3) por arquitetura, não por aceitar o gasto. As outras: `combat` mantém segmento no `nota` do local (é o que dá o payoff do confronto final); `CRAFT_CORE_SECTION` reusado verbatim (seção própria só se eval mostrar complicação genérica); sem `background`/`origin` como insumo no MVP; dependência de US-181 continua DURA, não vira opcional (a posição 8 exige `antagonist` de verdade); teto de retry do `shuffleEncounterTypes` (~20) mantido, espaço de shuffles válidos é grande.
+**Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure` — estende o array de 1 elemento pra 8) · [US-152](./US-152-statblocks-papel-orcamento.md)/[US-160](./US-160-composer-encontro-usa-limiar-de-soma.md)/[US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) (`composeEncounterRoles`/`buildEncounterNpcs`, ✅, reusadas nos slots `combat`) · [US-144](./US-144-schema-aventura-shared.md) (`AdventureEncounterSchema` MUDA) · [US-158](./US-158-locais-npcs-prosa-motor.md) (`generateLocationsAndNpcs`, ✅ — fonte de `location.occupants`) · [US-149](./US-149-segredos-40-prompts-lgmrd.md) (`generateSecrets`, ✅ — `secrets[]` já chega em `generateClosing`) · [US-181](./US-181-antagonista-ganha-want-e-method-estruturados.md) (`antagonist`, 📋 **NÃO implementada** — bloqueia: posição 8 precisa dele pra existir de verdade) · [US-170](./US-170-locais-gerados-entram-no-ledger.md) (`seedLedgerFromGeneratedAdventure`, ✅) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (modelo barato, molde de `generateClosing`)
+**Relacionado:** [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (gate, verificação 3 — já filtra por role em `MONSTER_ROLE_CR`, efeito equivalente a "só `combat`") · [US-171](./US-171-encontros-de-combate-entram-no-ledger.md) (`encounterNpcEntities` ganha filtro `type === 'combat'`) · [US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) (`N=8` é constante desta story, não preferência do jogador) · [US-187](./US-187-distribuicao-tematica-de-locationid-baseada-em-registry.md) (distribuição temática de `locationId`, depende desta story primeiro) · [US-190](./US-190-antagonista-vira-passo-proprio-entre-segredos-e-encontros.md) (`antagonist` já chega pronto de `generateAntagonist`, chamada própria ANTES do `Promise.all` — implementado)
+
+**Criada em:** 2026-08-18 — questão em aberto #3 da US-164 ("um encontro ou 4-5?"), virou story própria.
+**Decisões fechadas (2026-08-20 a 21):** 8 encontros fixos. Cada um vira uma SITUAÇÃO completa (framework Sly Flourish — ver *Referências externas*), não uma perícia amarrada (`testedSkill` foi tentado e abandonado). `type` sorteado por seed determinístico nas posições 1-7 (multiset `{combat×2, skill×3, social×2}`, sem repetição adjacente); posição 8 sempre `combat`, fixa — confronto final com o antagonista. `behaviors`/`goal`/`complications` entram como campos extras no MESMO `generateClosing` que a US-181 já estende com `antagonist` (não função nova) — roda dentro do `Promise.all([generateClosing, generateOpeningBeat])` já existente, sem round-trip a mais. Piso de locais fixado em 8.
+**2026-08-22:** soma sinal de orientação em runtime — `nextUnrevealedEncounterLocation` (puro, sem IA) aponta o encontro de menor `id` cujo local ainda não é `revelado`; `buildTurnStateBlock` ganha bloco opcional autorizando (não obrigando) o Mestre a apontar rumo, sem citar `behaviors`/`goal`/`complications`.
+**2026-08-22 (correção pós-revisão):** prosa antiga dizia "`type` continua existindo" — falso, checado no schema atual: campo não existe, é NOVO nesta story (o bloco `Modelo de dados proposto` já estava certo). Riscos de implementação em *Notas de implementação*.
 
 ---
 
@@ -24,25 +23,19 @@
 
 ## Contexto e motivação
 
-### O problema observado
+A versão anterior previa "encontros (4-5)" sem tipo — mas `composeEncounterRoles`/`buildEncounterNpcs` só sabem montar **combate**. Uma aventura toda-combate contradiz o resto do artefato: locais/NPCs/segredos já cobrem exploração e interação social em prosa, mas nada disso vira **encontro estruturado**.
 
-A versão anterior desta story ([backlog §Ordem de geração](./backlog-motor-de-geracao-de-aventuras.md), passo 5) previa "encontros (4-5)" sem tipo — na prática, `composeEncounterRoles`/`buildEncounterNpcs` (US-152/160/161) só sabem montar **combate**. Uma aventura com 4-5 encontros, todos de combate, contradiz o resto do artefato: `~6` locais, `~7` NPCs e `~11` segredos (US-149) já cobrem exploração e interação social em prosa, mas nenhum vira um **encontro estruturado** — só o combate ganha essa forma.
-
-### A proposta
-
-Cada um dos 8 `AdventureEncounter` passa a responder as cinco perguntas de uma situação (Sly Flourish, *Building Situations*/*Situation Checklist* — ver *Referências externas*) em vez de amarrar uma perícia (`locationId`/`npcIds`/chave crua tipo `"stealth"` não são uma cena, são uma etiqueta):
+Cada um dos 8 `AdventureEncounter` passa a responder as cinco perguntas de uma situação (Sly Flourish):
 
 | Pergunta | Campo | Como é decidido |
 |---|---|---|
-| **Location** — onde isso acontece? | `locationId` | Round-robin sobre `locations[]` (já existia) |
-| **Inhabitants** — quem mora ali? | `npcIds` | `combat`: `composeEncounterRoles`/`buildEncounterNpcs`. `social`: `location.occupants`, fallback round-robin. `skill`: `[]` — obstáculo não precisa de morador |
-| **Behaviors** — o que estão fazendo? | `behaviors` (NOVO) | Prosa curta, modelo (US-114) |
-| **Goal** — por que o personagem foi lá, o que conta como sucesso? | `goal` (NOVO) | Prosa curta, modelo (US-114) |
-| **Complications** — o que pode virar o jogo? | `complications` (NOVO) | Prosa curta, modelo (US-114) |
+| **Location** — onde acontece? | `locationId` | Round-robin sobre `locations[]` |
+| **Inhabitants** — quem mora ali? | `npcIds` | `combat`: composer. `social`: `location.occupants`, fallback round-robin. `skill`: `[]` |
+| **Behaviors** — o que estão fazendo? | `behaviors` | Prosa curta, modelo (US-114) |
+| **Goal** — por que o personagem foi lá? | `goal` | Prosa curta, modelo (US-114) |
+| **Complications** — o que pode virar o jogo? | `complications` | Prosa curta, modelo (US-114) |
 
-`type` (`combat`/`skill`/`social`) continua existindo, mas não trava perícia — direciona o QUE o modelo escreve (`skill` puxa pra obstáculo físico/ambiental, `social` pra negociação com NPC, `combat` pra ameaça e cerco). A sequência de `type` é SORTEADA (seed determinístico), não mais constante: cada aventura embaralha `{combat×2, skill×3, social×2}` nas posições 1-7, sem dois tipos iguais adjacentes. A posição 8 é sempre `combat`, fixa, não sorteada — é o **confronto final com o antagonista**, e é o que garante variedade de FORMATO entre aventuras sem abrir mão do showdown.
-
-`behaviors`/`goal`/`complications` não nascem no vácuo: a mesma chamada de `generateClosing` que já recebe `secrets[]` (US-149 — a situação PODE entrelaçar um segredo do mesmo local sem revelá-lo) e já sintetiza `antagonist: {name, want, method}` (US-181 — a situação PODE ecoar o plano do vilão, e a do encontro final DEVE) escreve as 8 situações junto de `conclusion`/`followUps`/`antagonist`, no mesmo texto. Contexto de prompt, não vínculo estrutural — nenhum `secretId`/`antagonistId` novo no schema do encontro.
+`type` direciona o QUE o modelo escreve (`skill`→obstáculo físico/ambiental, `social`→negociação, `combat`→ameaça e cerco) mas não trava perícia — a perícia rolada no turno continua 100% emergente. `behaviors`/`goal`/`complications` nascem na mesma chamada que já recebe `secrets[]` e `antagonist` — contexto de prompt, nunca vínculo estrutural (nenhum `secretId`/`antagonistId` novo no schema).
 
 ---
 
@@ -50,32 +43,31 @@ Cada um dos 8 `AdventureEncounter` passa a responder as cinco perguntas de uma s
 
 ### Dentro do escopo
 
-- `AdventureEncounterSchema` (US-144) ganha `behaviors: z.string().min(1)`, `goal: z.string().min(1)`, `complications: z.string().min(1)` — presentes nos 8 encontros, `combat` incluso. `type` continua igual.
-- `generateAdventure` (US-164) monta exatamente **8** encontros. `type` de cada um: posição 8 = `combat` (fixo, sempre o confronto final); posições 1-7 = shuffle seedado (`createSeededRandom`, sub-seed próprio via `deriveAdventureSeed`+`purpose`, mesmo padrão de `tableSeed` em `roll-content.ts`) do multiset `{combat×2, skill×3, social×2}`, com retry (mesma família de seed, contador local) até não ter dois tipos iguais adjacentes — incluindo contra a posição 8 fixa (posição 7 nunca pode ser `combat`).
-- `locationId` de cada um dos 8: `locations[i % locations.length]`, round-robin. `buildLocationsAndNpcsPrompt` ganha instrução de quantidade-alvo de locais (8), mesmo número dos encontros.
-- `npcIds`: `combat` vem de `composeEncounterRoles`/`buildEncounterNpcs` (cumulativo entre chamadas, sem colisão de `id`); `social` vem de `location.occupants` (US-158, [ai.service.ts:1416-1421](../../../apps/api/src/ai/ai.service.ts), já popula com `id` real de `npcs[]`), fallback `npcs[socialIndex % npcs.length]` quando o local não tem occupant; `skill` continua `[]`.
-- **`generateClosing` ganha `encounterSkeleton`/`encounterSituations` — não é função nova, é o MESMO contrato que a US-181 já estende com `antagonist`.** Entrada: `encounterSkeleton`, o esqueleto já decidido dos 8 encontros (`id`, `type`, a `AdventureLocation` referenciada, os `AdventureNpc` referenciados por `npcIds`). Saída: `encounterSituations`, array de exatamente 8 `{ behaviors, goal, complications }`, POSICIONAL — o modelo nunca inventa `id`. Schema de saída usa `.length(8)`; contagem errada é falha dura (reseed via US-150). O `system` da chamada instrui O ÚLTIMO item do esqueleto (posição 8, sempre `combat`) de forma DIFERENTE dos outros 7: é o confronto final, `behaviors`/`goal`/`complications` DEVEM ecoar `antagonist.want`/`method` diretamente — os outros 7 só PODEM entrelaçar `secrets`/`antagonist` quando fizer sentido pro local/tipo.
-- **Continua dentro do `Promise.all([generateClosing, generateOpeningBeat])`** já existente em [adventure.service.ts:164-189](../../../apps/api/src/adventure/adventure.service.ts) — nada muda na forma como esse `Promise.all` é chamado, só o que `generateClosing` recebe/devolve cresce. `generateOpeningBeat` não é afetado. `encounterSkeleton` (type/locationId/npcIds já resolvidos) precisa estar pronto ANTES desse `Promise.all` rodar, então o loop de 8 encontros de US-164 continua vindo antes dele, só a etapa que faltava (`behaviors`/`goal`/`complications`) deixa de ser uma chamada à parte.
-- `id` de cada `AdventureEncounter`: `encounter-1`..`encounter-8`.
-- Gate (US-150), verificação 3: compara orçamento só nos encontros `type === 'combat'` — inalterado.
-- `encounterNpcEntities` (US-171, [seed-ledger.ts:54-67](../../../apps/api/src/adventure-generation/seed-ledger.ts)) ganha filtro `encounter.type === 'combat'`. Sem ele, o `npcIds` do `social` (NPC de história, já semeado com `nome`/`revelado: true` correto por `npcEntities`) ganharia uma SEGUNDA `WorldEntity` errada pro mesmo NPC.
-- `seedLedgerFromGeneratedAdventure` (US-170, `locationEntities`, [seed-ledger.ts:43-49](../../../apps/api/src/adventure-generation/seed-ledger.ts)): pra cada local, junta os encontros que o referenciam (todo `type` agora) e acrescenta ao `nota` já montado (`boxedText`+`aspects`) um segmento por encontro: `"{type} — objetivo: {goal}; comportamento: {behaviors}; complicação: {complications}"`, segmentos de encontros diferentes separados por `" | "`.
-- Testes de regressão: 8 encontros gerados, tipo alternando sem repetição adjacente, posição 8 sempre `combat`; sequência de `type` muda entre `characterId`/`order` diferentes mas é estável pro mesmo par (`shuffleEncounterTypes`); `behaviors`/`goal`/`complications` presentes em todo encontro, encontro final referenciando `antagonist`; `locationId`/`npcIds` determinísticos; `seedLedgerFromGeneratedAdventure` inclui os três campos no `nota` do local certo.
+- `AdventureEncounterSchema` ganha `type: z.enum(['combat', 'skill', 'social'])`, `behaviors`, `goal`, `complications` (`z.string().min(1)`) — todos NOVOS, presentes nos 8 encontros.
+- `generateAdventure` monta exatamente 8 encontros. Posição 8 = `combat` fixo; posições 1-7 = shuffle seedado (`shuffleEncounterTypes`) do multiset `{combat×2, skill×3, social×2}`, retry até não ter dois tipos iguais adjacentes (incluindo contra a posição 8).
+- `locationId`: round-robin `locations[i % locations.length]`. Prompt de locais ganha instrução de piso 8.
+- `npcIds`: `combat` via `composeEncounterRoles`/`buildEncounterNpcs` (cumulativo entre chamadas — ver *Notas de implementação*); `social` via `location.occupants`, fallback round-robin; `skill` sempre `[]`.
+- `generateClosing` ganha `encounterSkeleton` (entrada: 8 encontros com `id`/`type`/location/npcs resolvidos) e `encounterSituations` (saída: array `.length(8)` posicional) — mesmo contrato que a US-181 já estende com `antagonist`. Posição 8 instruída a ecoar `antagonist.want`/`method` diretamente; as outras 7 só PODEM.
+- Continua dentro do `Promise.all([generateClosing, generateOpeningBeat])` já existente — `encounterSkeleton` precisa estar pronto antes.
+- `id` de cada encontro: `encounter-1`..`encounter-8`.
+- `encounterNpcEntities` (seed-ledger.ts) ganha filtro `type === 'combat'` — sem ele, NPC de `social` duplica no ledger.
+- `locationEntities`: `nota` de cada local ganha um segmento por encontro que o referencia: `"{type} — objetivo: {goal}; comportamento: {behaviors}; complicação: {complications}"`, separados por `" | "`.
+- `nextUnrevealedEncounterLocation` (novo arquivo `next-encounter-hint.ts`): função pura, devolve o encontro de menor `id` cujo local ainda não é `revelado` no ledger, ou `null`. Sem IA, sem campo novo.
+- `buildTurnStateBlock` ganha bloco opcional `## Situação em aberto mais próxima`, só quando a função acima devolve um encontro — aponta `location.title`, nunca `behaviors`/`goal`/`complications`.
+- Testes de regressão: 8 encontros, tipo alternando sem repetição adjacente, posição 8 sempre `combat`, sequência estável por `characterId`+`order`, `behaviors`/`goal`/`complications` presentes em todos, `seedLedgerFromGeneratedAdventure` inclui os três campos no local certo.
 
 ### Fora do escopo
 
-- **Perícia estruturada testada pelo encontro.** Removida do schema — qual perícia o jogador rola fica 100% emergente da ficção de `behaviors`/`goal`/`complications` no turno, tabela do SRD (US-110), sem sinal estruturado.
-- **Variar o teste real rolado no turno / CD por encontro.** Quem decide qual d20 rolar continua sendo o modelo via tabela do SRD (US-110) no momento do turno; CD é outro dado do SRD (US-111), sem consumidor hoje.
-- **Vínculo estrutural (`secretId`/`antagonistId`) entre encontro e segredo/antagonista.** `secrets`/`antagonist` entram como CONTEXTO de prompt pra `generateClosing` (ver *A proposta*), não como campo novo no schema do encontro — sobreposição fica na prosa (`goal`/`complications`), nunca vira referência por `id`. `AdventureSecretSchema`/`AdventureAntagonistSchema` (US-149/US-181) ficam intocados.
-- **`generateClosing` receber `background`/`origin` do personagem pra ancorar as situações no vínculo pessoal** (mesmo padrão de `generateSecrets`/`generateOpeningBeat`). Não pedido em nenhum critério de aceite; `locations`/`npcs`/`secrets`/`registry`/`antagonist` já bastam. Candidato a somar depois se o eval mostrar situação genérica demais.
-- **Antagonista virar NPC estruturado no `npcIds` do combate final.** Mesma decisão da US-181 (*Fora do escopo*, antagonista não é entidade rastreável) — o `npcIds` da posição 8 continua vindo de `composeEncounterRoles`/`buildEncounterNpcs` como qualquer outro `combat` (papéis genéricos Minion/Soldier/Brute); o vínculo com o antagonista é só narrativo, via `behaviors`/`goal`/`complications`.
-- **Sortear TAMBÉM as posições 1-7 numa proporção diferente de `{combat×2, skill×3, social×2}`, ou tornar a proporção configurável.** Proporção herdada da sequência fixa anterior (3 combat/3 skill/2 social no total, 1 combat reservado pra posição 8) — sortear só a ORDEM, não a proporção, é a opção mais barata.
-- **Escrever diálogo novo pro NPC do `social`, ou setar `interactions[].encounterId`.** `npcIds` referencia o NPC já gerado por `generateLocationsAndNpcs` (US-158) — `interactions[]` continua igual, escrito ANTES de o encontro existir. Reescrever depois custa mais que o ganho.
-- **Priorizar o NPC amarrado a `background.bonds`** na escolha do `social`. `location.occupants` não distingue NPC comum de NPC de vínculo — enriquecimento de story futura.
-- **Amarrar 8 (encontros OU locais) ao dial de NPCs de história da US-163, ou tornar N parametrizável.** Eixos diferentes; `N = 8` é constante fixa desta story, decidido — não preferência do jogador.
-- **Tornar o piso de 8 locais escolhível pelo jogador, ou variar composição de papéis por encontro `combat`.** Requisito estrutural / `composeEncounterRoles` é pura por design (US-160).
-- **Distribuição temática de `locationId`.** Round-robin é a opção barata.
-- **Reabrir US-152/US-160/US-161.** Funções de combate usadas como estão.
+- Perícia estruturada testada pelo encontro — removida; perícia rolada no turno é 100% emergente (SRD).
+- Vínculo estrutural (`secretId`/`antagonistId`) entre encontro e segredo/antagonista — sobreposição fica só na prosa.
+- `background`/`origin` como insumo de `generateClosing` — não pedido; candidato futuro se eval mostrar situação genérica.
+- Antagonista virar NPC estruturado no `npcIds` do combate final — vínculo é só narrativo.
+- Sortear a PROPORÇÃO das posições 1-7 (não só a ordem) — herdada, sortear só ordem é mais barato.
+- Diálogo novo pro NPC do `social` / `interactions[].encounterId` — reescrever custa mais que o ganho.
+- Priorizar NPC amarrado a `background.bonds` na escolha do `social` — enriquecimento futuro.
+- Tornar `N=8` parametrizável ou ligado ao dial de NPCs da US-163 — eixos diferentes.
+- Distribuição temática de `locationId` — round-robin é a opção barata (US-187 substitui depois).
+- Reabrir US-152/US-160/US-161 — funções de combate usadas como estão.
 
 ---
 
@@ -89,8 +81,7 @@ export const AdventureEncounterSchema = z.object({
   npcIds: z.array(z.string()),
   type: z.enum(['combat', 'skill', 'social']),
   // As 5 perguntas de "situação" (Sly Flourish): location=locationId, inhabitants=npcIds,
-  // as 3 abaixo fecham o resto. Prosa curta escrita pelo modelo (US-114) — igual
-  // boxedText/description (US-158), NUNCA pelo código. Presentes nos 8, `combat` incluso.
+  // as 3 abaixo fecham o resto. Prosa curta escrita pelo modelo (US-114), nunca pelo código.
   behaviors: z.string().min(1),
   goal: z.string().min(1),
   complications: z.string().min(1),
@@ -98,11 +89,10 @@ export const AdventureEncounterSchema = z.object({
 ```
 
 ```ts
-// apps/api/src/adventure-generation/shuffle-encounter-types.ts (NOVO, US-166)
-// Posição 8 sempre 'combat' (fixo, não sorteado — é o confronto final com o antagonista).
-// Posições 1-7: shuffle seedado do multiset {combat×2, skill×3, social×2}, retry até não
-// ter dois tipos iguais adjacentes (incluindo posição 7 vs. 8). Mesmo padrão de sub-seed
-// de tableSeed (roll-content.ts): deriveAdventureSeed(`${characterId}:encounter-types`, order, attempt).
+// apps/api/src/adventure-generation/shuffle-encounter-types.ts (NOVO)
+// Posição 8 sempre 'combat' (fixo, fora do shuffle). Posições 1-7: shuffle seedado do
+// multiset {combat×2, skill×3, social×2}, retry até não ter dois tipos iguais adjacentes.
+// Sub-seed próprio: deriveAdventureSeed(`${characterId}:encounter-types`, order, attempt).
 export function shuffleEncounterTypes(
   characterId: string,
   order: number,
@@ -112,8 +102,7 @@ export function shuffleEncounterTypes(
 
 ```ts
 // apps/api/src/ai/ai.service.ts — generateClosing (US-181 já acrescenta `antagonist`;
-// esta story acrescenta `encounterSkeleton`/`encounterSituations` ao MESMO contrato,
-// não cria função nova)
+// esta story acrescenta `encounterSkeleton`/`encounterSituations` ao MESMO contrato)
 async generateClosing(params: {
   locations: AdventureLocation[]
   npcs: AdventureNpc[]
@@ -122,7 +111,7 @@ async generateClosing(params: {
   complicacao: { condition: string; description: string; origin: string }
   premissa: string
   locale?: Locale
-  encounterSkeleton: Array<{ // NOVO (US-166)
+  encounterSkeleton: Array<{
     id: string
     type: 'combat' | 'skill' | 'social'
     location: AdventureLocation
@@ -131,14 +120,13 @@ async generateClosing(params: {
 }): Promise<{
   conclusion: string
   followUps: string[]
-  antagonist: { name: string; want: string; method: string } // US-181
-  encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> // NOVO (US-166), posicional, length === encounterSkeleton.length
+  antagonist: { name: string; want: string; method: string }
+  encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> // posicional
 }>
 ```
 
 ```ts
-// apps/api/src/ai/ai.service.ts — CLOSING_SCHEMA (US-181 já acrescenta `antagonist`;
-// esta story acrescenta `encounterSituations`)
+// apps/api/src/ai/ai.service.ts — CLOSING_SCHEMA
 const CLOSING_SCHEMA = z.object({
   conclusion: z.string().min(1),
   followUps: z.array(z.string()).min(1),
@@ -155,6 +143,16 @@ const CLOSING_SCHEMA = z.object({
 })
 ```
 
+```ts
+// apps/api/src/adventure-generation/next-encounter-hint.ts (NOVO)
+// Sinal determinístico pro Mestre saber qual dos 8 encontros ainda não foi "descoberto"
+// (proxy: local ainda não `revelado` no ledger). Sem IA, sem campo novo em WorldEntity.
+export function nextUnrevealedEncounterLocation(
+  encounters: AdventureEncounter[],
+  entities: WorldEntity[],
+): AdventureEncounter | null
+```
+
 ---
 
 ## Critérios de aceite
@@ -164,53 +162,49 @@ const CLOSING_SCHEMA = z.object({
 - [ ] Encontro da posição 8: `behaviors`/`goal`/`complications` referenciam `antagonist.want`/`method` diretamente — não é opcional como nos outros 7.
 - [ ] `behaviors`, `goal` e `complications` presentes (não-vazios) em TODO encontro, incluindo `combat`.
 - [ ] `locationId` de cada encontro referencia uma location real, distribuído round-robin.
-- [ ] `npcIds` não-vazio e válido (referencia `npcs[]` existente) em `combat` (ids novos, sem colisão) e em `social` (`location.occupants` ou fallback round-robin); vazio em `skill`.
-- [ ] `seedLedgerFromGeneratedAdventure`: `encounterNpcEntities` só gera `WorldEntity` pra encontros `type === 'combat'` — NPC de história referenciado por `social` não duplica no ledger (a entrada certa, `revelado: true`, já vem de `npcEntities`).
-- [ ] Mesmo `characterId`+`order` produz a mesma sequência de `type`/`locationId`/`npcIds` (parte determinística, 100% código, inclui o sorteio de `shuffleEncounterTypes`); personagens/aventuras diferentes produzem sequências de `type` diferentes. `behaviors`/`goal`/`complications` são prosa do modelo — mesma disciplina de não-determinismo que `boxedText`/`description` dos locais já têm (US-158); **não** é critério exigir prosa idêntica entre execuções.
+- [ ] `npcIds` não-vazio e válido em `combat` (ids novos, sem colisão) e em `social` (`location.occupants` ou fallback round-robin); vazio em `skill`.
+- [ ] `encounterNpcEntities` só gera `WorldEntity` pra encontros `type === 'combat'` — NPC de `social` não duplica no ledger.
+- [ ] Mesmo `characterId`+`order` produz a mesma sequência de `type`/`locationId`/`npcIds`; personagens/aventuras diferentes produzem sequências de `type` diferentes. `behaviors`/`goal`/`complications` são prosa do modelo — **não** é critério exigir prosa idêntica entre execuções.
 - [ ] Gate (US-150), verificação 3: compara orçamento só nos encontros `type === 'combat'`; `skill`/`social` não reprovam por ausência de orçamento.
-- [ ] `seedLedgerFromGeneratedAdventure`: `nota` do local que hospeda QUALQUER encontro inclui `"{type} — objetivo: {goal}; comportamento: {behaviors}; complicação: {complications}"`, segmentos separados por `" | "`; local sem encontro fica igual ao que a US-170 já produz.
+- [ ] `nota` do local que hospeda QUALQUER encontro inclui `"{type} — objetivo: {goal}; comportamento: {behaviors}; complicação: {complications}"`, segmentos separados por `" | "`; local sem encontro fica igual ao que a US-170 já produz.
 - [ ] `generateClosing` devolve `encounterSituations` com exatamente `encounterSkeleton.length` (8) itens — contagem errada falha o `parse()`, motivo de reseed (US-150).
 - [ ] `GeneratedAdventureSchema.parse()` passa com o schema novo.
 - [ ] `pnpm typecheck` e testes do módulo passam.
 - [ ] **Eval / teste de regressão:** fixture com locations/npcs geradas → `generateAdventure` monta os 8 encontros válidos, `.parse()` passa, sem `npcId`/`id` duplicado.
+- [ ] `nextUnrevealedEncounterLocation` é pura e determinística — devolve o encontro de menor `id` cujo local ainda não é `revelado: true`, `null` quando todos já foram revelados.
+- [ ] `buildTurnStateBlock` inclui o bloco `## Situação em aberto mais próxima` só quando a função acima devolve um encontro; some quando devolve `null`, e nunca expõe `behaviors`/`goal`/`complications`.
+- [ ] Guard de conjunto de blocos `## ` (US-85, `dm-system.test.ts`) atualizado com o bloco novo — senão falha.
 
 ---
 
 ## Notas de implementação
 
-- **`shuffleEncounterTypes` usa sub-seed próprio** (`deriveAdventureSeed(`${characterId}:encounter-types`, order, attempt)`, mesmo padrão de `tableSeed` em `roll-content.ts`) — não compartilha stream com nenhuma outra rolagem, sortear mais ou menos posições no futuro não desloca sequência de outro campo. Retry (mesma família de seed, contador local incrementado a cada tentativa rejeitada, teto pequeno tipo 20) até achar um shuffle das posições 1-7 sem dois tipos iguais adjacentes nem `combat` na posição 7.
-- **Posição 8 nunca entra no shuffle** — é atribuída `combat` direto, fora do array embaralhado. Simplifica a condição de parada do retry (só precisa checar posições 1-7 entre si + posição 7 contra a constante `combat`, não contra um valor também sorteado).
-- **Nível 1-3 em modo `'adventure'` (US-160) devolve `roles: []`** pra `composeEncounterRoles` — os 3 slots `combat` podem nascer sem monstro, resultado correto herdado da US-160. `behaviors`/`goal`/`complications` ainda existem (o modelo escreve "ameaça evitada"/"tensão sem luta") — situação sem `npcIds`, não encontro vazio.
-- **`buildEncounterNpcs` assume `existingNpcs` cumulativo** — passar só os NPCs mintados até aquele ponto, nunca resetar entre slots `combat`.
-- **Fallback de `social` sem occupant usa contador próprio (`socialIndex`)**, incrementa só nos 2 slots `social`. Com `npcs.length === 0` (defensivo) o encontro nasce com `npcIds: []`.
-- **`encounterSkeleton` precisa estar pronto ANTES de `generateClosing` ser chamado** — `type`/`locationId`/`npcIds` dos 8 encontros são todos código determinístico (shuffle + round-robin + composer), então continuam vindo primeiro. Ordem final em `generateAdventure`: rollAdventure → generateLocationsAndNpcs → generateSecrets → monta `encounterSkeleton` (`type`/`locationId`/`npcIds`) → `Promise.all([generateClosing(..., encounterSkeleton), generateOpeningBeat])` → junta `encounterSkeleton` com `encounterSituations` da resposta → `encounters[]` final.
-- **`generateClosing` ganha campo, não vira função nova — mesmo padrão que a US-181 já usa pra `antagonist`.** O corpo da função ([ai.service.ts:1490-1518](../../../apps/api/src/ai/ai.service.ts)) já faz `generateObject` com `CRAFT_CORE_SECTION`/`ENGINE_PROVIDER_OPTIONS`/`NUNCA captura erro` — esta story só soma `encounterSkeleton` ao `prompt` (via `buildClosingPrompt`) e `encounterSituations` ao destructure de retorno (`object.encounterSituations`), igual a US-181 soma `object.antagonist`.
-- **`combat` mantém segmento no `nota` do local** (decisão fechada, ver *Atualizada em (5)*) — é o que carrega o payoff do confronto final pro Mestre; cortar só `skill`/`social` esvaziaria justo a posição 8.
-- **`CRAFT_CORE_SECTION` reusado verbatim pra `encounterSituations`, sem seção própria** (decisão fechada) — barra de qualidade igual ao resto da prosa do motor; seção dedicada (ex. insistir em complicação concreta) só entra se o eval acusar prosa genérica.
-- **Teto de retry do `shuffleEncounterTypes` fica em ~20** (decisão fechada) — espaço de shuffles válidos pra `{combat×2, skill×3, social×2}` em 7 posições é grande o bastante, não precisa provar antes de escrever.
-- **Local sem NENHUM encontro só ocorre se o modelo entregar MAIS de 8 locais** apesar da instrução de piso — com `locations.length <= 8`, o round-robin `i % locations.length` cobre toda posição pelo menos uma vez.
+- **`shuffleEncounterTypes`**: sub-seed próprio, não compartilha stream com outra rolagem. Retry com contador local e teto ~20 — precisa `throw` EXPLÍCITO se estourar (não confiar só em "espaço de shuffles válidos é grande"), senão um bug de índice na checagem de adjacência vira loop infinito, não falha visível. Posição 8 nunca entra no shuffle, é atribuída direto.
+- **Nível 1-3 em modo `'adventure'`**: `composeEncounterRoles` pode devolver `[]` — encontro `combat` sem `npcIds` é válido (situação sem morador, não encontro vazio).
+- **`buildEncounterNpcs` precisa `existingNpcs` CUMULATIVO** entre os 3 slots `combat` (2 sorteados + posição 8) — resetar gera `id` duplicado, que corrompe silenciosamente o `Map(npcId→role)` do gate (verificação 3, sobrescreve role sem avisar) e o `.find` do seed-ledger (pega só o primeiro match, ledger do segundo encontro fica errado). Bug só aparece testando os 8 encontros completos, não em fixture de 1.
+- **Ledger é chaveado por `nome`/título, não por `id`** (`locationTitleById`) — dois locais com título igual colapsam na mesma `WorldEntity`, afetando `nota` e `nextUnrevealedEncounterLocation`. Risco sobe com 8 locais obrigatórios; sem mitigação nesta story.
+- **Fallback de `social` sem occupant** usa contador próprio (`socialIndex`), só nos 2 slots `social`; `npcs.length === 0` (defensivo) devolve `npcIds: []`.
+- **Ordem em `generateAdventure`**: `generateLocationsAndNpcs` → `generateSecrets` → monta `encounterSkeleton` → `Promise.all([generateClosing(..., encounterSkeleton), generateOpeningBeat])` → junta com `encounterSituations`.
+- **`CRAFT_CORE_SECTION` reusado verbatim** pra `encounterSituations` — seção dedicada só se eval acusar prosa genérica.
+- **Bloco novo em `buildTurnStateBlock` precisa se declarar no guard de conjunto `## `** (US-85, `dm-system.test.ts`) — comentário em `dm-system.ts:539` avisa disso.
+- **Ordem de sugestão é por `id` crescente**, não proximidade geográfica real — motor não tem grafo de distância entre locais.
+- **`revelado` é proxy de "visitado"**, não de "situação resolvida" — pode virar `true` só por MENÇÃO (NPC falou do local). Aceito; rastrear resolução de verdade exigiria tool novo (fora do escopo).
 
 ---
 
 ## Referências no código
 
-- [`apps/api/src/adventure/adventure.service.ts:131-204`](../../../apps/api/src/adventure/adventure.service.ts) — `generateAdventure` (US-164); linhas 158-162 são o loop de 1 elemento a virar 8 (constrói `encounterSkeleton`); linhas 164-189 são o `Promise.all` que passa a levar `encounterSkeleton` pra `generateClosing` e recebe `encounterSituations` de volta.
-- [US-181](./US-181-antagonista-ganha-want-e-method-estruturados.md) — `antagonist: {name, want, method}`, mesmo `generateClosing` que esta story estende junto.
-- [US-149](./US-149-segredos-40-prompts-lgmrd.md) — `generateSecrets`; `secrets[]` já é parâmetro de `generateClosing` DESDE ANTES desta story (usado pra `conclusion`) — nenhuma plumbing nova, só reuso do que já chega.
-- [`apps/api/src/adventure-generation/monster-roles.ts`](../../../apps/api/src/adventure-generation/monster-roles.ts) — `composeEncounterRoles`/`buildEncounterNpcs`, chamadas só nos slots `combat`.
-- [`packages/shared/src/adventure-seed.ts`](../../../packages/shared/src/adventure-seed.ts) — `deriveAdventureSeed`/`createSeededRandom` (US-146), reusados por `shuffleEncounterTypes` (NOVA função desta story).
-- [`apps/api/src/adventure-generation/roll-content.ts:30-32`](../../../apps/api/src/adventure-generation/roll-content.ts) — `tableSeed`, o padrão de sub-seed-por-propósito que `shuffleEncounterTypes` copia.
-- [`packages/shared/src/types/adventure-generation.ts`](../../../packages/shared/src/types/adventure-generation.ts) — `AdventureEncounterSchema`, ganha `behaviors`/`goal`/`complications`.
-- [`apps/api/src/ai/ai.service.ts:1490-1518`](../../../apps/api/src/ai/ai.service.ts) — `generateClosing`, a função que esta story estende (junto da US-181) — corpo (`generateObject`, `CRAFT_CORE_SECTION`, `NUNCA captura erro`) não muda de padrão.
-- [`apps/api/src/ai/ai.service.ts:104-116,1416-1421`](../../../apps/api/src/ai/ai.service.ts) — `occupants` como índice/`id` real de `npcs[]` (US-158); fonte do `npcIds` de `social`.
-- [`apps/api/src/ai/ai.service.ts:124-135`](../../../apps/api/src/ai/ai.service.ts) — `buildLocationsAndNpcsPrompt`, precedente de instrução de quantidade-alvo que esta story espelha pra locais.
-- [`apps/api/src/adventure-generation/seed-ledger.ts:16-70`](../../../apps/api/src/adventure-generation/seed-ledger.ts) — `seedLedgerFromGeneratedAdventure`: `locationEntities` (US-170, linhas 43-49) ganha os 3 campos no `nota`; `encounterNpcEntities` (US-171, linhas 54-67) ganha filtro `type === 'combat'`.
-- [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) · [US-158](./US-158-locais-npcs-prosa-motor.md) · [US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) · [US-170](./US-170-locais-gerados-entram-no-ledger.md) · [US-171](./US-171-encontros-de-combate-entram-no-ledger.md) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) — stories relacionadas, ver *Depende de*/*Relacionado*.
-- [Backlog — Motor de geração de aventuras one-shot §Ordem de geração](./backlog-motor-de-geracao-de-aventuras.md) — passo 5, intenção original que esta story substitui.
+- [`apps/api/src/adventure/adventure.service.ts`](../../../apps/api/src/adventure/adventure.service.ts) — `generateAdventure` (US-164), monta `encounterSkeleton` e passa pro `Promise.all`.
+- [`apps/api/src/ai/ai.service.ts`](../../../apps/api/src/ai/ai.service.ts) — `generateClosing` (estendida junto da US-181), `buildClosingPrompt`, `buildLocationsAndNpcsPrompt` (precedente de instrução de quantidade-alvo).
+- [`apps/api/src/adventure-generation/monster-roles.ts`](../../../apps/api/src/adventure-generation/monster-roles.ts) — `composeEncounterRoles`/`buildEncounterNpcs`.
+- [`packages/shared/src/adventure-seed.ts`](../../../packages/shared/src/adventure-seed.ts) — `deriveAdventureSeed`/`createSeededRandom` (US-146), reusados por `shuffleEncounterTypes`.
+- [`apps/api/src/adventure-generation/roll-content.ts`](../../../apps/api/src/adventure-generation/roll-content.ts) — `tableSeed`, padrão de sub-seed que `shuffleEncounterTypes` copia.
+- [`apps/api/src/adventure-generation/seed-ledger.ts`](../../../apps/api/src/adventure-generation/seed-ledger.ts) — `seedLedgerFromGeneratedAdventure` (`locationEntities`/`encounterNpcEntities`).
+- [`packages/ai-engine/src/prompts/dm-system.ts`](../../../packages/ai-engine/src/prompts/dm-system.ts) — `buildTurnStateBlock`, ganha o bloco novo.
+- [Backlog — Motor de geração de aventuras one-shot §Ordem de geração](./backlog-motor-de-geracao-de-aventuras.md) — passo 5, intenção original substituída.
 
 ### Referências externas
 
-- [Sly Flourish — Building Situations](https://slyflourish.com/building_situations.html) — framework Location/Inhabitants/Behaviors/Goal/Complications; núcleo do redesign — as 5 perguntas viraram os campos do encontro.
-- [Sly Flourish — Anatomy of a Situation: Castle Orzelbirg](https://slyflourish.com/anatomy_of_a_situation_castle_orzelbirg.html) — exemplo aplicado; base do formato de `behaviors`/`goal`/`complications` como prosa curta e concreta.
-- [Sly Flourish — Running Investigations and Mysteries](https://slyflourish.com/running_investigations_and_mysteries.html) — "build situations, not mystery novels": um `goal`+`complications` bem escritos já convidam mais de uma abordagem, sem precisar de campo estruturado de perícia.
-- [Sly Flourish — Situation Checklist](https://slyflourish.com/situation_checklist.html) — checklist Location/Inhabitants/Behaviors/Goal/Complications; é a tabela em *A proposta*.
+- [Sly Flourish — Building Situations](https://slyflourish.com/building_situations.html) / [Situation Checklist](https://slyflourish.com/situation_checklist.html) — framework Location/Inhabitants/Behaviors/Goal/Complications, núcleo do redesign.
+- [Sly Flourish — Anatomy of a Situation: Castle Orzelbirg](https://slyflourish.com/anatomy_of_a_situation_castle_orzelbirg.html) — exemplo aplicado, base do formato de prosa curta e concreta.
+- [Sly Flourish — Running Investigations and Mysteries](https://slyflourish.com/running_investigations_and_mysteries.html) — "build situations, not mystery novels": `goal`+`complications` bem escritos já convidam mais de uma abordagem.

@@ -320,14 +320,26 @@ pede ao modelo para consertar a própria saída.
 
 ```
 0. registro                 ← tone + areaType, UMA vez, valem para tudo abaixo
-1. objetivo + antagonista   ← tabela de quests + background.deity
+1. objetivo                 ← tabela de quests
 2. locais (~6)              ← tabelas de locais e monumentos, pelo seed
 3. NPCs (~7)                ← gerador de NPC; >= 1 amarrado a background.bonds
 4. segredos (~11)           ← modelo, os 40 prompts, com story/bonds/flaws no contexto
-5. encontros (4-5)          ← papéis da US-152, orçamento para UM personagem
-6. fecho ramificado (2-3)   ← e os followUps, que a aventura seguinte herda
-7. gate                     ← schema + grafo fecha + orçamento. Falha => re-seed
+5. antagonista               ← modelo (US-190), ancorado em locais/NPCs/segredos já decididos
+6. encontros (8, tipados)    ← US-166; situações podem ecoar o antagonista já decidido
+7. fecho ramificado          ← e os followUps; recebe o antagonista pronto, não sintetiza mais
+8. gate                      ← schema + grafo fecha + orçamento. Falha => re-seed
 ```
+
+**Corrigido em 2026-08-21 (US-190).** O passo 1 original dizia *"objetivo + antagonista ←
+tabela de quests + `background.deity`"* — nunca foi implementável como escrito: a US-164
+(Questão em aberto #2) já tinha rejeitado `background.deity` como fonte de antagonista
+(é a fé do PERSONAGEM, não um vilão) e apontado que `premissa` "não tem entidade nenhuma
+atrás", ANTES de qualquer story de antagonista existir. US-181/US-183 resolveram a falta de
+âncora ancorando `want`/`method`/`connection` em `locations`/`npcs`/`secrets` — só que dentro
+de `generateClosing` (o ÚLTIMO passo), não logo depois que esses três existem. US-190 move a
+síntese pro lugar que a lista acima já reflete: passo próprio, depois de segredos, antes de
+encontros — cedo o bastante pra `generateOpeningBeat`/situações dos encontros poderem ecoar o
+antagonista, tarde o bastante pra ter em que ancorá-lo.
 
 **A ordem é a parte que importa, não a lista.** O passo 3 depende do 2 e o 4 depende dos dois:
 gerar segredos antes de existirem locais e NPCs para ancorá-los produz exatamente a *"sopa de
@@ -764,6 +776,14 @@ raciocínio delas é anterior e vale como registro.
   nenhum artefato com essa tabela ingerido. Achado: o `5e_Monster_Builder.json` (já baixado pela
   US-145) traz o *Lazy Encounter Benchmark* próprio do LGMRD — soma de CR contra nível do
   personagem, sem tabela de XP separada. Story nova no corte mínimo: **US-159**.
+- **21/08/2026 — antagonista sai do passo 1, vira passo próprio entre segredos e encontros.**
+  O passo 1 original ("objetivo + antagonista ← tabela de quests + `background.deity`") nunca foi
+  implementável: a US-164 (Questão em aberto #2) já tinha rejeitado `background.deity`/`premissa`
+  como fonte, antes de qualquer story de antagonista existir. US-181/183 ancoraram `want`/`method`/
+  `connection` em `locations`/`npcs`/`secrets`, mas dentro de `generateClosing` (último passo) — a
+  lacuna só apareceu ao notar que `generateOpeningBeat`, rodando em paralelo com `generateClosing`,
+  nunca chegava a ver o antagonista. Story nova: **US-190**, move a síntese pro lugar que a *Ordem
+  de geração* acima já reflete.
 - **16/08/2026 — locais e NPCs com prosa viram US-158, story própria.** Estavam descritos em
   *O desenho: três camadas* desde o início mas nunca numerados nem escritos — a lacuna só apareceu
   ao detalhar a implementação da US-149, que assumia `locations[]`/`npcs[]` com `id` real

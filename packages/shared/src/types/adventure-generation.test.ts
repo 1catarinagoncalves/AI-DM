@@ -33,6 +33,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       start: 'O grupo chega à vila ao anoitecer, atraído por rumores de luzes nas catacumbas.',
       conclusion: 'O pacto é rompido — ou renovado, a depender da escolha do grupo.',
       followUps: ['O que vive nas catacumbas desperta.'],
+      antagonist: { name: 'Elenora', want: 'proteger o pacto a qualquer custo', method: 'silenciar quem se aproxima do poço', trait: 'fala em enigmas', weakness: 'lealdade cega ao pacto', connection: 'sabe que o grupo já perdeu alguém pra floresta e usa isso a seu favor' },
     }
 
     expect(GeneratedAdventureSchema.parse(adventure)).toEqual(adventure)
@@ -66,6 +67,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       start: 'The party arrives at the village at dusk, drawn by rumors of lights in the catacombs.',
       conclusion: 'The pact is broken — or renewed, depending on the party\'s choice.',
       followUps: ['Whatever lives in the catacombs awakens.'],
+      antagonist: { name: 'Elenora', want: 'protect the pact at any cost', method: 'silence those who approach the well', trait: 'speaks in riddles', weakness: 'blind loyalty to the pact', connection: 'knows the party already lost someone to the forest and uses that against them' },
     }
 
     expect(GeneratedAdventureSchema.parse(adventure)).toEqual(adventure)
@@ -93,6 +95,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       start: 'Início.',
       conclusion: 'Fim.',
       followUps: [],
+      antagonist: { name: 'Elenora', want: 'poder', method: 'ritual', trait: 'sussurra', weakness: 'vaidade', connection: 'atua na região que o grupo já percorreu' },
     }
 
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()

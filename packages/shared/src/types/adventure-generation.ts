@@ -48,6 +48,19 @@ export const AdventureRegistrySchema = z.object({
   areaType: z.string().min(1),
 })
 
+// US-181/US-183: antagonista estruturado — `want`/`method`/`trait`/`weakness` ancorados só em
+// locations/npcs/secrets já decididos (US-190: sintetizado em `generateAntagonist`, chamada
+// própria, não mais dentro de `generateClosing`). `connection` (US-183): conexão pessoal com
+// o personagem, via `characterAnchors` — genérica quando não há vínculo registrado.
+export const AdventureAntagonistSchema = z.object({
+  name: z.string().min(1),
+  want: z.string().min(1),
+  method: z.string().min(1),
+  trait: z.string().min(1),
+  weakness: z.string().min(1),
+  connection: z.string().min(1),
+})
+
 // US-144 / ADR-012: schema único do artefato de aventura gerada (os Eight Steps do LGMRD).
 // Referência cruzada é sempre por `id` (nunca texto livre) — o grafo fechar é responsabilidade
 // do gate da US-150, não deste schema. `registry` é o mesmo objeto decidido por `rollRegistry`
@@ -65,6 +78,7 @@ export const GeneratedAdventureSchema = z.object({
   start: z.string().min(1),
   conclusion: z.string().min(1),
   followUps: z.array(z.string()),
+  antagonist: AdventureAntagonistSchema,
 })
 
 export type AdventureNpc = z.infer<typeof AdventureNpcSchema>
@@ -72,4 +86,5 @@ export type AdventureSecret = z.infer<typeof AdventureSecretSchema>
 export type AdventureLocation = z.infer<typeof AdventureLocationSchema>
 export type AdventureEncounter = z.infer<typeof AdventureEncounterSchema>
 export type AdventureRegistry = z.infer<typeof AdventureRegistrySchema>
+export type AdventureAntagonist = z.infer<typeof AdventureAntagonistSchema>
 export type GeneratedAdventure = z.infer<typeof GeneratedAdventureSchema>

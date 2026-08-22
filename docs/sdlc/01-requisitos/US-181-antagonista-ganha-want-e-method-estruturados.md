@@ -2,9 +2,9 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (22/08/2026). `pnpm typecheck` + `pnpm test` (shared 128, ai-engine 148, web 119, api 357) + `pnpm eval` (67 passam, 2 skipped pré-existentes) — todos verdes. Implementada já no FORMATO do US-190 (`generateAntagonist`, chamada própria — não dentro de `generateClosing`/`CLOSING_SCHEMA` como o *Modelo de dados proposto* original descrevia), decisão tomada na hora da implementação pra evitar diff descartável: US-190 já existia totalmente desenhada nesse mesmo dia, então codar dentro de `generateClosing` primeiro só seria trabalho que US-190 desfaria em seguida. `connection` (US-183) NÃO entrou nesta story — implementada em seguida, US-183 própria. Ver *Notas de implementação* abaixo para o desvio linha a linha.
 **Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure`, orquestrador que monta o objeto final — esta story acrescenta um campo a ele) · [US-175](./US-175-generateclosing-perde-hookseed-antagonista-so-premissa.md) (estado atual de `generateClosing`: antagonista já é só prosa dentro de `conclusion`, ancorado em `premissa` — esta story parte exatamente desse ponto) · [US-144](./US-144-schema-aventura-shared.md) (`GeneratedAdventureSchema`, ganha o campo `antagonist`)
-**Relacionado:** [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) (`objective`, ainda não implementada — quando implementada, deve referenciar `antagonist.want`/`antagonist.method`/`antagonist.weakness`, não só o nome; ver nota cruzada no próprio documento) · [US-164, Questão em aberto #2](./US-164-orquestrador-motor-monta-aventura-gerada.md) (decisão original — *"antagonista vira só cor narrativa... se produto quiser antagonista rastreável de verdade, abre US própria depois"* — esta story É essa US, mas só no eixo ESTRUTURA/CAMPO, não no eixo ENTIDADE, ver *Fora do escopo*) · [US-153, Questão em aberto #4](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (disciplina "`conclusion` não vaza antes de merecer" — mesma cautela se aplica ao campo novo) · [US-166](./US-166-motor-gera-multiplos-encontros.md) (**bloqueada por esta story**, atualizado 2026-08-21: o encontro final dos 8 gerados é o confronto com o antagonista — `behaviors`/`goal`/`complications` dele DEVEM ecoar `antagonist.want`/`method`/`trait`/`weakness`. US-166 estende o MESMO `generateClosing`/`CLOSING_SCHEMA` que esta story cria — soma `encounterSkeleton` de entrada e `encounterSituations` de saída, não chamada nova; sem esta story implementada primeiro, `CLOSING_SCHEMA` não tem `antagonist` pra US-166 ecoar) · [US-183](./US-183-antagonista-ganha-conexao-pessoal-com-personagem.md) (desmembrada desta story em 2026-08-21 — soma o eixo de conexão pessoal, que pede `characterAnchors` como insumo novo e por isso não entra aqui) · [US-188](./US-188-antagonista-vira-npc-rastreavel.md) (desmembrada desta story em 2026-08-21 — resolve o eixo ENTIDADE que a *Fora do escopo* original deixou de fora) · [US-189](./US-189-antagonista-entra-no-ledger.md) (desmembrada desta story em 2026-08-21 — resolve a Questão em aberto #2, exposição no ledger)
+**Relacionado:** [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) (`objective`, ainda não implementada — quando implementada, deve referenciar `antagonist.want`/`antagonist.method`/`antagonist.weakness`, não só o nome; ver nota cruzada no próprio documento) · [US-164, Questão em aberto #2](./US-164-orquestrador-motor-monta-aventura-gerada.md) (decisão original — *"antagonista vira só cor narrativa... se produto quiser antagonista rastreável de verdade, abre US própria depois"* — esta story É essa US, mas só no eixo ESTRUTURA/CAMPO, não no eixo ENTIDADE, ver *Fora do escopo*) · [US-153, Questão em aberto #4](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (disciplina "`conclusion` não vaza antes de merecer" — mesma cautela se aplica ao campo novo) · [US-166](./US-166-motor-gera-multiplos-encontros.md) (**bloqueada por esta story**, atualizado 2026-08-21: o encontro final dos 8 gerados é o confronto com o antagonista — `behaviors`/`goal`/`complications` dele DEVEM ecoar `antagonist.want`/`method`/`trait`/`weakness`. US-166 estende o MESMO `generateClosing`/`CLOSING_SCHEMA` que esta story cria — soma `encounterSkeleton` de entrada e `encounterSituations` de saída, não chamada nova; sem esta story implementada primeiro, `CLOSING_SCHEMA` não tem `antagonist` pra US-166 ecoar) · [US-183](./US-183-antagonista-ganha-conexao-pessoal-com-personagem.md) (desmembrada desta story em 2026-08-21 — soma o eixo de conexão pessoal, que pede `characterAnchors` como insumo novo e por isso não entra aqui) · [US-188](./US-188-antagonista-vira-npc-rastreavel.md) (desmembrada desta story em 2026-08-21 — resolve o eixo ENTIDADE que a *Fora do escopo* original deixou de fora) · [US-189](./US-189-antagonista-entra-no-ledger.md) (desmembrada desta story em 2026-08-21 — resolve a Questão em aberto #2, exposição no ledger) · [US-190](./US-190-antagonista-vira-passo-proprio-entre-segredos-e-encontros.md) (**move ONDE esta story sintetiza `antagonist`** — de dentro de `generateClosing` pra chamada própria, `generateAntagonist`, entre segredos e encontros. Conteúdo/campos desta story não mudam, só o local no pipeline; ver aquele documento)
 **Criada em:** 2026-08-20 — a partir de notas de design trazidas pela mantenedora sobre estrutura de aventura (LGMRD-adjacente): "decidir o que o vilão QUER" e "o que ele FAZ pra conseguir" como dois passos distintos de "o vilão existe". O motor hoje só cobre o segundo nível (antagonista existe, como prosa) — nunca declara motivo nem método, então segredos/NPCs gerados antes dele (US-149/US-158) não têm mecanismo nenhum pra ancorar, só a `premissa` solta.
 **Atualizada em:** 2026-08-21 — a partir de leitura de material de design de vilões de RPG trazido pela mantenedora (ver *Artigos-fonte* nas Referências): dois eixos aparecem repetidos em praticamente toda a literatura além de motivo/método — um **traço reconhecível** (maneirismo, marca, comportamento que faz o antagonista ser lembrado na narração) e uma **fraqueza explorável** (ponto cego que dá alavanca pra `objective`/US-169 e `complications`/US-166 citarem, não só o nome). Os dois entram no escopo desta story porque nascem da MESMA chamada, sem insumo novo — mesma disciplina de `want`/`method`. Um terceiro eixo igualmente repetido — **conexão pessoal do antagonista com o personagem** — pede insumo novo (`characterAnchors`, hoje só consumido por `generateOpeningBeat`/US-180) e por isso vira story própria (US-183), não é somado aqui.
 
@@ -42,13 +42,19 @@ A própria proposta original desta trilha de stories (LGMRD *Eight Steps*/DnDGen
 
 ### Dentro do escopo
 
-- `CLOSING_SCHEMA` ([ai.service.ts:240](../../../apps/api/src/ai/ai.service.ts)) ganha `antagonist: z.object({ name: z.string().min(1), want: z.string().min(1), method: z.string().min(1), trait: z.string().min(1), weakness: z.string().min(1) })`.
-- `generateClosing` ([ai.service.ts:1492](../../../apps/api/src/ai/ai.service.ts)) devolve `antagonist` junto de `conclusion`/`followUps` — mesma chamada de modelo, sem parâmetro novo de entrada.
-- `system` de `generateClosing` ganha instrução: nomear o antagonista e declarar `want` (o que busca), `method` (o que faz pra conseguir), `trait` (maneirismo/marca reconhecível) e `weakness` (ponto cego/vício explorável) — todos ancorados só no que já foi decidido (`premissa`/`complicacao`/`locations`/`npcs`/`secrets`) — nunca inventando local/NPC/fato fora da lista recebida, mesma disciplina de `generateSecrets`.
-- `GeneratedAdventureSchema` (US-144, `adventure-generation.ts`) ganha `antagonist: AdventureAntagonistSchema`, mesma forma (`name`/`want`/`method`/`trait`/`weakness`).
-- `adventure.service.ts` (`generateAdventure`, dentro do `Promise.all` que já chama `generateClosing`) passa `antagonist` ao objeto final do `.parse()`.
+> **Nota de implementação (22/08/2026):** os quatro primeiros itens abaixo descreviam o
+> plano ORIGINAL (`antagonist` sintetizado dentro de `generateClosing`/`CLOSING_SCHEMA`).
+> Implementado direto no formato do US-190 em vez disso — ver *Notas de implementação* pra
+> o mapeamento real (`ANTAGONIST_SCHEMA`/`generateAntagonist`, chamada própria). Conteúdo
+> (os 5 campos, a disciplina de ancoragem) não mudou, só o called-from.
+
+- ~~`CLOSING_SCHEMA` ([ai.service.ts:240](../../../apps/api/src/ai/ai.service.ts)) ganha `antagonist: z.object(...)`~~ — virou `ANTAGONIST_SCHEMA`, schema de saída de `generateAntagonist`, não de `generateClosing`.
+- ~~`generateClosing` devolve `antagonist` junto de `conclusion`/`followUps` — mesma chamada de modelo~~ — `generateClosing` RECEBE `antagonist` como parâmetro de entrada (chamada separada o produz antes).
+- `system` de `generateAntagonist` instrui: nomear o antagonista e declarar `want` (o que busca), `method` (o que faz pra conseguir), `trait` (maneirismo/marca reconhecível) e `weakness` (ponto cego/vício explorável) — todos ancorados só no que já foi decidido (`premissa`/`complicacao`/`locations`/`npcs`/`secrets`) — nunca inventando local/NPC/fato fora da lista recebida, mesma disciplina de `generateSecrets`.
+- `GeneratedAdventureSchema` (US-144, `adventure-generation.ts`) ganha `antagonist: AdventureAntagonistSchema`, mesma forma (`name`/`want`/`method`/`trait`/`weakness`). — feito como desenhado.
+- `adventure.service.ts` (`generateAdventure`): `generateAntagonist` roda sequencial, DEPOIS de `generateSecrets` e ANTES do `Promise.all([generateClosing, generateOpeningBeat])` (não dentro do `Promise.all`, forma do US-190) — resultado passa a `generateClosing` e ao objeto final do `.parse()`.
 - Nota cruzada no documento da [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md): quando aquela story for implementada, `objective` deve poder citar `antagonist.want`/`antagonist.method`, não só o nome — ex. *"Impedir que Malvora drene a vila pra alimentar seu ritual"*, não só *"Impedir Malvora"*.
-- Teste de regressão: fixture com `AiService.generateClosing` mockado → artefato final (`GeneratedAdventureSchema.parse`) tem `antagonist.name`/`want`/`method`, todos não vazios.
+- Teste de regressão: fixture com `AiService.generateAntagonist`/`generateClosing` mockados → artefato final (`GeneratedAdventureSchema.parse`) tem `antagonist.name`/`want`/`method`/`trait`/`weakness`, todos não vazios ([adventure.service.test.ts](../../../apps/api/src/adventure/adventure.service.test.ts), describe `AdventureService.generateAdventure`).
 
 ### Fora do escopo
 
@@ -80,7 +86,7 @@ export const GeneratedAdventureSchema = z.object({
 ```
 
 ```ts
-// apps/api/src/ai/ai.service.ts — CLOSING_SCHEMA
+// apps/api/src/ai/ai.service.ts — CLOSING_SCHEMA (plano ORIGINAL, não implementado assim — ver abaixo)
 const CLOSING_SCHEMA = z.object({
   conclusion: z.string().min(1),
   followUps: z.array(z.string()).min(1),
@@ -94,25 +100,43 @@ const CLOSING_SCHEMA = z.object({
 })
 ```
 
+**Implementado de verdade (22/08/2026, formato US-190):**
+
+```ts
+// apps/api/src/ai/ai.service.ts — ANTAGONIST_SCHEMA, schema de generateAntagonist (chamada própria)
+const ANTAGONIST_SCHEMA = z.object({
+  name: z.string().min(1),
+  want: z.string().min(1),
+  method: z.string().min(1),
+  trait: z.string().min(1),
+  weakness: z.string().min(1),
+})
+
+// CLOSING_SCHEMA fica como estava (conclusion/followUps) — não ganha antagonist.
+// generateClosing ganha `antagonist: AdventureAntagonist` como PARÂMETRO de entrada.
+```
+
 ---
 
 ## Critérios de aceite
 
-- [ ] `CLOSING_SCHEMA` exige `antagonist.name`/`want`/`method`/`trait`/`weakness`, todos strings não vazias.
-- [ ] `generateClosing` devolve `antagonist` junto de `conclusion`/`followUps`, na mesma chamada (sem round-trip novo).
-- [ ] `GeneratedAdventureSchema.parse` exige `antagonist` — falha o gate (US-150) se ausente, mesmo tratamento de reseed que qualquer outro campo obrigatório.
-- [ ] `generateAdventure` (`adventure.service.ts`) preenche `antagonist` no objeto final.
-- [ ] `system` de `generateClosing` instrui `want`/`method`/`trait`/`weakness` ancorados só em `premissa`/`complicacao`/`locations`/`npcs`/`secrets` recebidos — nunca insumo novo.
-- [ ] **Teste de regressão:** fixture com `generateClosing` mockado → artefato final tem `antagonist` com os cinco campos não vazios; `.parse()` passa.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] `pnpm eval` passa (mudança de prompt do motor de geração).
+- [x] ~~`CLOSING_SCHEMA` exige `antagonist...`~~ — `ANTAGONIST_SCHEMA` (schema de `generateAntagonist`) exige `name`/`want`/`method`/`trait`/`weakness`, todos strings não vazias.
+- [x] ~~`generateClosing` devolve `antagonist` junto de `conclusion`/`followUps`, na mesma chamada~~ — `generateAntagonist` devolve os 5 campos em chamada PRÓPRIA; `generateClosing` recebe o resultado como parâmetro.
+- [x] `GeneratedAdventureSchema.parse` exige `antagonist` — falha o gate (US-150) se ausente, mesmo tratamento de reseed que qualquer outro campo obrigatório.
+- [x] `generateAdventure` (`adventure.service.ts`) preenche `antagonist` no objeto final.
+- [x] `system` de `generateAntagonist` instrui `want`/`method`/`trait`/`weakness` ancorados só em `premissa`/`complicacao`/`locations`/`npcs`/`secrets` recebidos — nunca insumo novo.
+- [x] **Teste de regressão:** fixture com `generateAntagonist`/`generateClosing` mockados → artefato final tem `antagonist` com os cinco campos não vazios; `.parse()` passa.
+- [x] `pnpm typecheck` e `pnpm test` passam (shared 128, ai-engine 148, web 119, api 357).
+- [x] `pnpm eval` passa (67 passam, 2 skipped pré-existentes).
 
 ---
 
 ## Notas de implementação
 
-- Pontos exatos: [ai.service.ts:240](../../../apps/api/src/ai/ai.service.ts) (`CLOSING_SCHEMA`), [ai.service.ts:1492-1520](../../../apps/api/src/ai/ai.service.ts) (`generateClosing`), [adventure.service.ts:168-177](../../../apps/api/src/adventure/adventure.service.ts) (chamada dentro do `Promise.all`), [adventure.service.ts:191-203](../../../apps/api/src/adventure/adventure.service.ts) (montagem final do `.parse()`).
-- **Nenhuma chamada anterior no pipeline ganha `antagonist` como insumo.** `generateLocationsAndNpcs`, `generateSecrets` e `generateOpeningBeat` continuam exatamente como estão — o antagonista estruturado nasce na mesma posição (última) que a prosa de `conclusion` já ocupava, só ganha forma.
+- **Desvio do plano (22/08/2026):** implementado direto no formato do US-190 em vez de dentro de `generateClosing`. Motivo: US-190 já existia totalmente desenhada no mesmo dia (criada 2026-08-21) e é EXPLÍCITA em dizer que codar `antagonist` dentro de `generateClosing` primeiro e mover depois é diff descartável — "se US-181/183 forem implementadas antes desta, esta story é um refactor de MOVER a síntese" (US-190, *Notas de implementação*). Pulou-se direto pro formato final: `generateAntagonist` nasce como chamada própria, nunca chegou a existir dentro de `generateClosing`.
+- Pontos exatos (implementação real): [ai.service.ts:240](../../../apps/api/src/ai/ai.service.ts) (`ANTAGONIST_SCHEMA`), [ai.service.ts:1518-1553](../../../apps/api/src/ai/ai.service.ts) (`generateAntagonist`, chamada nova — reusa `buildClosingPrompt` pra montar o prompt, mesmo bloco de contexto locais/NPCs/segredos/premissa/complicação), [ai.service.ts:1560-1596](../../../apps/api/src/ai/ai.service.ts) (`generateClosing`, ganha `antagonist` como parâmetro de entrada em vez de sintetizar), [adventure.service.ts:170-183](../../../apps/api/src/adventure/adventure.service.ts) (`generateAntagonist` chamado sequencial, fora do `Promise.all`), [adventure.service.ts:185-206](../../../apps/api/src/adventure/adventure.service.ts) (`Promise.all` de `generateClosing`/`generateOpeningBeat`, agora recebendo `antagonist` pronto; montagem final do `.parse()`).
+- **`generateOpeningBeat` NÃO recebeu `antagonist`.** Isso é escopo do US-190 (insinuação na abertura), não desta story — deliberadamente fora, mesma disciplina de "não expandir além do pedido".
+- **Nenhuma chamada anterior no pipeline ganha `antagonist` como insumo.** `generateLocationsAndNpcs`, `generateSecrets` e `generateOpeningBeat` continuam exatamente como estão — só `generateClosing` (que roda DEPOIS de `generateAntagonist`) recebe o antagonista já pronto.
 - `want`/`method`/`trait`/`weakness` sempre presentes, mesmo quando `premissa` não sugere vilão óbvio (ex. `"Rescue an NPC"`) — o modelo infere uma oposição plausível (o motivo do sequestro, por exemplo) em vez do campo ficar opcional. Mesma disciplina de robustez do resto do motor: campo opcional que às vezes falta é pior consumidor a jusante do que campo sempre presente.
 - A instrução do `system` deve deixar claro que os quatro campos **não** liberam o modelo a inventar entidade nova fora de `locations`/`npcs`/`secrets` recebidos — mesma regra que já vale para `generateSecrets` (nunca invente local/NPC fora da lista).
 - `trait` e `weakness` são frase curta (1 sentença), mesmo formato direto de `want`/`method` — não viram bloco de personalidade longo; se o eval mostrar prosa genérica ("é cruel", "quer poder"), ajuste é de prompt, não do schema.
@@ -130,10 +154,13 @@ const CLOSING_SCHEMA = z.object({
 
 ## Referências no código
 
-- [apps/api/src/ai/ai.service.ts:240](../../../apps/api/src/ai/ai.service.ts) — `CLOSING_SCHEMA`, ganha `antagonist`.
-- [apps/api/src/ai/ai.service.ts:1492-1520](../../../apps/api/src/ai/ai.service.ts) — `generateClosing`, função que passa a sintetizar `antagonist` junto de `conclusion`/`followUps`.
-- [apps/api/src/adventure/adventure.service.ts:168-203](../../../apps/api/src/adventure/adventure.service.ts) — `generateAdventure`, monta o objeto final que esta story estende.
+- [apps/api/src/ai/ai.service.ts:240](../../../apps/api/src/ai/ai.service.ts) — `ANTAGONIST_SCHEMA` (não `CLOSING_SCHEMA` — ver *Notas de implementação*).
+- [apps/api/src/ai/ai.service.ts:1518-1553](../../../apps/api/src/ai/ai.service.ts) — `generateAntagonist`, chamada própria que sintetiza `name`/`want`/`method`/`trait`/`weakness`.
+- [apps/api/src/ai/ai.service.ts:1560-1596](../../../apps/api/src/ai/ai.service.ts) — `generateClosing`, recebe `antagonist` como parâmetro (não mais sintetiza).
+- [apps/api/src/adventure/adventure.service.ts:170-206](../../../apps/api/src/adventure/adventure.service.ts) — `generateAdventure`, chama `generateAntagonist` sequencial antes do `Promise.all` e monta o objeto final.
 - [packages/shared/src/types/adventure-generation.ts](../../../packages/shared/src/types/adventure-generation.ts) — `GeneratedAdventureSchema`, ganha `antagonist: AdventureAntagonistSchema`.
+- [apps/api/src/ai/ai.service.test.ts](../../../apps/api/src/ai/ai.service.test.ts) — describe `AiService.generateAntagonist (US-181/US-190)`.
+- [apps/api/src/adventure/adventure.service.test.ts](../../../apps/api/src/adventure/adventure.service.test.ts) — describe `AdventureService.generateAdventure`, testes de wiring `generateAntagonist`→`generateClosing` e regressão do critério de aceite.
 - [US-164, Questão em aberto #2](./US-164-orquestrador-motor-monta-aventura-gerada.md) — decisão original que rejeitou `background.deity` e a entidade rastreável, e previu explicitamente esta story ("abre US própria depois").
 - [US-175](./US-175-generateclosing-perde-hookseed-antagonista-so-premissa.md) — estado atual de `generateClosing` (antagonista só via `premissa`, sem `hookSeed`), ponto de partida desta story.
 - [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) — `objective`, ainda não implementada; consumidora natural de `antagonist.want`/`method` quando for escrita.

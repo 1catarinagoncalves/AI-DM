@@ -167,6 +167,23 @@ export class AdventureService {
       { id: 'encounter-1', locationId: locations[0]!.id, npcIds: encounterNpcs.map((npc) => npc.id) },
     ]
 
+    // US-181/US-190: antagonista é passo PRÓPRIO, sequencial — roda depois de segredos e
+    // antes do Promise.all, porque `generateClosing` (abaixo) precisa dele já pronto pra
+    // ancorar a conclusão nele em vez de improvisar prosa.
+    // US-183: `background`/`origin` — mesmos dois campos já passados a `generateOpeningBeat`
+    // abaixo — pra `generateAntagonist` montar `connection` ancorada no vínculo pessoal.
+    const antagonist = await this.ai.generateAntagonist({
+      locations,
+      npcs: allNpcs,
+      secrets,
+      registry,
+      complicacao: content.complicacao,
+      premissa: content.premissa,
+      background: profile.background,
+      origin: profile.origin,
+      locale,
+    })
+
     // US-172: `generateClosing` e `generateOpeningBeat` não dependem uma da outra — as duas
     // só precisam de locations/npcs/secrets/registry/premissa, já prontos aqui. `Promise.all`
     // no lugar de dois `await` sequenciais: soma uma 4ª chamada de IA ao fluxo, mas paralela
@@ -179,6 +196,7 @@ export class AdventureService {
         registry,
         complicacao: content.complicacao,
         premissa: content.premissa,
+        antagonist,
         locale,
       }),
       this.ai.generateOpeningBeat({
@@ -206,6 +224,7 @@ export class AdventureService {
       start,
       conclusion,
       followUps,
+      antagonist,
     })
   }
 

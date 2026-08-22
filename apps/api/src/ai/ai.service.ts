@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
-import type { AdventureLocation, AdventureNpc, AdventureSecret, GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
+import type { AdventureAntagonist, AdventureLocation, AdventureNpc, AdventureSecret, GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
 import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, DEFAULT_LOCALE, localeNameForPrompt, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
@@ -232,6 +232,21 @@ function characterAnchors(params: {
   ].filter((line): line is string => Boolean(line))
 }
 
+// US-181/US-190: schema do ANTAGONISTA estruturado — `want`/`method`/`trait`/`weakness`
+// sempre presentes (mesmo quando `premissa` não sugere vilão óbvio, o modelo infere uma
+// oposição plausível — campo opcional é pior consumidor a jusante que campo sempre presente).
+// `connection` (US-183): como o antagonista se relaciona com o vínculo pessoal da
+// personagem (`characterAnchors`) — sem âncora registrada, cai pra conexão genérica
+// ancorada em locations/npcs/secrets, nunca vazio (mesma disciplina dos outros 4 campos).
+const ANTAGONIST_SCHEMA = z.object({
+  name: z.string().min(1),
+  want: z.string().min(1),
+  method: z.string().min(1),
+  trait: z.string().min(1),
+  weakness: z.string().min(1),
+  connection: z.string().min(1),
+})
+
 // US-164, passo 6: schema do FECHO RAMIFICADO. SEM `id` — `followUps[]` não referencia
 // nada, é semente pra PRÓXIMA aventura (US-151 consome como texto, não por id).
 const CLOSING_SCHEMA = z.object({
@@ -272,19 +287,27 @@ function buildOpeningBeatPrompt(params: {
   ].join('\n')
 }
 
+// US-181/US-190: `antagonist` é opcional aqui — `generateAntagonist` reusa este builder
+// ANTES de o antagonista existir (é ele quem o decide); `generateClosing` roda DEPOIS,
+// sempre passa o antagonista já pronto pra ancorar a conclusão nele.
 function buildClosingPrompt(params: {
   locations: AdventureLocation[]
   npcs: AdventureNpc[]
   secrets: AdventureSecret[]
   complicacao: { condition: string; description: string; origin: string }
   premissa: string
+  antagonist?: AdventureAntagonist
 }): string {
   const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
   const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
   const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
+  const antagonistLine = params.antagonist
+    ? `Antagonista já decidido: ${params.antagonist.name} — quer ${params.antagonist.want}; método: ${params.antagonist.method}.`
+    : null
   return [
     `Premissa: ${params.premissa}`,
     `Complicação: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
+    ...(antagonistLine ? ['', antagonistLine] : []),
     '',
     `Locais disponíveis:\n${locationLines}`,
     '',
@@ -1483,6 +1506,58 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
   }
 
   /**
+   * US-181/US-190: sintetiza o ANTAGONISTA estruturado (`name`/`want`/`method`/`trait`/
+   * `weakness`) a partir de `locations`/`npcs`/`secrets` já decididos (US-158/US-149) e a
+   * `complicacao`/`premissa` roladas — chamada PRÓPRIA, sequencial, rodando depois de
+   * `generateSecrets` e antes de `generateClosing`/`generateOpeningBeat` (US-190: não fica
+   * mais implícito dentro do fecho, pra que outras chamadas também possam vê-lo cedo).
+   * Reusa `buildClosingPrompt` — mesmo bloco de contexto (locais/NPCs/segredos/premissa/
+   * complicação) que `generateClosing` já monta, nenhuma duplicação de prompt builder.
+   *
+   * US-183: ganha `background`/`origin` (mesma forma de `generateOpeningBeat`/`generateSecrets`)
+   * e sintetiza `connection` — reusa `characterAnchors(params)`, mesmo padrão condicional do
+   * `anchorInstruction` de `generateOpeningBeat`: com âncora, prefere ligar o antagonista a
+   * ela; sem âncora, cai pra conexão genérica ancorada em locations/npcs/secrets.
+   *
+   * NUNCA captura erro — mesma disciplina de `generateSecrets`/`generateClosing`: falha
+   * aqui é motivo de reseed na US-150, não degradação silenciosa.
+   */
+  async generateAntagonist(params: {
+    locations: AdventureLocation[]
+    npcs: AdventureNpc[]
+    secrets: AdventureSecret[]
+    registry: AdventureRegistry
+    complicacao: { condition: string; description: string; origin: string }
+    premissa: string
+    background?: CharacterBackground
+    origin?: { adventuresAndAdvancement?: string }
+    locale?: Locale
+  }): Promise<AdventureAntagonist> {
+    const anchors = characterAnchors(params)
+    const anchorInstruction = anchors.length > 0
+      ? `Vínculo pessoal da personagem — prefira ligar a conexão do antagonista a um destes, quando fizer sentido com a premissa/complicação: ${anchors.join('; ')}.`
+      : 'Sem vínculo pessoal registrado — descreva uma conexão mais genérica, ancorada no que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
+    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
+
+    const { object, providerMetadata } = await generateObject({
+      model: primaryModel,
+      schema: ANTAGONIST_SCHEMA,
+      system:
+        'Você é o Mestre de um RPG decidindo o ANTAGONISTA de uma aventura one-shot (método Lazy GM Resource Document), ancorado nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova fora da lista dada. ' +
+        'Nomeie o antagonista e declare: `want` (o que busca — poder, vingança, recurso, ritual), `method` (o que faz pra conseguir — reunir exército, ritual em curso, espalhar boato), `trait` (maneirismo/marca reconhecível numa frase curta) e `weakness` (ponto cego ou vício explorável numa frase curta, não a derrota dele). ' +
+        'Mesmo que a premissa não aponte vilão óbvio, infira uma oposição plausível — os quatro campos são sempre preenchidos. ' +
+        `Declare também \`connection\` (1 frase curta): como o antagonista se relaciona com o personagem — nunca vazio. ${anchorInstruction} ` +
+        `Tom: ${params.registry.tone}. ` +
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
+      prompt: buildClosingPrompt(params),
+      providerOptions: ENGINE_PROVIDER_OPTIONS,
+    })
+    logExtractionEndpoint('generateAntagonist', primaryModel, providerMetadata)
+
+    return object
+  }
+
+  /**
    * US-164, passo 6: escreve o FECHO RAMIFICADO — `conclusion` (prosa) e `followUps[]`
    * (sementes pra próxima aventura, US-151) — a partir de `locations`/`npcs`/`secrets` já
    * decididos (US-158/US-149) e a `complicacao`/`premissa` roladas (US-147). `registry`
@@ -1490,10 +1565,11 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * — sem ele o fecho pode destoar do tom fixado. `hookSeed` (gancho fixo por classe) NÃO é
    * insumo — nem no schema, nem no `system`/`prompt` de `buildClosingPrompt` (US-175: era o
    * último insumo do motor ainda ancorado no catálogo fixo por classe, `premissa` já
-   * cumpria a mesma função de cor narrativa). Antagonista não é entidade rastreável aqui
-   * (US-164, Questão em aberto #2) — só cor narrativa via `premissa`. NUNCA captura erro —
-   * mesma disciplina de `generateSecrets`: falha aqui é motivo de reseed na US-150, não
-   * degradação silenciosa.
+   * cumpria a mesma função de cor narrativa). US-181/US-190: antagonista deixou de ser
+   * cor narrativa emergente da premissa — chega aqui já decidido (`generateAntagonist`),
+   * a CONCLUSÃO ancora nele em vez de inventar prosa solta. Ainda não é entidade rastreável
+   * (US-164, Questão em aberto #2 — isso é US-188). NUNCA captura erro — mesma disciplina
+   * de `generateSecrets`: falha aqui é motivo de reseed na US-150, não degradação silenciosa.
    */
   async generateClosing(params: {
     locations: AdventureLocation[]
@@ -1502,6 +1578,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     registry: AdventureRegistry
     complicacao: { condition: string; description: string; origin: string }
     premissa: string
+    antagonist: AdventureAntagonist
     locale?: Locale
   }): Promise<{ conclusion: string; followUps: string[] }> {
     // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
@@ -1513,7 +1590,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       system:
         'Você é o Mestre de um RPG escrevendo o FECHO RAMIFICADO de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Escreva a CONCLUSÃO (2-3 parágrafos) resolvendo a premissa e a complicação, ancorada nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova. ' +
-        'Se a premissa sugerir um antagonista, ele aparece só como PROSA no fecho, não precisa ser um NPC já listado. ' +
+        'O antagonista já está decidido (nome/want/method abaixo) — a conclusão resolve o confronto com ELE, sem inventar outro nem contradizer o que já foi definido. ' +
         `Tom: ${params.registry.tone}. ` +
         'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura. ' +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,

@@ -25,12 +25,14 @@ function fakeAi(
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'] }
+  const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
   return {
     generateOpeningNarration: async (input: Record<string, unknown>) => { Object.assign(seen, input); return opening },
     extractOpeningScene: async () => scene,
     extractOpeningEntities: async () => entities,
     generateLocationsAndNpcs: async () => ({ locations, npcs }),
     generateSecrets: async () => secrets,
+    generateAntagonist: async () => antagonist,
     generateClosing: async () => closing,
     generateOpeningBeat: async () => ({ start: 'A porta racha ao meio antes que alguém grite.' }),
   } as unknown as AiService
@@ -423,6 +425,7 @@ describe('AdventureService.createForCharacter', () => {
         npcs: [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }], // nunca referenciado → órfão
       }),
       generateSecrets: async () => [{ id: 'secret-1', locationId: 'loc-1', text: 'segredo' }],
+      generateAntagonist: async () => ({ name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade', connection: 'x' }),
       generateClosing: async () => ({ conclusion: 'fim', followUps: [] }),
       generateOpeningBeat: async () => ({ start: 'abertura' }),
     } as unknown as AiService
@@ -938,16 +941,19 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     locations?: Record<string, unknown>[]
     npcs?: Record<string, unknown>[]
     secrets?: Record<string, unknown>[]
+    antagonist?: { name: string; want: string; method: string; trait: string; weakness: string; connection: string }
     closing?: { conclusion: string; followUps: string[] }
     start?: string
     seenOpeningParams?: Record<string, unknown>
     seenLocationsParams?: Record<string, unknown>
     seenSecretsParams?: Record<string, unknown>
+    seenAntagonistParams?: Record<string, unknown>
     seenClosingParams?: Record<string, unknown>
   } = {}): AiService {
     const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas', occupants: [] }]
     const npcs = overrides.npcs ?? [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
     const secrets = overrides.secrets ?? [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
+    const antagonist = overrides.antagonist ?? { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
     const closing = overrides.closing ?? { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }
     const start = overrides.start ?? 'A porta racha ao meio antes que alguém grite.'
     return {
@@ -960,6 +966,12 @@ describe('AdventureService.generateAdventure (US-164)', () => {
       generateSecrets: async (params: Record<string, unknown>) => {
         if (overrides.seenSecretsParams) Object.assign(overrides.seenSecretsParams, params)
         return secrets
+      },
+      // US-181/US-190: captura os params recebidos por generateAntagonist — roda ANTES do
+      // Promise.all, sequencial, mesma disciplina de captura dos outros passos.
+      generateAntagonist: async (params: Record<string, unknown>) => {
+        if (overrides.seenAntagonistParams) Object.assign(overrides.seenAntagonistParams, params)
+        return antagonist
       },
       // US-175: `hookSeed` para de ser insumo de generateClosing — último ponto do motor
       // ainda ancorado no catálogo fixo por classe.
@@ -1056,6 +1068,41 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(seenClosingParams.premissa).toBeDefined()
   })
 
+  // US-181/US-190: antagonista é passo próprio, sequencial — roda com locations/npcs/secrets
+  // já prontos, ANTES do Promise.all, e o RESULTADO chega a generateClosing como `antagonist`.
+  // US-183: soma background/origin — mesmos dois campos já passados a generateOpeningBeat.
+  it('generateAntagonist recebe locations/npcs/secrets/registry/complicacao/premissa/background/origin (US-181/US-190/US-183)', async () => {
+    const seenAntagonistParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ seenAntagonistParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+    expect(seenAntagonistParams.locations).toBeDefined()
+    expect(seenAntagonistParams.npcs).toBeDefined()
+    expect(seenAntagonistParams.secrets).toBeDefined()
+    expect(seenAntagonistParams.registry).toBeDefined()
+    expect(seenAntagonistParams.complicacao).toBeDefined()
+    expect(seenAntagonistParams.premissa).toBeDefined()
+    expect(seenAntagonistParams.background).toBeDefined()
+    expect(seenAntagonistParams.origin).toBeDefined()
+  })
+
+  it('generateClosing recebe o antagonist devolvido por generateAntagonist (US-190)', async () => {
+    const antagonist = { name: 'Vaerix', want: 'vingança', method: 'espalhar um boato', trait: 'usa máscara', weakness: 'obsessão', connection: 'x' }
+    const seenClosingParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ antagonist, seenClosingParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+    expect(seenClosingParams.antagonist).toEqual(antagonist)
+  })
+
+  // US-181/US-183: critério de aceite — artefato final tem antagonist com os seis campos não vazios.
+  it('artefato final tem antagonist com name/want/method/trait/weakness/connection não vazios (US-181/US-183)', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+    expect(adventure.antagonist.name.length).toBeGreaterThan(0)
+    expect(adventure.antagonist.want.length).toBeGreaterThan(0)
+    expect(adventure.antagonist.method.length).toBeGreaterThan(0)
+    expect(adventure.antagonist.trait.length).toBeGreaterThan(0)
+    expect(adventure.antagonist.weakness.length).toBeGreaterThan(0)
+    expect(adventure.antagonist.connection.length).toBeGreaterThan(0)
+    expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+  })
+
   it('encounters[0].locationId referencia locations[0]; npcIds referencia NPCs do próprio npcs[] final', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
     expect(adventure.encounters).toHaveLength(1)
@@ -1109,9 +1156,11 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
     const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
     const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
     const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'] }
+    const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
     return {
       generateLocationsAndNpcs: vi.fn(async () => ({ locations, npcs })),
       generateSecrets: vi.fn(async () => secrets),
+      generateAntagonist: vi.fn(async () => antagonist),
       generateClosing: vi.fn(async () => closing),
       generateOpeningBeat: vi.fn(async () => ({ start: 'abertura' })),
     } as unknown as AiService

@@ -34,6 +34,7 @@ const adventure: GeneratedAdventure = {
   start: 'A caravana chega à vila ao anoitecer.',
   conclusion: 'O poço é selado de vez, ou a entidade desperta.',
   followUps: ['A entidade pode ter deixado descendentes em outras vilas.'],
+  antagonist: { name: 'Ilvaine Torncroft', want: 'manter o poço selado a qualquer custo', method: 'silenciar quem investiga', trait: 'fala em enigmas', weakness: 'medo da própria história', connection: 'já cruzou caminho com o grupo antes' },
 }
 
 // Reimplementado (não importado): `seedLedgerFromGeneratedAdventure` vive em
