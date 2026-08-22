@@ -1498,7 +1498,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Para cada segredo, responda a UMA das perguntas-molde dadas, ancorando o fato em um local ou NPC REAL da lista recebida — nunca invente local, NPC ou fato fora do que foi dado. ' +
         '`locationId` DEVE ser um dos ids de LOCAIS recebidos (nunca um id de NPC), o mais relevante ao segredo. ' +
         'Para segredo de NPC/vilão, use o "(local: ...)" indicado ao lado do NPC se houver; senão, escolha o local mais relevante da lista. ' +
-        `Tom: ${params.registry.tone}. ${anchorInstruction} ` +
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ${anchorInstruction} ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildSecretsPrompt(params.locations, params.npcs, params.secretPrompts),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
@@ -1554,7 +1554,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Nomeie o antagonista e declare: `want` (o que busca — poder, vingança, recurso, ritual), `method` (o que faz pra conseguir — reunir exército, ritual em curso, espalhar boato), `trait` (maneirismo/marca reconhecível numa frase curta) e `weakness` (ponto cego ou vício explorável numa frase curta, não a derrota dele). ' +
         'Mesmo que a premissa não aponte vilão óbvio, infira uma oposição plausível — os quatro campos são sempre preenchidos. ' +
         `Declare também \`connection\` (1 frase curta): como o antagonista se relaciona com o personagem — nunca vazio. ${anchorInstruction} ` +
-        `Tom: ${params.registry.tone}. ` +
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildClosingPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
@@ -1598,7 +1598,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Você é o Mestre de um RPG escrevendo o FECHO RAMIFICADO de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Escreva a CONCLUSÃO (2-3 parágrafos) resolvendo a premissa e a complicação, ancorada nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova. ' +
         'O antagonista já está decidido (nome/want/method abaixo) — a conclusão resolve o confronto com ELE, sem inventar outro nem contradizer o que já foi definido. ' +
-        `Tom: ${params.registry.tone}. ` +
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura. ' +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildClosingPrompt(params),
@@ -1672,7 +1672,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'HEROÍSMO — a chance de agir bem (proteger alguém, corrigir um erro, impedir um dano). ' +
         'DESCOBERTA — um segredo ou mistério que a cena já insinua, sem revelar. ' +
         'O antagonista já está decidido (method/trait abaixo) — pode deixar sinal de sua presença/método na cena, mas NUNCA o nomeie nem revele sua weakness, mesma disciplina que protege os segredos. ' +
-        `Tom: ${params.registry.tone}. ` +
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildOpeningBeatPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,

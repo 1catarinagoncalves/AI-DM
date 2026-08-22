@@ -619,6 +619,14 @@ describe('AiService.generateSecrets (US-149)', () => {
     expect(genObj.system).toContain('comedic')
   })
 
+  it('registry (setting/areaType) entra no system do modelo, ao lado do tone (US-186)', async () => {
+    genObj.error = undefined
+    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
+    await svc().generateSecrets({ locations, npcs, secretPrompts, registry })
+    expect(genObj.system).toContain('coastal')
+    expect(genObj.system).toContain('settlement')
+  })
+
   it('assinatura não aceita hookSeed — mesmo forçado por cast, nunca chega ao system/prompt do modelo (US-174)', async () => {
     genObj.error = undefined
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
@@ -689,6 +697,14 @@ describe('AiService.generateAntagonist (US-181/US-190)', () => {
     genObj.result = { name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade' }
     await svc().generateAntagonist({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
     expect(genObj.system).toContain('grimdark')
+  })
+
+  it('registry (setting/areaType) entra no system do modelo, ao lado do tone (US-186)', async () => {
+    genObj.error = undefined
+    genObj.result = { name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade' }
+    await svc().generateAntagonist({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
+    expect(genObj.system).toContain('coastal')
+    expect(genObj.system).toContain('settlement')
   })
 
   it('locais/NPCs/segredos e complicação/premissa entram no prompt do modelo', async () => {
@@ -800,6 +816,14 @@ describe('AiService.generateClosing (US-164)', () => {
     expect(genObj.system).toContain('grimdark')
   })
 
+  it('registry (setting/areaType) entra no system do modelo, ao lado do tone (US-186)', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
+    expect(genObj.system).toContain('coastal')
+    expect(genObj.system).toContain('settlement')
+  })
+
   it('locais/NPCs/segredos, complicação/premissa e antagonista entram no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'fecho', followUps: ['semente'] }
@@ -878,6 +902,14 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
     genObj.result = { start: 'abertura' }
     await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
     expect(genObj.system).toContain('terror')
+  })
+
+  it('registry (setting/areaType) entra no system do modelo, ao lado do tone (US-186)', async () => {
+    genObj.error = undefined
+    genObj.result = { start: 'abertura' }
+    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
+    expect(genObj.system).toContain('coastal')
+    expect(genObj.system).toContain('settlement')
   })
 
   it('locais/NPCs/segredos e premissa entram no prompt do modelo — ancoragem (US-172)', async () => {
