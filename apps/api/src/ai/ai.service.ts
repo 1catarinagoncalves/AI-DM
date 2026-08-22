@@ -268,16 +268,23 @@ function buildOpeningBeatPrompt(params: {
   registry: AdventureRegistry
   complicacao: { condition: string; description: string; origin: string }
   premissa: string
+  antagonist: AdventureAntagonist
 }): string {
   const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
   const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
   const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
+  // US-190: nome e weakness NÃO entram aqui — a linha só dá o que pode aparecer insinuado
+  // (method/trait); nome fica de fora pra a abertura não ter como citá-lo nem por acidente,
+  // mesma lógica de "o que não está no prompt não pode vazar" que `hookSeed` já usa acima.
+  const antagonistLine = `Antagonista já decidido (pode insinuar, NUNCA nomear nem revelar a weakness): método: ${params.antagonist.method}; traço: ${params.antagonist.trait}.`
   return [
     `Premissa: ${params.premissa}`,
     // US-180: sem esta linha, `complicacao` chega só como TIPO em `params` — o modelo
     // nunca lê condition/description/origin e não tem como escolher entre Enraizada e
     // Confronto. Mesmo formato que `buildClosingPrompt` já usa para o mesmo campo.
     `Complicação: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
+    '',
+    antagonistLine,
     '',
     `Locais disponíveis:\n${locationLines}`,
     '',
@@ -1624,6 +1631,11 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * US-182: *in medias res* garante urgência, não apelo — soma instrução exigindo mirar
    * pelo menos 2 dos 3 apelos clássicos (recompensa/heroísmo/descoberta), sempre ancorados
    * no que já foi gerado, nunca elemento novo — eixo ortogonal a tom/ancoragem/vínculo/estilo.
+   *
+   * US-190: ganha `antagonist` (já decidido por `generateAntagonist`, que roda antes desta
+   * chamada) — primeira vez que a abertura pode ecoar o vilão real, não só no fecho. Mesma
+   * disciplina "não vaza antes de merecer" que já protege `conclusion`/segredos (US-153 #4):
+   * pode insinuar `method`/`trait`, nunca nomear o antagonista nem revelar `weakness`.
    */
   async generateOpeningBeat(params: {
     locations: AdventureLocation[]
@@ -1634,6 +1646,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     origin?: { adventuresAndAdvancement?: string }
     complicacao: { condition: string; description: string; origin: string }
     premissa: string
+    antagonist: AdventureAntagonist
     locale?: Locale
   }): Promise<{ start: string }> {
     const anchors = characterAnchors(params)
@@ -1658,6 +1671,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'RECOMPENSA — algo a ganhar (riqueza, poder, um item, um favor). ' +
         'HEROÍSMO — a chance de agir bem (proteger alguém, corrigir um erro, impedir um dano). ' +
         'DESCOBERTA — um segredo ou mistério que a cena já insinua, sem revelar. ' +
+        'O antagonista já está decidido (method/trait abaixo) — pode deixar sinal de sua presença/método na cena, mas NUNCA o nomeie nem revele sua weakness, mesma disciplina que protege os segredos. ' +
         `Tom: ${params.registry.tone}. ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildOpeningBeatPrompt(params),

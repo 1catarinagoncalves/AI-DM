@@ -1091,6 +1091,15 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(seenClosingParams.antagonist).toEqual(antagonist)
   })
 
+  // US-190: generateOpeningBeat também recebe o antagonist pronto, não só generateClosing —
+  // o motivo inteiro desta story é a abertura deixar de ser cega ao vilão.
+  it('generateOpeningBeat recebe o antagonist devolvido por generateAntagonist (US-190)', async () => {
+    const antagonist = { name: 'Vaerix', want: 'vingança', method: 'espalhar um boato', trait: 'usa máscara', weakness: 'obsessão', connection: 'x' }
+    const seenOpeningParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ antagonist, seenOpeningParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+    expect(seenOpeningParams.antagonist).toEqual(antagonist)
+  })
+
   // US-181/US-183: critério de aceite — artefato final tem antagonist com os seis campos não vazios.
   it('artefato final tem antagonist com name/want/method/trait/weakness/connection não vazios (US-181/US-183)', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR')

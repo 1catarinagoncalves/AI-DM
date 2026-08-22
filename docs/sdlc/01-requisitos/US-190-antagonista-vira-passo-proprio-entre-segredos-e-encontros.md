@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Parcialmente implementada (22/08/2026, como efeito colateral da implementação do US-181). Feito: `generateAntagonist` (chamada própria), `ANTAGONIST_SCHEMA`, sequenciamento (`generateAntagonist` depois de `generateSecrets`, antes do `Promise.all`), `generateClosing` recebendo `antagonist` como parâmetro. Falta: `generateOpeningBeat` ganhar `antagonist` como insumo novo (item desta story que o US-181 deliberadamente NÃO tocou), `connection`/`characterAnchors` no `ANTAGONIST_SCHEMA` (depende do US-183, ainda não implementada), e a correção de texto no backlog (`§Ordem de geração`). Ver [US-181, Notas de implementação](./US-181-antagonista-ganha-want-e-method-estruturados.md) pro que já está pronto.
+**Status:** ✅ Implementada
 **Depende de:** [US-149](./US-149-segredos-40-prompts-lgmrd.md) (`generateSecrets`, ✅ implementada — `secrets[]` é insumo do antagonista) · [US-158](./US-158-locais-npcs-prosa-motor.md) (`generateLocationsAndNpcs`, ✅ implementada — `locations`/`npcs` são insumo) · [US-181](./US-181-antagonista-ganha-want-e-method-estruturados.md) (`want`/`method`/`trait`/`weakness` — esta story MUDA ONDE isso é sintetizado, não o quê; ver *Notas de implementação*) · [US-183](./US-183-antagonista-ganha-conexao-pessoal-com-personagem.md) (`connection`/`characterAnchors` — mesma mudança de lugar)
 **Relacionado:** [US-166](./US-166-motor-gera-multiplos-encontros.md) (`encounterSkeleton`/`generateClosing` ganham `antagonist` como INSUMO pronto, não mais produzido na mesma chamada; posição 8 continua o confronto final, agora com antagonista decidido ANTES de qualquer situação ser escrita) · [US-188](./US-188-antagonista-vira-npc-rastreavel.md) (antagonista → `AdventureNpc`; o momento de mintar esse NPC pode subir pra logo após esta story, não precisa mais esperar o `Promise.all` do fecho — ver *Notas de implementação*) · [US-189](./US-189-antagonista-entra-no-ledger.md) (ledger; só consome `antagonist.npcId` quando existir, sem mudança de comportamento) · [US-180](./US-180-abertura-ignora-vinculos-do-personagem.md) (`generateOpeningBeat`, `characterAnchors` — ganha `antagonist` como insumo NOVO, primeira vez que a abertura pode ecoar o vilão real) · [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) (`objective`, síntese em `generateClosing` que cita `antagonist.want`/`method` — muda de "coproduzido na mesma chamada" pra "lido de parâmetro pronto"; conteúdo de `objective` não muda) · [Backlog — Motor de geração de aventuras one-shot §Ordem de geração](./backlog-motor-de-geracao-de-aventuras.md) (texto corrigido por esta story — ver *Notas de implementação*)
 **Criada em:** 2026-08-21 — achado ao revisar a ordem de geração com a mantenedora. O backlog original previa antagonista no **passo 1** ("objetivo + antagonista ← tabela de quests + `background.deity`"), mas a US-164 (Questão em aberto #2, decisão anterior a US-181/183) já tinha rejeitado essa fonte: `background.deity` é a fé do PERSONAGEM, não um vilão, e `premissa` (a linha crua da tabela de quests) "não tem entidade nenhuma atrás". Por isso US-181/183 ancoraram `want`/`method`/`connection` em `locations`/`npcs`/`secrets` — só que fizeram isso dentro de `generateClosing`, o ÚLTIMO passo do pipeline (junto de `conclusion`/`followUps`), não logo depois que `locations`/`npcs`/`secrets` ficam prontos (passo 4). Consequência real: `generateOpeningBeat`, que roda em PARALELO com `generateClosing`, nunca vê o antagonista — a abertura da aventura não pode ecoar nem de leve o vilão que o fecho já decidiu, mesmo os dois rodando na mesma leva de chamadas.
@@ -112,16 +112,16 @@ const ANTAGONIST_SCHEMA = z.object({
 
 ## Critérios de aceite
 
-- [ ] `generateAntagonist` existe como função própria, roda com sucesso a partir de `locations`/`npcs`/`secrets`/`registry`/`complicacao`/`premissa` (+ `background`/`origin` opcionais).
-- [ ] `ANTAGONIST_SCHEMA` exige os 6 campos, todos string não-vazia.
-- [ ] `connection` não-vazio COM e SEM âncora de personagem (`background.story`/`origin.adventuresAndAdvancement`) — mesmo comportamento de fallback que US-183 já especificava.
-- [ ] `generateAdventure` chama `generateAntagonist` DEPOIS de `generateSecrets` e ANTES do `Promise.all([generateClosing, generateOpeningBeat])` — sequencial, fora do `Promise.all`.
-- [ ] `generateClosing` recebe `antagonist` como parâmetro; `CLOSING_SCHEMA` não exige mais `antagonist` na saída.
-- [ ] `generateOpeningBeat` recebe `antagonist` como parâmetro novo; `system` instrui insinuação (nunca nomear/revelar `weakness`), mesma disciplina de `conclusion`.
-- [ ] `generateAdventure` monta o `GeneratedAdventureSchema` final com `antagonist` vindo de `generateAntagonist` diretamente (não mais de `generateClosing`).
-- [ ] Backlog (`backlog-motor-de-geracao-de-aventuras.md`): §*Ordem de geração* reflete antagonista como passo próprio entre segredos e encontros; nota registra que o passo 1 original nunca foi implementável (US-164 #2).
-- [ ] **Teste de regressão:** fixture com `generateAntagonist` mockado → `generateClosing`/`generateOpeningBeat` recebem `antagonist` corretamente no prompt (asserção de chamada, não de conteúdo gerado).
-- [ ] `pnpm typecheck`, `pnpm test` e `pnpm eval` passam (muda prompt/estrutura de 3 chamadas de modelo).
+- [x] `generateAntagonist` existe como função própria, roda com sucesso a partir de `locations`/`npcs`/`secrets`/`registry`/`complicacao`/`premissa` (+ `background`/`origin` opcionais).
+- [x] `ANTAGONIST_SCHEMA` exige os 6 campos, todos string não-vazia.
+- [x] `connection` não-vazio COM e SEM âncora de personagem (`background.story`/`origin.adventuresAndAdvancement`) — mesmo comportamento de fallback que US-183 já especificava.
+- [x] `generateAdventure` chama `generateAntagonist` DEPOIS de `generateSecrets` e ANTES do `Promise.all([generateClosing, generateOpeningBeat])` — sequencial, fora do `Promise.all`.
+- [x] `generateClosing` recebe `antagonist` como parâmetro; `CLOSING_SCHEMA` não exige mais `antagonist` na saída.
+- [x] `generateOpeningBeat` recebe `antagonist` como parâmetro novo; `system` instrui insinuação (nunca nomear/revelar `weakness`), mesma disciplina de `conclusion`.
+- [x] `generateAdventure` monta o `GeneratedAdventureSchema` final com `antagonist` vindo de `generateAntagonist` diretamente (não mais de `generateClosing`).
+- [x] Backlog (`backlog-motor-de-geracao-de-aventuras.md`): §*Ordem de geração* reflete antagonista como passo próprio entre segredos e encontros; nota registra que o passo 1 original nunca foi implementável (US-164 #2).
+- [x] **Teste de regressão:** fixture com `generateAntagonist` mockado → `generateClosing`/`generateOpeningBeat` recebem `antagonist` corretamente no prompt (asserção de chamada, não de conteúdo gerado).
+- [x] `pnpm typecheck`, `pnpm test` e `pnpm eval` passam (muda prompt/estrutura de 3 chamadas de modelo).
 
 ---
 
@@ -137,9 +137,9 @@ const ANTAGONIST_SCHEMA = z.object({
 
 ## Questões em aberto
 
-1. Com `antagonist` chegando antes do `Promise.all`, vale desfazer a fusão de `generateEncounterSituations` em `generateClosing` (US-166) e devolvê-la a uma chamada própria, paralela a `generateClosing`/`generateOpeningBeat`? Ganho: `CLOSING_SCHEMA` menor, três responsabilidades (fecho, abertura, situações) em três chamadas em vez de duas. Custo: mais uma chamada no `Promise.all` (paralela, sem latência sequencial a mais, mas mais uma requisição de rede). Não decidido aqui — é ajuste de US-166, não desta story.
-2. `generateOpeningBeat` ecoando o antagonista é sempre desejável, ou às vezes o produto quer a abertura TOTALMENTE cega ao vilão (mistério puro, "quem é o antagonista" só se revela mais tarde)? Decisão adotada: sempre insinuar, com a mesma disciplina de dosagem que já protege `conclusion`/`weakness` — se o eval mostrar abertura revelando demais, é ajuste de prompt, não reversão do insumo.
-3. Vale medir o custo real da 4ª chamada sequencial (decisão aberta #3 do backlog-mãe, "quantas chamadas ao modelo por aventura, e a que custo?") antes de implementar, ou aceitar e medir depois com `pnpm eval`/produção? Não decidido — mesma disciplina que o resto do motor já usa (medir depois, não travar implementação nisso).
+1. ~~Com `antagonist` chegando antes do `Promise.all`, vale desfazer a fusão de `generateEncounterSituations` em `generateClosing` (US-166) e devolvê-la a uma chamada própria, paralela a `generateClosing`/`generateOpeningBeat`?~~ **Decidido (2026-08-22): não separar agora.** O motivo original da fusão (antagonist só existia depois do `Promise.all`) desaparece com esta story, mas a fusão em si não causa dor nova — só deixa de ser requisito, vira ganho estético (`CLOSING_SCHEMA` menor, responsabilidades mais isoladas). Separar custaria +1 requisição de rede no `Promise.all` sem ganho funcional. Fica como está até a fusão causar atrito de verdade (schema difícil de manter, prompt confuso); se isso acontecer, é ajuste de US-166, não desta story.
+2. ~~`generateOpeningBeat` ecoando o antagonista é sempre desejável, ou às vezes o produto quer a abertura TOTALMENTE cega ao vilão?~~ **Decidido:** sempre insinuar, com a mesma disciplina de dosagem que já protege `conclusion`/`weakness`. Se o eval mostrar abertura revelando demais, é ajuste de prompt, não reversão do insumo.
+3. ~~Vale medir o custo real da 4ª chamada sequencial antes de implementar, ou aceitar e medir depois?~~ **Decidido:** medir depois, com `pnpm eval`/produção — mesma disciplina que o resto do motor já usa (decisão aberta #3 do backlog-mãe). Não trava esta story.
 
 ---
 

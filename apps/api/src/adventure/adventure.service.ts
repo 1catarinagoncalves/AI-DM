@@ -208,6 +208,7 @@ export class AdventureService {
         origin: profile.origin,
         complicacao: content.complicacao,
         premissa: content.premissa,
+        antagonist,
         locale,
       }),
     ])
