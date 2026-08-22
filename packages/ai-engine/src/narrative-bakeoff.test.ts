@@ -326,7 +326,7 @@ function chegouEmB(r: ViagemTurnResult): boolean {
 // `primaryModel` de `model.ts:166` (deepseek-v4-flash via OpenRouter, mesmo slug),
 // roteado pelo prefixo `openrouter:` que `resolveModel` já reconhece (US-17 slice 2).
 // `VIAGEM_MODELS` é env separada de `MODELS` — os dois testes têm roster próprio.
-const VIAGEM_MODELS_DEFAULT = ['openrouter:~deepseek/deepseek-v4-flash-latest']
+const VIAGEM_MODELS_DEFAULT = ['openrouter:deepseek/deepseek-v4-flash']
 function parseViagemModels(env: string | undefined): string[] {
   const ids = (env ?? '')
     .split(',')
