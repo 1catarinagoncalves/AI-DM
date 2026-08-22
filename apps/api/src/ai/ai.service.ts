@@ -253,6 +253,9 @@ const ANTAGONIST_SCHEMA = z.object({
 // `encounterSituations` fecha as 3 perguntas restantes de cada uma das 8 SITUAÇÕES (Sly
 // Flourish) — posicional, o item `i` corresponde ao `encounterSkeleton[i]` do prompt.
 const CLOSING_SCHEMA = z.object({
+  // US-169: alvo concreto e verificável da aventura, citando NOMES reais (NPC/vilão/facção)
+  // e o `want`/`method` do antagonista — nunca uma paráfrase do `summary` nem só o nome dele.
+  objective: z.string().min(1),
   conclusion: z.string().min(1),
   followUps: z.array(z.string()).min(1),
   encounterSituations: z.array(z.object({
@@ -571,8 +574,11 @@ export class AiService {
     const systemName = adventure.system.name
     const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
     // Título + descrição da quest primária para o DM saber o objetivo (US-28).
+    // US-169: `objective` soma quando presente — guard obrigatório: `primary.objective` é
+    // `String?` (quests legadas, pré-US-169, ficam `null`), sem o guard o texto "null" vaza
+    // literal no bloco `## Main quest` do turno.
     const primary = quests.find((q) => q.isPrimary)
-    const mainQuest = primary ? `${primary.title}\n${primary.description}` : null
+    const mainQuest = primary ? `${primary.title}\n${primary.description}${primary.objective ? `\n${primary.objective}` : ''}` : null
     const activeQuests = quests.filter((q) => !q.isPrimary)
 
     // Rótulos e perícias vêm de System.config (US-21/US-27, já validado na criação);
@@ -948,6 +954,49 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
           // mutação de estado e o guard da US-67 bloquearia a edição — e como quase todo
           // turno apresenta um NPC, isso desativaria a edição de turnos de conversa.
           return { entities: next }
+        },
+      }),
+
+      // US-169: fecha a quest PRIMÁRIA da aventura corrente — sucesso ou fracasso/desistência
+      // (`outcome: 'failure'` cobre os dois, ver US-169 Questões em aberto #2). Devolve
+      // `conclusionHint` (texto que o motor já escreveu pro desfecho) pro Mestre expandir na
+      // narração do MESMO turno, sem citar verbatim (mesma disciplina do `hookSeed`).
+      completeQuest: tool({
+        description:
+          'Call this the moment the fiction resolves the adventure\'s main objective — the character achieves it, or clearly fails/gives up on it (flees, refuses to continue, an irreversible change of course). Pass `outcome`: "success" or "failure" (failure also covers abandoning/fleeing the objective). Returns `conclusion`: prose written for this exact ending — use it as the BASIS for your closing narration this turn, never quote it verbatim. Call this only ONCE per adventure; a second call after the quest is already closed does not overwrite it.',
+        parameters: z.object({
+          outcome: z.enum(['success', 'failure']),
+          reason: z.string().optional().describe('Short note of HOW it ended, for the campaign record — e.g. "derrotou Malvora em combate", "fugiu da vila sem enfrentar o culto".'),
+        }),
+        execute: async ({ outcome, reason }: { outcome: 'success' | 'failure'; reason?: string }) => {
+          const quest = await this.prisma.quest.findFirst({ where: { adventureId, isPrimary: true } })
+          if (!quest) {
+            throw new Error(`completeQuest: nenhuma quest isPrimary:true para adventureId="${adventureId}" — esperado exatamente uma quest primária por aventura`)
+          }
+
+          const status = outcome === 'success' ? 'COMPLETED' : 'FAILED'
+          const isTerminal = quest.status === 'COMPLETED' || quest.status === 'FAILED'
+          // US-169 (Questão em aberto #4): outcome DIFERENTE do já gravado, com a quest já
+          // terminal, REJEITA — não sobrescreve (evita duas conclusões narrativas contraditórias
+          // vindas de o modelo "se corrigir" por engano). Mesmo outcome repetido é idempotente.
+          if (isTerminal && quest.status !== status) {
+            return { alreadyCompleted: true, status: quest.status, conclusion: quest.conclusionHint }
+          }
+
+          await this.prisma.quest.update({
+            where: { id: quest.id },
+            data: { status, completedAt: new Date() },
+          })
+          await this.prisma.eventLog.create({
+            data: {
+              adventureId,
+              characterId,
+              type: 'CHARACTER_UPDATE',
+              payload: { field: 'quest', outcome, ...(reason ? { reason } : {}) },
+            },
+          })
+
+          return { conclusion: quest.conclusionHint }
         },
       }),
 
@@ -1633,7 +1682,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     antagonist: AdventureAntagonist
     encounterSkeleton: EncounterSkeletonEntry[]
     locale?: Locale
-  }): Promise<{ conclusion: string; followUps: string[]; encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> }> {
+  }): Promise<{ objective: string; conclusion: string; followUps: string[]; encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> }> {
     // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
     const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
@@ -1642,6 +1691,12 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       schema: CLOSING_SCHEMA,
       system:
         'Você é o Mestre de um RPG escrevendo o FECHO RAMIFICADO de uma aventura one-shot (método Lazy GM Resource Document). ' +
+        // US-169: `objective` nasce ANTES da conclusão no raciocínio do modelo — é o alvo que
+        // o Mestre reconhece cumprido turno a turno; a conclusão é só o texto de fecho. Exige
+        // nome concreto (NPC/vilão/facção) e want/method do antagonista — nunca reduz o
+        // antagonista só ao nome (ex.: "Impedir Malvora" sozinho é ruim; "Impedir que Malvora
+        // drene a vila pra alimentar seu ritual" é o padrão esperado).
+        'Antes disso, escreva `objective`: o alvo concreto e verificável desta aventura, citando NOMES reais dos locais/NPCs/segredos recebidos e SEMPRE o `want`/`method` do antagonista abaixo — nunca reduza o antagonista só ao nome, e nunca escreva uma paráfrase vaga do resumo da aventura. ' +
         'Escreva a CONCLUSÃO (2-3 parágrafos) resolvendo a premissa e a complicação, ancorada nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova. ' +
         'O antagonista já está decidido (nome/want/method abaixo) — a conclusão resolve o confronto com ELE, sem inventar outro nem contradizer o que já foi definido. ' +
         `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
@@ -1655,7 +1710,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     })
     logExtractionEndpoint('generateClosing', primaryModel, providerMetadata)
 
-    return { conclusion: object.conclusion, followUps: object.followUps, encounterSituations: object.encounterSituations }
+    return { objective: object.objective, conclusion: object.conclusion, followUps: object.followUps, encounterSituations: object.encounterSituations }
   }
 
   /**

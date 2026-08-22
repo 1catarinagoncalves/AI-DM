@@ -84,6 +84,10 @@ export const GeneratedAdventureSchema = z.object({
   locations: z.array(AdventureLocationSchema),
   encounters: z.array(AdventureEncounterSchema),
   start: z.string().min(1),
+  // US-169: alvo concreto e verificável ("ajudar Marta", "acabar com o culto"), sintetizado
+  // por `generateClosing` junto de `conclusion`/`followUps` — cita `antagonist.want`/`method`
+  // (US-181), não só o nome. `Quest.objective` grava este texto; nunca vazio.
+  objective: z.string().min(1),
   conclusion: z.string().min(1),
   followUps: z.array(z.string()),
   antagonist: AdventureAntagonistSchema,

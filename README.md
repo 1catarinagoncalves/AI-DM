@@ -87,7 +87,7 @@ Tudo no PostgreSQL, modelado em [apps/api/prisma/schema.prisma](apps/api/prisma/
 | Ficha, classe, magias conhecidas | `Character` | Não (criação e edição são REST) |
 | HP, inventário, estado da cena | `CharacterState` | Só via tool (`updateCharacterHp`, `updateInventory`, `updateScene`) |
 | Entidades do mundo (NPCs, locais) | `Adventure.entities` | Só via tool (`recordEntity`) |
-| Quests | `Quest` | Não |
+| Quests | `Quest` | Só via tool (`completeQuest`, fecha a quest primária) |
 | Histórico e resumo da campanha | `EventLog`, `Adventure.memorySummary` | Não — o servidor grava e resume |
 | Regras e magias do SRD | `System` (ingerido por `pnpm srd:ingest`) | Não, só leitura via tool |
 | Rolagens | não persistem: geradas no servidor a cada turno | Nunca — o LLM não gera número |

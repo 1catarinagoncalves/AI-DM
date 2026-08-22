@@ -387,6 +387,21 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     expect(s).toContain('atacada por goblins')
   })
 
+  // US-169: com quest primária presente, instrui o modelo a chamar `completeQuest` ao
+  // reconhecer o objetivo cumprido/fracassado, e a usar o `conclusion` devolvido como base
+  // (não verbatim) do fecho.
+  it('com main quest presente, instrui a chamar completeQuest ao resolver o objetivo (US-169)', () => {
+    const s = buildState({ mainQuest: 'Salvar a vila\nImpedir que Malvora drene a vila.' })
+    expect(s).toMatch(/completeQuest/)
+    expect(s).toMatch(/success\/failure|success.*failure/)
+    expect(s.toLowerCase()).toMatch(/never quoting it verbatim|nunca.*verbatim/)
+  })
+
+  it('sem main quest, NÃO instrui a chamar completeQuest (nada para concluir)', () => {
+    const s = buildState()
+    expect(s).not.toMatch(/completeQuest/)
+  })
+
   it('o resumo refere as mensagens recentes como estando ACIMA (history fica antes do bloco)', () => {
     const s = buildState({ memorySummary: 'Algo aconteceu.' })
     // US-77 — o par positivo/negativo É o ponto do teste (a preposição já inverteu uma vez).

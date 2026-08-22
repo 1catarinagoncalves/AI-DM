@@ -806,11 +806,11 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
     return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
   }
 
-  it('devolve conclusion, followUps e encounterSituations do modelo, sem mintar id (sem entidade a referenciar)', async () => {
+  it('devolve objective, conclusion, followUps e encounterSituations do modelo, sem mintar id (sem entidade a referenciar)', async () => {
     genObj.error = undefined
-    genObj.result = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'], encounterSituations }
+    genObj.result = { objective: 'Impedir que Malvora reúna um exército para tomar a Enseada Cinzenta.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'], encounterSituations }
     const closing = await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'Kill a villain', antagonist, encounterSkeleton })
-    expect(closing).toEqual({ conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'], encounterSituations })
+    expect(closing).toEqual({ objective: 'Impedir que Malvora reúna um exército para tomar a Enseada Cinzenta.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'], encounterSituations })
   })
 
   it('usa primaryModel (2026-08-19), não extractionModel', async () => {
@@ -876,6 +876,18 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
     ).rejects.toThrow('modelo indisponível')
   })
 
+  // US-169 AC: `objective` cita `antagonist.want`/`method` (US-181), não só `antagonist.name`
+  // — a instrução precisa estar no system, senão o critério fica só documentado em prosa.
+  it('system instrui objective a citar want/method do antagonista, não só o nome (US-169)', async () => {
+    genObj.error = undefined
+    genObj.result = { objective: 'x', conclusion: 'fecho', followUps: ['semente'], encounterSituations }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton })
+    expect(genObj.system).toMatch(/objective/i)
+    expect(genObj.system).toContain('want')
+    expect(genObj.system).toContain('method')
+    expect(genObj.system).toMatch(/nunca reduza o antagonista só ao nome/i)
+  })
+
   it('assinatura não aceita hookSeed — mesmo forçado por cast, nunca chega ao system/prompt do modelo (US-175)', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'], encounterSituations }
@@ -901,6 +913,34 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
     genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
     await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton })
     expect(genObj.system).toContain(CRAFT_CORE_SECTION)
+  })
+})
+
+// US-169 AC (Escopo, "Teste de regressão"): heurística mínima, sem chamada de modelo — um
+// `objective` que reduz o antagonista ao nome (ex.: "Impedir Malvora" sozinho) tem de
+// REPROVAR aqui, senão a dependência da US-181 (want/method) vira só prosa esquecível.
+// Heurística: `objective` precisa conter alguma PALAVRA (>3 letras) de `want` ou `method`
+// além do nome do antagonista — ajuste fino da heurística é implementação, a checagem em
+// si é o critério de aceite.
+function objectiveCitesWantOrMethod(objective: string, antagonist: { want: string; method: string }): boolean {
+  const words = (s: string) => s.toLowerCase().split(/[^\p{L}]+/u).filter((w) => w.length > 3)
+  const objectiveWords = new Set(words(objective))
+  return [...words(antagonist.want), ...words(antagonist.method)].some((w) => objectiveWords.has(w))
+}
+
+describe('objectiveCitesWantOrMethod — heurística de regressão (US-169 AC)', () => {
+  const antagonist = { want: 'poder sobre a região', method: 'reunir um exército' }
+
+  it('REPROVA objective que reduz o antagonista só ao nome', () => {
+    expect(objectiveCitesWantOrMethod('Impedir Malvora', antagonist)).toBe(false)
+  })
+
+  it('APROVA objective que cita method do antagonista', () => {
+    expect(objectiveCitesWantOrMethod('Impedir que Malvora reúna um exército para tomar a região', antagonist)).toBe(true)
+  })
+
+  it('APROVA objective que cita want do antagonista', () => {
+    expect(objectiveCitesWantOrMethod('Tirar de Malvora o poder que ela busca sobre a região', antagonist)).toBe(true)
   })
 })
 

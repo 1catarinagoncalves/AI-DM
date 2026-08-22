@@ -31,6 +31,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       }],
       encounters: [],
       start: 'O grupo chega à vila ao anoitecer, atraído por rumores de luzes nas catacumbas.',
+      objective: 'Descobrir o que Elenora esconde nas catacumbas antes que o pacto cobre seu preço.',
       conclusion: 'O pacto é rompido — ou renovado, a depender da escolha do grupo.',
       followUps: ['O que vive nas catacumbas desperta.'],
       antagonist: { name: 'Elenora', want: 'proteger o pacto a qualquer custo', method: 'silenciar quem se aproxima do poço', trait: 'fala em enigmas', weakness: 'lealdade cega ao pacto', connection: 'sabe que o grupo já perdeu alguém pra floresta e usa isso a seu favor' },
@@ -65,6 +66,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       }],
       encounters: [],
       start: 'The party arrives at the village at dusk, drawn by rumors of lights in the catacombs.',
+      objective: 'Find out what Elenora is hiding in the catacombs before the pact claims its price.',
       conclusion: 'The pact is broken — or renewed, depending on the party\'s choice.',
       followUps: ['Whatever lives in the catacombs awakens.'],
       antagonist: { name: 'Elenora', want: 'protect the pact at any cost', method: 'silence those who approach the well', trait: 'speaks in riddles', weakness: 'blind loyalty to the pact', connection: 'knows the party already lost someone to the forest and uses that against them' },
@@ -93,6 +95,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       }],
       encounters: [],
       start: 'Início.',
+      objective: 'Impedir Elenora.',
       conclusion: 'Fim.',
       followUps: [],
       antagonist: { name: 'Elenora', want: 'poder', method: 'ritual', trait: 'sussurra', weakness: 'vaidade', connection: 'atua na região que o grupo já percorreu' },
@@ -121,6 +124,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
         complications: 'O forasteiro conhece o pacto antigo.',
       }],
       start: 'Início.',
+      objective: 'Recuperar o poço perdido da vila antes que Elenora o esconda de novo.',
       conclusion: 'Fim.',
       followUps: [],
       antagonist: { name: 'Elenora', want: 'poder', method: 'ritual', trait: 'sussurra', weakness: 'vaidade', connection: 'atua na região que o grupo já percorreu' },
@@ -139,6 +143,27 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       secrets: [],
       locations: [],
       encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: [], type: 'stealth', behaviors: 'x', goal: 'x', complications: 'x' }],
+      start: 'Início.',
+      conclusion: 'Fim.',
+      followUps: [],
+      antagonist: { name: 'X', want: 'x', method: 'x', trait: 'x', weakness: 'x', connection: 'x' },
+    }
+
+    expect(() => GeneratedAdventureSchema.parse(adventure)).toThrow()
+  })
+
+  // US-169 AC: `objective` obrigatório — falha o gate (US-150) igual a qualquer outro
+  // campo obrigatório ausente.
+  it('rejeita aventura sem objective', () => {
+    const adventure = {
+      id: 'adv-6',
+      levelRange: { min: 1, max: 1 },
+      registry: { setting: 'fantasy', tone: 'mystery', areaType: 'settlement' },
+      summary: 'Aventura mínima.',
+      npcs: [],
+      secrets: [],
+      locations: [],
+      encounters: [],
       start: 'Início.',
       conclusion: 'Fim.',
       followUps: [],

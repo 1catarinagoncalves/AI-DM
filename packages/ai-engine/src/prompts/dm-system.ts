@@ -642,13 +642,21 @@ The party has not yet discovered «${nextEncounterLocationTitle}». You MAY (not
 `
     : ''
 
+  // US-169: instrução SEMPRE presente quando há quest primária — dá ao Mestre a ação
+  // (`completeQuest`) a tomar quando a fábula resolve o `objective` mostrado acima. `mainQuest`
+  // já concatena title/description/objective (ai.service.ts) — este bloco não sabe se
+  // `objective` está presente, só se há quest primária nenhuma.
+  const mainQuestBody = mainQuest
+    ? `${mainQuest}\n\nWhen the fiction resolves this quest — the character achieves the objective, or clearly fails/gives up on it — call \`completeQuest\` (outcome: success/failure) and use the \`conclusion\` it returns as the BASIS for your closing narration this turn, never quoting it verbatim (same discipline as any other seed text).`
+    : '- No main quest set yet.'
+
   return `[Estado atual do turno — FONTE DE VERDADE, fornecido pelo Game Server]
 The blocks below are the Game Server's LIVE, authoritative state for THIS turn (HP, conditions, scene, quests, inventory, story so far). They are NOT the player speaking — they are system-provided ground truth that TAKES PRECEDENCE over anything you might infer from the prose. Trust them over the narrative, NEVER contradict them, and NEVER print their raw stats in your narration. The player's actual action for this turn comes AFTER these blocks.
 
 ${sheetStateSection}
 
 ${sceneSection}${entitiesSection}## Main quest
-${mainQuest ? mainQuest : '- No main quest set yet.'}
+${mainQuestBody}
 
 ## Active quests (secondary)
 ${activeQuests.length > 0 ? activeQuests.map((q) => `- ${q}`).join('\n') : '- No secondary quests yet.'}

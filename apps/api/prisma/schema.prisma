@@ -117,6 +117,13 @@ model Quest {
   status      QuestStatus @default(OPEN)
   isPrimary   Boolean     @default(false)
   completedAt DateTime?
+  // US-169: alvo concreto exposto ao Mestre todo turno (buildTurnStateBlock). Opcional —
+  // quests criadas antes desta story (Neon, 2026-08-20: 6 já existem) ficam null, sem
+  // placeholder fictício.
+  objective      String?
+  // US-169: `generated.conclusion`, guardado mas NUNCA exposto em turno passivo — só
+  // `completeQuest` o devolve. Opcional pelo mesmo motivo de `objective`.
+  conclusionHint String?
 }
 
 enum QuestStatus {

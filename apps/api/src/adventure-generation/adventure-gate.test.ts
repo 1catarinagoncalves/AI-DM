@@ -33,6 +33,7 @@ function validAdventure(overrides: Partial<GeneratedAdventure> = {}): GeneratedA
     ],
     encounters: [enc({ npcIds: ['npc-2'] })],
     start: 'A jornada começa.',
+    objective: 'Impedir que Malvora reúna um exército para tomar a região.',
     conclusion: 'A ameaça é contida.',
     followUps: ['O pacto pode ressurgir.'],
     antagonist: { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' },

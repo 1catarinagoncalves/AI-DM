@@ -247,7 +247,7 @@ export class AdventureService {
     // só precisam de locations/npcs/secrets/registry/premissa, já prontos aqui. `Promise.all`
     // no lugar de dois `await` sequenciais: soma uma 4ª chamada de IA ao fluxo, mas paralela
     // não adiciona latência de rede sequencial sobre o `await` que já existia.
-    const [{ conclusion, followUps, encounterSituations }, { start }] = await Promise.all([
+    const [{ objective, conclusion, followUps, encounterSituations }, { start }] = await Promise.all([
       this.ai.generateClosing({
         locations,
         npcs: allNpcs,
@@ -293,6 +293,7 @@ export class AdventureService {
       locations,
       encounters,
       start,
+      objective,
       conclusion,
       followUps,
       antagonist,
@@ -478,13 +479,18 @@ export class AdventureService {
       })
 
       // US-153: quest principal derivada do artefato gerado (não mais do gancho fixo por
-      // classe) — dá objetivo ao DM (ver AiService). `conclusion` fica de fora de propósito
-      // (vazaria o desfecho antes do jogo começar, ver US-153 Questões em aberto #4).
+      // classe) — dá objetivo ao DM (ver AiService).
+      // US-169: `objective` (alvo concreto) é exposto ao Mestre todo turno (buildTurnStateBlock);
+      // `conclusionHint` = `generated.conclusion` fica GUARDADO mas nunca exposto em turno
+      // algum — só `completeQuest` o devolve, quando o Mestre chama (US-153 Questões em
+      // aberto #4: vazaria o desfecho antes do jogo começar).
       await tx.quest.create({
         data: {
           adventureId: adventure.id,
           title: generated.summary,
           description: generated.start,
+          objective: generated.objective,
+          conclusionHint: generated.conclusion,
           isPrimary: true,
         },
       })

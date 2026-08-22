@@ -28,7 +28,7 @@ function fakeAi(
   const encounterSituations = Array.from({ length: 8 }, (_, i) => ({
     behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
   }))
-  const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
+  const closing = { objective: 'Impedir que Malvora reúna um exército para tomar a Enseada Cinzenta.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
   const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
   return {
     generateOpeningNarration: async (input: Record<string, unknown>) => { Object.assign(seen, input); return opening },
@@ -159,8 +159,12 @@ describe('AdventureService.createForCharacter', () => {
     })
     // Quest.title = summary (mesma premissa); Quest.description = start — gerado por
     // ai.generateOpeningBeat desde US-172, não mais o hookSeed copiado (US-153 #4).
+    // US-169: objective/conclusionHint gravados também — conclusionHint = generated.conclusion
+    // (US-153 Questões em aberto #4: NUNCA exposto em turno passivo, só via completeQuest).
     expect(recorded.questCreate).toMatchObject({
       adventureId: 'adv-1', title: content.premissa, description: 'A porta racha ao meio antes que alguém grite.', isPrimary: true,
+      objective: 'Impedir que Malvora reúna um exército para tomar a Enseada Cinzenta.',
+      conclusionHint: 'O culto recua para as sombras.',
     })
     // Placeholder {characterName} resolvido antes de persistir (hookSeed continua vindo do gancho).
     expect(recorded.eventLogCreate).toMatchObject({
@@ -963,7 +967,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     npcs?: Record<string, unknown>[]
     secrets?: Record<string, unknown>[]
     antagonist?: { name: string; want: string; method: string; trait: string; weakness: string; connection: string }
-    closing?: { conclusion: string; followUps: string[] }
+    closing?: { objective: string; conclusion: string; followUps: string[] }
     encounterSituations?: Array<{ behaviors: string; goal: string; complications: string }>
     start?: string
     seenOpeningParams?: Record<string, unknown>
@@ -980,7 +984,8 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     const encounterSituations = overrides.encounterSituations ?? Array.from({ length: 8 }, (_, i) => ({
       behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
     }))
-    const closing = { ...(overrides.closing ?? { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }), encounterSituations }
+    // US-169: objective obrigatório — generateAdventure quebra em GeneratedAdventureSchema.parse sem isto.
+    const closing = { ...(overrides.closing ?? { objective: 'Impedir que Malvora reúna um exército para tomar a região.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }), encounterSituations }
     const start = overrides.start ?? 'A porta racha ao meio antes que alguém grite.'
     return {
       // US-174: captura os params recebidos por generateLocationsAndNpcs/generateSecrets —
@@ -1138,6 +1143,12 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
 
+  // US-169 AC: artefato final tem `objective` — vem de generateClosing, não é derivado de summary/start.
+  it('artefato final tem objective vindo de generateClosing (US-169)', async () => {
+    const adventure = await service(fakeGenAi({ closing: { objective: 'Impedir Vaerix.', conclusion: 'fecho', followUps: ['x'] } })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+    expect(adventure.objective).toBe('Impedir Vaerix.')
+  })
+
   // US-166: 8 encontros, locationId round-robin sobre locations[], posição 8 (índice 7)
   // é o único type GARANTIDO 'combat' quando viável — as posições 1-7 são sorteadas.
   it('8 encontros; locationId round-robin sobre locations[]; npcIds referencia NPCs do npcs[] final', async () => {
@@ -1241,7 +1252,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
     const encounterSituations = Array.from({ length: 8 }, (_, i) => ({
       behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
     }))
-    const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
+    const closing = { objective: 'Impedir que Malvora reúna um exército para tomar a região.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
     const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
     return {
       generateLocationsAndNpcs: vi.fn(async () => ({ locations, npcs })),

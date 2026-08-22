@@ -387,6 +387,63 @@ describe('US-95 fluxo 3 — a entidade sobrevive ao turno (US-87)', () => {
   })
 })
 
+describe('US-95 fluxo 4 (US-169) — completeQuest fecha a quest primária', () => {
+  it('outcome success: status vira COMPLETED, completedAt gravado, EventLog carrega o outcome', async () => {
+    const mesa = await montarMesa()
+    dm.passos = turnoComTools([{ tool: 'completeQuest', args: { outcome: 'success', reason: 'seguiu as pegadas até a origem' } }])
+
+    await jogarTurno(mesa, 'sigo as pegadas até o fim')
+    await esperarNarracaoPersistida(mesa, 2)
+
+    const quest = await prisma.quest.findFirstOrThrow({ where: { adventureId: mesa.adventureId, isPrimary: true } })
+    expect(quest.status).toBe('COMPLETED')
+    expect(quest.completedAt).not.toBeNull()
+
+    const evento = await prisma.eventLog.findFirstOrThrow({ where: { adventureId: mesa.adventureId, type: 'CHARACTER_UPDATE' } })
+    expect(evento.payload).toMatchObject({ field: 'quest', outcome: 'success', reason: 'seguiu as pegadas até a origem' })
+  })
+
+  it('outcome failure: status vira FAILED (cobre também desistência/fuga, US-169 Q2)', async () => {
+    const mesa = await montarMesa()
+    dm.passos = turnoComTools([{ tool: 'completeQuest', args: { outcome: 'failure' } }])
+
+    await jogarTurno(mesa, 'desisto e volto pra casa')
+    await esperarNarracaoPersistida(mesa, 2)
+
+    const quest = await prisma.quest.findFirstOrThrow({ where: { adventureId: mesa.adventureId, isPrimary: true } })
+    expect(quest.status).toBe('FAILED')
+  })
+
+  it('outcome DIFERENTE numa 2ª chamada, quest já terminal: NÃO sobrescreve status/completedAt (US-169 Questão #4)', async () => {
+    const mesa = await montarMesa()
+
+    dm.passos = turnoComTools([{ tool: 'completeQuest', args: { outcome: 'success' } }])
+    await jogarTurno(mesa, 'derroto o inimigo')
+    await esperarNarracaoPersistida(mesa, 2)
+    const depoisDaPrimeira = await prisma.quest.findFirstOrThrow({ where: { adventureId: mesa.adventureId, isPrimary: true } })
+
+    dm.passos = turnoComTools([{ tool: 'completeQuest', args: { outcome: 'failure' } }])
+    await jogarTurno(mesa, 'na verdade fujo')
+    await esperarNarracaoPersistida(mesa, 3)
+    const depoisDaSegunda = await prisma.quest.findFirstOrThrow({ where: { adventureId: mesa.adventureId, isPrimary: true } })
+
+    expect(depoisDaSegunda.status).toBe('COMPLETED') // não virou FAILED
+    expect(depoisDaSegunda.completedAt?.getTime()).toBe(depoisDaPrimeira.completedAt?.getTime()) // não regravou
+  })
+
+  it('quest primária ausente: lança erro com o adventureId, nunca quebra em undefined.id', async () => {
+    const mesa = await montarMesa()
+    await prisma.quest.deleteMany({ where: { adventureId: mesa.adventureId } })
+    dm.passos = turnoComTools([{ tool: 'completeQuest', args: { outcome: 'success' } }])
+
+    // A tool lança dentro do stream — o turno vira narração de erro, não 500 solto;
+    // o que importa aqui é que NENHUMA quest foi criada/gravada por engano.
+    await jogarTurno(mesa, 'termino a missão')
+    const quests = await prisma.quest.count({ where: { adventureId: mesa.adventureId } })
+    expect(quests).toBe(0)
+  })
+})
+
 // US-116 (ADR 011, Camada 0): a taxa de `cenaTocada` só existe se a linha `arc_signal`
 // sair de verdade no `onFinish` real — o que os unitários com `fakePrisma()` não
 // alcançam (mesmo motivo do comentário em `ai.service.test.ts:201`).
