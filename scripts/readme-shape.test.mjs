@@ -25,7 +25,15 @@
 // post-commit), então o diagrama de Arquitetura NÃO ganhou nó: pôr artefato de
 // build num flowchart de componentes é outra mentira. Ganhou uma linha no
 // *Mapa de leitura* do README, que é onde mora ferramenta de navegação.
-const REVIEWED_SHAPE_HASH = '6b668f756f7301e61ea03c5bd112cda3afc20da6cd27aad2cbd790644efdbc5c'
+// Revisado em 2026-08-22: `apps/api/src` ganhou `adventure-generation` — o motor
+// determinístico (LGMRD: registro/conteúdo/orçamento de encontro) que
+// `adventure.service.ts` já intercalava com as chamadas de IA desde a US-147/US-150,
+// sem que o hash tivesse sido atualizado então (drift acumulado, achado ao mexer na
+// US-169). A seção Arquitetura ganhou uma frase no bullet de `apps/api` citando a
+// pasta; sem nó novo no diagrama (é módulo interno do Game Server, não um serviço à
+// parte) e sem linha nova na tabela "Onde o estado vive" (não é dono de tabela
+// própria — persiste em `Adventure`/`Quest`, já cobertos ali).
+const REVIEWED_SHAPE_HASH = '2c1c8f7ba03f5075ef867bdf23278431e79eef34507154d39385638ead3304a0'
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'

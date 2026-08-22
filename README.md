@@ -38,7 +38,10 @@ flowchart LR
   ([src/game/dice.service.ts](apps/api/src/game/dice.service.ts)) e das tools do DM
   ([src/ai/ai.service.ts](apps/api/src/ai/ai.service.ts)). Monta o prompt, chama o modelo
   e devolve SSE. **Não** delega decisão mecânica ao LLM — o modelo diz *o que* testar, o
-  servidor diz *quanto deu*.
+  servidor diz *quanto deu*. Também guarda o motor de geração de aventuras
+  ([src/adventure-generation](apps/api/src/adventure-generation)) — registro/conteúdo/orçamento
+  de encontro determinísticos (método Lazy GM Resource Document) que `adventure.service.ts`
+  intercala com as chamadas de IA antes de gravar a aventura.
 - **[packages/ai-engine](packages/ai-engine)** — prompts do Mestre, escada de fallback de
   modelos ([src/model.ts](packages/ai-engine/src/model.ts)) e a rubrica dos evals. É uma
   biblioteca pura: **não** tem acesso ao banco nem DI do Nest, por isso as tools vivem na
