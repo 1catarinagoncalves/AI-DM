@@ -428,6 +428,27 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     expect(s).not.toMatch(/KNOWLEDGE GATES/)
   })
 
+  // US-166: bloco de orientação opcional — só aparece quando o chamador (ai.service.ts,
+  // via nextUnrevealedEncounterLocation) resolveu um título de local.
+  it('sem nextEncounterLocationTitle → bloco "Situação em aberto mais próxima" ausente', () => {
+    const s = buildState()
+    expect(s).not.toMatch(/## Situação em aberto mais próxima/)
+  })
+
+  it('com nextEncounterLocationTitle → bloco presente, cita o título, autoriza sem obrigar', () => {
+    const s = buildState({ nextEncounterLocationTitle: 'Torre esquecida' })
+    expect(s).toMatch(/## Situação em aberto mais próxima/)
+    expect(s).toContain('Torre esquecida')
+    expect(s).toMatch(/MAY \(not must\)/)
+  })
+
+  // US-166 AC: nunca expõe behaviors/goal/complications — só o título do local.
+  it('bloco de orientação nunca cita comportamento/objetivo/complicação da situação', () => {
+    const s = buildState({ nextEncounterLocationTitle: 'Torre esquecida' })
+    const section = s.slice(s.indexOf('## Situação em aberto mais próxima'))
+    expect(section).not.toMatch(/behaviors|goal|complications|comportamento|objetivo|complicação/i)
+  })
+
   // US-71: sinal de continuidade estrutural — emitido só quando há `local`, afirma que a
   // personagem JÁ está lá e que a chegada já foi narrada (substitui a prosa "Arrival happens ONCE").
   it('emite o sinal de continuidade com o local quando há cena com `local`', () => {
@@ -576,7 +597,7 @@ describe('US-85 — fronteira das camadas: todo bloco da camada 3 é declarado',
   // e por isso ficam FORA do registro de nomes da US-84 de propósito (`dm-system.ts:13`).
   // São cabeçalhos emitidos mesmo assim, então o guard precisa conhecê-los para distinguir
   // "bloco que já existe" de "bloco novo".
-  const UNCITED_TURN_STATE_BLOCKS = ['Estado atual', 'Main quest', 'Active quests', 'A história até agora']
+  const UNCITED_TURN_STATE_BLOCKS = ['Estado atual', 'Main quest', 'Active quests', 'A história até agora', 'Situação em aberto mais próxima']
   const DECLARED = [SCENE_BLOCK, ENTITIES_BLOCK, INVENTORY_BLOCK, ...UNCITED_TURN_STATE_BLOCKS]
 
   // Fixture CHEIO: `sceneSection` e `summarySection` são `''` quando vazios
@@ -597,6 +618,7 @@ describe('US-85 — fronteira das camadas: todo bloco da camada 3 é declarado',
       activeQuests: ['Encontrar o ferreiro'],
       inventory: ['Espada'],
       memorySummary: 'A vila foi atacada por goblins na noite anterior.',
+      nextEncounterLocationTitle: 'Torre esquecida',
     })
     // O nome do bloco é o cabeçalho SEM o qualificador entre parênteses ("(read-only — …)",
     // "(secondary)"): o qualificador é redação, o nome é o que a camada 2 cita.

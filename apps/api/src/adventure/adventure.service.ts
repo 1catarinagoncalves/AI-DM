@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
+import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
@@ -7,6 +7,7 @@ import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackgro
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 import { rollAdventure } from '../adventure-generation/roll-adventure'
 import { composeEncounterRoles, buildEncounterNpcs, type EncounterChallenge } from '../adventure-generation/monster-roles'
+import { shuffleEncounterTypes, type EncounterType } from '../adventure-generation/shuffle-encounter-types'
 import { readSecretPrompts } from '../adventure-generation/lgmrd-tables'
 import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
@@ -32,6 +33,19 @@ export interface AdventureProfile {
   origin: OriginNarrative
   hookSeed: string
   challenge: EncounterChallenge // US-167: default 'adventure', resolvido em createForCharacter
+}
+
+/**
+ * US-166: encontro já resolvido (locationId/npcIds → location/npcs reais) — o formato que
+ * `AiService.generateClosing` consome como `encounterSkeleton` e que `buildEncounterDraft`
+ * produz. Achatado pra `AdventureEncounter` (schema) só depois que `encounterSituations`
+ * chega do modelo.
+ */
+interface EncounterDraft {
+  id: string
+  type: EncounterType
+  location: AdventureLocation
+  npcs: AdventureNpc[]
 }
 
 @Injectable()
@@ -122,17 +136,60 @@ export class AdventureService {
   }
 
   /**
-   * US-164: orquestrador do motor — executa os passos 1-6 da *Ordem de geração*
+   * US-166: monta a locationId (round-robin) e npcIds (por type) de um encontro, mutando
+   * `state.npcs`/`state.socialIndex` — não é puro de propósito: `combat` precisa acumular
+   * NPCs ENTRE encontros (`buildEncounterNpcs` cumulativo, senão `id` colide) e `social`
+   * precisa de um contador estável entre chamadas (fallback round-robin).
+   */
+  private buildEncounterDraft(
+    type: EncounterType,
+    index: number,
+    locations: AdventureLocation[],
+    combatRoles: ReturnType<typeof composeEncounterRoles>,
+    state: { npcs: AdventureNpc[]; socialIndex: number },
+  ): EncounterDraft {
+    const id = `encounter-${index + 1}`
+    const location = locations[index % locations.length]!
+
+    if (type === 'combat') {
+      const encounterNpcs = buildEncounterNpcs(combatRoles, state.npcs)
+      state.npcs = [...state.npcs, ...encounterNpcs]
+      return { id, type, location, npcs: encounterNpcs }
+    }
+
+    if (type === 'social') {
+      if (location.occupants.length > 0) {
+        const occupants = location.occupants
+          .map((npcId) => state.npcs.find((npc) => npc.id === npcId))
+          .filter((npc): npc is AdventureNpc => npc !== undefined)
+        return { id, type, location, npcs: occupants }
+      }
+      // US-166 (Notas de implementação): fallback round-robin sobre os NPCs narrativos,
+      // contador próprio (`socialIndex`) — `npcs.length === 0` (defensivo) devolve [].
+      const fallback = state.npcs.length > 0 ? state.npcs[state.socialIndex % state.npcs.length] : undefined
+      state.socialIndex++
+      return { id, type, location, npcs: fallback ? [fallback] : [] }
+    }
+
+    return { id, type, location, npcs: [] } // skill: sem moradores estruturados
+  }
+
+  /**
+   * US-164/US-166: orquestrador do motor — executa os passos 1-6 da *Ordem de geração*
    * (backlog do motor de aventuras) e devolve um `GeneratedAdventure` que passa em
    * `.parse()` (só FORMA; grafo fechar/orçamento continuam sendo o gate da US-150).
-   * `encounters` tem sempre um elemento (`encounter-1`, mintado no código, nunca pelo
-   * modelo) cujo `locationId` é `locations[0]` (Questão em aberto #1, resolvida) e cujos
-   * `npcIds` vêm de `composeEncounterRoles`/`buildEncounterNpcs` (US-152/US-160) — os
-   * NPCs de combate entram também em `npcs[]` (referência real, não solta).
    *
-   * `attempt` (US-150): default `0`, repassado a `rollAdventure` — o gate que envolve esta
-   * função incrementa a cada reseed, pra rolar registro/conteúdo NOVOS, não reamostrar em cima
-   * do mesmo material (ver adventure-gate.ts).
+   * US-166: `encounters` tem sempre 8 elementos, `type` sorteado por seed determinístico
+   * (`shuffleEncounterTypes`) — posição 8 sempre o confronto final (`combat` viável,
+   * `social` quando o composer devolve `[]`, ver *Decisões fechadas* da US-166).
+   * `locationId` é round-robin sobre `locations[]`; `npcIds` resolvido por `type`
+   * (`buildEncounterDraft`). Os NPCs de combate entram também em `npcs[]` (referência
+   * real, não solta) — `combatRoles` é computado UMA VEZ (puro em level/challenge) e
+   * reusado em cada encontro `combat`, com `existingNpcs` cumulativo entre eles.
+   *
+   * `attempt` (US-150): default `0`, repassado a `rollAdventure`/`shuffleEncounterTypes` —
+   * o gate que envolve esta função incrementa a cada reseed, pra rolar registro/conteúdo/
+   * tipos NOVOS, não reamostrar em cima do mesmo material (ver adventure-gate.ts).
    */
   async generateAdventure(
     profile: AdventureProfile,
@@ -161,11 +218,13 @@ export class AdventureService {
       locale,
     })
 
-    const encounterNpcs = buildEncounterNpcs(composeEncounterRoles(profile.level, profile.challenge), npcs)
-    const allNpcs = [...npcs, ...encounterNpcs]
-    const encounters: AdventureEncounter[] = [
-      { id: 'encounter-1', locationId: locations[0]!.id, npcIds: encounterNpcs.map((npc) => npc.id) },
-    ]
+    const combatRoles = composeEncounterRoles(profile.level, profile.challenge)
+    const combatViable = combatRoles.length > 0
+    const types = shuffleEncounterTypes(characterId, order, combatViable, attempt)
+
+    const state = { npcs: [...npcs], socialIndex: 0 }
+    const drafts: EncounterDraft[] = types.map((type, i) => this.buildEncounterDraft(type, i, locations, combatRoles, state))
+    const allNpcs = state.npcs
 
     // US-181/US-190: antagonista é passo PRÓPRIO, sequencial — roda depois de segredos e
     // antes do Promise.all, porque `generateClosing` (abaixo) precisa dele já pronto pra
@@ -188,7 +247,7 @@ export class AdventureService {
     // só precisam de locations/npcs/secrets/registry/premissa, já prontos aqui. `Promise.all`
     // no lugar de dois `await` sequenciais: soma uma 4ª chamada de IA ao fluxo, mas paralela
     // não adiciona latência de rede sequencial sobre o `await` que já existia.
-    const [{ conclusion, followUps }, { start }] = await Promise.all([
+    const [{ conclusion, followUps, encounterSituations }, { start }] = await Promise.all([
       this.ai.generateClosing({
         locations,
         npcs: allNpcs,
@@ -197,6 +256,7 @@ export class AdventureService {
         complicacao: content.complicacao,
         premissa: content.premissa,
         antagonist,
+        encounterSkeleton: drafts,
         locale,
       }),
       this.ai.generateOpeningBeat({
@@ -212,6 +272,16 @@ export class AdventureService {
         locale,
       }),
     ])
+
+    const encounters: AdventureEncounter[] = drafts.map((draft, i) => ({
+      id: draft.id,
+      locationId: draft.location.id,
+      npcIds: draft.npcs.map((npc) => npc.id),
+      type: draft.type,
+      behaviors: encounterSituations[i]!.behaviors,
+      goal: encounterSituations[i]!.goal,
+      complications: encounterSituations[i]!.complications,
+    }))
 
     return GeneratedAdventureSchema.parse({
       id: `${characterId}:${order}`,

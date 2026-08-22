@@ -2,14 +2,18 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
-**Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure` — estende o array de 1 elemento pra 8) · [US-152](./US-152-statblocks-papel-orcamento.md)/[US-160](./US-160-composer-encontro-usa-limiar-de-soma.md)/[US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) (`composeEncounterRoles`/`buildEncounterNpcs`, ✅, reusadas nos slots `combat`) · [US-144](./US-144-schema-aventura-shared.md) (`AdventureEncounterSchema` MUDA) · [US-158](./US-158-locais-npcs-prosa-motor.md) (`generateLocationsAndNpcs`, ✅ — fonte de `location.occupants`) · [US-149](./US-149-segredos-40-prompts-lgmrd.md) (`generateSecrets`, ✅ — `secrets[]` já chega em `generateClosing`) · [US-181](./US-181-antagonista-ganha-want-e-method-estruturados.md) (`antagonist`, 📋 **NÃO implementada** — bloqueia: posição 8 precisa dele pra existir de verdade) · [US-170](./US-170-locais-gerados-entram-no-ledger.md) (`seedLedgerFromGeneratedAdventure`, ✅) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (modelo barato, molde de `generateClosing`)
+**Status:** ✅ Implementada (22/08/2026). `pnpm typecheck` + `pnpm test` (shared 130, ai-engine 151, api 394) verdes. Ver *2026-08-22 (correção pós-implementação)* abaixo pra dois desvios do desenho original, achados só na implementação.
+**Depende de:** [US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md) (`generateAdventure` — estende o array de 1 elemento pra 8) · [US-152](./US-152-statblocks-papel-orcamento.md)/[US-160](./US-160-composer-encontro-usa-limiar-de-soma.md)/[US-161](./US-161-jogador-escolhe-nivel-de-desafio-do-encontro.md) (`composeEncounterRoles`/`buildEncounterNpcs`, ✅, reusadas nos slots `combat`) · [US-144](./US-144-schema-aventura-shared.md) (`AdventureEncounterSchema` MUDA) · [US-158](./US-158-locais-npcs-prosa-motor.md) (`generateLocationsAndNpcs`, ✅ — fonte de `location.occupants`) · [US-149](./US-149-segredos-40-prompts-lgmrd.md) (`generateSecrets`, ✅ — `secrets[]` já chega em `generateClosing`) · [US-181](./US-181-antagonista-ganha-want-e-method-estruturados.md) (`antagonist`, ✅ **implementada** — junto de US-183/US-190, `generateAntagonist` roda em chamada própria ANTES desta story, `antagonist` chega pronto como INSUMO, não é mais produzido dentro de `generateClosing`) · [US-170](./US-170-locais-gerados-entram-no-ledger.md) (`seedLedgerFromGeneratedAdventure`, ✅) · [US-114](./US-114-modelo-utilitario-para-extracao-e-fecho.md) (modelo barato, molde de `generateClosing`)
 **Relacionado:** [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (gate, verificação 3 — já filtra por role em `MONSTER_ROLE_CR`, efeito equivalente a "só `combat`") · [US-171](./US-171-encontros-de-combate-entram-no-ledger.md) (`encounterNpcEntities` ganha filtro `type === 'combat'`) · [US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) (`N=8` é constante desta story, não preferência do jogador) · [US-187](./US-187-distribuicao-tematica-de-locationid-baseada-em-registry.md) (distribuição temática de `locationId`, depende desta story primeiro) · [US-190](./US-190-antagonista-vira-passo-proprio-entre-segredos-e-encontros.md) (`antagonist` já chega pronto de `generateAntagonist`, chamada própria ANTES do `Promise.all` — implementado)
 
 **Criada em:** 2026-08-18 — questão em aberto #3 da US-164 ("um encontro ou 4-5?"), virou story própria.
 **Decisões fechadas (2026-08-20 a 21):** 8 encontros fixos. Cada um vira uma SITUAÇÃO completa (framework Sly Flourish — ver *Referências externas*), não uma perícia amarrada (`testedSkill` foi tentado e abandonado). `type` sorteado por seed determinístico nas posições 1-7 (multiset `{combat×2, skill×3, social×2}`, sem repetição adjacente); posição 8 sempre `combat`, fixa — confronto final com o antagonista. `behaviors`/`goal`/`complications` entram como campos extras no MESMO `generateClosing` que a US-181 já estende com `antagonist` (não função nova) — roda dentro do `Promise.all([generateClosing, generateOpeningBeat])` já existente, sem round-trip a mais. Piso de locais fixado em 8.
 **2026-08-22:** soma sinal de orientação em runtime — `nextUnrevealedEncounterLocation` (puro, sem IA) aponta o encontro de menor `id` cujo local ainda não é `revelado`; `buildTurnStateBlock` ganha bloco opcional autorizando (não obrigando) o Mestre a apontar rumo, sem citar `behaviors`/`goal`/`complications`.
 **2026-08-22 (correção pós-revisão):** prosa antiga dizia "`type` continua existindo" — falso, checado no schema atual: campo não existe, é NOVO nesta story (o bloco `Modelo de dados proposto` já estava certo). Riscos de implementação em *Notas de implementação*.
+**2026-08-22 (fallback combate inviável):** quando `composeEncounterRoles(profile.level, profile.challenge)` devolve `[]` (nível 1-3 em modo `'adventure'` — LGMRD calcula que essa personagem não aguenta combate estruturado nesse dial de risco, US-160/US-161), NENHUM slot vira `combat`: multiset das posições 1-7 troca de `{combat×2, skill×3, social×2}` pra `{social×4, skill×3}`, e a posição 8 (normalmente fixa em `combat`) vira `social`. Motivo: `type: 'combat'` sem `npcIds` promete ameaça na prosa que a mecânica não entrega — pior na posição 8, o "confronto final" virando cena só de leitura, sem agência pro jogador. `social` mantém o confronto jogável (negociação/fuga/cerco narrativo) sem forçar combate que o próprio motor já calculou como arriscado demais pra essa personagem.
+**2026-08-22 (correção pós-implementação):** dois pontos do desenho acima não sobreviveram à implementação real, ambos achados escrevendo `shuffle-encounter-types.ts`/`next-encounter-hint.ts`:
+- **"Embaralhar e rejeitar" não é o algoritmo** — tentado primeiro (fiel ao texto acima), mas `{social×4, skill×3}` só tem UM arranjo interno sem repetição adjacente (4 sociais em 7 posições forçam alternância `S,K,S,K,S,K,S` por contagem, prova combinatória: C(7-4+1,4)=1) — sortear até acertar essa sequência exata tem ~2,9% de chance por tentativa, não confiável no teto de 20. Pior: essa sequência SEMPRE termina em `social`, colidindo com a posição 8 (também `social`) — matematicamente impossível evitar a colisão nesse caso. Implementado como construção gulosa (greedy "reorganize string", LeetCode 767 — sempre acha arranjo válido quando existe) + reparo por troca de posição quando o resultado colide com a posição 8 (troca com o slot mais à direita que resolve, sem sortear de novo) — preserva a aleatoriedade original e só intervém quando precisa. Pra `{social×4, skill×3}` nenhuma troca resolve (é o caso impossível) — a colisão 7↔8 é aceita nesse caso específico, não um bug.
+- **`nextUnrevealedEncounterLocation` precisa de 3 parâmetros, não 2** — a assinatura em *Modelo de dados proposto* (`encounters, entities`) não tem como casar `encounter.locationId` (um id) com `WorldEntity.nome` (o título) sem uma lista de `locations` no meio. Implementada como `(encounters, locations, entities)`.
 
 ---
 
@@ -35,7 +39,7 @@ Cada um dos 8 `AdventureEncounter` passa a responder as cinco perguntas de uma s
 | **Goal** — por que o personagem foi lá? | `goal` | Prosa curta, modelo (US-114) |
 | **Complications** — o que pode virar o jogo? | `complications` | Prosa curta, modelo (US-114) |
 
-`type` direciona o QUE o modelo escreve (`skill`→obstáculo físico/ambiental, `social`→negociação, `combat`→ameaça e cerco) mas não trava perícia — a perícia rolada no turno continua 100% emergente. `behaviors`/`goal`/`complications` nascem na mesma chamada que já recebe `secrets[]` e `antagonist` — contexto de prompt, nunca vínculo estrutural (nenhum `secretId`/`antagonistId` novo no schema).
+`type` direciona o QUE o modelo escreve (`skill`→obstáculo físico/ambiental, `social`→negociação, `combat`→ameaça e cerco) mas não trava perícia — a perícia rolada no turno continua 100% emergente. `behaviors`/`goal`/`complications` nascem na mesma chamada que já recebe `secrets[]` e `antagonist` — contexto de prompt, nunca vínculo estrutural (nenhum `secretId`/`antagonistId` novo no schema). `combat` só aparece quando `composeEncounterRoles` devolve papéis pro nível/challenge da personagem — nível 1-3 em modo `'adventure'` nunca gera `combat`, cai pra `social` no lugar (ver *Decisões fechadas*).
 
 ---
 
@@ -44,7 +48,7 @@ Cada um dos 8 `AdventureEncounter` passa a responder as cinco perguntas de uma s
 ### Dentro do escopo
 
 - `AdventureEncounterSchema` ganha `type: z.enum(['combat', 'skill', 'social'])`, `behaviors`, `goal`, `complications` (`z.string().min(1)`) — todos NOVOS, presentes nos 8 encontros.
-- `generateAdventure` monta exatamente 8 encontros. Posição 8 = `combat` fixo; posições 1-7 = shuffle seedado (`shuffleEncounterTypes`) do multiset `{combat×2, skill×3, social×2}`, retry até não ter dois tipos iguais adjacentes (incluindo contra a posição 8).
+- `generateAdventure` monta exatamente 8 encontros. `combatViable = composeEncounterRoles(profile.level, profile.challenge).length > 0`. Quando `true` (caso comum): posição 8 = `combat` fixo; posições 1-7 = shuffle seedado (`shuffleEncounterTypes`) do multiset `{combat×2, skill×3, social×2}`. Quando `false` (nível 1-3, modo `'adventure'`): posição 8 vira `social`; posições 1-7 usam o multiset `{social×4, skill×3}` — `combat` não aparece em nenhuma posição. Ambos os casos: retry até não ter dois tipos iguais adjacentes (incluindo contra a posição 8).
 - `locationId`: round-robin `locations[i % locations.length]`. Prompt de locais ganha instrução de piso 8.
 - `npcIds`: `combat` via `composeEncounterRoles`/`buildEncounterNpcs` (cumulativo entre chamadas — ver *Notas de implementação*); `social` via `location.occupants`, fallback round-robin; `skill` sempre `[]`.
 - `generateClosing` ganha `encounterSkeleton` (entrada: 8 encontros com `id`/`type`/location/npcs resolvidos) e `encounterSituations` (saída: array `.length(8)` posicional) — mesmo contrato que a US-181 já estende com `antagonist`. Posição 8 instruída a ecoar `antagonist.want`/`method` diretamente; as outras 7 só PODEM.
@@ -68,6 +72,7 @@ Cada um dos 8 `AdventureEncounter` passa a responder as cinco perguntas de uma s
 - Tornar `N=8` parametrizável ou ligado ao dial de NPCs da US-163 — eixos diferentes.
 - Distribuição temática de `locationId` — round-robin é a opção barata (US-187 substitui depois).
 - Reabrir US-152/US-160/US-161 — funções de combate usadas como estão.
+- `npcIds` vazio em encontro `combat` — não existe mais: combate inviável (`combatViable === false`) vira `social` no lugar (ver *Decisões fechadas*), nunca um `combat` sem morador.
 
 ---
 
@@ -90,19 +95,24 @@ export const AdventureEncounterSchema = z.object({
 
 ```ts
 // apps/api/src/adventure-generation/shuffle-encounter-types.ts (NOVO)
-// Posição 8 sempre 'combat' (fixo, fora do shuffle). Posições 1-7: shuffle seedado do
-// multiset {combat×2, skill×3, social×2}, retry até não ter dois tipos iguais adjacentes.
+// `combatViable = composeEncounterRoles(level, challenge).length > 0` (monster-roles.ts) —
+// decide o multiset ANTES do shuffle, não depois. Viável: posição 8 = 'combat' (fixo, fora
+// do shuffle), posições 1-7 = multiset {combat×2, skill×3, social×2}. Inviável (nível 1-3,
+// modo 'adventure'): posição 8 = 'social', posições 1-7 = multiset {social×4, skill×3} —
+// 'combat' nunca aparece. Ambos os casos: retry até não ter dois tipos iguais adjacentes.
 // Sub-seed próprio: deriveAdventureSeed(`${characterId}:encounter-types`, order, attempt).
 export function shuffleEncounterTypes(
   characterId: string,
   order: number,
+  combatViable: boolean,
   attempt?: number,
-): Array<'combat' | 'skill' | 'social'> // length 8, [7] === 'combat'
+): Array<'combat' | 'skill' | 'social'> // length 8, [7] === (combatViable ? 'combat' : 'social')
 ```
 
 ```ts
-// apps/api/src/ai/ai.service.ts — generateClosing (US-181 já acrescenta `antagonist`;
-// esta story acrescenta `encounterSkeleton`/`encounterSituations` ao MESMO contrato)
+// apps/api/src/ai/ai.service.ts — generateClosing (antagonist é PARÂMETRO real desde
+// US-181/US-183/US-190, decidido por `generateAntagonist` ANTES desta chamada — não é
+// mais produzido aqui; esta story acrescenta `encounterSkeleton`/`encounterSituations`)
 async generateClosing(params: {
   locations: AdventureLocation[]
   npcs: AdventureNpc[]
@@ -110,6 +120,7 @@ async generateClosing(params: {
   registry: AdventureRegistry
   complicacao: { condition: string; description: string; origin: string }
   premissa: string
+  antagonist: AdventureAntagonist // já decidido, US-181/US-183/US-190
   locale?: Locale
   encounterSkeleton: Array<{
     id: string
@@ -120,21 +131,16 @@ async generateClosing(params: {
 }): Promise<{
   conclusion: string
   followUps: string[]
-  antagonist: { name: string; want: string; method: string }
   encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> // posicional
 }>
 ```
 
 ```ts
-// apps/api/src/ai/ai.service.ts — CLOSING_SCHEMA
+// apps/api/src/ai/ai.service.ts — CLOSING_SCHEMA (antagonist NÃO está aqui — é insumo
+// resolvido por ANTAGONIST_SCHEMA/generateAntagonist antes desta chamada, US-181/US-190)
 const CLOSING_SCHEMA = z.object({
   conclusion: z.string().min(1),
   followUps: z.array(z.string()).min(1),
-  antagonist: z.object({
-    name: z.string().min(1),
-    want: z.string().min(1),
-    method: z.string().min(1),
-  }),
   encounterSituations: z.array(z.object({
     behaviors: z.string().min(1),
     goal: z.string().min(1),
@@ -157,34 +163,34 @@ export function nextUnrevealedEncounterLocation(
 
 ## Critérios de aceite
 
-- [ ] `generateAdventure` produz exatamente 8 `AdventureEncounter`.
-- [ ] `type` dos 8 encontros: posição 8 sempre `combat`; posições 1-7 são o multiset `{combat×2, skill×3, social×2}` embaralhado, sem dois tipos iguais adjacentes (nem entre posição 7 e 8).
-- [ ] Encontro da posição 8: `behaviors`/`goal`/`complications` referenciam `antagonist.want`/`method` diretamente — não é opcional como nos outros 7.
-- [ ] `behaviors`, `goal` e `complications` presentes (não-vazios) em TODO encontro, incluindo `combat`.
-- [ ] `locationId` de cada encontro referencia uma location real, distribuído round-robin.
-- [ ] `npcIds` não-vazio e válido em `combat` (ids novos, sem colisão) e em `social` (`location.occupants` ou fallback round-robin); vazio em `skill`.
-- [ ] `encounterNpcEntities` só gera `WorldEntity` pra encontros `type === 'combat'` — NPC de `social` não duplica no ledger.
-- [ ] Mesmo `characterId`+`order` produz a mesma sequência de `type`/`locationId`/`npcIds`; personagens/aventuras diferentes produzem sequências de `type` diferentes. `behaviors`/`goal`/`complications` são prosa do modelo — **não** é critério exigir prosa idêntica entre execuções.
-- [ ] Gate (US-150), verificação 3: compara orçamento só nos encontros `type === 'combat'`; `skill`/`social` não reprovam por ausência de orçamento.
-- [ ] `nota` do local que hospeda QUALQUER encontro inclui `"{type} — objetivo: {goal}; comportamento: {behaviors}; complicação: {complications}"`, segmentos separados por `" | "`; local sem encontro fica igual ao que a US-170 já produz.
-- [ ] `generateClosing` devolve `encounterSituations` com exatamente `encounterSkeleton.length` (8) itens — contagem errada falha o `parse()`, motivo de reseed (US-150).
-- [ ] `GeneratedAdventureSchema.parse()` passa com o schema novo.
-- [ ] `pnpm typecheck` e testes do módulo passam.
-- [ ] **Eval / teste de regressão:** fixture com locations/npcs geradas → `generateAdventure` monta os 8 encontros válidos, `.parse()` passa, sem `npcId`/`id` duplicado.
-- [ ] `nextUnrevealedEncounterLocation` é pura e determinística — devolve o encontro de menor `id` cujo local ainda não é `revelado: true`, `null` quando todos já foram revelados.
-- [ ] `buildTurnStateBlock` inclui o bloco `## Situação em aberto mais próxima` só quando a função acima devolve um encontro; some quando devolve `null`, e nunca expõe `behaviors`/`goal`/`complications`.
-- [ ] Guard de conjunto de blocos `## ` (US-85, `dm-system.test.ts`) atualizado com o bloco novo — senão falha.
+- [x] `generateAdventure` produz exatamente 8 `AdventureEncounter`.
+- [x] `type` dos 8 encontros, quando `combatViable` (`composeEncounterRoles(profile.level, profile.challenge).length > 0`): posição 8 sempre `combat`; posições 1-7 são o multiset `{combat×2, skill×3, social×2}` embaralhado, sem dois tipos iguais adjacentes (nem entre posição 7 e 8 — greedy + reparo por troca, ver *correção pós-implementação*). Quando NÃO `combatViable`: posição 8 vira `social`; posições 1-7 usam `{social×4, skill×3}`; `combat` não aparece em nenhuma posição. (Exceção documentada: 7↔8 colide sempre neste caso — matematicamente forçado, não falha de implementação.)
+- [x] Encontro da posição 8: `behaviors`/`goal`/`complications` referenciam `antagonist.want`/`method` diretamente — não é opcional como nos outros 7, seja `type: 'combat'` ou (fallback) `type: 'social'`.
+- [x] `behaviors`, `goal` e `complications` presentes (não-vazios) em TODO encontro, incluindo `combat`.
+- [x] `locationId` de cada encontro referencia uma location real, distribuído round-robin.
+- [x] `npcIds` não-vazio e válido em `combat` — SEMPRE, `combat` nunca aparece sem `npcIds` (fallback pra `social` cobre o caso inviável) — e em `social` (`location.occupants` ou fallback round-robin); vazio em `skill`.
+- [x] `encounterNpcEntities` só gera `WorldEntity` pra encontros `type === 'combat'` — NPC de `social` não duplica no ledger.
+- [x] Mesmo `characterId`+`order` produz a mesma sequência de `type`/`locationId`/`npcIds`; personagens/aventuras diferentes produzem sequências de `type` diferentes. `behaviors`/`goal`/`complications` são prosa do modelo — **não** é critério exigir prosa idêntica entre execuções.
+- [x] Gate (US-150), verificação 3: compara orçamento só nos encontros `type === 'combat'`; `skill`/`social` não reprovam por ausência de orçamento.
+- [x] `nota` do local que hospeda QUALQUER encontro inclui `"{type} — objetivo: {goal}; comportamento: {behaviors}; complicação: {complications}"`, segmentos separados por `" | "`; local sem encontro fica igual ao que a US-170 já produz.
+- [x] `generateClosing` devolve `encounterSituations` com exatamente `encounterSkeleton.length` (8) itens — contagem errada falha o `parse()`, motivo de reseed (US-150).
+- [x] `GeneratedAdventureSchema.parse()` passa com o schema novo.
+- [x] `pnpm typecheck` e testes do módulo passam.
+- [x] **Eval / teste de regressão:** fixture com locations/npcs geradas → `generateAdventure` monta os 8 encontros válidos, `.parse()` passa, sem `npcId`/`id` duplicado.
+- [x] `nextUnrevealedEncounterLocation` é pura e determinística — devolve o encontro de menor `id` cujo local ainda não é `revelado: true`, `null` quando todos já foram revelados.
+- [x] `buildTurnStateBlock` inclui o bloco `## Situação em aberto mais próxima` só quando a função acima devolve um encontro; some quando devolve `null`, e nunca expõe `behaviors`/`goal`/`complications`.
+- [x] Guard de conjunto de blocos `## ` (US-85, `dm-system.test.ts`) atualizado com o bloco novo — senão falha.
 
 ---
 
 ## Notas de implementação
 
-- **`shuffleEncounterTypes`**: sub-seed próprio, não compartilha stream com outra rolagem. Retry com contador local e teto ~20 — precisa `throw` EXPLÍCITO se estourar (não confiar só em "espaço de shuffles válidos é grande"), senão um bug de índice na checagem de adjacência vira loop infinito, não falha visível. Posição 8 nunca entra no shuffle, é atribuída direto.
-- **Nível 1-3 em modo `'adventure'`**: `composeEncounterRoles` pode devolver `[]` — encontro `combat` sem `npcIds` é válido (situação sem morador, não encontro vazio).
-- **`buildEncounterNpcs` precisa `existingNpcs` CUMULATIVO** entre os 3 slots `combat` (2 sorteados + posição 8) — resetar gera `id` duplicado, que corrompe silenciosamente o `Map(npcId→role)` do gate (verificação 3, sobrescreve role sem avisar) e o `.find` do seed-ledger (pega só o primeiro match, ledger do segundo encontro fica errado). Bug só aparece testando os 8 encontros completos, não em fixture de 1.
+- **`shuffleEncounterTypes`**: sub-seed próprio, não compartilha stream com outra rolagem. Retry com contador local e teto ~20 — precisa `throw` EXPLÍCITO se estourar (não confiar só em "espaço de shuffles válidos é grande"), senão um bug de índice na checagem de adjacência vira loop infinito, não falha visível. Posição 8 nunca entra no shuffle, é atribuída direto — `'combat'` ou `'social'`, conforme `combatViable`.
+- **Nível 1-3 em modo `'adventure'`**: `composeEncounterRoles(profile.level, profile.challenge)` pode devolver `[]` — LGMRD diz que essa personagem não aguenta combate estruturado nesse dial de risco. Antes (rejeitado): deixar `combat` com `npcIds: []` — cena `type: 'combat'` sem ninguém pra lutar, pior na posição 8 ("confronto final" só de leitura, sem agência pro jogador). Decidido: `combatViable = false` remove `'combat'` do multiset inteiro (ver *Escopo* e *Critérios de aceite*) — nunca existe um `combat` vazio, porque `combat` simplesmente não aparece.
+- **`buildEncounterNpcs` precisa `existingNpcs` CUMULATIVO** entre os slots `combat` — até 3 (2 sorteados + posição 8) quando `combatViable`, ZERO quando não (fallback pra `social` os substitui todos) — resetar gera `id` duplicado, que corrompe silenciosamente o `Map(npcId→role)` do gate (verificação 3, sobrescreve role sem avisar) e o `.find` do seed-ledger (pega só o primeiro match, ledger do segundo encontro fica errado). Bug só aparece testando os 8 encontros completos, não em fixture de 1.
 - **Ledger é chaveado por `nome`/título, não por `id`** (`locationTitleById`) — dois locais com título igual colapsam na mesma `WorldEntity`, afetando `nota` e `nextUnrevealedEncounterLocation`. Risco sobe com 8 locais obrigatórios; sem mitigação nesta story.
 - **Fallback de `social` sem occupant** usa contador próprio (`socialIndex`), só nos 2 slots `social`; `npcs.length === 0` (defensivo) devolve `npcIds: []`.
-- **Ordem em `generateAdventure`**: `generateLocationsAndNpcs` → `generateSecrets` → monta `encounterSkeleton` → `Promise.all([generateClosing(..., encounterSkeleton), generateOpeningBeat])` → junta com `encounterSituations`.
+- **Ordem em `generateAdventure`**: `generateLocationsAndNpcs` → `generateSecrets` → `combatViable = composeEncounterRoles(profile.level, profile.challenge).length > 0` → `shuffleEncounterTypes(..., combatViable)` → monta `encounterSkeleton` → `generateAntagonist` (US-181/US-183/US-190, já implementado) → `Promise.all([generateClosing(..., encounterSkeleton, antagonist), generateOpeningBeat(..., antagonist)])` → junta com `encounterSituations`.
 - **`CRAFT_CORE_SECTION` reusado verbatim** pra `encounterSituations` — seção dedicada só se eval acusar prosa genérica.
 - **Bloco novo em `buildTurnStateBlock` precisa se declarar no guard de conjunto `## `** (US-85, `dm-system.test.ts`) — comentário em `dm-system.ts:539` avisa disso.
 - **Ordem de sugestão é por `id` crescente**, não proximidade geográfica real — motor não tem grafo de distância entre locais.

@@ -100,4 +100,51 @@ describe('GeneratedAdventureSchema (US-144)', () => {
 
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
+
+  // US-166: AdventureEncounterSchema ganhou type/behaviors/goal/complications — os 4 campos
+  // NOVOS, obrigatórios, presentes num encontro real.
+  it('valida um encontro com type/behaviors/goal/complications preenchidos (US-166)', () => {
+    const adventure = {
+      id: 'adv-4',
+      levelRange: { min: 1, max: 1 },
+      registry: { setting: 'fantasy', tone: 'mystery', areaType: 'settlement' },
+      summary: 'Aventura mínima.',
+      npcs: [{ id: 'npc-1', name: 'Elenora', role: 'anciã', interactions: [] }],
+      secrets: [],
+      locations: [{
+        id: 'loc-1', title: 'Praça', aspects: [], boxedText: 'Texto de caixa.', description: 'Descrição.', occupants: ['npc-1'],
+      }],
+      encounters: [{
+        id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-1'], type: 'social',
+        behaviors: 'Elenora negocia com um forasteiro.',
+        goal: 'Recuperar o poço perdido da vila.',
+        complications: 'O forasteiro conhece o pacto antigo.',
+      }],
+      start: 'Início.',
+      conclusion: 'Fim.',
+      followUps: [],
+      antagonist: { name: 'Elenora', want: 'poder', method: 'ritual', trait: 'sussurra', weakness: 'vaidade', connection: 'atua na região que o grupo já percorreu' },
+    }
+
+    expect(GeneratedAdventureSchema.parse(adventure)).toEqual(adventure)
+  })
+
+  it('rejeita encontro com type fora do enum combat/skill/social', () => {
+    const adventure = {
+      id: 'adv-5',
+      levelRange: { min: 1, max: 1 },
+      registry: { setting: 'fantasy', tone: 'mystery', areaType: 'settlement' },
+      summary: 'Aventura mínima.',
+      npcs: [],
+      secrets: [],
+      locations: [],
+      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: [], type: 'stealth', behaviors: 'x', goal: 'x', complications: 'x' }],
+      start: 'Início.',
+      conclusion: 'Fim.',
+      followUps: [],
+      antagonist: { name: 'X', want: 'x', method: 'x', trait: 'x', weakness: 'x', connection: 'x' },
+    }
+
+    expect(() => GeneratedAdventureSchema.parse(adventure)).toThrow()
+  })
 })

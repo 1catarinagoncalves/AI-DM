@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
-import type { AdventureAntagonist, AdventureLocation, AdventureNpc, AdventureSecret, GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
+import type { AdventureAntagonist, AdventureEncounter, AdventureLocation, AdventureNpc, AdventureSecret, GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
 import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, DEFAULT_LOCALE, localeNameForPrompt, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
@@ -50,6 +50,7 @@ import type { RolledAdventureContent } from '../adventure-generation/roll-conten
 import type { AdventureRegistry } from '../adventure-generation/roll-registry'
 import type { SecretPrompts } from '../adventure-generation/lgmrd-tables'
 import { MONSTER_ROLE_CR } from '../adventure-generation/monster-roles'
+import { nextUnrevealedEncounterLocation } from '../adventure-generation/next-encounter-hint'
 
 export interface ChatInput {
   adventureId: string
@@ -247,11 +248,18 @@ const ANTAGONIST_SCHEMA = z.object({
   connection: z.string().min(1),
 })
 
-// US-164, passo 6: schema do FECHO RAMIFICADO. SEM `id` — `followUps[]` não referencia
-// nada, é semente pra PRÓXIMA aventura (US-151 consome como texto, não por id).
+// US-164, passo 6 / US-166: schema do FECHO RAMIFICADO. SEM `id` — `followUps[]` não
+// referencia nada, é semente pra PRÓXIMA aventura (US-151 consome como texto, não por id).
+// `encounterSituations` fecha as 3 perguntas restantes de cada uma das 8 SITUAÇÕES (Sly
+// Flourish) — posicional, o item `i` corresponde ao `encounterSkeleton[i]` do prompt.
 const CLOSING_SCHEMA = z.object({
   conclusion: z.string().min(1),
   followUps: z.array(z.string()).min(1),
+  encounterSituations: z.array(z.object({
+    behaviors: z.string().min(1),
+    goal: z.string().min(1),
+    complications: z.string().min(1),
+  })).length(8),
 })
 
 // US-172: schema da ABERTURA (`start`). SEM `id` (não referencia nada, é prosa livre).
@@ -294,9 +302,20 @@ function buildOpeningBeatPrompt(params: {
   ].join('\n')
 }
 
+// US-166: encontro já resolvido (locationId/npcIds → location/npcs reais) — o que
+// `generateClosing` precisa pra escrever behaviors/goal/complications por posição.
+interface EncounterSkeletonEntry {
+  id: string
+  type: 'combat' | 'skill' | 'social'
+  location: AdventureLocation
+  npcs: AdventureNpc[]
+}
+
 // US-181/US-190: `antagonist` é opcional aqui — `generateAntagonist` reusa este builder
 // ANTES de o antagonista existir (é ele quem o decide); `generateClosing` roda DEPOIS,
 // sempre passa o antagonista já pronto pra ancorar a conclusão nele.
+// US-166: `encounterSkeleton` é opcional pela mesma razão — só `generateClosing` precisa da
+// seção dos 8 encontros; `generateAntagonist` não escreve `encounterSituations`.
 function buildClosingPrompt(params: {
   locations: AdventureLocation[]
   npcs: AdventureNpc[]
@@ -304,6 +323,7 @@ function buildClosingPrompt(params: {
   complicacao: { condition: string; description: string; origin: string }
   premissa: string
   antagonist?: AdventureAntagonist
+  encounterSkeleton?: EncounterSkeletonEntry[]
 }): string {
   const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
   const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
@@ -311,6 +331,12 @@ function buildClosingPrompt(params: {
   const antagonistLine = params.antagonist
     ? `Antagonista já decidido: ${params.antagonist.name} — quer ${params.antagonist.want}; método: ${params.antagonist.method}.`
     : null
+  const encounterLines = params.encounterSkeleton
+    ?.map((e, i) => {
+      const npcLabel = e.npcs.length > 0 ? e.npcs.map((n) => `${n.name} (${n.role})`).join(', ') : 'nenhum'
+      return `${i + 1}. ${e.id} (${e.type}) — local: ${e.location.title}; moradores: ${npcLabel}`
+    })
+    .join('\n')
   return [
     `Premissa: ${params.premissa}`,
     `Complicação: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
@@ -321,6 +347,7 @@ function buildClosingPrompt(params: {
     `NPCs disponíveis:\n${npcLines}`,
     '',
     `Segredos já escritos:\n${secretLines}`,
+    ...(encounterLines ? ['', `Encontros da aventura, na ORDEM em que encounterSituations deve respondê-los:\n${encounterLines}`] : []),
   ].join('\n')
 }
 
@@ -632,6 +659,18 @@ export class AiService {
       areaType: (adventure.generatedAdventure as GeneratedAdventure | null)?.registry.areaType,
     })
 
+    // US-166: sinal de orientação — o encontro de menor id cujo local ainda não é `revelado`
+    // no ledger. Puro/sem IA (nextUnrevealedEncounterLocation); `null` quando não há aventura
+    // gerada ou todos os locais de encontro já foram revelados — bloco fica ausente.
+    const generatedAdventure = adventure.generatedAdventure as GeneratedAdventure | null
+    const entities = (adventure.entities ?? null) as WorldEntity[] | null
+    const nextEncounter = generatedAdventure
+      ? nextUnrevealedEncounterLocation(generatedAdventure.encounters, generatedAdventure.locations, entities ?? [])
+      : null
+    const nextEncounterLocationTitle = nextEncounter
+      ? generatedAdventure!.locations.find((l) => l.id === nextEncounter.locationId)?.title ?? null
+      : null
+
     // US-56: bloco de estado volátil do turno, prefixado à AÇÃO CRUA do jogador. A ação
     // crua (`message`) permanece separada — é ela, não o conteúdo prefixado, que o
     // `onFinish` persiste no EventLog (fronteira de persistência: mantém o history e o
@@ -639,11 +678,12 @@ export class AiService {
     const turnState = buildTurnStateBlock({
       sheet,
       sceneState: (characterState?.sceneState ?? null) as SceneState | null,
-      entities: (adventure.entities ?? null) as WorldEntity[] | null,
+      entities,
       mainQuest,
       activeQuests: activeQuests.map((q) => q.title),
       inventory: inventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
       memorySummary: adventure.memorySummary,
+      nextEncounterLocationTitle,
     })
     const messages: CoreMessage[] = [...history, { role: 'user', content: `${turnState}\n\n${message}` }]
 
@@ -1577,6 +1617,11 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * a CONCLUSÃO ancora nele em vez de inventar prosa solta. Ainda não é entidade rastreável
    * (US-164, Questão em aberto #2 — isso é US-188). NUNCA captura erro — mesma disciplina
    * de `generateSecrets`: falha aqui é motivo de reseed na US-150, não degradação silenciosa.
+   *
+   * US-166: ganha `encounterSkeleton` (8 encontros já resolvidos: locationId/npcIds →
+   * location/npcs reais) e devolve `encounterSituations` — as 3 perguntas restantes de cada
+   * SITUAÇÃO (Sly Flourish: behaviors/goal/complications), posicional. Roda na MESMA chamada
+   * que já escreve `conclusion`/`followUps` — nenhum round-trip a mais.
    */
   async generateClosing(params: {
     locations: AdventureLocation[]
@@ -1586,8 +1631,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     complicacao: { condition: string; description: string; origin: string }
     premissa: string
     antagonist: AdventureAntagonist
+    encounterSkeleton: EncounterSkeletonEntry[]
     locale?: Locale
-  }): Promise<{ conclusion: string; followUps: string[] }> {
+  }): Promise<{ conclusion: string; followUps: string[]; encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> }> {
     // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
     const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
@@ -1600,13 +1646,16 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'O antagonista já está decidido (nome/want/method abaixo) — a conclusão resolve o confronto com ELE, sem inventar outro nem contradizer o que já foi definido. ' +
         `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura. ' +
+        'Depois, para CADA um dos 8 encontros listados abaixo (na MESMA ordem), escreva `behaviors`/`goal`/`complications` — as 3 perguntas restantes de uma SITUAÇÃO (framework Sly Flourish): `behaviors` é o que os moradores estão fazendo agora; `goal` é por que o personagem foi até lá; `complications` é o que pode virar o jogo de cabeça pra baixo. ' +
+        'Use o `type` de cada encontro pra guiar o tom: `skill` → obstáculo físico/ambiental; `social` → negociação ou tensão social; `combat` → ameaça e cerco — sem travar qual perícia é testada, isso continua emergente no turno. ' +
+        'O ÚLTIMO encontro da lista é o confronto final — `behaviors`/`goal`/`complications` DEVEM ecoar diretamente o `want`/`method` do antagonista, sem ambiguidade; os outros 7 só PODEM tocar nele, nunca são obrigados. ' +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildClosingPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
     logExtractionEndpoint('generateClosing', primaryModel, providerMetadata)
 
-    return { conclusion: object.conclusion, followUps: object.followUps }
+    return { conclusion: object.conclusion, followUps: object.followUps, encounterSituations: object.encounterSituations }
   }
 
   /**

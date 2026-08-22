@@ -34,10 +34,18 @@ export const AdventureLocationSchema = z.object({
 })
 
 // `locationId` referencia AdventureLocationSchema.id; `npcIds[]` referencia AdventureNpcSchema.id.
+// US-166: cada encontro é uma SITUAÇÃO completa (framework Sly Flourish — location=locationId,
+// inhabitants=npcIds, behaviors/goal/complications fecham as outras 3 perguntas). `type` guia
+// o QUE o modelo escreve (skill→obstáculo físico/ambiental, social→negociação, combat→ameaça e
+// cerco) mas não trava perícia — a perícia rolada no turno continua 100% emergente.
 export const AdventureEncounterSchema = z.object({
   id: z.string().min(1),
   locationId: z.string().min(1),
   npcIds: z.array(z.string()),
+  type: z.enum(['combat', 'skill', 'social']),
+  behaviors: z.string().min(1),
+  goal: z.string().min(1),
+  complications: z.string().min(1),
 })
 
 // `setting`/`tone`/`areaType` guardam a CHAVE canônica, mesmo contrato de catalogLabel

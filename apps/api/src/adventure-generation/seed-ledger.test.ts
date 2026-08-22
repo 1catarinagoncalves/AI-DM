@@ -1,6 +1,17 @@
 import { describe, it, expect } from 'vitest'
-import type { GeneratedAdventure } from '@ai-dm/shared'
+import type { AdventureEncounter, GeneratedAdventure } from '@ai-dm/shared'
 import { seedLedgerFromGeneratedAdventure } from './seed-ledger'
+
+// US-166: encontro completo ganhou type/behaviors/goal/complications obrigatórios.
+function enc(overrides: Partial<AdventureEncounter> = {}): AdventureEncounter {
+  return {
+    id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2'], type: 'combat',
+    behaviors: 'Vigiam a passagem.', goal: 'Recuperar relíquia.', complications: 'Reforços chegam em 2 rounds.',
+    ...overrides,
+  }
+}
+
+const ENCOUNTER_1_NOTA_SEGMENT = 'combat — objetivo: Recuperar relíquia.; comportamento: Vigiam a passagem.; complicação: Reforços chegam em 2 rounds.'
 
 // US-151: fixture com 3 segredos, 2 NPCs narrativos (npc-1, npc-3) e 1 NPC de combate
 // (npc-2, role 'Soldier') — o critério de aceite pede exatamente esta composição.
@@ -25,7 +36,7 @@ function adventureFixture(overrides: Partial<GeneratedAdventure> = {}): Generate
       { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'] },
       { id: 'loc-2', title: 'Ruína', aspects: [], boxedText: 'x', description: 'x', occupants: [] },
     ],
-    encounters: [{ id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2'] }],
+    encounters: [enc()],
     start: 'A jornada começa.',
     conclusion: 'A ameaça é contida.',
     followUps: ['O pacto pode ressurgir.'],
@@ -74,7 +85,7 @@ describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
     expect(orfao?.local).toBeUndefined()
   })
 
-  it('mapeia local com tipo local, revelado false, sem campo local próprio, nota combina boxedText+aspects', () => {
+  it('mapeia local sem encontro com tipo local, revelado false, nota só boxedText+aspects', () => {
     const [, , , , , clareira] = seedLedgerFromGeneratedAdventure(adventureFixture())
     expect(clareira).toEqual({
       nome: 'Clareira',
@@ -85,17 +96,32 @@ describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
     })
   })
 
-  it('local sem aspects produz nota só com boxedText, sem local próprio (undefined)', () => {
+  // US-166: Ruína (loc-2) hospeda encounter-1 — a nota ganha o segmento de situação
+  // (type/objetivo/comportamento/complicação) além do boxedText (sem aspects, aqui vazio).
+  it('local que hospeda um encontro tem a nota com boxedText + segmento de situação, separados por " | "', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
     const ruina = entities.find((e) => e.nome === 'Ruína')
     expect(ruina).toEqual({
       nome: 'Ruína',
       tipo: 'local',
-      nota: 'x',
+      nota: `x | ${ENCOUNTER_1_NOTA_SEGMENT}`,
       revelado: false,
       atualizadoEm: expect.any(String),
     })
     expect(ruina?.local).toBeUndefined()
+  })
+
+  it('dois encontros no mesmo local: segmentos concatenados com " | ", um por encontro', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture({
+      encounters: [
+        enc({ id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2'] }),
+        enc({ id: 'encounter-2', locationId: 'loc-2', npcIds: [], type: 'skill', behaviors: 'Estuda runas.', goal: 'Decifrar o selo.', complications: 'O chão cede.' }),
+      ],
+    }))
+    const ruina = entities.find((e) => e.nome === 'Ruína')
+    expect(ruina?.nota).toBe(
+      `x | ${ENCOUNTER_1_NOTA_SEGMENT} | skill — objetivo: Decifrar o selo.; comportamento: Estuda runas.; complicação: O chão cede.`,
+    )
   })
 
   it('artefato sem segredos nem NPCs narrativos produz ledger vazio', () => {
@@ -109,7 +135,7 @@ describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
   })
 })
 
-describe('seedLedgerFromGeneratedAdventure — combatentes de encontro (US-171)', () => {
+describe('seedLedgerFromGeneratedAdventure — combatentes de encontro (US-171/US-166)', () => {
   it('mapeia combatente de encontro com tipo npc, local do encontro, nota=role, revelado false', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
     const soldier = entities.find((e) => e.nome === 'Soldier (npc-2)')
@@ -130,7 +156,7 @@ describe('seedLedgerFromGeneratedAdventure — combatentes de encontro (US-171)'
         { id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] },
         { id: 'npc-4', name: 'Soldier', role: 'Soldier', interactions: [] },
       ],
-      encounters: [{ id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2', 'npc-4'] }],
+      encounters: [enc({ npcIds: ['npc-2', 'npc-4'] })],
     }))
     const soldiers = entities.filter((e) => e.nota === 'Soldier')
     expect(soldiers).toHaveLength(2)
@@ -145,8 +171,8 @@ describe('seedLedgerFromGeneratedAdventure — combatentes de encontro (US-171)'
         { id: 'npc-4', name: 'Brute', role: 'Brute', interactions: [] },
       ],
       encounters: [
-        { id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2'] },
-        { id: 'encounter-2', locationId: 'loc-1', npcIds: ['npc-4'] },
+        enc({ id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2'] }),
+        enc({ id: 'encounter-2', locationId: 'loc-1', npcIds: ['npc-4'] }),
       ],
     }))
     const brute = entities.find((e) => e.nota === 'Brute')
@@ -157,5 +183,22 @@ describe('seedLedgerFromGeneratedAdventure — combatentes de encontro (US-171)'
   it('encounters vazio não gera combatente algum', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture({ encounters: [] }))
     expect(entities.some((e) => e.nota === 'Soldier')).toBe(false)
+  })
+
+  // US-166: só type 'combat' vira ameaça no ledger — social/skill nunca duplicam NPC ali
+  // (o NPC social já entra via npcEntities/occupants, não via encounterNpcEntities).
+  it('encontro type "social"/"skill" NÃO gera combatente no ledger, mesmo com npcIds não vazio', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture({
+      npcs: [
+        { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },
+        { id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] },
+      ],
+      encounters: [
+        enc({ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-1'], type: 'social' }),
+        enc({ id: 'encounter-2', locationId: 'loc-1', npcIds: [], type: 'skill' }),
+      ],
+    }))
+    expect(entities.some((e) => e.nome.startsWith('Soldier ('))).toBe(false)
+    expect(entities.some((e) => e.nome.startsWith('Marta ('))).toBe(false)
   })
 })

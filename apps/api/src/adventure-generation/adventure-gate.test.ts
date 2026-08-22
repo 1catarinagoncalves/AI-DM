@@ -1,6 +1,17 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import type { GeneratedAdventure } from '@ai-dm/shared'
+import type { AdventureEncounter, GeneratedAdventure } from '@ai-dm/shared'
 import { runAdventureGate, generateWithGate } from './adventure-gate'
+
+// US-166: encontro completo ganhou type/behaviors/goal/complications obrigatórios —
+// helper centraliza os 4 campos padrão (`type: 'combat'`, o caso mais comum neste ficheiro)
+// pra cada teste só sobrescrever o que importa pra ele (id/locationId/npcIds/type).
+function enc(overrides: Partial<AdventureEncounter> = {}): AdventureEncounter {
+  return {
+    id: 'encounter-1', locationId: 'loc-1', npcIds: [], type: 'combat',
+    behaviors: 'Vigiam a entrada.', goal: 'Recuperar o item roubado.', complications: 'Reforços a caminho.',
+    ...overrides,
+  }
+}
 
 // Fixture fechada: loc-1 referenciado por secret-1 e encounter-1; npc-1 (narrativo) ocupa
 // loc-1; npc-2 (Brute, CR 2) está no encounter. Nível 5: encounterDeadlyThreshold=2,
@@ -20,7 +31,7 @@ function validAdventure(overrides: Partial<GeneratedAdventure> = {}): GeneratedA
     locations: [
       { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'] },
     ],
-    encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2'] }],
+    encounters: [enc({ npcIds: ['npc-2'] })],
     start: 'A jornada começa.',
     conclusion: 'A ameaça é contida.',
     followUps: ['O pacto pode ressurgir.'],
@@ -53,7 +64,7 @@ describe('runAdventureGate (US-150)', () => {
   })
 
   it('encounter.npcIds aponta para npc inexistente → falha na verificação 2', () => {
-    const broken = validAdventure({ encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-999'] }] })
+    const broken = validAdventure({ encounters: [enc({ npcIds: ['npc-999'] })] })
     const result = runAdventureGate(broken)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.reason).toContain('npc-999')
@@ -108,7 +119,7 @@ describe('runAdventureGate (US-150)', () => {
         { id: 'npc-4', name: 'Brute', role: 'Brute', interactions: [] },
       ],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
-      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2', 'npc-3', 'npc-4'] }],
+      encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],
     })
     const result = runAdventureGate(broken)
     expect(result.ok).toBe(false)
@@ -124,7 +135,7 @@ describe('runAdventureGate (US-150)', () => {
       levelRange: { min: 2, max: 2 },
       npcs: [{ id: 'npc-2', name: 'Brute', role: 'Brute', interactions: [] }],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
-      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2'] }],
+      encounters: [enc({ npcIds: ['npc-2'] })],
     })
     const result = runAdventureGate(broken)
     expect(result.ok).toBe(false)
@@ -139,7 +150,7 @@ describe('runAdventureGate (US-150)', () => {
       levelRange: { min: 8, max: 8 }, // encounterDeadlyThreshold(8)=4, singleMonsterCrCap(8)=8
       npcs: [{ id: 'npc-2', name: 'Brute', role: 'Brute', interactions: [] }],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
-      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2'] }],
+      encounters: [enc({ npcIds: ['npc-2'] })],
     })
     expect(runAdventureGate(adventure).ok).toBe(true)
   })
@@ -147,8 +158,25 @@ describe('runAdventureGate (US-150)', () => {
   it('NPCs narrativos (role fora de MONSTER_ROLE_CR) não entram na soma de CR', () => {
     const adventure = validAdventure({
       levelRange: { min: 1, max: 1 },
-      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-1'] }], // npc-1 é narrativo
+      encounters: [enc({ npcIds: ['npc-1'] })], // npc-1 é narrativo
       npcs: [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }],
+    })
+    expect(runAdventureGate(adventure).ok).toBe(true)
+  })
+
+  // US-166: encontro `skill`/`social` nunca tem role de MONSTER_ROLE_CR em npcIds na prática,
+  // mas o filtro por `type` na verificação 3 é explícito — este teste prova que MESMO um
+  // encontro `social` com um npcId que (por bug) resolvesse pra um role de monstro não seria
+  // barrado por orçamento: só `combat` é checado.
+  it('encontro type "social" nunca reprova por orçamento, mesmo com role de monstro em npcIds', () => {
+    const adventure = validAdventure({
+      levelRange: { min: 1, max: 1 }, // encounterDeadlyThreshold(1) = 0
+      npcs: [
+        { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },
+        { id: 'npc-2', name: 'Brute', role: 'Brute', interactions: [] },
+      ],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }],
+      encounters: [enc({ type: 'social', npcIds: ['npc-1', 'npc-2'] })],
     })
     expect(runAdventureGate(adventure).ok).toBe(true)
   })
@@ -168,7 +196,7 @@ describe('runAdventureGate (US-150)', () => {
         { id: 'npc-5', name: 'Minion', role: 'Minion', interactions: [] },
       ],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
-      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2', 'npc-3', 'npc-4', 'npc-5'] }],
+      encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4', 'npc-5'] })],
     })
 
     expect(runAdventureGate(adventure).ok).toBe(false) // default 'adventure': limiar 0, sem regressão
@@ -226,7 +254,7 @@ describe('generateWithGate (US-150, reseed)', () => {
         { id: 'npc-4', name: 'Brute', role: 'Brute', interactions: [] },
       ],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
-      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2', 'npc-3', 'npc-4'] }],
+      encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],
     })
     const generate = vi.fn(async () => superorcado)
 
@@ -253,7 +281,7 @@ describe('generateWithGate (US-150, reseed)', () => {
         { id: 'npc-5', name: 'Minion', role: 'Minion', interactions: [] },
       ],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
-      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2', 'npc-3', 'npc-4', 'npc-5'] }],
+      encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4', 'npc-5'] })],
     })
     const generate = vi.fn(async () => adventure)
 

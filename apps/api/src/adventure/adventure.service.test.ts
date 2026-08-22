@@ -24,7 +24,11 @@ function fakeAi(
   const locations = [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
-  const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'] }
+  // US-166: generateClosing devolve encounterSituations posicional, 8 itens.
+  const encounterSituations = Array.from({ length: 8 }, (_, i) => ({
+    behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
+  }))
+  const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
   const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
   return {
     generateOpeningNarration: async (input: Record<string, unknown>) => { Object.assign(seen, input); return opening },
@@ -225,7 +229,8 @@ describe('AdventureService.createForCharacter', () => {
   // US-151: `extractOpeningEntities` (fake sempre devolve null aqui) deixou de ser a fonte —
   // o ledger vem de `seedLedgerFromGeneratedAdventure(generated)`, lido do artefato do motor
   // (Marta/secret-1, fixos em `fakeAi`). Nível 1 → `composeEncounterRoles` vazio, sem NPC de
-  // combate para filtrar neste teste (esse caso já é coberto em seed-ledger.test.ts).
+  // combate para filtrar neste teste (esse caso já é coberto em seed-ledger.test.ts). Único
+  // local (`fakeAi`) hospeda os 8 encontros — `nota` ganha um segmento por encontro (US-166).
   it('US-151: entities vêm do artefato gerado (secret + NPC narrativo), não mais de extractOpeningEntities', async () => {
     const character = {
       id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
@@ -236,6 +241,11 @@ describe('AdventureService.createForCharacter', () => {
     const service = new AdventureService(prisma, fakeAi())
 
     await service.createForCharacter('char-1', {})
+
+    const encounterNota = (recorded.adventureCreate?.['entities'] as Array<{ nome: string; nota: string }>)
+      .find((e) => e.nome === 'Enseada Cinzenta')!.nota
+    expect(encounterNota.startsWith('x | ')).toBe(true)
+    expect(encounterNota.split(' | ')).toHaveLength(9) // boxedText + 8 segmentos de encontro
 
     expect(recorded.adventureCreate?.['entities']).toEqual([
       {
@@ -249,7 +259,7 @@ describe('AdventureService.createForCharacter', () => {
       },
       {
         nome: 'Enseada Cinzenta', tipo: 'local',
-        nota: 'x', revelado: false, atualizadoEm: expect.any(String),
+        nota: encounterNota, revelado: false, atualizadoEm: expect.any(String),
       },
     ])
   })
@@ -509,7 +519,9 @@ describe('AdventureService.createForCharacter', () => {
 
   // US-167: fim a fim — nível 1 com challenge 'challenge' produz encontro com NPC de combate
   // (hoje vazio nesse nível, US-159/US-160, independente do que o jogador escolhe na tela).
-  it('challenge "challenge" em nível 1: aventura persistida tem encounters[0].npcIds não vazio (US-167)', async () => {
+  // US-166: o encontro `combat` GARANTIDO é sempre a posição 8 (índice 7) — as posições 1-7
+  // são sorteadas, então checar `encounters[0]` não é mais confiável.
+  it('challenge "challenge" em nível 1: aventura persistida tem encounters[7] (combat, posição 8) com npcIds não vazio (US-167)', async () => {
     const character = {
       id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
       baseAttributes: { constitution: 14 }, system: { config },
@@ -519,8 +531,9 @@ describe('AdventureService.createForCharacter', () => {
 
     await service.createForCharacter('char-1', { challenge: 'challenge' })
 
-    const generated = recorded.adventureCreate?.['generatedAdventure'] as { encounters: Array<{ npcIds: string[] }> }
-    expect(generated.encounters[0]!.npcIds.length).toBeGreaterThan(0)
+    const generated = recorded.adventureCreate?.['generatedAdventure'] as { encounters: Array<{ type: string; npcIds: string[] }> }
+    expect(generated.encounters[7]!.type).toBe('combat')
+    expect(generated.encounters[7]!.npcIds.length).toBeGreaterThan(0)
   })
 
   // US-178: locale do jogador (User.locale, já resolvido na linha 230) chega ao motor de
@@ -937,12 +950,21 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     challenge: 'adventure',
   }
 
+  // US-166: default 8 locations/npcs — piso instruído por prompt, mas o teste real precisa de
+  // material suficiente pra round-robin/occupants não colapsarem tudo no mesmo local/NPC.
+  const defaultLocations = Array.from({ length: 8 }, (_, i) => ({
+    id: `loc-${i + 1}`, title: `Local ${i + 1}`, aspects: ['maré alta'], boxedText: 'Você chega.', description: 'notas',
+    occupants: i === 0 ? ['npc-1'] : [],
+  }))
+  const defaultNpcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+
   function fakeGenAi(overrides: {
     locations?: Record<string, unknown>[]
     npcs?: Record<string, unknown>[]
     secrets?: Record<string, unknown>[]
     antagonist?: { name: string; want: string; method: string; trait: string; weakness: string; connection: string }
     closing?: { conclusion: string; followUps: string[] }
+    encounterSituations?: Array<{ behaviors: string; goal: string; complications: string }>
     start?: string
     seenOpeningParams?: Record<string, unknown>
     seenLocationsParams?: Record<string, unknown>
@@ -950,11 +972,15 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     seenAntagonistParams?: Record<string, unknown>
     seenClosingParams?: Record<string, unknown>
   } = {}): AiService {
-    const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas', occupants: [] }]
-    const npcs = overrides.npcs ?? [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+    const locations = overrides.locations ?? defaultLocations
+    const npcs = overrides.npcs ?? defaultNpcs
     const secrets = overrides.secrets ?? [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
     const antagonist = overrides.antagonist ?? { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
-    const closing = overrides.closing ?? { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }
+    // US-166: encounterSituations posicional, 8 itens — generateAdventure quebra sem isto.
+    const encounterSituations = overrides.encounterSituations ?? Array.from({ length: 8 }, (_, i) => ({
+      behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
+    }))
+    const closing = { ...(overrides.closing ?? { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }), encounterSituations }
     const start = overrides.start ?? 'A porta racha ao meio antes que alguém grite.'
     return {
       // US-174: captura os params recebidos por generateLocationsAndNpcs/generateSecrets —
@@ -1112,27 +1138,36 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
 
-  it('encounters[0].locationId referencia locations[0]; npcIds referencia NPCs do próprio npcs[] final', async () => {
+  // US-166: 8 encontros, locationId round-robin sobre locations[], posição 8 (índice 7)
+  // é o único type GARANTIDO 'combat' quando viável — as posições 1-7 são sorteadas.
+  it('8 encontros; locationId round-robin sobre locations[]; npcIds referencia NPCs do npcs[] final', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
-    expect(adventure.encounters).toHaveLength(1)
-    expect(adventure.encounters[0]!.locationId).toBe('loc-1')
-    expect(adventure.encounters[0]!.npcIds.length).toBeGreaterThan(0) // nível 5, modo aventura: limiar > 0
-    for (const id of adventure.encounters[0]!.npcIds) {
-      expect(adventure.npcs.some((n) => n.id === id)).toBe(true)
-    }
+    expect(adventure.encounters).toHaveLength(8)
+    adventure.encounters.forEach((encounter, i) => {
+      expect(encounter.id).toBe(`encounter-${i + 1}`)
+      expect(encounter.locationId).toBe(`loc-${i + 1}`) // round-robin, 8 locations disponíveis
+      for (const id of encounter.npcIds) {
+        expect(adventure.npcs.some((n) => n.id === id)).toBe(true)
+      }
+    })
+    expect(adventure.encounters[7]!.type).toBe('combat') // posição 8, nível 5: limiar > 0
+    expect(adventure.encounters[7]!.npcIds.length).toBeGreaterThan(0)
   })
 
-  it('nível 1-3 (limiar de soma zero, US-160): encontro existe mas npcIds vazio, sem quebrar o parse', async () => {
+  it('nível 1-3 (limiar de soma zero, US-160): nenhum encontro é type combat, sem quebrar o parse', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 1, challenge: 'adventure' }, 'char-1', 1, 'pt-BR')
-    expect(adventure.encounters).toHaveLength(1)
-    expect(adventure.encounters[0]!.npcIds).toEqual([])
+    expect(adventure.encounters).toHaveLength(8)
+    expect(adventure.encounters.every((e) => e.type !== 'combat')).toBe(true)
+    expect(adventure.encounters[7]!.type).toBe('social') // posição 8 cai pra social (fallback, US-166)
+    expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
 
   // US-167: critério de aceite — challenge: 'challenge' usa singleMonsterCrCap (US-161), sempre
   // > 0, então nível 1-3 deixa de ser combate zerado quando o jogador escolheu Modo desafio.
-  it('nível 1-3 com challenge "challenge" (US-167): npcIds não vazio — escolha do jogador chega ao composer', async () => {
+  it('nível 1-3 com challenge "challenge" (US-167): posição 8 é combat com npcIds não vazio', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 1, challenge: 'challenge' }, 'char-1', 1, 'pt-BR')
-    expect(adventure.encounters[0]!.npcIds.length).toBeGreaterThan(0)
+    expect(adventure.encounters[7]!.type).toBe('combat')
+    expect(adventure.encounters[7]!.npcIds.length).toBeGreaterThan(0)
   })
 
   it('npcs[] final inclui os NPCs do passo 2 (locais/NPCs) e os do passo 4 (combate)', async () => {
@@ -1141,11 +1176,49 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(adventure.npcs.length).toBeGreaterThan(1)
   })
 
-  it('mesmo characterId+order: registro e encounters[].npcIds deterministicos entre execuções (parte não-LLM)', async () => {
+  it('mesmo characterId+order: registro e encounters[].type/npcIds deterministicos entre execuções (parte não-LLM)', async () => {
     const a = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7, 'pt-BR')
     const b = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7, 'pt-BR')
     expect(a.registry.tone).toBe(b.registry.tone)
-    expect(a.encounters[0]!.npcIds).toEqual(b.encounters[0]!.npcIds)
+    expect(a.encounters.map((e) => e.type)).toEqual(b.encounters.map((e) => e.type))
+    expect(a.encounters.map((e) => e.npcIds)).toEqual(b.encounters.map((e) => e.npcIds))
+  })
+
+  // US-166 AC: personagens/aventuras diferentes produzem sequências de type diferentes.
+  it('characterId diferente: sequência de encounters[].type diferente', async () => {
+    const a = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+    const b = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-2', 1, 'pt-BR')
+    expect(a.encounters.map((e) => e.type)).not.toEqual(b.encounters.map((e) => e.type))
+  })
+
+  // US-166 AC: type alternando sem repetição adjacente (posições 1-8).
+  it('encounters[].type: nenhuma posição repete o type da posição anterior', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+    for (let i = 1; i < adventure.encounters.length; i++) {
+      expect(adventure.encounters[i]!.type).not.toBe(adventure.encounters[i - 1]!.type)
+    }
+  })
+
+  // US-166 AC: behaviors/goal/complications presentes (não-vazios) em TODO encontro.
+  it('behaviors/goal/complications presentes e não-vazios em todo encontro, incluindo combat', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+    for (const encounter of adventure.encounters) {
+      expect(encounter.behaviors.length).toBeGreaterThan(0)
+      expect(encounter.goal.length).toBeGreaterThan(0)
+      expect(encounter.complications.length).toBeGreaterThan(0)
+    }
+  })
+
+  // US-166: generateClosing recebe o encounterSkeleton (8 posições resolvidas) — antes do
+  // Promise.all, o esqueleto já precisa estar pronto (locationId/npcIds → location/npcs reais).
+  it('generateClosing recebe encounterSkeleton com 8 posições, location/npcs resolvidos', async () => {
+    const seenClosingParams: Record<string, unknown> = {}
+    await service(fakeGenAi({ seenClosingParams })).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+    const skeleton = seenClosingParams.encounterSkeleton as Array<{ id: string; type: string; location: { id: string }; npcs: unknown[] }>
+    expect(skeleton).toHaveLength(8)
+    expect(skeleton[0]!.id).toBe('encounter-1')
+    expect(skeleton[0]!.location.id).toBe('loc-1')
+    expect(skeleton[7]!.type).toBe('combat')
   })
 
   it('registryOverrides é repassado ao rollAdventure — registro fixado, não sorteado', async () => {
@@ -1160,11 +1233,15 @@ describe('AdventureService.generateAdventure (US-164)', () => {
 describe('AdventureService.generateGatedAdventure (US-150)', () => {
   const profile: AdventureProfile = { level: 1, classKey: 'wizard', background: {}, origin: {}, hookSeed: 'A vela curva-se, Elara.', challenge: 'adventure' }
 
-  function fakeGenAi(overrides: { locations?: Record<string, unknown>[] } = {}): AiService {
+  function fakeGenAi(overrides: { locations?: Record<string, unknown>[]; npcs?: Record<string, unknown>[] } = {}): AiService {
     const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [] }]
-    const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
+    const npcs = overrides.npcs ?? [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
     const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
-    const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'] }
+    // US-166: encounterSituations posicional obrigatório, 8 itens.
+    const encounterSituations = Array.from({ length: 8 }, (_, i) => ({
+      behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
+    }))
+    const closing = { conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
     const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
     return {
       generateLocationsAndNpcs: vi.fn(async () => ({ locations, npcs })),
@@ -1189,15 +1266,26 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
     expect(ai.generateLocationsAndNpcs).toHaveBeenCalledTimes(1)
   })
 
-  it('NPC órfão (nada aponta pra "Marta"): esgota o teto de tentativas e falha registrada', async () => {
+  // US-166: com só 1 local e occupants preenchidos, todo encontro `social` (a maioria, nível 1
+  // modo 'adventure' nunca gera `combat`) referencia npc-1 via occupants — o antigo cenário de
+  // órfão (encontro único com npcIds sempre vazio) não existe mais. Pra reproduzir um NPC
+  // realmente órfão, npc-2 nunca entra em occupants NEM é alcançado pelo fallback round-robin
+  // (occupants não-vazio faz os encontros `social` usarem SÓ occupants, nunca o fallback).
+  it('NPC órfão (npc-2 nunca em occupants nem referenciado): esgota o teto de tentativas e falha registrada', async () => {
     const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const ai = fakeGenAi() // occupants: [] — npc-1 nunca referenciado, mesmo resultado em toda tentativa
+    const ai = fakeGenAi({
+      locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }],
+      npcs: [
+        { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },
+        { id: 'npc-2', name: 'Órfão', role: 'coadjuvante', interactions: [] },
+      ],
+    })
 
     const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1, 'pt-BR')
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
-      expect(result.reason).toContain('npc-1')
+      expect(result.reason).toContain('npc-2')
       expect(result.reason).toContain('teto de 3 tentativas esgotado')
     }
     expect(ai.generateLocationsAndNpcs).toHaveBeenCalledTimes(3) // teto default
