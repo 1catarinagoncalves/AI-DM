@@ -16,6 +16,10 @@ import { MONSTER_ROLE_CR } from './monster-roles'
 export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure): WorldEntity[] {
   const now = new Date().toISOString()
   const locationTitleById = new Map(adventure.locations.map((l) => [l.id, l.title]))
+  // US-189: o antagonista já é um AdventureNpc (US-188) — excluído por `id`, sempre
+  // incondicional, dos dois mapeamentos abaixo que iterariam `npcs`/`encounters.npcIds` por
+  // engano. `antagonistEntity` (ao final da função) é a ÚNICA entrada dele no ledger.
+  const antagonistNpcId = adventure.antagonist.npcId
 
   const secretEntities: WorldEntity[] = adventure.secrets.map((secret) => ({
     nome: secret.id,
@@ -28,7 +32,7 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
   }))
 
   const npcEntities: WorldEntity[] = adventure.npcs
-    .filter((npc) => !(npc.role in MONSTER_ROLE_CR))
+    .filter((npc) => !(npc.role in MONSTER_ROLE_CR) && npc.id !== antagonistNpcId)
     .map((npc) => ({
       nome: npc.name,
       tipo: 'npc',
@@ -73,6 +77,7 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
     .flatMap((encounter) => {
       const local = locationTitleById.get(encounter.locationId)
       return encounter.npcIds
+        .filter((npcId) => npcId !== antagonistNpcId)
         .map((npcId) => adventure.npcs.find((npc) => npc.id === npcId))
         .filter((npc): npc is (typeof adventure.npcs)[number] => npc !== undefined)
         .map((npc) => ({
@@ -85,7 +90,35 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
         }))
     })
 
-  return [...secretEntities, ...npcEntities, ...locationEntities, ...encounterNpcEntities]
+  // US-189: `want`/`method`/`trait`/`weakness`/`connection` só existiam no artefato, nunca
+  // chegavam ao Mestre durante o turno — mesmo mecanismo `revelado: false` de segredo/local/
+  // combatente (US-151/170/171), UMA entrada (não array: só existe um antagonista por
+  // aventura). `.at(-1)` em vez de `[length - 1]!`: encontro final SEMPRE existe hoje (US-166),
+  // mas `.at` devolve `undefined` em vez de lançar se essa garantia algum dia quebrar — a
+  // função degrada (ledger sem antagonistEntity) em vez de derrubar toda a geração.
+  const finalEncounter = adventure.encounters.at(-1)
+  const antagonistEntity: WorldEntity | undefined = finalEncounter && {
+    nome: adventure.antagonist.name,
+    tipo: 'npc',
+    local: locationTitleById.get(finalEncounter.locationId),
+    nota: [
+      `Quer: ${adventure.antagonist.want}`,
+      `Método: ${adventure.antagonist.method}`,
+      `Traço: ${adventure.antagonist.trait}`,
+      `Fraqueza: ${adventure.antagonist.weakness}`,
+      `Conexão: ${adventure.antagonist.connection}`,
+    ].join(' — '),
+    revelado: false,
+    atualizadoEm: now,
+  }
+
+  return [
+    ...secretEntities,
+    ...npcEntities,
+    ...locationEntities,
+    ...encounterNpcEntities,
+    ...(antagonistEntity ? [antagonistEntity] : []),
+  ]
 }
 
 // NPC narrativo nunca aparece em `encounters[].npcIds` (só combate aparece lá) — o
