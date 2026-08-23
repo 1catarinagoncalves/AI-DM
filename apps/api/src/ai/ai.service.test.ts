@@ -468,13 +468,14 @@ describe('AiService.reconcileScene → reconcileEncounterLedger, encadeamento (U
 
 describe('AiService.generateLocationsAndNpcs (US-158)', () => {
   const rolled = {
-    premissa: 'Open a gate',
+    premissaCandidates: ['Open a gate'],
     locais: 'Cove',
     monumentos: 'Cage',
     complicacao: { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' },
     patronsandnpcs: Array.from({ length: 7 }, () => ({ behavior: 'Sly', ancestry: 'Human' })),
   }
   const registry = { tone: 'grimdark', setting: 'coastal', areaType: 'settlement' }
+  const premissa = 'Um portão amaldiçoado se abre na Enseada Cinzenta.'
 
   function svc() {
     return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
@@ -486,10 +487,19 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
       locations: [{ title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega à enseada.', description: 'notas do mestre', occupants: [0] }],
       npcs: [{ name: 'Marta', role: 'a arquétipo herborista suspeita' }],
     }
-    const { locations, npcs } = await svc().generateLocationsAndNpcs({ rolled, registry })
+    const { locations, npcs } = await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(npcs[0]!.id).toBe('npc-1')
     expect(locations[0]!.id).toBe('loc-1')
     expect(locations[0]!.occupants).toEqual(['npc-1']) // resolvido por índice → id
+  })
+
+  // US-192: `premissa` chega explícita (não mais lida de `rolled.premissa`) — confirma que
+  // é o valor recebido, não algo derivado de `rolled`, que entra no prompt.
+  it('premissa (explícita, não rolled.premissa) entra no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
+    expect(genObj.prompt).toContain(premissa)
   })
 
   // US-187: vibe rotulado pelo modelo em cada local passa direto pro AdventureLocation final.
@@ -499,7 +509,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
       locations: [{ title: 'Arena', aspects: [], boxedText: 'x', description: 'y', occupants: [], vibe: 'combat' }],
       npcs: [{ name: 'Marta', role: 'papel' }],
     }
-    const { locations } = await svc().generateLocationsAndNpcs({ rolled, registry })
+    const { locations } = await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(locations[0]!.vibe).toBe('combat')
   })
 
@@ -507,7 +517,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
   it('registry (setting/areaType) entra no system do modelo, ao lado do tone (US-187)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [], vibe: 'skill' }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(genObj.system).toContain('coastal')
     expect(genObj.system).toContain('settlement')
   })
@@ -519,7 +529,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
   it('system exige ao menos um local com vibe:combat, pro confronto final', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [], vibe: 'skill' }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(genObj.system).toContain("vibe:'combat'")
   })
 
@@ -529,28 +539,28 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
       locations: [{ title: 'Torre', aspects: [], boxedText: 'x', description: 'y', occupants: [5] }],
       npcs: [{ name: 'Marta', role: 'papel' }],
     }
-    const { locations } = await svc().generateLocationsAndNpcs({ rolled, registry })
+    const { locations } = await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(locations[0]!.occupants).toEqual([])
   })
 
   it('usa primaryModel (2026-08-19), não extractionModel — motor precisa amarrar NPC/local sem órfão (gate US-150)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(genObj.model).toBe(primaryModel)
   })
 
   it('background.story presente entra no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry, background: { story: 'jurou vingança contra o culto' } })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry, background: { story: 'jurou vingança contra o culto' } })
     expect(genObj.system).toContain('jurou vingança contra o culto')
   })
 
   it('background.bonds NÃO entra no prompt — motor de geração só consome story', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry, background: { bonds: ['jurou vingança contra o culto'] } })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry, background: { bonds: ['jurou vingança contra o culto'] } })
     expect(genObj.system).not.toContain('jurou vingança contra o culto')
   })
 
@@ -561,14 +571,14 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
   it('origin.adventuresAndAdvancement presente entra no prompt do modelo', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry, origin: { adventuresAndAdvancement: 'admiradores pagam para defender uma causa ou difamar um inimigo' } })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry, origin: { adventuresAndAdvancement: 'admiradores pagam para defender uma causa ou difamar um inimigo' } })
     expect(genObj.system).toContain('admiradores pagam para defender uma causa ou difamar um inimigo')
   })
 
   it('background vazio cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(genObj.system).toContain('já foi rolado para esta aventura')
   })
 
@@ -576,27 +586,27 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
     const hookSeed = 'A vela curva-se, Elara, numa corte de gelo e etiqueta.'
-    await svc().generateLocationsAndNpcs({ rolled, registry, hookSeed } as never)
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry, hookSeed } as never)
     expect(genObj.system).not.toContain(hookSeed)
     expect(genObj.prompt).not.toContain(hookSeed)
   })
 
   it('falha propaga erro estruturado — NÃO devolve array vazio em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
-    await expect(svc().generateLocationsAndNpcs({ rolled, registry })).rejects.toThrow('modelo indisponível')
+    await expect(svc().generateLocationsAndNpcs({ rolled, premissa, registry })).rejects.toThrow('modelo indisponível')
   })
 
   it('system segue a regra de Onomástica (US-177) — mesma barra da narração ao vivo', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(genObj.system).toContain(ONOMASTICS_SECTION)
   })
 
   it('system segue a barra de ofício de geração (US-179) — concretude/sensorial e voz do NPC', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(genObj.system).toContain(CRAFT_CORE_SECTION)
     expect(genObj.system).toContain(NPC_VOICE_BULLET)
   })
@@ -604,11 +614,98 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
   it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR (US-178)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, registry, locale: 'en-US' })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry, locale: 'en-US' })
     expect(genObj.system).toContain('English')
 
-    await svc().generateLocationsAndNpcs({ rolled, registry })
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
     expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
+  })
+})
+
+describe('AiService.generatePremissa (US-192)', () => {
+  const candidates = ['Open a gate', 'Kill a villain', 'Rescue an NPC', 'Uncover a secret', 'Clear out monsters']
+  const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
+  const registry = { tone: 'grimdark', setting: 'coastal', areaType: 'settlement' }
+
+  function svc() {
+    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+  }
+
+  it('devolve premissa não vazia', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'Um portão amaldiçoado ameaça engolir a vila natal da personagem.' }
+    const { premissa } = await svc().generatePremissa({ candidates, complicacao, registry })
+    expect(premissa.length).toBeGreaterThan(0)
+  })
+
+  it('os 5 candidatos chegam ao prompt', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'x' }
+    await svc().generatePremissa({ candidates, complicacao, registry })
+    for (const candidate of candidates) expect(genObj.prompt).toContain(candidate)
+  })
+
+  it('complicacao chega ao prompt (mesmo padrão de generateClosing) — premissa não pode destoar dela', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'x' }
+    await svc().generatePremissa({ candidates, complicacao, registry })
+    expect(genObj.prompt).toContain('Drenched')
+    expect(genObj.prompt).toContain('Horrific')
+    expect(genObj.prompt).toContain('Aberrant')
+  })
+
+  // US-192: decisão de revisão — registry entra no system, mesmo padrão de
+  // generateAntagonist/generateClosing/generateOpeningBeat/generateLocationsAndNpcs.
+  it('registry (tone/setting/areaType) entra no system', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'x' }
+    await svc().generatePremissa({ candidates, complicacao, registry })
+    expect(genObj.system).toContain('grimdark')
+    expect(genObj.system).toContain('coastal')
+    expect(genObj.system).toContain('settlement')
+  })
+
+  it('background.story presente entra no system (vínculo pessoal, characterAnchors)', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'x' }
+    await svc().generatePremissa({ candidates, complicacao, registry, background: { story: 'jurou vingança contra o culto' } })
+    expect(genObj.system).toContain('jurou vingança contra o culto')
+  })
+
+  it('origin.adventuresAndAdvancement presente entra no system', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'x' }
+    await svc().generatePremissa({ candidates, complicacao, registry, origin: { adventuresAndAdvancement: 'o templo pede um favor' } })
+    expect(genObj.system).toContain('o templo pede um favor')
+  })
+
+  it('sem background/origin cai no fallback genérico, nunca campo vazio', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'x' }
+    await svc().generatePremissa({ candidates, complicacao, registry })
+    expect(genObj.system).toContain('Sem vínculo pessoal registrado')
+  })
+
+  it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'x' }
+    await svc().generatePremissa({ candidates, complicacao, registry, locale: 'en-US' })
+    expect(genObj.system).toContain('English')
+
+    await svc().generatePremissa({ candidates, complicacao, registry })
+    expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
+  })
+
+  it('usa primaryModel — mesma disciplina das outras chamadas do motor', async () => {
+    genObj.error = undefined
+    genObj.result = { premissa: 'x' }
+    await svc().generatePremissa({ candidates, complicacao, registry })
+    expect(genObj.model).toBe(primaryModel)
+  })
+
+  it('falha propaga erro estruturado — NÃO devolve premissa vazia em silêncio', async () => {
+    genObj.error = new Error('modelo indisponível')
+    await expect(svc().generatePremissa({ candidates, complicacao, registry })).rejects.toThrow('modelo indisponível')
   })
 })
 

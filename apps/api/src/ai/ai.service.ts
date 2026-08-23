@@ -150,17 +150,36 @@ const LOCATIONS_AND_NPCS_SCHEMA = z.object({
 
 // US-158: `patronsandnpcs` só dá behavior+ancestry (método do LGMRD) — o prompt lista
 // as linhas roladas para o modelo INVENTAR nome+arquétipo em cima delas, nunca copiar.
-function buildLocationsAndNpcsPrompt(rolled: RolledAdventureContent): string {
+// US-192: `premissa` chega já elaborada por `generatePremissa` — não é mais lida de
+// `rolled.premissa` (que deixou de existir; `rolled` agora só carrega os candidatos crus).
+function buildLocationsAndNpcsPrompt(rolled: RolledAdventureContent, premissa: string): string {
   const npcRows = rolled.patronsandnpcs
     .map((row, i) => `${i + 1}. comportamento: ${row.behavior}; ancestralidade: ${row.ancestry}`)
     .join('\n')
   return [
-    `Premissa da aventura: ${rolled.premissa}`,
+    `Premissa da aventura: ${premissa}`,
     `Local/monumento centrais rolados: ${rolled.locais} — ${rolled.monumentos}`,
     `Complicação: ${rolled.complicacao.condition} (${rolled.complicacao.description}), origem: ${rolled.complicacao.origin}`,
     '',
     `Linhas roladas para os NPCs (uma por NPC, gere exatamente ${rolled.patronsandnpcs.length}):`,
     npcRows,
+  ].join('\n')
+}
+
+// US-192: schema minimalista — só a premissa final elaborada. Não expõe os candidatos
+// rolados nem as situações imaginadas pelo modelo (raciocínio interno instruído no
+// `system`), mesma disciplina de `generateAntagonist` (não expõe alternativas descartadas).
+const PREMISSA_SCHEMA = z.object({
+  premissa: z.string().min(1),
+})
+
+function buildPremissaPrompt(params: { candidates: string[]; complicacao: { condition: string; description: string; origin: string } }): string {
+  const candidateLines = params.candidates.map((c, i) => `${i + 1}. ${c}`).join('\n')
+  return [
+    'Candidatos rolados para a premissa (escolha UM e elabore):',
+    candidateLines,
+    '',
+    `Complicação já rolada para esta aventura: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
   ].join('\n')
 }
 
@@ -1502,6 +1521,53 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
   }
 
   /**
+   * US-192: passo 1 do motor — em vez do primeiro resultado cru de `1d20quests`
+   * (rollContent, US-147), recebe os `PREMISSA_ROLL_COUNT` candidatos já rolados e,
+   * técnica do *Adventure Generator* do Shadowdark RPG (rolar N, imaginar como a
+   * personagem fica sabendo do problema, escolher a situação mais direta/urgente),
+   * escolhe e escreve a premissa final — com o vínculo pessoal da personagem
+   * (`characterAnchors`) quando existir, e sem contradizer `complicacao`. Roda ANTES
+   * de `generateLocationsAndNpcs` (adventure.service.ts): as outras 4 chamadas do
+   * motor recebem o resultado elaborado, não os candidatos crus.
+   *
+   * Schema minimalista (`{ premissa: string }`) — não expõe os candidatos nem as
+   * situações imaginadas, mesma disciplina de `generateAntagonist` (não expõe
+   * alternativas descartadas). NUNCA captura erro — mesma disciplina das outras 5
+   * chamadas do motor: falha aqui é motivo de reseed da US-150, não degradação silenciosa.
+   */
+  async generatePremissa(params: {
+    candidates: string[]
+    complicacao: { condition: string; description: string; origin: string }
+    registry: AdventureRegistry
+    background?: CharacterBackground
+    origin?: { adventuresAndAdvancement?: string }
+    locale?: Locale
+  }): Promise<{ premissa: string }> {
+    const anchors = characterAnchors(params)
+    const anchorInstruction = anchors.length > 0
+      ? `Vínculo pessoal da personagem — prefira a situação que se encaixa em um destes: ${anchors.join('; ')}.`
+      : 'Sem vínculo pessoal registrado — escolha a situação mais direta/urgente entre os candidatos.'
+    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
+
+    const { object, providerMetadata } = await generateObject({
+      model: primaryModel,
+      schema: PREMISSA_SCHEMA,
+      system:
+        'Você é o Mestre de um RPG escolhendo a PREMISSA de uma aventura one-shot (técnica do Adventure Generator, Shadowdark RPG). ' +
+        'Para cada um dos candidatos recebidos, imagine como a personagem ficaria sabendo do problema — favoreça a situação que a envolve mais DIRETAMENTE e que mais demanda ação. ' +
+        `${anchorInstruction} ` +
+        'Escreva a premissa final em 1-2 frases, com a personagem já puxada para dentro do problema — nunca contradiga a complicação recebida (não precisa citá-la, só não destoar dela). ' +
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador.\n\n${CRAFT_CORE_SECTION}`,
+      prompt: buildPremissaPrompt(params),
+      providerOptions: ENGINE_PROVIDER_OPTIONS,
+    })
+    logExtractionEndpoint('generatePremissa', primaryModel, providerMetadata)
+
+    return object
+  }
+
+  /**
    * US-158: veste de prosa os ~6 locais e gera os ~7 NPCs a partir do conteúdo bruto
    * já rolado (US-147), mintando `id` real no CÓDIGO (`loc-N`/`npc-N`) — nunca deixado
    * ao modelo (a US-149 só CONSOME esses `id`s, esta story é quem os cria). Uma
@@ -1512,9 +1578,13 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * e devolvem `null`), esta chamada NUNCA captura erro: sem `locations`/`npcs` a
    * US-149 (segredos) e o gate da US-150 não têm entrada — a falha aqui é motivo de
    * reseed, não de degradar em silêncio (US-158, critério de aceite).
+   *
+   * US-192: `premissa` chega explícita, já elaborada por `generatePremissa` — deixou de
+   * ler `rolled.premissa` (campo que não existe mais em `RolledAdventureContent`).
    */
   async generateLocationsAndNpcs(params: {
     rolled: RolledAdventureContent
+    premissa: string
     registry: AdventureRegistry
     background?: CharacterBackground
     origin?: { adventuresAndAdvancement?: string }
@@ -1552,7 +1622,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         // US-179: boxedText é lido em voz alta (método LGMRD) — vale a MESMA barra
         // abaixo, não uma versão mais fraca por ser um trecho curto.
         `A prosa de local (boxedText/description) e o role do NPC seguem esta barra de qualidade:\n${CRAFT_CORE_SECTION}\n${NPC_VOICE_BULLET}\n\n${ONOMASTICS_SECTION}`,
-      prompt: buildLocationsAndNpcsPrompt(params.rolled),
+      prompt: buildLocationsAndNpcsPrompt(params.rolled, params.premissa),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
     logExtractionEndpoint('generateLocationsAndNpcs', primaryModel, providerMetadata)

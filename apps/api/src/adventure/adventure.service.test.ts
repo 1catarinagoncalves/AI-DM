@@ -36,6 +36,10 @@ function fakeAi(
     generateOpeningNarration: async (input: Record<string, unknown>) => { Object.assign(seen, input); return opening },
     extractOpeningScene: async () => scene,
     extractOpeningEntities: async () => entities,
+    // US-192: fake ecoa o 1º candidato — sem elaboração real (fora de escopo do fake), mas
+    // função dos `candidates` recebidos, pra continuar variando por characterId/order/background
+    // como o `content.premissa` cru variava antes desta story (testes de diferenciação abaixo).
+    generatePremissa: async (params: { candidates: string[] }) => ({ premissa: params.candidates[0] ?? '' }),
     generateLocationsAndNpcs: async () => ({ locations, npcs }),
     generateSecrets: async () => secrets,
     generateAntagonist: async () => antagonist,
@@ -143,7 +147,8 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
 describe('AdventureService.createForCharacter', () => {
   // US-153: título e quest já não vêm do gancho fixo por classe — vêm do artefato do
   // motor de geração (US-164), determinístico por characterId+order (US-146). `rollAdventure`
-  // real (não mockado) devolve o mesmo `content.premissa` que `generateAdventure` usou.
+  // real (não mockado) rola os candidatos; `fakeAi` (US-192) ecoa o 1º como premissa
+  // "elaborada" — mesmo valor que `generateAdventure` usou.
   it('título e quest vêm do artefato gerado (summary/start), não mais do gancho fixo por classe', async () => {
     const character = {
       id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
@@ -156,7 +161,7 @@ describe('AdventureService.createForCharacter', () => {
     const adventure = await service.createForCharacter('char-1', {})
 
     const { content } = rollAdventure('char-1', 1)
-    expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: content.premissa, order: 1 })
+    expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: content.premissaCandidates[0], order: 1 })
     expect(recorded.participantCreate).toEqual({ adventureId: 'adv-1', characterId: 'char-1' })
     expect(recorded.characterStateCreate).toMatchObject({
       characterId: 'char-1', adventureId: 'adv-1', hp: 12, maxHp: 12,
@@ -167,7 +172,7 @@ describe('AdventureService.createForCharacter', () => {
     // US-169: objective/conclusionHint gravados também — conclusionHint = generated.conclusion
     // (US-153 Questões em aberto #4: NUNCA exposto em turno passivo, só via completeQuest).
     expect(recorded.questCreate).toMatchObject({
-      adventureId: 'adv-1', title: content.premissa, description: 'A porta racha ao meio antes que alguém grite.', isPrimary: true,
+      adventureId: 'adv-1', title: content.premissaCandidates[0], description: 'A porta racha ao meio antes que alguém grite.', isPrimary: true,
       objective: 'Impedir que Malvora reúna um exército para tomar a Enseada Cinzenta.',
       conclusionHint: 'O culto recua para as sombras.',
     })
@@ -319,7 +324,7 @@ describe('AdventureService.createForCharacter', () => {
     // Mesmo `order` nos dois lugares: generateGatedAdventure (registro/conteúdo rolados
     // para order=3) e tx.adventure.create — sem recomputar (achado 2026-08-18, US-153).
     const { content } = rollAdventure('char-1', 3)
-    expect(recorded.adventureCreate).toMatchObject({ order: 3, title: content.premissa })
+    expect(recorded.adventureCreate).toMatchObject({ order: 3, title: content.premissaCandidates[0] })
   })
 
   // US-105: a chave vai ao lookup, o rótulo vai ao Mestre. Falha se a chave crua vazar
@@ -454,6 +459,7 @@ describe('AdventureService.createForCharacter', () => {
       generateOpeningNarration: async () => null,
       extractOpeningScene: async () => null,
       extractOpeningEntities: async () => null,
+      generatePremissa: async () => ({ premissa: 'Um portão amaldiçoado se abre na Enseada Cinzenta.' }),
       generateLocationsAndNpcs: async () => ({
         locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
         npcs: [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }], // nunca referenciado → órfão
@@ -994,8 +1000,10 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     closing?: { objective: string; conclusion: string; followUps: string[] }
     encounterSituations?: Array<{ behaviors: string; goal: string; complications: string }>
     start?: string
+    premissa?: string
     locationProse?: { boxedText: string; description: string }
     seenOpeningParams?: Record<string, unknown>
+    seenPremissaParams?: Record<string, unknown>
     seenLocationsParams?: Record<string, unknown>
     seenSecretsParams?: Record<string, unknown>
     seenAntagonistParams?: Record<string, unknown>
@@ -1013,7 +1021,14 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     // US-169: objective obrigatório — generateAdventure quebra em GeneratedAdventureSchema.parse sem isto.
     const closing = { ...(overrides.closing ?? { objective: 'Impedir que Malvora reúna um exército para tomar a região.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }), encounterSituations }
     const start = overrides.start ?? 'A porta racha ao meio antes que alguém grite.'
+    const premissa = overrides.premissa ?? 'Malvora já sabe o nome de quem vem impedi-la.'
     return {
+      // US-192: passo 1 do motor — captura os params recebidos (candidates/complicacao/
+      // registry/background/origin/locale) e devolve a premissa "elaborada" fixa do teste.
+      generatePremissa: async (params: Record<string, unknown>) => {
+        if (overrides.seenPremissaParams) Object.assign(overrides.seenPremissaParams, params)
+        return { premissa }
+      },
       // US-174: captura os params recebidos por generateLocationsAndNpcs/generateSecrets —
       // prova estruturalmente que `hookSeed` NUNCA chega a essas duas chamadas.
       generateLocationsAndNpcs: async (params: Record<string, unknown>) => {
@@ -1061,11 +1076,39 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
 
-  it('id = characterId:order; levelRange = { min, max } = profile.level; summary vem do rolado', async () => {
+  it('id = characterId:order; levelRange = { min, max } = profile.level; summary não vazio', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 2, 'pt-BR')
     expect(adventure.id).toBe('char-1:2')
     expect(adventure.levelRange).toEqual({ min: 1, max: 1 })
     expect(adventure.summary.length).toBeGreaterThan(0)
+  })
+
+  // US-192: passo 1 do motor — generatePremissa roda com os candidatos/complicação/registry
+  // rolados, e o resultado ELABORADO (não content.premissa cru) é o que chega às 4 chamadas
+  // seguintes e ao summary final — critério de aceite central desta story.
+  it('generatePremissa recebe candidates/complicacao/registry/background/origin; resultado elaborado (não cru) alimenta summary + demais chamadas (US-192)', async () => {
+    const seenPremissaParams: Record<string, unknown> = {}
+    const seenLocationsParams: Record<string, unknown> = {}
+    const seenAntagonistParams: Record<string, unknown> = {}
+    const seenClosingParams: Record<string, unknown> = {}
+    const seenOpeningParams: Record<string, unknown> = {}
+    const premissa = 'Malvora já sabe o nome de quem vem impedi-la.'
+
+    const adventure = await service(
+      fakeGenAi({ premissa, seenPremissaParams, seenLocationsParams, seenAntagonistParams, seenClosingParams, seenOpeningParams }),
+    ).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+
+    expect(seenPremissaParams.candidates).toBeDefined()
+    expect(seenPremissaParams.complicacao).toBeDefined()
+    expect(seenPremissaParams.registry).toBeDefined()
+    expect(seenPremissaParams.background).toBeDefined()
+    expect(seenPremissaParams.origin).toBeDefined()
+
+    expect(adventure.summary).toBe(premissa)
+    expect(seenLocationsParams.premissa).toBe(premissa)
+    expect(seenAntagonistParams.premissa).toBe(premissa)
+    expect(seenClosingParams.premissa).toBe(premissa)
+    expect(seenOpeningParams.premissa).toBe(premissa)
   })
 
   // US-172: `start` deixou de ser `profile.hookSeed` copiado — vem de `ai.generateOpeningBeat`.
@@ -1104,6 +1147,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     await service(fakeGenAi({ seenLocationsParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenLocationsParams).not.toHaveProperty('hookSeed')
     expect(seenLocationsParams.rolled).toBeDefined()
+    expect(seenLocationsParams.premissa).toBeDefined() // US-192
     expect(seenLocationsParams.registry).toBeDefined()
     expect(seenLocationsParams.background).toBeDefined()
   })
@@ -1447,6 +1491,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
     const closing = { objective: 'Impedir que Malvora reúna um exército para tomar a região.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
     const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
     return {
+      generatePremissa: vi.fn(async () => ({ premissa: 'Malvora ameaça abrir um portão amaldiçoado na Enseada Cinzenta.' })),
       generateLocationsAndNpcs: vi.fn(async () => ({ locations, npcs })),
       generateSecrets: vi.fn(async () => secrets),
       generateAntagonist: vi.fn(async () => antagonist),

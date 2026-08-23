@@ -214,8 +214,21 @@ export class AdventureService {
   ): Promise<GeneratedAdventure> {
     const { registry, content } = rollAdventure(characterId, order, registryOverrides, attempt)
 
+    // US-192: passo 1 do motor — escolhe/elabora a premissa a partir dos candidatos
+    // rolados, ANTES de qualquer chamada que a consome como insumo. Sequencial (não no
+    // Promise.all abaixo): locais/NPCs/segredos/antagonista/fecho dependem do resultado.
+    const { premissa } = await this.ai.generatePremissa({
+      candidates: content.premissaCandidates,
+      complicacao: content.complicacao,
+      registry,
+      background: profile.background,
+      origin: profile.origin,
+      locale,
+    })
+
     const { locations, npcs } = await this.ai.generateLocationsAndNpcs({
       rolled: content,
+      premissa,
       registry,
       background: profile.background,
       origin: profile.origin,
@@ -261,7 +274,7 @@ export class AdventureService {
       secrets,
       registry,
       complicacao: content.complicacao,
-      premissa: content.premissa,
+      premissa,
       background: profile.background,
       origin: profile.origin,
       locale,
@@ -307,7 +320,7 @@ export class AdventureService {
         secrets,
         registry,
         complicacao: content.complicacao,
-        premissa: content.premissa,
+        premissa,
         antagonist: antagonistWithNpcId,
         encounterSkeleton: drafts,
         background: profile.background,
@@ -322,7 +335,7 @@ export class AdventureService {
         background: profile.background,
         origin: profile.origin,
         complicacao: content.complicacao,
-        premissa: content.premissa,
+        premissa,
         antagonist: antagonistWithNpcId,
         locale,
       }),
@@ -354,7 +367,7 @@ export class AdventureService {
       id: `${characterId}:${order}`,
       levelRange: { min: profile.level, max: profile.level },
       registry,
-      summary: content.premissa,
+      summary: premissa,
       npcs: allNpcs,
       secrets,
       locations: locationsWithAntagonist,

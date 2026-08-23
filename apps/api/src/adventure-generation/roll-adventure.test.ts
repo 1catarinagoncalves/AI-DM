@@ -16,7 +16,7 @@ describe('rollAdventure (US-147)', () => {
   it('devolve registro e conteúdo juntos, prontos para as chamadas de modelo seguintes', () => {
     const { registry, content } = rollAdventure('char-1', 1)
     expect(registry).toHaveProperty('tone')
-    expect(content).toHaveProperty('premissa')
+    expect(content).toHaveProperty('premissaCandidates')
     expect(content).toHaveProperty('locais')
     expect(content).toHaveProperty('monumentos')
     expect(content).toHaveProperty('complicacao')
