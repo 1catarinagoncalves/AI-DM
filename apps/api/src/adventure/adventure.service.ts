@@ -218,6 +218,7 @@ export class AdventureService {
       rolled: content,
       registry,
       background: profile.background,
+      origin: profile.origin,
       locale,
     })
 

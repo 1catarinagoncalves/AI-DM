@@ -1517,15 +1517,19 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     rolled: RolledAdventureContent
     registry: AdventureRegistry
     background?: CharacterBackground
+    origin?: { adventuresAndAdvancement?: string }
     locale?: Locale
   }): Promise<{ locations: AdventureLocation[]; npcs: AdventureNpc[] }> {
-    const story = params.background?.story?.trim()
-    // US-174: rede de segurança quando `background` vem vazio deixou de citar o gancho
-    // fixo por classe (`hookSeed`) — vira instrução genérica ancorada no que já foi
-    // rolado para ESTA aventura, não no catálogo por classe (US-153). Motor de geração só
-    // consome `story` do background (bonds/flaws/deity ficam de fora, ver characterAnchors).
-    const storyInstruction = story
-      ? `História da personagem — amarre AO MENOS UM NPC (por nome ou papel) a este contexto: ${story}.`
+    // 2026-08-23: elenco original nascia surdo a `origin.adventuresAndAdvancement` — só as 3
+    // chamadas seguintes do motor (generateSecrets/generateAntagonist/generateOpeningBeat,
+    // US-180/US-183) recebiam esse vínculo. `characterAnchors` já combina story+adventures
+    // (bonds/flaws seguem de fora, mesma disciplina de antes — ver `characterAnchors`).
+    const anchors = characterAnchors(params)
+    // US-174: rede de segurança quando `background`/`origin` vêm vazios deixou de citar o
+    // gancho fixo por classe (`hookSeed`) — vira instrução genérica ancorada no que já foi
+    // rolado para ESTA aventura, não no catálogo por classe (US-153).
+    const storyInstruction = anchors.length > 0
+      ? `Contexto da personagem — amarre AO MENOS UM NPC (por nome ou papel) a um destes: ${anchors.join('; ')}.`
       : 'Sem história registrada — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
     // US-178: `system` continua em português (instrução PARA o modelo) — só a SAÍDA segue
     // o locale do jogador, mesmo padrão de `buildDmSystemPrompt` (dm-system.ts:260).

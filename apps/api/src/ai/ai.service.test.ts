@@ -554,6 +554,17 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     expect(genObj.system).not.toContain('jurou vingança contra o culto')
   })
 
+  // 2026-08-23: elenco original (NPCs/locais) nascia surdo a origin.adventuresAndAdvancement — só
+  // generateSecrets/generateAntagonist/generateOpeningBeat recebiam esse vínculo (US-180/US-183),
+  // então a trama gerada podia ecoar História mas nunca "Aventura e Avanço" da origem, mesmo
+  // com o dado disponível em profile.origin desde o buildAdventureProfile (US-148).
+  it('origin.adventuresAndAdvancement presente entra no prompt do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry, origin: { adventuresAndAdvancement: 'admiradores pagam para defender uma causa ou difamar um inimigo' } })
+    expect(genObj.system).toContain('admiradores pagam para defender uma causa ou difamar um inimigo')
+  })
+
   it('background vazio cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
