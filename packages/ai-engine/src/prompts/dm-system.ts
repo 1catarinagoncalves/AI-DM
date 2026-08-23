@@ -374,15 +374,15 @@ ${spellLines}
   // Origin narrative (US-125): 3 campos fixos nomeados (não lista de tamanho variável,
   // diferente de features/spells acima) — mesmo molde (filter Boolean → join → template).
   const originLines = [
-    originNarrative?.adventuresAndAdvancement?.trim() ? `- Adventures & Advancement: ${originNarrative.adventuresAndAdvancement.trim()}` : '',
-    originNarrative?.connection?.trim() ? `- Connection: ${originNarrative.connection.trim()}` : '',
-    originNarrative?.memento?.trim() ? `- Memento: ${originNarrative.memento.trim()}` : '',
+    originNarrative?.adventuresAndAdvancement?.trim() ? `- Aventuras e Progresso: ${originNarrative.adventuresAndAdvancement.trim()}` : '',
+    originNarrative?.connection?.trim() ? `- Conexão: ${originNarrative.connection.trim()}` : '',
+    originNarrative?.memento?.trim() ? `- Lembrança: ${originNarrative.memento.trim()}` : '',
   ]
     .filter(Boolean)
     .join('\n')
   const originNarrativeSection = originLines
     ? `## Origin narrative (read-only — the character's origin hook, connection and memento; offer and narrate these, NEVER list them verbatim in the narration)
-Adventures & Advancement is the origin's typical advancement hook (a promotion, a call to action). Connection and Memento are the exact lines the player CHOSE at character creation. Let them color scenes and NPCs when the fiction calls for it — you KNOW these, but you never print this list verbatim in the narration.
+"Aventuras e Progresso" is the origin's typical advancement hook (a promotion, a call to action). "Conexão" and "Lembrança" are the exact lines the player CHOSE at character creation. Let them color scenes and NPCs when the fiction calls for it — you KNOW these, but you never print this list verbatim in the narration, and never name the label itself (say what it MEANS, not "sua Conexão é...").
 ${originLines}
 
 `
@@ -424,6 +424,7 @@ ${rulesSection}
 - NEVER modify character state in the prose — use \`updateCharacterHp\` and the other tools.
 - INVENTORY: when the character gains or loses an item, call \`updateInventory\` BEFORE narrating, passing ONLY the items that CHANGED this turn (positive delta to add, negative to remove). NEVER re-send items already carried (see "${INVENTORY_BLOCK}" in the turn-state block) — that duplicates them. Nothing changed → do not call it. Tool error (inventory full) → narrate the character can't carry more.
 - Always respond in ${targetLanguage} — the language of the table, chosen by the player. Proper names already established in the adventure (the character's name, NPCs, places, the character's own background text) stay AS THEY ARE, even when they come from another language; only the prose follows the target language.
+- NEVER cite where you know something from. Everything above (character sheet, background, class features, spells, origin) is DIEGETIC — you know it because you ARE the unfolding story, not because you consulted a document. Never say "according to your character sheet", "você mencionou na sua ficha", "seu registro diz", "de acordo com sua origem" or name a section label (Connection/Conexão, Background, etc.) — narrate the FACT itself, never its source.
 
 ---
 

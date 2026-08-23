@@ -222,9 +222,15 @@ describe('buildDmSystemPrompt — Origin narrative (US-125)', () => {
   it('renderiza os três campos, um por linha, sob "## Origin narrative"', () => {
     const p = build({ originNarrative })
     expect(p).toMatch(/## Origin narrative/)
-    expect(p).toMatch(/Adventures & Advancement:\s*pode ser promovido dentro da hierarquia da sua ordem/)
-    expect(p).toMatch(/Connection:\s*Um mentor idoso que te ensinou tudo/)
-    expect(p).toMatch(/Memento:\s*Um símbolo sagrado deixado pelo mentor no leito de morte/)
+    expect(p).toMatch(/Aventuras e Progresso:\s*pode ser promovido dentro da hierarquia da sua ordem/)
+    expect(p).toMatch(/Conexão:\s*Um mentor idoso que te ensinou tudo/)
+    expect(p).toMatch(/Lembrança:\s*Um símbolo sagrado deixado pelo mentor no leito de morte/)
+  })
+
+  it('rótulos da seção NÃO ficam em inglês (US-125 misturava idioma na prosa)', () => {
+    const p = build({ originNarrative })
+    const section = p.slice(p.indexOf('## Origin narrative'), p.indexOf('## Origin narrative') + 400)
+    expect(section).not.toMatch(/Adventures & Advancement:|Connection:|Memento:/)
   })
 
   it('marca a seção como awareness apenas (nunca listada verbatim na narração)', () => {
@@ -236,9 +242,9 @@ describe('buildDmSystemPrompt — Origin narrative (US-125)', () => {
   it('renderiza só os campos presentes (sem misturar texto de um campo no outro)', () => {
     const p = build({ originNarrative: { connection: originNarrative.connection } })
     expect(p).toMatch(/## Origin narrative/)
-    expect(p).toMatch(/Connection:\s*Um mentor idoso que te ensinou tudo/)
-    expect(p).not.toMatch(/Adventures & Advancement:/)
-    expect(p).not.toMatch(/Memento:/)
+    expect(p).toMatch(/Conexão:\s*Um mentor idoso que te ensinou tudo/)
+    expect(p).not.toMatch(/Aventuras e Progresso:/)
+    expect(p).not.toMatch(/Lembrança:/)
   })
 
   it('originNarrative ausente → sem seção, sem crash', () => {
@@ -250,6 +256,13 @@ describe('buildDmSystemPrompt — Origin narrative (US-125)', () => {
   it('originNarrative com os três campos undefined → sem seção (nem cabeçalho vazio)', () => {
     const p = build({ originNarrative: {} })
     expect(p).not.toMatch(/## Origin narrative/)
+  })
+})
+
+describe('buildDmSystemPrompt — proibição de citar a ficha como fonte diegética', () => {
+  it('instrui a nunca citar ficha/registro como origem do conhecimento na prosa', () => {
+    const p = build()
+    expect(p.toLowerCase()).toMatch(/character sheet.*diegetic|diegetic.*character sheet/s)
   })
 })
 
