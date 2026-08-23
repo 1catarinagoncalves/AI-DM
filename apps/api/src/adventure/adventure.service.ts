@@ -266,8 +266,9 @@ export class AdventureService {
     // US-181/US-190: antagonista é passo PRÓPRIO, sequencial — roda depois de segredos e
     // antes do Promise.all, porque `generateClosing` (abaixo) precisa dele já pronto pra
     // ancorar a conclusão nele em vez de improvisar prosa.
-    // US-183: `background`/`origin` — mesmos dois campos já passados a `generateOpeningBeat`
-    // abaixo — pra `generateAntagonist` montar `connection` ancorada no vínculo pessoal.
+    // 2026-08-23: `background`/`origin` NÃO entram aqui (ver comentário em
+    // `AiService.generateAntagonist`) — `connection` do vilão nunca ancora em vínculo
+    // permanente da ficha, só no que já foi rolado para esta aventura.
     const antagonist = await this.ai.generateAntagonist({
       locations,
       npcs: npcsBeforeAntagonist,
@@ -275,8 +276,6 @@ export class AdventureService {
       registry,
       complicacao: content.complicacao,
       premissa,
-      background: profile.background,
-      origin: profile.origin,
       locale,
     })
 

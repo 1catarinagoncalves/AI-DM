@@ -1177,8 +1177,10 @@ describe('AdventureService.generateAdventure (US-164)', () => {
 
   // US-181/US-190: antagonista é passo próprio, sequencial — roda com locations/npcs/secrets
   // já prontos, ANTES do Promise.all, e o RESULTADO chega a generateClosing como `antagonist`.
-  // US-183: soma background/origin — mesmos dois campos já passados a generateOpeningBeat.
-  it('generateAntagonist recebe locations/npcs/secrets/registry/complicacao/premissa/background/origin (US-181/US-190/US-183)', async () => {
+  // 2026-08-23: background/origin NÃO chegam mais aqui (ver comentário em
+  // AiService.generateAntagonist) — `connection` do vilão nunca ancora em vínculo permanente
+  // da ficha, só no que já foi rolado para esta aventura.
+  it('generateAntagonist recebe locations/npcs/secrets/registry/complicacao/premissa, nunca background/origin (US-181/US-190)', async () => {
     const seenAntagonistParams: Record<string, unknown> = {}
     await service(fakeGenAi({ seenAntagonistParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenAntagonistParams.locations).toBeDefined()
@@ -1187,8 +1189,8 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(seenAntagonistParams.registry).toBeDefined()
     expect(seenAntagonistParams.complicacao).toBeDefined()
     expect(seenAntagonistParams.premissa).toBeDefined()
-    expect(seenAntagonistParams.background).toBeDefined()
-    expect(seenAntagonistParams.origin).toBeDefined()
+    expect(seenAntagonistParams.background).toBeUndefined()
+    expect(seenAntagonistParams.origin).toBeUndefined()
   })
 
   it('generateClosing recebe o antagonist devolvido por generateAntagonist (US-190)', async () => {

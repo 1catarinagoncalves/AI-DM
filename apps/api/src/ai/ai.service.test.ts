@@ -908,44 +908,17 @@ describe('AiService.generateAntagonist (US-181/US-190)', () => {
     expect(genObj.system).toContain(CRAFT_CORE_SECTION)
   })
 
-  // US-183: `background.story`/`origin.adventuresAndAdvancement` presentes → instrução de
-  // ligar a `connection` ao vínculo, mesmo padrão de `generateOpeningBeat` (US-180).
-  it('background.story presente entra no system — instrução de ligar connection ao vínculo (US-183)', async () => {
-    genObj.error = undefined
-    genObj.result = { name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade', connection: 'x' }
-    await svc().generateAntagonist({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
-      background: { story: 'jurou vingança contra o culto' },
-    })
-    expect(genObj.system).toContain('jurou vingança contra o culto')
-  })
-
-  it('origin.adventuresAndAdvancement presente entra no system — instrução de ligar connection ao vínculo (US-183)', async () => {
-    genObj.error = undefined
-    genObj.result = { name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade', connection: 'x' }
-    await svc().generateAntagonist({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
-      origin: { adventuresAndAdvancement: 'pode ser promovido dentro da ordem' },
-    })
-    expect(genObj.system).toContain('pode ser promovido dentro da ordem')
-  })
-
-  it('background.bonds NÃO entra no system — motor de geração só consome story (US-183)', async () => {
-    genObj.error = undefined
-    genObj.result = { name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade', connection: 'x' }
-    await svc().generateAntagonist({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa',
-      background: { bonds: ['jurou vingança contra o culto'] },
-    })
-    expect(genObj.system).not.toContain('jurou vingança contra o culto')
-  })
-
-  // Sem âncora nenhuma, cai pro fallback genérico — nunca campo vazio (US-183, AC).
-  it('sem background/origin, system cai no fallback genérico de conexão (US-183)', async () => {
+  // 2026-08-23: `generateAntagonist` NÃO recebe `background`/`origin` — QA local achou o
+  // antagonista literalizando feature aberta do background (ex.: Hermit "voz interior",
+  // pensada pra atravessar VÁRIAS aventuras) como o vilão desta aventura; derrotá-lo fechava
+  // um gancho que devia continuar aberto. `connection` ancora só no que já foi rolado pra
+  // esta aventura (locations/npcs/secrets) — nunca em vínculo permanente da ficha.
+  it('instrução de connection nunca cita vínculo pessoal — só o que já foi rolado nesta aventura', async () => {
     genObj.error = undefined
     genObj.result = { name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade', connection: 'x' }
     await svc().generateAntagonist({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa' })
-    expect(genObj.system).toContain('Sem vínculo pessoal registrado')
+    expect(genObj.system).toContain('nunca em vínculo permanente da ficha')
+    expect(genObj.system).not.toContain('Vínculo pessoal da personagem')
   })
 })
 

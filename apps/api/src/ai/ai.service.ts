@@ -1720,6 +1720,15 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * NUNCA captura erro — mesma disciplina de `generateSecrets`/`generateClosing`: falha
    * aqui é motivo de reseed na US-150, não degradação silenciosa.
    */
+  /**
+   * 2026-08-23: `connection` NUNCA ancora em `background.story`/`origin.adventuresAndAdvancement`
+   * — ao contrário das outras 4 chamadas do motor (`characterAnchors`). QA local achou o
+   * antagonista literalizando a feature aberta do background (ex.: Hermit "voz interior",
+   * pensada pra atravessar VÁRIAS aventuras da carreira) como o próprio vilão desta aventura —
+   * derrotá-lo fechava um gancho que devia continuar aberto. `background`/`origin` continuam
+   * alimentando premissa/locais/segredos/fecho normalmente; só decidir QUEM é o antagonista
+   * fica de fora.
+   */
   async generateAntagonist(params: {
     locations: AdventureLocation[]
     npcs: AdventureNpc[]
@@ -1727,16 +1736,10 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     registry: AdventureRegistry
     complicacao: { condition: string; description: string; origin: string }
     premissa: string
-    background?: CharacterBackground
-    origin?: { adventuresAndAdvancement?: string }
     locale?: Locale
     // US-188: `npcId` NÃO sai daqui — o modelo não decide `id` de NPC, quem mintou o
     // AdventureNpc (adventure.service.ts) fecha essa referência depois desta chamada.
   }): Promise<Omit<AdventureAntagonist, 'npcId'>> {
-    const anchors = characterAnchors(params)
-    const anchorInstruction = anchors.length > 0
-      ? `Vínculo pessoal da personagem — prefira ligar a conexão do antagonista a um destes, quando fizer sentido com a premissa/complicação: ${anchors.join('; ')}.`
-      : 'Sem vínculo pessoal registrado — descreva uma conexão mais genérica, ancorada no que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
     const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
     const { object, providerMetadata } = await generateObject({
@@ -1746,7 +1749,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Você é o Mestre de um RPG decidindo o ANTAGONISTA de uma aventura one-shot (método Lazy GM Resource Document), ancorado nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova fora da lista dada. ' +
         'Nomeie o antagonista e declare: `want` (o que busca — poder, vingança, recurso, ritual), `method` (o que faz pra conseguir — reunir exército, ritual em curso, espalhar boato), `trait` (maneirismo/marca reconhecível numa frase curta) e `weakness` (ponto cego ou vício explorável numa frase curta, não a derrota dele). ' +
         'Mesmo que a premissa não aponte vilão óbvio, infira uma oposição plausível — os quatro campos são sempre preenchidos. ' +
-        `Declare também \`connection\` (1 frase curta): como o antagonista se relaciona com o personagem — nunca vazio. ${anchorInstruction} ` +
+        'Declare também `connection` (1 frase curta): como o antagonista se relaciona com o personagem — nunca vazio, ancorada no que já foi rolado para esta aventura (locations/npcs/secrets recebidos), nunca em vínculo permanente da ficha. ' +
         `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildClosingPrompt(params),
