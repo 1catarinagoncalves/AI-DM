@@ -1715,8 +1715,17 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     premissa: string
     antagonist: AdventureAntagonist
     encounterSkeleton: EncounterSkeletonEntry[]
+    background?: CharacterBackground
+    origin?: { adventuresAndAdvancement?: string }
     locale?: Locale
   }): Promise<{ objective: string; conclusion: string; followUps: string[]; encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> }> {
+    // 2026-08-23: única das 5 chamadas do motor que nunca ancorava em background/origin —
+    // locations/npcs/secrets/antagonist/openingBeat já usam `characterAnchors` (US-149/US-180/
+    // US-183); o fecho escrevia objective/conclusion cego ao vínculo pessoal da personagem.
+    const anchors = characterAnchors(params)
+    const anchorInstruction = anchors.length > 0
+      ? `Vínculo pessoal da personagem — ancore objective/conclusion nisto quando fizer sentido com a premissa/complicação: ${anchors.join('; ')}.`
+      : 'Sem vínculo pessoal registrado — resolva a premissa/complicação genericamente, ancorada no que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
     // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
     const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
@@ -1733,6 +1742,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Antes disso, escreva `objective`: o alvo concreto e verificável desta aventura, citando NOMES reais dos locais/NPCs/segredos recebidos e SEMPRE o `want`/`method` do antagonista abaixo — nunca reduza o antagonista só ao nome, e nunca escreva uma paráfrase vaga do resumo da aventura. ' +
         'Escreva a CONCLUSÃO (2-3 parágrafos) resolvendo a premissa e a complicação, ancorada nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova. ' +
         'O antagonista já está decidido (nome/want/method abaixo) — a conclusão resolve o confronto com ELE, sem inventar outro nem contradizer o que já foi definido. ' +
+        `${anchorInstruction} ` +
         `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura. ' +
         'Depois, para CADA um dos 8 encontros listados abaixo (na MESMA ordem), escreva `behaviors`/`goal`/`complications` — as 3 perguntas restantes de uma SITUAÇÃO (framework Sly Flourish): `behaviors` é o que os moradores estão fazendo agora; `goal` é por que o personagem foi até lá; `complications` é o que pode virar o jogo de cabeça pra baixo. ' +

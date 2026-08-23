@@ -983,6 +983,48 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
     await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton })
     expect(genObj.system).toContain(CRAFT_CORE_SECTION)
   })
+
+  // 2026-08-23: generateClosing escreve objective/conclusion (a trama RESOLVIDA em prosa) a
+  // partir da premissa/complicação roladas, mas era a única das 5 chamadas do motor que nunca
+  // recebia background/origin — locations/npcs (US-158+), secrets/antagonist/openingBeat
+  // (US-149/US-183/US-180) já ancoravam em background.story/origin.adventuresAndAdvancement
+  // via characterAnchors; o fecho ficava cego a esse vínculo. Mesmo padrão de US-183.
+  it('background.story presente entra no system — instrução de ancorar objective/conclusion ao vínculo', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
+    await svc().generateClosing({
+      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton,
+      background: { story: 'jurou vingança contra o culto' },
+    })
+    expect(genObj.system).toContain('jurou vingança contra o culto')
+  })
+
+  it('origin.adventuresAndAdvancement presente entra no system — instrução de ancorar objective/conclusion ao vínculo', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
+    await svc().generateClosing({
+      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton,
+      origin: { adventuresAndAdvancement: 'pode ser promovido dentro da ordem' },
+    })
+    expect(genObj.system).toContain('pode ser promovido dentro da ordem')
+  })
+
+  it('background.bonds NÃO entra no system — motor de geração só consome story', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
+    await svc().generateClosing({
+      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton,
+      background: { bonds: ['jurou vingança contra o culto'] },
+    })
+    expect(genObj.system).not.toContain('jurou vingança contra o culto')
+  })
+
+  it('sem background/origin, system cai no fallback genérico de fecho', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton })
+    expect(genObj.system).toContain('Sem vínculo pessoal registrado')
+  })
 })
 
 // US-169 AC (Escopo, "Teste de regressão"): heurística mínima, sem chamada de modelo — um

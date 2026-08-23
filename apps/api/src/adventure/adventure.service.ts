@@ -310,6 +310,8 @@ export class AdventureService {
         premissa: content.premissa,
         antagonist: antagonistWithNpcId,
         encounterSkeleton: drafts,
+        background: profile.background,
+        origin: profile.origin,
         locale,
       }),
       this.ai.generateOpeningBeat({
