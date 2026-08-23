@@ -42,8 +42,8 @@ function adventureFixture(overrides: Partial<GeneratedAdventure> = {}): Generate
       { id: 'secret-3', locationId: 'loc-2', text: 'A Brute serve a um mestre oculto.' },
     ],
     locations: [
-      { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'] },
-      { id: 'loc-2', title: 'Ruína', aspects: [], boxedText: 'x', description: 'x', occupants: [] },
+      { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'], vibe: 'combat' },
+      { id: 'loc-2', title: 'Ruína', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'skill' },
     ],
     encounters: [enc()],
     start: 'A jornada começa.',

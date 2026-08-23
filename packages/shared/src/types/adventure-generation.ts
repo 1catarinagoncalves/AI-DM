@@ -31,6 +31,10 @@ export const AdventureLocationSchema = z.object({
   boxedText: z.string().min(1),
   description: z.string().min(1),
   occupants: z.array(z.string()),
+  // US-187: mesmos 3 valores de AdventureEncounterSchema.type — que tipo de cena este
+  // local puxa melhor, decidido pelo modelo na mesma chamada que escreve o resto da
+  // prosa. Só consumido pela distribuição de locationId (US-166), nunca pelo ledger.
+  vibe: z.enum(['combat', 'skill', 'social']),
 })
 
 // `locationId` referencia AdventureLocationSchema.id; `npcIds[]` referencia AdventureNpcSchema.id.

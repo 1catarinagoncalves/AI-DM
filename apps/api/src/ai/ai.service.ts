@@ -132,6 +132,9 @@ const LOCATIONS_AND_NPCS_SCHEMA = z.object({
         boxedText: z.string().min(1).describe('Texto de leitura em voz alta ao chegar no local, 2-3 frases'),
         description: z.string().min(1).describe('Notas do mestre sobre o local — NÃO lidas em voz alta'),
         occupants: z.array(z.number().int().min(0)).describe('Índices (0-based) de npcs[] presentes aqui — NÚMERO, nunca o nome — [] se nenhum'),
+        // US-187: rótulo de que tipo de cena este local puxa melhor — consumido pela
+        // distribuição de locationId dos encontros (US-166), nunca pelo ledger.
+        vibe: z.enum(['combat', 'skill', 'social']).describe('Que tipo de cena este local puxa melhor, dado o que você já escreveu acima'),
       }),
     )
     .min(1),
@@ -1526,7 +1529,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       system:
         'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
-        `Tom: ${params.registry.tone}. ${storyInstruction} ` +
+        // US-187: setting/areaType entram ao lado do tone já citado — mesmo padrão dos
+        // outros 4 consumidores de prosa (US-186).
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ${storyInstruction} ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a regra de Onomástica abaixo, não o idioma-alvo.\n\n` +
         // US-179: boxedText é lido em voz alta (método LGMRD) — vale a MESMA barra
         // abaixo, não uma versão mais fraca por ser um trecho curto.
@@ -1555,6 +1560,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       boxedText: loc.boxedText,
       description: loc.description,
       occupants: loc.occupants.filter((idx) => idx < npcs.length).map((idx) => npcs[idx]!.id),
+      vibe: loc.vibe,
     }))
 
     return { locations, npcs }

@@ -28,6 +28,7 @@ const adventure: GeneratedAdventure = {
       boxedText: 'A neblina cobre as pedras da praça; o poço no centro está lacrado com correntes enferrujadas.',
       description: 'notas do mestre',
       occupants: ['npc-1'],
+      vibe: 'social',
     },
   ],
   encounters: [],

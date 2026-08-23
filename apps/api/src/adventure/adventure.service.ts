@@ -12,6 +12,7 @@ import { readSecretPrompts } from '../adventure-generation/lgmrd-tables'
 import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
 import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-ledger'
+import { pickLocationIdForType } from '../adventure-generation/assign-location-vibe'
 
 export interface CreateAdventureDto {
   // initialHookId REMOVIDO (US-153): a aventura é sempre gerada, não escolhida pelo cliente.
@@ -136,20 +137,32 @@ export class AdventureService {
   }
 
   /**
-   * US-166: monta a locationId (round-robin) e npcIds (por type) de um encontro, mutando
-   * `state.npcs`/`state.socialIndex` — não é puro de propósito: `combat` precisa acumular
-   * NPCs ENTRE encontros (`buildEncounterNpcs` cumulativo, senão `id` colide) e `social`
-   * precisa de um contador estável entre chamadas (fallback round-robin).
+   * US-166/US-187: monta a locationId (round-robin filtrado por `vibe`, US-187) e npcIds
+   * (por type) de um encontro, mutando `state.npcs`/`state.socialIndex`/`state.vibeCounts`
+   * — não é puro de propósito: `combat` precisa acumular NPCs ENTRE encontros
+   * (`buildEncounterNpcs` cumulativo, senão `id` colide), `social` precisa de um contador
+   * estável entre chamadas (fallback round-robin), e a escolha de local precisa de um
+   * contador POR vibe, independente de `socialIndex` (esse é fallback de NPC, não de local).
+   * `isFinalPosition` avisa quando `index` é o encontro final (posição 8) — só ali um
+   * fallback de local sem `vibe:'combat'` disponível gera log/warn (critério de aceite).
    */
   private buildEncounterDraft(
     type: EncounterType,
     index: number,
+    isFinalPosition: boolean,
     locations: AdventureLocation[],
     combatRoles: ReturnType<typeof composeEncounterRoles>,
-    state: { npcs: AdventureNpc[]; socialIndex: number },
+    state: { npcs: AdventureNpc[]; socialIndex: number; vibeCounts: Record<EncounterType, number> },
   ): EncounterDraft {
     const id = `encounter-${index + 1}`
-    const location = locations[index % locations.length]!
+    const { id: locationId, usedFallback } = pickLocationIdForType(locations, type, state.vibeCounts[type], index)
+    state.vibeCounts[type]++
+    if (isFinalPosition && type === 'combat' && usedFallback) {
+      console.warn(
+        "[AdventureService][buildEncounterDraft] encontro final (posição 8, type='combat') sem local vibe:'combat' disponível — caiu no round-robin cego (fallback)",
+      )
+    }
+    const location = locations.find((loc) => loc.id === locationId)!
 
     if (type === 'combat') {
       const encounterNpcs = buildEncounterNpcs(combatRoles, state.npcs)
@@ -228,11 +241,11 @@ export class AdventureService {
     const combatViable = combatRoles.length > 0
     const types = shuffleEncounterTypes(characterId, order, combatViable, attempt)
 
-    const state = { npcs: [...npcs], socialIndex: 0 }
+    const state = { npcs: [...npcs], socialIndex: 0, vibeCounts: { combat: 0, skill: 0, social: 0 } }
     // Posição 8 (índice 7, encontro final) usa `finalCombatRoles` (orçamento já descontado do
     // antagonista) — as demais continuam com `combatRoles` sem reserva, como antes desta story.
     const drafts: EncounterDraft[] = types.map((type, i) =>
-      this.buildEncounterDraft(type, i, locations, i === types.length - 1 ? finalCombatRoles : combatRoles, state),
+      this.buildEncounterDraft(type, i, i === types.length - 1, locations, i === types.length - 1 ? finalCombatRoles : combatRoles, state),
     )
     const npcsBeforeAntagonist = state.npcs
 

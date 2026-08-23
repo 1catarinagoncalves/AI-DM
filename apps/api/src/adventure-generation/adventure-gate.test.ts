@@ -29,7 +29,7 @@ function validAdventure(overrides: Partial<GeneratedAdventure> = {}): GeneratedA
     ],
     secrets: [{ id: 'secret-1', locationId: 'loc-1', text: 'A herborista esconde um pacto.' }],
     locations: [
-      { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'] },
+      { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'], vibe: 'combat' },
     ],
     encounters: [enc({ npcIds: ['npc-2'] })],
     start: 'A jornada começa.',
@@ -73,7 +73,7 @@ describe('runAdventureGate (US-150)', () => {
 
   it('location.occupants aponta para npc que não resolveu (fallback de nome cru) → falha na verificação 2', () => {
     const broken = validAdventure({
-      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: ['nome nunca resolvido'] }],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: ['nome nunca resolvido'], vibe: 'combat' }],
     })
     const result = runAdventureGate(broken)
     expect(result.ok).toBe(false)
@@ -99,8 +99,8 @@ describe('runAdventureGate (US-150)', () => {
   it('local órfão (nenhum encontro ou segredo aponta pra ele) falha na verificação 2', () => {
     const broken = validAdventure({
       locations: [
-        { id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] },
-        { id: 'loc-2', title: 'Caverna esquecida', aspects: [], boxedText: 'x', description: 'x', occupants: [] },
+        { id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'], vibe: 'combat' },
+        { id: 'loc-2', title: 'Caverna esquecida', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' },
       ],
     })
     const result = runAdventureGate(broken)
@@ -119,7 +119,7 @@ describe('runAdventureGate (US-150)', () => {
         { id: 'npc-3', name: 'Brute', role: 'Brute', interactions: [] },
         { id: 'npc-4', name: 'Brute', role: 'Brute', interactions: [] },
       ],
-      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],
     })
     const result = runAdventureGate(broken)
@@ -135,7 +135,7 @@ describe('runAdventureGate (US-150)', () => {
     const broken = validAdventure({
       levelRange: { min: 2, max: 2 },
       npcs: [{ id: 'npc-2', name: 'Brute', role: 'Brute', interactions: [] }],
-      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2'] })],
     })
     const result = runAdventureGate(broken)
@@ -150,7 +150,7 @@ describe('runAdventureGate (US-150)', () => {
     const adventure = validAdventure({
       levelRange: { min: 8, max: 8 }, // encounterDeadlyThreshold(8)=4, singleMonsterCrCap(8)=8
       npcs: [{ id: 'npc-2', name: 'Brute', role: 'Brute', interactions: [] }],
-      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2'] })],
     })
     expect(runAdventureGate(adventure).ok).toBe(true)
@@ -176,7 +176,7 @@ describe('runAdventureGate (US-150)', () => {
         { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },
         { id: 'npc-2', name: 'Brute', role: 'Brute', interactions: [] },
       ],
-      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'], vibe: 'combat' }],
       encounters: [enc({ type: 'social', npcIds: ['npc-1', 'npc-2'] })],
     })
     expect(runAdventureGate(adventure).ok).toBe(true)
@@ -196,7 +196,7 @@ describe('runAdventureGate (US-150)', () => {
         { id: 'npc-4', name: 'Minion', role: 'Minion', interactions: [] },
         { id: 'npc-5', name: 'Minion', role: 'Minion', interactions: [] },
       ],
-      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4', 'npc-5'] })],
     })
 
@@ -254,7 +254,7 @@ describe('generateWithGate (US-150, reseed)', () => {
         { id: 'npc-3', name: 'Brute', role: 'Brute', interactions: [] },
         { id: 'npc-4', name: 'Brute', role: 'Brute', interactions: [] },
       ],
-      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],
     })
     const generate = vi.fn(async () => superorcado)
@@ -281,7 +281,7 @@ describe('generateWithGate (US-150, reseed)', () => {
         { id: 'npc-4', name: 'Minion', role: 'Minion', interactions: [] },
         { id: 'npc-5', name: 'Minion', role: 'Minion', interactions: [] },
       ],
-      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+      locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4', 'npc-5'] })],
     })
     const generate = vi.fn(async () => adventure)

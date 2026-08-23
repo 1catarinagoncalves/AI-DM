@@ -23,7 +23,7 @@ function fakeAi(
   entities: Record<string, unknown>[] | null = null,
   seen: Record<string, unknown> = {},
 ): AiService {
-  const locations = [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }]
+  const locations = [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'], vibe: 'combat' as const }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   // US-166: generateClosing devolve encounterSituations posicional, 8 itens.
@@ -455,7 +455,7 @@ describe('AdventureService.createForCharacter', () => {
       extractOpeningScene: async () => null,
       extractOpeningEntities: async () => null,
       generateLocationsAndNpcs: async () => ({
-        locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+        locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
         npcs: [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }], // nunca referenciado → órfão
       }),
       generateSecrets: async () => [{ id: 'secret-1', locationId: 'loc-1', text: 'segredo' }],
@@ -976,9 +976,13 @@ describe('AdventureService.generateAdventure (US-164)', () => {
 
   // US-166: default 8 locations/npcs — piso instruído por prompt, mas o teste real precisa de
   // material suficiente pra round-robin/occupants não colapsarem tudo no mesmo local/NPC.
+  // US-187: vibe cicla pelos 3 valores — garante pelo menos 1 local de cada vibe disponível
+  // pra distribuição filtrada nunca cair no fallback nos testes que usam este fixture default.
+  const VIBE_CYCLE = ['combat', 'skill', 'social'] as const
   const defaultLocations = Array.from({ length: 8 }, (_, i) => ({
     id: `loc-${i + 1}`, title: `Local ${i + 1}`, aspects: ['maré alta'], boxedText: 'Você chega.', description: 'notas',
     occupants: i === 0 ? ['npc-1'] : [],
+    vibe: VIBE_CYCLE[i % 3],
   }))
   const defaultNpcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
 
@@ -1180,14 +1184,17 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(adventure.objective).toBe('Impedir Vaerix.')
   })
 
-  // US-166: 8 encontros, locationId round-robin sobre locations[], posição 8 (índice 7)
-  // é o único type GARANTIDO 'combat' quando viável — as posições 1-7 são sorteadas.
-  it('8 encontros; locationId round-robin sobre locations[]; npcIds referencia NPCs do npcs[] final', async () => {
+  // US-166/US-187: 8 encontros, locationId referencia local existente e (quando existe local
+  // do vibe pedido, o que sempre existe aqui — VIBE_CYCLE cobre os 3 valores) bate com o
+  // vibe do encontro — posição 8 (índice 7) é o único type GARANTIDO 'combat' quando viável.
+  it('8 encontros; locationId referencia local existente cujo vibe bate com o type; npcIds referencia NPCs do npcs[] final', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
     expect(adventure.encounters).toHaveLength(8)
     adventure.encounters.forEach((encounter, i) => {
       expect(encounter.id).toBe(`encounter-${i + 1}`)
-      expect(encounter.locationId).toBe(`loc-${i + 1}`) // round-robin, 8 locations disponíveis
+      const location = adventure.locations.find((l) => l.id === encounter.locationId)
+      expect(location).toBeDefined()
+      expect(location!.vibe).toBe(encounter.type) // VIBE_CYCLE garante candidato de todo vibe, nunca cai no fallback
       for (const id of encounter.npcIds) {
         expect(adventure.npcs.some((n) => n.id === id)).toBe(true)
       }
@@ -1218,12 +1225,56 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(adventure.npcs.length).toBeGreaterThan(1)
   })
 
-  it('mesmo characterId+order: registro e encounters[].type/npcIds deterministicos entre execuções (parte não-LLM)', async () => {
+  it('mesmo characterId+order: registro e encounters[].type/npcIds/locationId deterministicos entre execuções (parte não-LLM)', async () => {
     const a = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7, 'pt-BR')
     const b = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 7, 'pt-BR')
     expect(a.registry.tone).toBe(b.registry.tone)
     expect(a.encounters.map((e) => e.type)).toEqual(b.encounters.map((e) => e.type))
     expect(a.encounters.map((e) => e.npcIds)).toEqual(b.encounters.map((e) => e.npcIds))
+    expect(a.encounters.map((e) => e.locationId)).toEqual(b.encounters.map((e) => e.locationId)) // US-187
+  })
+
+  // US-187: locationId deixa de ser round-robin cego (US-166) — passa a respeitar o `vibe`
+  // do local quando existe candidato, com fallback pro round-robin original quando não há.
+  describe('locationId distribuído por vibe (US-187)', () => {
+    // Só 2 locations: loc-1 (vibe combat) e loc-2 (vibe social) — NENHUM local tem vibe
+    // 'skill', então todo encontro `skill` cai no fallback round-robin `i % locations.length`.
+    const mixedVibeLocations = [
+      { id: 'loc-1', title: 'Arena', aspects: [], boxedText: 'x', description: 'x', occupants: [] as string[], vibe: 'combat' as const },
+      { id: 'loc-2', title: 'Salão', aspects: [], boxedText: 'x', description: 'x', occupants: [] as string[], vibe: 'social' as const },
+    ]
+
+    it('encontro combat/social recebe local do vibe compatível; encontro skill (sem local do vibe) cai no fallback round-robin', async () => {
+      const adventure = await service(fakeGenAi({ locations: mixedVibeLocations, npcs: [] })).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+      for (const [i, encounter] of adventure.encounters.entries()) {
+        const location = adventure.locations.find((l) => l.id === encounter.locationId)!
+        if (encounter.type === 'skill') {
+          expect(location.id).toBe(mixedVibeLocations[i % mixedVibeLocations.length]!.id) // fallback: nenhum local vibe:'skill'
+        } else {
+          expect(location.vibe).toBe(encounter.type) // combat/social: sempre tem candidato
+        }
+      }
+      expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+    })
+
+    it('fallback na posição 8 (final, sem local vibe:combat disponível) gera console.warn; posição 8 com vibe disponível não loga', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      // Só locais 'social' — posição 8 (sempre 'combat' em nível 5) nunca tem candidato.
+      const socialOnlyLocations = [
+        { id: 'loc-1', title: 'Salão 1', aspects: [], boxedText: 'x', description: 'x', occupants: [] as string[], vibe: 'social' as const },
+        { id: 'loc-2', title: 'Salão 2', aspects: [], boxedText: 'x', description: 'x', occupants: [] as string[], vibe: 'social' as const },
+      ]
+      await service(fakeGenAi({ locations: socialOnlyLocations, npcs: [] })).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+      expect(warnSpy.mock.calls[0]![0]).toContain("posição 8, type='combat'")
+      warnSpy.mockRestore()
+
+      // defaultLocations tem local vibe:'combat' disponível (VIBE_CYCLE) — nenhum warn.
+      const warnSpy2 = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+      expect(warnSpy2).not.toHaveBeenCalled()
+      warnSpy2.mockRestore()
+    })
   })
 
   // US-166 AC: personagens/aventuras diferentes produzem sequências de type diferentes.
@@ -1259,7 +1310,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     const skeleton = seenClosingParams.encounterSkeleton as Array<{ id: string; type: string; location: { id: string }; npcs: unknown[] }>
     expect(skeleton).toHaveLength(8)
     expect(skeleton[0]!.id).toBe('encounter-1')
-    expect(skeleton[0]!.location.id).toBe('loc-1')
+    expect(defaultLocations.some((loc) => loc.id === skeleton[0]!.location.id)).toBe(true) // US-187: locationId já não é fixo em loc-1 (round-robin filtrado por vibe)
     expect(skeleton[7]!.type).toBe('combat')
   })
 
@@ -1300,7 +1351,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
       // npcs/locations mínimos, sem occupants — isola o fallback social do antagonista.
       const adventure = await service(
         fakeGenAi({
-          locations: [{ id: 'loc-1', title: 'Local 1', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+          locations: [{ id: 'loc-1', title: 'Local 1', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
           npcs: [],
         }),
       ).generateAdventure(lowLevelProfile, 'char-1', 1, 'pt-BR')
@@ -1386,7 +1437,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
   const profile: AdventureProfile = { level: 1, classKey: 'wizard', background: {}, origin: {}, hookSeed: 'A vela curva-se, Elara.', challenge: 'adventure' }
 
   function fakeGenAi(overrides: { locations?: Record<string, unknown>[]; npcs?: Record<string, unknown>[] } = {}): AiService {
-    const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [] }]
+    const locations = overrides.locations ?? [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }]
     const npcs = overrides.npcs ?? [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
     const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
     // US-166: encounterSituations posicional obrigatório, 8 itens.
@@ -1411,7 +1462,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
   }
 
   it('grafo fechado (npc ocupa o local): gate passa na 1ª tentativa, sem reseed', async () => {
-    const ai = fakeGenAi({ locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }] })
+    const ai = fakeGenAi({ locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'], vibe: 'combat' }] })
 
     const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1, 'pt-BR')
 
@@ -1427,7 +1478,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
   it('NPC órfão (npc-2 nunca em occupants nem referenciado): esgota o teto de tentativas e falha registrada', async () => {
     const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const ai = fakeGenAi({
-      locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'] }],
+      locations: [{ id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'], vibe: 'combat' }],
       npcs: [
         { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] },
         { id: 'npc-2', name: 'Órfão', role: 'coadjuvante', interactions: [] },

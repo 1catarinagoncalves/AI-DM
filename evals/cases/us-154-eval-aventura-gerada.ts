@@ -41,8 +41,8 @@ const adventure: GeneratedAdventure = {
     { id: 'secret-vila-4', locationId: 'loc-2', text: 'O poço selado guarda uma entidade mais antiga que a vila.' },
   ],
   locations: [
-    { id: 'loc-1', title: 'Praça da vila', aspects: ['poço selado'], boxedText: 'x', description: 'x', occupants: ['npc-1', 'npc-2'] },
-    { id: 'loc-2', title: 'Casa da anciã', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-5'] },
+    { id: 'loc-1', title: 'Praça da vila', aspects: ['poço selado'], boxedText: 'x', description: 'x', occupants: ['npc-1', 'npc-2'], vibe: 'social' },
+    { id: 'loc-2', title: 'Casa da anciã', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-5'], vibe: 'skill' },
   ],
   encounters: [{ id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-7'] }],
   start: 'A caravana chega à vila ao anoitecer.',

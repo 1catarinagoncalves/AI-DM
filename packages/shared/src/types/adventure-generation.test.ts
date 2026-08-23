@@ -28,6 +28,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
         boxedText: 'O poço no centro da praça exala um cheiro de terra molhada.',
         description: 'Uma praça de pedra com um poço lacrado ao centro.',
         occupants: ['Elenora'],
+        vibe: 'social',
       }],
       encounters: [],
       start: 'O grupo chega à vila ao anoitecer, atraído por rumores de luzes nas catacumbas.',
@@ -63,6 +64,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
         boxedText: 'The well at the square\'s center exhales a smell of wet earth.',
         description: 'A stone square with a sealed well at its center.',
         occupants: ['Elenora'],
+        vibe: 'social',
       }],
       encounters: [],
       start: 'The party arrives at the village at dusk, drawn by rumors of lights in the catacombs.',
@@ -92,6 +94,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
         boxedText: 'Texto de caixa.',
         description: 'Descrição.',
         occupants: [],
+        vibe: 'social',
       }],
       encounters: [],
       start: 'Início.',
@@ -115,7 +118,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       npcs: [{ id: 'npc-1', name: 'Elenora', role: 'anciã', interactions: [] }],
       secrets: [],
       locations: [{
-        id: 'loc-1', title: 'Praça', aspects: [], boxedText: 'Texto de caixa.', description: 'Descrição.', occupants: ['npc-1'],
+        id: 'loc-1', title: 'Praça', aspects: [], boxedText: 'Texto de caixa.', description: 'Descrição.', occupants: ['npc-1'], vibe: 'social',
       }],
       encounters: [{
         id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-1'], type: 'social',

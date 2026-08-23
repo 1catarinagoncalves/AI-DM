@@ -11,7 +11,7 @@ function encounter(overrides: Partial<AdventureEncounter> = {}): AdventureEncoun
 }
 
 function location(overrides: Partial<AdventureLocation> = {}): AdventureLocation {
-  return { id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], ...overrides }
+  return { id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat', ...overrides }
 }
 
 function entity(overrides: Partial<WorldEntity> = {}): WorldEntity {

@@ -465,6 +465,26 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     expect(locations[0]!.occupants).toEqual(['npc-1']) // resolvido por índice → id
   })
 
+  // US-187: vibe rotulado pelo modelo em cada local passa direto pro AdventureLocation final.
+  it('vibe do local rotulado pelo modelo passa direto pro AdventureLocation final', async () => {
+    genObj.error = undefined
+    genObj.result = {
+      locations: [{ title: 'Arena', aspects: [], boxedText: 'x', description: 'y', occupants: [], vibe: 'combat' }],
+      npcs: [{ name: 'Marta', role: 'papel' }],
+    }
+    const { locations } = await svc().generateLocationsAndNpcs({ rolled, registry })
+    expect(locations[0]!.vibe).toBe('combat')
+  })
+
+  // US-187: registry.setting/areaType passam a entrar no system, ao lado do tone já citado.
+  it('registry (setting/areaType) entra no system do modelo, ao lado do tone (US-187)', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [], vibe: 'skill' }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry })
+    expect(genObj.system).toContain('coastal')
+    expect(genObj.system).toContain('settlement')
+  })
+
   it('índice de occupant fora de faixa é descartado (2026-08-19: sem match por nome pra preservar)', async () => {
     genObj.error = undefined
     genObj.result = {
@@ -544,7 +564,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
 })
 
 describe('AiService.generateSecrets (US-149)', () => {
-  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
+  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [], vibe: 'combat' as const }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const registry = { tone: 'comedic', setting: 'coastal', areaType: 'settlement' }
   const secretPrompts = {
@@ -668,7 +688,7 @@ describe('AiService.generateSecrets (US-149)', () => {
 })
 
 describe('AiService.generateAntagonist (US-181/US-190)', () => {
-  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
+  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [], vibe: 'combat' as const }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   const registry = { tone: 'grimdark', setting: 'coastal', areaType: 'settlement' }
@@ -784,7 +804,7 @@ describe('AiService.generateAntagonist (US-181/US-190)', () => {
 })
 
 describe('AiService.generateClosing (US-164/US-166)', () => {
-  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
+  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [], vibe: 'combat' as const }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   const registry = { tone: 'grimdark', setting: 'coastal', areaType: 'settlement' }
@@ -945,7 +965,7 @@ describe('objectiveCitesWantOrMethod — heurística de regressão (US-169 AC)',
 })
 
 describe('AiService.generateOpeningBeat (US-172)', () => {
-  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [] }]
+  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [], vibe: 'combat' as const }]
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   const registry = { tone: 'terror', setting: 'coastal', areaType: 'settlement' }
@@ -1135,7 +1155,7 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
 })
 
 describe('AiService.generateAntagonistLocationProse (US-191)', () => {
-  const location = { id: 'loc-8', title: 'Salão do Trono Partido', aspects: ['tetos desabando'], boxedText: 'Você chega ao salão.', description: 'Ecos de passos antigos.', occupants: [] }
+  const location = { id: 'loc-8', title: 'Salão do Trono Partido', aspects: ['tetos desabando'], boxedText: 'Você chega ao salão.', description: 'Ecos de passos antigos.', occupants: [], vibe: 'combat' as const }
   const registry = { tone: 'terror', setting: 'coastal', areaType: 'settlement' }
   const antagonist = { name: 'Malvora', method: 'reunir um exército', trait: 'fala em sussurros' }
 

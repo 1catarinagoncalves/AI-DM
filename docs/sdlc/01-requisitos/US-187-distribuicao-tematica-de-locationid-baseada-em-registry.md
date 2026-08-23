@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (2026-08-23)
 **Depende de:** [US-166](./US-166-motor-gera-multiplos-encontros.md) (`generateAdventure`, monta os 8 `AdventureEncounter` — esta story substitui o MECANISMO de escolha de `locationId` que aquela introduz; ✅ **implementada** em 22/08/2026 — dependência liberada, esta story pode entrar) · [US-158](./US-158-locais-npcs-prosa-motor.md) (`generateLocationsAndNpcs`/`LOCATIONS_AND_NPCS_SCHEMA`, ✅ implementada — ganha o campo novo e o insumo de `registry` que faltava) · [US-144](./US-144-schema-aventura-shared.md) (`AdventureLocationSchema`, ganha `vibe`)
 **Relacionado:** [US-156](./US-156-catalogos-registro-dto-validacao.md)/[US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (jogador escolhe `setting`/`tone`/`areaType` do registro — esta story é o primeiro consumidor real de `setting`/`areaType` além do DTO) · [US-173](./US-173-registro-fica-so-com-tone.md) (histórico: `setting`/`areaType` saíram do registro por falta de consumidor fora da rolagem — revertido no código em 21/08/2026; esta story dá a `setting`/`areaType` o primeiro consumidor real na geração de conteúdo) · [US-186](./US-186-decisao-rollcontent-nao-recebe-setting-areatype.md) (✅ implementada 22/08/2026 — cobriu o MESMO fix `setting`/`areaType` nos outros 4 consumidores de prosa, `generateLocationsAndNpcs` ficou de fora de propósito, reservado a esta story)
 **Criada em:** 2026-08-21 — a partir do item "Distribuição temática de `locationId`" na seção *Fora do escopo* da US-166 (*"Round-robin é a opção barata"*), levantado pela mantenedora como story própria depois de o registro (`setting`/`tone`/`areaType`) ter sido restaurado em `AdventureRegistry`/`GeneratedAdventureSchema` no mesmo dia.
@@ -106,30 +106,34 @@ locations: z.array(
 // cai no round-robin original sobre locations inteiro (mesmo mecanismo da US-166, nunca
 // removido). counters: contador por vibe (ou pelo índice global, no fallback), mantido
 // pelo chamador ao longo do loop dos 8 encontros — determinístico, sem RNG.
+// Retorna `usedFallback` (não só o `id`) pra quem chama saber, sem recalcular o filtro
+// de subconjunto de novo — sem isso o log de fallback da posição 8 (ver Critérios de
+// aceite) teria que repetir `locations.filter(l => l.vibe === type)` fora da função,
+// duas cópias do mesmo filtro podendo divergir se só uma for editada depois.
 export function pickLocationIdForType(
   locations: AdventureLocation[],
   type: 'combat' | 'skill' | 'social',
   matchedCount: number, // quantas vezes esse `type` já foi usado antes nesta aventura
   globalIndex: number,  // posição do encontro (0-7), para o fallback
-): string
+): { id: string; usedFallback: boolean }
 ```
 
 ---
 
 ## Critérios de aceite
 
-- [ ] `AdventureLocationSchema.parse()` exige `vibe` (`'combat' | 'skill' | 'social'`) em toda location.
-- [ ] `LOCATIONS_AND_NPCS_SCHEMA` exige `vibe` em cada item de `locations[]`.
-- [ ] `system`/`buildLocationsAndNpcsPrompt` de `generateLocationsAndNpcs` citam `registry.setting` e `registry.areaType`, não só `registry.tone`.
-- [ ] `locationId` de cada um dos 8 encontros (US-166): quando existe ao menos um local com `vibe === type`, o escolhido tem esse `vibe`.
-- [ ] Sem local do `vibe` pedido disponível: `locationId` cai no round-robin `i % locations.length` original — nunca falha `.parse()` nem reduz cobertura de locais.
-- [ ] Mesmo `characterId`+`order`: a distribuição de `locationId` é idêntica entre execuções (parte de código); `vibe`/prosa dos locais seguem a mesma disciplina de não-determinismo que `boxedText`/`description` já têm (US-158) — não é critério exigir `vibe` idêntico entre execuções, só a lógica de escolha de índice sobre o que veio.
-- [ ] Gate (US-150): nenhuma verificação nova; grafo continua fechando pelas mesmas regras (`locationId` sempre referencia local existente, agora com `vibe` a mais no local, campo que o gate não lê).
-- [ ] **Teste de regressão:** fixture com locais de `vibe` misto → distribuição respeita `vibe` quando possível; fixture com um único `vibe` presente entre os 8 locais → os `type` sem correspondência caem no fallback, sem erro.
-- [ ] **Fallback na posição 8 (encontro final) gera log/warn** quando cai no round-robin cego por ausência de local `vibe:'combat'` — é o encontro mais importante da aventura, fallback aí não pode ficar silencioso como nas outras 7 posições. Não bloqueia geração, só dá visibilidade pro eval (ver Questão em aberto #1).
-- [ ] **Todo `AdventureLocation` literal já existente em testes/evals ganha `vibe`** — `adventure.service.test.ts`, `ai.service.test.ts`, `evals/cases/us-154-eval-aventura-gerada.ts` (grep `AdventureLocation` antes de codar pra achar todos). Campo passa a ser obrigatório no schema; qualquer literal sem ele quebra `.parse()`/typecheck.
-- [ ] `pnpm typecheck` e `pnpm test` passam.
-- [ ] `pnpm eval` passa (muda prompt de `generateLocationsAndNpcs`).
+- [x] `AdventureLocationSchema.parse()` exige `vibe` (`'combat' | 'skill' | 'social'`) em toda location.
+- [x] `LOCATIONS_AND_NPCS_SCHEMA` exige `vibe` em cada item de `locations[]`.
+- [x] `system`/`buildLocationsAndNpcsPrompt` de `generateLocationsAndNpcs` citam `registry.setting` e `registry.areaType`, não só `registry.tone`.
+- [x] `locationId` de cada um dos 8 encontros (US-166): quando existe ao menos um local com `vibe === type`, o escolhido tem esse `vibe`.
+- [x] Sem local do `vibe` pedido disponível: `locationId` cai no round-robin `i % locations.length` original — nunca falha `.parse()` nem reduz cobertura de locais.
+- [x] Mesmo `characterId`+`order`: a distribuição de `locationId` é idêntica entre execuções (parte de código); `vibe`/prosa dos locais seguem a mesma disciplina de não-determinismo que `boxedText`/`description` já têm (US-158) — não é critério exigir `vibe` idêntico entre execuções, só a lógica de escolha de índice sobre o que veio.
+- [x] Gate (US-150): nenhuma verificação nova; grafo continua fechando pelas mesmas regras (`locationId` sempre referencia local existente, agora com `vibe` a mais no local, campo que o gate não lê).
+- [x] **Teste de regressão:** fixture com locais de `vibe` misto → distribuição respeita `vibe` quando possível; fixture com um único `vibe` presente entre os 8 locais → os `type` sem correspondência caem no fallback, sem erro.
+- [x] **Fallback na posição 8 (encontro final) gera log/warn** quando cai no round-robin cego por ausência de local `vibe:'combat'` — é o encontro mais importante da aventura, fallback aí não pode ficar silencioso como nas outras 7 posições. Usa a flag `usedFallback` devolvida por `pickLocationIdForType` (ver *Modelo de dados proposto*), não recalcula o filtro de subconjunto separado. Não bloqueia geração, só dá visibilidade pro eval (ver Questão em aberto #1).
+- [x] **Todo `AdventureLocation` literal já existente em testes/evals ganha `vibe`** — `adventure.service.test.ts`, `ai.service.test.ts`, `evals/cases/us-154-eval-aventura-gerada.ts` (grep `AdventureLocation` antes de codar pra achar todos). Campo passa a ser obrigatório no schema; qualquer literal sem ele quebra `.parse()`/typecheck.
+- [x] `pnpm typecheck` e `pnpm test` passam.
+- [x] `pnpm eval` passa (muda prompt de `generateLocationsAndNpcs`).
 
 ---
 
@@ -140,7 +144,14 @@ export function pickLocationIdForType(
 - **Contador de round-robin por `vibe` é local ao loop dos 8 encontros**, não um novo sub-seed de `deriveAdventureSeed` — a escolha em si já é determinística porque itera sobre a lista de `locations`/`type` na ordem que o código já decidiu (ordem dos locais no array + sequência de `type` do shuffle seedado da US-166); não precisa de RNG próprio.
 - **`registry.setting`/`areaType` em `generateLocationsAndNpcs` é aditivo ao `system`, mesmo padrão de `Tom: ${params.registry.tone}.`** ([ai.service.ts:1519](../../../apps/api/src/ai/ai.service.ts)) — uma linha a mais, não reescreve a instrução existente. Mesmo padrão que a US-186 já aplicou nos outros 4 consumidores de prosa — só falta este.
 - **`state` de `buildEncounterDraft` ([adventure.service.ts:144-175](../../../apps/api/src/adventure/adventure.service.ts)) ganha um contador POR vibe, campo NOVO — não reusar `socialIndex`.** `socialIndex` é fallback de NPC quando `location.occupants` vem vazio (mecanismo da US-166, intocado); o contador de `vibe` é escolha de LOCAL, mecanismo desta story. São dois índices independentes andando dentro do mesmo objeto `state` — misturá-los produz distribuição errada silenciosa (typecheck não pega, só teste de regressão pega).
-- **Fallback na posição 8 precisa de log próprio**, não só o teste de regressão do critério de aceite. `buildEncounterDraft` já recebe `index`/`globalIndex` — condicional `index === types.length - 1 && !hasVibeMatch` loga um `console.warn`/log estruturado (mesmo canal que `logExtractionEndpoint` já usa em `ai.service.ts`), pra aparecer em runs de eval sem precisar instrumentar teste novo toda vez que a Questão em aberto #1 for revisitada.
+- **Fallback na posição 8 precisa de log próprio**, não só o teste de regressão do critério de aceite. `buildEncounterDraft` já recebe `index`/`globalIndex` — condicional `index === types.length - 1 && usedFallback` (flag devolvida por `pickLocationIdForType`, ver *Modelo de dados proposto*) loga:
+  ```ts
+  console.warn(
+    "[AdventureService][buildEncounterDraft] encontro final (posição 8, type='combat') sem local vibe:'combat' disponível — caiu no round-robin cego (fallback)",
+  )
+  ```
+  **Não reusar `logExtractionEndpoint`** ([ai.service.ts:441](../../../apps/api/src/ai/ai.service.ts)): é função privada (não exportada), assinatura presa a `(label, model, providerMetadata)` e vive em `ai.service.ts` — `buildEncounterDraft` roda em `adventure.service.ts` sem `model`/`providerMetadata` nesse ponto, e o arquivo hoje não tem nenhum `console.*` (grep confirma). É canal NOVO ali, mesmo mecanismo (`console.*`), formato próprio.
+  **Sem `characterId`/`order` na mensagem** — não vale mudar a assinatura de `buildEncounterDraft` (hoje 5 parâmetros: `type`, `index`, `locations`, `combatRoles`, `state`) só pra correlacionar o log; quem roda `pnpm eval` já sabe qual case está em execução pelo output do harness ao redor. Se a Questão em aberto #1 for reaberta com sinal de produção precisando de correlação por personagem, é mudança de escopo pequena e isolada nessa hora — não precisa ser antecipada aqui.
 - **Antes de mudar o schema, grep `AdventureLocation` em `apps/api/src/**/*.test.ts` e `evals/cases/`** — todo literal construído à mão (não vindo de `generateLocationsAndNpcs`) precisa ganhar `vibe` na mesma leva, senão `pnpm typecheck`/`pnpm test` quebram fora do escopo que os critérios de aceite descrevem.
 
 ---

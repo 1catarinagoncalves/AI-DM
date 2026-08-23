@@ -22,7 +22,7 @@ const adventure: GeneratedAdventure = {
   npcs: [{ id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] }],
   secrets: [],
   locations: [
-    { id: 'loc-1', title: 'Ruína afundada', aspects: ['sombras longas'], boxedText: 'A trilha termina na ruína.', description: 'notas do mestre', occupants: [] },
+    { id: 'loc-1', title: 'Ruína afundada', aspects: ['sombras longas'], boxedText: 'A trilha termina na ruína.', description: 'notas do mestre', occupants: [], vibe: 'combat' },
   ],
   encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: ['npc-2'] }],
   start: 'A trilha termina na ruína.',
