@@ -205,7 +205,7 @@ OPEN PALETTE, not a closed list: when a scene needs a culture the cheat-sheet sk
  * existe fora de um turno), NPC (bullet à parte, ver `NPC_VOICE_BULLET`), ritmo/
  * hook/idioma (regras específicas de turno interativo, US-179 Fora do escopo).
  */
-export const CRAFT_CORE_SECTION = `- Open on the SENSES (rain, cold wet armour, the failing light of dusk), not on exposition.
+export const CRAFT_CORE_SECTION = `- Open on the SENSES (sight, sound, smell, touch — whatever fits this specific scene), not on exposition.
 - Be concrete and NAME things: the mount, the sword, the holy symbol, the NPC. A specific detail beats a generic one.
 - Show tension before you explain it (a village's wrong, heavy silence comes before we learn why).`
 
