@@ -1,12 +1,12 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
+import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type AdventureAntagonist, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 import { rollAdventure } from '../adventure-generation/roll-adventure'
-import { composeEncounterRoles, buildEncounterNpcs, type EncounterChallenge } from '../adventure-generation/monster-roles'
+import { composeEncounterRoles, buildEncounterNpcs, chooseAntagonistRole, MONSTER_ROLE_CR, type EncounterChallenge } from '../adventure-generation/monster-roles'
 import { shuffleEncounterTypes, type EncounterType } from '../adventure-generation/shuffle-encounter-types'
 import { readSecretPrompts } from '../adventure-generation/lgmrd-tables'
 import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
@@ -218,13 +218,23 @@ export class AdventureService {
       locale,
     })
 
+    // US-188: papel/CR do antagonista, calculável CEDO (só level/challenge, sem esperar o
+    // modelo) — reserva o CR dele no orçamento do encontro final ANTES do loop guloso de
+    // `composeEncounterRoles`, pra não estourar `checkEncounterBudget` por composição cega.
+    const antagonistRole = chooseAntagonistRole(profile.level, profile.challenge)
+    const antagonistCr = antagonistRole ? MONSTER_ROLE_CR[antagonistRole] : 0
     const combatRoles = composeEncounterRoles(profile.level, profile.challenge)
+    const finalCombatRoles = composeEncounterRoles(profile.level, profile.challenge, antagonistCr)
     const combatViable = combatRoles.length > 0
     const types = shuffleEncounterTypes(characterId, order, combatViable, attempt)
 
     const state = { npcs: [...npcs], socialIndex: 0 }
-    const drafts: EncounterDraft[] = types.map((type, i) => this.buildEncounterDraft(type, i, locations, combatRoles, state))
-    const allNpcs = state.npcs
+    // Posição 8 (índice 7, encontro final) usa `finalCombatRoles` (orçamento já descontado do
+    // antagonista) — as demais continuam com `combatRoles` sem reserva, como antes desta story.
+    const drafts: EncounterDraft[] = types.map((type, i) =>
+      this.buildEncounterDraft(type, i, locations, i === types.length - 1 ? finalCombatRoles : combatRoles, state),
+    )
+    const npcsBeforeAntagonist = state.npcs
 
     // US-181/US-190: antagonista é passo PRÓPRIO, sequencial — roda depois de segredos e
     // antes do Promise.all, porque `generateClosing` (abaixo) precisa dele já pronto pra
@@ -233,7 +243,7 @@ export class AdventureService {
     // abaixo — pra `generateAntagonist` montar `connection` ancorada no vínculo pessoal.
     const antagonist = await this.ai.generateAntagonist({
       locations,
-      npcs: allNpcs,
+      npcs: npcsBeforeAntagonist,
       secrets,
       registry,
       complicacao: content.complicacao,
@@ -242,6 +252,23 @@ export class AdventureService {
       origin: profile.origin,
       locale,
     })
+
+    // US-188: o antagonista vira, ele mesmo, um AdventureNpc real — `role` é o MonsterRole
+    // calculado acima (soma no gate) quando existe; nível 1-3/'adventure' (sem CR seguro) cai
+    // de volta pro texto livre `antagonist.trait`, comportamento original desta story. `id`
+    // some ao array final e é adicionado a `npcIds` do encontro final (último draft) — o
+    // combatente que o jogador enfrenta é LITERALMENTE o antagonista, mesmo quando
+    // `finalCombatRoles` é `[]`.
+    const antagonistNpc: AdventureNpc = {
+      id: `npc-${npcsBeforeAntagonist.length + 1}`,
+      name: antagonist.name,
+      role: antagonistRole ?? antagonist.trait,
+      interactions: [],
+    }
+    const allNpcs = [...npcsBeforeAntagonist, antagonistNpc]
+    const finalDraft = drafts[drafts.length - 1]!
+    drafts[drafts.length - 1] = { ...finalDraft, npcs: [...finalDraft.npcs, antagonistNpc] }
+    const antagonistWithNpcId: AdventureAntagonist = { ...antagonist, npcId: antagonistNpc.id }
 
     // US-172: `generateClosing` e `generateOpeningBeat` não dependem uma da outra — as duas
     // só precisam de locations/npcs/secrets/registry/premissa, já prontos aqui. `Promise.all`
@@ -255,7 +282,7 @@ export class AdventureService {
         registry,
         complicacao: content.complicacao,
         premissa: content.premissa,
-        antagonist,
+        antagonist: antagonistWithNpcId,
         encounterSkeleton: drafts,
         locale,
       }),
@@ -268,7 +295,7 @@ export class AdventureService {
         origin: profile.origin,
         complicacao: content.complicacao,
         premissa: content.premissa,
-        antagonist,
+        antagonist: antagonistWithNpcId,
         locale,
       }),
     ])
@@ -296,7 +323,7 @@ export class AdventureService {
       objective,
       conclusion,
       followUps,
-      antagonist,
+      antagonist: antagonistWithNpcId,
     })
   }
 

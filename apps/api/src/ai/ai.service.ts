@@ -1628,7 +1628,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     background?: CharacterBackground
     origin?: { adventuresAndAdvancement?: string }
     locale?: Locale
-  }): Promise<AdventureAntagonist> {
+    // US-188: `npcId` NÃO sai daqui — o modelo não decide `id` de NPC, quem mintou o
+    // AdventureNpc (adventure.service.ts) fecha essa referência depois desta chamada.
+  }): Promise<Omit<AdventureAntagonist, 'npcId'>> {
     const anchors = characterAnchors(params)
     const anchorInstruction = anchors.length > 0
       ? `Vínculo pessoal da personagem — prefira ligar a conexão do antagonista a um destes, quando fizer sentido com a premissa/complicação: ${anchors.join('; ')}.`

@@ -44,12 +44,18 @@ export function totalCr(roles: MonsterRole[]): number {
  * couber estritamente abaixo do orçamento (o LGMRD trata soma igual ao limiar como letal,
  * operador `>`) — por isso nível 1 em modo aventura nunca recebe um Brute (CR 2) sozinho, que
  * já estoura o teto de monstro único (1), a fortiori o limiar de soma (0).
+ *
+ * `reservedCr` (US-188, default 0, retrocompatível): CR já comprometido antes do loop —
+ * usado só no encontro final, pra reservar o CR do antagonista (`chooseAntagonistRole`) ANTES
+ * de encher o resto do orçamento com capangas. Os demais encontros `combat` chamam sem este
+ * parâmetro, orçamento cheio, comportamento idêntico a antes desta story.
  */
 export function composeEncounterRoles(
   level: number,
   challenge: EncounterChallenge = 'adventure',
+  reservedCr = 0,
 ): MonsterRole[] {
-  const budget = challenge === 'challenge' ? singleMonsterCrCap(level) : encounterDeadlyThreshold(level)
+  const budget = (challenge === 'challenge' ? singleMonsterCrCap(level) : encounterDeadlyThreshold(level)) - reservedCr
   const roles: MonsterRole[] = []
   let sum = 0
 
@@ -67,6 +73,22 @@ export function composeEncounterRoles(
   }
 
   return roles
+}
+
+/**
+ * US-188: papel do antagonista — o mais difícil (`Brute` > `Soldier` > `Minion`,
+ * `ROLES_BY_IMPACT`) cujo CR SOZINHO cabe no orçamento do MESMO dial que `composeEncounterRoles`
+ * usa. `undefined` quando nem `Minion` coubesse (nível 1-3, modo `'adventure'`, orçamento 0) —
+ * SEM piso forçado: um `Minion` (CR 1/8) nesse caso já violaria `1/8 > 0`, o próprio limiar que
+ * `checkEncounterBudget` (adventure-gate.ts) verifica. Não depende do modelo — só `level`/
+ * `challenge`, calculável antes de `generateAntagonist` sequer rodar.
+ */
+export function chooseAntagonistRole(level: number, challenge: EncounterChallenge = 'adventure'): MonsterRole | undefined {
+  const budget = challenge === 'challenge' ? singleMonsterCrCap(level) : encounterDeadlyThreshold(level)
+  for (const role of ROLES_BY_IMPACT) {
+    if (MONSTER_ROLE_CR[role] < budget) return role
+  }
+  return undefined
 }
 
 // US-152: cada instância de papel vira um item de `npcs[]` sem schema novo — `id` continua o

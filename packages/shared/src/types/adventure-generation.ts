@@ -60,6 +60,8 @@ export const AdventureRegistrySchema = z.object({
 // locations/npcs/secrets já decididos (US-190: sintetizado em `generateAntagonist`, chamada
 // própria, não mais dentro de `generateClosing`). `connection` (US-183): conexão pessoal com
 // o personagem, via `characterAnchors` — genérica quando não há vínculo registrado.
+// `npcId` (US-188): referencia AdventureNpcSchema.id — o antagonista é ele mesmo um AdventureNpc,
+// o combatente do encontro final é LITERALMENTE ele, nunca um capanga genérico coincidindo.
 export const AdventureAntagonistSchema = z.object({
   name: z.string().min(1),
   want: z.string().min(1),
@@ -67,6 +69,7 @@ export const AdventureAntagonistSchema = z.object({
   trait: z.string().min(1),
   weakness: z.string().min(1),
   connection: z.string().min(1),
+  npcId: z.string().min(1),
 })
 
 // US-144 / ADR-012: schema único do artefato de aventura gerada (os Eight Steps do LGMRD).

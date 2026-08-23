@@ -3,6 +3,8 @@ import { BadRequestException } from '@nestjs/common'
 import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
 import { AdventureService, type AdventureProfile } from './adventure.service'
 import { rollAdventure } from '../adventure-generation/roll-adventure'
+import { chooseAntagonistRole, MONSTER_ROLE_CR, totalCr } from '../adventure-generation/monster-roles'
+import { encounterDeadlyThreshold } from '../adventure-generation/lazy-encounter-benchmark'
 import type { PrismaService } from '../prisma.service'
 import type { AiService } from '../ai/ai.service'
 
@@ -265,6 +267,14 @@ describe('AdventureService.createForCharacter', () => {
         nome: 'Enseada Cinzenta', tipo: 'local',
         nota: encounterNota, revelado: false, atualizadoEm: expect.any(String),
       },
+      // US-189: antagonista some de npcEntities (excluído por `id`, nível 1/'adventure'
+      // cai no caso `role === antagonist.trait` texto livre que vazaria sem essa exclusão)
+      // e chega como entrada própria, oculta — última no ledger.
+      {
+        nome: 'Malvora', tipo: 'npc', local: 'Enseada Cinzenta',
+        nota: 'Quer: poder sobre a região — Método: reunir um exército — Traço: fala em sussurros — Fraqueza: vaidade — Conexão: já cruzou caminho com o grupo antes',
+        revelado: false, atualizadoEm: expect.any(String),
+      },
     ])
   })
 
@@ -339,6 +349,7 @@ describe('AdventureService.createForCharacter', () => {
       expect.objectContaining({ nome: 'secret-1' }),
       expect.objectContaining({ nome: 'Marta' }),
       expect.objectContaining({ nome: 'Enseada Cinzenta' }),
+      expect.objectContaining({ nome: 'Malvora' }), // US-189: antagonista, última entrada, ver teste US-151 acima
     ])
   })
 
@@ -1118,8 +1129,10 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   it('generateClosing recebe o antagonist devolvido por generateAntagonist (US-190)', async () => {
     const antagonist = { name: 'Vaerix', want: 'vingança', method: 'espalhar um boato', trait: 'usa máscara', weakness: 'obsessão', connection: 'x' }
     const seenClosingParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ antagonist, seenClosingParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
-    expect(seenClosingParams.antagonist).toEqual(antagonist)
+    const adventure = await service(fakeGenAi({ antagonist, seenClosingParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+    // US-188: `antagonist` chega a generateClosing já com `npcId` — mintado ANTES do
+    // Promise.all, mesmo momento em que name/id do AdventureNpc já são conhecidos.
+    expect(seenClosingParams.antagonist).toEqual({ ...antagonist, npcId: adventure.antagonist.npcId })
   })
 
   // US-190: generateOpeningBeat também recebe o antagonist pronto, não só generateClosing —
@@ -1127,8 +1140,9 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   it('generateOpeningBeat recebe o antagonist devolvido por generateAntagonist (US-190)', async () => {
     const antagonist = { name: 'Vaerix', want: 'vingança', method: 'espalhar um boato', trait: 'usa máscara', weakness: 'obsessão', connection: 'x' }
     const seenOpeningParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ antagonist, seenOpeningParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
-    expect(seenOpeningParams.antagonist).toEqual(antagonist)
+    const adventure = await service(fakeGenAi({ antagonist, seenOpeningParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+    // US-188: mesma disciplina do teste equivalente de generateClosing acima — npcId já presente.
+    expect(seenOpeningParams.antagonist).toEqual({ ...antagonist, npcId: adventure.antagonist.npcId })
   })
 
   // US-181/US-183: critério de aceite — artefato final tem antagonist com os seis campos não vazios.
@@ -1235,6 +1249,65 @@ describe('AdventureService.generateAdventure (US-164)', () => {
   it('registryOverrides é repassado ao rollAdventure — registro fixado, não sorteado', async () => {
     const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', { tone: 'heroic' })
     expect(adventure.registry.tone).toBe('heroic')
+  })
+
+  // US-188: antagonista vira NPC rastreável — teste de regressão do critério de aceite.
+  describe('antagonista como NPC rastreável (US-188)', () => {
+    it('nível 5 (com capangas): antagonist.npcId aponta pra um AdventureNpc real presente em npcIds do encontro final, role bate com chooseAntagonistRole, soma de CR não excede o limiar', async () => {
+      const highLevelProfile = { ...profile, level: 5 }
+      const adventure = await service(fakeGenAi()).generateAdventure(highLevelProfile, 'char-1', 1, 'pt-BR')
+
+      const antagonistNpc = adventure.npcs.find((n) => n.id === adventure.antagonist.npcId)
+      expect(antagonistNpc).toBeDefined()
+      expect(antagonistNpc!.name).toBe(adventure.antagonist.name)
+
+      const finalEncounter = adventure.encounters[adventure.encounters.length - 1]!
+      expect(finalEncounter.npcIds).toContain(adventure.antagonist.npcId)
+
+      const expectedRole = chooseAntagonistRole(highLevelProfile.level, highLevelProfile.challenge)
+      expect(expectedRole).toBeDefined()
+      expect(antagonistNpc!.role).toBe(expectedRole)
+
+      // Verificação 3 do gate (US-150): soma de CR do encontro final (capangas + antagonista)
+      // não excede o limiar do dial — cobre a reserva de orçamento (reservedCr).
+      const rolesInFinalEncounter = finalEncounter.npcIds
+        .map((id) => adventure.npcs.find((n) => n.id === id)!.role)
+        .filter((role): role is keyof typeof MONSTER_ROLE_CR => role in MONSTER_ROLE_CR)
+      expect(totalCr(rolesInFinalEncounter)).toBeLessThan(encounterDeadlyThreshold(highLevelProfile.level))
+
+      expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+    })
+
+    it("nível 1-3, modo 'adventure' (chooseAntagonistRole undefined): encontro final nunca fica vazio de antagonista, role === antagonist.trait, sem CR", async () => {
+      const lowLevelProfile = { ...profile, level: 1, challenge: 'adventure' as const }
+      // npcs/locations mínimos, sem occupants — isola o fallback social do antagonista.
+      const adventure = await service(
+        fakeGenAi({
+          locations: [{ id: 'loc-1', title: 'Local 1', aspects: [], boxedText: 'x', description: 'x', occupants: [] }],
+          npcs: [],
+        }),
+      ).generateAdventure(lowLevelProfile, 'char-1', 1, 'pt-BR')
+
+      expect(chooseAntagonistRole(lowLevelProfile.level, lowLevelProfile.challenge)).toBeUndefined()
+
+      const finalEncounter = adventure.encounters[adventure.encounters.length - 1]!
+      expect(finalEncounter.npcIds.length).toBeGreaterThan(0)
+      expect(finalEncounter.npcIds).toContain(adventure.antagonist.npcId)
+
+      const antagonistNpc = adventure.npcs.find((n) => n.id === adventure.antagonist.npcId)!
+      expect(antagonistNpc.role).toBe(adventure.antagonist.trait)
+      expect(antagonistNpc.role in MONSTER_ROLE_CR).toBe(false)
+
+      expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+    })
+
+    it('generateClosing e generateOpeningBeat recebem o MESMO antagonist.npcId que o artefato final expõe', async () => {
+      const seenClosingParams: Record<string, unknown> = {}
+      const seenOpeningParams: Record<string, unknown> = {}
+      const adventure = await service(fakeGenAi({ seenClosingParams, seenOpeningParams })).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+      expect((seenClosingParams.antagonist as { npcId: string }).npcId).toBe(adventure.antagonist.npcId)
+      expect((seenOpeningParams.antagonist as { npcId: string }).npcId).toBe(adventure.antagonist.npcId)
+    })
   })
 })
 

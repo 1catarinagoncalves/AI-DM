@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { MONSTER_ROLE_CR, composeEncounterRoles, totalCr, buildEncounterNpcs } from './monster-roles'
+import { MONSTER_ROLE_CR, composeEncounterRoles, chooseAntagonistRole, totalCr, buildEncounterNpcs } from './monster-roles'
 import { encounterDeadlyThreshold, singleMonsterCrCap } from './lazy-encounter-benchmark'
 import type { AdventureNpc } from '@ai-dm/shared'
 
@@ -69,6 +69,57 @@ describe('composeEncounterRoles — dial challenge (US-161)', () => {
   it("nível 1, 2 e 3 com 'challenge' devolvem array não vazio — singleMonsterCrCap nunca é 0", () => {
     for (const level of [1, 2, 3]) {
       expect(composeEncounterRoles(level, 'challenge').length).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('composeEncounterRoles — reservedCr (US-188)', () => {
+  it('omitido bate com reservedCr 0 explícito — default retrocompatível', () => {
+    for (const level of [1, 4, 5, 8]) {
+      expect(composeEncounterRoles(level)).toEqual(composeEncounterRoles(level, 'adventure', 0))
+    }
+  })
+
+  it('reserva o CR real do antagonista (chooseAntagonistRole) antes do loop — soma dos capangas + reserva nunca alcança o limiar original', () => {
+    for (const level of [4, 5, 8, 12]) {
+      const antagonistRole = chooseAntagonistRole(level, 'adventure')!
+      const reservedCr = MONSTER_ROLE_CR[antagonistRole]
+      const roles = composeEncounterRoles(level, 'adventure', reservedCr)
+      expect(totalCr(roles) + reservedCr).toBeLessThan(encounterDeadlyThreshold(level))
+    }
+  })
+
+  it('reserva grande o suficiente zera a composição sem quebrar (nível baixo o suficiente)', () => {
+    expect(composeEncounterRoles(4, 'adventure', encounterDeadlyThreshold(4))).toEqual([])
+  })
+})
+
+describe('chooseAntagonistRole (US-188)', () => {
+  it("nível 1-3, modo 'adventure' (orçamento 0): undefined — sem piso Minion forçado", () => {
+    for (const level of [1, 2, 3]) {
+      expect(chooseAntagonistRole(level, 'adventure')).toBeUndefined()
+    }
+  })
+
+  it("nível 4+, modo 'adventure': devolve o papel mais difícil que cabe sozinho (CR < limiar)", () => {
+    for (const level of [4, 5, 8, 12]) {
+      const role = chooseAntagonistRole(level, 'adventure')
+      expect(role).toBeDefined()
+      expect(MONSTER_ROLE_CR[role!]).toBeLessThan(encounterDeadlyThreshold(level))
+    }
+  })
+
+  it("modo 'challenge': nunca undefined — singleMonsterCrCap nunca é 0", () => {
+    for (const level of [1, 2, 3, 4, 8]) {
+      const role = chooseAntagonistRole(level, 'challenge')
+      expect(role).toBeDefined()
+      expect(MONSTER_ROLE_CR[role!]).toBeLessThan(singleMonsterCrCap(level))
+    }
+  })
+
+  it("'adventure' omitido bate com 'adventure' explícito — default não quebra chamador existente", () => {
+    for (const level of [1, 4, 5, 8]) {
+      expect(chooseAntagonistRole(level)).toBe(chooseAntagonistRole(level, 'adventure'))
     }
   })
 })

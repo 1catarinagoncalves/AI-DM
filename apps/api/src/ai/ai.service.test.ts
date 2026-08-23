@@ -789,7 +789,7 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   const registry = { tone: 'grimdark', setting: 'coastal', areaType: 'settlement' }
   const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
-  const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
+  const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes', npcId: 'npc-2' }
   // US-166: 8 encontros já resolvidos (locationId/npcIds → location/npcs reais) — o
   // último é o confronto final, exigido pelo prompt a ecoar o antagonista.
   const encounterSkeleton = Array.from({ length: 8 }, (_, i) => ({
@@ -950,7 +950,7 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   const registry = { tone: 'terror', setting: 'coastal', areaType: 'settlement' }
   const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
-  const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
+  const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes', npcId: 'npc-2' }
 
   function svc() {
     return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)

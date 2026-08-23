@@ -34,7 +34,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       objective: 'Descobrir o que Elenora esconde nas catacumbas antes que o pacto cobre seu preço.',
       conclusion: 'O pacto é rompido — ou renovado, a depender da escolha do grupo.',
       followUps: ['O que vive nas catacumbas desperta.'],
-      antagonist: { name: 'Elenora', want: 'proteger o pacto a qualquer custo', method: 'silenciar quem se aproxima do poço', trait: 'fala em enigmas', weakness: 'lealdade cega ao pacto', connection: 'sabe que o grupo já perdeu alguém pra floresta e usa isso a seu favor' },
+      antagonist: { name: 'Elenora', want: 'proteger o pacto a qualquer custo', method: 'silenciar quem se aproxima do poço', trait: 'fala em enigmas', weakness: 'lealdade cega ao pacto', connection: 'sabe que o grupo já perdeu alguém pra floresta e usa isso a seu favor', npcId: 'npc-1' },
     }
 
     expect(GeneratedAdventureSchema.parse(adventure)).toEqual(adventure)
@@ -69,7 +69,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       objective: 'Find out what Elenora is hiding in the catacombs before the pact claims its price.',
       conclusion: 'The pact is broken — or renewed, depending on the party\'s choice.',
       followUps: ['Whatever lives in the catacombs awakens.'],
-      antagonist: { name: 'Elenora', want: 'protect the pact at any cost', method: 'silence those who approach the well', trait: 'speaks in riddles', weakness: 'blind loyalty to the pact', connection: 'knows the party already lost someone to the forest and uses that against them' },
+      antagonist: { name: 'Elenora', want: 'protect the pact at any cost', method: 'silence those who approach the well', trait: 'speaks in riddles', weakness: 'blind loyalty to the pact', connection: 'knows the party already lost someone to the forest and uses that against them', npcId: 'npc-1' },
     }
 
     expect(GeneratedAdventureSchema.parse(adventure)).toEqual(adventure)
@@ -98,7 +98,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       objective: 'Impedir Elenora.',
       conclusion: 'Fim.',
       followUps: [],
-      antagonist: { name: 'Elenora', want: 'poder', method: 'ritual', trait: 'sussurra', weakness: 'vaidade', connection: 'atua na região que o grupo já percorreu' },
+      antagonist: { name: 'Elenora', want: 'poder', method: 'ritual', trait: 'sussurra', weakness: 'vaidade', connection: 'atua na região que o grupo já percorreu', npcId: 'npc-1' },
     }
 
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
@@ -127,7 +127,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       objective: 'Recuperar o poço perdido da vila antes que Elenora o esconda de novo.',
       conclusion: 'Fim.',
       followUps: [],
-      antagonist: { name: 'Elenora', want: 'poder', method: 'ritual', trait: 'sussurra', weakness: 'vaidade', connection: 'atua na região que o grupo já percorreu' },
+      antagonist: { name: 'Elenora', want: 'poder', method: 'ritual', trait: 'sussurra', weakness: 'vaidade', connection: 'atua na região que o grupo já percorreu', npcId: 'npc-1' },
     }
 
     expect(GeneratedAdventureSchema.parse(adventure)).toEqual(adventure)
@@ -146,7 +146,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       start: 'Início.',
       conclusion: 'Fim.',
       followUps: [],
-      antagonist: { name: 'X', want: 'x', method: 'x', trait: 'x', weakness: 'x', connection: 'x' },
+      antagonist: { name: 'X', want: 'x', method: 'x', trait: 'x', weakness: 'x', connection: 'x', npcId: 'npc-1' },
     }
 
     expect(() => GeneratedAdventureSchema.parse(adventure)).toThrow()
@@ -167,7 +167,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       start: 'Início.',
       conclusion: 'Fim.',
       followUps: [],
-      antagonist: { name: 'X', want: 'x', method: 'x', trait: 'x', weakness: 'x', connection: 'x' },
+      antagonist: { name: 'X', want: 'x', method: 'x', trait: 'x', weakness: 'x', connection: 'x', npcId: 'npc-1' },
     }
 
     expect(() => GeneratedAdventureSchema.parse(adventure)).toThrow()
