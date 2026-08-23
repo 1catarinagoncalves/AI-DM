@@ -230,8 +230,6 @@ export class AdventureService {
       rolled: content,
       premissa,
       registry,
-      background: profile.background,
-      origin: profile.origin,
       locale,
     })
 
@@ -240,8 +238,6 @@ export class AdventureService {
       npcs,
       secretPrompts: readSecretPrompts(),
       registry,
-      background: profile.background,
-      origin: profile.origin,
       locale,
     })
 
@@ -322,8 +318,6 @@ export class AdventureService {
         premissa,
         antagonist: antagonistWithNpcId,
         encounterSkeleton: drafts,
-        background: profile.background,
-        origin: profile.origin,
         locale,
       }),
       this.ai.generateOpeningBeat({

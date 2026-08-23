@@ -550,32 +550,7 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     expect(genObj.model).toBe(primaryModel)
   })
 
-  it('background.story presente entra no prompt do modelo', async () => {
-    genObj.error = undefined
-    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, premissa, registry, background: { story: 'jurou vingança contra o culto' } })
-    expect(genObj.system).toContain('jurou vingança contra o culto')
-  })
-
-  it('background.bonds NÃO entra no prompt — motor de geração só consome story', async () => {
-    genObj.error = undefined
-    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, premissa, registry, background: { bonds: ['jurou vingança contra o culto'] } })
-    expect(genObj.system).not.toContain('jurou vingança contra o culto')
-  })
-
-  // 2026-08-23: elenco original (NPCs/locais) nascia surdo a origin.adventuresAndAdvancement — só
-  // generateSecrets/generateAntagonist/generateOpeningBeat recebiam esse vínculo (US-180/US-183),
-  // então a trama gerada podia ecoar História mas nunca "Aventura e Avanço" da origem, mesmo
-  // com o dado disponível em profile.origin desde o buildAdventureProfile (US-148).
-  it('origin.adventuresAndAdvancement presente entra no prompt do modelo', async () => {
-    genObj.error = undefined
-    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
-    await svc().generateLocationsAndNpcs({ rolled, premissa, registry, origin: { adventuresAndAdvancement: 'admiradores pagam para defender uma causa ou difamar um inimigo' } })
-    expect(genObj.system).toContain('admiradores pagam para defender uma causa ou difamar um inimigo')
-  })
-
-  it('background vazio cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
+  it('background/origin vazio cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
     await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
@@ -744,38 +719,6 @@ describe('AiService.generateSecrets (US-149)', () => {
     genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
     await svc().generateSecrets({ locations, npcs, secretPrompts, registry })
     expect(genObj.model).toBe(primaryModel)
-  })
-
-  it('background.story presente entra no prompt do modelo', async () => {
-    genObj.error = undefined
-    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, registry, background: { story: 'jurou vingança contra o culto' } })
-    expect(genObj.system).toContain('jurou vingança contra o culto')
-  })
-
-  it('background.bonds NÃO entra no prompt — motor de geração só consome story', async () => {
-    genObj.error = undefined
-    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, registry, background: { bonds: ['jurou vingança contra o culto'] } })
-    expect(genObj.system).not.toContain('jurou vingança contra o culto')
-  })
-
-  it('origin.adventuresAndAdvancement presente entra no prompt do modelo', async () => {
-    genObj.error = undefined
-    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({ locations, npcs, secretPrompts, registry, origin: { adventuresAndAdvancement: 'pode ser promovido dentro da ordem' } })
-    expect(genObj.system).toContain('pode ser promovido dentro da ordem')
-  })
-
-  it('origin.connection/memento NÃO entram no prompt do modelo (só adventuresAndAdvancement alimenta o motor)', async () => {
-    genObj.error = undefined
-    genObj.result = { secrets: [{ locationId: 'loc-1', text: 'segredo' }] }
-    await svc().generateSecrets({
-      locations, npcs, secretPrompts, registry,
-      origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' } as never,
-    })
-    expect(genObj.system).not.toContain('um sacerdote amado')
-    expect(genObj.system).not.toContain('um livro de orações')
   })
 
   it('background/origin vazios cai em instrução genérica de ancoragem, SEM gancho da classe (US-174)', async () => {
@@ -1061,41 +1004,10 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
     expect(genObj.system).toContain(CRAFT_CORE_SECTION)
   })
 
-  // 2026-08-23: generateClosing escreve objective/conclusion (a trama RESOLVIDA em prosa) a
-  // partir da premissa/complicação roladas, mas era a única das 5 chamadas do motor que nunca
-  // recebia background/origin — locations/npcs (US-158+), secrets/antagonist/openingBeat
-  // (US-149/US-183/US-180) já ancoravam em background.story/origin.adventuresAndAdvancement
-  // via characterAnchors; o fecho ficava cego a esse vínculo. Mesmo padrão de US-183.
-  it('background.story presente entra no system — instrução de ancorar objective/conclusion ao vínculo', async () => {
-    genObj.error = undefined
-    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
-    await svc().generateClosing({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton,
-      background: { story: 'jurou vingança contra o culto' },
-    })
-    expect(genObj.system).toContain('jurou vingança contra o culto')
-  })
-
-  it('origin.adventuresAndAdvancement presente entra no system — instrução de ancorar objective/conclusion ao vínculo', async () => {
-    genObj.error = undefined
-    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
-    await svc().generateClosing({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton,
-      origin: { adventuresAndAdvancement: 'pode ser promovido dentro da ordem' },
-    })
-    expect(genObj.system).toContain('pode ser promovido dentro da ordem')
-  })
-
-  it('background.bonds NÃO entra no system — motor de geração só consome story', async () => {
-    genObj.error = undefined
-    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
-    await svc().generateClosing({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton,
-      background: { bonds: ['jurou vingança contra o culto'] },
-    })
-    expect(genObj.system).not.toContain('jurou vingança contra o culto')
-  })
-
+  // 2026-08-23: reversão no mesmo dia do fix que dava a generateClosing acesso a
+  // background/origin (ver ai.service.ts) — fecho volta a nunca receber esses campos,
+  // igual a generateLocationsAndNpcs/generateSecrets, que também deixaram de ancorar
+  // em vínculo pessoal (só generatePremissa/generateOpeningBeat continuam ancorando).
   it('sem background/origin, system cai no fallback genérico de fecho', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }

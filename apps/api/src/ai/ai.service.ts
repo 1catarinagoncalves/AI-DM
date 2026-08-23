@@ -1586,21 +1586,12 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     rolled: RolledAdventureContent
     premissa: string
     registry: AdventureRegistry
-    background?: CharacterBackground
-    origin?: { adventuresAndAdvancement?: string }
     locale?: Locale
   }): Promise<{ locations: AdventureLocation[]; npcs: AdventureNpc[] }> {
-    // 2026-08-23: elenco original nascia surdo a `origin.adventuresAndAdvancement` — só as 3
-    // chamadas seguintes do motor (generateSecrets/generateAntagonist/generateOpeningBeat,
-    // US-180/US-183) recebiam esse vínculo. `characterAnchors` já combina story+adventures
-    // (bonds/flaws seguem de fora, mesma disciplina de antes — ver `characterAnchors`).
-    const anchors = characterAnchors(params)
-    // US-174: rede de segurança quando `background`/`origin` vêm vazios deixou de citar o
-    // gancho fixo por classe (`hookSeed`) — vira instrução genérica ancorada no que já foi
-    // rolado para ESTA aventura, não no catálogo por classe (US-153).
-    const storyInstruction = anchors.length > 0
-      ? `Contexto da personagem — amarre AO MENOS UM NPC (por nome ou papel) a um destes: ${anchors.join('; ')}.`
-      : 'Sem história registrada — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
+    // 2026-08-23: deixou de ancorar em background/origin da ficha (characterAnchors) — elenco
+    // ancora só no que já foi rolado para ESTA aventura, mesma rede de segurança que a US-174
+    // já dava pro caso de background/origin vazios (não o catálogo fixo por classe, US-153).
+    const storyInstruction = 'Sem história registrada — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
     // US-178: `system` continua em português (instrução PARA o modelo) — só a SAÍDA segue
     // o locale do jogador, mesmo padrão de `buildDmSystemPrompt` (dm-system.ts:260).
     const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
@@ -1662,23 +1653,22 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * `locations`/`npcs` obrigatórios (não opcionais) força a ordem: esta chamada não roda
    * sem eles. `hookSeed` (gancho fixo por classe) NÃO é insumo — nem no schema, nem no
    * `system`/`prompt` (US-174; depois de US-175, nenhuma chamada do motor recebe `hookSeed`).
+   *
+   * 2026-08-23: deixou de receber `background`/`origin` — a âncora narrativa citada acima
+   * não se aplica mais aqui; só `generatePremissa`/`generateOpeningBeat` continuam ancorando
+   * em vínculo pessoal da personagem.
    */
   async generateSecrets(params: {
     locations: AdventureLocation[]
     npcs: AdventureNpc[]
     secretPrompts: SecretPrompts
     registry: AdventureRegistry
-    background?: CharacterBackground
-    origin?: { adventuresAndAdvancement?: string }
     locale?: Locale
   }): Promise<AdventureSecret[]> {
-    const anchors = characterAnchors(params)
-    // US-174: rede de segurança quando `background`/`origin` vêm vazios deixou de citar
-    // o gancho fixo por classe (`hookSeed`) — vira instrução genérica ancorada no que já
-    // foi rolado para ESTA aventura, mesmo padrão de `generateLocationsAndNpcs`.
-    const anchorInstruction = anchors.length > 0
-      ? `Contexto da personagem — ancore ao menos um segredo a um destes: ${anchors.join('; ')}.`
-      : 'Sem background/origin registrados — ancore os segredos ao que já foi rolado para esta aventura (registry/local/NPC).'
+    // US-174: rede de segurança quando background/origin vêm vazios deixou de citar o gancho
+    // fixo por classe (`hookSeed`) — instrução genérica ancorada no que já foi rolado para
+    // ESTA aventura, mesmo padrão de `generateLocationsAndNpcs`.
+    const anchorInstruction = 'Sem background/origin registrados — ancore os segredos ao que já foi rolado para esta aventura (registry/local/NPC).'
     // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
     const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 
@@ -1723,12 +1713,13 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    */
   /**
    * 2026-08-23: `connection` NUNCA ancora em `background.story`/`origin.adventuresAndAdvancement`
-   * — ao contrário das outras 4 chamadas do motor (`characterAnchors`). QA local achou o
-   * antagonista literalizando a feature aberta do background (ex.: Hermit "voz interior",
-   * pensada pra atravessar VÁRIAS aventuras da carreira) como o próprio vilão desta aventura —
-   * derrotá-lo fechava um gancho que devia continuar aberto. `background`/`origin` continuam
-   * alimentando premissa/locais/segredos/fecho normalmente; só decidir QUEM é o antagonista
-   * fica de fora.
+   * — QA local achou o antagonista literalizando a feature aberta do background (ex.: Hermit
+   * "voz interior", pensada pra atravessar VÁRIAS aventuras da carreira) como o próprio vilão
+   * desta aventura — derrotá-lo fechava um gancho que devia continuar aberto.
+   *
+   * 2026-08-23 (mesmo dia, reversão posterior): `generateLocationsAndNpcs`/`generateSecrets`/
+   * `generateClosing` também deixaram de receber `background`/`origin` — só `generatePremissa`/
+   * `generateOpeningBeat` continuam ancorando em vínculo pessoal via `characterAnchors`.
    */
   async generateAntagonist(params: {
     locations: AdventureLocation[]
@@ -1789,17 +1780,12 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     premissa: string
     antagonist: AdventureAntagonist
     encounterSkeleton: EncounterSkeletonEntry[]
-    background?: CharacterBackground
-    origin?: { adventuresAndAdvancement?: string }
     locale?: Locale
   }): Promise<{ objective: string; conclusion: string; followUps: string[]; encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> }> {
-    // 2026-08-23: única das 5 chamadas do motor que nunca ancorava em background/origin —
-    // locations/npcs/secrets/antagonist/openingBeat já usam `characterAnchors` (US-149/US-180/
-    // US-183); o fecho escrevia objective/conclusion cego ao vínculo pessoal da personagem.
-    const anchors = characterAnchors(params)
-    const anchorInstruction = anchors.length > 0
-      ? `Vínculo pessoal da personagem — ancore objective/conclusion nisto quando fizer sentido com a premissa/complicação: ${anchors.join('; ')}.`
-      : 'Sem vínculo pessoal registrado — resolva a premissa/complicação genericamente, ancorada no que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
+    // 2026-08-23: fecho volta a não ancorar em background/origin da ficha (reverte o fix desta
+    // mesma data) — resolve premissa/complicação sempre a partir do que já foi rolado para
+    // esta aventura (locations/npcs/secrets recebidos).
+    const anchorInstruction = 'Sem vínculo pessoal registrado — resolva a premissa/complicação genericamente, ancorada no que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
     // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
     const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
 

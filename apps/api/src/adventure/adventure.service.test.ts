@@ -1142,25 +1142,28 @@ describe('AdventureService.generateAdventure (US-164)', () => {
 
   // US-174: `hookSeed` para de ser insumo de generateLocationsAndNpcs/generateSecrets —
   // mesma garantia estrutural que a US-172 já trouxe pra generateOpeningBeat.
-  it('generateLocationsAndNpcs recebe rolled/registry/background — NUNCA hookSeed (US-174)', async () => {
+  // 2026-08-23: nem `background`/`origin` são mais insumo destas duas (reversão do mesmo
+  // dia — só generatePremissa/generateOpeningBeat continuam recebendo vínculo pessoal).
+  it('generateLocationsAndNpcs recebe rolled/registry — NUNCA hookSeed nem background/origin (US-174)', async () => {
     const seenLocationsParams: Record<string, unknown> = {}
     await service(fakeGenAi({ seenLocationsParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenLocationsParams).not.toHaveProperty('hookSeed')
     expect(seenLocationsParams.rolled).toBeDefined()
     expect(seenLocationsParams.premissa).toBeDefined() // US-192
     expect(seenLocationsParams.registry).toBeDefined()
-    expect(seenLocationsParams.background).toBeDefined()
+    expect(seenLocationsParams).not.toHaveProperty('background')
+    expect(seenLocationsParams).not.toHaveProperty('origin')
   })
 
-  it('generateSecrets recebe locations/npcs/secretPrompts/background/origin — NUNCA hookSeed (US-174)', async () => {
+  it('generateSecrets recebe locations/npcs/secretPrompts — NUNCA hookSeed nem background/origin (US-174)', async () => {
     const seenSecretsParams: Record<string, unknown> = {}
     await service(fakeGenAi({ seenSecretsParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
     expect(seenSecretsParams).not.toHaveProperty('hookSeed')
     expect(seenSecretsParams.locations).toBeDefined()
     expect(seenSecretsParams.npcs).toBeDefined()
     expect(seenSecretsParams.secretPrompts).toBeDefined()
-    expect(seenSecretsParams.background).toBeDefined()
-    expect(seenSecretsParams.origin).toBeDefined()
+    expect(seenSecretsParams).not.toHaveProperty('background')
+    expect(seenSecretsParams).not.toHaveProperty('origin')
   })
 
   it('generateClosing recebe locations/npcs/secrets/registry/complicacao/premissa — NUNCA hookSeed (US-175)', async () => {
