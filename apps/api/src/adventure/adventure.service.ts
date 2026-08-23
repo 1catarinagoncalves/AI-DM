@@ -270,11 +270,23 @@ export class AdventureService {
     drafts[drafts.length - 1] = { ...finalDraft, npcs: [...finalDraft.npcs, antagonistNpc] }
     const antagonistWithNpcId: AdventureAntagonist = { ...antagonist, npcId: antagonistNpc.id }
 
+    // US-191, Parte 1: antagonistNpc.id também entra em occupants[] do local do confronto
+    // final — mesmo padrão que NPCs sociais já usam (US-158). antagonistNpc/finalDraft.location
+    // já estão os dois em mãos aqui, SEM esperar o Promise.all abaixo (só a Parte 2, prosa,
+    // depende da chamada nova que roda nele).
+    const locationsWithOccupant = locations.map((loc) => {
+      if (loc.id !== finalDraft.location.id) return loc
+      const occupants = loc.occupants.includes(antagonistNpc.id) ? loc.occupants : [...loc.occupants, antagonistNpc.id]
+      return { ...loc, occupants }
+    })
+
     // US-172: `generateClosing` e `generateOpeningBeat` não dependem uma da outra — as duas
     // só precisam de locations/npcs/secrets/registry/premissa, já prontos aqui. `Promise.all`
     // no lugar de dois `await` sequenciais: soma uma 4ª chamada de IA ao fluxo, mas paralela
     // não adiciona latência de rede sequencial sobre o `await` que já existia.
-    const [{ objective, conclusion, followUps, encounterSituations }, { start }] = await Promise.all([
+    // US-191, Parte 2: generateAntagonistLocationProse entra como 3ª perna — reescreve
+    // boxedText/description do local do confronto final citando o antagonista pelo nome.
+    const [{ objective, conclusion, followUps, encounterSituations }, { start }, { boxedText, description }] = await Promise.all([
       this.ai.generateClosing({
         locations,
         npcs: allNpcs,
@@ -298,7 +310,19 @@ export class AdventureService {
         antagonist: antagonistWithNpcId,
         locale,
       }),
+      this.ai.generateAntagonistLocationProse({
+        location: finalDraft.location,
+        antagonist: antagonistWithNpcId,
+        registry,
+        locale,
+      }),
     ])
+
+    // US-191, Parte 2: patch final sobre `locationsWithOccupant` (não sobre `locations`
+    // original) — encadeado, senão um dos dois `.map` apagaria o que o outro escreveu.
+    const locationsWithAntagonist = locationsWithOccupant.map((loc) =>
+      loc.id === finalDraft.location.id ? { ...loc, boxedText, description } : loc,
+    )
 
     const encounters: AdventureEncounter[] = drafts.map((draft, i) => ({
       id: draft.id,
@@ -317,7 +341,7 @@ export class AdventureService {
       summary: content.premissa,
       npcs: allNpcs,
       secrets,
-      locations,
+      locations: locationsWithAntagonist,
       encounters,
       start,
       objective,

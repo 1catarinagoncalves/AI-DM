@@ -1110,23 +1110,88 @@ describe('AiService.generateOpeningBeat (US-172)', () => {
     expect(genObj.system).toContain(CRAFT_CORE_SECTION)
   })
 
-  // US-190: antagonista entra no prompt (method/trait, insinuação), NUNCA nomeado nem com
-  // weakness solto no prompt — mesma disciplina "pode insinuar, NUNCA revelar" dos segredos.
-  it('antagonist (method/trait) entra no prompt do modelo, sem nome nem weakness (US-190)', async () => {
+  // US-191: reverte a proibição da US-190 — nome ENTRA no prompt agora; weakness continua fora.
+  it('antagonist (nome/method/trait) entra no prompt do modelo, weakness continua fora (US-191)', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }
     await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
+    expect(genObj.prompt).toContain('Malvora')
     expect(genObj.prompt).toContain('reunir um exército')
     expect(genObj.prompt).toContain('fala em sussurros')
-    expect(genObj.prompt).not.toContain('Malvora')
     expect(genObj.prompt).not.toContain('vaidade')
   })
 
-  it('system instrui insinuar method/trait sem nomear nem revelar weakness (US-190)', async () => {
+  // US-191, teste de regressão — contradição de prompt: a proibição de nomear (US-190)
+  // vivia em DOIS lugares (antagonistLine E system) — checa os dois juntos, senão um patch
+  // que só edita um dos dois deixa instrução contraditória pro modelo sem nenhum teste notar.
+  it('nem antagonistLine (prompt) nem system proíbem mais nomear o antagonista (US-191)', async () => {
     genObj.error = undefined
     genObj.result = { start: 'abertura' }
     await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.system).toContain('NUNCA o nomeie nem revele sua weakness')
+    expect(genObj.prompt).not.toContain('NUNCA nomear')
+    expect(genObj.system).not.toContain('NUNCA o nomeie')
+    expect(genObj.system).toContain('NUNCA revele sua weakness')
+  })
+})
+
+describe('AiService.generateAntagonistLocationProse (US-191)', () => {
+  const location = { id: 'loc-8', title: 'Salão do Trono Partido', aspects: ['tetos desabando'], boxedText: 'Você chega ao salão.', description: 'Ecos de passos antigos.', occupants: [] }
+  const registry = { tone: 'terror', setting: 'coastal', areaType: 'settlement' }
+  const antagonist = { name: 'Malvora', method: 'reunir um exército', trait: 'fala em sussurros' }
+
+  function svc() {
+    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+  }
+
+  it('devolve boxedText/description do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { boxedText: 'Malvora aguarda no trono partido.', description: 'O ar cheira a sussurros dela.' }
+    const result = await svc().generateAntagonistLocationProse({ location, antagonist, registry })
+    expect(result).toEqual({ boxedText: 'Malvora aguarda no trono partido.', description: 'O ar cheira a sussurros dela.' })
+  })
+
+  it('usa primaryModel', async () => {
+    genObj.error = undefined
+    genObj.result = { boxedText: 'x', description: 'y' }
+    await svc().generateAntagonistLocationProse({ location, antagonist, registry })
+    expect(genObj.model).toBe(primaryModel)
+  })
+
+  it('registry (tone/setting/areaType) entra no system do modelo', async () => {
+    genObj.error = undefined
+    genObj.result = { boxedText: 'x', description: 'y' }
+    await svc().generateAntagonistLocationProse({ location, antagonist, registry })
+    expect(genObj.system).toContain('terror')
+    expect(genObj.system).toContain('coastal')
+    expect(genObj.system).toContain('settlement')
+  })
+
+  it('location (título/boxedText/description atuais) e antagonist (nome/method/trait) entram no prompt', async () => {
+    genObj.error = undefined
+    genObj.result = { boxedText: 'x', description: 'y' }
+    await svc().generateAntagonistLocationProse({ location, antagonist, registry })
+    expect(genObj.prompt).toContain('Salão do Trono Partido')
+    expect(genObj.prompt).toContain('Você chega ao salão.')
+    expect(genObj.prompt).toContain('Malvora')
+    expect(genObj.prompt).toContain('reunir um exército')
+    expect(genObj.prompt).toContain('fala em sussurros')
+  })
+
+  it('falha propaga erro estruturado — NÃO devolve prosa vazia em silêncio', async () => {
+    genObj.error = new Error('modelo indisponível')
+    await expect(svc().generateAntagonistLocationProse({ location, antagonist, registry })).rejects.toThrow('modelo indisponível')
+  })
+
+  // US-191, teste de regressão — weakness não vaza: `antagonist` é tipado
+  // Pick<'name' | 'method' | 'trait'> — weakness nem existe no parâmetro. Mesmo forçado por
+  // cast (pior caso: alguém passa weakness por engano), a implementação não lê a chave.
+  it('antagonist sem weakness no tipo — mesmo presente por cast, nunca chega ao prompt/system (US-191)', async () => {
+    genObj.error = undefined
+    genObj.result = { boxedText: 'x', description: 'y' }
+    const antagonistWithWeakness = { ...antagonist, weakness: 'vaidade' } as never
+    await svc().generateAntagonistLocationProse({ location, antagonist: antagonistWithWeakness, registry })
+    expect(genObj.prompt).not.toContain('vaidade')
+    expect(genObj.system).not.toContain('vaidade')
   })
 })
 

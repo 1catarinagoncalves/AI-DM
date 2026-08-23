@@ -56,14 +56,14 @@ function adventureFixture(overrides: Partial<GeneratedAdventure> = {}): Generate
 }
 
 describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
-  // US-189: npc-2 (Soldier) é o antagonist.npcId da fixture default — some de
-  // encounterNpcEntities (é o antagonista, não um capanga) e vira a entrada Malvora no lugar,
-  // mantendo a contagem em 8.
-  it('produz exatamente 8 entidades: 3 segredos + 2 NPCs narrativos + 2 locais + 1 antagonista', () => {
+  // US-189/US-191: npc-2 (Soldier) é o antagonist.npcId da fixture default — some de
+  // encounterNpcEntities (é o antagonista, não um capanga) e vira DUAS entradas Malvora no
+  // lugar (pública/oculta, US-191), somando 9.
+  it('produz exatamente 9 entidades: 3 segredos + 2 NPCs narrativos + 2 locais + 2 antagonista (pública/oculta)', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
-    expect(entities).toHaveLength(8)
+    expect(entities).toHaveLength(9)
     expect(entities.some((e) => e.nome === 'npc-2' || e.nome === 'Soldier')).toBe(false)
-    expect(entities.filter((e) => e.nome === 'Malvora')).toHaveLength(1)
+    expect(entities.filter((e) => e.nome === 'Malvora')).toHaveLength(2)
   })
 
   it('mapeia segredo com nome=id, revelado false, sabido publico, local da location referenciada', () => {
@@ -221,19 +221,31 @@ describe('seedLedgerFromGeneratedAdventure — combatentes de encontro (US-171/U
   })
 })
 
-describe('seedLedgerFromGeneratedAdventure — antagonista no ledger (US-189)', () => {
-  it('antagonist.npcId com role MonsterRole (nível médio/alto): 1 entrada oculta, sem duplicata em npcEntities/encounterNpcEntities', () => {
+describe('seedLedgerFromGeneratedAdventure — antagonista no ledger (US-189/US-191)', () => {
+  it('antagonist.npcId com role MonsterRole (nível médio/alto): 2 entradas (pública/oculta), sem duplicata em npcEntities/encounterNpcEntities', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
     const malvora = entities.filter((e) => e.nome === 'Malvora')
-    expect(malvora).toHaveLength(1)
-    expect(malvora[0]!).toEqual({
+    expect(malvora).toHaveLength(2)
+
+    const publica = malvora.find((e) => e.revelado === true)
+    expect(publica).toEqual({
       nome: 'Malvora',
       tipo: 'npc',
       local: 'Ruína', // loc-2, local do encontro final (encounter-1, único encontro da fixture)
+      revelado: true,
+      atualizadoEm: expect.any(String),
+    })
+
+    const oculta = malvora.find((e) => e.revelado === false)
+    expect(oculta).toEqual({
+      nome: 'Malvora',
+      tipo: 'npc',
+      local: 'Ruína',
       nota: 'Quer: poder sobre a região — Método: reunir um exército — Traço: fala em sussurros — Fraqueza: vaidade — Conexão: já cruzou caminho com o grupo antes',
       revelado: false,
       atualizadoEm: expect.any(String),
     })
+
     expect(entities.some((e) => e.nome === 'Soldier (npc-2)')).toBe(false)
   })
 
@@ -250,11 +262,11 @@ describe('seedLedgerFromGeneratedAdventure — antagonista no ledger (US-189)', 
       ],
     }))
     const malvora = entities.filter((e) => e.nome === 'Malvora')
-    expect(malvora).toHaveLength(1)
-    expect(malvora[0]!.revelado).toBe(false)
+    expect(malvora).toHaveLength(2)
+    expect(malvora.filter((e) => e.revelado === false)).toHaveLength(1)
   })
 
-  it('encounters vazio: ledger sem antagonistEntity, sem lançar', () => {
+  it('encounters vazio: ledger sem entrada do antagonista, sem lançar', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture({ encounters: [] }))
     expect(entities.some((e) => e.nome === 'Malvora')).toBe(false)
   })

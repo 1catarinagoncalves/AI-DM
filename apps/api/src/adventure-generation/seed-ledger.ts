@@ -18,7 +18,7 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
   const locationTitleById = new Map(adventure.locations.map((l) => [l.id, l.title]))
   // US-189: o antagonista já é um AdventureNpc (US-188) — excluído por `id`, sempre
   // incondicional, dos dois mapeamentos abaixo que iterariam `npcs`/`encounters.npcIds` por
-  // engano. `antagonistEntity` (ao final da função) é a ÚNICA entrada dele no ledger.
+  // engano. As entradas dele no ledger (pública/oculta, US-191) nascem ao final da função.
   const antagonistNpcId = adventure.antagonist.npcId
 
   const secretEntities: WorldEntity[] = adventure.secrets.map((secret) => ({
@@ -90,17 +90,31 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
         }))
     })
 
-  // US-189: `want`/`method`/`trait`/`weakness`/`connection` só existiam no artefato, nunca
-  // chegavam ao Mestre durante o turno — mesmo mecanismo `revelado: false` de segredo/local/
-  // combatente (US-151/170/171), UMA entrada (não array: só existe um antagonista por
-  // aventura). `.at(-1)` em vez de `[length - 1]!`: encontro final SEMPRE existe hoje (US-166),
-  // mas `.at` devolve `undefined` em vez de lançar se essa garantia algum dia quebrar — a
-  // função degrada (ledger sem antagonistEntity) em vez de derrubar toda a geração.
+  // US-189/US-191: `want`/`method`/`trait`/`weakness`/`connection` só existiam no artefato,
+  // nunca chegavam ao Mestre durante o turno — mesmo mecanismo `revelado: false` de segredo/
+  // local/combatente (US-151/170/171). `.at(-1)` em vez de `[length - 1]!`: encontro final
+  // SEMPRE existe hoje (US-166), mas `.at` devolve `undefined` em vez de lançar se essa
+  // garantia algum dia quebrar — a função degrada (ledger sem entrada do antagonista) em vez
+  // de derrubar toda a geração.
+  //
+  // US-191: o NOME do antagonista deixou de ser segredo (Parte 2 já libera nomeá-lo desde a
+  // abertura) — DUAS entradas em vez de uma: `antagonistPublicEntity` (nome, local,
+  // `revelado: true`, sem `nota`) e `antagonistHiddenEntity` (mesmo nome — `WorldEntity.nome`
+  // é obrigatório, não dá pra omitir sem mudar schema — `nota` com want/method/trait/
+  // weakness/connection, `revelado: false`, o que ainda importa proteger até o confronto).
   const finalEncounter = adventure.encounters.at(-1)
-  const antagonistEntity: WorldEntity | undefined = finalEncounter && {
+  const antagonistLocal = finalEncounter && locationTitleById.get(finalEncounter.locationId)
+  const antagonistPublicEntity: WorldEntity | undefined = finalEncounter && {
     nome: adventure.antagonist.name,
     tipo: 'npc',
-    local: locationTitleById.get(finalEncounter.locationId),
+    local: antagonistLocal,
+    revelado: true,
+    atualizadoEm: now,
+  }
+  const antagonistHiddenEntity: WorldEntity | undefined = finalEncounter && {
+    nome: adventure.antagonist.name,
+    tipo: 'npc',
+    local: antagonistLocal,
     nota: [
       `Quer: ${adventure.antagonist.want}`,
       `Método: ${adventure.antagonist.method}`,
@@ -117,7 +131,8 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
     ...npcEntities,
     ...locationEntities,
     ...encounterNpcEntities,
-    ...(antagonistEntity ? [antagonistEntity] : []),
+    ...(antagonistPublicEntity ? [antagonistPublicEntity] : []),
+    ...(antagonistHiddenEntity ? [antagonistHiddenEntity] : []),
   ]
 }
 

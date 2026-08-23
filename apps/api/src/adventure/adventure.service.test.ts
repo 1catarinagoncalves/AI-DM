@@ -41,6 +41,9 @@ function fakeAi(
     generateAntagonist: async () => antagonist,
     generateClosing: async () => closing,
     generateOpeningBeat: async () => ({ start: 'A porta racha ao meio antes que alguém grite.' }),
+    // US-191, Parte 2: 3ª perna do Promise.all — devolve boxedText/description fixos, sem
+    // depender de nenhum estado do teste (nenhum teste deste bloco é SOBRE esta chamada).
+    generateAntagonistLocationProse: async () => ({ boxedText: 'x', description: 'x' }),
   } as unknown as AiService
 }
 
@@ -267,9 +270,14 @@ describe('AdventureService.createForCharacter', () => {
         nome: 'Enseada Cinzenta', tipo: 'local',
         nota: encounterNota, revelado: false, atualizadoEm: expect.any(String),
       },
-      // US-189: antagonista some de npcEntities (excluído por `id`, nível 1/'adventure'
-      // cai no caso `role === antagonist.trait` texto livre que vazaria sem essa exclusão)
-      // e chega como entrada própria, oculta — última no ledger.
+      // US-189/US-191: antagonista some de npcEntities (excluído por `id`, nível 1/'adventure'
+      // cai no caso `role === antagonist.trait` texto livre que vazaria sem essa exclusão) e
+      // chega como DUAS entradas próprias — pública (nome/local, revelado true) e oculta
+      // (want/method/trait/weakness/connection, revelado false) — últimas no ledger.
+      {
+        nome: 'Malvora', tipo: 'npc', local: 'Enseada Cinzenta',
+        revelado: true, atualizadoEm: expect.any(String),
+      },
       {
         nome: 'Malvora', tipo: 'npc', local: 'Enseada Cinzenta',
         nota: 'Quer: poder sobre a região — Método: reunir um exército — Traço: fala em sussurros — Fraqueza: vaidade — Conexão: já cruzou caminho com o grupo antes',
@@ -349,7 +357,8 @@ describe('AdventureService.createForCharacter', () => {
       expect.objectContaining({ nome: 'secret-1' }),
       expect.objectContaining({ nome: 'Marta' }),
       expect.objectContaining({ nome: 'Enseada Cinzenta' }),
-      expect.objectContaining({ nome: 'Malvora' }), // US-189: antagonista, última entrada, ver teste US-151 acima
+      expect.objectContaining({ nome: 'Malvora' }), // US-191: entrada pública do antagonista
+      expect.objectContaining({ nome: 'Malvora' }), // US-189: entrada oculta, ver teste US-151 acima
     ])
   })
 
@@ -981,11 +990,13 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     closing?: { objective: string; conclusion: string; followUps: string[] }
     encounterSituations?: Array<{ behaviors: string; goal: string; complications: string }>
     start?: string
+    locationProse?: { boxedText: string; description: string }
     seenOpeningParams?: Record<string, unknown>
     seenLocationsParams?: Record<string, unknown>
     seenSecretsParams?: Record<string, unknown>
     seenAntagonistParams?: Record<string, unknown>
     seenClosingParams?: Record<string, unknown>
+    seenLocationProseParams?: Record<string, unknown>
   } = {}): AiService {
     const locations = overrides.locations ?? defaultLocations
     const npcs = overrides.npcs ?? defaultNpcs
@@ -1026,6 +1037,12 @@ describe('AdventureService.generateAdventure (US-164)', () => {
       generateOpeningBeat: async (params: Record<string, unknown>) => {
         if (overrides.seenOpeningParams) Object.assign(overrides.seenOpeningParams, params)
         return { start }
+      },
+      // US-191, Parte 2: 3ª perna do Promise.all — captura params (location/antagonist/
+      // registry) e devolve boxedText/description fixos ou o override do teste.
+      generateAntagonistLocationProse: async (params: Record<string, unknown>) => {
+        if (overrides.seenLocationProseParams) Object.assign(overrides.seenLocationProseParams, params)
+        return overrides.locationProse ?? { boxedText: 'O salão range com passos que não são seus.', description: 'Sombras longas cruzam o piso rachado.' }
       },
     } as unknown as AiService
   }
@@ -1309,6 +1326,57 @@ describe('AdventureService.generateAdventure (US-164)', () => {
       expect((seenOpeningParams.antagonist as { npcId: string }).npcId).toBe(adventure.antagonist.npcId)
     })
   })
+
+  // US-191: antagonista vira occupant do local do confronto final + prosa desse local
+  // reescrita citando o nome dele.
+  describe('antagonista ocupa e nomeia o local do confronto final (US-191)', () => {
+    it('generateAntagonistLocationProse recebe location (do encontro final)/antagonist (com npcId)/registry', async () => {
+      const seenLocationProseParams: Record<string, unknown> = {}
+      const adventure = await service(fakeGenAi({ seenLocationProseParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+      const finalEncounter = adventure.encounters[adventure.encounters.length - 1]!
+      expect((seenLocationProseParams.location as { id: string }).id).toBe(finalEncounter.locationId)
+      expect((seenLocationProseParams.antagonist as { npcId: string }).npcId).toBe(adventure.antagonist.npcId)
+      expect(seenLocationProseParams.registry).toBeDefined()
+    })
+
+    // Teste de regressão — patch combinado: UM único teste verifica, no MESMO local, que
+    // occupants (Parte 1) E boxedText/description (Parte 2) mudaram JUNTOS. Dois testes
+    // isolados não pegariam um "last-write-wins" — se os dois `.map` partissem de `locations`
+    // original em vez de encadear, um patch apagaria o outro sem nenhum teste isolado notar.
+    it('local do confronto final ganha occupants (antagonist.npcId) E boxedText/description novos, ao mesmo tempo; outros locais não mudam', async () => {
+      const locationProse = { boxedText: 'Malvora aguarda no trono partido, sussurrando ordens.', description: 'O ar cheira aos sussurros dela.' }
+      const adventure = await service(fakeGenAi({ locationProse })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+
+      const finalEncounter = adventure.encounters[adventure.encounters.length - 1]!
+      const finalLocation = adventure.locations.find((loc) => loc.id === finalEncounter.locationId)!
+      expect(finalLocation.occupants).toContain(adventure.antagonist.npcId)
+      expect(finalLocation.boxedText).toBe(locationProse.boxedText)
+      expect(finalLocation.description).toBe(locationProse.description)
+
+      const otherLocations = adventure.locations.filter((loc) => loc.id !== finalEncounter.locationId)
+      expect(otherLocations.length).toBeGreaterThan(0)
+      for (const loc of otherLocations) {
+        expect(loc.boxedText).toBe('Você chega.')
+        expect(loc.description).toBe('notas')
+        expect(loc.occupants).not.toContain(adventure.antagonist.npcId)
+      }
+
+      expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+    })
+
+    it('sem duplicata se antagonist.npcId já estivesse em occupants', async () => {
+      // profile (nível 1, 'adventure') não gera combatente antes do antagonista — com
+      // defaultNpcs = [npc-1], antagonistNpc.id é sempre 'npc-2' (determinístico), o que
+      // permite pré-popular occupants do local final com ele e provar que o patch não duplica.
+      const locations = defaultLocations.map((loc) => (loc.id === 'loc-8' ? { ...loc, occupants: ['npc-2'] } : loc))
+      const adventure = await service(fakeGenAi({ locations })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+      expect(adventure.antagonist.npcId).toBe('npc-2')
+      const finalEncounter = adventure.encounters[adventure.encounters.length - 1]!
+      const finalLocation = adventure.locations.find((loc) => loc.id === finalEncounter.locationId)!
+      const occurrences = finalLocation.occupants.filter((id) => id === adventure.antagonist.npcId)
+      expect(occurrences.length).toBe(1)
+    })
+  })
 })
 
 // US-150: gate que envolve generateAdventure. Não repete a matriz de checagens (isso é
@@ -1333,6 +1401,7 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
       generateAntagonist: vi.fn(async () => antagonist),
       generateClosing: vi.fn(async () => closing),
       generateOpeningBeat: vi.fn(async () => ({ start: 'abertura' })),
+      generateAntagonistLocationProse: vi.fn(async () => ({ boxedText: 'x', description: 'x' })),
     } as unknown as AiService
   }
 

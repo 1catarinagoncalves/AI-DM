@@ -272,6 +272,14 @@ const OPENING_BEAT_SCHEMA = z.object({
   start: z.string().min(1),
 })
 
+// US-191, Parte 2: schema da PROSA REESCRITA do local do confronto final — mesmos dois
+// campos de AdventureLocationSchema (`boxedText`/`description`), agora citando o antagonista
+// pelo nome. `title`/`aspects`/`occupants` do local NÃO mudam por esta chamada.
+const ANTAGONIST_LOCATION_PROSE_SCHEMA = z.object({
+  boxedText: z.string().min(1),
+  description: z.string().min(1),
+})
+
 function buildOpeningBeatPrompt(params: {
   locations: AdventureLocation[]
   npcs: AdventureNpc[]
@@ -284,10 +292,12 @@ function buildOpeningBeatPrompt(params: {
   const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
   const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
   const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
-  // US-190: nome e weakness NÃO entram aqui — a linha só dá o que pode aparecer insinuado
-  // (method/trait); nome fica de fora pra a abertura não ter como citá-lo nem por acidente,
-  // mesma lógica de "o que não está no prompt não pode vazar" que `hookSeed` já usa acima.
-  const antagonistLine = `Antagonista já decidido (pode insinuar, NUNCA nomear nem revelar a weakness): método: ${params.antagonist.method}; traço: ${params.antagonist.trait}.`
+  // US-191: reverte a proibição da US-190 — nome ENTRA aqui agora (Questão em aberto #2
+  // daquela story, decidida ao contrário nesta). weakness continua fora: só o nome deixou
+  // de ser segredo, o mesmo "não vaza antes de merecer" ainda protege a fraqueza dele.
+  const antagonistLine =
+    `Antagonista já decidido — nome: ${params.antagonist.name} (pode nomeá-lo na cena; NUNCA revele a weakness): ` +
+    `método: ${params.antagonist.method}; traço: ${params.antagonist.trait}.`
   return [
     `Premissa: ${params.premissa}`,
     // US-180: sem esta linha, `complicacao` chega só como TIPO em `params` — o modelo
@@ -1739,9 +1749,12 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * no que já foi gerado, nunca elemento novo — eixo ortogonal a tom/ancoragem/vínculo/estilo.
    *
    * US-190: ganha `antagonist` (já decidido por `generateAntagonist`, que roda antes desta
-   * chamada) — primeira vez que a abertura pode ecoar o vilão real, não só no fecho. Mesma
-   * disciplina "não vaza antes de merecer" que já protege `conclusion`/segredos (US-153 #4):
-   * pode insinuar `method`/`trait`, nunca nomear o antagonista nem revelar `weakness`.
+   * chamada) — primeira vez que a abertura pode ecoar o vilão real, não só no fecho.
+   *
+   * US-191: reverte a proibição de nomear que a US-190 registrou aqui (Questão em aberto #2
+   * daquela story) — o produto passou a querer o vilão reconhecível por nome desde a
+   * abertura. `weakness` continua fora do prompt, mesma disciplina "não vaza antes de
+   * merecer" que já protege `conclusion`/segredos (US-153 #4).
    */
   async generateOpeningBeat(params: {
     locations: AdventureLocation[]
@@ -1777,7 +1790,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'RECOMPENSA — algo a ganhar (riqueza, poder, um item, um favor). ' +
         'HEROÍSMO — a chance de agir bem (proteger alguém, corrigir um erro, impedir um dano). ' +
         'DESCOBERTA — um segredo ou mistério que a cena já insinua, sem revelar. ' +
-        'O antagonista já está decidido (method/trait abaixo) — pode deixar sinal de sua presença/método na cena, mas NUNCA o nomeie nem revele sua weakness, mesma disciplina que protege os segredos. ' +
+        'O antagonista já está decidido (nome/method/trait abaixo) — pode nomeá-lo e deixar sinal de sua presença/método na cena, mas NUNCA revele sua weakness, mesma disciplina que protege os segredos. ' +
         `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildOpeningBeatPrompt(params),
@@ -1786,6 +1799,52 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     logExtractionEndpoint('generateOpeningBeat', primaryModel, providerMetadata)
 
     return { start: object.start }
+  }
+
+  /**
+   * US-191, Parte 2: reescreve `boxedText`/`description` do local do CONFRONTO FINAL
+   * citando o antagonista pelo nome. `generateLocationsAndNpcs` (passo 2) roda ANTES do
+   * antagonista existir e não pode nomeá-lo — esta chamada roda depois, em paralelo a
+   * `generateClosing`/`generateOpeningBeat` (mesmo `Promise.all`), e só troca esses dois
+   * campos desse local; `title`/`aspects`/`occupants` ficam como `generateLocationsAndNpcs`
+   * já decidiu.
+   *
+   * `antagonist` é `Pick<'name' | 'method' | 'trait'>`, não `AdventureAntagonist` inteiro —
+   * `weakness`/`connection` nem existem no parâmetro, o compilador recusa se este prompt
+   * tentar lê-los. Função NOVA, não herda a proteção de `buildOpeningBeatPrompt` automaticamente.
+   *
+   * NUNCA captura erro — mesma disciplina de `generateClosing`/`generateOpeningBeat`: falha
+   * aqui é motivo de reseed na US-150, não degradação silenciosa.
+   */
+  async generateAntagonistLocationProse(params: {
+    location: AdventureLocation
+    antagonist: Pick<AdventureAntagonist, 'name' | 'method' | 'trait'>
+    registry: AdventureRegistry
+    locale?: Locale
+  }): Promise<{ boxedText: string; description: string }> {
+    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
+
+    const { object, providerMetadata } = await generateObject({
+      model: primaryModel,
+      schema: ANTAGONIST_LOCATION_PROSE_SCHEMA,
+      system:
+        'Você é o Mestre de um RPG reescrevendo boxedText/description do local do CONFRONTO FINAL de uma aventura one-shot (método Lazy GM Resource Document), agora que o antagonista já está decidido. ' +
+        'Reescreva os dois campos citando o antagonista PELO NOME em pelo menos um deles — nunca revele a weakness dele. ' +
+        'Mantenha o mesmo local e tema (o título e os aspectos do local não mudam, só a prosa). ' +
+        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
+        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
+      prompt: [
+        `Local: ${params.location.title} (aspectos: ${params.location.aspects.join(', ')})`,
+        `boxedText atual: ${params.location.boxedText}`,
+        `description atual: ${params.location.description}`,
+        '',
+        `Antagonista já decidido — nome: ${params.antagonist.name}; método: ${params.antagonist.method}; traço: ${params.antagonist.trait}.`,
+      ].join('\n'),
+      providerOptions: ENGINE_PROVIDER_OPTIONS,
+    })
+    logExtractionEndpoint('generateAntagonistLocationProse', primaryModel, providerMetadata)
+
+    return { boxedText: object.boxedText, description: object.description }
   }
 
   /**
