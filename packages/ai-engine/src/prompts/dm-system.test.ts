@@ -432,6 +432,19 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     expect(s).toContain('sala secreta')
   })
 
+  // Bug real: Pepino mostra uma crosta na palma (nunca vira recordEntity), a cena muda
+  // pra perto de Caelum, e Caelum — que não testemunhou nada — já pede pra ver a crosta.
+  // A regra de Provenance só cobria fatos JÁ no ledger com `(restrito)`; um fato cunhado
+  // NA MESMA geração não passa por lá. Fecha o buraco: NPC não pode saber de um evento
+  // que só aconteceu em OUTRO personagem/lugar dentro do turno corrente.
+  it('knowledge gates barra onisciência entre NPCs dentro do MESMO turno (não só o ledger)', () => {
+    const s = buildState({
+      entities: [{ nome: 'Vigia', tipo: 'npc', local: 'sala secreta', estado: 'neutra', atualizadoEm: '' }],
+    })
+    expect(s.toLowerCase()).toMatch(/same turn|mesmo turno/)
+    expect(s).toMatch(/did not witness|não testemunhou/i)
+  })
+
   // US-87 — este caso afirmava o OPOSTO (`not.toMatch`): a seção sumia com ledger vazio
   // enquanto a camada 2 mandava confiar nela "every turn". Agora o cabeçalho é
   // incondicional e o corpo vazio vira gatilho da tool.

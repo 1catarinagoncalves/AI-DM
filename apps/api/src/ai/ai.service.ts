@@ -73,12 +73,20 @@ const KEEP_RECENT = 12
 // (`packages/ai-engine/src/scene.ts`) com o MESMO vocabulário do `updateScene`.
 // Objetivo é um snapshot COMPLETO — os 5 campos vêm sempre que a prosa permitir;
 // `ambiente`/`periodo` são os vetores de teletransporte/salto temporal que a US ataca.
-const OPENING_SCENE_SCHEMA = z.object({
+// Modelos de extração mais fracos (e.g. qwen3.7-flash) às vezes devolvem uma string
+// solta ("a, b, c") em vez de array pra campos de lista — o preprocess absorve isso em
+// vez de derrubar o turno inteiro com AI_TypeValidationError (visto em prod, US-192).
+const coercedStringArray = z.preprocess(
+  (value) => (typeof value === 'string' ? value.split(',').map((s) => s.trim()).filter(Boolean) : value),
+  z.array(z.string()),
+)
+
+export const OPENING_SCENE_SCHEMA = z.object({
   local: z.string().describe('Lugar em linguagem natural, específico, e.g. "sacristia da igreja de Pedra do Norte"'),
   ambiente: z.enum(['externo', 'interno']).describe('externo = aberto/ao relento, interno = coberto/fechado. Deduzir de abrigo, não do clima'),
   periodo: z.string().describe('Período do dia em linguagem natural, e.g. manhã/tarde/entardecer/anoitecer/noite'),
   presentes: z.array(z.string()).describe('Só NPCs/personagens na cena, e.g. ["padre Mateus"]. NUNCA a própria personagem-jogadora'),
-  objetos_em_cena: z.array(z.string()).describe('Objetos e elementos notáveis do ambiente, incl. atmosféricos. NUNCA itens carregados no inventário'),
+  objetos_em_cena: coercedStringArray.describe('Objetos e elementos notáveis do ambiente, incl. atmosféricos. NUNCA itens carregados no inventário'),
 })
 
 type ExtractedScene = z.infer<typeof OPENING_SCENE_SCHEMA>

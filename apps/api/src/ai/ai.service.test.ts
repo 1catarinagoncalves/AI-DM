@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { AiService, scenePatchFromExtraction, applyInventoryDeltas } from './ai.service'
+import { AiService, scenePatchFromExtraction, applyInventoryDeltas, OPENING_SCENE_SCHEMA } from './ai.service'
 import { mergeSceneState, extractionModel, primaryModel, ONOMASTICS_SECTION, CRAFT_CORE_SECTION, NPC_VOICE_BULLET } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
@@ -328,6 +328,33 @@ describe('scenePatchFromExtraction + reconcile (US-73)', () => {
     const extracted = { local: 'clareira', ambiente: 'externo' as const, periodo: 'manhã', presentes: [], objetos_em_cena: [] }
     const next = mergeSceneState(stale, scenePatchFromExtraction(extracted))
     expect(next.presentes).toEqual([]) // ninguém além da personagem
+  })
+})
+
+// US-192: qwen3.7-flash devolveu `objetos_em_cena` como string solta em prod
+// ("fonte de pedra..., roseiras, tesoura prateada"), zod rejeitava (`expected array,
+// received string`), reconcileScene falhava e a cena ficava congelada no turno anterior.
+describe('OPENING_SCENE_SCHEMA — objetos_em_cena tolera string solta do modelo (US-192)', () => {
+  it('string com vírgulas vira array de itens aparados', () => {
+    const parsed = OPENING_SCENE_SCHEMA.parse({
+      local: 'Fonte Central',
+      ambiente: 'externo',
+      periodo: 'noite',
+      presentes: ['Caelum Folhaverde'],
+      objetos_em_cena: '\nfonte de pedra, roseiras, tesoura prateada\n',
+    })
+    expect(parsed.objetos_em_cena).toEqual(['fonte de pedra', 'roseiras', 'tesoura prateada'])
+  })
+
+  it('array continua funcionando normalmente (comportamento antigo preservado)', () => {
+    const parsed = OPENING_SCENE_SCHEMA.parse({
+      local: 'Fonte Central',
+      ambiente: 'externo',
+      periodo: 'noite',
+      presentes: [],
+      objetos_em_cena: ['fonte de pedra', 'roseiras'],
+    })
+    expect(parsed.objetos_em_cena).toEqual(['fonte de pedra', 'roseiras'])
   })
 })
 
