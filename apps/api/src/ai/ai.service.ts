@@ -1531,7 +1531,11 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
         // US-187: setting/areaType entram ao lado do tone já citado — mesmo padrão dos
         // outros 4 consumidores de prosa (US-186).
+        // 2026-08-23: sem isto o modelo às vezes não marca NENHUM local como vibe:'combat'
+        // — o confronto final (sempre combat, US-166) cai no fallback de round-robin cego
+        // em vez de um local pensado pra ele (buildEncounterDraft, adventure.service.ts).
         `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ${storyInstruction} ` +
+        `Ao menos UM local precisa ter vibe:'combat' — o confronto final desta aventura é sempre um combate e precisa de um local que sirva a ele. ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a regra de Onomástica abaixo, não o idioma-alvo.\n\n` +
         // US-179: boxedText é lido em voz alta (método LGMRD) — vale a MESMA barra
         // abaixo, não uma versão mais fraca por ser um trecho curto.

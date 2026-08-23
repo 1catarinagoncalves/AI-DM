@@ -485,6 +485,17 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     expect(genObj.system).toContain('settlement')
   })
 
+  // 2026-08-23: sem instrução explícita o modelo às vezes não marcava NENHUM local
+  // como vibe:'combat', e o confronto final (sempre combat, US-166) caía no fallback
+  // de round-robin cego (adventure.service.ts buildEncounterDraft) em vez de um local
+  // pensado pra ele.
+  it('system exige ao menos um local com vibe:combat, pro confronto final', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [], vibe: 'skill' }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, registry })
+    expect(genObj.system).toContain("vibe:'combat'")
+  })
+
   it('índice de occupant fora de faixa é descartado (2026-08-19: sem match por nome pra preservar)', async () => {
     genObj.error = undefined
     genObj.result = {
