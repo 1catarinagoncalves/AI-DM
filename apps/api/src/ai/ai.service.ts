@@ -1556,7 +1556,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         'Você é o Mestre de um RPG escolhendo a PREMISSA de uma aventura one-shot (técnica do Adventure Generator, Shadowdark RPG). ' +
         'Para cada um dos candidatos recebidos, imagine como a personagem ficaria sabendo do problema — favoreça a situação que a envolve mais DIRETAMENTE e que mais demanda ação. ' +
         `${anchorInstruction} ` +
-        'Escreva a premissa final em 1-2 frases, com a personagem já puxada para dentro do problema — nunca contradiga a complicação recebida (não precisa citá-la, só não destoar dela). ' +
+        'Escreva a premissa final em 1-2 frases como uma chamada à ação: precisa deixar claro qual PROBLEMA existe e precisa ser resolvido, com a personagem já puxada para dentro dele — nunca contradiga a complicação recebida (não precisa citá-la, só não destoar dela). ' +
         `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildPremissaPrompt(params),
