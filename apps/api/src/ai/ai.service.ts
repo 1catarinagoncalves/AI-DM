@@ -1611,6 +1611,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       system:
         'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
         'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
+        'O local/monumento rolados chegam em INGLÊS, como palavra-semente da tabela (ex.: "Barrow", "Cove") — não é o nome final: nunca copie essa palavra verbatim como título ou dentro da prosa. Traduza o CONCEITO e construa um nome próprio novo no idioma-alvo, seguindo a Onomástica abaixo. ' +
         // US-187: setting/areaType entram ao lado do tone já citado — mesmo padrão dos
         // outros 4 consumidores de prosa (US-186).
         // 2026-08-23: sem isto o modelo às vezes não marca NENHUM local como vibe:'combat'

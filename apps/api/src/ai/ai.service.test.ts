@@ -596,6 +596,13 @@ describe('AiService.generateLocationsAndNpcs (US-158)', () => {
     await expect(svc().generateLocationsAndNpcs({ rolled, premissa, registry })).rejects.toThrow('modelo indisponível')
   })
 
+  it('system avisa que locais/monumentos rolados são palavras-semente em inglês (LGMRD), nunca nome final', async () => {
+    genObj.error = undefined
+    genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
+    await svc().generateLocationsAndNpcs({ rolled, premissa, registry })
+    expect(genObj.system).toMatch(/nunca (copie|copiar).{0,80}verbatim/i)
+  })
+
   it('system segue a regra de Onomástica (US-177) — mesma barra da narração ao vivo', async () => {
     genObj.error = undefined
     genObj.result = { locations: [{ title: 't', aspects: [], boxedText: 'b', description: 'd', occupants: [] }], npcs: [{ name: 'n', role: 'r' }] }
