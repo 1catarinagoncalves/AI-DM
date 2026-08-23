@@ -248,6 +248,21 @@ const DEEPSEEK_ALLOWED_PROVIDERS = [
 // fp4 fora, falha fechado) não muda com o tipo da chamada. Só o raciocínio difere.
 const DEEPSEEK_ROUTE = { order: DEEPSEEK_ROUTE_ORDER, only: DEEPSEEK_ALLOWED_PROVIDERS, require_parameters: true }
 
+// 23/08/2026: o MOTOR (generateObject/modo tool) precisa de uma rota SEM
+// `require_parameters`. Medido nesta data: o endpoint first-party `deepseek`
+// sumiu da tabela de roteamento do slug (17 endpoints restantes, nenhum
+// `deepseek`) e, com `require_parameters: true`, NENHUM dos 7 endpoints
+// restantes do `only` passa no check do OpenRouter para o `tool_choice`
+// FORÇADO ({type:'function', function:{name:...}}) que o modo tool manda —
+// mesmo listando `tool_choice` como parâmetro suportado (genérico, não cobre
+// a forma forçada). Resultado: 404 "No endpoints found that support the
+// provided 'tool_choice' value" em toda chamada do motor. Reproduzido direto
+// contra a API do OpenRouter; sem `require_parameters` a mesma allowlist
+// funciona (roteia pro StreamLake). `require_parameters` protegia o
+// `presencePenalty` da NARRAÇÃO (US-69) — o motor não manda esse parâmetro,
+// então a proteção não se aplica aqui.
+const DEEPSEEK_ENGINE_ROUTE = { order: DEEPSEEK_ROUTE_ORDER, only: DEEPSEEK_ALLOWED_PROVIDERS }
+
 export const NARRATION_PROVIDER_OPTIONS = {
   // exclude: raciocínio gerado mas NÃO retornado (não vaza na prosa). SEM cortar
   // effort: `effort:'low'` fez o modelo raciocinar de menos e desrespeitar as
@@ -293,14 +308,21 @@ export const EXTRACTION_PROVIDER_OPTIONS = {
  * NPC/local órfão), tarefa de raciocínio real — qwen3.7-flash esgotava as 3
  * tentativas do gate com frequência (`adventure_gate_failed` em produção local).
  * Mesmo `{enabled:false}` de `EXTRACTION_PROVIDER_OPTIONS` (mesma colisão
- * tool_choice/thinking do modo tool), MAIS o `provider: DEEPSEEK_ROUTE` que a
- * narração já usa — sem o pin, o OpenRouter roteia livre entre os 22 endpoints do
- * slug (ADR 008), incluindo os fp4 que a narração exclui por degradação.
+ * tool_choice/thinking do modo tool), MAIS o `provider: DEEPSEEK_ENGINE_ROUTE`
+ * (mesmo `order`/`only` da narração) — sem o pin, o OpenRouter roteia livre
+ * entre os endpoints do slug (ADR 008), incluindo os fp4 que a narração exclui
+ * por degradação.
+ *
+ * CORREÇÃO 23/08/2026: era `DEEPSEEK_ROUTE` (com `require_parameters`) até
+ * essa data — trocado para `DEEPSEEK_ENGINE_ROUTE` (sem `require_parameters`,
+ * ver comentário dela) porque o `tool_choice` forçado do modo tool zerava
+ * TODOS os endpoints do `only` e derrubava as 4 chamadas com 404 em toda
+ * tentativa (`adventure_gate_failed` × 3, `createForCharacter` sempre falhava).
  */
 export const ENGINE_PROVIDER_OPTIONS = {
   openrouter: {
     reasoning: { enabled: false },
-    provider: DEEPSEEK_ROUTE,
+    provider: DEEPSEEK_ENGINE_ROUTE,
   },
 } as const
 
