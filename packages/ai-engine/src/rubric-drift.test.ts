@@ -16,7 +16,7 @@ import { DIMENSIONS } from './rubric'
 // Ao MUDAR a barra de propósito:
 //   1. revise DIMENSIONS em rubric.ts (a rubrica precisa cobrir a exigência nova);
 //   2. cole o novo hash (a mensagem de erro imprime o valor atual) em REVIEWED_CRAFT_HASH.
-const REVIEWED_CRAFT_HASH = '18c7c9670586346f11a4434fb466ebdb8aa67f2af5ad1b494dadf93b612892c8'
+const REVIEWED_CRAFT_HASH = '242d3fa70f9c37b0b79c6da6f3c585968a9acefd271439bfa91b7dabb3b5f8d3'
 
 describe('drift da barra de ofício vs rubrica (US-36)', () => {
   it('a barra de ofício não mudou sem revisão da rubrica', () => {
@@ -30,7 +30,7 @@ describe('drift da barra de ofício vs rubrica (US-36)', () => {
   it('a rubrica cobre os eixos da barra atual da US-34', () => {
     // Barreira mínima de cobertura: os eixos que a barra exige explicitamente.
     const keys = DIMENSIONS.map((d) => d.key)
-    for (const k of ['sensorial', 'concretude', 'onomastica', 'identidade', 'tensao', 'vozNpc', 'ritmo', 'agencia', 'linguaPt'] as const) {
+    for (const k of ['sensorial', 'concretude', 'onomastica', 'identidade', 'tensao', 'vozNpc', 'ritmo', 'agencia', 'linguaPt', 'anafora'] as const) {
       expect(keys, `rubrica sem a dimensão "${k}" da barra de ofício`).toContain(k)
     }
   })
