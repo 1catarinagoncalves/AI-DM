@@ -50,6 +50,13 @@ export const AdventureEncounterSchema = z.object({
   behaviors: z.string().min(1),
   goal: z.string().min(1),
   complications: z.string().min(1),
+  // US-193: o elo da trilha (hurdles-based design, The Arcane Library). O que este encontro
+  // ENTREGA — informação, acesso, aliado, recurso — que faz o próximo existir. Na posição 8
+  // descreve o que a vitória resolve, não um próximo encontro. Sem id: o vínculo é a ordem.
+  // Campo de AUTORIA: nenhum código de runtime o lê (fica fora do ledger, ver Fora do escopo).
+  // Aventuras geradas antes desta story não têm `unlocks` e NÃO revalidam contra este schema —
+  // reparse de artefato antigo não é caminho suportado; não há backfill.
+  unlocks: z.string().min(1),
 })
 
 // `setting`/`tone`/`areaType` guardam a CHAVE canônica, mesmo contrato de catalogLabel

@@ -5,7 +5,7 @@ import { nextUnrevealedEncounterLocation } from './next-encounter-hint'
 function encounter(overrides: Partial<AdventureEncounter> = {}): AdventureEncounter {
   return {
     id: 'encounter-1', locationId: 'loc-1', npcIds: [], type: 'skill',
-    behaviors: 'x', goal: 'x', complications: 'x',
+    behaviors: 'x', goal: 'x', complications: 'x', unlocks: 'x',
     ...overrides,
   }
 }

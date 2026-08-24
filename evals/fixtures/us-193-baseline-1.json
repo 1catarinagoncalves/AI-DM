@@ -1,0 +1,282 @@
+{
+  "id": "us193-baseline-char-1:1",
+  "levelRange": {
+    "min": 3,
+    "max": 3
+  },
+  "registry": {
+    "setting": "historical-fiction",
+    "tone": "political-intrigue",
+    "areaType": "forest"
+  },
+  "summary": "O ar cheira a pinho queimado e sangue velho. Você está diante do Círculo dos Ossos, um monumento druídico erguido com as vértebras de um gigante da colina — e agora ele treme, vibrando com um rugido abafado que sobe do solo. Os anciões da vila de Pedra-Fria suplicam que você destrua o artefato enterrado sob ele antes que o trovão subterrâneo desperte a Besta-Orc que os xamãs aprisionaram ali há três gerações.",
+  "npcs": [
+    {
+      "id": "npc-1",
+      "name": "Liriel Folha-de-Vento",
+      "role": "Elfa fugitiva — a Sentinela que abandonou o posto no Círculo dos Ossos há duas luas, carregando a chave de obsidiana do túnel lateral.",
+      "interactions": []
+    },
+    {
+      "id": "npc-2",
+      "name": "Caelen Bosque-Errante",
+      "role": "Elfo mensageiro — irmão de Liriel, veio buscá-la, mas agora está preso entre o dever druídico e o medo do que ela viu.",
+      "interactions": []
+    },
+    {
+      "id": "npc-3",
+      "name": "Thrain Martelo-de-Sombra",
+      "role": "Fantasma anão — xamã morto na Batalha do Vale Gemente, sua voz ecoa do Bosque dos Sussurros, dando pistas em anão antigo.",
+      "interactions": []
+    },
+    {
+      "id": "npc-4",
+      "name": "Vexis Chama-Escama",
+      "role": "Dragonborn orgulhosa — caçadora de relíquias que quer o sarcófago para seu clã, acredita que pode domar a Besta.",
+      "interactions": []
+    },
+    {
+      "id": "npc-5",
+      "name": "Pippa Bolsofundo",
+      "role": "Halfling otimista — aprendiz de ferreiro que forjou os sinos da Torre de Vidro e acha que 'tudo se resolve com uma boa bigorna'.",
+      "interactions": []
+    },
+    {
+      "id": "npc-6",
+      "name": "Vellia Pelos-de-Lua",
+      "role": "Lobisomem curandeira — esconde a licantropia, mas ouve os mortos; sabe que a Besta é um xamã orc fundido a um trovão primordial.",
+      "interactions": []
+    },
+    {
+      "id": "npc-7",
+      "name": "Kaelen Rastreador-de-Silêncio",
+      "role": "Lizardfolk reservado — guarda-costas de Vexis, fala pouco, mas fareja mentiras e já sentiu o cheiro da Besta no vento.",
+      "interactions": []
+    },
+    {
+      "id": "npc-8",
+      "name": "Vexis Chama-Escama",
+      "role": "Ela acaricia as escamas do próprio pescoço quando mente, como se estivesse acalmando uma serpente invisível.",
+      "interactions": []
+    }
+  ],
+  "secrets": [
+    {
+      "id": "secret-1",
+      "locationId": "loc-1",
+      "text": "**Segredo de personagem (Liriel Folha-de-Vento):** A chave de obsidiana que Liriel carrega não abre apenas o túnel lateral — ela foi forjada com o sangue do avô dela, o último druida a aprisionar a Besta há cem anos. A família Folha-de-Vento é a linhagem de seladores da criatura, e Liriel fugiu porque sentiu o chamado do sangue: ela é a próxima a oferecer a vida para renovar o selo."
+    },
+    {
+      "id": "secret-2",
+      "locationId": "loc-2",
+      "text": "**Segredo histórico (Torre de Vidro):** A Torre de Vidro não foi construída por elfos — é o dedo mindinho petrificado de um deus-trovão morto na Guerra dos Céus Partidos. O vidro negro que a reveste é o sangue do deus cristalizado, e os sinos de Pippa foram forjados para acordá-lo, não para celebrar rituais."
+    },
+    {
+      "id": "secret-3",
+      "locationId": "loc-3",
+      "text": "**Segredo de NPC/vilão (Thrain Martelo-de-Sombra):** Thrain não morreu na Batalha do Vale Gemente — ele foi executado pelos próprios companheiros anões por tentar invocar a Besta como arma de guerra. Sua voz no Bosque dos Sussurros não são pistas; é uma penitência: ele aponta o caminho errado de propósito para que outros não repitam seu erro."
+    },
+    {
+      "id": "secret-4",
+      "locationId": "loc-1",
+      "text": "**Segredo de personagem (Vellia Pelos-de-Lua):** Vellia não é apenas uma lobisomem que ouve os mortos — a maldição dela veio de um ritual fracassado para salvar a filha, que morreu mesmo assim. A filha agora é um dos espíritos que Vellia ouve, e sussurra que a Besta pode ser curada, não morta, porque a filha dela também era uma xamã orc fundida ao trovão."
+    },
+    {
+      "id": "secret-5",
+      "locationId": "loc-4",
+      "text": "**Segredo histórico (Casa de Vellia):** A Casa de Vellia foi construída sobre o crânio oco de um gigante primordial que serviu de montaria para o deus-trovão morto. As raízes que crescem no porão não são árvores — são os tendões petrificados do gigante, e pulsam quando a Besta se aproxima."
+    },
+    {
+      "id": "secret-6",
+      "locationId": "loc-1",
+      "text": "**Segredo de NPC/vilão (Vexis Chama-Escama):** Vexis não quer o sarcófago para o clã dela — quer abri-lo para libertar a Besta e domá-la porque acredita que a criatura é a reencarnação do deus-trovão que seu povo dragonborn adorava antes do exílio. Ela não é caçadora de relíquias; é uma sacerdotisa herege tentando trazer o deus de volta."
+    },
+    {
+      "id": "secret-7",
+      "locationId": "loc-1",
+      "text": "**Segredo de personagem (Caelen Bosque-Errante):** Caelen não veio buscar a irmã por dever fraterno — ele foi enviado pelo Conselho Druídico para matar Liriel e recuperar a chave, porque o Conselho sabe que o selo só se renova com o sacrifício de um Folha-de-Vento. Ele carrega uma adaga envenenada com essência do Bosque dos Sussurros, que apaga a alma da vítima."
+    },
+    {
+      "id": "secret-8",
+      "locationId": "loc-3",
+      "text": "**Segredo de trama:** Em três dias, na lua nova, a Besta romperá o selo do Círculo dos Ossos — não porque o selo enfraqueceu, mas porque o Conselho Druídico decidiu deixá-la escapar para justificar uma caçada que elimine todos os xamãs orcs da região. O sacrifício de Liriel é a isca."
+    },
+    {
+      "id": "secret-9",
+      "locationId": "loc-2",
+      "text": "**Segredo de trama:** Um exército de elfos das sombras emergiu das cavernas abaixo da Torre de Vidro — não para invadir, mas para recuperar o dedo do deus-trovão. Eles acreditam que a Besta é uma distração criada pelo Conselho Druídico para esconder a verdadeira relíquia: o coração do deus, que está enterrado no pátio da Casa de Vellia."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-1",
+      "title": "Círculo dos Ossos",
+      "aspects": [
+        "Ossos de gigante que rangem como cordame",
+        "Trovão abafado que sobe do solo em ondas",
+        "Runas druídicas verdes que pulsam em código de alerta"
+      ],
+      "boxedText": "O Círculo dos Ossos ergue-se num clareira onde nem musgo cresce — vértebras do tamanho de tonéis formam um anel de quatorze arcos, cada osso lavrado com runas que brilham num verde doentio. O chão treme a cada dez segundos, um baque surdo que sobe pelas solas dos pés e vibra nos dentes. Do centro do círculo, uma laje de arenito rachado — o que os anciões chamam de Túmulo do Trovão — exala um hálito quente de enxofre e terra molhada.",
+      "description": "O sarcófago está enterrado a três metros sob a laje central. Para acessá-lo, os personagens precisam mover as pedras ou encontrar a entrada lateral que os druidas usavam — um túnel coberto por raízes. O sarcófago em si é de ferro fundido, gravado com cenas da Batalha do Vale Gemente: orcs acorrentados, xamãs elfos erguendo o selo. A Besta-Orc não está no sarcófago — está no trovão. O sarcófago é uma âncora sônica; destruí-la libera o espírito da Besta para possuir o corpo mais próximo de linhagem orc.",
+      "occupants": [
+        "npc-1",
+        "npc-2",
+        "npc-3",
+        "npc-4",
+        "npc-5",
+        "npc-6",
+        "npc-7"
+      ],
+      "vibe": "combat"
+    },
+    {
+      "id": "loc-2",
+      "title": "Torre de Vidro",
+      "aspects": [
+        "Torre de vigia em ruínas, inclinada como um mastro quebrado",
+        "Sinos mudos que balançam sem vento",
+        "Cheiro de chá de casca e cera de abelha"
+      ],
+      "boxedText": "A Torre de Vidro — chamada assim pelos vitrais quebrados que ainda cintilam na ameia oeste — inclina-se sobre o lago congelado como se fosse beber água. Dentro, o chão de madeira range sob uma camada de agulhas de pinheiro secas. Sinos de bronze pendem mudos do teto, e uma chaleira de ferro ferve sozinha sobre brasas mortas.",
+      "description": "A torre servia como posto de vigia druídico. Hoje é o esconderijo de Merrion, o meio-elfo que foge dos anciões. Ele sabe onde está a chave do túnel lateral do Círculo — uma lâmina de obsidiana enterrada sob a lareira.",
+      "occupants": [
+        "npc-1",
+        "npc-2"
+      ],
+      "vibe": "skill"
+    },
+    {
+      "id": "loc-3",
+      "title": "Bosque dos Sussurros",
+      "aspects": [
+        "Cemitério de árvores petrificadas",
+        "Cada tronco tem um rosto esculpido a machado",
+        "Sussurros que ecoam em atraso"
+      ],
+      "boxedText": "O Bosque dos Sussurros é uma fileira de carvalhos virados em pedra cinzenta, cada um com um rosto humano talhado no tronco — bocas abertas, olhos vazios. O vento não passa por aqui; o som viaja em círculos, então você ouve sua própria respiração três segundos depois de soltá-la.",
+      "description": "Os rostos são os xamãs elfos que selaram a Besta — petrificados pelo próprio ritual. Se um personagem tocar um rosto, ouve um fragmento do ritual de selamento em Elfo Antigo. A informação pode ajudar a destruir o sarcófago sem soltar a Besta.",
+      "occupants": [
+        "npc-3"
+      ],
+      "vibe": "skill"
+    },
+    {
+      "id": "loc-4",
+      "title": "Casa de Vellia",
+      "aspects": [
+        "Casa de madeira com telhado de turfa fumegante",
+        "Porta pintada de azul desbotado",
+        "Gaiolas de vime penduradas nos beirais"
+      ],
+      "boxedText": "O ar aqui não se move. A fumaça azulada da chaminé de Vellia sobe reta como uma lança, carregando cheiro de zimbro e cinzas de osso — mas há algo por baixo. Um odor metálico, doce demais, que gruda na língua. As gaiolas de vime balançam sob o beiral, e os sinos de chifre tilintam sem vento — como se alguém tivesse passado por elas agora mesmo. A porta azul desbotada está entreaberta. Lá dentro, uma sombra se mexe. Não é Vellia. É Vexis Chama-Escama, que apoiou a mão na ombreira e sorri para você com os dentes manchados de vermelho.",
+      "description": "Vellia é a curandeira da vila — uma lobisomem que esconde sua natureza. Ela prepara unguentos e poções, mas também ouve os mortos. Sabe que a Besta-Orc não é um espírito — é um xamã orc que se fundiu com um trovão primordial. Mas hoje ela não está sozinha. Vexis Chama-Escama veio cobrar uma dívida antiga, e o sangue de dragão que escorre dos dedos dela já começou a infiltrar-se nas frestas do assoalho.",
+      "occupants": [
+        "npc-6",
+        "npc-8"
+      ],
+      "vibe": "social"
+    }
+  ],
+  "encounters": [
+    {
+      "id": "encounter-1",
+      "locationId": "loc-4",
+      "npcIds": [
+        "npc-6"
+      ],
+      "type": "social",
+      "behaviors": "Vellia está no quintal dos fundos, de costas para a porta, cortando raízes negras que brotaram do chão da noite para o dia. As mãos dela tremem, e ela não se vira quando você chega — apenas pergunta, sem fôlego: 'Você veio para me matar ou para ouvir o que os mortos estão gritando?'",
+      "goal": "Os personagens vieram até a Casa de Vellia para conseguir informações sobre a natureza da Besta e como detê-la — Vellia é a única que sabe que a criatura é um xamã orc fundido a um trovão primordial, não um monstro cego.",
+      "complications": "O espírito da filha de Vellia emerge do porão e começa a falar em orc antigo — se alguém na mesa entende, descobre que a Besta já está parcialmente desperta e reconheceu o cheiro de Vexis. Se ninguém entende, Vellia precisa traduzir, mas cada palavra que ela diz a enfraquece visivelmente."
+    },
+    {
+      "id": "encounter-2",
+      "locationId": "loc-2",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "A Torre de Vidro está silenciosa, mas o vidro negro que a reveste pulsa com uma luz vermelha profunda, como um coração batendo devagar. Os sinos forjados por Pippa balançam sozinhos, mesmo sem vento, e cada badalada solta lascas de vidro que caem como chuva cortante.",
+      "goal": "Os personagens vieram até a Torre de Vidro para investigar a origem do artefato e descobrir se há uma maneira de usar o poder do deus-trovão contra a Besta — ou se a torre é uma armadilha.",
+      "complications": "Uma das lascas de vidro atinge o chão e revela uma visão do passado: o deus-trovão sendo morto, o dedo caindo, e uma figura dragonborn — Vexis — ajoelhada diante do sangue cristalizado. A visão dura tempo demais; quem a vê fica atordoado por alguns segundos, e o vidro começa a se fechar ao redor do grupo."
+    },
+    {
+      "id": "encounter-3",
+      "locationId": "loc-4",
+      "npcIds": [
+        "npc-6"
+      ],
+      "type": "social",
+      "behaviors": "Vellia está sentada à mesa da cozinha, com as mãos enfaixadas e uma tigela de chá de ervas fumegante na frente. Ela não olha para vocês — olha para o teto, onde as vigas de madeira estalam como se alguém estivesse andando no sótão. 'Ela está ouvindo a conversa', Vellia murmura. 'A filha. Ela quer saber se vocês vão matar a Besta ou libertá-la.'",
+      "goal": "Os personagens voltaram à Casa de Vellia para cruzar informações que encontraram na Torre de Vidro com o conhecimento de Vellia sobre os mortos — especificamente, se o dedo do deus-trovão pode ser usado para controlar a Besta.",
+      "complications": "O espírito da filha de Vellia começa a responder às perguntas dos personagens, mas apenas em orc antigo — e Vellia está ficando exausta de traduzir. Se os personagens pressionarem demais, Vellia desmaia, e o espírito começa a falar diretamente na mente de alguém, revelando um segredo que ninguém queria saber: a Besta conhece o nome verdadeiro de Vexis."
+    },
+    {
+      "id": "encounter-4",
+      "locationId": "loc-3",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "O Bosque dos Sussurros está coberto por uma névoa espessa que cheira a enxofre e sangue de dragão. As árvores não sussurram — elas gemem, e as raízes expostas no chão estão cobertas por uma crosta negra e viscosa que pulsa como veias. No centro do bosque, a voz de Thrain Martelo-de-Sombra ecoa em anão antigo, repetindo a mesma frase: 'O caminho certo é o que sangra primeiro.'",
+      "goal": "Os personagens vieram ao Bosque dos Sussurros para encontrar a fonte do envenenamento das raízes e interromper o ritual de Vexis antes que a Besta desperte completamente.",
+      "complications": "A voz de Thrain está apontando para uma clareira falsa — se os personagens seguirem, encontrarão uma armadilha: o chão cede para uma caverna de raízes envenenadas que drena a energia vital de quem cai. Para chegar ao verdadeiro local do envenenamento, precisam ignorar a voz de Thrain e seguir o cheiro mais fraco de sangue de dragão — que vem do lado oposto."
+    },
+    {
+      "id": "encounter-5",
+      "locationId": "loc-4",
+      "npcIds": [
+        "npc-6"
+      ],
+      "type": "social",
+      "behaviors": "Vellia está no porão da casa, ajoelhada diante de uma raiz pulsante que atravessa a parede de pedra. Ela está cantando uma canção de ninar em orc antigo, e a raiz está brilhando com uma luz azulada. Quando vocês descem, ela levanta a cabeça e os olhos dela estão completamente brancos. 'Ela mostrou o caminho', Vellia diz, mas a voz não é totalmente dela — há um eco infantil por trás. 'A Besta não quer o sangue do dragão. Ela quer o nome do dragão.'",
+      "goal": "Os personagens voltaram à Casa de Vellia depois de descobrir o envenenamento no Bosque dos Sussurros — precisam de Vellia para interpretar o que a filha dela revelou sobre o nome do dragão e como usá-lo contra Vexis.",
+      "complications": "A raiz pulsante começa a se retorcer e se partir, revelando um compartimento oculto na parede do porão: dentro dele, há um crânio de gigante primordial com runas dragonborn gravadas na testa. Se alguém tocar no crânio, ouve a voz do deus-trovão — e Vexis, onde quer que esteja, também ouve. Ela sabe que os personagens encontraram o coração do deus."
+    },
+    {
+      "id": "encounter-6",
+      "locationId": "loc-2",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "A Torre de Vidro agora brilha com uma luz pulsante que ilumina toda a clareira ao redor. Os sinos de Pippa estão tocando sozinhos uma melodia que soa como um hino de guerra dragonborn. No topo da torre, uma figura está de pé — Vexis Chama-Escama, que chegou antes dos personagens e está derramando mais sangue de dragão no vidro negro, fazendo a torre vibrar como um sino gigante.",
+      "goal": "Os personagens voltaram à Torre de Vidro para impedir Vexis de usar o dedo do deus-trovão como uma âncora para o despertar da Besta — precisam quebrar o ritual ou redirecionar a energia da torre.",
+      "complications": "O sangue de dragão está ativando o dedo do deus-trovão — a torre começa a se inclinar lentamente para o leste, na direção do Círculo dos Ossos. Se os personagens não estabilizarem a torre (fisicamente ou quebrando o fluxo de sangue), ela vai desabar sobre o círculo e romper o selo instantaneamente, libertando a Besta antes do previsto."
+    },
+    {
+      "id": "encounter-7",
+      "locationId": "loc-4",
+      "npcIds": [
+        "npc-6"
+      ],
+      "type": "social",
+      "behaviors": "Vellia está na porta da casa, com uma mochila nas costas e uma tocha na mão. Atrás dela, a casa está em chamas — ela mesma ateou fogo. 'Não posso mais ouvir os mortos', ela diz, com a voz firme. 'A filha pediu para eu queimar o crânio. Disse que é a única maneira de impedir que o Conselho Druídico use o coração do deus como arma.' As chamas já estão lambendo o telhado, e o crânio do gigante primordial está estilhaçando dentro da casa.",
+      "goal": "Os personagens voltaram à Casa de Vellia para o confronto final com Vellia — ela decidiu destruir o crânio do gigante para impedir que qualquer lado (Vexis ou o Conselho Druídico) use o poder do deus-trovão, e precisa da ajuda dos personagens para sobreviver à reação de Vexis.",
+      "complications": "Enquanto a casa queima, Vexis aparece na borda da clareira, acompanhada por Kaelen Rastreador-de-Silêncio. Ela não ataca — apenas observa, com as escamas do pescoço brilhando. 'Queimem o coração do deus', ela diz, rindo. 'Isso só acelera o despertar. O trovão não precisa de um coração — ele precisa de um cavaleiro.' Kaelen fareja o ar e confirma: a Besta já está se movendo sob o solo."
+    },
+    {
+      "id": "encounter-8",
+      "locationId": "loc-4",
+      "npcIds": [
+        "npc-6",
+        "npc-8"
+      ],
+      "type": "social",
+      "behaviors": "Vexis está ajoelhada no centro do Círculo dos Ossos, com as mãos enterradas no sangue de dragão que ela derramou no altar. As vértebras do gigante estão estalando e se partindo, e o chão treme com um rugido que vem de baixo. Ela não se levanta quando você chega — ergue apenas a cabeça, e as escamas do pescoço brilham como brasas. 'Você ainda pode se ajoelhar', ela diz. 'O deus-trovão está acordando, e eu serei a montaria dele. Você pode ser o primeiro súdito do novo império.' Atrás dela, Kaelen Rastreador-de-Silêncio está imóvel, com os olhos fixos no chão — ele sente a Besta se aproximando, e o medo dele é genuíno.",
+      "goal": "Os personagens chegaram ao Círculo dos Ossos para o confronto final contra Vexis Chama-Escama — impedir que ela monte a Besta e prove que o deus-trovão dragonborn retornou, seja destruindo a criatura, selando-a novamente, ou convencendo-a a ir embora pacificamente.",
+      "complications": "A Besta rompe o selo no meio do confronto — não como um monstro cego, mas como uma figura humanoide de trovão e osso, com olhos que brilham em azul. Ela não ataca imediatamente: inclina a cabeça e fareja o ar, primeiro na direção de Vexis (sangue de dragão), depois na direção dos personagens (o cheiro do crânio queimado da Casa de Vellia). A escolha de quem a Besta obedece depende de qual cheiro ela reconhece como 'lar' — e Vellia, se ainda estiver viva, pode sussurrar o nome verdadeiro da filha dela para quebrar o controle de Vexis."
+    }
+  ],
+  "start": "O cheiro de pinho queimado ainda agarra suas narinas quando você pisa na clareira do Círculo dos Ossos — mas não é o único odor. Sangue velho, sim, mas também algo metálico, como ferro quente e escamas queimadas. As vértebras do gigante vibram baixinho, um zumbido que sobe pela sola das botas, e no centro do círculo, Vexis Chama-Escama está ajoelhada, as mãos enterradas até os punhos na terra. Ela não se vira ao ouvir seus passos. Apenas inclina a cabeça, e você vê o movimento: os dedos dela sobem ao próprio pescoço, acariciando as escamas como quem acalma uma serpente invisível. 'Chegou tarde, como todos os mensageiros', ela diz, a voz rouca e calma demais. 'O Bosque dos Sussurros já bebeu o sangue. Agora é esperar a Besta acordar e escolher o deus certo para servir.' Ao redor dela, as raízes que serpenteiam entre as vértebras do Círculo estão enegrecidas, pulsando com um brilho rubro fraco — e no chão, aos pés de Vexis, uma poça de um líquido escuro e grosso que não é sangue de animal.",
+  "objective": "O alvo concreto e verificável desta aventura é impedir que Vexis Chama-Escama (que quer que a Besta rompa o selo no Círculo dos Ossos para montá-la como montaria e provar que o deus-trovão dragonborn retornou, usando o método de envenenar as raízes do Bosque dos Sussurros com sangue de dragão para que a Besta reconheça o cheiro do deus e obedeça a ela) complete o ritual de despertar da Besta-Orc no Círculo dos Ossos, lidando com a chave de obsidiana de Liriel Folha-de-Vento, o dedo petrificado do deus-trovão na Torre de Vidro, o envenenamento no Bosque dos Sussurros, e o crânio do gigante primordial sob a Casa de Vellia.",
+  "conclusion": "O chão treme quando você alcança o Círculo dos Ossos. As vértebras do gigante estalam como dedos se quebrando, e uma fumaça negra — sangue de dragão queimando nas raízes — sobe do Bosque dos Sussurros. Vexis Chama-Escama está ajoelhada no centro do círculo, as escamas do pescoço brilhando com o reflexo alaranjado do sangue que ela derramou no altar de pedra. Ela não luta quando você se aproxima — ergue a cabeça e sorri, porque o rugido que vem de baixo não é mais abafado. A Besta está acordando. Mas Vellia Pelos-de-Lua está ao seu lado, e a mão peluda dela aperta seu ombro enquanto ela sussurra: 'A filha dela também era xamã orc. A Besta não quer guerra — quer que a deixem ir para casa.' Você tem a chave de obsidiana de Liriel, a adaga envenenada de Caelen, e o crânio pulsante sob a Casa de Vellia. A escolha não é sobre matar a Besta — é sobre quem você deixa decidir o que ela é. Vexis avança, e o trovão primordial vibra nos ossos do círculo. O confronto final não é sobre força bruta: é sobre provar, diante do deus adormecido, que o sangue de dragão não é a única voz que a Besta ouve.",
+  "followUps": [
+    "O Conselho Druídico não perdoa a interferência. Enquanto vocês se afastam do Círculo dos Ossos, uma coruja de penas brancas pousa em um galho e fala com a voz de um dos arquidruidas: 'Vocês escolheram o lado errado da história. A caçada aos xamãs orcs vai acontecer de qualquer jeito — só que agora vocês são a presa.' A próxima aventura começa com os personagens fugindo de um esquadrão de druidas caçadores pelas florestas do norte, enquanto tentam encontrar os xamãs orcs sobreviventes antes que o Conselho os elimine.",
+    "O dedo do deus-trovão na Torre de Vidro ainda pulsa, mesmo depois do confronto. Pippa Bolsofundo aparece com os sinos dela e diz que o vidro negro está 'cantando uma música nova' — uma melodia que só pode ser ouvida por quem tem sangue dragonborn. Alguém precisa subir na torre e descobrir o que o deus-trovão está tentando comunicar, antes que os elfos das sombras que emergiram das cavernas abaixo da torre cheguem primeiro.",
+    "Liriel Folha-de-Vento desapareceu depois que o selo foi quebrado — mas a chave de obsidiana ficou para trás, e ela agora pulsa com uma luz azulada sempre que apontada para o norte. Caelen Bosque-Errante, ainda vivo, revela que a irmã foi atrás do 'verdadeiro coração do deus' — não o crânio queimado, mas algo que o Conselho Druídico escondeu nas montanhas além do Vale Gemente. A próxima aventura é uma perseguição pelas montanhas, com Liriel sempre um passo à frente, deixando pistas que podem levar à verdade — ou a uma armadilha do Conselho."
+  ],
+  "antagonist": {
+    "name": "Vexis Chama-Escama",
+    "want": "Quer que a Besta rompa o selo no Círculo dos Ossos para montá-la como montaria e provar que o deus-trovão dragonborn retornou.",
+    "method": "Vexis está envenenando as raízes do Bosque dos Sussurros com sangue de dragão para que a Besta, ao romper o selo, reconheça o cheiro do deus e obedeça a ela — não ao Conselho Druídico.",
+    "trait": "Ela acaricia as escamas do próprio pescoço quando mente, como se estivesse acalmando uma serpente invisível.",
+    "weakness": "Ela não suporta o som dos sinos de Pippa — o vidro negro da Torre vibra na mesma frequência do trauma que a fez perder o clã original.",
+    "connection": "Liriel Folha-de-Vento é a neta do xamã orc que Vexis acredita ser a reencarnação do deus-trovão — e Vexis precisa do sangue dela para completar o despertar.",
+    "npcId": "npc-8"
+  }
+}

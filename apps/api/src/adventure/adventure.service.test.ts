@@ -27,8 +27,9 @@ function fakeAi(
   const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
   const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
   // US-166: generateClosing devolve encounterSituations posicional, 8 itens.
+  // US-193: encounterId ecoa o id do esqueleto (encounter-${i+1}) + unlocks novo.
   const encounterSituations = Array.from({ length: 8 }, (_, i) => ({
-    behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
+    encounterId: `encounter-${i + 1}`, behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`, unlocks: `unlocks-${i + 1}`,
   }))
   const closing = { objective: 'Impedir que Malvora reúna um exército para tomar a Enseada Cinzenta.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
   const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
@@ -998,7 +999,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     secrets?: Record<string, unknown>[]
     antagonist?: { name: string; want: string; method: string; trait: string; weakness: string; connection: string }
     closing?: { objective: string; conclusion: string; followUps: string[] }
-    encounterSituations?: Array<{ behaviors: string; goal: string; complications: string }>
+    encounterSituations?: Array<{ encounterId: string; behaviors: string; goal: string; complications: string; unlocks: string }>
     start?: string
     premissa?: string
     locationProse?: { boxedText: string; description: string }
@@ -1015,8 +1016,9 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     const secrets = overrides.secrets ?? [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
     const antagonist = overrides.antagonist ?? { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }
     // US-166: encounterSituations posicional, 8 itens — generateAdventure quebra sem isto.
+    // US-193: encounterId ecoa o id do esqueleto (encounter-${i+1}) + unlocks novo.
     const encounterSituations = overrides.encounterSituations ?? Array.from({ length: 8 }, (_, i) => ({
-      behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
+      encounterId: `encounter-${i + 1}`, behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`, unlocks: `unlocks-${i + 1}`,
     }))
     // US-169: objective obrigatório — generateAdventure quebra em GeneratedAdventureSchema.parse sem isto.
     const closing = { ...(overrides.closing ?? { objective: 'Impedir que Malvora reúna um exército para tomar a região.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }), encounterSituations }
@@ -1351,6 +1353,26 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     }
   })
 
+  // US-193 AC: unlocks presente e não-vazio em TODO encontro, mesmo padrão de behaviors/goal/complications.
+  it('unlocks presente e não-vazio em todo encontro', async () => {
+    const adventure = await service(fakeGenAi()).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+    for (const encounter of adventure.encounters) {
+      expect(encounter.unlocks.length).toBeGreaterThan(0)
+    }
+  })
+
+  // US-193 AC: array fora de ordem (modelo emitiu de trás pra frente) é detectado pelo eco
+  // de encounterId — generateAdventure lança em vez de montar o encontro errado silenciosamente.
+  it('lança quando encounterSituations[i].encounterId não bate com o esqueleto (array fora de ordem)', async () => {
+    const reversedEncounterSituations = Array.from({ length: 8 }, (_, i) => ({
+      encounterId: `encounter-${8 - i}`, behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`, unlocks: `unlocks-${i + 1}`,
+    }))
+
+    await expect(
+      service(fakeGenAi({ encounterSituations: reversedEncounterSituations })).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR'),
+    ).rejects.toThrow(/encounterSituations\[0\]\.encounterId "encounter-8" != esqueleto "encounter-1"/)
+  })
+
   // US-166: generateClosing recebe o encounterSkeleton (8 posições resolvidas) — antes do
   // Promise.all, o esqueleto já precisa estar pronto (locationId/npcIds → location/npcs reais).
   it('generateClosing recebe encounterSkeleton com 8 posições, location/npcs resolvidos', async () => {
@@ -1490,8 +1512,9 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
     const npcs = overrides.npcs ?? [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
     const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
     // US-166: encounterSituations posicional obrigatório, 8 itens.
+    // US-193: encounterId ecoa o id do esqueleto (encounter-${i+1}) + unlocks novo.
     const encounterSituations = Array.from({ length: 8 }, (_, i) => ({
-      behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
+      encounterId: `encounter-${i + 1}`, behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`, unlocks: `unlocks-${i + 1}`,
     }))
     const closing = { objective: 'Impedir que Malvora reúna um exército para tomar a região.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida volta a assombrar.'], encounterSituations }
     const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes' }

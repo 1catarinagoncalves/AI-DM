@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { AiService, scenePatchFromExtraction, applyInventoryDeltas, OPENING_SCENE_SCHEMA } from './ai.service'
+import { AiService, scenePatchFromExtraction, applyInventoryDeltas, OPENING_SCENE_SCHEMA, CLOSING_SCHEMA } from './ai.service'
 import { mergeSceneState, extractionModel, primaryModel, ONOMASTICS_SECTION, CRAFT_CORE_SECTION, NPC_VOICE_BULLET } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
@@ -887,13 +887,40 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
     location: locations[0]!,
     npcs: i === 7 ? npcs : [],
   }))
+  // US-193: encounterId ecoa o id do encounterSkeleton (encounter-${i+1}) + unlocks novo.
   const encounterSituations = Array.from({ length: 8 }, (_, i) => ({
-    behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`,
+    encounterId: `encounter-${i + 1}`, behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`, complications: `complications-${i + 1}`, unlocks: `unlocks-${i + 1}`,
   }))
 
   function svc() {
     return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
   }
+
+  // US-193 AC: CLOSING_SCHEMA rejeita qualquer item de encounterSituations sem unlocks (ou
+  // sem encounterId) — falha de .parse() é motivo de re-seed (US-150), nunca vira .optional().
+  describe('CLOSING_SCHEMA (US-193)', () => {
+    const validClosing = { objective: 'x', conclusion: 'x', followUps: ['x'], encounterSituations }
+
+    it('aceita os 8 itens completos (encounterId/behaviors/goal/complications/unlocks)', () => {
+      expect(CLOSING_SCHEMA.safeParse(validClosing).success).toBe(true)
+    })
+
+    it('rejeita quando um item não tem unlocks', () => {
+      const broken = {
+        ...validClosing,
+        encounterSituations: encounterSituations.map((s, i) => (i === 3 ? { ...s, unlocks: undefined } : s)),
+      }
+      expect(CLOSING_SCHEMA.safeParse(broken).success).toBe(false)
+    })
+
+    it('rejeita quando um item não tem encounterId', () => {
+      const broken = {
+        ...validClosing,
+        encounterSituations: encounterSituations.map((s, i) => (i === 3 ? { ...s, encounterId: undefined } : s)),
+      }
+      expect(CLOSING_SCHEMA.safeParse(broken).success).toBe(false)
+    })
+  })
 
   it('devolve objective, conclusion, followUps e encounterSituations do modelo, sem mintar id (sem entidade a referenciar)', async () => {
     genObj.error = undefined
@@ -947,6 +974,15 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
     expect(genObj.prompt).toContain('Marta (herborista suspeita)')
   })
 
+  // US-193 AC: cabeçalho declara a lista como TRILHA ordenada, não conjunto de cenas soltas.
+  it('encounterLines declara a lista como TRILHA, não conjunto (US-193)', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton })
+    expect(genObj.prompt).toMatch(/TRILHA ordenada/)
+    expect(genObj.prompt).toMatch(/só acontece por causa do anterior/)
+  })
+
   // US-166 AC: posição 8 (o último do skeleton) tem instrução própria — ecoar o antagonista.
   it('system instrui o ÚLTIMO encontro a ecoar want/method do antagonista; os outros só podem', async () => {
     genObj.error = undefined
@@ -956,6 +992,19 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
     expect(genObj.system).toContain('behaviors')
     expect(genObj.system).toContain('goal')
     expect(genObj.system).toContain('complications')
+  })
+
+  // US-193 AC: instrução de encadeamento no system — raciocínio de trás pra frente, goal
+  // respondendo o unlocks anterior, exceção explícita da posição 1, regra de corte.
+  it('system instrui raciocínio de trás pra frente, goal respondendo unlocks anterior, exceção da posição 1 e regra de corte (US-193)', async () => {
+    genObj.error = undefined
+    genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
+    await svc().generateClosing({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, encounterSkeleton })
+    expect(genObj.system).toMatch(/RACIOCINE de trás pra frente/)
+    expect(genObj.system).toMatch(/`goal` da posição 2 em diante RESPONDE ao `unlocks` da posição anterior/)
+    expect(genObj.system).toMatch(/posição 1 é EXCEÇÃO/)
+    expect(genObj.system).toMatch(/REGRA DE CORTE/)
+    expect(genObj.system).toContain('unlocks')
   })
 
   it('falha propaga erro estruturado — NÃO devolve fecho vazio em silêncio', async () => {

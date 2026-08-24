@@ -7,6 +7,7 @@ function enc(overrides: Partial<AdventureEncounter> = {}): AdventureEncounter {
   return {
     id: 'encounter-1', locationId: 'loc-2', npcIds: ['npc-2'], type: 'combat',
     behaviors: 'Vigiam a passagem.', goal: 'Recuperar relíquia.', complications: 'Reforços chegam em 2 rounds.',
+    unlocks: 'O mapa da câmara seguinte.',
     ...overrides,
   }
 }

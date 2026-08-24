@@ -1,0 +1,261 @@
+{
+  "id": "us193-chain-char-1:1",
+  "levelRange": {
+    "min": 3,
+    "max": 3
+  },
+  "registry": {
+    "setting": "post-apocalyptic",
+    "tone": "horror",
+    "areaType": "magical-realm"
+  },
+  "summary": "O ar cheira a cinzas frias e obsidiana triturada. Você encontra o ferreiro anão, Torvin, ajoelhado diante do Monólito dos Martelos — a estela de pedra-sangue onde seu clã gravou os juramentos de forja. A mão dele está manchada de vermelho-escuro, e ele aponta para o topo do monumento: uma criatura de obsidiana viva, pulsando com veios de lava, está aninhada sobre a pedra, emitindo um ronco que faz o chão tremer. Torvin sussurra: 'Se ela acordar de vez, o monólito se despedaça — e com ele, a última promessa dos anões. Você precisa fazê-la dormir de novo... antes que o sangue dela ferva e destrua tudo.'",
+  "npcs": [
+    {
+      "id": "npc-1",
+      "name": "Korrhena",
+      "role": "A Coruja-Sábia — uma ave anciã de penas cinzentas que observa tudo do alto das vigas do Braseiro, e que conhece o nome verdadeiro da criatura de obsidiana",
+      "interactions": []
+    },
+    {
+      "id": "npc-2",
+      "name": "Puck Thornweep",
+      "role": "O Fofoqueiro Pessimista — um feérico de pele azulada que vive reclamando que 'tudo já está perdido', mas conhece cada túnel secreto do castelo",
+      "interactions": []
+    },
+    {
+      "id": "npc-3",
+      "name": "Zerethil",
+      "role": "A Arrogante — uma tiefling de chamas azuis que se recusa a sujar as mãos, mas carrega o único martelo capaz de forjar uma âncora de sono na pedra-sangue",
+      "interactions": []
+    },
+    {
+      "id": "npc-4",
+      "name": "Brynmor",
+      "role": "O Guardião Espectral — o fantasma de um anão que morreu defendendo o monólito, e que ainda empunha seu escudo etéreo, disposto a proteger quem tentar salvar o juramento",
+      "interactions": []
+    },
+    {
+      "id": "npc-5",
+      "name": "Glib",
+      "role": "O Falastrão — um esquilo falante de pelagem rajada que 'negocia' informações por nozes e promessas, e que viu algo estranho perto da nascente do rio subterrâneo",
+      "interactions": []
+    },
+    {
+      "id": "npc-6",
+      "name": "Ember",
+      "role": "A Gata Familiar — uma gata siamesa de olhos âmbar, familiar de um mago morto há décadas, que guarda o grimório com o feitiço de sono profundo para criaturas de lava",
+      "interactions": []
+    },
+    {
+      "id": "npc-7",
+      "name": "Torvin",
+      "role": "O Ferreiro Desesperado — o anão que os encontrou, de joelhos diante do monólito, com a mão sangrando, disposto a sacrificar a própria vida para segurar a criatura tempo suficiente para o ritual",
+      "interactions": []
+    },
+    {
+      "id": "npc-8",
+      "name": "A Mãe-Sangue (a criatura de obsidiana no monólito é apenas um filhote)",
+      "role": "Sua respiração é um ronco que faz o chão tremer e, quando inspira, todas as chamas próximas diminuem — como se o fogo se curvasse a ela.",
+      "interactions": []
+    }
+  ],
+  "secrets": [
+    {
+      "id": "secret-1",
+      "locationId": "loc-1",
+      "text": "O Braseiro dos Juramentos não foi construído por mãos mortais — suas chamas eternas nasceram do último suspiro de um deus do fogo que, ao morrer, cuspiu seu coração incandescente no centro da sala. As cinzas no chão são os ossos calcinados de sua carne divina."
+    },
+    {
+      "id": "secret-2",
+      "locationId": "loc-2",
+      "text": "Sob o Monólito dos Martelos, a três metros de profundidade, jaz o cadáver petrificado de um titã de obsidiana — não uma estátua, mas o corpo real de uma criatura que reinou neste vale antes dos deuses, derrotada por um exército de anões que nunca mais foi visto."
+    },
+    {
+      "id": "secret-3",
+      "locationId": "loc-2",
+      "text": "Zerethil não é apenas arrogante — ela foi a aprendiz que quebrou o primeiro martelo, há duzentos anos, e desde então carrega a culpa em silêncio. O martelo atual é o único remanescente de uma série de sete, e ela sabe que, se falhar de novo, não haverá oitava chance."
+    },
+    {
+      "id": "secret-4",
+      "locationId": "loc-2",
+      "text": "Brynmor, o Guardião Espectral, não morreu defendendo o monólito — ele foi executado pelos próprios companheiros anões quando tentou impedi-los de invocar a criatura de obsidiana. Seu escudo etéreo ainda brilha porque ele jura, até hoje, proteger o mundo dos erros de seu próprio clã."
+    },
+    {
+      "id": "secret-5",
+      "locationId": "loc-1",
+      "text": "Puck Thornweep, o Fofoqueiro Pessimista, já esteve do outro lado — ele foi um mensageiro da corte das fadas que entregou o mapa do castelo à criatura de obsidiana, achando que negociava paz. Ele sabe que os túneis secretos levam a uma câmara onde a criatura deposita seus ovos."
+    },
+    {
+      "id": "secret-6",
+      "locationId": "loc-2",
+      "text": "Torvin, o Ferreiro Desesperado, não é um anão comum — ele é o último descendente do clã que forjou a primeira âncora de sono, e sua mão sangra porque ele já tentou o ritual sozinho três vezes antes. Cada falha matou um de seus irmãos. Ele não vai sobreviver a uma quarta."
+    },
+    {
+      "id": "secret-7",
+      "locationId": "loc-1",
+      "text": "A criatura de obsidiana não está apenas acordando — ela já enviou fragmentos de sua consciência para os corpos dos ferreiros que dormem nas redondezas. Esta noite, ao pôr do sol, todos eles se levantarão como marionetes de pedra e marcharão para o Braseiro para apagar as chamas eternas."
+    },
+    {
+      "id": "secret-8",
+      "locationId": "loc-2",
+      "text": "O rio subterrâneo que corre sob o Monólito dos Martelos está secando — não por geologia, mas porque algo gigantesco está bebendo dele. Glib viu um olho do tamanho de uma bigorna emergir das águas na semana passada. A criatura de obsidiana tem uma mãe, e ela está faminta."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-1",
+      "title": "O Braseiro dos Juramentos",
+      "aspects": [
+        "Pó de obsidiana nos ladrilhos",
+        "Eco de martelos fantasmas",
+        "Brasas apagadas há séculos"
+      ],
+      "boxedText": "O salão principal do Castelo Karaz-Vorn se estende diante de vocês como uma ferida aberta na montanha. O teto em abóbada perdeu metade das pedras, e a luz do entardecer filtra-se por fendas, desenhando colunas de poeira dançante. No centro, uma fogueira de pedra-sangue — o Braseiro dos Juramentos — está acesa com uma chama negra que não esquenta, não ilumina, apenas pulsa no ritmo de um coração que não deveria bater.",
+      "description": "O Braseiro dos Juramentos é o coração do castelo. Enquanto arder, o monólito no pátio externo permanece íntegro. Mas a chama negra está enfraquecendo — e algo a está alimentando do lado de fora.",
+      "occupants": [
+        "npc-1",
+        "npc-2"
+      ],
+      "vibe": "skill"
+    },
+    {
+      "id": "loc-2",
+      "title": "O Monólito dos Martelos",
+      "aspects": [
+        "Garras de obsidiana cravadas na pedra",
+        "Veios de lava pulsando como veias",
+        "Silêncio que antecede o desastre"
+      ],
+      "boxedText": "O Monólito dos Martelos rasga o céu encoberto de cinzas — doze metros de obsidiana viva, pulsando. Garras negras, do tamanho de foices, estão cravadas na pedra como se tivessem crescido dali. Veios de lava correm pela superfície, iluminando o pátio com um pulsar laranja-sangue, e o calor que irradiam seca o suor na pele antes que ele se forme. O silêncio aqui é errado — não há vento, não há grilo, não há nada. Só o ronco profundo e úmido de A MÃE-SANGUE ecoando de dentro do monólito, um som que vibra nos dentes e faz o chão tremer. Cada inspiração dela suga a luz das tochas ao redor — o fogo se curva, diminui, como se pedisse permissão para existir. Lá no topo, o filhote de obsidiana está encolhido, as asas dobradas contra o corpo, a cabeça enterrada entre as patas. Mas ele não dorme. Ele escuta. Ele espera.",
+      "description": "O confronto final. A MÃE-SANGUE não está aqui — mas o filhote é o elo. Enquanto ele respirar, ela sente o que vocês fazem. Se o filhote acordar, ele ataca imediatamente, e cada golpe que errar atinge o monólito, aprofundando as rachaduras que já sobem da base. Vocês têm 3 rodadas para acalmar a criatura antes que a pedra se despedace e o grito da MÃE-SANGUE atravesse o vale. Lembrem-se: ao pôr do sol, os ferreiros possuídos marcharão para o Braseiro dos Juramentos. O tempo não é um luxo — é uma faca no pescoço.",
+      "occupants": [
+        "npc-3",
+        "npc-4",
+        "npc-5",
+        "npc-6",
+        "npc-7",
+        "npc-8"
+      ],
+      "vibe": "combat"
+    }
+  ],
+  "encounters": [
+    {
+      "id": "encounter-1",
+      "locationId": "loc-1",
+      "npcIds": [
+        "npc-1",
+        "npc-2"
+      ],
+      "type": "social",
+      "behaviors": "Korrhena observa tudo do alto das vigas, imóvel como uma estátua de cinza, mas seus olhos acompanham cada movimento dos personagens. Puck Thornweep está encolhido perto das chamas eternas, murmurando que 'já era, já era, o Braseiro vai apagar e a culpa é minha, eu entreguei o mapa, eu sabia que não devia'.",
+      "goal": "Os personagens chegam ao Braseiro dos Juramentos para entender o que está acontecendo — Torvin os enviou, mas eles precisam de contexto: o que é a criatura, por que ela está acordando, e o que podem fazer para detê-la antes do pôr do sol.",
+      "complications": "Puck entra em pânico e tenta fugir por um túnel secreto que ele mesmo revelou à criatura anos atrás — se ele escapar, o mapa dos túneis se perde com ele. Korrhena só fala o nome verdadeiro da criatura se os personagens provarem que são dignos, recitando um juramento de forja que ninguém mais lembra.",
+      "unlocks": "Korrhena revela o nome verdadeiro do filhote de obsidiana — 'Filho-de-Sangue' — e explica que só um feitiço de sono profundo pode acalmá-lo sem destruir o monólito. Puck, se acalmado, revela que existe um grimório com o feitiço, guardado por uma gata familiar chamada Ember, nos escombros da torre do mago morto."
+    },
+    {
+      "id": "encounter-2",
+      "locationId": "loc-1",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "O Braseiro está vazio de moradores, mas as chamas eternas crepitam de forma irregular — algumas diminuem visivelmente quando o ronco do filhote ecoa do Monólito. No chão, entre as cinzas divinas, há pegadas recentes de botas anãs que levam a uma fresta na parede sul.",
+      "goal": "Seguir as pistas deixadas por Puck para encontrar o grimório com o feitiço de sono profundo, localizado nos escombros da torre do mago morto, acessível por um túnel secreto atrás da parede sul do Braseiro.",
+      "complications": "A fresta na parede sul desaba parcialmente enquanto os personagens a exploram, exigindo que encontrem uma rota alternativa ou removam os escombros com cuidado para não atrair a atenção do filhote. O ronco da criatura fica mais forte a cada minuto, e as chamas diminuem — se o Braseiro apagar completamente antes do ritual, o titã desperta.",
+      "unlocks": "Acesso ao túnel secreto que leva aos escombros da torre do mago, onde Ember, a gata familiar, guarda o grimório."
+    },
+    {
+      "id": "encounter-3",
+      "locationId": "loc-1",
+      "npcIds": [
+        "npc-1",
+        "npc-2"
+      ],
+      "type": "social",
+      "behaviors": "Korrhena desceu das vigas e está bicando algo no chão de cinzas — fragmentos de um pergaminho queimado. Puck está sentado sobre uma pedra, os braços cruzados, resmungando que 'a gata não vai entregar o livro de graça, ela é pior que um dragão guardando ouro'.",
+      "goal": "Os personagens retornam ao Braseiro para consultar Korrhena e Puck sobre como negociar com Ember — a gata familiar é conhecida por ser teimosa e só aceita pagamento em itens mágicos ou conhecimento perdido.",
+      "complications": "O pergaminho que Korrhena bicou contém um mapa parcial da torre do mago, mas está tão queimado que metade das salas é ilegível — Puck se recusa a ajudar a decifrá-lo a menos que os personagens prometam algo que ele considera impossível (como salvar o Braseiro sem destruir o filhote).",
+      "unlocks": "Korrhena revela que Ember foi familiar de um mago que morreu tentando selar a Mãe-Sangue — a gata guarda o grimório porque foi a última vontade do mestre, e só entrega o livro para quem provar que vai usar o feitiço para completar o trabalho inacabado dele."
+    },
+    {
+      "id": "encounter-4",
+      "locationId": "loc-1",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "Os escombros da torre do mago estão silenciosos, exceto pelo som de gotejamento e pelo farfalhar ocasional de papel. No centro da sala principal, um círculo de proteção ainda brilha fraco no chão, e sobre ele está o grimório, fechado, com uma pata siamesa pressionada sobre a capa de couro.",
+      "goal": "Recuperar o grimório com o feitiço de sono profundo, convencendo Ember de que os personagens são dignos de completar o trabalho inacabado do mago — selar a Mãe-Sangue de uma vez por todas.",
+      "complications": "O círculo de proteção está quase apagado — se os personagens pisarem nele sem reativá-lo, uma armadilha arcana dispara, invocando sombras dos fracassos do mago morto que atacam os intrusos. Ember não aparece de imediato; ela observa das sombras, testando a paciência e a intenção dos personagens.",
+      "unlocks": "Ember entrega o grimório e revela que o feitiço exige um componente especial: uma gota de sangue do último descendente do clã que forjou a primeira âncora de sono — Torvin. Sem isso, o feitiço é inútil."
+    },
+    {
+      "id": "encounter-5",
+      "locationId": "loc-1",
+      "npcIds": [
+        "npc-1",
+        "npc-2"
+      ],
+      "type": "social",
+      "behaviors": "Korrhena está agitada, voando em círculos baixos perto das chamas. Puck está pálido — mais pálido que o normal — e aponta para a entrada do Braseiro: lá fora, o sol está se pondo, e as silhuetas dos ferreiros possuídos já são visíveis na linha do horizonte, marchando em passo sincronizado.",
+      "goal": "Os personagens precisam de uma última informação antes de enfrentar o filhote: como usar o sangue de Torvin no ritual sem matá-lo no processo, já que ele já falhou três vezes e não sobreviveria a uma quarta tentativa.",
+      "complications": "Puck revela, entre gaguejos, que existe um atalho pelos túneis secretos que leva direto ao Monólito, mas o caminho passa pela câmara onde o filhote deposita seus ovos — e a Mãe-Sangue pode estar parcialmente desperta, enviando pesadelos para quem se aproxima.",
+      "unlocks": "Korrhena revela que o sangue de Torvin não precisa ser derramado — basta que ele toque o martelo de Zerethil durante o ritual, canalizando a âncora de sono através da herança do clã dele sem sacrificar sua vida."
+    },
+    {
+      "id": "encounter-6",
+      "locationId": "loc-1",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "O túnel secreto que leva ao Monólito está escuro e úmido, mas o som do ronco do filhote é ensurdecedor aqui — vibra nos ossos. No chão, há cascas de ovos de obsidiana quebrados, e o ar cheira a enxofre e sangue seco.",
+      "goal": "Atravessar os túneis secretos para chegar ao Monólito dos Martelos antes que os ferreiros possuídos alcancem o Braseiro e apaguem as chamas eternas, libertando a Mãe-Sangue.",
+      "complications": "No meio do caminho, o túnel desaba parcialmente, bloqueado por um fragmento de ovo de obsidiana do tamanho de um escudo — quebrá-lo com força bruta pode alertar o filhote, e contorná-lo exige uma escalada perigosa sobre um abismo onde se ouve água corrente (o rio subterrâneo que a Mãe-Sangue está bebendo).",
+      "unlocks": "Chegada ao Monólito dos Martelos, onde o confronto final aguarda — o filhote de obsidiana, Torvin, Zerethil, Brynmor, Glib e Ember estão todos reunidos."
+    },
+    {
+      "id": "encounter-7",
+      "locationId": "loc-1",
+      "npcIds": [
+        "npc-1",
+        "npc-2"
+      ],
+      "type": "social",
+      "behaviors": "Korrhena está pousada no ombro de Torvin, sussurrando algo em seu ouvido. Puck está encolhido atrás de uma bigorna quebrada, murmurando 'eu avisei, eu avisei'. Glib, o esquilo falante, está no topo do Monólito, gritando para todo mundo que 'o olho no rio abriu! A mãe dela acordou!'.",
+      "goal": "Coordenar os aliados no Monólito para o ritual final — Torvin precisa estar posicionado, Zerethil precisa empunhar o martelo, Brynmor precisa proteger o perímetro, e Ember precisa recitar o feitiço do grimório no momento certo.",
+      "complications": "Glib entra em pânico e começa a jogar pedras nos personagens, exigindo nozes para se acalmar — se não for acalmado, ele derruba uma pedra que pode acordar o filhote antes da hora. Enquanto isso, do lado de fora, ouve-se o som dos ferreiros possuídos batendo nas portas do Braseiro.",
+      "unlocks": "Preparação completa para o confronto final — todos os aliados estão em posição, e o ritual pode começar assim que os personagens decidirem o momento certo."
+    },
+    {
+      "id": "encounter-8",
+      "locationId": "loc-2",
+      "npcIds": [
+        "npc-3",
+        "npc-4",
+        "npc-5",
+        "npc-6",
+        "npc-7",
+        "npc-8"
+      ],
+      "type": "social",
+      "behaviors": "O filhote de obsidiana está acordado. Seus olhos de lava estão abertos, fixos nos personagens, e seu ronco agora é um rugido baixo e contínuo que faz o Monólito tremer. Lá fora, os ferreiros possuídos arrombam as portas do Braseiro — as chamas eternas diminuem a cada segundo. A Mãe-Sangue, sob o monólito, começa a se mover: o chão racha, e um olho do tamanho de uma bigorna emerge do rio subterrâneo, fitando o grupo com fome ancestral.",
+      "goal": "Realizar o ritual de sono profundo no filhote de obsidiana antes que os ferreiros possuídos apaguem o Braseiro e a Mãe-Sangue desperte completamente — usando o nome verdadeiro revelado por Korrhena, o sangue de Torvin canalizado pelo toque no martelo de Zerethil, e o feitiço do grimório de Ember.",
+      "complications": "Torvin avança para segurar o filhote sozinho, como fez três vezes antes — se os personagens não o impedirem, ele morre na quarta tentativa e o ritual falha. Zerethil hesita, paralisada pelo medo de quebrar o último martelo. Brynmor avança com o escudo, mas seu fantasma está se dissipando — ele está perdendo a fé.",
+      "unlocks": "Vitória: o filhote adormece, os ferreiros possuídos caem inertes, e a Mãe-Sangue — sem o despertar completo do filhote para romper sua prisão de pedra — retorna ao sono no rio subterrâneo. O Monólito dos Martelos permanece intacto, e o Braseiro dos Juramentos arde novamente com força total."
+    }
+  ],
+  "start": "O ronco vem de cima — um som tão grave que você sente os dentes vibrarem dentro da boca. O ar ao redor do Monólito dos Martelos está quente e seco, carregado de um cheiro metálico que não é só de sangue. Torvin está ajoelhado na base da estela de pedra-sangue, a mão direita fechada num punho que verte vermelho-escuro entre os dedos. Ele não olha para você. Ele aponta para o topo do monumento com a outra mão, e você vê: uma criatura de obsidiana viva, do tamanho de um urso, encolhida sobre os juramentos gravados. Veios de lava pulsam lentamente sob a superfície negra dela, como veias de um coração que não quer parar. Quando ela inspira — um som que parece o fole de uma forja — todas as chamas das fogueiras próximas diminuem, encolhem, como se o fogo se curvasse a ela. Torvin sussurra, a voz falhando: \"Se ela acordar de vez, o monólito se despedaça. E com ele, a última promessa dos anões. Você precisa fazê-la dormir de novo... antes que o sangue dela ferva e destrua tudo.\" Ele hesita, e você nota que ele não diz \"antes que ela acorde\" — ele diz \"antes que o sangue dela ferva\". Como se a criatura fosse só um sintoma. Como se algo maior estivesse respirando junto com ela, lá no fundo da terra.",
+  "objective": "Evitar que a Mãe-Sangue desperte sob o Monólito dos Martelos — Ela quer apagar o Braseiro dos Juramentos para libertar sua mãe, um titã de obsidiana que jaz petrificado sob o monólito, bebendo o rio subterrâneo há séculos; método: Ela já enviou fragmentos de sua consciência para os corpos dos ferreiros que dormem nas redondezas — ao pôr do sol, todos se levantarão como marionetes de pedra e marcharão para o Braseiro dos Juramentos para apagar as chamas eternas, libertando sua mãe que dorme no rio subterrâneo.",
+  "conclusion": "O Braseiro dos Juramentos chiava como um animal ferido. As chamas eternas — o coração carbonizado de um deus do fogo — tremeluziam fracas, cada inspiração do filhote de obsidiana no Monólito dos Martelos sugando a luz para longe. Lá fora, o silêncio da noite que caía era quebrado por um som rítmico, pesado: passos. Dezenas de ferreiros, os olhos negros como obsidiana polida, marchavam em direção ao Braseiro para apagar as chamas e libertar a Mãe-Sangue, o titã que há séculos bebia o rio subterrâneo sob seus pés. O ar vibrava com o ronco do filhote, e o chão tremia — não pelo terremoto, mas pelo despertar lento de algo muito maior lá embaixo.",
+  "followUps": [
+    "O Braseiro dos Juramentos arde mais forte do que nunca, mas algo mudou nas cinzas divinas no chão — elas formam padrões que ninguém consegue ler, como se o deus do fogo morto estivesse tentando se comunicar. Korrhena diz que as cinzas estão 'contando uma história que não terminou', e que o coração do deus no centro do Braseiro está pulsando — não como fogo, mas como um batimento cardíaco. Algo está renascendo nas chamas, e não é pacífico.",
+    "Puck Thornweep desapareceu na noite seguinte ao ritual. Em seu lugar, encontraram uma única pena azulada e um mapa desenhado às pressas mostrando um caminho que leva para baixo do Monólito — para o leito seco do rio subterrâneo. No centro do mapa, uma anotação trêmula: 'Ela não dormiu. Ela só esperou. Eu vi o olho de novo. Ela sabe o meu nome.'",
+    "Glib, o esquilo falante, apareceu no Braseiro três dias depois, com a pelagem chamuscada e os olhos arregalados. Ele não pede nozes — ele só repete, sem parar: 'Os ovos. Os ovos no túnel. Eles não estavam quebrados. Eles estavam... vazios. Desde o começo.' Se alguém for verificar a câmara dos ovos, encontrará cascas intactas por fora, mas ocas por dentro — e pegadas minúsculas de obsidiana que levam para fora do castelo, em direção às montanhas."
+  ],
+  "antagonist": {
+    "name": "A Mãe-Sangue (a criatura de obsidiana no monólito é apenas um filhote)",
+    "want": "Ela quer apagar o Braseiro dos Juramentos para libertar sua mãe, um titã de obsidiana que jaz petrificado sob o monólito, bebendo o rio subterrâneo há séculos.",
+    "method": "Ela já enviou fragmentos de sua consciência para os corpos dos ferreiros que dormem nas redondezas — ao pôr do sol, todos se levantarão como marionetes de pedra e marcharão para o Braseiro dos Juramentos para apagar as chamas eternas, libertando sua mãe que dorme no rio subterrâneo.",
+    "trait": "Sua respiração é um ronco que faz o chão tremer e, quando inspira, todas as chamas próximas diminuem — como se o fogo se curvasse a ela.",
+    "weakness": "Ela tem um nome verdadeiro que Korrhena conhece — e quem o sussurra pode forçá-la a um sono profundo, mas apenas se o martelo de Zerethil forjar a âncora na pedra-sangue.",
+    "connection": "Torvin, o ferreiro que te trouxe aqui, é o último descendente do clã que forjou a primeira âncora de sono — e a mão dele sangra porque ele já tentou o ritual sozinho três vezes antes, matando cada um de seus irmãos. Ele não vai sobreviver a uma quarta tentativa, e você é a única pessoa que ele ainda não viu morrer.",
+    "npcId": "npc-8"
+  }
+}

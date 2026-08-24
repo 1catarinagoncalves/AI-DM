@@ -1,0 +1,447 @@
+{
+  "id": "us193-baseline-char-2:1",
+  "levelRange": {
+    "min": 5,
+    "max": 5
+  },
+  "registry": {
+    "setting": "urban-fantasy",
+    "tone": "survival",
+    "areaType": "underground-caves"
+  },
+  "summary": "O cheiro de sangue e terra molhada enche o túnel — não o sangue seco das oferendas, mas algo mais vivo, mais quente. No fundo da Caverna dos Ossos, onde o rio subterrâneo engoliu o Templo de Osíris na enchente do século passado, os mineiros ouviram o choro. Não de água. De carne. Você precisa descer até a câmara submersa e recuperar o Sino de Bronze de Khem — o único artefato que pode selar o que a enchente despertou — antes que a maré suba de novo e traga aquilo que chora para a superfície.",
+  "npcs": [
+    {
+      "id": "npc-1",
+      "name": "Nethor",
+      "role": "O Eremita Alado — um avian de penas cinzentas e olhos leitosos, sábio mas atormentado por visões do que vem. Ele sabe o caminho até a câmara submersa, mas teme que o Sino não seja suficiente.",
+      "interactions": []
+    },
+    {
+      "id": "npc-2",
+      "name": "Zephanel",
+      "role": "O Mercador Caído — um celestial de asas chamuscadas e olhos dourados, obcecado pelo Sino de Bronze. Quer vendê-lo para um colecionador do submundo e tentará subornar ou enganar os jogadores para pegá-lo primeiro.",
+      "interactions": []
+    },
+    {
+      "id": "npc-3",
+      "name": "Klink",
+      "role": "O Autômato Ansioso — um constructo de bronze e madeira com uma engrenagem solta na mandíbula, que range sem parar. Foi enviado pelos mineiros para 'ver o que é o choro' e está à beira de um colapso de lógica.",
+      "interactions": []
+    },
+    {
+      "id": "npc-4",
+      "name": "Sskarn",
+      "role": "O Guia Silencioso — um lizardfolk de escamas verdes-escuras, coberto de cicatrizes rituais. Conhece cada túnel da caverna, mas fala apenas em assobio e gestos. Guarda um segredo: foi ele quem arrancou os olhos da estátua.",
+      "interactions": []
+    },
+    {
+      "id": "npc-5",
+      "name": "Pippa",
+      "role": "A Aventureira Otimista — uma halfling de cabelos ruivos e um sorriso fácil, equipada com um machado de gelo e uma mochila cheia de cordas. Veio atrás de 'tesouro fácil' e ainda não entendeu o perigo real.",
+      "interactions": []
+    },
+    {
+      "id": "npc-6",
+      "name": "Vash",
+      "role": "O Caçador de Relíquias — um lizardfolk de escamas azuladas, sério e metódico. É um rival profissional de Sskarn — ambos querem o Sino, mas por razões opostas (Vash quer destruí-lo para evitar que a Aberração o use).",
+      "interactions": []
+    },
+    {
+      "id": "npc-7",
+      "name": "Bramwell",
+      "role": "O Contrabandista Sortudo — um halfling baixo e rechonchudo com um colete cheio de bolsos. Apareceu na caverna 'por acaso' e insiste que tudo vai dar certo — mas sua sorte está claramente acabando (um dos bolsos vaza sangue).",
+      "interactions": []
+    },
+    {
+      "id": "npc-8",
+      "name": "Soldier",
+      "role": "Soldier",
+      "interactions": []
+    },
+    {
+      "id": "npc-9",
+      "name": "Soldier",
+      "role": "Soldier",
+      "interactions": []
+    },
+    {
+      "id": "npc-10",
+      "name": "Soldier",
+      "role": "Soldier",
+      "interactions": []
+    },
+    {
+      "id": "npc-11",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-12",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-13",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-14",
+      "name": "Soldier",
+      "role": "Soldier",
+      "interactions": []
+    },
+    {
+      "id": "npc-15",
+      "name": "Soldier",
+      "role": "Soldier",
+      "interactions": []
+    },
+    {
+      "id": "npc-16",
+      "name": "Soldier",
+      "role": "Soldier",
+      "interactions": []
+    },
+    {
+      "id": "npc-17",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-18",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-19",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-20",
+      "name": "Soldier",
+      "role": "Soldier",
+      "interactions": []
+    },
+    {
+      "id": "npc-21",
+      "name": "Soldier",
+      "role": "Soldier",
+      "interactions": []
+    },
+    {
+      "id": "npc-22",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-23",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-24",
+      "name": "Minion",
+      "role": "Minion",
+      "interactions": []
+    },
+    {
+      "id": "npc-25",
+      "name": "A Aberração que Chora",
+      "role": "Soldier",
+      "interactions": []
+    }
+  ],
+  "secrets": [
+    {
+      "id": "secret-1",
+      "locationId": "loc-1",
+      "text": "O chão da Câmara do Faraó Cego é coberto por uma camada fina de água parada. Quando se anda, ouve-se um som metálico e úmido — não é água batendo em pedra, mas algo como lâminas raspando lentamente sob o solo."
+    },
+    {
+      "id": "secret-2",
+      "locationId": "loc-2",
+      "text": "A Ponte do Coração D'Água range como um peixe moribundo quando se pisa nela. O som não vem da madeira, mas de dentro da água escura lá embaixo — algo imenso e paciente está respirando."
+    },
+    {
+      "id": "secret-3",
+      "locationId": "loc-3",
+      "text": "Na Câmara dos Últimos Avisos, o ar cheira a ozônio e cinza fria. As tochas na parede não queimam com chama amarela — cada uma arde com uma chama azul elétrica, silenciosa, que não aquece."
+    },
+    {
+      "id": "secret-4",
+      "locationId": "loc-4",
+      "text": "A Antessala dos Afogados tem um eco estranho: cada palavra dita volta três vezes, mas a última repetição sempre vem em uma voz diferente — mais úmida, mais velha, como se alguém estivesse repetindo suas falas de dentro da pedra."
+    },
+    {
+      "id": "secret-5",
+      "locationId": "loc-5",
+      "text": "No centro da Cúpula do Crânio, pendurado por correntes de osso, está o Sino de Bronze. Ele não balança — mas emite um zumbido grave e constante, que faz os dentes vibrarem e os olhos lacrimejarem."
+    },
+    {
+      "id": "secret-6",
+      "locationId": "loc-1",
+      "text": "O que a família de [Personagem] esconde é que um ancestral foi um dos três escultores que cegaram o Faraó — não por piedade, mas para que ele nunca visse o que roubaram das câmaras submersas. A culpa corre no sangue."
+    },
+    {
+      "id": "secret-7",
+      "locationId": "loc-2",
+      "text": "[Personagem] esteve aqui antes — em um sonho. Não um sonho qualquer: ela viu a Ponte do Coração D'Água se partir, viu alguém cair, e acordou com as mãos molhadas. O sonho se repetiu três noites seguidas antes da viagem."
+    },
+    {
+      "id": "secret-8",
+      "locationId": "loc-3",
+      "text": "O espírito que assombra [Personagem] não é um fantasma qualquer — é a própria voz do Sino. Desde que colocou os pés na caverna, [Personagem] ouve um zumbido baixo que ninguém mais escuta, e às vezes sussurra respostas para perguntas que ela não fez em voz alta."
+    },
+    {
+      "id": "secret-9",
+      "locationId": "loc-4",
+      "text": "Nethor — O Eremita Alado — já viu o Sino tocar uma vez. Foi há quarenta anos, quando ainda tinha visão. O som arrancou as penas do seu rosto e deixou seus olhos leitosos. Ele não teme a Aberração — teme que os jogadores queiram ouvir o Sino de novo."
+    },
+    {
+      "id": "secret-10",
+      "locationId": "loc-5",
+      "text": "Zephanel — O Mercador Caído — não quer vender o Sino para um colecionador. Ele quer vendê-lo para a própria Aberração. O comprador já pagou metade: devolveu a Zephanel um fragmento de suas asas originais. Ele acha que pode enganar um deus."
+    },
+    {
+      "id": "secret-11",
+      "locationId": "loc-1",
+      "text": "Sskarn — O Guia Silencioso — arrancou os olhos da estátua do Faraó Cego porque a estátua estava começando a enxergar. As órbitas vazias não são vandalismo — são uma contenção. Se alguém colocar olhos novos na estátua, ela vai se levantar."
+    },
+    {
+      "id": "secret-12",
+      "locationId": "loc-2",
+      "text": "O Sino de Bronze não é um sino. Foi forjado a partir do crânio de um deus-menor que morreu afogado antes de aprender a falar. Quando alguém o toca, não produz som — produz uma pergunta que o deus nunca conseguiu fazer. E a Aberração é a resposta."
+    },
+    {
+      "id": "secret-13",
+      "locationId": "loc-3",
+      "text": "A Câmara dos Últimos Avisos já foi uma sala de interrogatório. As marcas nas paredes não são escritas antigas — são unhas. Centenas delas, arranhando a mesma frase em ciclos: 'Não toque no que chora.' A frase está em três línguas mortas e uma que ainda não existe."
+    },
+    {
+      "id": "secret-14",
+      "locationId": "loc-4",
+      "text": "A Antessala dos Afogados não tem saída para lugar nenhum — a não ser para baixo. O chão é falso: uma laje fina de calcário sobre uma câmara cheia de água salgada. E dentro da água, algo está escrevendo com os dedos no teto de pedra."
+    },
+    {
+      "id": "secret-15",
+      "locationId": "loc-5",
+      "text": "A Cúpula do Crânio está rachando. Não por pressão geológica — as rachaduras formam um padrão que se repete a cada 37 centímetros, como se alguém estivesse contando os dias até algo quebrar. O zumbido do Sino acelera a cada rachadura nova."
+    },
+    {
+      "id": "secret-16",
+      "locationId": "loc-1",
+      "text": "Em três dias, a maré subterrânea vai subir o suficiente para inundar todas as câmaras inferiores. Quem estiver dentro quando a água chegar vai encontrar a Aberração não no fundo da caverna — mas boiando na superfície, esperando."
+    },
+    {
+      "id": "secret-17",
+      "locationId": "loc-2",
+      "text": "O Sino já está chorando. Não com som — com água. Uma gota cai do bronze a cada minuto, e cada gota cheira a enxofre e sangue velho. Quando o choro encher a bacia abaixo do Sino, a Aberração vai acordar. Faltam aproximadamente 47 horas."
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-1",
+      "title": "A Câmara do Faraó Cego",
+      "aspects": [
+        "Poeira de osso e musgo bioluminescente",
+        "Silêncio que aperta os tímpanos",
+        "Trilhas de garras frescas na rocha"
+      ],
+      "boxedText": "A passagem se abre para uma câmara tão vasta que a lanterna não alcança o teto. O chão range sob suas botas — não é pedra, é uma crosta de fragmentos de osso compactados por décadas. Musgo azul-escuro cresce nas paredes, pulsando com uma luz fraca, doentia. No centro, uma estátua de granito preto de vinte metros de altura representa um faraó de cabeça de abutre — mas alguém arrancou os olhos de lápis-lazúli, deixando duas cavidades negras que parecem segui-los.",
+      "description": "Entrada da Caverna dos Ossos. A estátua é de Khem, o faraó-deus local. Os olhos foram arrancados recentemente (garras). O musgo bioluminescente reage à presença de criaturas vivas — se alguém ficar parado, a luz diminui. Local de skill: percepção para notar as trilhas de garras, ou investigação para achar inscrições na base da estátua sobre o Sino de Bronze.",
+      "occupants": [
+        "npc-1",
+        "npc-4"
+      ],
+      "vibe": "skill"
+    },
+    {
+      "id": "loc-2",
+      "title": "A Ponte do Coração D'Água",
+      "aspects": [
+        "Ponte natural sobre o abismo negro",
+        "Gotejamento rítmico como coração",
+        "Algo se move na escuridão abaixo"
+      ],
+      "boxedText": "A ponte de pedra calcária se estende por trinta metros sobre uma fenda que some no escuro. O gotejar de água ecoa lá embaixo num intervalo perfeitamente regular — tum... tum... tum... — como um coração lento. No meio da ponte, uma figura está sentada, imóvel, as asas cinzentas dobradas como um manto surrado.",
+      "description": "Ponte natural sobre um abismo. A figura é Nethor, o avian. Ele está aqui porque sentiu 'o chamado do sangue' — não sabe explicar melhor. Pode avisar os jogadores sobre o que viu: uma criatura branca e sem olhos que se arrasta pelas paredes. Local de skill/social: convencer Nethor a ajudar, ou escalar pelas laterais do abismo para evitar a ponte.",
+      "occupants": [
+        "npc-2"
+      ],
+      "vibe": "social"
+    },
+    {
+      "id": "loc-3",
+      "title": "A Câmara dos Últimos Avisos",
+      "aspects": [
+        "Paredes cobertas de inscrições em pânico",
+        "Poça d'água negra e parada",
+        "Cheiro de ferro e podridão"
+      ],
+      "boxedText": "A sala é um cubo perfeito, cada parede entalhada com hieróglifos apressados, rasos, como se entalhados com unhas. No centro do chão, uma poça d'água negra reflete o teto — mas o teto é liso, sem marcas, e o reflexo mostra uma figura enforcada que não está lá em cima. O silêncio aqui é mais pesado que nas outras câmaras.",
+      "description": "Antiga câmara de meditação dos sacerdotes de Khem. As inscrições são avisos: 'Não abra o que a água selou', 'O choro é isca', 'O Sino é a chave e a corrente'. A poça é um portal raso para a câmara submersa — quem tocar na água sente uma mão fria agarrar seu pulso (teste de Constituição CD 12 para não ser puxado). Local de skill: decifrar as inscrições (Arcanismo ou Religião) para entender a fraqueza da criatura.",
+      "occupants": [
+        "npc-5",
+        "npc-6"
+      ],
+      "vibe": "skill"
+    },
+    {
+      "id": "loc-4",
+      "title": "A Antessala dos Afogados",
+      "aspects": [
+        "Água turva até o joelho",
+        "Estalactites como dentes de pedra",
+        "O choro vem de todos os lados"
+      ],
+      "boxedText": "A água turva sobe até a sua coxa — fria, grudenta, viva. Bolhas estouram na superfície com um cheiro de ovo podre e ferro. Lá dentro, no centro da câmara, o Sino de Bronze está imerso até a metade. Uma gota grossa escorre da borda: sangue e enxofre. Plim. Outra. O intervalo é regular, hipnótico. O choro que os mineiros ouviram não vem de lugar nenhum — vem de dentro d'água, vibrando nos ossos do crânio. E, por um instante, você jura que a Abertura Vertical no rosto d'A Aberração que Chora, imóvel atrás do sino, está olhando para você.",
+      "description": "Antessala da câmara submersa. A água tem 60cm de profundidade — turva, com fragmentos de osso e lodo do templo original. No centro, o Sino de Bronze (1,5m de altura) está parcialmente submerso. A cada minuto, uma gota de sangue e enxofre cai da borda do sino na água, criando ondulações que ecoam como choro. A Aberração que Chora está imóvel atrás do sino, a Abertura Vertical no lugar do rosto gotejando um líquido quente e salgado. Ela não ataca ainda — está em estado de espera, acumulando poder. Se os jogadores tocarem o sino, quebrarem a superfície da água com violência ou demorarem mais de 3 turnos investigando, 2-3 esqueletos animados sobem do lodo para atrasá-los. O choro vai aumentar de intensidade a cada gota.",
+      "occupants": [
+        "npc-3",
+        "npc-7",
+        "npc-25"
+      ],
+      "vibe": "combat"
+    },
+    {
+      "id": "loc-5",
+      "title": "A Cúpula do Crânio",
+      "aspects": [
+        "Cúpula de osso gigante invertida",
+        "Sino de bronze no centro, coberto de limo",
+        "A água pulsa como se respirasse"
+      ],
+      "boxedText": "A câmara final é uma cúpula natural cujo teto é um crânio humanoide de proporções monstruosas — uma juntura de rocha e osso fossilizado, as órbitas vazias fitando o centro da sala. Lá, sobre um pedestal de coral negro, está o Sino de Bronze de Khem, coberto por um limo esverdeado que brilha fraco. A água ao redor do pedestal sobe e desce num ritmo lento, orgânico, como se a própria caverna estivesse respirando. O choro para. Além do sino, na parede oposta, uma fenda no crânio goteja um líquido grosso e branco — e algo começa a se espremer por ela.",
+      "description": "LOCAL DO CONFRONTO FINAL. O crânio gigante é o que restou de um deus menor esquecido, devorado pela Aberração que a enchente despertou. A criatura (um 'Lamentador Submerso' — massa amorfa de carne e ossos, sem olhos, com braços finos e longos) emerge da fenda no crânio quando alguém toca o sino. Mecânica: o sino precisa ser tocado para ser usado, mas o som atrai a criatura imediatamente. O limo no sino é ácido (1d4 de dano ao toque). A criatura é vulnerável a fogo e som — o sino causa 3d6 de dano de trovão se tocado com força. A água sobe 1d4 rounds após o combate começar — os jogadores precisam sair antes que a câmara inunde.",
+      "occupants": [],
+      "vibe": "combat"
+    }
+  ],
+  "encounters": [
+    {
+      "id": "encounter-1",
+      "locationId": "loc-1",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "A água parada no chão da Câmara do Faraó Cego está imóvel, mas quando alguém se aproxima, pequenas ondulações concêntricas surgem do nada — como se algo estivesse andando debaixo da laje, acompanhando os passos dos personagens. O som metálico e úmido descrito no segredo-1 é audível agora: um raspado lento, rítmico, vindo de baixo dos pés.",
+      "goal": "Os personagens precisam atravessar a câmara em segurança, encontrar a passagem para o nível inferior e, se possível, descobrir por que a estátua do Faraó Cego foi cegada — e o que acontece se alguém devolver os olhos a ela.",
+      "complications": "Se alguém ficar parado por mais de 30 segundos, a água começa a subir pelos tornozelos — não por infiltração, mas porque o chão está cedendo milímetro a milímetro. Um personagem que investigue o som metálico pode ouvir, bem baixinho, uma voz repetindo o nome do deus-menor em ciclos de três."
+    },
+    {
+      "id": "encounter-2",
+      "locationId": "loc-4",
+      "npcIds": [
+        "npc-8",
+        "npc-9",
+        "npc-10",
+        "npc-11",
+        "npc-12",
+        "npc-13"
+      ],
+      "type": "combat",
+      "behaviors": "Três soldados (humanoides de armadura enferrujada, olhos vazios) estão de pé na Antessala dos Afogados, imóveis como estátuas, com as mãos apoiadas nas paredes. Dois lacaios (figuras encapuzadas, mãos amarradas com fio de bronze) estão ajoelhados no centro da sala, balançando para frente e para trás. Nenhum deles reage à presença dos personagens — até que alguém fale. A cada palavra dita, o eco triplo do segredo-4 se ativa, e na terceira repetição os soldados viram a cabeça em uníssono.",
+      "goal": "Os personagens precisam eliminar ou neutralizar os soldados e lacaios sem quebrar o chão, e encontrar a passagem para a Cúpula do Crânio — que, segundo os segredos, fica abaixo da Antessala.",
+      "complications": "O chão falso (segredo-14) range sob o peso dos combatentes. Um golpe mais forte ou uma explosão pode quebrar a laje de calcário, jogando todos na câmara submersa abaixo — onde algo está escrevendo no teto com os dedos. Se isso acontecer, a água salgada sobe rápido e os personagens têm 3 rodadas para achar uma saída antes de se afogarem."
+    },
+    {
+      "id": "encounter-3",
+      "locationId": "loc-3",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "A Câmara dos Últimos Avisos está silenciosa, mas o ar vibra com o zumbido do Sino (que vem de baixo). As tochas de chama azul elétrica (segredo-3) não crepitam — apenas queimam em silêncio, projetando sombras que se movem na direção oposta à luz. As paredes estão cobertas de arranhões (segredo-13): centenas de unhas gravaram a mesma frase em três línguas mortas e uma que ainda não existe.",
+      "goal": "Os personagens precisam decifrar os avisos nas paredes para entender o que estão enfrentando — e, idealmente, aprender que o Sino não deve ser tocado, mas sim quebrado ou respondido.",
+      "complications": "Se alguém ler a frase em voz alta em qualquer das línguas mortas, as tochas azuis se apagam por 10 segundos. Na escuridão total, os arranhões nas paredes brilham em verde pálido — e a frase na língua que ainda não existe se ilumina primeiro. Se alguém tentar decifrá-la, precisa de um teste difícil de Arcanismo ou Religião; em caso de falha, o zumbido do Sino fica mais alto e o personagem tem uma visão: a Aberração tocando o rosto dele."
+    },
+    {
+      "id": "encounter-4",
+      "locationId": "loc-2",
+      "npcIds": [
+        "npc-2"
+      ],
+      "type": "social",
+      "behaviors": "Zephanel está na Ponte do Coração D'Água, de pé sobre as tábuas rangentes, com uma das mãos apoiada na corrente lateral. Ele sorri quando vê os personagens — um sorriso largo, confiante, de quem já sabe o que eles querem. Suas asas chamuscadas estão dobradas nas costas, e ele carrega uma bolsa de couro que pinga um líquido escuro. A ponte range como um peixe moribundo (segredo-2), e de dentro da água escura lá embaixo vem uma respiração lenta e imensa.",
+      "goal": "Os personagens precisam negociar ou enganar Zephanel para passar pela ponte sem ativar a criatura submersa, e idealmente descobrir que ele está trabalhando para a Aberração — não contra ela.",
+      "complications": "Zephanel oferece um acordo: ele tem um mapa da Cúpula do Crânio que mostra uma passagem secreta para pegar o Sino sem ativar a Aberração. Em troca, quer que os personagens entreguem o Sino a ele depois — 'só para garantir que ninguém o toque sem querer'. O mapa é falso (a passagem secreta leva a uma câmara de colapso). Se os personagens recusarem, ele tenta subornar com o fragmento de asa (segredo-10) — e se isso falhar, ele assobia, e a respiração debaixo da ponte acelera."
+    },
+    {
+      "id": "encounter-5",
+      "locationId": "loc-5",
+      "npcIds": [
+        "npc-14",
+        "npc-15",
+        "npc-16",
+        "npc-17",
+        "npc-18",
+        "npc-19"
+      ],
+      "type": "combat",
+      "behaviors": "A Cúpula do Crânio está iluminada por um brilho fraco que vem do próprio Sino de Bronze, pendurado por correntes de osso no centro da sala (segredo-5). Três soldados estão ajoelhados em círculo ao redor do Sino, com as mãos estendidas para ele, os olhos abertos mas vazios. Dois lacaios estão de pé atrás deles, segurando bacias de bronze que coletam as gotas que caem do Sino — cada gota cheira a enxofre e sangue velho (segredo-17). O zumbido é ensurdecedor aqui, fazendo os dentes vibrarem e os olhos lacrimejarem. As rachaduras no teto (segredo-15) formam um padrão que se repete a cada 37 centímetros.",
+      "goal": "Os personagens precisam recuperar o Sino de Bronze — ou destruí-lo — sem ativar a Aberração prematuramente, e sem serem dominados pelos soldados e lacaios que protegem o artefato.",
+      "complications": "Se alguém tocar no Sino, ele emite a pergunta do deus-menor — e todos na sala (personagens inclusive) precisam fazer um teste de Vontade ou ficar paralisados por 1 rodada, ouvindo a pergunta ecoar na cabeça. Durante esse tempo, os soldados se levantam e avançam. Se o Sino for golpeado com força suficiente para rachá-lo, o zumbido para — mas a água começa a jorrar das rachaduras no teto, inundando a sala em 5 rodadas."
+    },
+    {
+      "id": "encounter-6",
+      "locationId": "loc-2",
+      "npcIds": [
+        "npc-2"
+      ],
+      "type": "social",
+      "behaviors": "Zephanel está novamente na Ponte do Coração D'Água, mas agora sua postura mudou. Ele não sorri mais. Suas asas chamuscadas estão abertas, e ele segura o fragmento de asa original (segredo-10) em uma das mãos, como um talismã. A respiração debaixo da ponte está mais rápida, mais próxima — a criatura submersa está subindo. Zephanel oferece um último acordo: ele deixa os personagens passarem com o Sino se eles o ajudarem a 'negociar' com a Aberração. Ele acha que pode enganá-la.",
+      "goal": "Os personagens precisam decidir se confiam em Zephanel ou não, e atravessar a ponte de volta — possivelmente carregando o Sino — sem serem arrastados para a água.",
+      "complications": "Se os personagens aceitarem o acordo de Zephanel, ele os acompanha até a Antessala dos Afogados — e na hora do confronto, ele tenta usar os personagens como escudo enquanto negocia com a Aberração. Se recusarem, ele assobia duas vezes — a criatura debaixo da ponte emerge (um tentáculo escorregadio e coberto de olhos cegos) e tenta agarrar um personagem para puxá-lo para dentro da água."
+    },
+    {
+      "id": "encounter-7",
+      "locationId": "loc-1",
+      "npcIds": [],
+      "type": "skill",
+      "behaviors": "A Câmara do Faraó Cego está diferente agora. A água parada no chão subiu — está na altura dos tornozelos. O som metálico e úmido (segredo-1) é constante, como se algo estivesse se arrastando debaixo da laje em círculos. A estátua do Faraó Cego, com as órbitas vazias (segredo-11), parece estar inclinada ligeiramente para a direção de onde os personagens vieram — como se estivesse seguindo o Sino.",
+      "goal": "Os personagens precisam atravessar a câmara de volta, carregando o Sino (se o pegaram) ou fugindo da estátua (se a ativaram), e chegar à saída antes que a maré suba.",
+      "complications": "Se os personagens ainda estiverem carregando o Sino, a estátua começa a tremer. As órbitas vazias emitem um som de sucção, como se estivessem tentando puxar algo. Se alguém colocar qualquer objeto esférico nas órbitas (uma gema, um olho de vidro, uma pedra arredondada), a estátua vai se levantar (segredo-11) e tentar recuperar o Sino. Se os personagens passarem sem interagir com a estátua, ela range ao se virar para observá-los sair."
+    },
+    {
+      "id": "encounter-8",
+      "locationId": "loc-4",
+      "npcIds": [
+        "npc-20",
+        "npc-21",
+        "npc-22",
+        "npc-23",
+        "npc-24",
+        "npc-25"
+      ],
+      "type": "combat",
+      "behaviors": "A Antessala dos Afogados está irreconhecível. A laje de calcário quebrou (segredo-14) e a água salgada subiu até a cintura. Boiando na superfície, esperando, está a Aberração que Chora — uma figura encolhida, braços enrolados em torno dos próprios joelhos, sem rosto, apenas uma cavidade úmida onde a boca deveria estar. Os soldados e lacaios estão imóveis ao redor dela, com os olhos vazios e a boca costurada com fio de bronze. A Aberração estende uma mão trêmula, os dedos roídos até o osso, e emite a pergunta que o deus-menor nunca fez em vida. Ela quer ser tocada — não para destruir, mas para que alguém finalmente responda.",
+      "goal": "Os personagens precisam confrontar a Aberração que Chora e decidir o destino do Sino de Bronze — tocar a Aberração para responder à pergunta do deus-menor e encerrar o ciclo, ou quebrar o Sino para silenciá-la para sempre, pagando o preço de enfrentar a maré e os soldados.",
+      "complications": "Se alguém tocar a Aberração, a água para de subir e a cavidade no rosto dela emite um som — não uma palavra, mas um suspiro, como se algo tivesse sido liberado. A Aberração desaba na água e se desfaz em lama e bronze derretido. O Sino, se ainda estiver inteiro, emite um único toque — e todas as criaturas na sala (personagens inclusive) ouvem a pergunta do deus-menor pela última vez, agora com a resposta. Se ninguém tocar a Aberração, a água continua subindo e os soldados avançam — lentos, implacáveis, abrindo caminho para que a Aberração chegue mais perto. A maré está chegando. A única saída é responder à pergunta — ou quebrar o Sino antes que a água cubra tudo."
+    }
+  ],
+  "start": "O som chega antes do cheiro — um choro que não sai de boca nenhuma, mas vibra na água parada sob seus pés. Você está na **Antessala dos Afogados**, e cada palavra que alguém solta volta três vezes: a primeira clara, a segunda abafada, a terceira numa voz mais úmida, mais velha, como se a pedra estivesse aprendendo a falar com a sua língua. A halfling Pippa range o machado de gelo contra a parede só para ouvir o eco repetir, e o sorriso fácil dela congela quando a terceira repetição não vem em sua voz — vem num sussurro gutural que faz as tochas tremeluzirem. O chão de calcário range sob as botas, e você sente o vazio abaixo: não há saída visível a não ser para baixo, através de uma laje fina que vibra como pele sobre água. Algo está escrevendo lá embaixo, com dedos contra o teto de pedra, e o ar cheira a ferro e mar profundo.",
+  "objective": "Descer até a câmara submersa na Caverna dos Ossos, abaixo do Templo de Osíris, e recuperar o Sino de Bronze de Khem — o único artefato que pode selar a Aberração que Chora — antes que a maré suba e o choro do Sino (uma gota de sangue e enxofre a cada minuto, que já encheu a bacia) desperte a Aberração completamente. A Aberração que Chora quer Ser tocada — não para destruir, mas para que alguém finalmente responda à pergunta que o deus-menor nunca fez em vida; seu método é chorar água que cheira a enxofre e sangue velho, enchendo a bacia abaixo do Sino até acordar.",
+  "conclusion": "O choro encheu a bacia. A Aberração acordou. Mas quando os personagens chegam à Antessala dos Afogados, não encontram um monstro — encontram uma figura encolhida no centro da sala, braços enrolados em torno dos próprios joelhos, a água salgada subindo pelos tornozelos. Ela levanta a cabeça quando eles entram. Não tem rosto — apenas uma cavidade úmida onde a boca deveria estar, e de dentro dela escorre um fio de água que cheira a enxofre e sangue velho. A Aberração que Chora não ataca. Ela estende uma mão trêmula, os dedos roídos até o osso, e emite um som que não é choro nem palavra — é a pergunta que o deus-menor nunca fez em vida, vibrando no ar como o zumbido do Sino. Os soldados e lacaios ao redor dela não são servos — são vítimas anteriores, pessoas que tentaram selar o Sino e falharam, agora com os olhos vazios e a boca costurada com fio de bronze. Eles avançam sem pressa, sem raiva, apenas abrindo caminho para que a Aberração chegue mais perto. O Sino de Bronze está pendurado acima dela, rachado de cima a baixo, e cada gota que cai dele faz a água subir mais um dedo. A maré está chegando. A única saída é responder à pergunta — ou quebrar o Sino antes que a água cubra tudo.",
+  "followUps": [
+    "O Sino de Bronze foi quebrado, mas o fragmento que caiu na água salgada da Antessala dos Afogados não se dissolveu — ele cresceu. Três dias depois, os mineiros encontram uma estrutura de bronze emergindo do rio subterrâneo: uma torre retorcida, coberta de olhos cegos, que pulsa no ritmo de um coração. Dentro dela, alguém está chorando de novo — mas agora em uma língua que os personagens conseguem entender.",
+    "Zephanel sobreviveu ao confronto e fugiu com o fragmento de asa original. Dias depois, os personagens recebem uma mensagem cifrada: ele está em uma cidade portuária, negociando com um comprador que se identifica apenas como 'O Ouvinte'. O pagamento? Não é ouro — é um mapa que leva ao local onde o deus-menor foi afogado pela primeira vez. Zephanel quer que os personagens o encontrem antes que o Ouvinte chegue lá.",
+    "A maré baixou, mas a água não recuou completamente. Na Antessala dos Afogados, agora submersa, algo está escrevendo no teto de pedra com dedos de bronze — não mais uma frase, mas um nome. O nome do deus-menor. E abaixo dele, em letras menores: 'Ele quer nascer de novo.' Os personagens precisam decidir se impedem o nascimento ou se ajudam um deus a aprender a falar."
+  ],
+  "antagonist": {
+    "name": "A Aberração que Chora",
+    "want": "Ser tocada. Não para destruir — para que alguém finalmente responda à pergunta que o deus-menor nunca fez em vida.",
+    "method": "Está chorando — não com som, com água. Uma gota de sangue e enxofre cai do bronze a cada minuto. Quando o choro encher a bacia abaixo do Sino, a Aberração vai acordar. Faltam ~47 horas.",
+    "trait": "Não tem rosto — apenas uma abertura vertical no lugar do rosto, de onde escorre um líquido quente e salgado que cheira a ferro e mar profundo.",
+    "weakness": "Ela não pode se mover enquanto o Sino não for tocado. Se ninguém tocar o bronze, ela fica presa no ciclo de choro — esperando uma pergunta que nunca vem.",
+    "connection": "O Sino de Bronze não é um sino — foi forjado do crânio de um deus-menor que morreu afogado. Quando tocado, não produz som: produz uma pergunta que o deus nunca conseguiu fazer. E a Aberração é a resposta.",
+    "npcId": "npc-25"
+  }
+}

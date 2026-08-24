@@ -125,6 +125,7 @@ describe('GeneratedAdventureSchema (US-144)', () => {
         behaviors: 'Elenora negocia com um forasteiro.',
         goal: 'Recuperar o poço perdido da vila.',
         complications: 'O forasteiro conhece o pacto antigo.',
+        unlocks: 'O nome do comprador que Elenora protege.',
       }],
       start: 'Início.',
       objective: 'Recuperar o poço perdido da vila antes que Elenora o esconda de novo.',
@@ -147,6 +148,28 @@ describe('GeneratedAdventureSchema (US-144)', () => {
       locations: [],
       encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: [], type: 'stealth', behaviors: 'x', goal: 'x', complications: 'x' }],
       start: 'Início.',
+      conclusion: 'Fim.',
+      followUps: [],
+      antagonist: { name: 'X', want: 'x', method: 'x', trait: 'x', weakness: 'x', connection: 'x', npcId: 'npc-1' },
+    }
+
+    expect(() => GeneratedAdventureSchema.parse(adventure)).toThrow()
+  })
+
+  // US-193 AC: `unlocks` obrigatório e não-vazio — mesma disciplina de behaviors/goal/
+  // complications (US-166). Sem isso o elo da trilha pode ficar ausente sem o gate acusar.
+  it('rejeita encontro sem unlocks', () => {
+    const adventure = {
+      id: 'adv-7',
+      levelRange: { min: 1, max: 1 },
+      registry: { setting: 'fantasy', tone: 'mystery', areaType: 'settlement' },
+      summary: 'Aventura mínima.',
+      npcs: [],
+      secrets: [],
+      locations: [],
+      encounters: [{ id: 'encounter-1', locationId: 'loc-1', npcIds: [], type: 'skill', behaviors: 'x', goal: 'x', complications: 'x' }],
+      start: 'Início.',
+      objective: 'x',
       conclusion: 'Fim.',
       followUps: [],
       antagonist: { name: 'X', want: 'x', method: 'x', trait: 'x', weakness: 'x', connection: 'x', npcId: 'npc-1' },

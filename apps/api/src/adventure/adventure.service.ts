@@ -346,15 +346,27 @@ export class AdventureService {
       loc.id === finalDraft.location.id ? { ...loc, boxedText, description } : loc,
     )
 
-    const encounters: AdventureEncounter[] = drafts.map((draft, i) => ({
-      id: draft.id,
-      locationId: draft.location.id,
-      npcIds: draft.npcs.map((npc) => npc.id),
-      type: draft.type,
-      behaviors: encounterSituations[i]!.behaviors,
-      goal: encounterSituations[i]!.goal,
-      complications: encounterSituations[i]!.complications,
-    }))
+    const encounters: AdventureEncounter[] = drafts.map((draft, i) => {
+      const situation = encounterSituations[i]!
+      // US-193: o array é posicional (contrato da US-166) e todos os campos são prosa livre —
+      // se o modelo emitir de trás pra frente, nada mais detecta (o gate só olha id/grafo/CR).
+      // Eco do id é a única verificação mecânica possível sem DAG entre encontros.
+      if (situation.encounterId !== draft.id) {
+        throw new Error(
+          `encounterSituations[${i}].encounterId "${situation.encounterId}" != esqueleto "${draft.id}" (array fora de ordem)`,
+        )
+      }
+      return {
+        id: draft.id,
+        locationId: draft.location.id,
+        npcIds: draft.npcs.map((npc) => npc.id),
+        type: draft.type,
+        behaviors: situation.behaviors,
+        goal: situation.goal,
+        complications: situation.complications,
+        unlocks: situation.unlocks,
+      }
+    })
 
     return GeneratedAdventureSchema.parse({
       id: `${characterId}:${order}`,

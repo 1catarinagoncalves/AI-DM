@@ -278,20 +278,25 @@ const ANTAGONIST_SCHEMA = z.object({
   connection: z.string().min(1),
 })
 
-// US-164, passo 6 / US-166: schema do FECHO RAMIFICADO. SEM `id` — `followUps[]` não
-// referencia nada, é semente pra PRÓXIMA aventura (US-151 consome como texto, não por id).
-// `encounterSituations` fecha as 3 perguntas restantes de cada uma das 8 SITUAÇÕES (Sly
-// Flourish) — posicional, o item `i` corresponde ao `encounterSkeleton[i]` do prompt.
-const CLOSING_SCHEMA = z.object({
+// US-164, passo 6 / US-166: schema do FECHO RAMIFICADO. `followUps[]` não referencia
+// nada, é semente pra PRÓXIMA aventura (US-151 consome como texto, não por id).
+// `encounterSituations` fecha as 4 perguntas restantes de cada uma das 8 SITUAÇÕES (Sly
+// Flourish + US-193 `unlocks`) — posicional, o item `i` corresponde ao `encounterSkeleton[i]`
+// do prompt; `encounterId` (US-193) é só eco pra conferir esse pareamento, não referência real.
+export const CLOSING_SCHEMA = z.object({
   // US-169: alvo concreto e verificável da aventura, citando NOMES reais (NPC/vilão/facção)
   // e o `want`/`method` do antagonista — nunca uma paráfrase do `summary` nem só o nome dele.
   objective: z.string().min(1),
   conclusion: z.string().min(1),
   followUps: z.array(z.string()).min(1),
   encounterSituations: z.array(z.object({
+    // US-193: eco do id da lista do prompt, só pra conferir pareamento posicional em
+    // adventure.service.ts — descartado logo depois, nunca chega em AdventureEncounterSchema.
+    encounterId: z.string().min(1),
     behaviors: z.string().min(1),
     goal: z.string().min(1),
     complications: z.string().min(1),
+    unlocks: z.string().min(1),
   })).length(8),
 })
 
@@ -390,7 +395,9 @@ function buildClosingPrompt(params: {
     `NPCs disponíveis:\n${npcLines}`,
     '',
     `Segredos já escritos:\n${secretLines}`,
-    ...(encounterLines ? ['', `Encontros da aventura, na ORDEM em que encounterSituations deve respondê-los:\n${encounterLines}`] : []),
+    // US-193: cabeçalho declara TRILHA, não conjunto — o encontro `i` só existe por causa
+    // do `i-1` (hurdles-based design). Sem campo novo no encounterSkeleton: a ordem já é o vínculo.
+    ...(encounterLines ? ['', `Encontros da aventura — uma TRILHA ordenada, cada encontro só acontece por causa do anterior (não um conjunto de cenas soltas). Escreva encounterSituations na MESMA ordem, respondendo cada um:\n${encounterLines}`] : []),
   ].join('\n')
 }
 
@@ -1781,7 +1788,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     antagonist: AdventureAntagonist
     encounterSkeleton: EncounterSkeletonEntry[]
     locale?: Locale
-  }): Promise<{ objective: string; conclusion: string; followUps: string[]; encounterSituations: Array<{ behaviors: string; goal: string; complications: string }> }> {
+  }): Promise<{ objective: string; conclusion: string; followUps: string[]; encounterSituations: Array<{ encounterId: string; behaviors: string; goal: string; complications: string; unlocks: string }> }> {
     // 2026-08-23: fecho volta a não ancorar em background/origin da ficha (reverte o fix desta
     // mesma data) — resolve premissa/complicação sempre a partir do que já foi rolado para
     // esta aventura (locations/npcs/secrets recebidos).
@@ -1805,9 +1812,12 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         `${anchorInstruction} ` +
         `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
         'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura. ' +
-        'Depois, para CADA um dos 8 encontros listados abaixo (na MESMA ordem), escreva `behaviors`/`goal`/`complications` — as 3 perguntas restantes de uma SITUAÇÃO (framework Sly Flourish): `behaviors` é o que os moradores estão fazendo agora; `goal` é por que o personagem foi até lá; `complications` é o que pode virar o jogo de cabeça pra baixo. ' +
+        'Depois, para CADA um dos 8 encontros listados abaixo (na MESMA ordem), escreva `encounterId` (copie o id da lista abaixo), `behaviors`/`goal`/`complications`/`unlocks` — as 4 perguntas de uma SITUAÇÃO (framework Sly Flourish + hurdles-based design, The Arcane Library): `behaviors` é o que os moradores estão fazendo agora; `goal` é por que o personagem foi até lá; `complications` é o que pode virar o jogo de cabeça pra baixo; `unlocks` é o que ESTE encontro entrega — informação, acesso, aliado ou recurso — que faz o PRÓXIMO encontro existir. ' +
+        'RACIOCINE de trás pra frente: comece pela posição 8 (o confronto final, já ancorado no antagonista) e, para cada posição anterior, pergunte o que o personagem faria naturalmente em seguida e o que o trava — mas EMITA o array na ordem 1→8 mesmo assim, pareado com a lista abaixo. ' +
+        '`goal` da posição 2 em diante RESPONDE ao `unlocks` da posição anterior — o motivo de o personagem estar ali é o que o encontro anterior entregou. A posição 1 é EXCEÇÃO: seu `goal` nasce da premissa/complicação, nunca de um "encontro zero" inventado. ' +
+        'REGRA DE CORTE: se a situação escrita não aproxima o personagem do `objective` desta aventura, reescreva — nenhum dos 8 encontros é cena de passagem. ' +
         'Use o `type` de cada encontro pra guiar o tom: `skill` → obstáculo físico/ambiental; `social` → negociação ou tensão social; `combat` → ameaça e cerco — sem travar qual perícia é testada, isso continua emergente no turno. ' +
-        'O ÚLTIMO encontro da lista é o confronto final — `behaviors`/`goal`/`complications` DEVEM ecoar diretamente o `want`/`method` do antagonista, sem ambiguidade; os outros 7 só PODEM tocar nele, nunca são obrigados. ' +
+        'O ÚLTIMO encontro da lista é o confronto final — `behaviors`/`goal`/`complications` DEVEM ecoar diretamente o `want`/`method` do antagonista, sem ambiguidade; seu `unlocks` descreve o que a VITÓRIA resolve, não um nono encontro; os outros 7 só PODEM tocar no antagonista, nunca são obrigados. ' +
         `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
       prompt: buildClosingPrompt(params),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
