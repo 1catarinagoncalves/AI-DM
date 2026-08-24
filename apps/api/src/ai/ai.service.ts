@@ -45,7 +45,7 @@ import {
 } from '@ai-dm/ai-engine'
 import { DiceService } from '../game/dice.service'
 import { PrismaService } from '../prisma.service'
-import { configForLocale } from '../system/system-locale'
+import { configForLocale, getSystemCached } from '../system/system-locale'
 import type { RolledAdventureContent } from '../adventure-generation/roll-content'
 import type { AdventureRegistry } from '../adventure-generation/roll-registry'
 import type { SecretPrompts } from '../adventure-generation/lgmrd-tables'
@@ -587,7 +587,6 @@ export class AiService {
       this.prisma.character.findUnique({ where: { id: characterId }, include: { user: { select: { locale: true } } } }),
       this.prisma.adventure.findUnique({
         where: { id: adventureId },
-        include: { system: true },
       }),
       this.prisma.characterState.findUnique({
         where: { characterId_adventureId: { characterId, adventureId } },
@@ -606,6 +605,7 @@ export class AiService {
 
     if (!character) throw new NotFoundException(`Character ${characterId} not found`)
     if (!adventure) throw new NotFoundException(`Adventure ${adventureId} not found`)
+    const system = await getSystemCached(this.prisma, adventure.systemId)
 
     // Reconstrói o fio recente da conversa em ordem cronológica.
     const history: CoreMessage[] = historyLogs
@@ -618,7 +618,7 @@ export class AiService {
       })
       .filter((m) => m.content.trim().length > 0)
 
-    const systemName = adventure.system.name
+    const systemName = system.name
     const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
     // Título + descrição da quest primária para o DM saber o objetivo (US-28).
     // US-169: `objective` soma quando presente — guard obrigatório: `primary.objective` é
@@ -633,7 +633,7 @@ export class AiService {
     // US-99: resolvido pelo locale do dono — `system.config` cru é a base EN e mandaria
     // "Strength" ao prompt de um Mestre que narra em português.
     const locale = resolveLocale(character.user?.locale)
-    const config = configForLocale(adventure.system, locale) as Partial<SystemConfig> | null
+    const config = configForLocale(system, locale) as Partial<SystemConfig> | null
     const attributeLabels = Object.fromEntries((config?.attributes ?? []).map((a) => [a.key, a.label]))
 
     // Ficha que o mestre precisa conhecer (US-23). Prefere o estado (evolui com

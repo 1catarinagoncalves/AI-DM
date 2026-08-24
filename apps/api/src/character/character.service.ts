@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
-import { configForLocale, localeOfUser } from '../system/system-locale'
+import { configForLocale, getSystemCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
 // Reexporta para quem importava o tipo daqui.
 export type { CreateCharacterDto } from './character.schema'
@@ -302,7 +302,6 @@ export class CharacterService {
     const characters = await this.prisma.character.findMany({
       where: { userId },
       include: {
-        system: true,
         // Estado mais recente → "último jogado" (CharacterState.updatedAt bumpa a cada turno).
         states: { orderBy: { updatedAt: 'desc' }, take: 1 },
         // Aventura em andamento: participação numa Adventure ACTIVE, a mais recente desempata.
@@ -314,10 +313,12 @@ export class CharacterService {
         },
       },
     })
+    // Poucos systemId distintos no MVP (Free/D&D) — getSystemCached colapsa em 1 fetch cada.
+    const systems = await Promise.all(characters.map((c) => getSystemCached(this.prisma, c.systemId)))
 
     return characters
-      .map((c) => {
-        const config = configForLocale(c.system, locale)
+      .map((c, i) => {
+        const config = configForLocale(systems[i]!, locale)
         return {
           id: c.id,
           name: c.name,
@@ -373,20 +374,20 @@ export class CharacterService {
       where: { id },
       include: {
         states: { orderBy: { updatedAt: 'desc' }, take: 1 },
-        // US-27: o front deriva os modificadores das perícias do config do sistema.
-        system: true,
         // US-99: o locale do dono decide QUAL config sai daqui (os rótulos de perícia
         // da ficha vêm dele). Sem isto, `system.config` cru serviria a base EN a todos.
         user: { select: { locale: true } },
       },
     })
     if (!character) throw new NotFoundException(`Personagem ${id} não encontrado`)
+    const fullSystem = await getSystemCached(this.prisma, character.systemId)
 
     const locale = resolveLocale(character.user?.locale)
-    const { configLocales: _drop, ...system } = character.system
+    // US-27: o front deriva os modificadores das perícias do config do sistema.
+    const { configLocales: _drop, ...system } = fullSystem
     return {
       ...character,
-      system: { ...system, config: configForLocale(character.system, locale) },
+      system: { ...system, config: configForLocale(fullSystem, locale) },
     }
   }
 }

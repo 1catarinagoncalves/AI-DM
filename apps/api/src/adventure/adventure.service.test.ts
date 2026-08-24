@@ -138,6 +138,9 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
 
   const prisma = {
     character: { findUnique: async () => character },
+    // getSystemCached busca por systemId — os fixtures embutem `system` direto no character
+    // (sem systemId próprio), então o double devolve esse mesmo objeto, ignorando o id.
+    system: { findUnique: async () => (character as { system?: unknown } | null)?.system ?? null },
     adventureParticipant: { count: async () => participantCount },
     $transaction: async (fn: (tx: unknown) => unknown) => fn(tx),
   } as unknown as PrismaService

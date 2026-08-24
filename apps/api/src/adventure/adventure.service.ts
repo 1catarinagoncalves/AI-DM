@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type AdventureAntagonist, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
-import { configForLocale } from '../system/system-locale'
+import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
@@ -411,14 +411,15 @@ export class AdventureService {
       where: { id: characterId },
       // US-97: `user.locale` decide o idioma da primeira cena — é o único texto que
       // nasce antes de o jogador escrever qualquer coisa (não há o que espelhar).
-      include: { system: true, user: { select: { locale: true } } },
+      include: { user: { select: { locale: true } } },
     })
     if (!character) throw new NotFoundException(`Personagem ${characterId} não encontrado`)
+    const system = await getSystemCached(this.prisma, character.systemId)
 
     // US-128: um só resolveLocale — reusado no config, na abertura gerada e no rótulo do
     // item de memento (`MEMENTO_ITEM_LABEL`), em vez de recalcular a mesma coisa 3 vezes.
     const locale = resolveLocale(character.user?.locale)
-    const config = SystemConfigSchema.parse(configForLocale(character.system, locale))
+    const config = SystemConfigSchema.parse(configForLocale(system, locale))
 
     // US-153: a classe não escolhe mais a aventura inteira — o gancho continua vivo só
     // como hookSeed do motor de geração (buildAdventureProfile), via US-148.
@@ -483,7 +484,7 @@ export class AdventureService {
     const features = resolveSheetEntries(config.classFeatures, config.retiredFeatures, character.class, (character.features ?? []) as string[])
     const knownSpells = resolveSheetEntries(config.classSpells, config.retiredSpells, character.class, (character.spells ?? []) as string[])
     const generatedOpening = await this.ai.generateOpeningNarration({
-      systemName: character.system.name,
+      systemName: system.name,
       characterName: character.name,
       characterGender: character.gender,
       characterClass: className,

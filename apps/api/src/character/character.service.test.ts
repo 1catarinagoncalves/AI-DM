@@ -30,6 +30,7 @@ function fakePrismaList(characters: unknown[], locale = 'pt-BR'): PrismaService 
   return {
     user: { findUnique: async () => ({ locale }) },
     character: { findMany: async () => characters },
+    system: { findUnique: async ({ where }: { where: { id: string } }) => ({ id: where.id, ...systemRow }) },
   } as unknown as PrismaService
 }
 
@@ -51,13 +52,13 @@ describe('CharacterService.findAllByUser (US-25)', () => {
     const service = new CharacterService(fakePrismaList([
       {
         id: 'char-old', name: 'Antigo', race: 'dwarf', class: 'fighter', level: 2, createdAt: new Date('2020-01-01'),
-        system: systemRow,
+        systemId: 'sys-1',
         states: [{ updatedAt: new Date('2026-01-01') }],
         participations: [],
       },
       {
         id: 'char-new', name: 'Lyra', race: 'elf', class: 'wizard', level: 1, createdAt: new Date('2020-02-01'),
-        system: systemRow,
+        systemId: 'sys-1',
         states: [{ updatedAt: new Date('2026-06-01') }],
         participations: [{ adventure: { id: 'adv-1', title: 'A Mina Perdida' } }],
       },
@@ -79,7 +80,7 @@ describe('CharacterService.findAllByUser (US-25)', () => {
   it('o hub devolve o rótulo no locale do dono, não a chave', async () => {
     const rows = [{
       id: 'c1', name: 'Lyra', race: 'dwarf', class: 'wizard', level: 1, createdAt: new Date('2020-01-01'),
-      system: systemRow, states: [], participations: [],
+      systemId: 'sys-1', states: [], participations: [],
     }]
     const ptList = await new CharacterService(fakePrismaList(rows, 'pt-BR')).findAllByUser('u1')
     expect([ptList[0]!.race, ptList[0]!.class]).toEqual(['Anão', 'Mago'])
