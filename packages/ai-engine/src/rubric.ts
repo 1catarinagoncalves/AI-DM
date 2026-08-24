@@ -45,7 +45,7 @@ export const DIMENSIONS: readonly Dimension[] = [
   { key: 'ritmo', label: 'Ritmo', pergunta: 'Mistura frases curtas e longas; 3–5 parágrafos curtos; imersivo sem ser prolixo?' },
   { key: 'coerencia', label: 'Coerência', pergunta: 'Respeita o estado da cena/ficha/histórico dado no contexto?' },
   { key: 'concretude', label: 'Concretude', pergunta: 'Nomeia coisas específicas (a montaria, a espada, o símbolo sagrado, o NPC) em vez do genérico?' },
-  { key: 'anafora', label: 'Repetição de nome', pergunta: 'Nomeia cada pessoa/lugar/coisa na PRIMEIRA menção e depois retoma por pronome/epíteto/detalhe, sem repetir o mesmo nome próprio parágrafo após parágrafo (nem em toda opção)?' },
+  { key: 'anafora', label: 'Repetição de nome', pergunta: 'Nomeia cada pessoa/lugar/coisa na PRIMEIRA menção e depois retoma por pronome/epíteto/detalhe, sem repetir o mesmo nome próprio parágrafo após parágrafo (nem em toda opção) nem reinvocar um nome-motivo (ex. nome secreto/mantra) como refrão a cada turno?' },
   { key: 'onomastica', label: 'Onomástica', pergunta: 'Nomes próprios ORIGINAIS (sem clichês Elara/Kael/Lyra/Aria/Thorne), com registro cultural certo p/ raça/classe/ambiente, na frase em pt-BR natural? (n/a se não nomeia nada novo)' },
   { key: 'identidade', label: 'Classe-lente', pergunta: 'Raça/classe/equipamento/habilidades afloram por ação e sensação, nunca como lista de stats (o paladino SENTE o mal, não vê um número)?' },
   { key: 'tensao', label: 'Tensão', pergunta: 'Mostra a tensão (o silêncio errado de uma aldeia) antes de explicá-la?' },
