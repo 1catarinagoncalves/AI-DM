@@ -238,7 +238,7 @@ dados diferentes, agora por um motivo técnico a mais além do argumento de dupl
 
 ## Referências no código
 
-- [scripts/srd/_data/BackgroundBenefit.json](../../../scripts/srd/_data/BackgroundBenefit.json) — os 13 registros `type: "tool_proficiency"` (`a5e-ag_artisan_tool-proficiencies` até `a5e-ag_urchin_tool-proficiencies`).
+- `scripts/srd/_data/BackgroundBenefit.json` (não versionado — `pnpm srd:sync` baixa, US-47) — os 13 registros `type: "tool_proficiency"` (`a5e-ag_artisan_tool-proficiencies` até `a5e-ag_urchin_tool-proficiencies`).
 - [scripts/srd/ingest.mjs:359](../../../scripts/srd/ingest.mjs:359) — `buildBackgrounds`, função a estender (mesma que a US-123/US-131/US-129 já estenderam).
 - [scripts/srd/ingest.mjs:578-619](../../../scripts/srd/ingest.mjs:578) — `buildTools`/`toolCategory` (US-134, implementada): de onde `config.tools` vem, e onde a distinção terrestre/aquático se perde (`item.fields.category === 'tools' ? toolCategory(...) : 'vehicle'`, linha 612 — `land-vehicle` e `waterborne-vehicle` caem no mesmo `'vehicle'`).
 - [packages/shared/src/types/system.ts](../../../packages/shared/src/types/system.ts) — `SystemToolSchema` (`key`/`label`/`category`) e `SystemConfigSchema.tools` (US-134).

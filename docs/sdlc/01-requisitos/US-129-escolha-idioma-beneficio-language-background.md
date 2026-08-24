@@ -106,7 +106,7 @@ languageChoice: z.string().max(60).optional(),
 
 ## Referências no código
 
-- [scripts/srd/_data/BackgroundBenefit.json](../../../scripts/srd/_data/BackgroundBenefit.json) — os 5 registros `type: "language"` (`a5e-ag_acolyte_languages`, `a5e-ag_cultist_languages`, `a5e-ag_guard_languages`, `a5e-ag_noble_languages`, `a5e-ag_soldier_languages`).
+- `scripts/srd/_data/BackgroundBenefit.json` (não versionado — `pnpm srd:sync` baixa, US-47) — os 5 registros `type: "language"` (`a5e-ag_acolyte_languages`, `a5e-ag_cultist_languages`, `a5e-ag_guard_languages`, `a5e-ag_noble_languages`, `a5e-ag_soldier_languages`).
 - [scripts/srd/ingest.mjs:359](../../../scripts/srd/ingest.mjs:359) — `buildBackgrounds`, função a estender (mesma que a US-123/US-131 já estenderam para `ability_score`/`skill_proficiency`).
 - [US-123](./US-123-integracao-mecanica-background-pointbuy.md) / [US-131](./US-131-integracao-mecanica-background-proficiency.md) — exclusão original de `language`/`tool_proficiency`, origem direta desta story.
 - [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) / [US-122](./US-122-escolha-background-catalogo-na-criacao.md) — dependências diretas.
