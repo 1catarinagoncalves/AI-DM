@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { NotFoundException } from '@nestjs/common'
 import type { SystemConfig } from '@ai-dm/shared'
 import { CharacterService } from './character.service'
 import type { PrismaService } from '../prisma.service'
@@ -11,7 +12,7 @@ import type { PrismaService } from '../prisma.service'
 function fakePrisma(config: SystemConfig | null, locale = 'pt-BR', configLocales: Record<string, SystemConfig> = {}): PrismaService {
   return {
     user: { findUnique: async () => ({ locale }) },
-    system: { findUnique: async () => ({ id: 'sys-test', config, configLocales }) },
+    system: { findMany: async () => [{ id: 'sys-test', config, configLocales }] },
     character: { create: async ({ data }: { data: Record<string, unknown> }) => ({ id: 'char-1', ...data }) },
   } as unknown as PrismaService
 }
@@ -30,7 +31,7 @@ function fakePrismaList(characters: unknown[], locale = 'pt-BR'): PrismaService 
   return {
     user: { findUnique: async () => ({ locale }) },
     character: { findMany: async () => characters },
-    system: { findUnique: async ({ where }: { where: { id: string } }) => ({ id: where.id, ...systemRow }) },
+    system: { findMany: async () => [{ id: 'sys-1', ...systemRow }] },
   } as unknown as PrismaService
 }
 
@@ -159,6 +160,38 @@ describe('CharacterService.create', () => {
       userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
       attributes: { cool: 8, hard: 3, strength: 10 },
     })).rejects.toThrow()
+  })
+
+  // O systemId vem do DTO do cliente, não de FK — id inexistente é erro DELE, 404,
+  // e não pode virar 500 por a busca ter passado a sair da cache da tabela.
+  it('systemId inexistente continua 404, com o valor ofensor na mensagem', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-pathfinder', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 8, hard: 3 },
+    })).rejects.toThrow(new NotFoundException('Sistema sys-pathfinder não encontrado'))
+  })
+
+  // Regressão do consumo da Neon: o SRD (~200KB/linha) não pode reviajar a rede a cada ficha.
+  it('duas criações seguidas não repetem a busca do sistema', async () => {
+    let calls = 0
+    const prisma = {
+      user: { findUnique: async () => ({ locale: 'pt-BR' }) },
+      system: {
+        findMany: async () => {
+          calls++
+          return [{ id: 'sys-test', config, configLocales: {} }]
+        },
+      },
+      character: { create: async ({ data }: { data: Record<string, unknown> }) => ({ id: 'char-1', ...data }) },
+    } as unknown as PrismaService
+    const service = new CharacterService(prisma)
+    const dto = { userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x', attributes: { cool: 8, hard: 3 } }
+
+    await service.create(dto)
+    await service.create(dto)
+
+    expect(calls).toBe(1)
   })
 
   it('rejeita criação quando o sistema não tem config', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { parseD10Tables } from './parseD10Tables'
 
@@ -48,8 +48,12 @@ describe('parseD10Tables — dado real (US-124)', () => {
     })
   }
 
-  it('dataset cru (multi-linha, antes do norm do ingest) parseia igual', () => {
-    const raw = JSON.parse(readFileSync(join(SRD, '_data', 'BackgroundBenefit.json'), 'utf8'))
+  // `_data/` é gitignored (US-47) e o CI nunca roda `srd:sync` (I/O externo de propósito,
+  // ver .github/workflows/ci.yml) — só existe em quem já rodou o sync localmente. skipIf em
+  // vez de falhar: ENOENT aqui não é regressão, é ambiente sem o dataset cru baixado.
+  const rawPath = join(SRD, '_data', 'BackgroundBenefit.json')
+  it.skipIf(!existsSync(rawPath))('dataset cru (multi-linha, antes do norm do ingest) parseia igual', () => {
+    const raw = JSON.parse(readFileSync(rawPath, 'utf8'))
     const problems = raw
       .filter((i: { fields: { type: string } }) => i.fields.type === 'connection_and_memento')
       .map((i: { fields: { parent: string; desc: string } }) => check(i.fields.parent, i.fields.desc))

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
-import { configForLocale, getSystemCached, localeOfUser } from '../system/system-locale'
+import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
 // Reexporta para quem importava o tipo daqui.
 export type { CreateCharacterDto } from './character.schema'
@@ -12,7 +12,10 @@ export class CharacterService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateCharacterDto) {
-    const system = await this.prisma.system.findUnique({ where: { id: dto.systemId } })
+    // Da cache, não do banco: `System` é o SRD inteiro (~200KB/linha) e reviajava a rede
+    // a cada ficha. `find` em vez de `getSystemCached` porque o id vem do DTO do cliente —
+    // ausente é 404 dele, não o Error de invariante que a busca por FK levanta.
+    const system = (await getSystemsCached(this.prisma)).find((candidate) => candidate.id === dto.systemId)
     if (!system) throw new NotFoundException(`Sistema ${dto.systemId} não encontrado`)
     if (!system.config) {
       throw new BadRequestException(`Sistema ${dto.systemId} não tem configuração de regras (config ausente)`)

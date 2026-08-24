@@ -78,4 +78,36 @@ describe('SystemService.findAll (US-99)', () => {
     const [system] = await new SystemService(fakePrisma('en-US')).findAll('u1')
     expect('configLocales' in system!).toBe(false)
   })
+
+  it('não vaza ragIndexId nem outra coluna nova do model no payload', async () => {
+    const prisma = {
+      user: { findUnique: async () => ({ locale: 'en-US' }) },
+      system: { findMany: async () => [{ id: 'system-free', name: 'Free', version: '1.0', sourceType: 'FREE', ragIndexId: 'idx-1', config: enBase, configLocales: {} }] },
+    } as unknown as PrismaService
+    const [system] = await new SystemService(prisma).findAll('u1')
+    expect(Object.keys(system!).sort()).toEqual(['config', 'id', 'name', 'sourceType', 'version'])
+  })
+
+  // Regressão: esta rota é o healthCheckPath do Render (render.yaml), batida em loop.
+  // Sem cache, cada ping arrastava as 2 linhas de System (~375KB) pela rede — sozinho
+  // estourou a cota mensal de network transfer da Neon (5GB) antes do fim do mês.
+  it('health check em loop não repete a query — o blob do SRD viaja UMA vez', async () => {
+    let calls = 0
+    const prisma = {
+      user: { findUnique: async () => null },
+      system: {
+        findMany: async () => {
+          calls++
+          return [{ id: 'system-free', name: 'Free', version: '1.0', sourceType: 'FREE', config: enBase, configLocales: {} }]
+        },
+      },
+    } as unknown as PrismaService
+    const service = new SystemService(prisma)
+
+    await service.findAll()
+    await service.findAll()
+    await service.findAll()
+
+    expect(calls).toBe(1)
+  })
 })

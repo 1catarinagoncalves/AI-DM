@@ -219,11 +219,9 @@ export const SystemConfigSchema = z.object({
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
 export type SystemCatalogEntry = z.infer<typeof SystemCatalogEntrySchema>
-export type RaceCatalogEntry = z.infer<typeof RaceCatalogEntrySchema>
 export type SystemTool = z.infer<typeof SystemToolSchema>
 export type SystemClassFeature = z.infer<typeof SystemClassFeatureSchema>
 export type SystemSpell = z.infer<typeof SystemSpellSchema>
-export type SystemBackgroundBenefit = z.infer<typeof SystemBackgroundBenefitSchema>
 export type SystemBackground = z.infer<typeof SystemBackgroundSchema>
 export type InitialAdventureHook = z.infer<typeof InitialAdventureHookSchema>
 export type SystemConfig = z.infer<typeof SystemConfigSchema>

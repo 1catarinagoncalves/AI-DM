@@ -10,26 +10,35 @@ type LocaleMap = Record<string, SystemConfig>
 
 // `System.config`+`configLocales` é o SRD inteiro (~200KB/linha, US-47) e não muda em
 // runtime — só o script de ingest escreve nele. `include: { system: true }` reenviava esse
-// blob pela rede em TODO turno/ficha (achado investigando consumo do Neon, 94% da cota
-// mensal). Cache por instância de PrismaService: WeakMap isola testes (double novo por
-// teste) e ainda assim é uma cache global única em produção (PrismaService é singleton do Nest).
+// blob pela rede em TODO turno/ficha, e `GET /systems` (healthCheckPath do Render) arrastava
+// as DUAS linhas em todo ping — sozinho estourou os 5GB/mês de network transfer da Neon.
+// Cache por instância de PrismaService: WeakMap isola testes (double novo por teste) e ainda
+// assim é uma cache global única em produção (PrismaService é singleton do Nest).
+// ponytail: uma cache da tabela inteira, não por id — são 2 linhas, buscar uma não paga menos.
 // ponytail: sem TTL — reingest exige reiniciar a API pra pegar o dado novo.
-const systemCache = new WeakMap<PrismaService, Map<string, System>>()
+const systemCache = new WeakMap<PrismaService, Promise<System[]>>()
 
-/** Busca `System` por id, cacheado pro resto da vida do processo. Ver nota acima. */
-export async function getSystemCached(prisma: PrismaService, systemId: string): Promise<System> {
-  let cache = systemCache.get(prisma)
-  if (!cache) {
-    cache = new Map()
-    systemCache.set(prisma, cache)
-  }
-  const cached = cache.get(systemId)
+/** Todos os `System` ordenados por nome, buscados UMA vez por processo. Ver nota acima. */
+export function getSystemsCached(prisma: PrismaService): Promise<System[]> {
+  const cached = systemCache.get(prisma)
   if (cached) return cached
 
-  const system = await prisma.system.findUnique({ where: { id: systemId } })
+  // Guarda a promessa, não o resultado: pings de health check concorrentes no boot
+  // compartilham a mesma busca em vez de disparar uma cada.
+  const systems = prisma.system.findMany({ orderBy: { name: 'asc' } })
+  // Falha transitória (compute da Neon acordando do scale-to-zero, US-58) não pode ficar
+  // cacheada pro resto da vida do processo — descarta e deixa a próxima chamada tentar.
+  systems.catch(() => systemCache.delete(prisma))
+  systemCache.set(prisma, systems)
+  return systems
+}
+
+/** Busca `System` por id na cache acima. */
+export async function getSystemCached(prisma: PrismaService, systemId: string): Promise<System> {
+  const systems = await getSystemsCached(prisma)
+  const system = systems.find((candidate) => candidate.id === systemId)
   if (!system) throw new Error(`System "${systemId}" não encontrado (FK deveria garantir existência)`)
 
-  cache.set(systemId, system)
   return system
 }
 
