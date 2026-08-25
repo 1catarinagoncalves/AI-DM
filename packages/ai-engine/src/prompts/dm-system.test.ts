@@ -239,6 +239,14 @@ describe('buildDmSystemPrompt — Origin narrative (US-125)', () => {
     expect(section.toLowerCase()).toMatch(/never|nunca/)
   })
 
+  it('veda a origem como passado PRIVADO: NPC estranho não sabe, narração não credita a fala que ele não deu', () => {
+    const p = build({ originNarrative })
+    const section = p.slice(p.indexOf('## Origin narrative'))
+    expect(section).toMatch(/PROVENANCE/)
+    expect(section).toMatch(/until the player SAYS it in the prose/)
+    expect(section).toMatch(/words the NPC did not actually speak/)
+  })
+
   it('renderiza só os campos presentes (sem misturar texto de um campo no outro)', () => {
     const p = build({ originNarrative: { connection: originNarrative.connection } })
     expect(p).toMatch(/## Origin narrative/)

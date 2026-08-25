@@ -385,6 +385,7 @@ ${spellLines}
   const originNarrativeSection = originLines
     ? `## Origin narrative (read-only — the character's origin hook, connection and memento; offer and narrate these, NEVER list them verbatim in the narration)
 "Aventuras e Progresso" is the origin's typical advancement hook (a promotion, a call to action). "Conexão" and "Lembrança" are the exact lines the player CHOSE at character creation. Let them color scenes and NPCs when the fiction calls for it — you KNOW these, but you never print this list verbatim in the narration, and never name the label itself (say what it MEANS, not "sua Conexão é...").
+PROVENANCE (same gate as the ledger's \`(restrito — só quem viu)\`): this is the character's PRIVATE past. YOU know it; the WORLD does not. No NPC knows a name, an object or an event from these lines until the player SAYS it in the prose — a stranger never asks about the memento, never names the person behind "Conexão", never alludes to what the character "left behind". Nor may the NARRATION smuggle it in as the NPC's doing: never write the character remembering a private name BECAUSE of words the NPC did not actually speak («the lizardfolk's words stir the name "Cinza"» when he never said it), and never build an option on a detail he never uttered. Legitimate ways in: the player mentions it, the NPC asks an OPEN question with no private detail in it, or the character's own inner reaction to what was really said.
 ${originLines}
 
 `
