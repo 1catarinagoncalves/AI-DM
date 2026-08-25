@@ -205,10 +205,23 @@ export function detectDegeneration(text: string): boolean {
  * serviço já usavam inline para dedupe de narração dupla — agora fonte única. Um bullet é
  * uma linha começando por hífen + espaço (`- `); o travessão (`—`) do diálogo NÃO conta
  * (é fala de personagem, não opção).
+ *
+ * Desde 25/08/2026 verifica também que a lista está FECHADA — ver o comentário no corpo.
  */
 const OPTIONS_LIST = /(^|\n)\s*-\s/
+const BULLET_LINE = /^\s*-\s/
 export function hasOptionsList(text: string): boolean {
-  return OPTIONS_LIST.test(text)
+  if (!OPTIONS_LIST.test(text)) return false
+  // Correção de 25/08/2026: a PRESENÇA de um bullet não bastava. Um turno de prod parou
+  // dentro da 2ª opção (`- 🗡️ **Tentar que`) — a 1ª opção, completa, já fazia a regex
+  // casar, o gate do `onFinish` dava passagem e o beco-sem-saída era persistido do mesmo
+  // jeito que a US-74 queria impedir. O corte no meio do bullet deixa a ênfase markdown
+  // ABERTA: `**` ímpar na última opção é o sinal determinístico disso, e não depende de
+  // idioma nem de pontuação final (as opções de prod terminam sem ponto legitimamente).
+  // ponytail: só pega corte que abriu `**`. Corte em bullet sem markdown (`- 🗡️ Tentar
+  // que`) ainda passa; se aparecer em prod, o próximo degrau é exigir >= 2 bullets.
+  const lastBullet = text.split('\n').filter((line) => BULLET_LINE.test(line)).pop() ?? ''
+  return (lastBullet.match(/\*\*/g)?.length ?? 0) % 2 === 0
 }
 
 /**

@@ -190,6 +190,25 @@ describe('US-74 — hasOptionsList (contrato de fecho da narração)', () => {
     expect(hasOptionsList(truncado)).toBe(false)
   })
 
+  // Regressão de 25/08/2026: turno de prod cortado DENTRO da 2ª opção. A 1ª opção completa
+  // fazia `hasOptionsList` dar true, o gate do `onFinish` (ai.service.ts) deixava passar e o
+  // beco-sem-saída era gravado — o bug que a US-74 existe para impedir, por outra porta.
+  it('corte no meio de um bullet = false, mesmo com a opção anterior completa', () => {
+    const truncadoNaSegundaOpcao =
+      'Ela ergue a cabeça, os olhos arregalados.\n\n' +
+      '- 🛐 **Ajoelhar-se ao lado da Afogadora** e purificar a âncora abissal\n' +
+      '- 🗡️ **Tentar que'
+    expect(hasOptionsList(truncadoNaSegundaOpcao)).toBe(false)
+  })
+
+  it('opção com ênfase FECHADA e sem pontuação final = true (as opções de prod são assim)', () => {
+    const completo =
+      'A tosse vem de novo.\n\n' +
+      '- 🕯️ Ir pelo corredor com o símbolo **Lúcivis** na outra mão — cada segundo conta\n' +
+      '- 💬 Perguntar o que mais o culto deixou no porão'
+    expect(hasOptionsList(completo)).toBe(true)
+  })
+
   it('narração vazia = false', () => {
     expect(hasOptionsList('')).toBe(false)
   })
