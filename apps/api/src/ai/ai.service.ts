@@ -46,7 +46,7 @@ import {
 import { DiceService } from '../game/dice.service'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
-import type { RolledAdventureContent } from '../adventure-generation/roll-content'
+import { localizePatronRow, type RolledAdventureContent } from '../adventure-generation/roll-content'
 import type { AdventureRegistry } from '../adventure-generation/roll-registry'
 import type { SecretPrompts } from '../adventure-generation/lgmrd-tables'
 import { MONSTER_ROLE_CR } from '../adventure-generation/monster-roles'
@@ -152,9 +152,15 @@ const LOCATIONS_AND_NPCS_SCHEMA = z.object({
 // as linhas roladas para o modelo INVENTAR nome+arquétipo em cima delas, nunca copiar.
 // US-192: `premissa` chega já elaborada por `generatePremissa` — não é mais lida de
 // `rolled.premissa` (que deixou de existir; `rolled` agora só carrega os candidatos crus).
-function buildLocationsAndNpcsPrompt(rolled: RolledAdventureContent, premissa: string): string {
+// 2026-08-25: a linha rolada passa por `localizePatronRow` antes de entrar no prompt — em
+// pt-BR o modelo copiava a palavra EN da tabela verbatim para dentro da prosa («o lizardfolk
+// tem a chave»), do mesmo jeito que copiava a palavra-semente de local/monumento.
+function buildLocationsAndNpcsPrompt(rolled: RolledAdventureContent, premissa: string, locale: Locale = DEFAULT_LOCALE): string {
   const npcRows = rolled.patronsandnpcs
-    .map((row, i) => `${i + 1}. comportamento: ${row.behavior}; ancestralidade: ${row.ancestry}`)
+    .map((row, i) => {
+      const { behavior, ancestry } = localizePatronRow(row, locale)
+      return `${i + 1}. comportamento: ${behavior}; ancestralidade: ${ancestry}`
+    })
     .join('\n')
   return [
     `Premissa da aventura: ${premissa}`,
@@ -1587,7 +1593,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
         // US-179: boxedText é lido em voz alta (método LGMRD) — vale a MESMA barra
         // abaixo, não uma versão mais fraca por ser um trecho curto.
         `A prosa de local (boxedText/description) e o role do NPC seguem esta barra de qualidade:\n${CRAFT_CORE_SECTION}\n${NPC_VOICE_BULLET}\n\n${ONOMASTICS_SECTION}`,
-      prompt: buildLocationsAndNpcsPrompt(params.rolled, params.premissa),
+      prompt: buildLocationsAndNpcsPrompt(params.rolled, params.premissa, params.locale ?? DEFAULT_LOCALE),
       providerOptions: ENGINE_PROVIDER_OPTIONS,
     })
     logExtractionEndpoint('generateLocationsAndNpcs', primaryModel, providerMetadata)

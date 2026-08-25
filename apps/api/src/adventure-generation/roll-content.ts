@@ -1,4 +1,4 @@
-import { createSeededRandom, deriveAdventureSeed } from '@ai-dm/shared'
+import { createSeededRandom, deriveAdventureSeed, type Locale } from '@ai-dm/shared'
 import { readLgmrdTables, type LgmrdTable, type LgmrdTableRow } from './lgmrd-tables'
 
 export interface RolledPatronOrNpc {
@@ -83,5 +83,77 @@ export function rollContent(
       origin: String(conditionRow['origin']),
     },
     patronsandnpcs: rollPatronsAndNpcs(characterId, order, tables.tables['patronsandnpcs'], attempt),
+  }
+}
+
+// 2026-08-25: as 20 linhas de `patronsandnpcs` chegam em INGLÊS da tabela do LGMRD e eram
+// injetadas verbatim no prompt de prosa (`buildLocationsAndNpcsPrompt`, ai.service.ts) — o
+// modelo copiava a palavra crua para dentro da narração pt-BR («o lizardfolk tem a chave»,
+// «a catfolk cheery»). Mesmo defeito que a palavra-semente de local/monumento, mas resolvido
+// no CÓDIGO em vez de por instrução de prompt: a lista é FECHADA (20 valores por coluna) e a
+// tradução é decisão editorial fixa, não escolha criativa por aventura.
+//
+// A rolagem (`rollContent`) segue devolvendo o valor EN canônico — igual ao dataset do SRD,
+// `en-US` é a base nativa e `pt-BR` é overlay de RENDERIZAÇÃO (ADR 005). Só o prompt traduz.
+const PATRON_ROW_PT_BR: Record<string, string> = {
+  // coluna `behavior`
+  Enthusiastic: 'entusiasmado',
+  Flighty: 'volúvel',
+  Shifty: 'esquivo',
+  Optimistic: 'otimista',
+  Paranoid: 'paranoico',
+  'Well spoken': 'eloquente',
+  Superior: 'soberbo',
+  Haughty: 'altivo',
+  Pessimistic: 'pessimista',
+  Suspicious: 'desconfiado',
+  Worried: 'preocupado',
+  Greedy: 'ganancioso',
+  Brave: 'corajoso',
+  Stern: 'severo',
+  Sly: 'astuto',
+  Wise: 'sábio',
+  Reserved: 'reservado',
+  Cheery: 'animado',
+  Opportunistic: 'oportunista',
+  'Soft spoken': 'de fala mansa',
+  // coluna `ancestry`. Halfling/orc/drow/tiefling/goblin ficam como estão: é a forma
+  // corrente em pt-BR (Galápagos), traduzir inventaria termo que ninguém usa na mesa.
+  Human: 'humano',
+  Elf: 'elfo',
+  Dwarf: 'anão',
+  Halfling: 'halfling',
+  Orc: 'orc',
+  Drow: 'drow',
+  Tiefling: 'tiefling',
+  Dragonborn: 'draconato',
+  Fey: 'feérico',
+  Goblin: 'goblin',
+  Construct: 'constructo',
+  Celestial: 'celestial',
+  Ghost: 'fantasma',
+  "Wizard's familiar": 'familiar de mago',
+  'Talking animal': 'animal falante',
+  Avian: 'ave humanoide',
+  // 'sáurio'/'felino' e não 'homem-lagarto'/'mulher-gato': o NPC ainda não tem gênero
+  // quando esta linha entra no prompt — quem inventa nome e papel é o modelo.
+  Lizardfolk: 'sáurio',
+  Catfolk: 'felino',
+  Lycanthrope: 'licantropo',
+  Artifact: 'artefato',
+}
+
+/**
+ * Verte uma linha rolada de `patronsandnpcs` para o idioma da mesa. `en-US` devolve a linha
+ * como está (a tabela JÁ é a base nativa); `pt-BR` aplica o overlay acima. Valor fora do mapa
+ * passa cru — a tabela do LGMRD pode ganhar linha nova antes do mapa, e um NPC com a palavra
+ * em inglês é melhor que a geração inteira falhar. `patron-row-map-completo` (teste) é quem
+ * pega esse buraco antes de chegar em produção.
+ */
+export function localizePatronRow(row: RolledPatronOrNpc, locale: Locale): RolledPatronOrNpc {
+  if (locale === 'en-US') return row
+  return {
+    behavior: PATRON_ROW_PT_BR[row.behavior] ?? row.behavior,
+    ancestry: PATRON_ROW_PT_BR[row.ancestry] ?? row.ancestry,
   }
 }

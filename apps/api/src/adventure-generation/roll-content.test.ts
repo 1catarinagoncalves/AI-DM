@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, it, expect } from 'vitest'
-import { rollContent } from './roll-content'
+import { localizePatronRow, rollContent } from './roll-content'
+import { readLgmrdTables } from './lgmrd-tables'
 
 describe('rollContent (US-147)', () => {
   it('mesmo characterId+order produz o mesmo conteúdo em duas execuções', () => {
@@ -55,5 +56,37 @@ describe('rollContent (US-147)', () => {
   it('o módulo não chama Math.random', () => {
     const source = readFileSync(resolve(__dirname, 'roll-content.ts'), 'utf8')
     expect(source).not.toMatch(/Math\.random\(/)
+  })
+})
+
+// 2026-08-25 (regressão): «o lizardfolk tem a chave de prata lunar» — a coluna EN da tabela
+// do LGMRD vazava verbatim para a prosa pt-BR porque o prompt recebia a linha crua.
+describe('localizePatronRow', () => {
+  it('verte behavior e ancestry para pt-BR', () => {
+    expect(localizePatronRow({ behavior: 'Reserved', ancestry: 'Lizardfolk' }, 'pt-BR')).toEqual({
+      behavior: 'reservado',
+      ancestry: 'sáurio',
+    })
+    expect(localizePatronRow({ behavior: 'Cheery', ancestry: 'Catfolk' }, 'pt-BR').ancestry).toBe('felino')
+  })
+
+  it('en-US devolve a linha crua — a tabela já é a base nativa', () => {
+    const row = { behavior: 'Cheery', ancestry: 'Catfolk' }
+    expect(localizePatronRow(row, 'en-US')).toEqual(row)
+  })
+
+  it('patron-row-map-completo: as 20 linhas da tabela têm tradução nas duas colunas', () => {
+    const rows = readLgmrdTables().tables['patronsandnpcs'].data
+    const untranslated = rows.flatMap((row) => {
+      const localized = localizePatronRow({ behavior: String(row['behavior']), ancestry: String(row['ancestry']) }, 'pt-BR')
+      return [
+        localized.behavior === String(row['behavior']) ? `behavior:${row['behavior']}` : null,
+        localized.ancestry === String(row['ancestry']) ? `ancestry:${row['ancestry']}` : null,
+      ].filter((v): v is string => v !== null)
+    })
+    // Halfling/orc/drow/tiefling/goblin ficam com a mesma PALAVRA em pt-BR (ver comentário do
+    // mapa), mas em caixa baixa — ainda contam como traduzidos. Sobrar qualquer valor aqui é
+    // linha nova da tabela do LGMRD sem entrada no mapa.
+    expect(untranslated).toEqual([])
   })
 })
