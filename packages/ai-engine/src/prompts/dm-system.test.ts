@@ -325,6 +325,11 @@ describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas
     expect(p).toMatch(/have the NPC SAY it in the prose/)
   })
 
+  it('proíbe opção atribuir à NPC um detalhe/técnica que ela não mencionou (variante sem aspas do US-199: "que Sskarr mencionou")', () => {
+    const p = build()
+    expect(p).toMatch(/NEVER credit an NPC with having mentioned a detail, technique, or fact they did not actually say/)
+  })
+
   it('inclui a subseção de onomástica (US-68/US-36): steering positivo, ancora sonoridade, paleta aberta', () => {
     const p = build()
     expect(p).toMatch(/Onomastics/)
