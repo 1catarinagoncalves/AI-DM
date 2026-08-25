@@ -1,3 +1,4 @@
+import { signOut } from 'next-auth/react'
 import type { Locale, SystemConfig, ChatTurn } from '@ai-dm/shared'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
@@ -15,19 +16,29 @@ function authHeaders(base: Record<string, string> = {}): Record<string, string> 
   return authToken ? { ...base, Authorization: `Bearer ${authToken}` } : base
 }
 
+// 25/08/2026: 401 = a API não reconhece a identidade do token (AuthGuard: `sub` sem linha
+// em `User`). O cookie de sessão vive 30 dias e o `/auth/sync` só corre no PRIMEIRO login,
+// então sem deslogar aqui o jogador ficaria preso no erro até o cookie expirar sozinho.
+async function assertOk(res: Response): Promise<void> {
+  if (res.ok) return
+  const body = await res.text()
+  if (res.status === 401) await signOut({ callbackUrl: '/login' })
+  throw new Error(body)
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${BASE}/api/v1${path}`, {
     method: 'POST',
     headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  await assertOk(res)
   return res.json()
 }
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}/api/v1${path}`, { headers: authHeaders() })
-  if (!res.ok) throw new Error(await res.text())
+  await assertOk(res)
   return res.json()
 }
 
@@ -37,13 +48,13 @@ async function patch<T>(path: string, body: unknown): Promise<T> {
     headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  await assertOk(res)
   return res.json()
 }
 
 async function del(path: string): Promise<void> {
   const res = await fetch(`${BASE}/api/v1${path}`, { method: 'DELETE', headers: authHeaders() })
-  if (!res.ok) throw new Error(await res.text())
+  await assertOk(res)
 }
 
 export const api = {
