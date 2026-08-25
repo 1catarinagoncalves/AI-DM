@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada) — decidido em 2026-08-24: segue **sem** o gate da eval de embaralhamento (ver *Notas de implementação*)
+**Status:** 🚧 Em progresso — código + testes automatizados completos (`pnpm typecheck`/testes dos módulos tocados/`pnpm eval` verdes, `pnpm dead` limpo). Faltam 2 critérios manuais: baseline da eval de narração (não rodado — `dm-system.ts` já foi editado antes de decidir rodá-lo, ver *Critérios de aceite*) e o seed jogado à mão.
 **Depende de:** [US-193](./US-193-encontros-sem-cadeia-causal-entre-si.md) (é ela que torna o encontro 1 a porta de entrada da trilha — sem a cadeia, tirar `start` só troca uma cena solta por outra) · [US-166](./US-166-motor-gera-multiplos-encontros.md) (`drafts[0]` — o encontro 1 já vem com local e NPCs resolvidos) · [US-34](./US-34-qualidade-da-narracao-do-dm.md)/[US-168](./US-168-abertura-narra-gancho-fixo-nao-aventura-gerada.md) (`generateOpeningNarration` + a fagulha de `buildOpeningInstruction` — é lá que a abertura de verdade nasce)
 **Reverte parte de:** [US-172](./US-172-abertura-gerada-nao-copia-gancho-fixo.md) (criou `generateOpeningBeat`) · [US-180](./US-180-abertura-ignora-vinculos-do-personagem.md) (ancoragem em `background`/`origin` + estilos Enraizada/Confronto) · [US-182](./US-182-abertura-mira-apelo-de-recompensa-heroismo-descoberta.md) (2 dos 3 apelos) — as três investiram no `start` como beat pronto; esta story move o que sobrevive para `buildOpeningInstruction` e nomeia o que morre
 **Relacionado:** [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) (`objective` é o que a `Quest` passa a carregar como alvo, no lugar da cena de abertura) · [US-190](./US-190-antagonista-vira-passo-proprio-entre-segredos-e-encontros.md)/[US-191](./US-191-antagonista-vira-occupant-do-local-do-confronto-final.md) (o antagonista chega à abertura hoje via `generateOpeningBeat`) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (`start` continua no schema, o gate não muda)
@@ -88,6 +88,7 @@ A US-193 considerou e descartou serializar `generateOpeningBeat` depois de `gene
 - **Os dois estilos nomeados Enraizada/Confronto (US-180).** Eles existiam pra escolher o TIPO da cena de abertura; agora o `type` do encontro 1 (`combat`/`skill`/`social`, US-166) já faz essa escolha, e de forma consistente com o resto da aventura.
 - **Sistemas sem motor de geração (Free).** Sem `mainQuest`, `buildOpeningInstruction` cai no `hookSeed` (US-168) e `openingText` cai no `profile.hookSeed` estático ([adventure.service.ts:504](../../../apps/api/src/adventure/adventure.service.ts)). Nenhum desses caminhos muda.
 - **Migrar as `Quest.description` já gravadas.** As que existem seguem com a cena de abertura antiga no campo — sem backfill, mesma decisão da US-193 para artefatos anteriores.
+- **Os outros dois canais que entregam o antagonista ao Mestre no turno 1 — [US-199](./US-199-antagonista-publico-no-ledger-desde-o-turno-1.md).** Esta story mata a instrução explícita (*"pode nomeá-lo e deixar sinal de sua presença/método na cena"*, no prompt de `generateOpeningBeat`) e garante que o `boxedText` de `start` seja o PRÉ-`generateAntagonistLocationProse`. Sobrevivem: (a) `antagonistPublicEntity`, semeado `revelado: true` com o `local` do encontro 8 ([seed-ledger.ts:107](../../../apps/api/src/adventure-generation/seed-ledger.ts)) — nome e endereço do vilão no `## Registro de entidades` da abertura e de todo turno, sem `⚠ OCULTO`; (b) `objective`, que por exigência da US-169 cita `want`/`method` e volta ao Mestre a cada turno em `mainQuest`. **Consequência para o último critério de aceite (seed jogado à mão):** se o Mestre ainda puxar a mesa para o antagonista, isso é a US-199, não regressão desta story — o que se verifica aqui é que a primeira cena acontece no local do encontro 1.
 - **A abertura consumir `complications` ou `unlocks` do encontro 1.** O Mestre já vê os dois pelo ledger, sob o gate `⚠ OCULTO` (US-170); a fagulha da abertura não é o lugar de repeti-los.
 
 ---
@@ -95,23 +96,25 @@ A US-193 considerou e descartou serializar `generateOpeningBeat` depois de `gene
 ## Critérios de aceite
 
 - [ ] **Baseline da eval de narração ANTES de tocar em `dm-system.ts`:** aberturas geradas pelo código de hoje pontuadas pela eval da [US-36](./US-36-eval-de-qualidade-da-narracao.md); o mesmo caso roda depois da mudança e não regride. Sem o antes, "a abertura ficou melhor" é opinião.
-- [ ] `generateOpeningBeat`, `OPENING_BEAT_SCHEMA` e `buildOpeningBeatPrompt` não existem mais no repo (`pnpm dead` limpo, grep vazio).
-- [ ] `generateAdventure` faz **duas** chamadas no `Promise.all`, não três — uma chamada de LLM a menos por aventura gerada.
-- [ ] `start` cita ou situa o local do encontro 1 (`drafts[0].location.title`), sempre — verificação estrutural, não semântica: é composição por código.
-- [ ] `start` sai como briefing rotulado **em inglês**: as quatro etiquetas (`Location:`, `Situation:`, `Scene type:`, `Present:`) presentes, e `Scene type:` bate literalmente com `drafts[0].type`. Nenhum rótulo em português no texto composto (o `boxedText`/`goal` seguem no idioma da mesa — só as ETIQUETAS são fixas).
-- [ ] Encontro 1 `type:'skill'` (que nunca tem NPC): `start` sai com `Present: none`, não com etiqueta vazia.
-- [ ] `start` **não** contém o `complications` do encontro 1.
-- [ ] `composeStartBriefing` recebe `EncounterDraft` + `goal` e nada mais — não há caminho de tipo pra passar `locations`/`locationsWithAntagonist`/`locationId`.
-- [ ] **Encontro 1 e encontro 8 no MESMO local: `start` não contém o nome do antagonista.** Teste direto do caso de colisão (forçar `pickLocationIdForType` a devolver o mesmo `locationId` nas duas pontas) — o `boxedText` de `start` é o pré-`generateAntagonistLocationProse`, enquanto `locations[]` do artefato segue com a prosa reescrita. Os dois divergirem é o comportamento correto, não um bug de sincronia.
-- [ ] `buildOpeningInstruction` carrega os três ramos de *in medias res* (`combat`/`skill`/`social`) — teste de substring por ramo, mesmo padrão dos outros guards de prompt.
-- [ ] `Quest.description === generated.summary`; `objective`/`conclusionHint` seguem como a US-169 deixou.
-- [ ] O bloco `## Main quest` do turno não repete a premissa duas vezes: com `title === description`, `mainQuest` ([ai.service.ts:621](../../../apps/api/src/ai/ai.service.ts)) emite o texto UMA vez (+ `objective`).
-- [ ] `nextUnrevealedEncounterLocation` nunca devolve `encounter-1` — o bloco `## Situação em aberto mais próxima` jamais aponta pro local onde a abertura acontece. Teste direto: ledger recém-semeado (todos os locais `revelado: false`) devolve `encounter-2`, não `encounter-1`.
-- [ ] `GeneratedAdventureSchema.parse()` passa sem mudança no schema; gate (US-150) inalterado.
-- [ ] `buildOpeningInstruction` pede COMPOR a cena, não renderizar beat pronto, e carrega *in medias res* + os 2 de 3 apelos. Teste de substring, mesmo padrão dos outros guards de prompt.
-- [ ] Free (sem `mainQuest`) continua caindo no `hookSeed`, com teste que já existe verde.
-- [ ] `pnpm typecheck`, testes dos módulos tocados e `pnpm eval` verdes.
+  **Não feito nesta implementação** — `dm-system.ts` já foi editado antes de rodar o baseline; rodar agora não teria "antes" pra comparar. `DM_LIVE_EVAL` chama LLM de verdade (custo/tempo) — decisão de rodar fica com quem revisa. `pnpm eval` (suite estrutural, sem LLM) está verde.
+- [x] `generateOpeningBeat`, `OPENING_BEAT_SCHEMA` e `buildOpeningBeatPrompt` não existem mais no repo (`pnpm dead` limpo, grep vazio).
+- [x] `generateAdventure` faz **duas** chamadas no `Promise.all`, não três — uma chamada de LLM a menos por aventura gerada.
+- [x] `start` cita ou situa o local do encontro 1 (`drafts[0].location.title`), sempre — verificação estrutural, não semântica: é composição por código.
+- [x] `start` sai como briefing rotulado **em inglês**: as quatro etiquetas (`Location:`, `Situation:`, `Scene type:`, `Present:`) presentes, e `Scene type:` bate literalmente com `drafts[0].type`. Nenhum rótulo em português no texto composto (o `boxedText`/`goal` seguem no idioma da mesa — só as ETIQUETAS são fixas).
+- [x] Encontro 1 `type:'skill'` (que nunca tem NPC): `start` sai com `Present: none`, não com etiqueta vazia.
+- [x] `start` **não** contém o `complications` do encontro 1.
+- [x] `composeStartBriefing` recebe `EncounterDraft` + `goal` e nada mais — não há caminho de tipo pra passar `locations`/`locationsWithAntagonist`/`locationId`.
+- [x] **Encontro 1 e encontro 8 no MESMO local: `start` não contém o nome do antagonista.** Teste direto do caso de colisão (forçar `pickLocationIdForType` a devolver o mesmo `locationId` nas duas pontas) — o `boxedText` de `start` é o pré-`generateAntagonistLocationProse`, enquanto `locations[]` do artefato segue com a prosa reescrita. Os dois divergirem é o comportamento correto, não um bug de sincronia.
+- [x] `buildOpeningInstruction` carrega os três ramos de *in medias res* (`combat`/`skill`/`social`) — teste de substring por ramo, mesmo padrão dos outros guards de prompt.
+- [x] `Quest.description === generated.summary`; `objective`/`conclusionHint` seguem como a US-169 deixou.
+- [x] O bloco `## Main quest` do turno não repete a premissa duas vezes: com `title === description`, `mainQuest` ([ai.service.ts:621](../../../apps/api/src/ai/ai.service.ts)) emite o texto UMA vez (+ `objective`).
+- [x] `nextUnrevealedEncounterLocation` nunca devolve `encounter-1` — o bloco `## Situação em aberto mais próxima` jamais aponta pro local onde a abertura acontece. Teste direto: ledger recém-semeado (todos os locais `revelado: false`) devolve `encounter-2`, não `encounter-1`.
+- [x] `GeneratedAdventureSchema.parse()` passa sem mudança no schema; gate (US-150) inalterado.
+- [x] `buildOpeningInstruction` pede COMPOR a cena, não renderizar beat pronto, e carrega *in medias res* + os 2 de 3 apelos. Teste de substring, mesmo padrão dos outros guards de prompt.
+- [x] Free (sem `mainQuest`) continua caindo no `hookSeed`, com teste que já existe verde.
+- [x] `pnpm typecheck`, testes dos módulos tocados e `pnpm eval` verdes.
 - [ ] Seed jogado à mão: a primeira cena narrada acontece no local do encontro 1, e o que a jogadora faz naturalmente ali é o `goal` daquele encontro.
+  **Não feito nesta implementação** — exige rodar a API com secrets reais e criar um personagem de verdade. Verificação estrutural equivalente já cobre o mecanismo (ver critérios acima); falta a confirmação end-to-end de que a narração de fato honra o briefing.
 
 ---
 

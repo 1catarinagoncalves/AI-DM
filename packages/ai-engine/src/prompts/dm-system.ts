@@ -679,6 +679,14 @@ ${nextEncounterSection}${summarySection}`.trimEnd()
  * motor de geração, ex. Free), cai no comportamento anterior: `hookSeed` como
  * semente. Restringe a saída a prosa + opções (sem tools, dados ou tags internas).
  * Reusa o mesmo system prompt (com a seção de ofício) dos turnos seguintes.
+ *
+ * US-194: `mainQuest`, quando presente, chega como o briefing ROTULADO composto por código
+ * (`composeStartBriefing`, adventure.service.ts) — `Location:`/`Situation:`/`Scene type:`/
+ * `Present:`, nunca mais prosa pronta de `generateOpeningBeat` (apagada). A instrução pede
+ * COMPOR a cena a partir dele, não renderizar um beat já escrito — e carrega, ela mesma, o
+ * que sobrevive daquela chamada: abrir *in medias res* (US-172), ramificado pelo `Scene type:`
+ * do briefing, e mirar pelo menos 2 dos 3 apelos clássicos — recompensa/heroísmo/descoberta
+ * (US-182). A permissão de nomear o antagonista (US-190/US-191) NÃO migra pra cá — ver US-199.
  */
 export function buildOpeningInstruction(params: { characterName: string; hookSeed: string; mainQuest?: string | null; locale?: Locale }): string {
   const { characterName, hookSeed, mainQuest } = params
@@ -688,21 +696,23 @@ export function buildOpeningInstruction(params: { characterName: string; hookSee
   const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
   // US-168: `mainQuest` (a aventura gerada) domina a fagulha da cena quando presente;
   // `hookSeed` (gancho fixo por classe) só volta como semente na ausência dele.
-  // "Expand" contradizia o "Stay concise: 3-5 short paragraphs" do NARRATIVE_CRAFT_SECTION
-  // logo abaixo (mesmo system prompt) — o modelo lia "inflar" e "ser conciso" ao mesmo
-  // tempo. `mainQuest` já chega como beat pronto (generateOpeningBeat, 1-2 parágrafos);
-  // pedir para RENDERIZAR essa cena, não para expandi-la, tira a instrução que empurrava
-  // pra prosa mais longa que a própria régua permite.
+  // US-194: pede para COMPOR a cena a partir do briefing, não mais para "renderizar" um
+  // beat já escrito (`generateOpeningBeat` apagada) — o briefing é campo estruturado
+  // (Location/Situation/Scene type/Present), não prosa, então "compor" é o verbo certo.
   const spark = mainQuest
-    ? `Use this as the spark for the scene — it is the adventure generated for this character. Render it as the opening scene, matching the Narrative craft bar; do NOT quote it verbatim:
+    ? `Use this as the spark for the scene — it is the opening briefing generated for this character. Compose the opening scene FROM it, matching the Narrative craft bar; do NOT quote it verbatim:
 "${mainQuest}"`
-    : `Use this seed as the spark for the scene. Render it as the opening scene, matching the Narrative craft bar; do NOT quote it verbatim:
+    : `Use this seed as the spark for the scene. Compose the opening scene from it, matching the Narrative craft bar; do NOT quote it verbatim:
 "${hookSeed}"`
   return `This is the OPENING of the adventure. The player has NOT acted yet — you are setting the very first scene, before any player action.
 
 Write the scene in ${targetLanguage}. The seed below may be written in another language — that does not change the language of your narration.
 
 ${spark}
+
+Open the scene in medias res — something is already in motion, never a static arrival at an empty location. Match the pace to the "Scene type" named in the spark above, when present: combat — the action already started, open on violence or its imminence, not the arrival at the location; skill — the obstacle already blocks the way, with a clock running; social — someone has already addressed the character, open mid-conversation, not before it.
+
+Aim for at least 2 of these 3 appeals, grounded only in what the spark above already gives you, never a new element: reward (something to gain), heroism (a chance to act well), discovery (a mystery the scene already hints at, without revealing it).
 
 Follow the Narrative craft bar: open on the senses, name concrete things, use ${characterName}'s race and class as a lens on the world, give any NPC a voice and real stakes, stay within 3-5 short paragraphs, then close by addressing ${characterName} by name followed by the action options.
 

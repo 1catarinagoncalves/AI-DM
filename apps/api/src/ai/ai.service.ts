@@ -245,11 +245,23 @@ function buildSecretsPrompt(locations: AdventureLocation[], npcs: AdventureNpc[]
   ].join('\n')
 }
 
+// US-194: título + descrição da quest primária para o DM saber o objetivo (US-28), somando
+// `objective` quando presente (US-169: `String?`, quests legadas pré-US-169 ficam `null` —
+// guard obrigatório, senão o texto "null" vaza literal no bloco `## Main quest` do turno).
+// `description` passou a ser `generated.summary` (adventure.service.ts) — o MESMO texto de
+// `title`. Concatenar os dois duplicaria a premissa inteira no bloco `## Main quest` de todo
+// turno; quests legadas (pré-US-194) continuam com `description` diferente de `title` e
+// mantêm a concatenação. Função pura, extraída de `streamChat` só pra ser testável isolada.
+export function composeMainQuestText(primary: { title: string; description: string; objective: string | null }): string {
+  const body = primary.title === primary.description ? primary.title : `${primary.title}\n${primary.description}`
+  return primary.objective ? `${body}\n${primary.objective}` : body
+}
+
 // US-180: lista de âncoras pessoais da personagem (`story`/`origin.adventuresAndAdvancement`)
-// — usada por `generateSecrets` (US-149) e `generateOpeningBeat` (US-180) pra montar a
-// própria frase de instrução. Extraída pra função pura porque as duas listas eram
-// quase-idênticas e arriscavam divergir com o tempo (mesma disciplina de reuso da seção
-// compartilhada de `dm-system.ts`, US-177/US-179).
+// — usada por `generateSecrets` (US-149) pra montar a própria frase de instrução. Extraída
+// pra função pura porque as duas listas eram quase-idênticas e arriscavam divergir com o
+// tempo (mesma disciplina de reuso da seção compartilhada de `dm-system.ts`, US-177/US-179).
+// US-194: `generateOpeningBeat` (a outra consumidora original) foi apagada.
 // `bonds`/`flaws`/`deity` NÃO entram aqui — motor de geração só consome `story` do
 // background (o resto continua servindo só a narração de turno ao vivo). `connection`/
 // `memento` do origin também ficam de fora, mesma razão.
@@ -300,13 +312,6 @@ export const CLOSING_SCHEMA = z.object({
   })).length(8),
 })
 
-// US-172: schema da ABERTURA (`start`). SEM `id` (não referencia nada, é prosa livre).
-// `hookSeed` NÃO é insumo desta chamada — nem no schema, nem no `system`/`prompt` de
-// `buildOpeningBeatPrompt`/`generateOpeningBeat` abaixo (zero influência, ver US-172).
-const OPENING_BEAT_SCHEMA = z.object({
-  start: z.string().min(1),
-})
-
 // US-191, Parte 2: schema da PROSA REESCRITA do local do confronto final — mesmos dois
 // campos de AdventureLocationSchema (`boxedText`/`description`), agora citando o antagonista
 // pelo nome. `title`/`aspects`/`occupants` do local NÃO mudam por esta chamada.
@@ -314,41 +319,6 @@ const ANTAGONIST_LOCATION_PROSE_SCHEMA = z.object({
   boxedText: z.string().min(1),
   description: z.string().min(1),
 })
-
-function buildOpeningBeatPrompt(params: {
-  locations: AdventureLocation[]
-  npcs: AdventureNpc[]
-  secrets: AdventureSecret[]
-  registry: AdventureRegistry
-  complicacao: { condition: string; description: string; origin: string }
-  premissa: string
-  antagonist: AdventureAntagonist
-}): string {
-  const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
-  const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
-  const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
-  // US-191: reverte a proibição da US-190 — nome ENTRA aqui agora (Questão em aberto #2
-  // daquela story, decidida ao contrário nesta). weakness continua fora: só o nome deixou
-  // de ser segredo, o mesmo "não vaza antes de merecer" ainda protege a fraqueza dele.
-  const antagonistLine =
-    `Antagonista já decidido — nome: ${params.antagonist.name} (pode nomeá-lo na cena; NUNCA revele a weakness): ` +
-    `método: ${params.antagonist.method}; traço: ${params.antagonist.trait}.`
-  return [
-    `Premissa: ${params.premissa}`,
-    // US-180: sem esta linha, `complicacao` chega só como TIPO em `params` — o modelo
-    // nunca lê condition/description/origin e não tem como escolher entre Enraizada e
-    // Confronto. Mesmo formato que `buildClosingPrompt` já usa para o mesmo campo.
-    `Complicação: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
-    '',
-    antagonistLine,
-    '',
-    `Locais disponíveis:\n${locationLines}`,
-    '',
-    `NPCs disponíveis:\n${npcLines}`,
-    '',
-    `Segredos já escritos (pode insinuar, NUNCA revelar):\n${secretLines}`,
-  ].join('\n')
-}
 
 // US-166: encontro já resolvido (locationId/npcIds → location/npcs reais) — o que
 // `generateClosing` precisa pra escrever behaviors/goal/complications por posição.
@@ -620,12 +590,8 @@ export class AiService {
 
     const systemName = system.name
     const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
-    // Título + descrição da quest primária para o DM saber o objetivo (US-28).
-    // US-169: `objective` soma quando presente — guard obrigatório: `primary.objective` é
-    // `String?` (quests legadas, pré-US-169, ficam `null`), sem o guard o texto "null" vaza
-    // literal no bloco `## Main quest` do turno.
     const primary = quests.find((q) => q.isPrimary)
-    const mainQuest = primary ? `${primary.title}\n${primary.description}${primary.objective ? `\n${primary.objective}` : ''}` : null
+    const mainQuest = primary ? composeMainQuestText(primary) : null
     const activeQuests = quests.filter((q) => !q.isPrimary)
 
     // Rótulos e perícias vêm de System.config (US-21/US-27, já validado na criação);
@@ -1662,8 +1628,8 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * `system`/`prompt` (US-174; depois de US-175, nenhuma chamada do motor recebe `hookSeed`).
    *
    * 2026-08-23: deixou de receber `background`/`origin` — a âncora narrativa citada acima
-   * não se aplica mais aqui; só `generatePremissa`/`generateOpeningBeat` continuam ancorando
-   * em vínculo pessoal da personagem.
+   * não se aplica mais aqui; só `generatePremissa` continua ancorando em vínculo pessoal
+   * da personagem (US-194: `generateOpeningBeat`, a outra que ancorava, foi apagada).
    */
   async generateSecrets(params: {
     locations: AdventureLocation[]
@@ -1705,15 +1671,16 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * US-181/US-190: sintetiza o ANTAGONISTA estruturado (`name`/`want`/`method`/`trait`/
    * `weakness`) a partir de `locations`/`npcs`/`secrets` já decididos (US-158/US-149) e a
    * `complicacao`/`premissa` roladas — chamada PRÓPRIA, sequencial, rodando depois de
-   * `generateSecrets` e antes de `generateClosing`/`generateOpeningBeat` (US-190: não fica
-   * mais implícito dentro do fecho, pra que outras chamadas também possam vê-lo cedo).
+   * `generateSecrets` e antes de `generateClosing` (US-190: não fica mais implícito dentro
+   * do fecho, pra que outras chamadas também possam vê-lo cedo).
    * Reusa `buildClosingPrompt` — mesmo bloco de contexto (locais/NPCs/segredos/premissa/
    * complicação) que `generateClosing` já monta, nenhuma duplicação de prompt builder.
    *
-   * US-183: ganha `background`/`origin` (mesma forma de `generateOpeningBeat`/`generateSecrets`)
-   * e sintetiza `connection` — reusa `characterAnchors(params)`, mesmo padrão condicional do
-   * `anchorInstruction` de `generateOpeningBeat`: com âncora, prefere ligar o antagonista a
-   * ela; sem âncora, cai pra conexão genérica ancorada em locations/npcs/secrets.
+   * US-183: ganha `background`/`origin` (mesma forma de `generateSecrets`) e sintetiza
+   * `connection` — reusa `characterAnchors(params)`, mesmo padrão condicional de
+   * `anchorInstruction` que a antiga `generateOpeningBeat` (US-194, apagada) também usava:
+   * com âncora, prefere ligar o antagonista a ela; sem âncora, cai pra conexão genérica
+   * ancorada em locations/npcs/secrets.
    *
    * NUNCA captura erro — mesma disciplina de `generateSecrets`/`generateClosing`: falha
    * aqui é motivo de reseed na US-150, não degradação silenciosa.
@@ -1725,8 +1692,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * desta aventura — derrotá-lo fechava um gancho que devia continuar aberto.
    *
    * 2026-08-23 (mesmo dia, reversão posterior): `generateLocationsAndNpcs`/`generateSecrets`/
-   * `generateClosing` também deixaram de receber `background`/`origin` — só `generatePremissa`/
-   * `generateOpeningBeat` continuam ancorando em vínculo pessoal via `characterAnchors`.
+   * `generateClosing` também deixaram de receber `background`/`origin` — só `generatePremissa`
+   * continua ancorando em vínculo pessoal via `characterAnchors` (US-194: `generateOpeningBeat`,
+   * a outra que ancorava, foi apagada).
    */
   async generateAntagonist(params: {
     locations: AdventureLocation[]
@@ -1828,95 +1796,23 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
   }
 
   /**
-   * US-172: escreve a ABERTURA (`start`) da aventura a partir de `registry`/`premissa`/
-   * `locations`/`npcs`/`secrets` já decididos — `hookSeed` NÃO é parâmetro desta chamada
-   * (mesma disciplina que US-175 estendeu a `generateClosing`): copiar `hookSeed` verbatim
-   * (US-164) deixava `start` sem ver o `tone` sorteado desta aventura. Instrui abertura
-   * *in medias res* (LGMRD "strong start") ancorada numa das `locations` recebidas,
-   * podendo insinuar (não revelar) um
-   * `secret` — sem isso `start` fica coerente em tom mas solto do resto do artefato.
-   * NUNCA captura erro — mesma disciplina de `generateClosing`: falha aqui é motivo de
-   * reseed na US-150, não degradação silenciosa.
-   *
-   * US-180: ganha `background`/`origin` (mesmos tipos de `generateSecrets`) pra ancorar a
-   * cena num vínculo pessoal da personagem quando existir (`characterAnchors`, molde de
-   * `generateSecrets`) — sem isso a abertura podia ancorar em local/NPC sem relação
-   * nenhuma com quem joga. Ganha também `complicacao` (mesmo tipo de `generateClosing`):
-   * o fallback único "sem conflito óbvio, abra com confronto" (herdado literal do LGMRD)
-   * vira dois estilos nomeados, Enraizada e Confronto — o artigo que motivou esta story
-   * argumenta contra empurrar todo grupo pra um confronto fixo quando nada se destaca.
-   *
-   * US-182: *in medias res* garante urgência, não apelo — soma instrução exigindo mirar
-   * pelo menos 2 dos 3 apelos clássicos (recompensa/heroísmo/descoberta), sempre ancorados
-   * no que já foi gerado, nunca elemento novo — eixo ortogonal a tom/ancoragem/vínculo/estilo.
-   *
-   * US-190: ganha `antagonist` (já decidido por `generateAntagonist`, que roda antes desta
-   * chamada) — primeira vez que a abertura pode ecoar o vilão real, não só no fecho.
-   *
-   * US-191: reverte a proibição de nomear que a US-190 registrou aqui (Questão em aberto #2
-   * daquela story) — o produto passou a querer o vilão reconhecível por nome desde a
-   * abertura. `weakness` continua fora do prompt, mesma disciplina "não vaza antes de
-   * merecer" que já protege `conclusion`/segredos (US-153 #4).
-   */
-  async generateOpeningBeat(params: {
-    locations: AdventureLocation[]
-    npcs: AdventureNpc[]
-    secrets: AdventureSecret[]
-    registry: AdventureRegistry
-    background?: CharacterBackground
-    origin?: { adventuresAndAdvancement?: string }
-    complicacao: { condition: string; description: string; origin: string }
-    premissa: string
-    antagonist: AdventureAntagonist
-    locale?: Locale
-  }): Promise<{ start: string }> {
-    const anchors = characterAnchors(params)
-    const anchorInstruction = anchors.length > 0
-      ? `Vínculo pessoal da personagem — prefira ancorar a cena no local/NPC mais alinhado a um destes: ${anchors.join('; ')}.`
-      : 'Sem vínculo pessoal registrado — ancore a cena ao que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
-    // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
-    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
-
-    const { object, providerMetadata } = await generateObject({
-      model: primaryModel,
-      schema: OPENING_BEAT_SCHEMA,
-      system:
-        'Você é o Mestre de um RPG escrevendo a ABERTURA (start) de uma aventura one-shot (método Lazy GM Resource Document). ' +
-        'Escreva 1-2 parágrafos que joguem a cena já EM AÇÃO (in medias res) — nunca descrição estática de cenário parado. ' +
-        'Ancore a cena numa das locations recebidas (cite ou situe o local) e, se fizer sentido, insinue (sem revelar) um dos secrets. ' +
-        `${anchorInstruction} ` +
-        'Escolha o ESTILO da abertura pelo que premissa/complicação sugerir, sem viés padrão para violência: ' +
-        'ENRAIZADA (preferida quando nada aponta violência) — chegada a um local vivo ou encontro com um NPC, de preferência o ligado ao vínculo pessoal acima, com a complicação já pairando como tensão perceptível, sem exigir luta. ' +
-        'CONFRONTO (quando premissa/complicação/secrets tornarem a violência a leitura mais natural — perseguição, ataque em curso, monstro solto) — ameaça ou luta já em ação. ' +
-        'A cena também precisa mirar pelo menos 2 dos 3 apelos a seguir, usando só o que já foi gerado (locations/npcs/secrets recebidos), nunca elemento novo: ' +
-        'RECOMPENSA — algo a ganhar (riqueza, poder, um item, um favor). ' +
-        'HEROÍSMO — a chance de agir bem (proteger alguém, corrigir um erro, impedir um dano). ' +
-        'DESCOBERTA — um segredo ou mistério que a cena já insinua, sem revelar. ' +
-        'O antagonista já está decidido (nome/method/trait abaixo) — pode nomeá-lo e deixar sinal de sua presença/método na cena, mas NUNCA revele sua weakness, mesma disciplina que protege os segredos. ' +
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
-      prompt: buildOpeningBeatPrompt(params),
-      providerOptions: ENGINE_PROVIDER_OPTIONS,
-    })
-    logExtractionEndpoint('generateOpeningBeat', primaryModel, providerMetadata)
-
-    return { start: object.start }
-  }
-
-  /**
    * US-191, Parte 2: reescreve `boxedText`/`description` do local do CONFRONTO FINAL
    * citando o antagonista pelo nome. `generateLocationsAndNpcs` (passo 2) roda ANTES do
    * antagonista existir e não pode nomeá-lo — esta chamada roda depois, em paralelo a
-   * `generateClosing`/`generateOpeningBeat` (mesmo `Promise.all`), e só troca esses dois
-   * campos desse local; `title`/`aspects`/`occupants` ficam como `generateLocationsAndNpcs`
-   * já decidiu.
+   * `generateClosing` (mesmo `Promise.all`), e só troca esses dois campos desse local;
+   * `title`/`aspects`/`occupants` ficam como `generateLocationsAndNpcs` já decidiu.
    *
    * `antagonist` é `Pick<'name' | 'method' | 'trait'>`, não `AdventureAntagonist` inteiro —
    * `weakness`/`connection` nem existem no parâmetro, o compilador recusa se este prompt
-   * tentar lê-los. Função NOVA, não herda a proteção de `buildOpeningBeatPrompt` automaticamente.
+   * tentar lê-los.
    *
-   * NUNCA captura erro — mesma disciplina de `generateClosing`/`generateOpeningBeat`: falha
-   * aqui é motivo de reseed na US-150, não degradação silenciosa.
+   * US-194: `generateOpeningBeat` foi apagada — `start` (a abertura) deixou de ser gerada
+   * por IA, agora é composta por código a partir do encontro 1 (`composeStartBriefing`,
+   * adventure.service.ts). `Promise.all` de `generateAdventure` fica com duas pernas
+   * (`generateClosing` + esta função), não mais três.
+   *
+   * NUNCA captura erro — mesma disciplina de `generateClosing`: falha aqui é motivo de
+   * reseed na US-150, não degradação silenciosa.
    */
   async generateAntagonistLocationProse(params: {
     location: AdventureLocation

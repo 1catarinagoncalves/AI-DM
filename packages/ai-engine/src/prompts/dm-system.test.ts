@@ -751,6 +751,36 @@ describe('buildOpeningInstruction — mainQuest domina o gancho fixo (US-168)', 
   })
 })
 
+// US-194: `generateOpeningBeat` foi apagada — `mainQuest` chega como briefing ROTULADO
+// composto por código (`composeStartBriefing`), não mais prosa pronta. A instrução pede
+// COMPOR a cena a partir dele (não renderizar um beat já escrito) e carrega, ela mesma, o
+// que sobrevive daquela chamada apagada: in medias res ramificado por Scene type e os 2 de
+// 3 apelos clássicos.
+describe('buildOpeningInstruction — compõe a partir do briefing, não renderiza beat pronto (US-194)', () => {
+  const mainQuest = 'Location: Enseada Cinzenta — Você chega.\nSituation: impedir o culto\nScene type: combat\nPresent: Marta'
+
+  it('pede COMPOR a cena, não renderizar', () => {
+    const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'gancho', mainQuest })
+    expect(p).toMatch(/Compose the opening scene/)
+    expect(p).not.toMatch(/Render it as the opening scene/)
+  })
+
+  it('carrega os três ramos de in medias res (combat/skill/social)', () => {
+    const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'gancho', mainQuest })
+    expect(p).toContain('combat — the action already started')
+    expect(p).toContain('skill — the obstacle already blocks the way')
+    expect(p).toContain('social — someone has already addressed the character')
+  })
+
+  it('mira pelo menos 2 dos 3 apelos: reward/heroism/discovery', () => {
+    const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'gancho', mainQuest })
+    expect(p).toMatch(/at least 2 of these 3 appeals/)
+    expect(p).toContain('reward')
+    expect(p).toContain('heroism')
+    expect(p).toContain('discovery')
+  })
+})
+
 describe('buildDmSystemPrompt — tone (US-168)', () => {
   it('com tone presente, instrui o registo numa linha genérica (sem dicionário por valor)', () => {
     const p = build({ tone: 'grimdark' })

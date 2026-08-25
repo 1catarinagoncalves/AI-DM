@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { BadRequestException } from '@nestjs/common'
 import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
-import { AdventureService, type AdventureProfile } from './adventure.service'
+import { AdventureService, composeStartBriefing, type AdventureProfile } from './adventure.service'
 import { rollAdventure } from '../adventure-generation/roll-adventure'
 import { chooseAntagonistRole, MONSTER_ROLE_CR, totalCr } from '../adventure-generation/monster-roles'
 import { encounterDeadlyThreshold } from '../adventure-generation/lazy-encounter-benchmark'
@@ -45,8 +45,7 @@ function fakeAi(
     generateSecrets: async () => secrets,
     generateAntagonist: async () => antagonist,
     generateClosing: async () => closing,
-    generateOpeningBeat: async () => ({ start: 'A porta racha ao meio antes que alguém grite.' }),
-    // US-191, Parte 2: 3ª perna do Promise.all — devolve boxedText/description fixos, sem
+    // US-191, Parte 2: 2ª perna do Promise.all — devolve boxedText/description fixos, sem
     // depender de nenhum estado do teste (nenhum teste deste bloco é SOBRE esta chamada).
     generateAntagonistLocationProse: async () => ({ boxedText: 'x', description: 'x' }),
   } as unknown as AiService
@@ -154,6 +153,46 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
   return { prisma, recorded }
 }
 
+// US-194: `composeStartBriefing` compõe `start` por código a partir do encontro 1 — unidade
+// isolada da geração completa (mais rápida/robusta que forçar `shuffleEncounterTypes` real
+// a produzir um `type` específico na posição 1 só pra testar o formato do briefing).
+describe('composeStartBriefing (US-194)', () => {
+  const location = { id: 'loc-1', title: 'Enseada Cinzenta', aspects: [], boxedText: 'A maré sobe rápido demais.', description: 'x', occupants: [], vibe: 'combat' as const }
+
+  it('quatro etiquetas em inglês, uma por linha, nesta ordem', () => {
+    const draft = { id: 'encounter-1', type: 'combat' as const, location, npcs: [{ id: 'npc-1', name: 'Marta', role: 'x', interactions: [] }] }
+    const text = composeStartBriefing(draft, 'impedir o culto')
+    expect(text.split('\n')).toEqual([
+      'Location: Enseada Cinzenta — A maré sobe rápido demais.',
+      'Situation: impedir o culto',
+      'Scene type: combat',
+      'Present: Marta',
+    ])
+  })
+
+  it("npcs vazio: Present: none, não etiqueta vazia (encontro 'skill' nunca tem NPC)", () => {
+    const draft = { id: 'encounter-1', type: 'skill' as const, location, npcs: [] }
+    const text = composeStartBriefing(draft, 'atravessar antes que a maré feche a passagem')
+    expect(text).toContain('Present: none')
+  })
+
+  it('múltiplos NPCs presentes: nomes juntos por vírgula', () => {
+    const draft = {
+      id: 'encounter-1', type: 'social' as const, location,
+      npcs: [{ id: 'npc-1', name: 'Marta', role: 'x', interactions: [] }, { id: 'npc-2', name: 'Bram', role: 'y', interactions: [] }],
+    }
+    const text = composeStartBriefing(draft, 'negociar passagem')
+    expect(text).toContain('Present: Marta, Bram')
+  })
+
+  it('Scene type bate literalmente com draft.type — os três valores possíveis', () => {
+    for (const type of ['combat', 'skill', 'social'] as const) {
+      const draft = { id: 'encounter-1', type, location, npcs: [] }
+      expect(composeStartBriefing(draft, 'x')).toContain(`Scene type: ${type}`)
+    }
+  })
+})
+
 describe('AdventureService.createForCharacter', () => {
   // US-153: título e quest já não vêm do gancho fixo por classe — vêm do artefato do
   // motor de geração (US-164), determinístico por characterId+order (US-146). `rollAdventure`
@@ -177,12 +216,13 @@ describe('AdventureService.createForCharacter', () => {
       characterId: 'char-1', adventureId: 'adv-1', hp: 12, maxHp: 12,
       inventory: [{ name: 'Adaga', qty: 1 }], // 'Mago'→wizard, e o config só tem kit 'fighter' → default
     })
-    // Quest.title = summary (mesma premissa); Quest.description = start — gerado por
-    // ai.generateOpeningBeat desde US-172, não mais o hookSeed copiado (US-153 #4).
+    // Quest.title = summary (mesma premissa); Quest.description = generated.summary também
+    // (US-194: já não é mais a cena de abertura — `start` virou briefing rotulado composto
+    // por código a partir do encontro 1, não mais texto de `generateOpeningBeat`, apagada).
     // US-169: objective/conclusionHint gravados também — conclusionHint = generated.conclusion
     // (US-153 Questões em aberto #4: NUNCA exposto em turno passivo, só via completeQuest).
     expect(recorded.questCreate).toMatchObject({
-      adventureId: 'adv-1', title: content.premissaCandidates[0], description: 'A porta racha ao meio antes que alguém grite.', isPrimary: true,
+      adventureId: 'adv-1', title: content.premissaCandidates[0], description: content.premissaCandidates[0], isPrimary: true,
       objective: 'Impedir que Malvora reúna um exército para tomar a Enseada Cinzenta.',
       conclusionHint: 'O culto recua para as sombras.',
     })
@@ -477,7 +517,6 @@ describe('AdventureService.createForCharacter', () => {
       generateSecrets: async () => [{ id: 'secret-1', locationId: 'loc-1', text: 'segredo' }],
       generateAntagonist: async () => ({ name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade', connection: 'x' }),
       generateClosing: async () => ({ conclusion: 'fim', followUps: [] }),
-      generateOpeningBeat: async () => ({ start: 'abertura' }),
     } as unknown as AiService
     const service = new AdventureService(prisma, orphanAi)
 
@@ -1009,10 +1048,8 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     antagonist?: { name: string; want: string; method: string; trait: string; weakness: string; connection: string }
     closing?: { objective: string; conclusion: string; followUps: string[] }
     encounterSituations?: Array<{ encounterId: string; behaviors: string; goal: string; complications: string; unlocks: string }>
-    start?: string
     premissa?: string
     locationProse?: { boxedText: string; description: string }
-    seenOpeningParams?: Record<string, unknown>
     seenPremissaParams?: Record<string, unknown>
     seenLocationsParams?: Record<string, unknown>
     seenSecretsParams?: Record<string, unknown>
@@ -1031,7 +1068,6 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     }))
     // US-169: objective obrigatório — generateAdventure quebra em GeneratedAdventureSchema.parse sem isto.
     const closing = { ...(overrides.closing ?? { objective: 'Impedir que Malvora reúna um exército para tomar a região.', conclusion: 'O culto recua para as sombras.', followUps: ['A dívida da estalajadeira volta a assombrar.'] }), encounterSituations }
-    const start = overrides.start ?? 'A porta racha ao meio antes que alguém grite.'
     const premissa = overrides.premissa ?? 'Malvora já sabe o nome de quem vem impedi-la.'
     return {
       // US-192: passo 1 do motor — captura os params recebidos (candidates/complicacao/
@@ -1062,13 +1098,7 @@ describe('AdventureService.generateAdventure (US-164)', () => {
         if (overrides.seenClosingParams) Object.assign(overrides.seenClosingParams, params)
         return closing
       },
-      // US-172: captura os params recebidos por generateOpeningBeat — usado pra provar
-      // estruturalmente que `hookSeed` NUNCA chega a esta chamada.
-      generateOpeningBeat: async (params: Record<string, unknown>) => {
-        if (overrides.seenOpeningParams) Object.assign(overrides.seenOpeningParams, params)
-        return { start }
-      },
-      // US-191, Parte 2: 3ª perna do Promise.all — captura params (location/antagonist/
+      // US-191, Parte 2: 2ª perna do Promise.all — captura params (location/antagonist/
       // registry) e devolve boxedText/description fixos ou o override do teste.
       generateAntagonistLocationProse: async (params: Record<string, unknown>) => {
         if (overrides.seenLocationProseParams) Object.assign(overrides.seenLocationProseParams, params)
@@ -1102,11 +1132,10 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     const seenLocationsParams: Record<string, unknown> = {}
     const seenAntagonistParams: Record<string, unknown> = {}
     const seenClosingParams: Record<string, unknown> = {}
-    const seenOpeningParams: Record<string, unknown> = {}
     const premissa = 'Malvora já sabe o nome de quem vem impedi-la.'
 
     const adventure = await service(
-      fakeGenAi({ premissa, seenPremissaParams, seenLocationsParams, seenAntagonistParams, seenClosingParams, seenOpeningParams }),
+      fakeGenAi({ premissa, seenPremissaParams, seenLocationsParams, seenAntagonistParams, seenClosingParams }),
     ).generateAdventure(profile, 'char-1', 1, 'pt-BR')
 
     expect(seenPremissaParams.candidates).toBeDefined()
@@ -1119,42 +1148,67 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     expect(seenLocationsParams.premissa).toBe(premissa)
     expect(seenAntagonistParams.premissa).toBe(premissa)
     expect(seenClosingParams.premissa).toBe(premissa)
-    expect(seenOpeningParams.premissa).toBe(premissa)
   })
 
-  // US-172: `start` deixou de ser `profile.hookSeed` copiado — vem de `ai.generateOpeningBeat`.
-  it('start vem de ai.generateOpeningBeat, não mais de profile.hookSeed', async () => {
-    const adventure = await service(fakeGenAi({ start: 'A porta racha ao meio.' })).generateAdventure(profile, 'char-1', 2, 'pt-BR')
-    expect(adventure.start).toBe('A porta racha ao meio.')
-    expect(adventure.start).not.toBe(profile.hookSeed)
-  })
+  // US-194: `generateOpeningBeat` foi apagada — `start` deixou de vir de chamada de IA,
+  // agora é composto por código a partir do encontro 1 (`composeStartBriefing`). Briefing
+  // ROTULADO em inglês, não parágrafo colado (`start` nunca foi lido pela jogadora).
+  describe('start: briefing rotulado composto do encontro 1, não mais IA (US-194)', () => {
+    it('cita/situa SEMPRE o local do encontro 1 (drafts[0].location.title)', async () => {
+      const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+      const encounter1Location = adventure.locations.find((l) => l.id === adventure.encounters[0]!.locationId)!
+      expect(adventure.start).toContain(encounter1Location.title)
+    })
 
-  it('generateOpeningBeat recebe registry/premissa/locations/npcs/secrets — NUNCA hookSeed', async () => {
-    const seenOpeningParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ seenOpeningParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
-    expect(seenOpeningParams).not.toHaveProperty('hookSeed')
-    expect(seenOpeningParams.registry).toBeDefined()
-    expect(seenOpeningParams.premissa).toBeDefined()
-    expect(seenOpeningParams.locations).toBeDefined()
-    expect(seenOpeningParams.npcs).toBeDefined()
-    expect(seenOpeningParams.secrets).toBeDefined()
-  })
+    it('sai como as quatro etiquetas em inglês; Scene type: bate literalmente com encounters[0].type', async () => {
+      const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+      expect(adventure.start).toMatch(/^Location: /)
+      expect(adventure.start).toContain('\nSituation: ')
+      expect(adventure.start).toContain(`\nScene type: ${adventure.encounters[0]!.type}`)
+      expect(adventure.start).toContain('\nPresent: ')
+      // Sem rótulo em português — só as etiquetas fixas, nunca a tradução delas.
+      expect(adventure.start).not.toMatch(/Local:|Situação:|Tipo de cena:|Presentes:/)
+    })
 
-  // US-180: generateOpeningBeat ganha background/origin/complicacao — mesmo padrão de
-  // encanamento que generateSecrets (background/origin) e generateClosing (complicacao)
-  // já tinham antes desta story.
-  it('generateOpeningBeat recebe background/origin/complicacao (US-180)', async () => {
-    const seenOpeningParams: Record<string, unknown> = {}
-    await service(fakeGenAi({ seenOpeningParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
-    expect(seenOpeningParams.background).toBeDefined()
-    expect(seenOpeningParams.origin).toBeDefined()
-    expect(seenOpeningParams.complicacao).toBeDefined()
+    it('Situation: carrega o goal do encontro 1 (encounterSituations[0], só existe depois do Promise.all)', async () => {
+      const adventure = await service(fakeGenAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+      expect(adventure.start).toContain('Situation: goal-1')
+    })
+
+    it('NÃO contém o complications do encontro 1', async () => {
+      const encounterSituations = Array.from({ length: 8 }, (_, i) => ({
+        encounterId: `encounter-${i + 1}`, behaviors: `behaviors-${i + 1}`, goal: `goal-${i + 1}`,
+        complications: 'A VIRADA SECRETA da cena', unlocks: `unlocks-${i + 1}`,
+      }))
+      const adventure = await service(fakeGenAi({ encounterSituations })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
+      expect(adventure.start).not.toContain('A VIRADA SECRETA da cena')
+    })
+
+    // Critério de aceite central: encontro 1 e encontro 8 no MESMO local — `start` usa o
+    // `boxedText` PRÉ-`generateAntagonistLocationProse` (drafts[0].location), nunca o local
+    // reescrito citando o antagonista (`locationsWithAntagonist`). Um único local (só
+    // vibe:'combat', posição 8 sempre 'combat') força a colisão: drafts[0] e o encontro
+    // final apontam pro MESMO id.
+    it('encontro 1 e encontro 8 no MESMO local: start não contém o nome do antagonista', async () => {
+      const locations = [{ id: 'loc-1', title: 'Salão do Trono Partido', aspects: [], boxedText: 'Você chega ao salão.', description: 'x', occupants: [], vibe: 'combat' as const }]
+      const antagonist = { name: 'Malvora', want: 'poder', method: 'exército', trait: 'sussurra', weakness: 'vaidade', connection: 'x' }
+      const locationProse = { boxedText: 'Malvora aguarda no trono partido, sussurrando ordens.', description: 'x' }
+      const adventure = await service(
+        fakeGenAi({ locations, antagonist, locationProse }),
+      ).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+
+      expect(adventure.encounters[0]!.locationId).toBe(adventure.encounters[7]!.locationId) // colisão confirmada
+      expect(adventure.start).not.toContain('Malvora')
+      // O local do artefato final SEGUE reescrito (comportamento correto, não bug de sincronia).
+      const finalLocation = adventure.locations.find((l) => l.id === adventure.encounters[7]!.locationId)!
+      expect(finalLocation.boxedText).toContain('Malvora')
+    })
   })
 
   // US-174: `hookSeed` para de ser insumo de generateLocationsAndNpcs/generateSecrets —
-  // mesma garantia estrutural que a US-172 já trouxe pra generateOpeningBeat.
+  // mesma garantia estrutural que a US-172 trazia pra `generateOpeningBeat` (US-194: apagada).
   // 2026-08-23: nem `background`/`origin` são mais insumo destas duas (reversão do mesmo
-  // dia — só generatePremissa/generateOpeningBeat continuam recebendo vínculo pessoal).
+  // dia — só `generatePremissa` continua recebendo vínculo pessoal).
   it('generateLocationsAndNpcs recebe rolled/registry — NUNCA hookSeed nem background/origin (US-174)', async () => {
     const seenLocationsParams: Record<string, unknown> = {}
     await service(fakeGenAi({ seenLocationsParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
@@ -1214,16 +1268,6 @@ describe('AdventureService.generateAdventure (US-164)', () => {
     // US-188: `antagonist` chega a generateClosing já com `npcId` — mintado ANTES do
     // Promise.all, mesmo momento em que name/id do AdventureNpc já são conhecidos.
     expect(seenClosingParams.antagonist).toEqual({ ...antagonist, npcId: adventure.antagonist.npcId })
-  })
-
-  // US-190: generateOpeningBeat também recebe o antagonist pronto, não só generateClosing —
-  // o motivo inteiro desta story é a abertura deixar de ser cega ao vilão.
-  it('generateOpeningBeat recebe o antagonist devolvido por generateAntagonist (US-190)', async () => {
-    const antagonist = { name: 'Vaerix', want: 'vingança', method: 'espalhar um boato', trait: 'usa máscara', weakness: 'obsessão', connection: 'x' }
-    const seenOpeningParams: Record<string, unknown> = {}
-    const adventure = await service(fakeGenAi({ antagonist, seenOpeningParams })).generateAdventure(profile, 'char-1', 1, 'pt-BR')
-    // US-188: mesma disciplina do teste equivalente de generateClosing acima — npcId já presente.
-    expect(seenOpeningParams.antagonist).toEqual({ ...antagonist, npcId: adventure.antagonist.npcId })
   })
 
   // US-181/US-183: critério de aceite — artefato final tem antagonist com os seis campos não vazios.
@@ -1449,12 +1493,10 @@ describe('AdventureService.generateAdventure (US-164)', () => {
       expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
     })
 
-    it('generateClosing e generateOpeningBeat recebem o MESMO antagonist.npcId que o artefato final expõe', async () => {
+    it('generateClosing recebe o MESMO antagonist.npcId que o artefato final expõe', async () => {
       const seenClosingParams: Record<string, unknown> = {}
-      const seenOpeningParams: Record<string, unknown> = {}
-      const adventure = await service(fakeGenAi({ seenClosingParams, seenOpeningParams })).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
+      const adventure = await service(fakeGenAi({ seenClosingParams })).generateAdventure({ ...profile, level: 5 }, 'char-1', 1, 'pt-BR')
       expect((seenClosingParams.antagonist as { npcId: string }).npcId).toBe(adventure.antagonist.npcId)
-      expect((seenOpeningParams.antagonist as { npcId: string }).npcId).toBe(adventure.antagonist.npcId)
     })
   })
 
@@ -1533,7 +1575,6 @@ describe('AdventureService.generateGatedAdventure (US-150)', () => {
       generateSecrets: vi.fn(async () => secrets),
       generateAntagonist: vi.fn(async () => antagonist),
       generateClosing: vi.fn(async () => closing),
-      generateOpeningBeat: vi.fn(async () => ({ start: 'abertura' })),
       generateAntagonistLocationProse: vi.fn(async () => ({ boxedText: 'x', description: 'x' })),
     } as unknown as AiService
   }

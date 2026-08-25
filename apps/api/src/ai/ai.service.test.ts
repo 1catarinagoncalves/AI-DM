@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { AiService, scenePatchFromExtraction, applyInventoryDeltas, OPENING_SCENE_SCHEMA, CLOSING_SCHEMA } from './ai.service'
+import { AiService, scenePatchFromExtraction, applyInventoryDeltas, composeMainQuestText, OPENING_SCENE_SCHEMA, CLOSING_SCHEMA } from './ai.service'
 import { mergeSceneState, extractionModel, primaryModel, ONOMASTICS_SECTION, CRAFT_CORE_SECTION, NPC_VOICE_BULLET } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
@@ -284,6 +284,30 @@ describe('applyInventoryDeltas (US-128)', () => {
     const current: InventoryItem[] = [{ name: 'Memento', qty: 1, origin: 'memento' }]
     const next = applyInventoryDeltas(current, [{ name: 'Memento', delta: -1 }])
     expect(next).toEqual([])
+  })
+})
+
+// US-194: `Quest.description` passa a ser `generated.summary` (mesmo texto de `title`) —
+// o bloco `## Main quest` do turno não pode repetir a premissa duas vezes.
+describe('composeMainQuestText (US-194)', () => {
+  it('title === description: emite o texto UMA vez, não duas', () => {
+    const text = composeMainQuestText({ title: 'Impedir Malvora.', description: 'Impedir Malvora.', objective: null })
+    expect(text).toBe('Impedir Malvora.')
+  })
+
+  it('title !== description (quest legada pré-US-194): concatena os dois, como antes', () => {
+    const text = composeMainQuestText({ title: 'Impedir Malvora.', description: 'A porta racha ao meio.', objective: null })
+    expect(text).toBe('Impedir Malvora.\nA porta racha ao meio.')
+  })
+
+  it('objective presente soma ao final, nos dois casos', () => {
+    expect(composeMainQuestText({ title: 'x', description: 'x', objective: 'Derrotar Malvora.' })).toBe('x\nDerrotar Malvora.')
+    expect(composeMainQuestText({ title: 'x', description: 'y', objective: 'Derrotar Malvora.' })).toBe('x\ny\nDerrotar Malvora.')
+  })
+
+  it('objective null (quest legada pré-US-169) não vaza "null" literal no texto', () => {
+    const text = composeMainQuestText({ title: 'x', description: 'x', objective: null })
+    expect(text).not.toContain('null')
   })
 })
 
@@ -637,7 +661,7 @@ describe('AiService.generatePremissa (US-192)', () => {
   })
 
   // US-192: decisão de revisão — registry entra no system, mesmo padrão de
-  // generateAntagonist/generateClosing/generateOpeningBeat/generateLocationsAndNpcs.
+  // generateAntagonist/generateClosing/generateLocationsAndNpcs.
   it('registry (tone/setting/areaType) entra no system', async () => {
     genObj.error = undefined
     genObj.result = { premissa: 'x' }
@@ -1056,7 +1080,7 @@ describe('AiService.generateClosing (US-164/US-166)', () => {
   // 2026-08-23: reversão no mesmo dia do fix que dava a generateClosing acesso a
   // background/origin (ver ai.service.ts) — fecho volta a nunca receber esses campos,
   // igual a generateLocationsAndNpcs/generateSecrets, que também deixaram de ancorar
-  // em vínculo pessoal (só generatePremissa/generateOpeningBeat continuam ancorando).
+  // em vínculo pessoal (só generatePremissa continua ancorando).
   it('sem background/origin, system cai no fallback genérico de fecho', async () => {
     genObj.error = undefined
     genObj.result = { conclusion: 'fecho', followUps: ['semente'], encounterSituations }
@@ -1093,196 +1117,11 @@ describe('objectiveCitesWantOrMethod — heurística de regressão (US-169 AC)',
   })
 })
 
-describe('AiService.generateOpeningBeat (US-172)', () => {
-  const locations = [{ id: 'loc-1', title: 'Enseada', aspects: [], boxedText: 'x', description: 'y', occupants: [], vibe: 'combat' as const }]
-  const npcs = [{ id: 'npc-1', name: 'Marta', role: 'herborista suspeita', interactions: [] }]
-  const secrets = [{ id: 'secret-1', locationId: 'loc-1', text: 'A estalajadeira esconde uma dívida com o culto.' }]
-  const registry = { tone: 'terror', setting: 'coastal', areaType: 'settlement' }
-  const complicacao = { condition: 'Drenched', description: 'Horrific', origin: 'Aberrant' }
-  const antagonist = { name: 'Malvora', want: 'poder sobre a região', method: 'reunir um exército', trait: 'fala em sussurros', weakness: 'vaidade', connection: 'já cruzou caminho com o grupo antes', npcId: 'npc-2' }
-
-  function svc() {
-    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
-  }
-
-  it('devolve start do modelo', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'A porta racha ao meio antes que Marta consiga gritar.' }
-    const { start } = await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'Sobreviver à noite', antagonist })
-    expect(start).toBe('A porta racha ao meio antes que Marta consiga gritar.')
-  })
-
-  it('usa primaryModel (2026-08-19), não extractionModel', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.model).toBe(primaryModel)
-  })
-
-  it('registry (tone) entra no prompt do modelo', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.system).toContain('terror')
-  })
-
-  it('registry (setting/areaType) entra no system do modelo, ao lado do tone (US-186)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.system).toContain('coastal')
-    expect(genObj.system).toContain('settlement')
-  })
-
-  it('locais/NPCs/segredos e premissa entram no prompt do modelo — ancoragem (US-172)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'Sobreviver à noite', antagonist })
-    expect(genObj.prompt).toContain('loc-1')
-    expect(genObj.prompt).toContain('npc-1')
-    expect(genObj.prompt).toContain('secret-1')
-    expect(genObj.prompt).toContain('Sobreviver à noite')
-  })
-
-  it('assinatura não aceita hookSeed — mesmo forçado por cast, nunca chega ao system/prompt do modelo', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    const hookSeed = 'A vela curva-se, Elara, numa corte de gelo e etiqueta.'
-    // O tipo de `generateOpeningBeat` não tem campo `hookSeed` (US-172, Escopo) — um
-    // objeto literal normal já seria rejeitado em compile-time (excess property check).
-    // O cast `as never` simula o pior caso (alguém força a passagem) pra provar que a
-    // implementação também não LÊ a chave, mesmo que ela chegue ao runtime.
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, hookSeed } as never)
-    expect(genObj.system).not.toContain(hookSeed)
-    expect(genObj.prompt).not.toContain(hookSeed)
-  })
-
-  it('falha propaga erro estruturado — NÃO devolve abertura vazia em silêncio', async () => {
-    genObj.error = new Error('modelo indisponível')
-    await expect(
-      svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist }),
-    ).rejects.toThrow('modelo indisponível')
-  })
-
-  // US-180: `complicacao` precisa entrar no PROMPT (não só o tipo em `params`), senão o
-  // modelo nunca lê condition/description/origin — mesmo formato de `generateClosing`.
-  it('complicação entra no prompt do modelo (US-180)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.prompt).toContain('Drenched')
-    expect(genObj.prompt).toContain('Horrific')
-    expect(genObj.prompt).toContain('Aberrant')
-  })
-
-  it('background.story presente entra no system — instrução de ancorar a cena no vínculo (US-180)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist,
-      background: { story: 'jurou vingança contra o culto' },
-    })
-    expect(genObj.system).toContain('jurou vingança contra o culto')
-  })
-
-  it('background.bonds NÃO entra no system — motor de geração só consome story', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist,
-      background: { bonds: ['jurou vingança contra o culto'] },
-    })
-    expect(genObj.system).not.toContain('jurou vingança contra o culto')
-  })
-
-  it('origin.adventuresAndAdvancement presente entra no system — instrução de ancorar a cena no vínculo (US-180)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist,
-      origin: { adventuresAndAdvancement: 'pode ser promovido dentro da ordem' },
-    })
-    expect(genObj.system).toContain('pode ser promovido dentro da ordem')
-  })
-
-  it('origin.connection/memento NÃO entram no system (só adventuresAndAdvancement alimenta o motor)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({
-      locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist,
-      origin: { connection: 'um sacerdote amado', memento: 'um livro de orações' } as never,
-    })
-    expect(genObj.system).not.toContain('um sacerdote amado')
-    expect(genObj.system).not.toContain('um livro de orações')
-  })
-
-  it('background/origin vazios cai em instrução genérica de ancoragem, SEM gancho da classe (US-180)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.system).toContain('já foi rolado para esta aventura')
-  })
-
-  it('system não tem mais fallback único de combate — oferece Enraizada e Confronto nomeados (US-180)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.system).not.toContain('Sem conflito óbvio na premissa/locations/npcs/secrets recebidos, abra com confronto ou ameaça imediata.')
-    expect(genObj.system).toContain('ENRAIZADA')
-    expect(genObj.system).toContain('CONFRONTO')
-  })
-
-  it('system exige mirar pelo menos 2 de recompensa/heroísmo/descoberta (US-182)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.system).toContain('RECOMPENSA')
-    expect(genObj.system).toContain('HEROÍSMO')
-    expect(genObj.system).toContain('DESCOBERTA')
-    expect(genObj.system).toContain('pelo menos 2')
-  })
-
-  it('locale entra no system como instrução de idioma-alvo; ausente cai no default pt-BR (US-178)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist, locale: 'en-US' })
-    expect(genObj.system).toContain('English')
-
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.system).toContain('Brazilian Portuguese (pt-BR)')
-  })
-
-  it('system segue a barra de ofício de geração (US-179)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.system).toContain(CRAFT_CORE_SECTION)
-  })
-
-  // US-191: reverte a proibição da US-190 — nome ENTRA no prompt agora; weakness continua fora.
-  it('antagonist (nome/method/trait) entra no prompt do modelo, weakness continua fora (US-191)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.prompt).toContain('Malvora')
-    expect(genObj.prompt).toContain('reunir um exército')
-    expect(genObj.prompt).toContain('fala em sussurros')
-    expect(genObj.prompt).not.toContain('vaidade')
-  })
-
-  // US-191, teste de regressão — contradição de prompt: a proibição de nomear (US-190)
-  // vivia em DOIS lugares (antagonistLine E system) — checa os dois juntos, senão um patch
-  // que só edita um dos dois deixa instrução contraditória pro modelo sem nenhum teste notar.
-  it('nem antagonistLine (prompt) nem system proíbem mais nomear o antagonista (US-191)', async () => {
-    genObj.error = undefined
-    genObj.result = { start: 'abertura' }
-    await svc().generateOpeningBeat({ locations, npcs, secrets, registry, complicacao, premissa: 'premissa', antagonist })
-    expect(genObj.prompt).not.toContain('NUNCA nomear')
-    expect(genObj.system).not.toContain('NUNCA o nomeie')
-    expect(genObj.system).toContain('NUNCA revele sua weakness')
-  })
-})
-
+// US-194: `generateOpeningBeat` (US-172) foi apagada — `start` deixou de vir de chamada de
+// IA, agora é composto por código a partir do encontro 1 (`composeStartBriefing`,
+// adventure.service.ts). Os testes desta chamada morrem junto; cobertura equivalente entra
+// em adventure.service.test.ts (composição do briefing) e dm-system.test.ts (instrução de
+// abertura ramificada por Scene type).
 describe('AiService.generateAntagonistLocationProse (US-191)', () => {
   const location = { id: 'loc-8', title: 'Salão do Trono Partido', aspects: ['tetos desabando'], boxedText: 'Você chega ao salão.', description: 'Ecos de passos antigos.', occupants: [], vibe: 'combat' as const }
   const registry = { tone: 'terror', setting: 'coastal', areaType: 'settlement' }

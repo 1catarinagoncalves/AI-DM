@@ -301,12 +301,14 @@ export const EXTRACTION_PROVIDER_OPTIONS = {
 
 /**
  * 2026-08-19: opções das chamadas do MOTOR de geração de aventura
- * (`generateLocationsAndNpcs`/`generateSecrets`/`generateClosing`/`generateOpeningBeat`
+ * (`generateLocationsAndNpcs`/`generateSecrets`/`generateClosing`/`generateAntagonist`
  * em `ai.service.ts`) — rodam no `primaryModel` (deepseek-v4-flash), não no
- * `extractionModel` (qwen). Motivo: essas quatro chamadas amarram ~7 NPCs a ~6
+ * `extractionModel` (qwen). Motivo: essas chamadas amarram ~7 NPCs a ~6
  * locais/encontros/segredos num único objeto coerente (o gate da US-150 rejeita
  * NPC/local órfão), tarefa de raciocínio real — qwen3.7-flash esgotava as 3
  * tentativas do gate com frequência (`adventure_gate_failed` em produção local).
+ * (US-194: `generateOpeningBeat` também rodava com estas opções — apagada; `start`
+ * passou a ser composto por código, sem chamada de IA.)
  * Mesmo `{enabled:false}` de `EXTRACTION_PROVIDER_OPTIONS` (mesma colisão
  * tool_choice/thinking do modo tool), MAIS o `provider: DEEPSEEK_ENGINE_ROUTE`
  * (mesmo `order`/`only` da narração) — sem o pin, o OpenRouter roteia livre

@@ -49,6 +49,29 @@ interface EncounterDraft {
   npcs: AdventureNpc[]
 }
 
+/**
+ * US-194: compõe `start` (a abertura) por CÓDIGO, a partir do encontro 1 — não mais por
+ * IA (`generateOpeningBeat`, apagada). Briefing ROTULADO em inglês, não parágrafo colado:
+ * `start` nunca foi lido pela jogadora (é semente de `generateOpeningNarration`), e colar
+ * `boxedText`+`goal` numa prosa só herdaria o pior dos dois — lê como narração sem ser
+ * narrável. `complications` fica de fora de propósito (é a virada da cena, não a semente).
+ *
+ * Assinatura restritiva por design: só `EncounterDraft` (que carrega a referência do local
+ * PRÉ-`generateAntagonistLocationProse`) + `goal` (string solta, só existe depois do
+ * `Promise.all` de `generateClosing`). Sem parâmetro de array de locais — a implementação
+ * errada (procurar o local por id em `locationsWithAntagonist`, que nomeia o antagonista no
+ * local do encontro final) não tem como COMPILAR contra esta assinatura.
+ */
+export function composeStartBriefing(draft: EncounterDraft, goal: string): string {
+  const present = draft.npcs.length > 0 ? draft.npcs.map((npc) => npc.name).join(', ') : 'none'
+  return [
+    `Location: ${draft.location.title} — ${draft.location.boxedText}`,
+    `Situation: ${goal}`,
+    `Scene type: ${draft.type}`,
+    `Present: ${present}`,
+  ].join('\n')
+}
+
 @Injectable()
 export class AdventureService {
   constructor(
@@ -302,13 +325,13 @@ export class AdventureService {
       return { ...loc, occupants }
     })
 
-    // US-172: `generateClosing` e `generateOpeningBeat` não dependem uma da outra — as duas
-    // só precisam de locations/npcs/secrets/registry/premissa, já prontos aqui. `Promise.all`
-    // no lugar de dois `await` sequenciais: soma uma 4ª chamada de IA ao fluxo, mas paralela
-    // não adiciona latência de rede sequencial sobre o `await` que já existia.
-    // US-191, Parte 2: generateAntagonistLocationProse entra como 3ª perna — reescreve
-    // boxedText/description do local do confronto final citando o antagonista pelo nome.
-    const [{ objective, conclusion, followUps, encounterSituations }, { start }, { boxedText, description }] = await Promise.all([
+    // US-191, Parte 2: `generateAntagonistLocationProse` roda em paralelo a `generateClosing`
+    // — nenhuma das duas depende da outra, as duas só precisam de locations/npcs/secrets/
+    // registry/premissa (+ antagonist), já prontos aqui. `Promise.all` no lugar de dois
+    // `await` sequenciais não adiciona latência de rede sobre o `await` que já existia.
+    // US-194: `generateOpeningBeat` (3ª perna) foi apagada — `start` deixou de vir de IA,
+    // agora é composto por código a partir do encontro 1 (`composeStartBriefing` abaixo).
+    const [{ objective, conclusion, followUps, encounterSituations }, { boxedText, description }] = await Promise.all([
       this.ai.generateClosing({
         locations,
         npcs: allNpcs,
@@ -320,18 +343,6 @@ export class AdventureService {
         encounterSkeleton: drafts,
         locale,
       }),
-      this.ai.generateOpeningBeat({
-        locations,
-        npcs: allNpcs,
-        secrets,
-        registry,
-        background: profile.background,
-        origin: profile.origin,
-        complicacao: content.complicacao,
-        premissa,
-        antagonist: antagonistWithNpcId,
-        locale,
-      }),
       this.ai.generateAntagonistLocationProse({
         location: finalDraft.location,
         antagonist: antagonistWithNpcId,
@@ -339,6 +350,15 @@ export class AdventureService {
         locale,
       }),
     ])
+
+    // US-194: `start` cita/situa SEMPRE o local do encontro 1 — `drafts[0].location` é a
+    // referência PRÉ-`generateAntagonistLocationProse` (nunca `locationsWithAntagonist`,
+    // que abaixo reescreve o local do encontro FINAL citando o antagonista pelo nome; os
+    // dois podem ser o MESMO local quando `pickLocationIdForType` colide). `goal` do
+    // encontro 1 só existe agora, depois do `Promise.all` (vem de `encounterSituations[0]`,
+    // pareado posicionalmente com `drafts[0]` — mesmo contrato que a validação abaixo confere
+    // para os 8 encontros).
+    const start = composeStartBriefing(drafts[0]!, encounterSituations[0]!.goal)
 
     // US-191, Parte 2: patch final sobre `locationsWithOccupant` (não sobre `locations`
     // original) — encadeado, senão um dos dois `.map` apagaria o que o outro escreveu.
@@ -570,11 +590,15 @@ export class AdventureService {
       // `conclusionHint` = `generated.conclusion` fica GUARDADO mas nunca exposto em turno
       // algum — só `completeQuest` o devolve, quando o Mestre chama (US-153 Questões em
       // aberto #4: vazaria o desfecho antes do jogo começar).
+      // US-194: `description` passa a ser `generated.summary` (a premissa), não mais a cena
+      // de abertura (`start`, que agora é briefing rotulado, não prosa relível todo turno).
+      // `mainQuest` (ai.service.ts) para de concatenar title/description quando são o mesmo
+      // texto — a duplicação morre lá, não aqui.
       await tx.quest.create({
         data: {
           adventureId: adventure.id,
           title: generated.summary,
-          description: generated.start,
+          description: generated.summary,
           objective: generated.objective,
           conclusionHint: generated.conclusion,
           isPrimary: true,
