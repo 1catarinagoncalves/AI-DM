@@ -311,6 +311,12 @@ describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas
     expect(p).toMatch(/TURN RESOLUTION ORDER/)
   })
 
+  it('proíbe opção atribuir à NPC fala que ela não disse na prosa (US-199-like: ledger vira testemunho fabricado)', () => {
+    const p = build()
+    expect(p).toMatch(/NEVER attribute to an NPC a line they did not actually SPEAK/)
+    expect(p).toMatch(/have the NPC SAY it in the prose/)
+  })
+
   it('inclui a subseção de onomástica (US-68/US-36): steering positivo, ancora sonoridade, paleta aberta', () => {
     const p = build()
     expect(p).toMatch(/Onomastics/)
