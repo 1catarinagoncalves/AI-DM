@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-159](./US-159-orcamento-de-encontro-lgmrd.md) (`encounterDeadlyThreshold`/`singleMonsterCrCap`, os dois orçamentos que esta story expõe como opção) · [US-160](./US-160-composer-encontro-usa-limiar-de-soma.md) (fixa `encounterDeadlyThreshold` como orçamento único do composer — esta story não desfaz isso, só adiciona uma segunda opção)
-**Relacionado:** [US-152](./US-152-statblocks-papel-orcamento.md) (`composeEncounterRoles`, função que ganha o parâmetro) · [US-148](./US-148-perfil-personagem-entrada-motor.md) (`AdventureProfile`, monta por chamada de geração — veículo natural pra preferência por-aventura) · [US-165](./US-165-tela-escolhe-nivel-de-desafio.md) (tela que expõe `challenge` ao jogador — resolve a Questão em aberto #2 desta story) · [US-156](./US-156-catalogos-registro-dto-validacao.md)/[US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (precedente: jogador escolhe `setting`/`tone`/`areaType` via catálogo+DTO+tela, com fallback Aleatório) · [US-162](./US-162-jogador-escolhe-quantidade-de-segredos.md)/[US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) (dials irmãos, mesma pergunta em aberto sobre onde a preferência mora)
+**Relacionado:** [US-152](./US-152-statblocks-papel-orcamento.md) (`composeEncounterRoles`, função que ganha o parâmetro) · [US-148](./US-148-perfil-personagem-entrada-motor.md) (`AdventureProfile`, monta por chamada de geração — veículo natural pra preferência por-aventura) · [US-165](./US-165-tela-escolhe-nivel-de-desafio.md) (tela que expõe `challenge` ao jogador — resolve a Questão em aberto #2 desta story) · [US-156](./US-156-catalogos-registro-dto-validacao.md)/[US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (precedente: jogador escolhe `setting`/`tone`/`areaType` via catálogo+DTO+tela, com fallback Aleatório) · US-162/US-163 (dials irmãos, mesma pergunta em aberto sobre onde a preferência mora)
 **Criada em:** 2026-08-17
 
 ---
@@ -91,4 +91,4 @@ Nenhum schema de banco novo nesta story — só a assinatura de `composeEncounte
 - [US-160](./US-160-composer-encontro-usa-limiar-de-soma.md) — corrigiu o default pra `encounterDeadlyThreshold`; esta story não desfaz isso, só adiciona a segunda opção.
 - [US-165](./US-165-tela-escolhe-nivel-de-desafio.md) — tela que expõe `challenge` ao jogador, story própria que consome a função parametrizada aqui.
 - [US-156](./US-156-catalogos-registro-dto-validacao.md)/[US-157](./US-157-tela-de-mundo-depois-da-revisao.md) — precedente de campo escolhido pelo jogador com fallback default/Aleatório.
-- [US-162](./US-162-jogador-escolhe-quantidade-de-segredos.md)/[US-163](./US-163-jogador-escolhe-tamanho-da-aventura.md) — dials irmãos, mesma pergunta em aberto sobre onde a preferência do jogador mora.
+- US-162/US-163 — dials irmãos, mesma pergunta em aberto sobre onde a preferência do jogador mora.

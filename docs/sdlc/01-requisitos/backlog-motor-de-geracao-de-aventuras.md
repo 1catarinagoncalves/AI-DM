@@ -641,7 +641,7 @@ registro da US-156, **todos opcionais**.
 Depende de: US-150, US-151.
 
 **US-154 — eval da aventura gerada**
-Caso de fidelidade no molde da [US-49](./US-49-eval-fidelidade-de-regra.md), com a rubrica da
+Caso de fidelidade no molde da US-49, com a rubrica da
 [US-36](./US-36-eval-de-qualidade-da-narracao.md), contra um seed pinado: o Mestre não revela
 segredo com `revelado: false` antes da ficção merecer, nem inventa NPC quando há ~7 gerados.
 Referência de densidade: os dois exemplares do LGMRD que a US-145 já baixou — e, com o arco na

@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada (06/08/2026 — um critério em aberto de propósito: ver "Eval / teste de regressão")
 **Depende de:** [US-108](./US-108-tabela-de-modificadores-do-srd-2024.md) (o `Rule.json` já entrou no `sync` e o padrão de extração/artefato já existe) · [US-38](./US-38-rolagens-ancoradas-na-ficha.md) (o modificador já vem da ficha; falta ancorar QUAL teste é feito)
-**Relacionado:** [US-27](./US-27-pericias-do-personagem.md) (as 18 perícias e seus atributos-âncora, já vindos do `Skill.json`) · [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) (como ancorar assertiva nova no prompt) · [US-72](./US-72-evals-de-prompt-resistentes-a-reescrita.md) (evals resistentes a reescrita) · [US-48](./US-48-getrule-corpus-de-regras.md) (corpus de regras — o mesmo `Rule.json`) · [US-109](./US-109-bonus-circunstancial-no-teste-de-d20.md) (o outro termo da mesma soma) · [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) (camadas do prompt por volatilidade)
+**Relacionado:** [US-27](./US-27-pericias-do-personagem.md) (as 18 perícias e seus atributos-âncora, já vindos do `Skill.json`) · [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) (como ancorar assertiva nova no prompt) · [US-72](./US-72-evals-de-prompt-resistentes-a-reescrita.md) (evals resistentes a reescrita) · US-48 (corpus de regras — o mesmo `Rule.json`) · [US-109](./US-109-bonus-circunstancial-no-teste-de-d20.md) (o outro termo da mesma soma) · [ADR 007](../../adr/007-camadas-do-prompt-por-volatilidade.md) (camadas do prompt por volatilidade)
 **Criada em:** 2026-08-06
 
 ---

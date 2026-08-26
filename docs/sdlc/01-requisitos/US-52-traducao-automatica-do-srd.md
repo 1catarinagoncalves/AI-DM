@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player (habilitador de manutenção; sem urgência de release)
 **Status:** ✅ Implementada
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, overlay curado `pt-BR.json`, regra de merge + fallback EN) · [US-17](./US-17-comparacao-modelos-eval.md) (encanamento do Gemini como juiz — `model.ts`)
-**Relacionado:** [US-48](./US-48-getrule-corpus-de-regras.md) (o corpus do `getRule` é o próximo cliente do mesmo mecanismo, em volume muito maior) · [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — **EN é a base nativa**; este pipeline só serve locales ≠ en)
+**Relacionado:** US-48 (o corpus do `getRule` é o próximo cliente do mesmo mecanismo, em volume muito maior) · [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — **EN é a base nativa**; este pipeline só serve locales ≠ en)
 **Criada em:** 2026-07-14
 
 ---
@@ -76,7 +76,7 @@ O `_mt: true` faz o rascunho aparecer no PR. Humano lê, corrige, tira a marca. 
 
 ### Nível 3 — LLM-juiz / back-translation (fora do escopo, registrado)
 
-Dá para o `ingest` traduzir PT→EN de volta e comparar, ou pedir a um segundo modelo uma nota de fidelidade (a infra do juiz do bake-off serve). **Exagero para este volume** — a revisão humana do nível 2 é mais confiável e mais barata para um punhado de strings. Só passa a valer se o cliente for o **corpus do `getRule`** ([US-48](./US-48-getrule-corpus-de-regras.md)): centenas de regras, 339 magias, texto longo — aí revisão humana não escala e o juiz automático ganha sentido. Decisão da US-48, não desta.
+Dá para o `ingest` traduzir PT→EN de volta e comparar, ou pedir a um segundo modelo uma nota de fidelidade (a infra do juiz do bake-off serve). **Exagero para este volume** — a revisão humana do nível 2 é mais confiável e mais barata para um punhado de strings. Só passa a valer se o cliente for o **corpus do `getRule`** (US-48): centenas de regras, 339 magias, texto longo — aí revisão humana não escala e o juiz automático ganha sentido. Decisão da US-48, não desta.
 
 ### A fronteira honesta
 
@@ -96,8 +96,8 @@ Dá para o `ingest` traduzir PT→EN de volta e comparar, ou pedir a um segundo 
 
 ### Fora do escopo
 
-- **LLM-juiz / back-translation** (nível 3) — registrado acima; vira relevante só no volume da [US-48](./US-48-getrule-corpus-de-regras.md).
-- **Traduzir o corpus do `getRule`** — outro cliente, outro volume, outra story ([US-48](./US-48-getrule-corpus-de-regras.md)).
+- **LLM-juiz / back-translation** (nível 3) — registrado acima; vira relevante só no volume da US-48.
+- **Traduzir o corpus do `getRule`** — outro cliente, outro volume, outra story (US-48).
 - **Idiomas além de pt-BR** — YAGNI; um overlay por idioma quando houver um segundo.
 - **Retraduzir conteúdo já curado** — a camada 1 é intocável; o modelo só preenche lacuna.
 

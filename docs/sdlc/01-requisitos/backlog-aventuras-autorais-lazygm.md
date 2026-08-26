@@ -618,7 +618,7 @@ Depende de: AV-0, AV-8.
 ### Fechar
 
 **AV-10 — eval e regressão**
-Caso de fidelidade no molde da [US-49](./US-49-eval-fidelidade-de-regra.md) numa mesa a bordo do
+Caso de fidelidade no molde da US-49 numa mesa a bordo do
 *Lamento*: o Mestre não pode revelar segredo com `revelado: false` antes da ficção merecer,
 nem inventar NPC quando há ~7 escritos. Aproveita a rubrica da
 [US-36](./US-36-eval-de-qualidade-da-narracao.md).

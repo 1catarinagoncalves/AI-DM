@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-21](./US-21-sistemas-como-dado.md) (`System.config` + Zod em `packages/shared`) · [US-27](./US-27-pericias-do-personagem.md) (perícias no config) · [US-41](./US-41-features-traits-de-classe.md) (features de classe no config) · [US-42](./US-42-magias-conhecidas.md) (magias no config)
-**Relacionado:** [US-48](./US-48-getrule-corpus-de-regras.md) (o mesmo dataset alimenta o corpus do `getRule`) · [US-51](./US-51-kits-iniciais-do-srd.md) (kits iniciais — extraídos para fonte/licença próprias) · [US-52](./US-52-traducao-automatica-do-srd.md) (tradução automática do conteúdo novo — extraída desta story) · [ADR 003](../../adr/003-sistemas-como-dado.md) (o `config` como dado — **destino**; segue valendo inteiro) · [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — o overlay pt-BR é **um locale**, não "o idioma")
+**Relacionado:** US-48 (o mesmo dataset alimenta o corpus do `getRule`) · [US-51](./US-51-kits-iniciais-do-srd.md) (kits iniciais — extraídos para fonte/licença próprias) · [US-52](./US-52-traducao-automatica-do-srd.md) (tradução automática do conteúdo novo — extraída desta story) · [ADR 003](../../adr/003-sistemas-como-dado.md) (o `config` como dado — **destino**; segue valendo inteiro) · [ADR 005](../../adr/005-locale-como-dimensao.md) (locale como dimensão — o overlay pt-BR é **um locale**, não "o idioma")
 **Gera ADR:** **ADR 004** — origem do dado de sistema (a criar; ver [Decisão de arquitetura](#decisão-de-arquitetura-criar-o-adr-004-não-emendar-o-003))
 **Criada em:** 2026-07-11
 **Revisada em:** 2026-07-14 — fonte fixada em **Open5e** (SRD 5.2, **CC-BY-4.0**); `startingKits` extraído para a [US-51](./US-51-kits-iniciais-do-srd.md) (ver Histórico de revisão)
@@ -120,7 +120,7 @@ Além disso: o `System.version` do D&D hoje é `'5.1'` — com o SRD 5.2 ingerid
   - **Subclasses: o Open5e tem as 12** (uma por classe: Champion, Evoker, Thief…), ligadas por `subclass_of` e com features em `gained_at`. **Mas toda feature de subclasse começa no nível 3** — verificado nas 12, sem exceção (em 5e 2024 a subclasse é escolhida no nível 3). O filtro de nível 1 do ingest devolveria **lista vazia** para todas. No nível 1 a subclasse não existe.
   - ⚠️ **Quando a progressão chegar, um limite de licença aparece — e não tem fonte que resolva.** O PHB 2024 dá **4 subclasses por classe**; o **SRD 5.2 libera só 1**. Battle Master, Eldritch Knight, Psi Warrior e companhia **não foram licenciados** — não estão em fonte aberta nenhuma. Caminhos: só o SRD (1 por classe, sem escolha real) · SRD + terceiros (o Open5e tem 125 subclasses, mas 76 são Kobold Press / *Tome of Heroes* — não é D&D, licença própria) · autoral. Decisão para a fase da progressão.
 - **Magias de nível > 1** — a [US-42](./US-42-magias-conhecidas.md) é awareness de nível 1 (truques + magias de 1º). Sem motor de spellcasting, magia de 3º nível não tem consumidor.
-- **Corpus textual do `getRule`** ([US-48](./US-48-getrule-corpus-de-regras.md)) — o mesmo `sync` serve o corpus, mas o destino é outro (não o `config`, que é carregado a cada criação de personagem). Condições, ações e descrições longas vão para lá.
+- **Corpus textual do `getRule`** (US-48) — o mesmo `sync` serve o corpus, mas o destino é outro (não o `config`, que é carregado a cada criação de personagem). Condições, ações e descrições longas vão para lá.
 - **Upload de sistema pela UI** (Fase 3) — este pipeline é o sistema SRD embutido; `sourceType: UPLOAD` é outro caminho.
 - **Monstros, itens mágicos, feats, espécies** — sem consumidor. YAGNI.
 
@@ -239,7 +239,7 @@ Até a US-52, a lacuna de um bump é preenchida à mão (adicionar a chave ao ov
 - **`seed.ts` — dois sistemas, dois destinos:**
   - **`system-dnd5e`** perde as constantes `dnd5eSkills`, `dnd5eClassFeatures`, `dnd5eClassSpells` (passam a vir do artefato) e **mantém** `dnd5eAttributes` (min/max/default — o overlay só traduz o label), `dnd5eProficiency`, `pointBuy`, `dnd5eKits` (a US-47 não toca em kit) e `dnd5eInitialAdventures`.
   - **`system-free`** ganha **cópias literais próprias** dos campos que o ingest substitui. Trabalho mecânico de uma vez: copiar as tabelas atuais para constantes `free*` **antes** de o artefato substituir as `dnd5e*`. Feito nessa ordem, o Free nunca chega a ver o dado novo.
-- **Descrições:** o `desc` do Open5e é o texto de record do SRD, longo. O `SystemClassFeature.description` vai ao prompt do mestre a cada criação de personagem — as descrições de hoje são **resumos de uma linha**, escritas para caber no prompt. **O overlay é a fonte da descrição PT curta**; o `desc` EN longo é fallback de emergência, não o alvo. Não inflar o `config` com texto de record: isso é trabalho do corpus da [US-48](./US-48-getrule-corpus-de-regras.md).
+- **Descrições:** o `desc` do Open5e é o texto de record do SRD, longo. O `SystemClassFeature.description` vai ao prompt do mestre a cada criação de personagem — as descrições de hoje são **resumos de uma linha**, escritas para caber no prompt. **O overlay é a fonte da descrição PT curta**; o `desc` EN longo é fallback de emergência, não o alvo. Não inflar o `config` com texto de record: isso é trabalho do corpus da US-48.
 
 ---
 
@@ -310,7 +310,7 @@ Verificado ao vivo em **2026-07-14** (GitHub API + `api.open5e.com`).
 **2026-07-14 (manhã) — fonte fixada em Open5e.** A versão original escolhia o `5e-bits/5e-database` com dois argumentos que a verificação derrubou:
 
 - *"Inclui traduções pt-BR."* **Falso na prática:** o `2024/pt-BR` só traduz atributos, alinhamentos e tipos de dano — nada do que a story ingere. Corrigido: pt-BR vira **overlay versionado**, semeado do `seed.ts`.
-- *"Não há spells em 2024 → usar o stopgap de `2014/` (SRD 5.1)."* **Desnecessário:** o Open5e tem 339 magias 2024 nativas. A "Ressalva de dados" foi removida — sem stopgap, e a [US-42](./US-42-magias-conhecidas.md)/[US-48](./US-48-getrule-corpus-de-regras.md) não herdam dívida de edição.
+- *"Não há spells em 2024 → usar o stopgap de `2014/` (SRD 5.1)."* **Desnecessário:** o Open5e tem 339 magias 2024 nativas. A "Ressalva de dados" foi removida — sem stopgap, e a [US-42](./US-42-magias-conhecidas.md)/US-48 não herdam dívida de edição.
 
 **2026-07-14 (tarde) — `startingKits` extraído para a [US-51](./US-51-kits-iniciais-do-srd.md).** Houve uma oscilação registrada: descobriu-se que o `5e-database` **tem** equipamento inicial (`starting_equipment_options`, 12/12 classes) e o Open5e não; por um momento a US-47 absorveu os kits como **segunda fonte**, aceitando trazer a **OGL 1.0a** de volta ao repo (licença dupla). **Decisão final: separar.** A US-47 fica **CC-BY puro** (só Open5e); os kits — que exigem a fonte OGL — viram a **US-51**, com a decisão de licença isolada onde ela pode ser pesada por conta própria. Consequências da separação:
 

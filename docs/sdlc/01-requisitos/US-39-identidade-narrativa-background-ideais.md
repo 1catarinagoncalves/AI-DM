@@ -103,11 +103,11 @@ Render no prompt (o builder itera, não enumera; campo vazio some):
 
 1. **Texto livre vs estrutura:** **decidido — texto livre** (`string[]`). Simples e flexível; catalogar por SRD/`System.config` fica para quando houver necessidade real (YAGNI).
 2. **Captura na criação:** **decidido — gerar defaults por classe que o jogador edita.** **Entregue em parte:** o wizard já tem a etapa "Background" com campos editáveis (texto livre) e o backend persiste/normaliza. **Pendente — o seeding por classe:** os defaults moram no kit de classe (`System.config`, mesma fonte do equipamento/perícias), mas esse catálogo (background/ideais/vínculos/fraquezas por classe × ~12 classes) ainda não existe no config/`seed.ts`. Enquanto não existir, os campos nascem em branco (editáveis), não semeados.
-3. **Peso no prompt:** **decidido — esta US entrega uma redação default de equilíbrio (chute inicial); a calibração fina é [US-43](./US-43-calibracao-peso-tracos-identidade.md), separada.** O default (condicional, cor-não-mandato, ancorado no papel de cada traço):
+3. **Peso no prompt:** **decidido — esta US entrega uma redação default de equilíbrio (chute inicial); a calibração fina é US-43, separada.** O default (condicional, cor-não-mandato, ancorado no papel de cada traço):
 
    > "Deixe estes traços colorirem as escolhas e a tensão quando a cena pedir — a fraqueza cria dilema, o ideal guia a decisão, o vínculo é o que está em jogo. Não os force onde a cena não pede."
 
-   Se é *de fato* equilibrado só a medição diz, mas isso é um A/B de redação (modelo fixo, cenário que tenta a fraqueza) — atividade que só faz sentido depois do bake-off da [US-17](./US-17-comparacao-modelos-eval.md) escolher o modelo. Fica na [US-43](./US-43-calibracao-peso-tracos-identidade.md); a US-39 não bloqueia nela.
+   Se é *de fato* equilibrado só a medição diz, mas isso é um A/B de redação (modelo fixo, cenário que tenta a fraqueza) — atividade que só faz sentido depois do bake-off da [US-17](./US-17-comparacao-modelos-eval.md) escolher o modelo. Fica na US-43; a US-39 não bloqueia nela.
 
 ---
 

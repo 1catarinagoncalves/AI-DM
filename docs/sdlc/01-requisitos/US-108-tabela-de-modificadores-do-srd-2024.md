@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`/`ingest` do Open5e — é ele que ganha um arquivo novo)
-**Relacionado:** [US-32](./US-32-modificadores-de-atributo.md) (a fórmula que existe hoje e a referência que ela cita) · [US-27](./US-27-pericias-do-personagem.md) (perícias somam o mesmo modificador) · [US-48](./US-48-getrule-corpus-de-regras.md) (o mesmo `Rule.json` é a matéria-prima do corpus) · [ADR 009](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (fonte SRD, licença CC-BY)
+**Relacionado:** [US-32](./US-32-modificadores-de-atributo.md) (a fórmula que existe hoje e a referência que ela cita) · [US-27](./US-27-pericias-do-personagem.md) (perícias somam o mesmo modificador) · US-48 (o mesmo `Rule.json` é a matéria-prima do corpus) · [ADR 009](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (fonte SRD, licença CC-BY)
 **Criada em:** 2026-08-06
 
 ---
@@ -57,7 +57,7 @@ Trazer `Rule.json` para o `sync`, extrair no `ingest` a tabela de modificadores 
 
 ### Fora do escopo
 
-- **Corpus e tool `getRule`** ([US-48](./US-48-getrule-corpus-de-regras.md)) — estas duas regras são candidatas óbvias ao corpus, mas o artefato do corpus e a tool são daquela story. Aqui o `Rule.json` só passa a ser baixado; quem o consumir inteiro é a US-48.
+- **Corpus e tool `getRule`** (US-48) — estas duas regras são candidatas óbvias ao corpus, mas o artefato do corpus e a tool são daquela story. Aqui o `Rule.json` só passa a ser baixado; quem o consumir inteiro é a US-48.
 - **As outras 54 regras do `Rule.json`** — bônus de proficiência, D20 Tests, tabela de CD, condições. Mesmo arquivo, outra story.
 - **Frase de sabor das 6 habilidades** (`AbilityDescription.desc`: *"Physical might"*, *"Health and stamina"*) — hoje o [`ingest.mjs`](../../../scripts/srd/ingest.mjs) descarta esse campo e usa só `describes`. Levá-la ao `config`/ficha é story própria.
 - **Pontuação acima de 20 na ficha** — não existe na Fase 1 (sem ASI, sem level-up; o point-buy do `ingest` fecha em 10–18). A tabela cobre até 30 porque **monstro** chega lá, não porque a ficha chega.
@@ -125,7 +125,7 @@ Artefato derivado, versionado no repo (o `scripts/srd/_data/` é gitignored — 
 
 1. ✅ **Fora de 1–30: lançar ou clampar?** **Lançou** (06/08/2026). A ficha já é validada pelo min/max do config (Zod, na criação), então valor fora da faixa é defeito de código, não entrada de usuário — e o clamp devolveria um número plausível para um estado impossível. Os 3 chamadores foram conferidos antes: `roll.ts` já guarda `score != null`; `GameView.tsx` e `dm-system.ts` leem atributo da ficha validada. Clampar só se aparecer origem legítima de valor fora da faixa (ficha de monstro importada, por exemplo).
 2. ✅ **Onde mora o artefato?** Em **`scripts/srd/`**, junto dos outros derivados e do `NOTICE` (06/08/2026). Decidiu o `tsconfig` do `packages/shared`: ele compila em `CommonJS`, onde `import.meta.url` é erro de typecheck, e importar JSON de fora do pacote arrastaria o `rootDir` do `tsc`. O teste lê o arquivo com `readFileSync` a partir do `process.cwd()` — mesmo idioma do drift guard da [US-36](./US-36-eval-de-qualidade-da-narracao.md).
-3. **Traduzir o texto das duas regras para pt-BR agora ou junto da [US-48](./US-48-getrule-corpus-de-regras.md)?** Segue aberta, e sem urgência: o artefato gerado é só a tabela (numérica, atravessa locale sem tradução). A prosa das duas regras só é consumida por gente, na referência em PT.
+3. **Traduzir o texto das duas regras para pt-BR agora ou junto da US-48?** Segue aberta, e sem urgência: o artefato gerado é só a tabela (numérica, atravessa locale sem tradução). A prosa das duas regras só é consumida por gente, na referência em PT.
 
 ---
 

@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-151](./US-151-semear-ledger-segredos-gerados.md) (ledger semeado do artefato) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (motor já é o caminho de criação de aventura)
-**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-154) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · [US-49](./US-49-eval-fidelidade-de-regra.md) (molde de caso de fidelidade) · [US-36](./US-36-eval-de-qualidade-da-narracao.md) (rubrica de qualidade narrativa reusada)
+**Relacionado:** [Backlog — Motor de geração de aventuras one-shot](./backlog-motor-de-geracao-de-aventuras.md) (US-154) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (resolve rótulos `GEN-N` do backlog para número de story) · US-49 (molde de caso de fidelidade) · [US-36](./US-36-eval-de-qualidade-da-narracao.md) (rubrica de qualidade narrativa reusada)
 **Criada em:** 2026-08-15
 
 ---
@@ -25,7 +25,7 @@ Com a inversão de ordem do backlog, **não há mais aventura escrita à mão co
 
 ### Por que a solução atual não basta
 
-A [US-49](./US-49-eval-fidelidade-de-regra.md) e a [US-36](./US-36-eval-de-qualidade-da-narracao.md) já dão o molde de caso de eval e a rubrica de qualidade narrativa — mas nenhuma delas mede especificamente "o Mestre respeitou o que o motor gerou". O que se perde com o adiamento do arco autoral: a eval fica **sem exemplar solo em pt-BR**, e isso é permanente (registrado pelo backlog como custo sem remédio grátis) — os dois exemplares do LGMRD (`36-villageofwhitesparrow.md`, `37-thenightblade.md`, CC-BY, já baixados pela [US-145](./US-145-sync-lgmrd-notice.md)) medem estrutura e densidade, mas são em inglês e escritos para grupo — não medem se a aventura funciona para um personagem só, nem se a prosa em pt-BR presta.
+A US-49 e a [US-36](./US-36-eval-de-qualidade-da-narracao.md) já dão o molde de caso de eval e a rubrica de qualidade narrativa — mas nenhuma delas mede especificamente "o Mestre respeitou o que o motor gerou". O que se perde com o adiamento do arco autoral: a eval fica **sem exemplar solo em pt-BR**, e isso é permanente (registrado pelo backlog como custo sem remédio grátis) — os dois exemplares do LGMRD (`36-villageofwhitesparrow.md`, `37-thenightblade.md`, CC-BY, já baixados pela [US-145](./US-145-sync-lgmrd-notice.md)) medem estrutura e densidade, mas são em inglês e escritos para grupo — não medem se a aventura funciona para um personagem só, nem se a prosa em pt-BR presta.
 
 ### A proposta
 
@@ -81,7 +81,7 @@ Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed 
 ## Questões em aberto
 
 1. ~~Como o caso de eval "joga" a sequência de turnos fixture para testar se um segredo vaza? Precisa de um harness que simule N turnos contra o Mestre real (custo de chamadas de modelo) ou pode ser um teste mais estático (verificar que o prompt monta o bloco de entidades corretamente, sem rodar o modelo)?~~ **Resolvida em 2026-08-18: estático, sem chamar o modelo.** Motivos medidos no repo:
-   - O molde citado ([US-49](./US-49-eval-fidelidade-de-regra.md)) e o live eval noturno ([US-94](./US-94-eval-vivo-noturno-com-chaves.md)) estão os dois `🗂️ Backlog` — não há harness de "N turnos contra Mestre real" pronto pra copiar, nem gate que dependa dele hoje.
+   - O molde citado (US-49) e o live eval noturno ([US-94](./US-94-eval-vivo-noturno-com-chaves.md)) estão os dois `🗂️ Backlog` — não há harness de "N turnos contra Mestre real" pronto pra copiar, nem gate que dependa dele hoje.
    - O único precedente de eval case que chama o modelo de verdade é o de qualidade da narração (US-36/US-70, via `narration-gen.ts`) — e ele pula no CI quando falta chave (`evals/README.md` §"O que reprova o seu PR"). Um assert binário de string (segredo vazou / NPC inventado) não precisa de juiz nem de custo de API pra virar gate confiável — só precisa rodar sempre, sem depender de chave.
    - A própria story já disciplina "ancorar assert no artefato, não na impressão de quem leu" ([US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md)): o caso monta o bloco de entidades a partir de uma `GeneratedAdventure` fixture e verifica o que entra no prompt (`secretId` com `revelado: false` ausente do bloco; NPCs citados = só os do artefato) — sem precisar de resposta de modelo pra existir.
    - Cobertura de "o Mestre real também obedece isso durante o jogo" fica pendurada em [US-94](./US-94-eval-vivo-noturno-com-chaves.md) se/quando sair do backlog — aditivo, não bloqueia esta story.
@@ -90,7 +90,7 @@ Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed 
 
 ## Referências no código
 
-- [US-49](./US-49-eval-fidelidade-de-regra.md) — molde de caso de fidelidade.
+- US-49 — molde de caso de fidelidade.
 - [US-36](./US-36-eval-de-qualidade-da-narracao.md) — rubrica de qualidade narrativa reusada.
 - [US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md) — disciplina de ancorar assert no dado, não na impressão.
 - [US-145](./US-145-sync-lgmrd-notice.md) — os dois exemplares do LGMRD, referência de densidade.

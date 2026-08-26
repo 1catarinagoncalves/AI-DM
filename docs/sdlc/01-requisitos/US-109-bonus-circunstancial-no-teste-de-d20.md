@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** 🗂️ Backlog
 **Depende de:** [US-38](./US-38-rolagens-ancoradas-na-ficha.md) (é a resolução do modificador dela que ganha um termo a mais) · [US-108](./US-108-tabela-de-modificadores-do-srd-2024.md) (o `Rule.json` do SRD 2024 já entrou no `sync`; o texto normativo do d20 test já está baixado)
-**Relacionado:** [US-27](./US-27-pericias-do-personagem.md) (o modificador da ficha, que continua sendo o outro termo) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (o bloco de rolagem exibido antes da narração) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (proveniência no ledger — é a mesma disciplina aplicada à rolagem) · [US-48](./US-48-getrule-corpus-de-regras.md) (o corpus que um dia dará vocabulário fechado de circunstância) · [ADR 003](../../adr/003-sistemas-como-dado.md) (sistema como dado)
+**Relacionado:** [US-27](./US-27-pericias-do-personagem.md) (o modificador da ficha, que continua sendo o outro termo) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (o bloco de rolagem exibido antes da narração) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (proveniência no ledger — é a mesma disciplina aplicada à rolagem) · US-48 (o corpus que um dia dará vocabulário fechado de circunstância) · [ADR 003](../../adr/003-sistemas-como-dado.md) (sistema como dado)
 **Criada em:** 2026-08-06
 
 ---
@@ -69,7 +69,7 @@ O que a story entrega hoje é a **costura**, não o efeito: um lugar nomeado, co
 - **Os outros dois D20 Tests** — saving throw e attack roll não existem como tool hoje (a `rollDice` é sempre teste de perícia/atributo). Quando existirem, herdam o mesmo termo.
 - **Comparação com CD/CA.** O Game Server devolve o total; quem julga sucesso é a narração. As tabelas de CD do SRD (`Very easy 5` … `Nearly impossible 30`) e o `Rolling 20 or 1` do attack roll ficam para as stories dos respectivos testes.
 - **Mudança de interface.** Enquanto o termo for sempre `0`, o bloco de rolagem não tem o que mostrar a mais. O `formatDiceBreakdown` ganha o split junto com a primeira fonte, não antes.
-- **Importar o texto das quatro regras do d20 test como artefato.** O `Rule.json` já está baixado; extrair/curar esse texto é da [US-48](./US-48-getrule-corpus-de-regras.md).
+- **Importar o texto das quatro regras do d20 test como artefato.** O `Rule.json` já está baixado; extrair/curar esse texto é da US-48.
 
 ---
 
@@ -127,7 +127,7 @@ Sem migração: nada muda no schema. Muda o **retorno** da resolução e o **pay
 
 1. **Costura nomeada ou só o campo?** Um parâmetro opcional em `resolveRollModifier`, sem função de coleta, é menos código — mas aí o "espaço" fica invisível (nenhum chamador o passa) e não há lugar óbvio para a primeira fonte. **Recomendação:** a função de coleta, justamente porque ela é chamada em produção e nomeia o vazio.
 2. **Teto e piso do termo?** O SRD não define limite para bônus circunstancial acumulado. Vale uma faixa de sanidade (ex.: `-10..+10`, lançando com o valor ofensor, no padrão do `AGENTS.md`) ou é regra inventada? Decidir antes da primeira fonte, não agora.
-3. **O modelo pode *nomear* uma circunstância?** Um vocabulário fechado (`"escuridão"`, `"terreno difícil"`) em que o modelo escolhe o rótulo e o **servidor** resolve o número não viola a US-38 — mas depende de um vocabulário que não existe. Fica para depois do corpus de regras ([US-48](./US-48-getrule-corpus-de-regras.md)).
+3. **O modelo pode *nomear* uma circunstância?** Um vocabulário fechado (`"escuridão"`, `"terreno difícil"`) em que o modelo escolhe o rótulo e o **servidor** resolve o número não viola a US-38 — mas depende de um vocabulário que não existe. Fica para depois do corpus de regras (US-48).
 
 ---
 
