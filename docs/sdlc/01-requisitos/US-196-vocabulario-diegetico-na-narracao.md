@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída
+**Status:** ✅ Implementada
 **Depende de:** nenhuma
 **Relacionado:** [US-34](./US-34-qualidade-da-narracao-do-dm.md) (barra de ofício original — `NARRATIVE_CRAFT_SECTION`/`CRAFT_CORE_SECTION`) · [US-36](./US-36-eval-de-qualidade-da-narracao.md) (rubrica `DIMENSIONS` que espelha a barra + guard de drift) · [US-70](./US-70-piso-por-dimensao-e-robustez-do-eval.md) (pisos por dimensão e por que onomástica ficou report-only)
 
