@@ -81,7 +81,10 @@ describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
     })
   })
 
-  it('mapeia NPC narrativo com revelado true, tipo npc, local por reverse-lookup em occupants', () => {
+  // Bug: personagem sabia o nome de um NPC nunca encontrado/apresentado na ficção — o
+  // Mestre lia o nome do ledger e narrava de graça. Fix: mesmo mecanismo `⚠ OCULTO` já
+  // usado por segredo/local/ameaça/antagonista (US-199) agora cobre NPC narrativo também.
+  it('mapeia NPC narrativo com revelado false (⚠ OCULTO até a ficção apresentar), tipo npc, local por reverse-lookup em occupants', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
     const marta = entities.find((e) => e.nome === 'Marta')
     expect(marta).toEqual({
@@ -89,9 +92,14 @@ describe('seedLedgerFromGeneratedAdventure (US-151)', () => {
       tipo: 'npc',
       local: 'Clareira',
       nota: 'herborista suspeita',
-      revelado: true,
+      revelado: false,
       atualizadoEm: expect.any(String),
     })
+  })
+
+  it('formatEntities renderiza a linha de NPC narrativo com ⚠ OCULTO antes de qualquer apresentação na ficção', () => {
+    const block = formatEntities(seedLedgerFromGeneratedAdventure(adventureFixture()))
+    expect(block).toContain('Marta — ⚠ OCULTO')
   })
 
   it('NPC narrativo sem location associada (fora de occupants) não lança — local ausente', () => {

@@ -319,7 +319,7 @@ describe('AdventureService.createForCharacter', () => {
       },
       {
         nome: 'Marta', tipo: 'npc', local: 'Enseada Cinzenta',
-        nota: 'herborista suspeita', revelado: true, atualizadoEm: expect.any(String),
+        nota: 'herborista suspeita', revelado: false, atualizadoEm: expect.any(String),
       },
       {
         nome: 'Enseada Cinzenta', tipo: 'local',

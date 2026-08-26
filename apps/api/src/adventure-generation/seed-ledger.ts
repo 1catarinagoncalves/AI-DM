@@ -31,6 +31,11 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
     atualizadoEm: now,
   }))
 
+  // `revelado: false`: NPC narrativo nasce OCULTO igual segredo/local/ameaça/antagonista
+  // (mesmo mecanismo, US-199) — sem isso o Mestre podia nomeá-lo de graça no turno em que
+  // o personagem entra no local dele, mesmo sem apresentação nenhuma na ficção. O Mestre
+  // continua vendo nome+local (precisa, pra consistência), só sob `⚠ OCULTO` até promover
+  // via `recordEntity` quando a ficção realmente apresentar o NPC.
   const npcEntities: WorldEntity[] = adventure.npcs
     .filter((npc) => !(npc.role in MONSTER_ROLE_CR) && npc.id !== antagonistNpcId)
     .map((npc) => ({
@@ -38,7 +43,7 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
       tipo: 'npc',
       local: findOccupiedLocationTitle(adventure, npc.id),
       nota: npc.role,
-      revelado: true,
+      revelado: false,
       atualizadoEm: now,
     }))
 
