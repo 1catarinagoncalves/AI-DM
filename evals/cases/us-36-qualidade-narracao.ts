@@ -252,6 +252,52 @@ const ANCHOR_SET: AnchorItem[] = [
   },
 ]
 
+// ─── US-196: vocabulário diegético — a rubrica segue o REGISTRO, não uma blocklist ──
+// Julgamento DIRETO (sem gerar narração, mesmo padrão do ANCHOR_SET acima): o MESMO
+// termo anacrônico ("ozônio"/"moléculas") aparece em 4 cenários — high-fantasy deve
+// reprovar, a versão reescrita com vocabulário período-compatível deve aprovar, o
+// MESMO termo em sci-fi-space-opera deve aprovar (senão a rubrica virou blocklist de
+// palavra, o que a US 196 explicitamente exclui do escopo), e sem registro definido
+// (modo Free) deve reprovar de novo — ausência de registro = default medieval-fantasia.
+interface VocabCase {
+  id: string
+  scenarioContext: string
+  playerAction: string
+  narration: string
+  /** nota esperada: alta (>=4, vocabulário aceito neste registro) ou baixa (<=2, anacrônico). */
+  expectHigh: boolean
+}
+const VOCAB_CASES: VocabCase[] = [
+  {
+    id: 'high-fantasy-anacronico',
+    scenarioContext: 'Aventura de registro high-fantasy (setting: high-fantasy, area type: floresta antiga). Cena logo após um raio cair perto da clareira.',
+    playerAction: 'Fico parado, sentindo o ar depois do raio.',
+    narration: 'O trovão racha o céu sobre a clareira e, por um instante, o ar cheira a ozônio — um formigamento de moléculas carregadas na língua. Você aperta o cabo da espada.',
+    expectHigh: false,
+  },
+  {
+    id: 'high-fantasy-reescrito',
+    scenarioContext: 'Aventura de registro high-fantasy (setting: high-fantasy, area type: floresta antiga). Cena logo após um raio cair perto da clareira.',
+    playerAction: 'Fico parado, sentindo o ar depois do raio.',
+    narration: 'O trovão racha o céu sobre a clareira e, por um instante, o ar cheira a enxofre e chuva queimada, um gosto metálico na língua. Você aperta o cabo da espada.',
+    expectHigh: true,
+  },
+  {
+    id: 'sci-fi-mesmo-termo',
+    scenarioContext: 'Aventura de registro sci-fi-space-opera (setting: sci-fi-space-opera, area type: ponte de comando de uma nave estelar). Um painel danificado solta faíscas.',
+    playerAction: 'Fico parado, sentindo o ar depois da descarga do painel.',
+    narration: 'O painel danificado solta uma faísca azulada e o ar da ponte fica com cheiro de ozônio — as moléculas carregadas chiando pelo metal exposto. Você prende a respiração.',
+    expectHigh: true,
+  },
+  {
+    id: 'sem-registro-default',
+    scenarioContext: 'Aventura SEM registro definido (nenhum setting/areaType — modo Free, sem geração de aventura). Cena logo após um raio cair perto da vila.',
+    playerAction: 'Fico parado, sentindo o ar depois do raio.',
+    narration: 'O trovão racha o céu sobre a vila e, por um instante, o ar cheira a ozônio — um formigamento de moléculas carregadas na língua. Você aperta o cabo da adaga.',
+    expectHigh: false,
+  },
+]
+
 /** git curto + branch (o sinal mais forte de "o que mudou"); nunca lança. */
 function gitInfo(): { head: string; branch: string } {
   const run = (cmd: string) => {
@@ -396,5 +442,34 @@ describe('US-36/US-70 — qualidade da narração (LLM-as-judge)', () => {
       ).toBeGreaterThanOrEqual(ANCHOR_MARGIN)
     },
     600_000,
+  )
+
+  // ─── US-196: eixo "vocabulário diegético" segue o registro, não uma blocklist ──
+  it.runIf(hasKeys)(
+    'o eixo "vocabulário diegético" aprova/reprova pelo REGISTRO da aventura, não pela palavra em si (US-196)',
+    async () => {
+      const judge = judgeModel()
+      for (const c of VOCAB_CASES) {
+        const { score } = await judgeTurn({
+          judge,
+          scenarioContext: c.scenarioContext,
+          playerAction: c.playerAction,
+          narration: c.narration,
+        })
+        const nota = score.vocabulario.nota
+        if (c.expectHigh) {
+          expect(
+            nota,
+            `${c.id}: esperava nota alta (vocabulário aceito neste registro), veio ${nota} — ${score.vocabulario.justificativa}`,
+          ).toBeGreaterThanOrEqual(4)
+        } else {
+          expect(
+            nota,
+            `${c.id}: esperava nota baixa (vocabulário anacrônico neste registro), veio ${nota} — ${score.vocabulario.justificativa}`,
+          ).toBeLessThanOrEqual(2)
+        }
+      }
+    },
+    180_000,
   )
 })

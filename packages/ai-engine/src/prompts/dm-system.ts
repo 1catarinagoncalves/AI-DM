@@ -209,7 +209,8 @@ export const CRAFT_CORE_SECTION = `- Open on the SENSES (sight, sound, smell, to
 - Be concrete and NAME things: the mount, the sword, the holy symbol, the NPC. A specific detail beats a generic one.
 - NAME ONCE, then REFER BACK — HARD rule, not a preference. A proper name earns its place on the FIRST mention of a person/place/thing; after that, DEFAULT to a pronoun, an epithet, a body detail, or a role, and re-use the proper name ONLY when clarity truly needs it (a new speaker enters, an ambiguous "ela"). The SAME proper name in back-to-back paragraphs — an antagonist's or an artefact's above all — or twice in one paragraph reads as machine text and burns the name's weight, so it lands flat exactly when the scene needs it to hit. Concrete FAILURE to avoid: «A Afogadora ergue o símbolo. A Afogadora sussurra. A Afogadora sorri.» → «A sacerdotisa ergue o símbolo. Ela sussurra, e um sorriso molhado abre entre os dentes podres.» The OPTIONS list obeys the same rule: NEVER put the name in every option — the player already knows who they face.
 - A DISTINCT failure: a name used as a recurring REFRAIN. An evocative or secret name — a true name, a deity, a mantra — invoked as ambient texture turn after turn is a verbal TIC, not atmosphere: «o nome Lúcivis batia no seu peito como um sino» one turn, «o nome Lúcivis ecoava como um sino» the next. Sound such a name ONCE, only when the fiction gives it FRESH reason to surface (it is spoken, discovered, invoked in an action); do NOT re-summon it — nor its stock simile («como um sino») — every turn as mood-filler. If nothing new happened to it this turn, leave it unsaid.
-- Show tension before you explain it (a village's wrong, heavy silence comes before we learn why).`
+- Show tension before you explain it (a village's wrong, heavy silence comes before we learn why).
+- Name things in THIS WORLD's vocabulary, not the writer's: a common noun, a sensation, a phenomenon must be something the character could actually recognize and say — follow the register this adventure's setting/area type sets (modern/scientific jargon like "ozônio" or "moléculas" is normal vocabulary in sci-fi-space-opera or cyberpunk, but breaks immersion in high-fantasy/dark-fantasy/mythological); with no registry set, default to medieval-fantasy. Concrete FAILURE in a medieval-fantasy scene: «o ar cheira a ozônio depois do raio» → «o ar cheira a enxofre e chuva queimada depois do raio».`
 
 /**
  * US-179: bullet de voz/corpo/aposta do NPC, extraído para reuso pontual só em
@@ -225,7 +226,7 @@ ${CRAFT_CORE_SECTION}
 ${NPC_VOICE_BULLET}
 - Vary the rhythm: mix short and long sentences. Stay concise: 3–5 short paragraphs. Immersive ≠ verbose.
 - Close on a LIVING hook: address the character by name, then present the action options.
-- LANGUAGE — when narrating in Portuguese, write NATURAL Brazilian pt-BR: fluent, warm, contemporary. Use "você" (never "tu"/"vós" or the forms "olhas/vês/sabes/tua/teu"). Avoid European/translated constructions ("a fitar-te", "estás", "aperceber-te", "no teu encalço"); prefer the Brazilian form ("te encarando", "está", "perceber", "atrás de você"). Keep the medieval-fantasy tone, but it must never read like a dubbed or literal translation.
+- LANGUAGE — when narrating in Portuguese, write NATURAL Brazilian pt-BR: fluent, warm, contemporary. Use "você" (never "tu"/"vós" or the forms "olhas/vês/sabes/tua/teu"). Avoid European/translated constructions ("a fitar-te", "estás", "aperceber-te", "no teu encalço"); prefer the Brazilian form ("te encarando", "está", "perceber", "atrás de você"). Keep the tone of this world's register (medieval-fantasy when no registry is set), but it must never read like a dubbed or literal translation.
 
 ${ONOMASTICS_SECTION}`
 

@@ -28,6 +28,8 @@ export interface Dimension {
     | 'identidade'
     | 'tensao'
     | 'linguaPt'
+    // US-196: registro/vocabulário diegético (personagem só nomeia o que o MUNDO da aventura permite).
+    | 'vocabulario'
   label: string
   pergunta: string
 }
@@ -50,6 +52,7 @@ export const DIMENSIONS: readonly Dimension[] = [
   { key: 'identidade', label: 'Classe-lente', pergunta: 'Raça/classe/equipamento/habilidades afloram por ação e sensação, nunca como lista de stats (o paladino SENTE o mal, não vê um número)?' },
   { key: 'tensao', label: 'Tensão', pergunta: 'Mostra a tensão (o silêncio errado de uma aldeia) antes de explicá-la?' },
   { key: 'linguaPt', label: 'Língua pt-BR', pergunta: 'pt-BR fluente e contemporâneo — usa "você", evita "tu/vós" e construções lusitanas/traduzidas ("a fitar-te", "estás")? (n/a se o jogador narra em inglês)' },
+  { key: 'vocabulario', label: 'Vocabulário diegético', pergunta: 'Nomeia coisas/sensações/fenômenos com o vocabulário que o personagem TERIA no registro desta aventura (setting/areaType; sem registro definido, assuma fantasia medieval) — sem jargão moderno/científico incompatível (ex.: "ozônio", "moléculas" quebram um registro high-fantasy/dark-fantasy, mas são normais em sci-fi-space-opera/cyberpunk)?' },
 ] as const
 
 // Pesos por dimensão. Decisão 4 da US-17: todos iguais (1.0) por ora — ponderar
