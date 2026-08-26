@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-193](./US-193-encontros-sem-cadeia-causal-entre-si.md) (`unlocks` — o campo que esta eval lê; sem ele não há o que medir)
 **Relacionado:** [packages/ai-engine/src/overlap.ts](../../../packages/ai-engine/src/overlap.ts) (mesma família — detector determinístico, custo zero, limiar calibrado à mão) · [evals/README.md](../../../evals/README.md) (§Qualidade da narração — o padrão de juiz LLM que esta story explicitamente NÃO usa)
 

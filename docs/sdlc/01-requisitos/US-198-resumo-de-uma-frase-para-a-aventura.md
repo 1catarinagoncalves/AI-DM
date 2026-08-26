@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** [US-192](./US-192-premissa-elaborada-com-vinculo-pessoal.md) (`generatePremissa`/`PREMISSA_SCHEMA` — este story estende o mesmo schema/chamada) · [US-144](./US-144-schema-aventura-shared.md) (`GeneratedAdventureSchema` ganha campo novo)
 **Relacionado:** [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (é onde `Quest` primária passou a nascer do artefato gerado) · [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) (`objective`, que já cobre o alvo concreto da quest — este story não mexe nele)
 **Criada em:** 2026-08-24 — a pedido da mantenedora, ao ver a tela do hub (`HomeHero`) mostrando o parágrafo inteiro da premissa como se fosse um título.
