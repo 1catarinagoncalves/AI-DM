@@ -147,6 +147,13 @@ jobs:
       - name: Guard de drift do README
         run: pnpm docs:shape
 
+      # scripts/srd/_data/ é gitignored (só os artefatos derivados entram no repo) e os
+      # testes de US-128/US-132/US-139 leem os JSON pinados de lá direto (contagem real de
+      # entradas). Sem este passo, checkout limpo = ENOENT nesses testes — `srd:sync` baixa
+      # o dataset pinado na TAG (sync.mjs), sem chave nenhuma (raw.githubusercontent.com).
+      - name: Sync do dataset SRD
+        run: pnpm srd:sync
+
       # Idem: teste do ingest do SRD (US-52), na raiz. NÃO roda o `srd:ingest` em si
       # — ele chamaria o Gemini, e o CI não tem (nem quer) GEMINI_API_KEY. O que este
       # passo protege é o round-trip do overlay: se ele quebrar, gravar UM rascunho
