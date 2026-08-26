@@ -81,10 +81,10 @@ Um caso de fidelidade no molde da US-49, com a rubrica da US-36, contra um seed 
 ## Questões em aberto
 
 1. ~~Como o caso de eval "joga" a sequência de turnos fixture para testar se um segredo vaza? Precisa de um harness que simule N turnos contra o Mestre real (custo de chamadas de modelo) ou pode ser um teste mais estático (verificar que o prompt monta o bloco de entidades corretamente, sem rodar o modelo)?~~ **Resolvida em 2026-08-18: estático, sem chamar o modelo.** Motivos medidos no repo:
-   - O molde citado (US-49) e o live eval noturno ([US-94](./US-94-eval-vivo-noturno-com-chaves.md)) estão os dois `🗂️ Backlog` — não há harness de "N turnos contra Mestre real" pronto pra copiar, nem gate que dependa dele hoje.
+   - O molde citado (US-49) e o live eval noturno (US-94) estão os dois `🗂️ Backlog` — não há harness de "N turnos contra Mestre real" pronto pra copiar, nem gate que dependa dele hoje.
    - O único precedente de eval case que chama o modelo de verdade é o de qualidade da narração (US-36/US-70, via `narration-gen.ts`) — e ele pula no CI quando falta chave (`evals/README.md` §"O que reprova o seu PR"). Um assert binário de string (segredo vazou / NPC inventado) não precisa de juiz nem de custo de API pra virar gate confiável — só precisa rodar sempre, sem depender de chave.
    - A própria story já disciplina "ancorar assert no artefato, não na impressão de quem leu" ([US-77](./US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md)): o caso monta o bloco de entidades a partir de uma `GeneratedAdventure` fixture e verifica o que entra no prompt (`secretId` com `revelado: false` ausente do bloco; NPCs citados = só os do artefato) — sem precisar de resposta de modelo pra existir.
-   - Cobertura de "o Mestre real também obedece isso durante o jogo" fica pendurada em [US-94](./US-94-eval-vivo-noturno-com-chaves.md) se/quando sair do backlog — aditivo, não bloqueia esta story.
+   - Cobertura de "o Mestre real também obedece isso durante o jogo" fica pendurada em US-94 se/quando sair do backlog — aditivo, não bloqueia esta story.
 
 ---
 

@@ -73,7 +73,7 @@ Três razões, todas medidas neste repo: embedar a ação do jogador em todo tur
 
 Por [ADR 007](./007-camadas-do-prompt-por-volatilidade.md): conteúdo que muda por turno vive na camada 3. Como D4 o entrega por tool result, ele já cai naturalmente fora do system prompt — mas a regra é escrita aqui porque a tentação de "pôr o lore do livro no system, já que é da campanha inteira" é exatamente o erro que o ADR 007 existe para prevenir.
 
-Com teto: **número de trechos e orçamento de tokens fixos por chamada**, porque a camada 3 é paga integralmente todo turno ([US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) / [US-104](../sdlc/01-requisitos/US-104-baseline-de-cache-do-prompt-pos-pin.md)).
+Com teto: **número de trechos e orçamento de tokens fixos por chamada**, porque a camada 3 é paga integralmente todo turno ([US-55](../sdlc/01-requisitos/US-55-prompt-caching-do-dm.md) / US-104).
 
 ### D6 — Embedding por API, e a chave é decisão pendente de provisionamento
 

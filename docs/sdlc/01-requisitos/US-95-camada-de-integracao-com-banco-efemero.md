@@ -53,7 +53,7 @@ Um projeto de teste separado, com Postgres efêmero do runner, migrações aplic
 
 ### Fora do escopo
 
-- **Chamar LLM de verdade.** O que está sob teste é a costura, não a narração — a qualidade da narração é a [US-94](./US-94-eval-vivo-noturno-com-chaves.md). O modelo é substituído por um dublê que emite tool calls determinísticas (ver *Questões em aberto* #1).
+- **Chamar LLM de verdade.** O que está sob teste é a costura, não a narração — a qualidade da narração é a US-94. O modelo é substituído por um dublê que emite tool calls determinísticas (ver *Questões em aberto* #1).
 - **Cobrir todos os endpoints.** Três fluxos. A tentação de virar suíte de contrato completa é como esta camada fica lenta e depois é desligada.
 - **Migrar os unitários existentes para banco real.** Eles ficam como estão, com `fakePrisma()`. A pirâmide não inverte.
 - **Testcontainers / Docker Compose no runner.** O `services:` nativo do GitHub Actions já dá um Postgres; a estratégia de testes registra Docker Compose como desenho que nunca foi construído, e esta story não o ressuscita.

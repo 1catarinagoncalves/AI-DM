@@ -798,7 +798,7 @@ raciocínio delas é anterior e vale como registro.
 2. **Aventura gerada é regenerável ou congelada?** Recomendação na US-143: gravar os dois.
 3. **Quantas chamadas ao modelo por aventura, e a que custo?** O passo 4 é uma; locações e fecho
    podem ser mais. Não foi medido, e a baseline da
-   [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md) é de turno, não de geração.
+   US-104 é de turno, não de geração.
 4. **O motor usa os vínculos da [US-113](./US-113-vinculos-ancorados-na-fonte-no-ledger.md)?**
    NPC amarrado a `background.bonds` é exatamente um vínculo ancorado na fonte. Se a US-113
    entregar antes, o passo 3 grava vínculo em vez de texto solto.

@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada (04/08/2026). Chamada real pelo mesmo caminho do app: narração (streaming) e `generateObject` saíram os dois em `endpoint=DeepSeek fp=fp_a18b46594c_prod0820_fp8_kvcache_20260402` — pin da [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) e sua §3 confirmados por observação
 **Nasceu de:** a [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) pinou a rota do OpenRouter e não deixou como conferir se o pin é obedecido. Nasceu apontando para a *Questão em aberto* #2 daquela ADR, que **fechou antes desta story começar** (a resposta estava no SDK, não no tráfego — ver ADR 008 §3); o motivo abaixo sobreviveu à pergunta que a originou.
-**Relacionada a:** [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) (o pin que esta story torna verificável), [US-69](./US-69-guard-anti-degeneracao-narracao.md) (o PASSO 0 que já tentou logar isto e não entregou o dado), [US-74](./US-74-guard-turno-truncado-narracao.md) (mesma classe de investigação: sintoma na prosa, causa possivelmente no backend), [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md) (consome este log para explicar um hit-rate ruim)
+**Relacionada a:** [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md) (o pin que esta story torna verificável), [US-69](./US-69-guard-anti-degeneracao-narracao.md) (o PASSO 0 que já tentou logar isto e não entregou o dado), [US-74](./US-74-guard-turno-truncado-narracao.md) (mesma classe de investigação: sintoma na prosa, causa possivelmente no backend), US-104 (consome este log para explicar um hit-rate ruim)
 **Criada em:** 2026-08-01
 
 ---
@@ -45,7 +45,7 @@ Duas consequências práticas. A primeira: o dump de `response.body` atrás do `
 
 1. **O pin em si.** Declarar `provider.order` no request não é prova de que o request foi servido por ele — `allow_fallbacks` continua ligado, de propósito, e o único endpoint que cacheia é um só. Um outage silencioso do first-party degrada o cache sem erro nenhum. Hoje isso é invisível, e é a razão principal desta story.
 2. **A próxima US-69.** Volta o embaralhamento, volta a mesma pergunta sem resposta.
-3. **A [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md) quando o número vier ruim.** Hit-rate baixo com rota confirmada aponta para o prompt; hit-rate baixo com rota errada aponta para a allowlist. Sem este log, os dois diagnósticos são indistinguíveis.
+3. **A US-104 quando o número vier ruim.** Hit-rate baixo com rota confirmada aponta para o prompt; hit-rate baixo com rota errada aponta para a allowlist. Sem este log, os dois diagnósticos são indistinguíveis.
 
 *(A quarta razão original — fechar a Q2 da ADR 008 — caiu. A pergunta pressupunha que os `generateObject` mandavam `json_schema`; eles mandam tool, e isso se descobriu lendo o SDK. Fica como lembrete de que capacidade anunciada pelo servidor não é o mesmo que conteúdo do request.)*
 
@@ -66,7 +66,7 @@ Duas consequências práticas. A primeira: o dump de `response.body` atrás do `
 - Persistir a proveniência no banco. É log, não dado de domínio. (Se virar dado de domínio, é outra story — e provavelmente passa pela [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md), que já tem "proveniência" no nome com outro sentido.)
 - Dashboard, agregação, alerta. Reagir a um endpoint ruim é decisão humana enquanto não houver número dizendo com que frequência acontece.
 - Mudar o pin, a allowlist ou qualquer coisa da [ADR 008](../../adr/008-pin-de-roteamento-no-openrouter.md). Esta story **observa**; não decide.
-- Medir cache. É a [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md).
+- Medir cache. É a US-104.
 
 ---
 

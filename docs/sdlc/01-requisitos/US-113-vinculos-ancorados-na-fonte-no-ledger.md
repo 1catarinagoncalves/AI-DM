@@ -150,7 +150,7 @@ A última linha é o caso do arboreto da US-75, agora modelado onde ele de fato 
 - **`fonte` é o campo que justifica a US.** Sem ela isto é uma `nota` estruturada e não vale o schema. Preencher com `"abertura"` na semeadura e com o `id` do `EventLog` do turno quando vem de `recordEntity` — o `EventLog` do turno já existe (`ai.service.ts:783`).
 - **Semeadura da abertura:** `extractOpeningEntities` (`ai.service.ts:1020`) pode passar a extrair vínculos que a prosa **afirma explicitamente**, com `fonte: "abertura"`. Mantém a instrução dura da US-75: *nunca INFIRA um vínculo que o texto não afirma* — que é precisamente o risco que arestas amplificam (ver *Questões em aberto* #1). Escopo opcional: dá para entregar a US só com registro via tool e semear depois.
 - **Onde escrever o gate:** cabeçalho do bloco de entidades em `dm-system.ts:517`, ao lado dos gates da US-75. **Não** em `NARRATIVE_CRAFT_SECTION` — dispararia o guard de drift da rubrica (`rubric-drift.test.ts`, US-36).
-- **Custo de prompt:** o ledger vai ao modelo inteiro todo turno, na camada 3. Arestas engordam o bloco. Manter o render de uma linha por vínculo e `relacao` curta; se o bloco crescer demais, o teto vem antes do valor — medir com a baseline de cache da [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md).
+- **Custo de prompt:** o ledger vai ao modelo inteiro todo turno, na camada 3. Arestas engordam o bloco. Manter o render de uma linha por vínculo e `relacao` curta; se o bloco crescer demais, o teto vem antes do valor — medir com a baseline de cache da US-104.
 - **`ai-engine` roda de `dist`:** `entities.ts` e `dm-system.ts` exigem `pnpm --filter @ai-dm/ai-engine build` para a API pegar. `apps/api` roda TS direto.
 
 ---

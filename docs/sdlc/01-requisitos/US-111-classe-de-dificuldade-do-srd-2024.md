@@ -135,7 +135,7 @@ Sem migração: nada muda no schema, nada muda no `DiceResult`. Muda o **retorno
 - **A CD na prosa já cai no sanitizador — de raspão, não por desenho.** Os `ROLL_CUES` de [`narration.ts`](../../../packages/shared/src/narration.ts) removem a **frase inteira** que casa `\b(?:teste|test|check)\b` a até 40 caracteres de um número, então "a CD do teste é 15" desaparece com gramática e tudo. Não conte com isso como garantia: "o portão exige 15" não casa nada. A proibição tem de estar no prompt.
 - **"Um teste por ação" já existe e continua valendo.** O reuso do 1º resultado (`ai.service.ts` `:393`) devolve a CD do **primeiro** teste — correto, e é o comportamento que impede o modelo de re-rolar contra uma CD mais macia depois de falhar. Vale um teste.
 - **Ordem no prompt importa:** *qual* teste (US-110) antes de *quão difícil* (esta). Invertido, o modelo escolhe a dificuldade antes de saber o que está testando. E mantenha as duas separadas da regra de **QUANDO** rolar — fundi-las produz o efeito colateral clássico de o modelo passar a rolar mais.
-- **Custo de token é pequeno e estático:** 6 linhas curtas na camada cacheada. Mexe uma vez no baseline medido pela [US-104](./US-104-baseline-de-cache-do-prompt-pos-pin.md).
+- **Custo de token é pequeno e estático:** 6 linhas curtas na camada cacheada. Mexe uma vez no baseline medido pela US-104.
 - **Âncora do teste do prompt:** o dado injetado, não a prosa que o introduz ([`PROMPT-ANCHORS.md`](../../../evals/PROMPT-ANCHORS.md)). Cheque unicidade antes de escolher: números como `15` aparecem na linha `Attributes` da ficha renderizada — o par rótulo+valor (`Nearly impossible` + `30`) é o candidato estável.
 
 ---
@@ -145,7 +145,7 @@ Sem migração: nada muda no schema, nada muda no `DiceResult`. Muda o **retorno
 1. **A CD podia ficar só no prompt, sem tocar na tool?** Sim, e seria menos código — mas aí a escolha do Mestre não existe em lugar nenhum: nada valida o degrau, nada compara, nada registra, e o único critério de aceite possível seria "a escala está no prompt". **Recomendação: manter o `dc` na tool**, que é o que torna a story verificável e transforma o veredito em dado. Se a decisão for prompt-only, a metade mecânica vira story própria e este documento se divide.
 2. **Sem `dc`, o Mestre segue julgando por conta?** Hoje sim, e o campo é opcional de propósito (não quebra nenhum turno em produção). A pergunta é se, medida a adesão, o `dc` deve virar **obrigatório** em teste de perícia no ramo do sistema nomeado. Decidir com dado, não agora.
 3. **O que o `success` autoriza na narração?** O SRD diz que alcançar a CD é sucesso, mas "sucesso" numa ficção não é binário (sucesso com custo, falha que avança a cena). Se o prompt tratar `success` como interruptor, a narração empobrece; se tratar como sugestão, a story não muda nada. A redação certa é a parte de risco desta US.
-4. **Quanto vale de fato?** Mesma lacuna da questão 3 da US-110: a régua e a comparação ficam verificadas, a **coerência** da CD escolhida com a ficção não — o harness que mediria (trajetória de tool calling, com chave: [US-94](./US-94-eval-vivo-noturno-com-chaves.md)) não existe.
+4. **Quanto vale de fato?** Mesma lacuna da questão 3 da US-110: a régua e a comparação ficam verificadas, a **coerência** da CD escolhida com a ficção não — o harness que mediria (trajetória de tool calling, com chave: US-94) não existe.
 
 ---
 
