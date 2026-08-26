@@ -17,6 +17,7 @@ import { useT, useLocale } from '@/components/LocaleProvider'
 import type { MessageKey } from '@/messages'
 import { BackgroundPanel, type CharacterBackground } from '@/components/character/BackgroundPanel'
 import { FeaturesPanel } from '@/components/character/FeaturesPanel'
+import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
@@ -553,7 +554,9 @@ export function SetupWizard() {
 
   // Sem seletor de idioma: a criação herda o idioma já ativo no hub de personagens.
   return (
-    <SceneFrame scene="/scenes/tavern.png" dim="heavy" localeToggle={false}>
+    // US-197: durante a espera do passo `world`, o fundo troca pro jardim noturno —
+    // ambienta "algo sendo preparado nos bastidores" sem gerar asset novo.
+    <SceneFrame scene={starting ? '/scenes/arboretum-moonlit.png' : '/scenes/tavern.png'} dim="heavy" localeToggle={false}>
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6 sm:px-6">
 
         {exitToHub}
@@ -1059,29 +1062,32 @@ export function SetupWizard() {
             {/* US-157: sétimo passo, depois de `review` — substitui a antiga etapa
                 "Aventura inicial" (US-28), aposentada junto do gancho fixo por classe. */}
             {step === 'world' && (
-              <div>
-                <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
-                <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
-                <div className="mt-6 space-y-6">
-                  <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
-                    catalog={settingCatalog} value={setting} onChange={setSetting} />
-                  <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
-                    catalog={toneCatalog} value={tone} onChange={setTone} />
-                  <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
-                    catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
-                  <ChallengeOptionGroup name="challenge" legend={t('setup.world.challenge')} value={challenge}
-                    onChange={key => setChallenge(key as 'adventure' | 'challenge')}
-                    options={[
-                      { key: 'adventure', label: t('setup.world.challenge.adventure.label'), hint: t('setup.world.challenge.adventure.hint') },
-                      { key: 'challenge', label: t('setup.world.challenge.challenge.label'), hint: t('setup.world.challenge.challenge.hint') },
-                    ]} />
+              starting ? <AdventureLoadingScreen /> : (
+                <div>
+                  <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
+                  <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
+                  <div className="mt-6 space-y-6">
+                    <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
+                      catalog={settingCatalog} value={setting} onChange={setSetting} />
+                    <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
+                      catalog={toneCatalog} value={tone} onChange={setTone} />
+                    <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
+                      catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
+                    <ChallengeOptionGroup name="challenge" legend={t('setup.world.challenge')} value={challenge}
+                      onChange={key => setChallenge(key as 'adventure' | 'challenge')}
+                      options={[
+                        { key: 'adventure', label: t('setup.world.challenge.adventure.label'), hint: t('setup.world.challenge.adventure.hint') },
+                        { key: 'challenge', label: t('setup.world.challenge.challenge.label'), hint: t('setup.world.challenge.challenge.hint') },
+                      ]} />
+                  </div>
                 </div>
-              </div>
+              )
             )}
           </div>
 
-          {/* Voltar / Próximo / Confirmar / Criar aventura */}
-          {step !== 'system' && (
+          {/* Voltar / Próximo / Confirmar / Criar aventura — some por inteiro durante a
+              espera do passo `world` (US-197): nenhuma ação possível enquanto gera. */}
+          {step !== 'system' && !(step === 'world' && starting) && (
             <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
               <DmButton variant="ghost" type="button" onClick={back}>
                 <ArrowLeft className="size-4" aria-hidden />

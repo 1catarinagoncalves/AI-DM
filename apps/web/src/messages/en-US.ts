@@ -71,6 +71,12 @@ export const enUS: Record<MessageKey, string> = {
   'setup.world.challenge.challenge.hint': 'combat guaranteed',
   'setup.world.start': 'Create adventure',
   'setup.world.starting': 'Creating adventure...',
+  'setup.world.loading.1': 'Populating the world with its first inhabitants...',
+  'setup.world.loading.2': 'Sowing secrets across the map...',
+  'setup.world.loading.3': 'Giving a face to whoever stands against you...',
+  'setup.world.loading.4': 'Choosing the first dangers on your path...',
+  'setup.world.loading.5': 'Tying the threads that will pull the story forward...',
+  'setup.world.loading.6': 'Sharpening the details before the curtain opens...',
 
   // ---- wizard: sistema ----
   'setup.system.titulo': 'Choose the System',

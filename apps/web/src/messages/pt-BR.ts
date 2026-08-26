@@ -75,6 +75,15 @@ export const ptBR = {
   'setup.world.challenge.challenge.hint': 'combate garantido',
   'setup.world.start': 'Criar aventura',
   'setup.world.starting': 'Criando aventura...',
+  // US-197: carrossel da tela de espera — atmosféricas, não progresso literal (ver
+  // *Copy das mensagens* da US-197: não acopla à ordem real do motor, US-190 já moveu
+  // o antagonista sem desalinhar esta lista porque nenhuma promete "fase atual").
+  'setup.world.loading.1': 'Povoando o mundo com seus primeiros habitantes...',
+  'setup.world.loading.2': 'Semeando segredos pelos cantos do mapa...',
+  'setup.world.loading.3': 'Dando rosto a quem vai se opor a você...',
+  'setup.world.loading.4': 'Escolhendo os primeiros perigos do caminho...',
+  'setup.world.loading.5': 'Amarrando os fios que vão puxar a história...',
+  'setup.world.loading.6': 'Afiando os detalhes antes de abrir a cortina...',
 
   // ---- wizard: sistema ----
   'setup.system.titulo': 'Escolha o Sistema',

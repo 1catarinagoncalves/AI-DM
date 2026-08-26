@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, within, act } from '@testing-library/react'
 import type { SystemConfig } from '@ai-dm/shared'
 
 const { listSystems, createCharacter, createAdventure } = vi.hoisted(() => ({
@@ -637,6 +637,61 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
 
     expect(createAdventure).toHaveBeenCalledWith('char-1', { challenge: 'challenge' })
+  })
+
+  // US-197: ao clicar em Criar aventura, o formulário e o rodapé de botões dão lugar à
+  // tela de espera — nenhuma ação possível enquanto a API não responde.
+  describe('tela de espera do passo Mundo (US-197)', () => {
+    afterEach(() => vi.useRealTimers())
+
+    function pendingAdventure() {
+      let resolveAdventure!: (v: { id: string; title: string }) => void
+      createAdventure.mockImplementation(() => new Promise(resolve => { resolveAdventure = resolve }))
+      return () => act(() => resolveAdventure({ id: 'adv-1', title: 'Aventura' }))
+    }
+
+    it('esconde o formulário e o rodapé, e troca o fundo para arboretum-moonlit.png', async () => {
+      const resolveAdventure = pendingAdventure()
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+
+      expect(screen.queryByRole('button', { name: /Criar aventura/ })).toBeNull()
+      expect(screen.queryByRole('button', { name: /Voltar/ })).toBeNull()
+      expect(screen.queryByLabelText('Sombrio')).toBeNull()
+
+      const bg = document.querySelector('img[aria-hidden]') as HTMLImageElement
+      expect(bg.src).toContain('arboretum-moonlit.png')
+
+      await resolveAdventure() // não deixa a promise pendente após o teste
+    })
+
+    it('troca a mensagem do carrossel automaticamente antes da promise resolver', async () => {
+      const resolveAdventure = pendingAdventure()
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      const live = document.querySelector('[aria-live="polite"]')!
+      const first = live.textContent
+
+      act(() => { vi.advanceTimersByTime(3000) })
+      const second = live.textContent
+      expect(second).not.toBe(first)
+
+      await resolveAdventure()
+    })
+
+    it('em erro, volta ao formulário do passo Mundo com a mensagem de erro e o fundo tavern.png', async () => {
+      createAdventure.mockRejectedValue(new Error('falhou'))
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+
+      expect(await screen.findByText('Erro ao iniciar a aventura. Tente novamente.')).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Criar aventura/ })).toBeTruthy() // formulário de volta
+
+      const bg = document.querySelector('img[aria-hidden]') as HTMLImageElement
+      expect(bg.src).toContain('tavern.png')
+    })
   })
 
   // US-127: a revisão espelha o que a ficha vai mostrar depois — atributos e perícias com

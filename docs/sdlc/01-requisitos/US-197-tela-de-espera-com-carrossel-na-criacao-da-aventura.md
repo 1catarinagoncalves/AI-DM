@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🗂️ Backlog
+**Status:** 🚧 Em progresso
 **Depende de:** [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (passo `world`, estado `starting`, `createWorldAdventure`)
 **Criada em:** 2026-08-24
 
@@ -53,18 +53,33 @@ conjunto a cada intervalo, até a chamada resolver e o `router.push` navegar par
   passo `world` quando `starting === true` — não um estado extra dentro do JSX atual, substitui
   a `div` do formulário e o footer de botões daquele passo (nenhuma ação possível durante a
   espera; não há "Voltar" nem outro clique).
-- **Carrossel de mensagens**: um array de strings (mínimo 4-6 mensagens, tema "o mestre está
-  preparando sua aventura" — ex.: "Povoando o mundo...", "Escolhendo os primeiros perigos...",
-  "Semeando segredos..."), uma visível por vez, trocando em intervalo fixo (2,5-4s) via
-  `setInterval`/`useEffect`, com `aria-live="polite"` no contêiner de texto para leitores de
-  tela acompanharem a troca.
+- **Carrossel de mensagens**: um array de 6 strings genéricas/atmosféricas (tema "o mestre está
+  preparando sua aventura", inspiradas nas etapas reais do motor — mundo, locais/NPCs, segredos,
+  antagonista, encontros, fecho — sem prometer progresso literal; ver *Copy das mensagens*
+  abaixo para o texto final nos dois locales), uma visível por vez, trocando em intervalo fixo
+  (2,5-4s) via `setInterval`/`useEffect`, com `aria-live="polite"` no contêiner de texto para
+  leitores de tela acompanharem a troca.
 - **Ordem das mensagens**: sequencial ou embaralhada uma vez no mount — não precisa ser
-  determinística; se a chamada demorar mais que o array inteiro, recomeça do início (`% length`).
+  determinística. Cíclico por design: ao trocar depois da última mensagem do array, volta pra
+  primeira (`(i + 1) % length`, sem índice fora do array) — não para nem fica em branco se a
+  geração demorar mais que o array inteiro.
 - **Chaves de i18n novas em `setup.world.loading.*`** (o array de mensagens), nos dois locales
   (pt-BR/en-US), mesma disciplina de dicionário do resto do wizard — nenhuma string literal solta.
 - **Limpeza do intervalo** no unmount (a troca de rota em `createWorldAdventure` desmonta o
   wizard; o `useEffect` do carrossel precisa `clearInterval` no cleanup, senão o teste acusa
   warning de state update pós-unmount).
+- **Imagem de fundo em pixel arte**: durante a espera, o fundo troca para
+  `/scenes/arboretum-moonlit.png` — asset já existe em
+  [apps/web/public/scenes](../../../apps/web/public/scenes), hoje sem nenhuma tela que o use
+  (`tavern.png` já é o fundo do hub/wizard, `gate-entrance.png` já é o do login; este é o único
+  dos três livre). Jardim de alquimista à noite, sob lua cheia — combina com o tom "algo está
+  sendo preparado nos bastidores" da story, sem gerar asset novo. **Não** é um `SceneFrame`
+  aninhado dentro do componente novo — `SceneFrame` ([dm.tsx:109-166](../../../apps/web/src/components/ui/dm.tsx))
+  já renderiza cabeçalho/logo/toggle por inteiro; aninhar duplicaria esse cabeçalho. A troca é na
+  prop `scene` do `SceneFrame` que já envolve o `SetupWizard` inteiro
+  ([SetupWizard.tsx:556](../../../apps/web/src/components/setup/SetupWizard.tsx)):
+  `scene={starting ? '/scenes/arboretum-moonlit.png' : '/scenes/tavern.png'}`. `dim` continua
+  fixo em `"heavy"` — o carrossel de texto precisa do mesmo contraste que o formulário já tinha.
 
 ### Fora do escopo
 
@@ -78,6 +93,8 @@ conjunto a cada intervalo, até a chamada resolver e o `router.push` navegar par
   ([SetupWizard.tsx:485](../../../apps/web/src/components/setup/SetupWizard.tsx)) e volta pro
   formulário com a mensagem de erro; esta story não muda esse caminho, só a tela do caminho feliz
   enquanto aguarda.
+- **Ilustração ou ícone animado** — a tela de espera é só texto (mensagem + `aria-live`); nenhum
+  asset visual novo nesta story.
 
 ---
 
@@ -88,7 +105,10 @@ conjunto a cada intervalo, até a chamada resolver e o `router.push` navegar par
 - [ ] A tela de espera mostra uma mensagem por vez, de um conjunto de pelo menos 4 mensagens
       distintas vindas de `setup.world.loading.*`, nos dois locales.
 - [ ] A mensagem visível troca automaticamente em intervalo fixo, sem interação do jogador.
+- [ ] Ao trocar depois da última mensagem do array, a próxima é a primeira (loop, não para/branco).
 - [ ] O contêiner da mensagem tem `aria-live="polite"` (auditável por teste de acessibilidade).
+- [ ] Enquanto `starting === true`, o fundo do `SceneFrame` é `/scenes/arboretum-moonlit.png`
+      (não `tavern.png`); volta a `tavern.png` se `starting` voltar a `false` (caminho de erro).
 - [ ] Nenhuma string literal solta no JSX do componente novo (gate US-102).
 - [ ] Ao resolver `api.createAdventure` com sucesso, a navegação para `/play/:id` acontece
       normalmente e o intervalo do carrossel é limpo (sem warning de update pós-unmount em teste).
@@ -124,16 +144,40 @@ conjunto a cada intervalo, até a chamada resolver e o `router.push` navegar par
 
 ---
 
+## Copy das mensagens
+
+Decisão da questão em aberto #1: **genéricas/atmosféricas**, não progresso literal — cada
+mensagem evoca uma etapa real da *Ordem de geração* do motor ([US-164](./US-164-orquestrador-motor-monta-aventura-gerada.md)
+passos 0-6: rolagem → locais/NPCs → segredos → antagonista → encontros → fecho), mas nenhuma
+promete estar "naquela fase agora" — só ambienta. Evita o acoplamento apontado na questão original:
+se a ordem do motor mudar (ex.: [US-190](./US-190-antagonista-vira-passo-proprio-entre-segredos-e-encontros.md)
+moveu o antagonista para entre segredos e encontros), a lista não desalinha porque não afirma
+sequência, é embaralhada ou cíclica (`% length`) por design.
+
+`setup.world.starting` ("Criando aventura...") continua existindo para o rótulo do botão
+([SetupWizard.tsx:1096-1099](../../../apps/web/src/components/setup/SetupWizard.tsx)) e dobra
+como a primeira mensagem do carrossel — não duplica string.
+
+| Chave | pt-BR | en-US |
+|---|---|---|
+| `setup.world.loading.1` | Povoando o mundo com seus primeiros habitantes... | Populating the world with its first inhabitants... |
+| `setup.world.loading.2` | Semeando segredos pelos cantos do mapa... | Sowing secrets across the map... |
+| `setup.world.loading.3` | Dando rosto a quem vai se opor a você... | Giving a face to whoever stands against you... |
+| `setup.world.loading.4` | Escolhendo os primeiros perigos do caminho... | Choosing the first dangers on your path... |
+| `setup.world.loading.5` | Amarrando os fios que vão puxar a história... | Tying the threads that will pull the story forward... |
+| `setup.world.loading.6` | Afiando os detalhes antes de abrir a cortina... | Sharpening the details before the curtain opens... |
+
+Nenhuma menciona nome de NPC, local ou segredo específico gerado — são atmosféricas por design,
+reaproveitáveis em qualquer aventura, sem risco de destoar do conteúdo real que sai do motor.
+
+---
+
 ## Questões em aberto
 
-1. As mensagens do carrossel devem ser específicas do que o motor está fazendo em cada fase
-   (abertura, encontros, segredos — como se fosse progresso real) ou genéricas/atmosféricas
-   ("O mestre está preparando algo especial...")? A primeira opção é mais informativa mas cria
-   acoplamento com a ordem real das chamadas do motor ([US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md));
-   pode ficar desalinhada se a ordem do motor mudar. Decidir antes de escrever as strings de
-   `setup.world.loading.*`.
-2. Ilustração ou ícone animado acompanhando o texto, ou só texto? Fora do escopo mínimo desta
-   story, mas pode ser decidido junto se o custo de implementação for baixo.
+1. ~~As mensagens do carrossel devem ser específicas do que o motor está fazendo em cada fase...
+   ou genéricas/atmosféricas?~~ **Resolvida** — ver *Copy das mensagens* acima.
+2. ~~Ilustração ou ícone animado acompanhando o texto, ou só texto?~~ **Resolvida** — só texto.
+   Sem ilustração/ícone animado nesta story; fica fora do escopo mínimo, não uma decisão de custo.
 
 ---
 
@@ -144,5 +188,7 @@ conjunto a cada intervalo, até a chamada resolver e o `router.push` navegar par
 - [apps/web/src/components/setup/SetupWizard.tsx:1061-1080](../../../apps/web/src/components/setup/SetupWizard.tsx) — JSX do passo `world`, ponto de inserção da tela nova.
 - [apps/web/src/components/setup/SetupWizard.tsx:1095-1099](../../../apps/web/src/components/setup/SetupWizard.tsx) — botão com rótulo `setup.world.starting`, hoje o único feedback de carregamento.
 - [apps/web/src/messages/pt-BR.ts:77](../../../apps/web/src/messages/pt-BR.ts), [en-US.ts:73](../../../apps/web/src/messages/en-US.ts) — `setup.world.starting`, chave existente a manter (ou reaproveitar como uma das mensagens do carrossel).
+- [apps/web/src/components/ui/dm.tsx:109-166](../../../apps/web/src/components/ui/dm.tsx) — `SceneFrame`, prop `scene`/`dim`; troca de fundo desta story é aqui, não um `SceneFrame` novo.
+- [apps/web/public/scenes/arboretum-moonlit.png](../../../apps/web/public/scenes/arboretum-moonlit.png) — asset de fundo desta story (único dos três `scenes/*.png` ainda sem tela dona).
 - [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) — story que criou o passo `world` e o estado `starting` que esta story estende.
 - [US-46](./US-46-acessibilidade-wcag-aa.md), [US-66](./US-66-telas-mobile-friendly.md), [US-102](./US-102-gate-de-string-literal-no-jsx.md) — disciplinas que toda tela nova do wizard segue.
