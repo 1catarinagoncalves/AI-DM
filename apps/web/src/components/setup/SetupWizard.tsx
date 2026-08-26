@@ -555,8 +555,12 @@ export function SetupWizard() {
   // Sem seletor de idioma: a criação herda o idioma já ativo no hub de personagens.
   return (
     // US-197: durante a espera do passo `world`, o fundo troca pro jardim noturno —
-    // ambienta "algo sendo preparado nos bastidores" sem gerar asset novo.
-    <SceneFrame scene={starting ? '/scenes/arboretum-moonlit.png' : '/scenes/tavern.png'} dim="heavy" localeToggle={false}>
+    // ambienta "algo sendo preparado nos bastidores" sem gerar asset novo. `dim="medium"`
+    // (não "heavy") só aqui: sem o Panel quase opaco por baixo (ver abaixo), o texto fica
+    // direto sobre a arte de cena — mesmo contraste que app/page.tsx (home) e
+    // app/login/page.tsx já usam nesse caso; "heavy" era calibrado para o Panel, que aqui
+    // não existe, e escondia a cena quase por inteiro.
+    <SceneFrame scene={starting ? '/scenes/arboretum-moonlit.png' : '/scenes/tavern.png'} dim={starting ? 'medium' : 'heavy'} localeToggle={false}>
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6 sm:px-6">
 
         {exitToHub}
@@ -589,6 +593,14 @@ export function SetupWizard() {
           </div>
         </nav>
 
+        {/* US-197: tela de espera SEM o cartão do Panel (quase opaco, `--panel-top/bottom`
+            em ~94% alfa) — dentro dele o fundo trocado (arboretum-moonlit.png) ficava
+            praticamente invisível, o mesmo card que sempre cobriu o formulário. */}
+        {step === 'world' && starting ? (
+          <div className="flex flex-1 flex-col">
+            <AdventureLoadingScreen />
+          </div>
+        ) : (
         <Panel className="flex flex-1 flex-col p-6 sm:p-8">
           {error && <p className={cn(errorBox, 'mb-4')}>{error}</p>}
 
@@ -1062,32 +1074,29 @@ export function SetupWizard() {
             {/* US-157: sétimo passo, depois de `review` — substitui a antiga etapa
                 "Aventura inicial" (US-28), aposentada junto do gancho fixo por classe. */}
             {step === 'world' && (
-              starting ? <AdventureLoadingScreen /> : (
-                <div>
-                  <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
-                  <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
-                  <div className="mt-6 space-y-6">
-                    <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
-                      catalog={settingCatalog} value={setting} onChange={setSetting} />
-                    <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
-                      catalog={toneCatalog} value={tone} onChange={setTone} />
-                    <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
-                      catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
-                    <ChallengeOptionGroup name="challenge" legend={t('setup.world.challenge')} value={challenge}
-                      onChange={key => setChallenge(key as 'adventure' | 'challenge')}
-                      options={[
-                        { key: 'adventure', label: t('setup.world.challenge.adventure.label'), hint: t('setup.world.challenge.adventure.hint') },
-                        { key: 'challenge', label: t('setup.world.challenge.challenge.label'), hint: t('setup.world.challenge.challenge.hint') },
-                      ]} />
-                  </div>
+              <div>
+                <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
+                <div className="mt-6 space-y-6">
+                  <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
+                    catalog={settingCatalog} value={setting} onChange={setSetting} />
+                  <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
+                    catalog={toneCatalog} value={tone} onChange={setTone} />
+                  <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
+                    catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
+                  <ChallengeOptionGroup name="challenge" legend={t('setup.world.challenge')} value={challenge}
+                    onChange={key => setChallenge(key as 'adventure' | 'challenge')}
+                    options={[
+                      { key: 'adventure', label: t('setup.world.challenge.adventure.label'), hint: t('setup.world.challenge.adventure.hint') },
+                      { key: 'challenge', label: t('setup.world.challenge.challenge.label'), hint: t('setup.world.challenge.challenge.hint') },
+                    ]} />
                 </div>
-              )
+              </div>
             )}
           </div>
 
-          {/* Voltar / Próximo / Confirmar / Criar aventura — some por inteiro durante a
-              espera do passo `world` (US-197): nenhuma ação possível enquanto gera. */}
-          {step !== 'system' && !(step === 'world' && starting) && (
+          {/* Voltar / Próximo / Confirmar / Criar aventura */}
+          {step !== 'system' && (
             <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
               <DmButton variant="ghost" type="button" onClick={back}>
                 <ArrowLeft className="size-4" aria-hidden />
@@ -1112,6 +1121,7 @@ export function SetupWizard() {
             </div>
           )}
         </Panel>
+        )}
       </div>
     </SceneFrame>
   )

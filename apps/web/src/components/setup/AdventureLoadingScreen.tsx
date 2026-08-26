@@ -48,7 +48,10 @@ export function AdventureLoadingScreen() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
       <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
-      <p className="mt-6 max-w-md text-lg text-parchment" aria-live="polite">
+      {/* font-serif: mesma família das mensagens ambiente sobre arte de cena (GameView
+          game.empty.title, HomeHero); text-lg + text-parchment sem font-serif destoava
+          da identidade tipográfica do resto do wizard. */}
+      <p className="mt-6 max-w-md font-serif text-lg text-parchment" aria-live="polite">
         {t(keys[index]!)}
       </p>
     </div>

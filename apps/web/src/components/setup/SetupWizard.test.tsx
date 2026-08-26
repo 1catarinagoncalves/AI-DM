@@ -662,6 +662,10 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
       const bg = document.querySelector('img[aria-hidden]') as HTMLImageElement
       expect(bg.src).toContain('arboretum-moonlit.png')
 
+      // US-197 (correção pós-implementação): o fundo trocado ficava invisível atrás do
+      // `.dm-panel` (~94% de alfa) — a tela de espera precisa renderizar FORA do Panel.
+      expect(document.querySelector('.dm-panel')).toBeNull()
+
       await resolveAdventure() // não deixa a promise pendente após o teste
     })
 

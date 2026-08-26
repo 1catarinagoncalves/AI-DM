@@ -78,8 +78,14 @@ conjunto a cada intervalo, até a chamada resolver e o `router.push` navegar par
   já renderiza cabeçalho/logo/toggle por inteiro; aninhar duplicaria esse cabeçalho. A troca é na
   prop `scene` do `SceneFrame` que já envolve o `SetupWizard` inteiro
   ([SetupWizard.tsx:556](../../../apps/web/src/components/setup/SetupWizard.tsx)):
-  `scene={starting ? '/scenes/arboretum-moonlit.png' : '/scenes/tavern.png'}`. `dim` continua
-  fixo em `"heavy"` — o carrossel de texto precisa do mesmo contraste que o formulário já tinha.
+  `scene={starting ? '/scenes/arboretum-moonlit.png' : '/scenes/tavern.png'}`. **Correção
+  pós-implementação**: `dim` NÃO fica fixo em `"heavy"` — vira `dim={starting ? 'medium' :
+  'heavy'}`. A ideia original era manter `"heavy"` porque o `Panel` (quase opaco,
+  `--panel-top`/`--panel-bottom` em ~94% alfa) continuaria por baixo do texto; na prática, com
+  o Panel por baixo, `"heavy"` (overlay de 88%) apagava a cena quase por inteiro — o fundo
+  trocado não aparecia. A tela de espera saiu de dentro do `Panel` (ver nota abaixo) e passou a
+  usar `dim="medium"`, o mesmo que `app/page.tsx` (home) e `app/login/page.tsx` já usam quando
+  o texto fica direto sobre a arte de cena, sem card por baixo.
 
 ### Fora do escopo
 
@@ -126,15 +132,26 @@ conjunto a cada intervalo, até a chamada resolver e o `router.push` navegar par
 
 ## Notas de implementação
 
-- **Ponto de inserção exato**: dentro de `{step === 'world' && (...)}` em
-  [SetupWizard.tsx:1061-1080](../../../apps/web/src/components/setup/SetupWizard.tsx), condicional
-  em `starting` — `starting ? <AdventureLoadingScreen /> : <>...formulário atual...</>`. O footer
-  de botões em [SetupWizard.tsx:1095-1099](../../../apps/web/src/components/setup/SetupWizard.tsx)
-  também precisa ficar condicional a `!starting` (ou o componente novo ocupa a tela inteira,
-  incluindo onde o footer ficava) — decidir na implementação qual dos dois é mais simples de
-  integrar sem duplicar o layout do `Panel`/`SceneFrame`.
-- **`SceneFrame`/`Panel` continuam envolvendo tudo** — a tela de espera é conteúdo interno, não
-  uma rota nova nem um layout próprio; mantém a moldura visual do wizard.
+- **Ponto de inserção real** (correção pós-implementação — não é dentro do bloco `world` como
+  planeado): o `Panel` inteiro vira condicional, ANTES de abrir — `{step === 'world' &&
+  starting ? <div className="flex flex-1 flex-col"><AdventureLoadingScreen /></div> :
+  <Panel>...formulário de todas as etapas, incluindo `world`, e o footer de botões...</Panel>}`.
+  O bloco `{step === 'world' && (...)}` original (dentro do `Panel`) volta a mostrar só o
+  formulário, sem ternário — `starting` nunca é `true` quando esse bloco renderiza, porque o
+  `Panel` inteiro já não existe nesse caso. O footer some junto (fica dentro do `Panel`, que
+  não renderiza).
+- **`SceneFrame` continua envolvendo tudo, `Panel` NÃO** (correção pós-implementação) — a tela
+  de espera é conteúdo interno, não uma rota nova nem um layout próprio, mas fica FORA do
+  `Panel` (o cartão quase opaco que envolve o formulário nas outras etapas). Dentro do `Panel`
+  o fundo trocado ficava invisível atrás do cartão — mesmo problema do `dim="heavy"` acima.
+  `{step === 'world' && starting ? <AdventureLoadingScreen /> : <Panel>...</Panel>}` decide,
+  antes do `Panel` abrir, se ele renderiza ou se a tela de espera toma o lugar inteiro.
+- **Nenhum `text-shadow-fantasy` na mensagem** — utilitário reservado a títulos serif
+  (`SectionTitle`), nunca em texto corrido (comentário no próprio `globals.css`); a legibilidade
+  da mensagem vem do `dim="medium"` acima, não de sombra no texto do parágrafo.
+- **Mensagem usa `font-serif`** — `text-lg text-parchment` sozinho (sem `font-serif`) destoava
+  da tipografia do resto do wizard; o padrão de mensagem única ambiente sobre arte de cena
+  (`GameView.tsx` `game.empty.title`, `HomeHero.tsx`) é sempre `font-serif text-lg text-parchment`.
 - **Intervalo do carrossel**: `useEffect` local ao componente novo (não ao `SetupWizard`), criado
   só quando montado (ou seja, só quando `starting` vira `true`) — assim o cleanup é automático no
   unmount por troca de `step`/desmonte do wizard inteiro, sem precisar coordenar com `starting`
