@@ -327,11 +327,12 @@ describe('AdventureService.createForCharacter', () => {
       },
       // US-189/US-191: antagonista some de npcEntities (excluído por `id`, nível 1/'adventure'
       // cai no caso `role === antagonist.trait` texto livre que vazaria sem essa exclusão) e
-      // chega como DUAS entradas próprias — pública (nome/local, revelado true) e oculta
-      // (want/method/trait/weakness/connection, revelado false) — últimas no ledger.
+      // chega como DUAS entradas próprias — pública (nome/local, revelado false desde
+      // US-199) e oculta (want/method/trait/weakness/connection, revelado false) — últimas
+      // no ledger, pública primeiro (ordem = mecanismo de revelação por recordEntity).
       {
         nome: 'Malvora', tipo: 'npc', local: 'Enseada Cinzenta',
-        revelado: true, atualizadoEm: expect.any(String),
+        revelado: false, atualizadoEm: expect.any(String),
       },
       {
         nome: 'Malvora', tipo: 'npc', local: 'Enseada Cinzenta',

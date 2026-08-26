@@ -263,6 +263,16 @@ export function composeMainQuestText(primary: { title: string; description: stri
   return primary.objective ? `${body}\n${primary.objective}` : body
 }
 
+// US-199: se o antagonista ainda não foi promovido no ledger (`recordEntity({ revelado:
+// true })`), `objective` (que sempre cita `want`/`method` dele, US-169) não pode entrar
+// no `## Main quest` — entregaria o vilão de graça. Extraída, mesmo padrão de
+// `composeMainQuestText`, só pra ser testável isolada; o bypass do caso sem
+// `generatedAdventure` (Free/legado) é montado pelo CALLER, não aqui.
+export function isAntagonistRevealed(antagonistName: string, entities: WorldEntity[] | null | undefined): boolean {
+  if (!antagonistName || !entities) return false
+  return entities.some((e) => norm(e.nome) === norm(antagonistName) && e.revelado === true)
+}
+
 // US-180: lista de âncoras pessoais da personagem (`story`/`origin.adventuresAndAdvancement`)
 // — usada por `generateSecrets` (US-149) pra montar a própria frase de instrução. Extraída
 // pra função pura porque as duas listas eram quase-idênticas e arriscavam divergir com o
@@ -672,8 +682,21 @@ export class AiService {
 
     const systemName = system.name
     const inventory = (characterState?.inventory ?? []) as unknown as InventoryItem[]
+    // US-199: subiram de mais abaixo (onde só `nextEncounter` os usava) — o gate do
+    // `objective`, logo abaixo, também precisa dos dois. Mesma leitura, sem query nova.
+    const generatedAdventure = adventure.generatedAdventure as GeneratedAdventure | null
+    const entities = (adventure.entities ?? null) as WorldEntity[] | null
     const primary = quests.find((q) => q.isPrimary)
-    const mainQuest = primary ? composeMainQuestText(primary) : null
+    // US-199: `objective` só entra no `## Main quest` depois que o Mestre promove o
+    // antagonista via `recordEntity` — antes disso ele nomeia o vilão e o método de
+    // graça, turnos antes de qualquer encontro. Sem `generatedAdventure` (Free/legado)
+    // não há gate: `objective` passa direto, mesmo comportamento de hoje.
+    const antagonistRevealed = generatedAdventure
+      ? isAntagonistRevealed(generatedAdventure.antagonist.name, entities)
+      : true
+    const mainQuest = primary
+      ? composeMainQuestText({ ...primary, objective: antagonistRevealed ? primary.objective : null })
+      : null
     const activeQuests = quests.filter((q) => !q.isPrimary)
 
     // Rótulos e perícias vêm de System.config (US-21/US-27, já validado na criação);
@@ -763,8 +786,7 @@ export class AiService {
     // US-166: sinal de orientação — o encontro de menor id cujo local ainda não é `revelado`
     // no ledger. Puro/sem IA (nextUnrevealedEncounterLocation); `null` quando não há aventura
     // gerada ou todos os locais de encontro já foram revelados — bloco fica ausente.
-    const generatedAdventure = adventure.generatedAdventure as GeneratedAdventure | null
-    const entities = (adventure.entities ?? null) as WorldEntity[] | null
+    // (`generatedAdventure`/`entities` subiram pra antes de `mainQuest`, US-199.)
     const nextEncounter = generatedAdventure
       ? nextUnrevealedEncounterLocation(generatedAdventure.encounters, generatedAdventure.locations, entities ?? [])
       : null

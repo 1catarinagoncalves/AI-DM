@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { AdventureEncounter, GeneratedAdventure } from '@ai-dm/shared'
+import { formatEntities, mergeEntities } from '@ai-dm/ai-engine'
 import { seedLedgerFromGeneratedAdventure } from './seed-ledger'
 
 // US-166: encontro completo ganhou type/behaviors/goal/complications obrigatórios.
@@ -222,22 +223,26 @@ describe('seedLedgerFromGeneratedAdventure — combatentes de encontro (US-171/U
   })
 })
 
-describe('seedLedgerFromGeneratedAdventure — antagonista no ledger (US-189/US-191)', () => {
-  it('antagonist.npcId com role MonsterRole (nível médio/alto): 2 entradas (pública/oculta), sem duplicata em npcEntities/encounterNpcEntities', () => {
+describe('seedLedgerFromGeneratedAdventure — antagonista no ledger (US-189/US-191, revelado:false desde US-199)', () => {
+  it('antagonist.npcId com role MonsterRole (nível médio/alto): 2 entradas OCULTAS (pública primeiro no array), sem duplicata em npcEntities/encounterNpcEntities', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
-    const malvora = entities.filter((e) => e.nome === 'Malvora')
-    expect(malvora).toHaveLength(2)
+    const malvoraIndexes = entities.reduce<number[]>((acc, e, i) => (e.nome === 'Malvora' ? [...acc, i] : acc), [])
+    expect(malvoraIndexes).toHaveLength(2)
+    const [publicaIdx, ocultaIdx] = malvoraIndexes
+    // US-199: mergeEntities patcheia a PRIMEIRA ocorrência — a ordem do array é o
+    // mecanismo de revelação (recordEntity promove a pública, não a oculta).
+    expect(publicaIdx!).toBeLessThan(ocultaIdx!)
 
-    const publica = malvora.find((e) => e.revelado === true)
+    const publica = entities[publicaIdx!]
     expect(publica).toEqual({
       nome: 'Malvora',
       tipo: 'npc',
       local: 'Ruína', // loc-2, local do encontro final (encounter-1, único encontro da fixture)
-      revelado: true,
+      revelado: false,
       atualizadoEm: expect.any(String),
     })
 
-    const oculta = malvora.find((e) => e.revelado === false)
+    const oculta = entities[ocultaIdx!]
     expect(oculta).toEqual({
       nome: 'Malvora',
       tipo: 'npc',
@@ -264,11 +269,39 @@ describe('seedLedgerFromGeneratedAdventure — antagonista no ledger (US-189/US-
     }))
     const malvora = entities.filter((e) => e.nome === 'Malvora')
     expect(malvora).toHaveLength(2)
-    expect(malvora.filter((e) => e.revelado === false)).toHaveLength(1)
+    expect(malvora.filter((e) => e.revelado === false)).toHaveLength(2)
   })
 
   it('encounters vazio: ledger sem entrada do antagonista, sem lançar', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture({ encounters: [] }))
     expect(entities.some((e) => e.nome === 'Malvora')).toBe(false)
+  })
+
+  // US-199: critério de aceite — ledger recém-semeado não tem NENHUMA entrada do
+  // antagonista com revelado:true (o Mestre não recebe o vilão de graça no turno 1).
+  it('nenhuma entrada do antagonista nasce revelado:true', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
+    expect(entities.filter((e) => e.nome === 'Malvora').every((e) => e.revelado === false)).toBe(true)
+  })
+
+  // US-199: critério de aceite — o bloco `## Registro de entidades` do turno 1
+  // renderiza a linha pública do antagonista com o marcador `⚠ OCULTO`.
+  it('formatEntities renderiza a linha pública do antagonista com ⚠ OCULTO', () => {
+    const block = formatEntities(seedLedgerFromGeneratedAdventure(adventureFixture()))
+    expect(block).toContain('Malvora — ⚠ OCULTO')
+  })
+
+  // US-199: critério de aceite — recordEntity({nome, revelado:true}) promove só a
+  // PRIMEIRA ocorrência (a pública, US-191); a oculta e seu `nota` (want/method/trait/
+  // weakness/connection) ficam intocados. Regressão da ordem do `return`.
+  it('recordEntity({ nome, revelado: true }) promove a pública e deixa a oculta intacta', () => {
+    const seeded = seedLedgerFromGeneratedAdventure(adventureFixture())
+    const promoted = mergeEntities(seeded, [{ nome: 'Malvora', revelado: true }])
+    const malvora = promoted.filter((e) => e.nome === 'Malvora')
+    expect(malvora).toHaveLength(2)
+    expect(malvora[0]).toMatchObject({ revelado: true })
+    expect(malvora[0]!.nota).toBeUndefined()
+    expect(malvora[1]).toMatchObject({ revelado: false })
+    expect(malvora[1]!.nota).toBe('Quer: poder sobre a região — Método: reunir um exército — Traço: fala em sussurros — Fraqueza: vaidade — Conexão: já cruzou caminho com o grupo antes')
   })
 })

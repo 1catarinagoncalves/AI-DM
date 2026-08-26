@@ -6,6 +6,7 @@ import {
   resolveGainedDeltas,
   resolveLostItems,
   composeMainQuestText,
+  isAntagonistRevealed,
   OPENING_SCENE_SCHEMA,
   CLOSING_SCHEMA,
 } from './ai.service'
@@ -390,6 +391,42 @@ describe('composeMainQuestText (US-194)', () => {
   it('objective null (quest legada pré-US-169) não vaza "null" literal no texto', () => {
     const text = composeMainQuestText({ title: 'x', description: 'x', objective: null })
     expect(text).not.toContain('null')
+  })
+})
+
+// US-199: check extraído (mesmo padrão de composeMainQuestText, "só pra ser testável
+// isolada") — decide se o `objective` pode entrar no bloco `## Main quest`. Bypass do
+// caso sem generatedAdventure (Free/legado) é montado pelo CALLER, não por esta função.
+describe('isAntagonistRevealed (US-199)', () => {
+  it('true quando alguma entrada do ledger com aquele nome está revelado:true', () => {
+    const entities: WorldEntity[] = [
+      { nome: 'Malvora', tipo: 'npc', revelado: false, atualizadoEm: '' },
+      { nome: 'Malvora', tipo: 'npc', revelado: true, atualizadoEm: '' },
+    ]
+    expect(isAntagonistRevealed('Malvora', entities)).toBe(true)
+  })
+
+  it('false quando as entradas com aquele nome estão todas revelado:false', () => {
+    const entities: WorldEntity[] = [
+      { nome: 'Malvora', tipo: 'npc', revelado: false, atualizadoEm: '' },
+      { nome: 'Malvora', tipo: 'npc', nota: 'Quer: poder', revelado: false, atualizadoEm: '' },
+    ]
+    expect(isAntagonistRevealed('Malvora', entities)).toBe(false)
+  })
+
+  it('casa por nome tolerante a acento/caixa (norm)', () => {
+    const entities: WorldEntity[] = [{ nome: 'MALVÓRA', tipo: 'npc', revelado: true, atualizadoEm: '' }]
+    expect(isAntagonistRevealed('malvora', entities)).toBe(true)
+  })
+
+  it('false sem antagonistName ou sem entities', () => {
+    expect(isAntagonistRevealed('', [{ nome: 'Malvora', revelado: true, atualizadoEm: '' }])).toBe(false)
+    expect(isAntagonistRevealed('Malvora', null)).toBe(false)
+    expect(isAntagonistRevealed('Malvora', undefined)).toBe(false)
+  })
+
+  it('false quando o nome não está no ledger', () => {
+    expect(isAntagonistRevealed('Malvora', [{ nome: 'Marta', revelado: true, atualizadoEm: '' }])).toBe(false)
   })
 })
 

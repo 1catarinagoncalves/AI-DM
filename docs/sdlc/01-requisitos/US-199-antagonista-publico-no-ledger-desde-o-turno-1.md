@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-194](./US-194-abertura-e-encontro-1-competem-como-cena-inicial.md) (fecha o TERCEIRO canal — a instrução explícita de nomear o vilão na abertura; sem ela, esta story tapa duas portas de três) · [US-193](./US-193-encontros-sem-cadeia-causal-entre-si.md) (é a cadeia `unlocks` que dá ao Mestre o momento certo de revelar — sem trilha, esconder o nome só adia o vazio) · [US-189](./US-189-antagonista-entra-no-ledger.md)/[US-191](./US-191-antagonista-vira-occupant-do-local-do-confronto-final.md) (criaram as duas entradas do antagonista no ledger)
 **Reverte parte de:** [US-191](./US-191-antagonista-vira-occupant-do-local-do-confronto-final.md) Parte 2 — a decisão de deixar o vilão "reconhecível por nome desde a abertura", implementada como `antagonistPublicEntity` com `revelado: true`
 **Relacionado:** [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) (`objective` cita `want`/`method` por exigência de prompt — este story não muda o que é GERADO, só quando é EXPOSTO) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (os dois eixos `sabido`/`revelado`, que já são o mecanismo aqui) · [US-115](./US-115-reconciliacao-de-entidades-pos-turno.md) (mede a omissão de `recordEntity`, que vira risco de verdade quando a revelação passa a depender dela)
@@ -53,9 +53,12 @@ A US-191 Parte 2 fez isso de propósito: *"o produto passou a querer o vilão re
 - **`antagonistPublicEntity` nasce `revelado: false`** ([seed-ledger.ts:107](../../../apps/api/src/adventure-generation/seed-ledger.ts)). Uma linha. O Mestre continua vendo nome e local — precisa, pra ser consistente —, mas sob o marcador `⚠ OCULTO`, cujo contrato já está escrito no prompt ([dm-system.ts:616](../../../packages/ai-engine/src/prompts/dm-system.ts)): *"NEVER reveal it: do not name it, do not hint at it... until the fiction makes the character discover it, then call `recordEntity`"*. Nenhum mecanismo novo — é o eixo `revelado` da US-75 aplicado a quem faltava.
 - **As DUAS entradas continuam existindo.** Colapsar em uma só é a simplificação óbvia e errada: o `recordEntity({ nome: 'Malvora', revelado: true })` que revela o NOME promoveria junto o `nota` da entrada oculta (`want`/`method`/`trait`/**`weakness`**/`connection`), entregando a fraqueza do vilão no turno em que a jogadora descobre que ele existe. As duas entradas são exatamente a defesa contra isso (US-191) e permanecem.
 - **A ordem do array vira contrato, com teste.** `mergeEntities` casa por `nome` normalizado e patcheia a **primeira** ocorrência ([entities.ts](../../../packages/ai-engine/src/entities.ts), `findIndex`). Como `antagonistPublicEntity` é emitido ANTES de `antagonistHiddenEntity` no `return` ([seed-ledger.ts:134-135](../../../apps/api/src/adventure-generation/seed-ledger.ts)), a promoção acerta a pública e a oculta continua oculta — que é o comportamento desejado. Hoje isso funciona por acidente de ordem; com esta story vira o mecanismo de revelação, e ganha teste de regressão + comentário com número desta US no ponto do `return`.
+  - **Onde fica o comentário:** só no `return` — estende o bloco US-189/191 já existente ([seed-ledger.ts:93-104](../../../apps/api/src/adventure-generation/seed-ledger.ts)) com o número desta story. A linha isolada `revelado: false` (`:111`) não ganha comentário próprio; o PORQUÊ dela é o mesmo do bloco, comentário duplicado nos dois pontos é redundância.
 - **`objective` só entra no `## Main quest` depois da revelação.** Em [ai.service.ts:628](../../../apps/api/src/ai/ai.service.ts), `mainQuest` passa a concatenar `objective` apenas quando a entrada do antagonista no ledger já está `revelado: true`. Antes disso o bloco emite só a premissa — que, com a [US-194](./US-194-abertura-e-encontro-1-competem-como-cena-inicial.md), é o que `Quest.description` guarda.
   - **Identificação da entrada:** `generatedAdventure.antagonist.name` (o artefato já é lido no mesmo método, [:718](../../../apps/api/src/ai/ai.service.ts)) casado com `norm()` de [entities.ts](../../../packages/ai-engine/src/entities.ts) — a função já é exportada e já é reusada assim pela US-171. Nada de comparar string crua.
   - **Ordem no arquivo:** `const entities` é declarado hoje em [:719](../../../apps/api/src/ai/ai.service.ts), depois de `mainQuest`. Subir a declaração — não duplicar a leitura de `adventure.entities`.
+  - **Forma do gate:** `composeMainQuestText` ([ai.service.ts:261](../../../apps/api/src/ai/ai.service.ts)) já tem o guard pra `objective: null` (evita vazar `"null"` no bloco, US-169). Gatear ANTES da chamada — `objective: antagonistRevealed ? primary.objective : null` — reusa esse guard de graça. Não mudar a assinatura da função: ela continua pura, testável isolada, só formata texto; a decisão de revelado é de quem chama.
+  - **Check extraído em função própria.** Mesmo padrão de `composeMainQuestText` ("extraída só pra ser testável isolada"): `isAntagonistRevealed(antagonistName, entities)` — `false` se `antagonistName` ou `entities` ausentes, senão `entities.some(e => norm(e.nome) === norm(antagonistName) && e.revelado === true)`. Caller monta o bypass do caso Free por fora: `generatedAdventure ? isAntagonistRevealed(...) : true` — sem `generatedAdventure` a função nem é chamada, `objective` passa direto (ver *Fora do escopo*).
 - **Nada gravado muda de forma.** `Quest.objective` continua persistido igual (US-169 intacta); o gate é na MONTAGEM do prompt. `GeneratedAdventureSchema` não muda, gate da US-150 não muda, nenhuma migração.
 - **Testes:** entrada pública nasce `revelado: false`; as duas entradas continuam existindo, com a pública primeiro no array; `recordEntity({ nome, revelado: true })` promove a pública e deixa a oculta intacta (regressão da ordem); `mainQuest` omite `objective` com o antagonista não revelado e o inclui depois; quest legada sem `objective` (`null`) continua sem vazar `"null"` — o guard da US-169 fica.
 
@@ -72,16 +75,16 @@ A US-191 Parte 2 fez isso de propósito: *"o produto passou a querer o vilão re
 
 ## Critérios de aceite
 
-- [ ] `antagonistPublicEntity` nasce `revelado: false` — ledger recém-semeado não tem NENHUMA entrada do antagonista com `revelado: true`.
-- [ ] O bloco `## Registro de entidades` do turno 1 renderiza a linha do antagonista COM `⚠ OCULTO` (teste de substring sobre `formatEntities`, mesmo padrão dos outros guards de prompt).
-- [ ] As duas entradas continuam existindo, e a **pública vem antes** da oculta no array devolvido — teste de índice, não de presença.
-- [ ] `recordEntity({ nome: <antagonista>, revelado: true })` promove a entrada pública e deixa a oculta com `revelado: false` e o `nota` (`want`/`method`/`trait`/`weakness`/`connection`) intocado.
-- [ ] Com o antagonista não revelado, o bloco `## Main quest` do prompt **não** contém `objective`; depois de revelado, contém.
-- [ ] O gate identifica a entrada por `generatedAdventure.antagonist.name` via `norm()` — nome com acento/caixa diferente no ledger continua casando.
-- [ ] Quest legada (`objective: null`) e mesa Free: `mainQuest` idêntico ao de hoje, testes existentes verdes sem alteração.
-- [ ] `Quest.objective` continua gravado igual; nenhuma migração, `GeneratedAdventureSchema` e o gate da US-150 inalterados.
-- [ ] `pnpm typecheck`, testes dos módulos tocados e `pnpm eval` verdes.
-- [ ] Seed jogado à mão até o 3º ou 4º encontro: o nome do antagonista **não** aparece na abertura, e aparece em algum ponto da trilha — não só no encontro 8.
+- [x] `antagonistPublicEntity` nasce `revelado: false` — ledger recém-semeado não tem NENHUMA entrada do antagonista com `revelado: true`.
+- [x] O bloco `## Registro de entidades` do turno 1 renderiza a linha do antagonista COM `⚠ OCULTO` (teste de substring sobre `formatEntities`, mesmo padrão dos outros guards de prompt).
+- [x] As duas entradas continuam existindo, e a **pública vem antes** da oculta no array devolvido — teste de índice, não de presença.
+- [x] `recordEntity({ nome: <antagonista>, revelado: true })` promove a entrada pública e deixa a oculta com `revelado: false` e o `nota` (`want`/`method`/`trait`/`weakness`/`connection`) intocado.
+- [x] Com o antagonista não revelado, o bloco `## Main quest` do prompt **não** contém `objective`; depois de revelado, contém.
+- [x] O gate identifica a entrada por `generatedAdventure.antagonist.name` via `norm()` — nome com acento/caixa diferente no ledger continua casando.
+- [x] Quest legada (`objective: null`) e mesa Free: `mainQuest` idêntico ao de hoje, testes existentes verdes sem alteração.
+- [x] `Quest.objective` continua gravado igual; nenhuma migração, `GeneratedAdventureSchema` e o gate da US-150 inalterados.
+- [x] `pnpm typecheck`, testes dos módulos tocados e `pnpm eval` verdes.
+- [ ] Seed jogado à mão até o 3º ou 4º encontro: o nome do antagonista **não** aparece na abertura, e aparece em algum ponto da trilha — não só no encontro 8. (pendente — validação de mesa, não automatizável)
 
 ---
 
@@ -97,6 +100,7 @@ A US-191 Parte 2 fez isso de propósito: *"o produto passou a querer o vilão re
 - **O gate do `objective` deixa o Mestre sem alvo nos primeiros turnos.** Não fica sem direção: `Quest.description` é a premissa (US-194) e o `goal` de cada encontro vem da cadeia da US-193 — que é exatamente o alvo do turno atual, em vez do alvo do turno 8. Se a eval de narração acusar deriva, a resposta certa é emitir `objective` sem o trecho do vilão, não reabrir o gate.
 - **`revelado: false` na entrada pública faz DUAS entradas ocultas com o mesmo nome.** Nenhum consumidor quebra (`formatEntities` renderiza as duas linhas, o Mestre lê nome+local numa e nome+local+nota noutra), mas a linha duplicada no prompt é ruído. Se incomodar na leitura do prompt real, a saída barata é a entrada oculta perder `local` (a pública já o carrega) — verificar no prompt renderizado antes de decidir, não por antecipação.
 - **Não resolver por `sabido: 'privado'`.** É o outro eixo (quem no MUNDO pode saber), não o que está em jogo aqui — o vilão ser conhecido pelos NPCs é plausível e desejável; o defeito é a JOGADORA receber isso de graça. Trocar o eixo errado é o tipo de correção que passa no teste e não muda a mesa.
+- **Verificado: não interfere no hint do US-166.** `nextUnrevealedEncounterLocation` ([next-encounter-hint.ts:21](../../../apps/api/src/adventure-generation/next-encounter-hint.ts)) casa `revealedTitles` por `entity.nome === location.title` — chave é TÍTULO DE LOCAL, não nome de NPC. `antagonistPublicEntity.nome` é o nome do vilão, nunca colide com título de local seedado à parte. Virar `revelado: false` não muda esse hint; confirmado por leitura, sem teste extra necessário.
 
 ---
 

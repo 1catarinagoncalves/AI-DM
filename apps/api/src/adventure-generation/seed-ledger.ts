@@ -99,16 +99,23 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
   //
   // US-191: o NOME do antagonista deixou de ser segredo (Parte 2 já libera nomeá-lo desde a
   // abertura) — DUAS entradas em vez de uma: `antagonistPublicEntity` (nome, local,
-  // `revelado: true`, sem `nota`) e `antagonistHiddenEntity` (mesmo nome — `WorldEntity.nome`
-  // é obrigatório, não dá pra omitir sem mudar schema — `nota` com want/method/trait/
-  // weakness/connection, `revelado: false`, o que ainda importa proteger até o confronto).
+  // sem `nota`) e `antagonistHiddenEntity` (mesmo nome — `WorldEntity.nome` é obrigatório,
+  // não dá pra omitir sem mudar schema — `nota` com want/method/trait/weakness/connection,
+  // `revelado: false`, o que ainda importa proteger até o confronto).
+  //
+  // US-199: reverte a Parte 2 — `antagonistPublicEntity` nasce `revelado: false` também.
+  // O Mestre continua vendo nome+local (precisa, pra ser consistente), mas sob `⚠ OCULTO`
+  // até promover via `recordEntity`. A ORDEM do `return` abaixo (pública ANTES da oculta)
+  // é o que faz essa promoção acertar só a pública — `mergeEntities` patcheia a PRIMEIRA
+  // ocorrência por `nome` (`findIndex`) — sem isso, `recordEntity({ revelado: true })`
+  // promoveria a oculta junto e vazaria weakness/method no turno errado.
   const finalEncounter = adventure.encounters.at(-1)
   const antagonistLocal = finalEncounter && locationTitleById.get(finalEncounter.locationId)
   const antagonistPublicEntity: WorldEntity | undefined = finalEncounter && {
     nome: adventure.antagonist.name,
     tipo: 'npc',
     local: antagonistLocal,
-    revelado: true,
+    revelado: false,
     atualizadoEm: now,
   }
   const antagonistHiddenEntity: WorldEntity | undefined = finalEncounter && {
