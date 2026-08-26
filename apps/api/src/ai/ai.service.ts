@@ -446,6 +446,82 @@ export function applyInventoryDeltas(current: InventoryItem[], changes: { name: 
 }
 
 /**
+ * US-200: schema da extração de reconciliação do inventário — mesmo molde de
+ * `OPENING_SCENE_SCHEMA`. Assimetria proposital entrada/saída (ver US-200 §Escopo):
+ * "adquiridos" é só nome (insert-only, pior caso é duplicar — barato). "perdidos"
+ * carrega `evidencia` (trecho literal da narração) e `local` — saída exige prova
+ * textual explícita porque o pior caso é sumir item que a jogadora ainda tem.
+ */
+export const INVENTORY_RECONCILE_SCHEMA = z.object({
+  adquiridos: z
+    .array(z.string())
+    .describe('Nomes de itens que a personagem pegou, recebeu ou ganhou na narração. Resolva referência genérica ("o símbolo") contra o nome canônico já no INVENTÁRIO ATUAL antes de listar — não crie item novo para o mesmo objeto.'),
+  perdidos: z
+    .array(
+      z.object({
+        name: z.string().describe('Nome do item, EXATAMENTE como aparece no INVENTÁRIO ATUAL'),
+        evidencia: z.string().describe('Trecho literal da narração que comprova a remoção'),
+        local: z.string().describe('Onde o item ficou (largado, caiu, entregue a alguém, etc.), em linguagem natural'),
+      }),
+    )
+    .describe('Itens removidos do inventário SÓ quando a narração usa verbo EXPLÍCITO de perda (largou, jogou fora, deu, entregou, perdeu, foi roubado, destruiu, vendeu). NUNCA liste um item só porque não foi mencionado neste turno — reposicionar (guardar na bainha, no bolso) não é perda.'),
+})
+
+/**
+ * US-200: entrada da reconciliação — insert-only. Nome que casa (por `norm`,
+ * tolerando acento/caixa) com item já existente não gera delta (evita duplicar);
+ * nome sem match vira `+1`. Nunca remove — mesmo cuidado da US-115: um extrator não
+ * distingue "pegou" de "só viu". Puro e testável — fora de `reconcileInventory`,
+ * que é LLM + DB.
+ */
+export function resolveGainedDeltas(current: InventoryItem[], gained: string[]): { name: string; delta: number }[] {
+  const existingNorm = new Set(current.map((item) => norm(item.name)))
+  return gained
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0 && !existingNorm.has(norm(name)))
+    .map((name) => ({ name, delta: 1 }))
+}
+
+export interface ResolvedLostItems {
+  deltas: { name: string; delta: number }[]
+  sceneAdditions: string[]
+  ledgerPatches: EntityPatch[]
+}
+
+/**
+ * US-200: saída da reconciliação — só age em nome que CASA (por `norm`) com item já
+ * existente; nome sem match é ignorado (a extração já é instruída a citar o nome
+ * exato do inventário atual — um nome que não casa é sinal de alucinação, não item
+ * novo saindo). Destino compara `local` do item × `localFinal` da personagem, mesmo
+ * critério antes/depois que `reconcileEncounterLedger` já usa para NPC que sai de
+ * cena: local IGUAL (norm) → ainda visível → `objetos_em_cena`; local DIFERENTE (ou
+ * `localFinal` desconhecido) → fora do alcance → entidade do ledger.
+ */
+export function resolveLostItems(
+  current: InventoryItem[],
+  lost: { name: string; evidencia: string; local: string }[],
+  localFinal: string | undefined,
+): ResolvedLostItems {
+  const deltas: { name: string; delta: number }[] = []
+  const sceneAdditions: string[] = []
+  const ledgerPatches: EntityPatch[] = []
+  const localFinalNorm = localFinal ? norm(localFinal) : undefined
+
+  for (const item of lost) {
+    const existing = current.find((i) => norm(i.name) === norm(item.name))
+    if (!existing) continue
+    deltas.push({ name: existing.name, delta: -existing.qty })
+    if (localFinalNorm !== undefined && norm(item.local) === localFinalNorm) {
+      sceneAdditions.push(existing.name)
+    } else {
+      ledgerPatches.push({ nome: existing.name, tipo: 'objeto', local: item.local, nota: item.evidencia })
+    }
+  }
+
+  return { deltas, sceneAdditions, ledgerPatches }
+}
+
+/**
  * US-103: proveniência das extrações/chamadas do motor, no mesmo formato da linha do
  * turno. `model` é passado pelo chamador (2026-08-19: deixou de ser sempre
  * `extractionModel` — o motor de aventura roda em `primaryModel`, ver
@@ -1256,7 +1332,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
           // inventário do ADR 011 que ainda faltava logar. Emite em TODO turno com
           // narração (não só quando reconcileScene dispara), pra virar taxa, não só falha.
           console.log(JSON.stringify({ event: 'arc_signal', turnId, timestamp: new Date().toISOString(), adventureId, characterId, cenaTocada }))
-          if (!cenaTocada) void this.reconcileScene(adventureId, characterId, finalText, character.name, turnId)
+          void this.reconcilePostTurn(adventureId, characterId, finalText, character.name, cenaTocada, turnId)
         }
         await this.summarizeOldTurns(adventureId, characterId)
       },
@@ -1325,12 +1401,12 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     // da Sibil), e o sinal de continuidade da US-71 passava a apontar para trás no turno
     // seguinte. Mesmo fire-and-forget do onFinish: o jogador já recebeu o fecho.
     // ponytail: sem o gate `cenaTocada` do onFinish — os steps não chegam aqui, e um
-    // turno truncado é justamente o desleixado. Uma extração a mais num caminho raro.
+    // turno truncado é justamente o desleixado. Duas extrações a mais num caminho raro.
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },
       select: { name: true },
     })
-    void this.reconcileScene(adventureId, characterId, finalText, character?.name ?? '', turnId)
+    void this.reconcilePostTurn(adventureId, characterId, finalText, character?.name ?? '', false, turnId)
 
     await this.summarizeOldTurns(adventureId, characterId)
 
@@ -1898,6 +1974,123 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       )
     } catch (err) {
       logLlmFailure('reconcileScene', 'a cena não sincroniza com a narração deste turno', err, turnId)
+    }
+  }
+
+  /**
+   * US-200: sequencia os dois reconciliadores fire-and-forget do turno. `reconcileInventory`
+   * decide cena-vs-ledger comparando o `local` do item perdido com o `local` FINAL da
+   * personagem — por isso roda DEPOIS de `reconcileScene` ter commitado no banco (await, não
+   * `void` em paralelo): rodar em paralelo arriscaria ler o `sceneState` do turno ANTERIOR e
+   * errar o destino (ver US-200, Notas de implementação — "local só faz sentido calculado
+   * junto do local final, no mesmo turno"). `cenaTocada` reusa o sinal do onFinish: quando o
+   * modelo chamou `updateScene`, a tool já commitou o `local` novo, e `reconcileScene` não
+   * precisa rodar de novo.
+   */
+  private async reconcilePostTurn(
+    adventureId: string,
+    characterId: string,
+    narration: string,
+    playerName: string,
+    cenaTocada: boolean,
+    turnId?: string,
+  ): Promise<void> {
+    if (!cenaTocada) await this.reconcileScene(adventureId, characterId, narration, playerName, turnId)
+    await this.reconcileInventory(adventureId, characterId, narration, turnId)
+  }
+
+  /**
+   * US-200: reconciliador pós-turno que sincroniza `CharacterState.inventory` com a
+   * narração — mesmo molde do `reconcileScene` (extração estruturada compara o estado
+   * atual com a narração, funde, fire-and-forget, nunca lança). Chamado via
+   * `reconcilePostTurn` nos dois call sites do turno (onFinish normal + salvamento
+   * truncado da US-74).
+   *
+   * `updateInventory` (a tool) tem prioridade sem precisar de gate: este método sempre lê
+   * o inventário FRESCO do banco, já com o delta da tool aplicado se ela rodou neste turno.
+   * Um item que a tool já adicionou aparece no "INVENTÁRIO ATUAL" do prompt — a extração é
+   * instruída a NÃO relistá-lo em "adquiridos" — então não duplica nem desfaz o que a tool
+   * já commitou.
+   *
+   * Assimetria proposital entrada/saída (US-200 §Escopo): entrada é insert-only (pior caso:
+   * duplicar — barato); saída só remove com `evidencia` textual explícita (pior caso: sumir
+   * item que a jogadora ainda tem — caro). Item removido migra para `objetos_em_cena` (mesmo
+   * `local` da personagem no fim do turno) ou vira entidade do ledger via `mergeEntities`
+   * (local diferente) — mesmo critério antes/depois que `reconcileEncounterLedger` já usa
+   * para NPC que sai de cena. Sem novo evento no `EventLog`: logar `CHARACTER_UPDATE`
+   * marcaria o turno como mutação e o guard de edição da US-67 desativaria a edição do
+   * turno (mesmo motivo do `recordEntity`, `ai.service.ts` linha ~973).
+   */
+  private async reconcileInventory(adventureId: string, characterId: string, narration: string, turnId?: string): Promise<void> {
+    const text = narration.trim()
+    if (text.length === 0) return
+    try {
+      const state = await this.prisma.characterState.findUnique({
+        where: { characterId_adventureId: { characterId, adventureId } },
+        select: { inventory: true, sceneState: true },
+      })
+      const current = (state?.inventory ?? []) as unknown as InventoryItem[]
+      const currentScene = (state?.sceneState ?? null) as SceneState | null
+      const localFinal = currentScene?.local
+
+      const { object, providerMetadata } = await generateObject({
+        model: extractionModel,
+        schema: INVENTORY_RECONCILE_SCHEMA,
+        system:
+          'Você reconcilia o INVENTÁRIO estruturado de uma personagem de RPG com a narração mais recente. Dado o INVENTÁRIO ATUAL, o LOCAL final da personagem e a NARRAÇÃO, devolva os itens ADQUIRIDOS (a personagem pegou, recebeu ou ganhou) e PERDIDOS (a personagem largou, deu, perdeu ou teve roubado). Resolva referência genérica contra o nome canônico já no inventário — "o símbolo" narrado é "Lúcivis" se já existe um item assim; não crie item duplicado para o mesmo objeto. Um item só entra em "perdidos" se a narração contém verbo EXPLÍCITO de remoção (largou, jogou fora, deu, entregou, perdeu, foi roubado, destruiu, vendeu) — NUNCA por o item simplesmente não ter sido mencionado neste turno. Reposicionar o item (guardar na bainha, no bolso) NÃO é perda. Use APENAS o que a narração e o inventário atual revelam — não invente.',
+        prompt: [
+          `INVENTÁRIO ATUAL:\n${current.length > 0 ? current.map((i) => i.name).join(', ') : '(vazio)'}`,
+          `LOCAL FINAL DA PERSONAGEM:\n${localFinal || '(desconhecido)'}`,
+          `NARRAÇÃO:\n"""\n${text}\n"""`,
+        ].join('\n\n'),
+        providerOptions: EXTRACTION_PROVIDER_OPTIONS,
+      })
+      logExtractionEndpoint('reconcileInventory', extractionModel, providerMetadata)
+
+      const gainDeltas = resolveGainedDeltas(current, object.adquiridos)
+      const { deltas: lossDeltas, sceneAdditions, ledgerPatches } = resolveLostItems(current, object.perdidos, localFinal)
+      const deltas = [...gainDeltas, ...lossDeltas]
+
+      if (deltas.length > 0) {
+        const nextInventory = applyInventoryDeltas(current, deltas)
+        await this.prisma.characterState.update({
+          where: { characterId_adventureId: { characterId, adventureId } },
+          data: { inventory: nextInventory as unknown as object },
+        })
+      }
+
+      if (sceneAdditions.length > 0) {
+        const existingObjetos = currentScene?.objetos_em_cena ?? []
+        const existingNorm = new Set(existingObjetos.map(norm))
+        const objetos_em_cena = [...existingObjetos, ...sceneAdditions.filter((name) => !existingNorm.has(norm(name)))]
+        const nextScene = mergeSceneState(currentScene, { objetos_em_cena })
+        await this.prisma.characterState.update({
+          where: { characterId_adventureId: { characterId, adventureId } },
+          data: { sceneState: nextScene as unknown as object },
+        })
+      }
+
+      if (ledgerPatches.length > 0) {
+        const fresh = await this.prisma.adventure.findUnique({ where: { id: adventureId }, select: { entities: true } })
+        const currentEntities = (fresh?.entities ?? null) as WorldEntity[] | null
+        const nextEntities = mergeEntities(currentEntities, ledgerPatches)
+        await this.prisma.adventure.update({
+          where: { id: adventureId },
+          data: { entities: nextEntities as unknown as object },
+        })
+      }
+
+      console.log(
+        JSON.stringify({
+          event: 'inventory_reconciled',
+          turnId,
+          timestamp: new Date().toISOString(),
+          gained: gainDeltas.map((d) => d.name),
+          lost: lossDeltas.map((d) => d.name),
+        }),
+      )
+    } catch (err) {
+      logLlmFailure('reconcileInventory', 'o inventário não sincroniza com a narração deste turno', err, turnId)
     }
   }
 

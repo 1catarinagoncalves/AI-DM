@@ -1,5 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
-import { AiService, scenePatchFromExtraction, applyInventoryDeltas, composeMainQuestText, OPENING_SCENE_SCHEMA, CLOSING_SCHEMA } from './ai.service'
+import {
+  AiService,
+  scenePatchFromExtraction,
+  applyInventoryDeltas,
+  resolveGainedDeltas,
+  resolveLostItems,
+  composeMainQuestText,
+  OPENING_SCENE_SCHEMA,
+  CLOSING_SCHEMA,
+} from './ai.service'
 import { mergeSceneState, extractionModel, primaryModel, ONOMASTICS_SECTION, CRAFT_CORE_SECTION, NPC_VOICE_BULLET } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
@@ -287,6 +296,79 @@ describe('applyInventoryDeltas (US-128)', () => {
   })
 })
 
+describe('resolveGainedDeltas (US-200)', () => {
+  it('nome que não casa com item existente vira +1', () => {
+    const current: InventoryItem[] = [{ name: 'Adaga', qty: 1 }]
+    expect(resolveGainedDeltas(current, ['Poção de cura'])).toEqual([{ name: 'Poção de cura', delta: 1 }])
+  })
+
+  it('nome que casa (tolerante a acento/caixa) com item já existente NÃO duplica', () => {
+    const current: InventoryItem[] = [{ name: 'Lúcivis', qty: 1 }]
+    expect(resolveGainedDeltas(current, ['lucivis'])).toEqual([])
+  })
+
+  it('mistura de novo e já existente: só o novo vira delta', () => {
+    const current: InventoryItem[] = [{ name: 'Adaga', qty: 1 }]
+    const deltas = resolveGainedDeltas(current, ['adaga', 'Corda'])
+    expect(deltas).toEqual([{ name: 'Corda', delta: 1 }])
+  })
+
+  it('lista vazia não gera delta', () => {
+    expect(resolveGainedDeltas([{ name: 'Adaga', qty: 1 }], [])).toEqual([])
+  })
+})
+
+describe('resolveLostItems (US-200)', () => {
+  const current: InventoryItem[] = [{ name: 'Lúcivis', qty: 1 }, { name: 'Adaga', qty: 1 }]
+
+  it('local do item IGUAL ao local final da personagem: sai do inventário e entra em objetos_em_cena', () => {
+    const { deltas, sceneAdditions, ledgerPatches } = resolveLostItems(
+      current,
+      [{ name: 'lucivis', evidencia: 'largou o símbolo Lúcivis no chão da sacristia', local: 'sacristia' }],
+      'Sacristia',
+    )
+    expect(deltas).toEqual([{ name: 'Lúcivis', delta: -1 }])
+    expect(sceneAdditions).toEqual(['Lúcivis'])
+    expect(ledgerPatches).toEqual([])
+  })
+
+  it('local do item DIFERENTE do local final da personagem: sai do inventário e vira entidade do ledger', () => {
+    const { deltas, sceneAdditions, ledgerPatches } = resolveLostItems(
+      current,
+      [{ name: 'lucivis', evidencia: 'o símbolo Lúcivis caiu no poço', local: 'poço' }],
+      'porão do culto',
+    )
+    expect(deltas).toEqual([{ name: 'Lúcivis', delta: -1 }])
+    expect(sceneAdditions).toEqual([])
+    expect(ledgerPatches).toEqual([{ nome: 'Lúcivis', tipo: 'objeto', local: 'poço', nota: 'o símbolo Lúcivis caiu no poço' }])
+  })
+
+  it('local final da personagem desconhecido: fora do alcance por padrão, vira ledger', () => {
+    const { sceneAdditions, ledgerPatches } = resolveLostItems(
+      current,
+      [{ name: 'Adaga', evidencia: 'deu a adaga ao ferreiro', local: 'forja' }],
+      undefined,
+    )
+    expect(sceneAdditions).toEqual([])
+    expect(ledgerPatches).toHaveLength(1)
+  })
+
+  it('nome que NÃO casa com item existente é ignorado — sem delta, sem cena, sem ledger', () => {
+    const { deltas, sceneAdditions, ledgerPatches } = resolveLostItems(
+      current,
+      [{ name: 'Escudo', evidencia: 'jogou o escudo no rio', local: 'rio' }],
+      'rio',
+    )
+    expect(deltas).toEqual([])
+    expect(sceneAdditions).toEqual([])
+    expect(ledgerPatches).toEqual([])
+  })
+
+  it('lista vazia: nenhum efeito', () => {
+    expect(resolveLostItems(current, [], 'sacristia')).toEqual({ deltas: [], sceneAdditions: [], ledgerPatches: [] })
+  })
+})
+
 // US-194: `Quest.description` passa a ser `generated.summary` (mesmo texto de `title`) —
 // o bloco `## Main quest` do turno não pode repetir a premissa duas vezes.
 describe('composeMainQuestText (US-194)', () => {
@@ -487,6 +569,177 @@ describe('AiService.reconcileScene → reconcileEncounterLedger, encadeamento (U
 
     expect(adventureUpdates).toHaveLength(1)
     expect(adventureUpdates[0]!.find((e) => e.nome === 'Soldier (npc-2)')?.estado).toBe('fora de cena')
+  })
+})
+
+// US-200: `reconcileInventory` é privado e é LLM + DB — mesmo padrão do
+// `reconcileScene`/`reconcileEncounterLedger` acima. `inventoryService` monta um
+// prisma fake mínimo (characterState + adventure) e devolve as chamadas de
+// `update` de cada tabela, para verificar O QUE foi persistido sem acoplar ao SQL.
+describe('AiService.reconcileInventory (US-200)', () => {
+  function inventoryService(state: { inventory: InventoryItem[]; sceneState: SceneState | null }, entities: WorldEntity[] | null = []) {
+    const characterStateUpdates: Record<string, unknown>[] = []
+    const adventureUpdates: WorldEntity[][] = []
+    const prisma = {
+      characterState: {
+        findUnique: async () => state,
+        update: async ({ data }: { data: Record<string, unknown> }) => {
+          characterStateUpdates.push(data)
+          return data
+        },
+      },
+      adventure: {
+        findUnique: async () => ({ entities }),
+        update: async ({ data }: { data: { entities: WorldEntity[] } }) => {
+          adventureUpdates.push(data.entities)
+          return {}
+        },
+      },
+    } as unknown as PrismaService
+    const svc = new AiService(prisma, {} as unknown as DiceService)
+    const reconcile = (svc as unknown as {
+      reconcileInventory: (adventureId: string, characterId: string, narration: string, turnId?: string) => Promise<void>
+    }).reconcileInventory.bind(svc)
+    return { reconcile, characterStateUpdates, adventureUpdates }
+  }
+
+  const scene: SceneState = {
+    local: 'porão do culto',
+    ambiente: 'interno',
+    periodo: 'noite',
+    presentes: [],
+    objetos_em_cena: [],
+    atualizadoEm: '2026-08-25T00:00:00.000Z',
+  }
+
+  it('entrada simples: item adquirido aparece no inventário', async () => {
+    genObj.error = undefined
+    genObj.result = { adquiridos: ['Poção de cura'], perdidos: [] }
+    const { reconcile, characterStateUpdates } = inventoryService({ inventory: [], sceneState: scene })
+
+    await reconcile('adv-1', 'char-1', 'A personagem pega uma poção de cura na prateleira.')
+
+    expect(characterStateUpdates).toHaveLength(1)
+    expect(characterStateUpdates[0]!.inventory).toEqual([{ name: 'Poção de cura', qty: 1 }])
+  })
+
+  it('saída com destino cena: item largado no mesmo local da personagem sai do inventário e entra em objetos_em_cena', async () => {
+    genObj.error = undefined
+    genObj.result = {
+      adquiridos: [],
+      perdidos: [{ name: 'Lúcivis', evidencia: 'largou o símbolo Lúcivis no chão do porão', local: 'porão do culto' }],
+    }
+    const { reconcile, characterStateUpdates } = inventoryService({ inventory: [{ name: 'Lúcivis', qty: 1 }], sceneState: scene })
+
+    await reconcile('adv-1', 'char-1', 'Ela larga o símbolo Lúcivis no chão do porão.')
+
+    const inventoryUpdate = characterStateUpdates.find((u) => 'inventory' in u)
+    expect(inventoryUpdate!.inventory).toEqual([])
+    const sceneUpdate = characterStateUpdates.find((u) => 'sceneState' in u)
+    expect((sceneUpdate!.sceneState as SceneState).objetos_em_cena).toContain('Lúcivis')
+  })
+
+  it('saída com destino ledger: item que fica em local diferente do da personagem vira entidade do ledger', async () => {
+    genObj.error = undefined
+    genObj.result = {
+      adquiridos: [],
+      perdidos: [{ name: 'Lúcivis', evidencia: 'o símbolo Lúcivis caiu no poço', local: 'poço' }],
+    }
+    const { reconcile, characterStateUpdates, adventureUpdates } = inventoryService({ inventory: [{ name: 'Lúcivis', qty: 1 }], sceneState: scene })
+
+    await reconcile('adv-1', 'char-1', 'O símbolo Lúcivis escorrega e cai no poço enquanto ela segue pro porão.')
+
+    const inventoryUpdate = characterStateUpdates.find((u) => 'inventory' in u)
+    expect(inventoryUpdate!.inventory).toEqual([])
+    expect(adventureUpdates).toHaveLength(1)
+    expect(adventureUpdates[0]!.find((e) => e.nome === 'Lúcivis')).toMatchObject({ local: 'poço', nota: 'o símbolo Lúcivis caiu no poço' })
+  })
+
+  it('menção ambígua sem verbo de perda (extração não lista em "perdidos"): não remove', async () => {
+    genObj.error = undefined
+    genObj.result = { adquiridos: [], perdidos: [] }
+    const { reconcile, characterStateUpdates, adventureUpdates } = inventoryService({ inventory: [{ name: 'Espada', qty: 1 }], sceneState: scene })
+
+    await reconcile('adv-1', 'char-1', 'Ela guarda a espada na bainha.')
+
+    expect(characterStateUpdates).toHaveLength(0)
+    expect(adventureUpdates).toHaveLength(0)
+  })
+
+  it('idempotência: narração sem menção de itens não altera nada', async () => {
+    genObj.error = undefined
+    genObj.result = { adquiridos: [], perdidos: [] }
+    const { reconcile, characterStateUpdates, adventureUpdates } = inventoryService({ inventory: [{ name: 'Adaga', qty: 1 }], sceneState: scene })
+
+    await reconcile('adv-1', 'char-1', 'Ela conversa com o guarda sobre o clima.')
+
+    expect(characterStateUpdates).toHaveLength(0)
+    expect(adventureUpdates).toHaveLength(0)
+  })
+
+  it('falha do provedor de extração não quebra o turno: nada é persistido, erro só loga', async () => {
+    genObj.result = undefined
+    genObj.error = new Error('quota exceeded')
+    const { reconcile, characterStateUpdates, adventureUpdates } = inventoryService({ inventory: [{ name: 'Adaga', qty: 1 }], sceneState: scene })
+
+    await expect(reconcile('adv-1', 'char-1', 'Ela pega uma tocha na parede.')).resolves.toBeUndefined()
+
+    expect(characterStateUpdates).toHaveLength(0)
+    expect(adventureUpdates).toHaveLength(0)
+    genObj.error = undefined
+  })
+})
+
+describe('AiService.reconcilePostTurn (US-200)', () => {
+  function postTurnService() {
+    const calls: string[] = []
+    const prisma = {} as unknown as PrismaService
+    const svc = new AiService(prisma, {} as unknown as DiceService)
+    const spySvc = svc as unknown as {
+      reconcileScene: (...args: unknown[]) => Promise<void>
+      reconcileInventory: (...args: unknown[]) => Promise<void>
+      reconcilePostTurn: (adventureId: string, characterId: string, narration: string, playerName: string, cenaTocada: boolean, turnId?: string) => Promise<void>
+    }
+    spySvc.reconcileScene = async () => { calls.push('reconcileScene') }
+    spySvc.reconcileInventory = async () => { calls.push('reconcileInventory') }
+    return { spySvc, calls }
+  }
+
+  it('cenaTocada=false: chama reconcileScene ANTES de reconcileInventory (evita ler sceneState desatualizado)', async () => {
+    const { spySvc, calls } = postTurnService()
+    await spySvc.reconcilePostTurn('adv-1', 'char-1', 'narração', 'Seraphine', false, 'turn-1')
+    expect(calls).toEqual(['reconcileScene', 'reconcileInventory'])
+  })
+
+  it('cenaTocada=true: reconcileScene NÃO roda (tool já commitou o local); reconcileInventory roda sempre', async () => {
+    const { spySvc, calls } = postTurnService()
+    await spySvc.reconcilePostTurn('adv-1', 'char-1', 'narração', 'Seraphine', true, 'turn-1')
+    expect(calls).toEqual(['reconcileInventory'])
+  })
+})
+
+// US-200: cobertura do segundo call site (Notas de implementação — "Dois call sites, não
+// um"). `completeTruncatedTurn` não passa pelo onFinish, então precisa disparar
+// `reconcileInventory` por si — regressão do mesmo bug de classe que a US-73 já cobriu
+// para `reconcileScene` (turno truncado esquecido).
+describe('AiService.completeTruncatedTurn → reconcileInventory (US-200)', () => {
+  it('o salvamento de turno truncado também dispara reconcileInventory', async () => {
+    const prisma = {
+      character: { findUnique: async () => ({ name: 'Seraphine Valthor' }) },
+      eventLog: { create: async ({ data }: { data: unknown }) => data, findMany: async () => [] },
+    } as unknown as PrismaService
+    const svc = new AiService(prisma, {} as unknown as DiceService)
+    const inventoryCalls: unknown[][] = []
+    ;(svc as unknown as { reconcileScene: (...a: unknown[]) => Promise<void> }).reconcileScene = async () => {}
+    ;(svc as unknown as { reconcileInventory: (...a: unknown[]) => Promise<void> }).reconcileInventory = async (...args: unknown[]) => {
+      inventoryCalls.push(args)
+    }
+    salvage.text = 'A grade cede.\n\n- 🗡️ Descer.'
+
+    await svc.completeTruncatedTurn({ adventureId: 'adv-1', characterId: 'char-1', message: 'Descer ao poço' }, 'O beco engole o som.', 'turn-xyz')
+
+    expect(inventoryCalls).toHaveLength(1)
+    expect(inventoryCalls[0]![3]).toBe('turn-xyz') // turnId propagado
   })
 })
 
