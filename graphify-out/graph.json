@@ -150,15 +150,180 @@
   },
   "nodes": [
     {
+      "label": "seed-ledger.test.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_generation_seed_ledger_test",
+      "community": 320,
+      "community_name": "seed-ledger.ts",
+      "norm_label": "seed-ledger.test.ts"
+    },
+    {
+      "label": "enc()",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_generation_seed_ledger_test_enc",
+      "community": 320,
+      "community_name": "seed-ledger.ts",
+      "norm_label": "enc()"
+    },
+    {
+      "label": "ANTAGONIST_BASE",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_generation_seed_ledger_test_antagonist_base",
+      "community": 320,
+      "community_name": "seed-ledger.ts",
+      "norm_label": "antagonist_base"
+    },
+    {
+      "label": "adventureFixture()",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_generation_seed_ledger_test_adventurefixture",
+      "community": 320,
+      "community_name": "seed-ledger.ts",
+      "norm_label": "adventurefixture()"
+    },
+    {
+      "label": "seed-ledger.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_generation_seed_ledger",
+      "community": 320,
+      "community_name": "seed-ledger.ts",
+      "norm_label": "seed-ledger.ts"
+    },
+    {
+      "label": "seedLedgerFromGeneratedAdventure()",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure",
+      "community": 320,
+      "community_name": "seed-ledger.ts",
+      "norm_label": "seedledgerfromgeneratedadventure()"
+    },
+    {
+      "label": "findOccupiedLocationTitle()",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
+      "source_location": "L153",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_generation_seed_ledger_findoccupiedlocationtitle",
+      "community": 320,
+      "community_name": "seed-ledger.ts",
+      "norm_label": "findoccupiedlocationtitle()"
+    },
+    {
+      "label": "adventure.service.test.ts",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_adventure_service_test",
+      "community": 191,
+      "community_name": "adventure.service.test.ts",
+      "norm_label": "adventure.service.test.ts"
+    },
+    {
+      "label": "fakeAi()",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_adventure_service_test_fakeai",
+      "community": 191,
+      "community_name": "adventure.service.test.ts",
+      "norm_label": "fakeai()"
+    },
+    {
+      "label": "config",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_adventure_service_test_config",
+      "community": 191,
+      "community_name": "adventure.service.test.ts",
+      "norm_label": "config"
+    },
+    {
+      "label": "Recorded",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L86",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_adventure_service_test_recorded",
+      "community": 191,
+      "community_name": "adventure.service.test.ts",
+      "norm_label": "recorded"
+    },
+    {
+      "label": "fakePrisma()",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_adventure_service_test_fakeprisma",
+      "community": 191,
+      "community_name": "adventure.service.test.ts",
+      "norm_label": "fakeprisma()"
+    },
+    {
+      "label": "service()",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L961",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_adventure_service_test_service",
+      "community": 191,
+      "community_name": "adventure.service.test.ts",
+      "norm_label": "service()"
+    },
+    {
+      "label": "fakeGenAi()",
+      "file_type": "code",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L1045",
+      "_origin": "ast",
+      "id": "apps_api_src_adventure_adventure_service_test_fakegenai",
+      "community": 191,
+      "community_name": "adventure.service.test.ts",
+      "norm_label": "fakegenai()"
+    },
+    {
+      "label": "ADR-0012",
+      "file_type": "concept",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L438",
+      "_origin": "ast",
+      "id": "docref_adr_0012",
+      "community": 191,
+      "community_name": "adventure.service.test.ts",
+      "norm_label": "adr-0012"
+    },
+    {
       "label": "AdventureLoadingScreen.test.tsx",
       "file_type": "code",
       "source_file": "apps/web/src/components/setup/AdventureLoadingScreen.test.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_adventureloadingscreen_test",
       "community": 23,
       "community_name": "AdventureLoadingScreen.tsx",
-      "norm_label": "adventureloadingscreen.test.tsx"
+      "norm_label": "adventureloadingscreen.test.tsx",
+      "id": "apps_web_src_components_setup_adventureloadingscreen_test"
     },
     {
       "label": "AdventureLoadingScreen.tsx",
@@ -166,10 +331,10 @@
       "source_file": "apps/web/src/components/setup/AdventureLoadingScreen.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_adventureloadingscreen",
       "community": 23,
       "community_name": "AdventureLoadingScreen.tsx",
-      "norm_label": "adventureloadingscreen.tsx"
+      "norm_label": "adventureloadingscreen.tsx",
+      "id": "apps_web_src_components_setup_adventureloadingscreen"
     },
     {
       "label": "LOADING_KEYS",
@@ -177,10 +342,10 @@
       "source_file": "apps/web/src/components/setup/AdventureLoadingScreen.tsx",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_adventureloadingscreen_loading_keys",
       "community": 23,
       "community_name": "AdventureLoadingScreen.tsx",
-      "norm_label": "loading_keys"
+      "norm_label": "loading_keys",
+      "id": "apps_web_src_components_setup_adventureloadingscreen_loading_keys"
     },
     {
       "label": "shuffled()",
@@ -188,10 +353,10 @@
       "source_file": "apps/web/src/components/setup/AdventureLoadingScreen.tsx",
       "source_location": "L23",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_adventureloadingscreen_shuffled",
       "community": 23,
       "community_name": "AdventureLoadingScreen.tsx",
-      "norm_label": "shuffled()"
+      "norm_label": "shuffled()",
+      "id": "apps_web_src_components_setup_adventureloadingscreen_shuffled"
     },
     {
       "label": "AdventureLoadingScreen()",
@@ -199,10 +364,10 @@
       "source_file": "apps/web/src/components/setup/AdventureLoadingScreen.tsx",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen",
       "community": 23,
       "community_name": "AdventureLoadingScreen.tsx",
-      "norm_label": "adventureloadingscreen()"
+      "norm_label": "adventureloadingscreen()",
+      "id": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen"
     },
     {
       "label": "SetupWizard.test.tsx",
@@ -210,10 +375,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "setupwizard.test.tsx"
+      "norm_label": "setupwizard.test.tsx",
+      "id": "apps_web_src_components_setup_setupwizard_test"
     },
     {
       "label": "{ listSystems, createCharacter, createAdventure }",
@@ -221,10 +386,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_listsystems_createcharacter_createadventure",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "{ listsystems, createcharacter, createadventure }"
+      "norm_label": "{ listsystems, createcharacter, createadventure }",
+      "id": "apps_web_src_components_setup_setupwizard_test_listsystems_createcharacter_createadventure"
     },
     {
       "label": "configWithBudget()",
@@ -232,10 +397,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithbudget()"
+      "norm_label": "configwithbudget()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "label": "configWithRaceSubspecies()",
@@ -243,10 +408,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L27",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithracesubspecies",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithracesubspecies()"
+      "norm_label": "configwithracesubspecies()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithracesubspecies"
     },
     {
       "label": "configWithBackgrounds()",
@@ -254,10 +419,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithbackgrounds",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithbackgrounds()"
+      "norm_label": "configwithbackgrounds()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithbackgrounds"
     },
     {
       "label": "configWithAbilityGrant()",
@@ -265,10 +430,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L48",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithabilitygrant",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithabilitygrant()"
+      "norm_label": "configwithabilitygrant()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithabilitygrant"
     },
     {
       "label": "configWithSkillGrant()",
@@ -276,10 +441,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L64",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithskillgrant",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithskillgrant()"
+      "norm_label": "configwithskillgrant()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithskillgrant"
     },
     {
       "label": "configWithToolGrant()",
@@ -287,10 +452,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L82",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithtoolgrant",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithtoolgrant()"
+      "norm_label": "configwithtoolgrant()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithtoolgrant"
     },
     {
       "label": "configWithCam()",
@@ -298,10 +463,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L124",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithcam",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithcam()"
+      "norm_label": "configwithcam()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithcam"
     },
     {
       "label": "configWithWorldCatalog()",
@@ -309,10 +474,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L142",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithworldcatalog",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithworldcatalog()"
+      "norm_label": "configwithworldcatalog()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithworldcatalog"
     },
     {
       "label": "configWithSkills()",
@@ -320,10 +485,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L150",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithskills",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithskills()"
+      "norm_label": "configwithskills()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithskills"
     },
     {
       "label": "configWithClassKit()",
@@ -331,10 +496,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L162",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithclasskit",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithclasskit()"
+      "norm_label": "configwithclasskit()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithclasskit"
     },
     {
       "label": "configWithBackgroundFeature()",
@@ -342,10 +507,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L180",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_configwithbackgroundfeature",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "configwithbackgroundfeature()"
+      "norm_label": "configwithbackgroundfeature()",
+      "id": "apps_web_src_components_setup_setupwizard_test_configwithbackgroundfeature"
     },
     {
       "label": "pickSystemAndFillRaceClass()",
@@ -353,10 +518,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L218",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_picksystemandfillraceclass",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "picksystemandfillraceclass()"
+      "norm_label": "picksystemandfillraceclass()",
+      "id": "apps_web_src_components_setup_setupwizard_test_picksystemandfillraceclass"
     },
     {
       "label": "confirmAndReachWorld()",
@@ -364,10 +529,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L563",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_confirmandreachworld",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "confirmandreachworld()"
+      "norm_label": "confirmandreachworld()",
+      "id": "apps_web_src_components_setup_setupwizard_test_confirmandreachworld"
     },
     {
       "label": "pendingAdventure()",
@@ -375,10 +540,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.test.tsx",
       "source_location": "L647",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_test_pendingadventure",
       "community": 206,
       "community_name": "SetupWizard.test.tsx",
-      "norm_label": "pendingadventure()"
+      "norm_label": "pendingadventure()",
+      "id": "apps_web_src_components_setup_setupwizard_test_pendingadventure"
     },
     {
       "label": "SetupWizard.tsx",
@@ -386,10 +551,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "setupwizard.tsx"
+      "norm_label": "setupwizard.tsx",
+      "id": "apps_web_src_components_setup_setupwizard"
     },
     {
       "label": "Step",
@@ -397,10 +562,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L28",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_step",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "step"
+      "norm_label": "step",
+      "id": "apps_web_src_components_setup_setupwizard_step"
     },
     {
       "label": "steps",
@@ -408,10 +573,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L29",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_steps",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "steps"
+      "norm_label": "steps",
+      "id": "apps_web_src_components_setup_setupwizard_steps"
     },
     {
       "label": "GENDERS",
@@ -419,10 +584,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_genders",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "genders"
+      "norm_label": "genders",
+      "id": "apps_web_src_components_setup_setupwizard_genders"
     },
     {
       "label": "POINT_COST",
@@ -430,10 +595,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L41",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_point_cost",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "point_cost"
+      "norm_label": "point_cost",
+      "id": "apps_web_src_components_setup_setupwizard_point_cost"
     },
     {
       "label": "SystemOption",
@@ -441,10 +606,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L43",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_systemoption",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "systemoption"
+      "norm_label": "systemoption",
+      "id": "apps_web_src_components_setup_setupwizard_systemoption"
     },
     {
       "label": "SOURCE_TYPE_HINT",
@@ -452,10 +617,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L48",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_source_type_hint",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "source_type_hint"
+      "norm_label": "source_type_hint",
+      "id": "apps_web_src_components_setup_setupwizard_source_type_hint"
     },
     {
       "label": "SINGLE_BLOCK_IS_MEMENTO",
@@ -463,10 +628,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L65",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_single_block_is_memento",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "single_block_is_memento"
+      "norm_label": "single_block_is_memento",
+      "id": "apps_web_src_components_setup_setupwizard_single_block_is_memento"
     },
     {
       "label": "rollRandom()",
@@ -474,10 +639,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L70",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_rollrandom",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "rollrandom()"
+      "norm_label": "rollrandom()",
+      "id": "apps_web_src_components_setup_setupwizard_rollrandom"
     },
     {
       "label": "optionCardClass()",
@@ -485,10 +650,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L77",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_optioncardclass",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "optioncardclass()"
+      "norm_label": "optioncardclass()",
+      "id": "apps_web_src_components_setup_setupwizard_optioncardclass"
     },
     {
       "label": "AbilityBonusBadge()",
@@ -496,10 +661,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L90",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_abilitybonusbadge",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "abilitybonusbadge()"
+      "norm_label": "abilitybonusbadge()",
+      "id": "apps_web_src_components_setup_setupwizard_abilitybonusbadge"
     },
     {
       "label": "WorldOptionGroup()",
@@ -507,10 +672,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L108",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_worldoptiongroup",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "worldoptiongroup()"
+      "norm_label": "worldoptiongroup()",
+      "id": "apps_web_src_components_setup_setupwizard_worldoptiongroup"
     },
     {
       "label": "ChallengeOptionGroup()",
@@ -518,10 +683,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L133",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_challengeoptiongroup",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "challengeoptiongroup()"
+      "norm_label": "challengeoptiongroup()",
+      "id": "apps_web_src_components_setup_setupwizard_challengeoptiongroup"
     },
     {
       "label": "parseDeity()",
@@ -529,10 +694,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L157",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_parsedeity",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "parsedeity()"
+      "norm_label": "parsedeity()",
+      "id": "apps_web_src_components_setup_setupwizard_parsedeity"
     },
     {
       "label": "lines()",
@@ -540,10 +705,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L171",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_lines",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "lines()"
+      "norm_label": "lines()",
+      "id": "apps_web_src_components_setup_setupwizard_lines"
     },
     {
       "label": "TOOL_CATEGORY_ORDER",
@@ -551,10 +716,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L182",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_tool_category_order",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "tool_category_order"
+      "norm_label": "tool_category_order",
+      "id": "apps_web_src_components_setup_setupwizard_tool_category_order"
     },
     {
       "label": "TOOL_CATEGORY_LABEL",
@@ -562,10 +727,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L183",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_tool_category_label",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "tool_category_label"
+      "norm_label": "tool_category_label",
+      "id": "apps_web_src_components_setup_setupwizard_tool_category_label"
     },
     {
       "label": "groupToolsByCategory()",
@@ -573,10 +738,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L190",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_grouptoolsbycategory",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "grouptoolsbycategory()"
+      "norm_label": "grouptoolsbycategory()",
+      "id": "apps_web_src_components_setup_setupwizard_grouptoolsbycategory"
     },
     {
       "label": "SetupWizard()",
@@ -584,10 +749,10 @@
       "source_file": "apps/web/src/components/setup/SetupWizard.tsx",
       "source_location": "L205",
       "_origin": "ast",
-      "id": "apps_web_src_components_setup_setupwizard_setupwizard",
       "community": 86,
       "community_name": "SetupWizard.tsx",
-      "norm_label": "setupwizard()"
+      "norm_label": "setupwizard()",
+      "id": "apps_web_src_components_setup_setupwizard_setupwizard"
     },
     {
       "label": "en-US.ts",
@@ -595,10 +760,10 @@
       "source_file": "apps/web/src/messages/en-US.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "apps_web_src_messages_en_us",
       "community": 26,
       "community_name": "messages/index.ts",
-      "norm_label": "en-us.ts"
+      "norm_label": "en-us.ts",
+      "id": "apps_web_src_messages_en_us"
     },
     {
       "label": "enUS",
@@ -606,10 +771,10 @@
       "source_file": "apps/web/src/messages/en-US.ts",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "apps_web_src_messages_en_us_enus",
       "community": 26,
       "community_name": "messages/index.ts",
-      "norm_label": "enus"
+      "norm_label": "enus",
+      "id": "apps_web_src_messages_en_us_enus"
     },
     {
       "label": "pt-BR.ts",
@@ -617,10 +782,10 @@
       "source_file": "apps/web/src/messages/pt-BR.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "apps_web_src_messages_pt_br",
       "community": 26,
       "community_name": "messages/index.ts",
-      "norm_label": "pt-br.ts"
+      "norm_label": "pt-br.ts",
+      "id": "apps_web_src_messages_pt_br"
     },
     {
       "label": "ptBR",
@@ -628,10 +793,10 @@
       "source_file": "apps/web/src/messages/pt-BR.ts",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "apps_web_src_messages_pt_br_ptbr",
       "community": 26,
       "community_name": "messages/index.ts",
-      "norm_label": "ptbr"
+      "norm_label": "ptbr",
+      "id": "apps_web_src_messages_pt_br_ptbr"
     },
     {
       "label": "MessageKey",
@@ -639,10 +804,10 @@
       "source_file": "apps/web/src/messages/pt-BR.ts",
       "source_location": "L256",
       "_origin": "ast",
-      "id": "apps_web_src_messages_pt_br_messagekey",
       "community": 26,
       "community_name": "messages/index.ts",
-      "norm_label": "messagekey"
+      "norm_label": "messagekey",
+      "id": "apps_web_src_messages_pt_br_messagekey"
     },
     {
       "label": "US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
@@ -650,10 +815,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
       "community": 93,
       "community_name": "backlog-motor-de-geracao-de-aventuras.md",
-      "norm_label": "us-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md"
+      "norm_label": "us-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura"
     },
     {
       "label": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
@@ -661,10 +826,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "us-197 \u2014 tela de espera com carrossel de mensagens na criacao da aventura"
+      "norm_label": "us-197 \u2014 tela de espera com carrossel de mensagens na criacao da aventura",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura"
     },
     {
       "label": "Hist\u00f3ria",
@@ -672,10 +837,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_hist\u00f3ria",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "historia"
+      "norm_label": "historia",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_hist\u00f3ria"
     },
     {
       "label": "Contexto e motiva\u00e7\u00e3o",
@@ -683,10 +848,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_contexto_e_motiva\u00e7\u00e3o",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "contexto e motivacao"
+      "norm_label": "contexto e motivacao",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_contexto_e_motiva\u00e7\u00e3o"
     },
     {
       "label": "O problema observado",
@@ -694,10 +859,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L21",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_o_problema_observado",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "o problema observado"
+      "norm_label": "o problema observado",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_o_problema_observado"
     },
     {
       "label": "Por que a solu\u00e7\u00e3o atual n\u00e3o basta",
@@ -705,10 +870,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L30",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_por_que_a_solu\u00e7\u00e3o_atual_n\u00e3o_basta",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "por que a solucao atual nao basta"
+      "norm_label": "por que a solucao atual nao basta",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_por_que_a_solu\u00e7\u00e3o_atual_n\u00e3o_basta"
     },
     {
       "label": "A proposta",
@@ -716,10 +881,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L40",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_a_proposta",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "a proposta"
+      "norm_label": "a proposta",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_a_proposta"
     },
     {
       "label": "Escopo",
@@ -727,10 +892,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L48",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_escopo",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "escopo"
+      "norm_label": "escopo",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_escopo"
     },
     {
       "label": "Dentro do escopo",
@@ -738,10 +903,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L50",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_dentro_do_escopo",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "dentro do escopo"
+      "norm_label": "dentro do escopo",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_dentro_do_escopo"
     },
     {
       "label": "Fora do escopo",
@@ -749,10 +914,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L84",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_fora_do_escopo",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "fora do escopo"
+      "norm_label": "fora do escopo",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_fora_do_escopo"
     },
     {
       "label": "Crit\u00e9rios de aceite",
@@ -760,10 +925,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L101",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_crit\u00e9rios_de_aceite",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "criterios de aceite"
+      "norm_label": "criterios de aceite",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_crit\u00e9rios_de_aceite"
     },
     {
       "label": "Notas de implementa\u00e7\u00e3o",
@@ -771,10 +936,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L127",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_notas_de_implementa\u00e7\u00e3o",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "notas de implementacao"
+      "norm_label": "notas de implementacao",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_notas_de_implementa\u00e7\u00e3o"
     },
     {
       "label": "Copy das mensagens",
@@ -782,10 +947,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L147",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_copy_das_mensagens",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "copy das mensagens"
+      "norm_label": "copy das mensagens",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_copy_das_mensagens"
     },
     {
       "label": "Quest\u00f5es em aberto",
@@ -793,10 +958,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L175",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_quest\u00f5es_em_aberto",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "questoes em aberto"
+      "norm_label": "questoes em aberto",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_quest\u00f5es_em_aberto"
     },
     {
       "label": "Refer\u00eancias no c\u00f3digo",
@@ -804,10 +969,10 @@
       "source_file": "docs/sdlc/01-requisitos/US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md",
       "source_location": "L184",
       "_origin": "ast",
-      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_refer\u00eancias_no_c\u00f3digo",
       "community": 312,
       "community_name": "US-197 \u2014 Tela de espera com carrossel de mensagens na cria\u00e7\u00e3o da aventura",
-      "norm_label": "referencias no codigo"
+      "norm_label": "referencias no codigo",
+      "id": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_refer\u00eancias_no_c\u00f3digo"
     },
     {
       "label": "US-196-vocabulario-diegetico-na-narracao.md",
@@ -1787,171 +1952,6 @@
       "community_name": "rubric.ts",
       "norm_label": "renderqualityreport()",
       "id": "packages_ai_engine_src_rubric_renderqualityreport"
-    },
-    {
-      "label": "seed-ledger.test.ts",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 320,
-      "community_name": "seed-ledger.ts",
-      "norm_label": "seed-ledger.test.ts",
-      "id": "apps_api_src_adventure_generation_seed_ledger_test"
-    },
-    {
-      "label": "enc()",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L7",
-      "_origin": "ast",
-      "community": 320,
-      "community_name": "seed-ledger.ts",
-      "norm_label": "enc()",
-      "id": "apps_api_src_adventure_generation_seed_ledger_test_enc"
-    },
-    {
-      "label": "ANTAGONIST_BASE",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L25",
-      "_origin": "ast",
-      "community": 320,
-      "community_name": "seed-ledger.ts",
-      "norm_label": "antagonist_base",
-      "id": "apps_api_src_adventure_generation_seed_ledger_test_antagonist_base"
-    },
-    {
-      "label": "adventureFixture()",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L30",
-      "_origin": "ast",
-      "community": 320,
-      "community_name": "seed-ledger.ts",
-      "norm_label": "adventurefixture()",
-      "id": "apps_api_src_adventure_generation_seed_ledger_test_adventurefixture"
-    },
-    {
-      "label": "seed-ledger.ts",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 320,
-      "community_name": "seed-ledger.ts",
-      "norm_label": "seed-ledger.ts",
-      "id": "apps_api_src_adventure_generation_seed_ledger"
-    },
-    {
-      "label": "seedLedgerFromGeneratedAdventure()",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
-      "source_location": "L16",
-      "_origin": "ast",
-      "community": 320,
-      "community_name": "seed-ledger.ts",
-      "norm_label": "seedledgerfromgeneratedadventure()",
-      "id": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure"
-    },
-    {
-      "label": "findOccupiedLocationTitle()",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
-      "source_location": "L148",
-      "_origin": "ast",
-      "community": 320,
-      "community_name": "seed-ledger.ts",
-      "norm_label": "findoccupiedlocationtitle()",
-      "id": "apps_api_src_adventure_generation_seed_ledger_findoccupiedlocationtitle"
-    },
-    {
-      "label": "adventure.service.test.ts",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 191,
-      "community_name": "adventure.service.test.ts",
-      "norm_label": "adventure.service.test.ts",
-      "id": "apps_api_src_adventure_adventure_service_test"
-    },
-    {
-      "label": "fakeAi()",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L20",
-      "_origin": "ast",
-      "community": 191,
-      "community_name": "adventure.service.test.ts",
-      "norm_label": "fakeai()",
-      "id": "apps_api_src_adventure_adventure_service_test_fakeai"
-    },
-    {
-      "label": "config",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L54",
-      "_origin": "ast",
-      "community": 191,
-      "community_name": "adventure.service.test.ts",
-      "norm_label": "config",
-      "id": "apps_api_src_adventure_adventure_service_test_config"
-    },
-    {
-      "label": "Recorded",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L86",
-      "_origin": "ast",
-      "community": 191,
-      "community_name": "adventure.service.test.ts",
-      "norm_label": "recorded",
-      "id": "apps_api_src_adventure_adventure_service_test_recorded"
-    },
-    {
-      "label": "fakePrisma()",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L99",
-      "_origin": "ast",
-      "community": 191,
-      "community_name": "adventure.service.test.ts",
-      "norm_label": "fakeprisma()",
-      "id": "apps_api_src_adventure_adventure_service_test_fakeprisma"
-    },
-    {
-      "label": "service()",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L961",
-      "_origin": "ast",
-      "community": 191,
-      "community_name": "adventure.service.test.ts",
-      "norm_label": "service()",
-      "id": "apps_api_src_adventure_adventure_service_test_service"
-    },
-    {
-      "label": "fakeGenAi()",
-      "file_type": "code",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L1045",
-      "_origin": "ast",
-      "community": 191,
-      "community_name": "adventure.service.test.ts",
-      "norm_label": "fakegenai()",
-      "id": "apps_api_src_adventure_adventure_service_test_fakegenai"
-    },
-    {
-      "label": "ADR-0012",
-      "file_type": "concept",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L438",
-      "_origin": "ast",
-      "community": 191,
-      "community_name": "adventure.service.test.ts",
-      "norm_label": "adr-0012",
-      "id": "docref_adr_0012"
     },
     {
       "label": "ai.service.test.ts",
@@ -42310,13 +42310,457 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger_test",
+      "target": "apps_api_src_adventure_generation_seed_ledger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger_test",
+      "target": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger_test",
+      "target": "apps_api_src_adventure_generation_seed_ledger_test_adventurefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger_test",
+      "target": "apps_api_src_adventure_generation_seed_ledger_test_antagonist_base",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger_test",
+      "target": "apps_api_src_adventure_generation_seed_ledger_test_enc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger_test_adventurefixture",
+      "target": "apps_api_src_adventure_generation_seed_ledger_test_enc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_api_src_adventure_adventure_service",
+      "target": "apps_api_src_adventure_generation_seed_ledger"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger",
+      "target": "apps_api_src_adventure_generation_monster_roles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger",
+      "target": "apps_api_src_adventure_generation_monster_roles_monster_role_cr",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
+      "source_location": "L153",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger",
+      "target": "apps_api_src_adventure_generation_seed_ledger_findoccupiedlocationtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger",
+      "target": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "confidence_score": 1.0,
+      "source": "apps_api_src_adventure_adventure_service",
+      "target": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
+      "source_location": "L44",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure",
+      "target": "apps_api_src_adventure_generation_seed_ledger_findoccupiedlocationtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_adventureprofile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_adventureservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_composestartbriefing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L54",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_test_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_test_fakeai",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L1562",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_test_fakegenai",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L99",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_test_fakeprisma",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_test_recorded",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L1583",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_adventure_service_test_service",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_generation_lazy_encounter_benchmark",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_generation_lazy_encounter_benchmark_encounterdeadlythreshold",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_generation_monster_roles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_generation_monster_roles_chooseantagonistrole",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_generation_monster_roles_monster_role_cr",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_generation_monster_roles_totalcr",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_generation_roll_adventure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_adventure_generation_roll_adventure_rolladventure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_ai_ai_service",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_ai_ai_service_aiservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_prisma_service",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "apps_api_src_prisma_service_prismaservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L438",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test",
+      "target": "docref_adr_0012",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L963",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test_service",
+      "target": "apps_api_src_adventure_adventure_service_test_fakeai",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
+      "source_location": "L962",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "apps_api_src_adventure_adventure_service_test_service",
+      "target": "apps_api_src_adventure_adventure_service_test_fakeprisma",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/components/setup/AdventureLoadingScreen.test.tsx",
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen_test",
-      "target": "apps_web_src_components_setup_adventureloadingscreen",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_adventureloadingscreen"
     },
     {
       "relation": "imports",
@@ -42326,9 +42770,9 @@
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen_test",
-      "target": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen"
     },
     {
       "relation": "imports_from",
@@ -42338,9 +42782,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen",
-      "target": "apps_web_src_components_localeprovider",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_localeprovider"
     },
     {
       "relation": "imports",
@@ -42350,9 +42794,9 @@
       "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen",
-      "target": "apps_web_src_components_localeprovider_uset",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_localeprovider_uset"
     },
     {
       "relation": "contains",
@@ -42361,9 +42805,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen",
-      "target": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen"
     },
     {
       "relation": "contains",
@@ -42372,9 +42816,9 @@
       "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen",
-      "target": "apps_web_src_components_setup_adventureloadingscreen_loading_keys",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_adventureloadingscreen_loading_keys"
     },
     {
       "relation": "contains",
@@ -42383,9 +42827,9 @@
       "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen",
-      "target": "apps_web_src_components_setup_adventureloadingscreen_shuffled",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_adventureloadingscreen_shuffled"
     },
     {
       "relation": "imports_from",
@@ -42395,9 +42839,9 @@
       "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen",
-      "target": "apps_web_src_components_ui_dm",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm"
     },
     {
       "relation": "imports",
@@ -42407,9 +42851,9 @@
       "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen",
-      "target": "apps_web_src_components_ui_dm_sectiontitle",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_sectiontitle"
     },
     {
       "relation": "imports_from",
@@ -42419,9 +42863,9 @@
       "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen",
-      "target": "apps_web_src_messages_index",
-      "confidence_score": 1.0
+      "target": "apps_web_src_messages_index"
     },
     {
       "relation": "imports_from",
@@ -42431,9 +42875,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_adventureloadingscreen",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_adventureloadingscreen"
     },
     {
       "relation": "calls",
@@ -42443,9 +42887,9 @@
       "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen",
-      "target": "apps_web_src_components_setup_adventureloadingscreen_shuffled",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_adventureloadingscreen_shuffled"
     },
     {
       "relation": "imports",
@@ -42455,9 +42899,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_adventureloadingscreen_adventureloadingscreen"
     },
     {
       "relation": "imports_from",
@@ -42467,9 +42911,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard"
     },
     {
       "relation": "imports",
@@ -42479,9 +42923,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_setupwizard",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_setupwizard"
     },
     {
       "relation": "contains",
@@ -42490,9 +42934,9 @@
       "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithabilitygrant",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithabilitygrant"
     },
     {
       "relation": "contains",
@@ -42501,9 +42945,9 @@
       "source_location": "L180",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbackgroundfeature",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbackgroundfeature"
     },
     {
       "relation": "contains",
@@ -42512,9 +42956,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbackgrounds",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbackgrounds"
     },
     {
       "relation": "contains",
@@ -42523,9 +42967,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "contains",
@@ -42534,9 +42978,9 @@
       "source_location": "L124",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithcam",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithcam"
     },
     {
       "relation": "contains",
@@ -42545,9 +42989,9 @@
       "source_location": "L162",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithclasskit",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithclasskit"
     },
     {
       "relation": "contains",
@@ -42556,9 +43000,9 @@
       "source_location": "L27",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithracesubspecies",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithracesubspecies"
     },
     {
       "relation": "contains",
@@ -42567,9 +43011,9 @@
       "source_location": "L64",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithskillgrant",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithskillgrant"
     },
     {
       "relation": "contains",
@@ -42578,9 +43022,9 @@
       "source_location": "L150",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithskills",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithskills"
     },
     {
       "relation": "contains",
@@ -42589,9 +43033,9 @@
       "source_location": "L82",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithtoolgrant",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithtoolgrant"
     },
     {
       "relation": "contains",
@@ -42600,9 +43044,9 @@
       "source_location": "L142",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithworldcatalog",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithworldcatalog"
     },
     {
       "relation": "contains",
@@ -42611,9 +43055,9 @@
       "source_location": "L563",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_confirmandreachworld",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_confirmandreachworld"
     },
     {
       "relation": "contains",
@@ -42622,9 +43066,9 @@
       "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_listsystems_createcharacter_createadventure",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_listsystems_createcharacter_createadventure"
     },
     {
       "relation": "contains",
@@ -42633,9 +43077,9 @@
       "source_location": "L647",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_pendingadventure",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_pendingadventure"
     },
     {
       "relation": "contains",
@@ -42644,9 +43088,9 @@
       "source_location": "L218",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test",
-      "target": "apps_web_src_components_setup_setupwizard_test_picksystemandfillraceclass",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_picksystemandfillraceclass"
     },
     {
       "relation": "calls",
@@ -42656,9 +43100,9 @@
       "source_location": "L49",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithabilitygrant",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42668,9 +43112,9 @@
       "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithbackgrounds",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42680,9 +43124,9 @@
       "source_location": "L125",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithcam",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42692,9 +43136,9 @@
       "source_location": "L163",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithclasskit",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42704,9 +43148,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithracesubspecies",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42716,9 +43160,9 @@
       "source_location": "L65",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithskillgrant",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42728,9 +43172,9 @@
       "source_location": "L151",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithskills",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42740,9 +43184,9 @@
       "source_location": "L83",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithtoolgrant",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42752,9 +43196,9 @@
       "source_location": "L143",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithworldcatalog",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithbudget"
     },
     {
       "relation": "calls",
@@ -42764,9 +43208,9 @@
       "source_location": "L181",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_configwithbackgroundfeature",
-      "target": "apps_web_src_components_setup_setupwizard_test_configwithclasskit",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_configwithclasskit"
     },
     {
       "relation": "calls",
@@ -42776,9 +43220,9 @@
       "source_location": "L565",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_test_confirmandreachworld",
-      "target": "apps_web_src_components_setup_setupwizard_test_picksystemandfillraceclass",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_test_picksystemandfillraceclass"
     },
     {
       "relation": "imports_from",
@@ -42836,9 +43280,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_character_backgroundpanel",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_character_backgroundpanel"
     },
     {
       "relation": "imports",
@@ -42848,9 +43292,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_character_backgroundpanel_backgroundpanel",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_character_backgroundpanel_backgroundpanel"
     },
     {
       "relation": "imports",
@@ -42860,9 +43304,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_character_backgroundpanel_characterbackground",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_character_backgroundpanel_characterbackground"
     },
     {
       "relation": "imports_from",
@@ -42872,9 +43316,9 @@
       "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_character_featurespanel",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_character_featurespanel"
     },
     {
       "relation": "imports",
@@ -42884,9 +43328,9 @@
       "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_character_featurespanel_featurespanel",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_character_featurespanel_featurespanel"
     },
     {
       "relation": "imports_from",
@@ -42896,9 +43340,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_localeprovider",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_localeprovider"
     },
     {
       "relation": "imports",
@@ -42908,9 +43352,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_localeprovider_uselocale",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_localeprovider_uselocale"
     },
     {
       "relation": "imports",
@@ -42920,9 +43364,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_localeprovider_uset",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_localeprovider_uset"
     },
     {
       "relation": "contains",
@@ -42931,9 +43375,9 @@
       "source_location": "L90",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_abilitybonusbadge",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_abilitybonusbadge"
     },
     {
       "relation": "contains",
@@ -42942,9 +43386,9 @@
       "source_location": "L133",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_challengeoptiongroup",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_challengeoptiongroup"
     },
     {
       "relation": "contains",
@@ -42953,9 +43397,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_genders",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_genders"
     },
     {
       "relation": "contains",
@@ -42964,9 +43408,9 @@
       "source_location": "L190",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_grouptoolsbycategory",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_grouptoolsbycategory"
     },
     {
       "relation": "contains",
@@ -42975,9 +43419,9 @@
       "source_location": "L171",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_lines",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_lines"
     },
     {
       "relation": "contains",
@@ -42986,9 +43430,9 @@
       "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_optioncardclass",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_optioncardclass"
     },
     {
       "relation": "contains",
@@ -42997,9 +43441,9 @@
       "source_location": "L157",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_parsedeity",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_parsedeity"
     },
     {
       "relation": "contains",
@@ -43008,9 +43452,9 @@
       "source_location": "L41",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_point_cost",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_point_cost"
     },
     {
       "relation": "contains",
@@ -43019,9 +43463,9 @@
       "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_rollrandom",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_rollrandom"
     },
     {
       "relation": "contains",
@@ -43030,9 +43474,9 @@
       "source_location": "L205",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_setupwizard",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_setupwizard"
     },
     {
       "relation": "contains",
@@ -43041,9 +43485,9 @@
       "source_location": "L65",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_single_block_is_memento",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_single_block_is_memento"
     },
     {
       "relation": "contains",
@@ -43052,9 +43496,9 @@
       "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_source_type_hint",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_source_type_hint"
     },
     {
       "relation": "contains",
@@ -43063,9 +43507,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_step",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_step"
     },
     {
       "relation": "contains",
@@ -43074,9 +43518,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_steps",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_steps"
     },
     {
       "relation": "contains",
@@ -43085,9 +43529,9 @@
       "source_location": "L43",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_systemoption",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_systemoption"
     },
     {
       "relation": "contains",
@@ -43096,9 +43540,9 @@
       "source_location": "L183",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_tool_category_label",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_tool_category_label"
     },
     {
       "relation": "contains",
@@ -43107,9 +43551,9 @@
       "source_location": "L182",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_tool_category_order",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_tool_category_order"
     },
     {
       "relation": "contains",
@@ -43118,9 +43562,9 @@
       "source_location": "L108",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_worldoptiongroup",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_worldoptiongroup"
     },
     {
       "relation": "imports_from",
@@ -43130,9 +43574,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm"
     },
     {
       "relation": "imports",
@@ -43142,9 +43586,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_cn",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_cn"
     },
     {
       "relation": "imports",
@@ -43154,9 +43598,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_dmbutton",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_dmbutton"
     },
     {
       "relation": "imports",
@@ -43166,9 +43610,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_dmbuttonclass",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_dmbuttonclass"
     },
     {
       "relation": "imports",
@@ -43178,9 +43622,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_fieldclass",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_fieldclass"
     },
     {
       "relation": "imports",
@@ -43190,9 +43634,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_fieldlabel",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_fieldlabel"
     },
     {
       "relation": "imports",
@@ -43202,9 +43646,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_panel",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_panel"
     },
     {
       "relation": "imports",
@@ -43214,9 +43658,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_sceneframe",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_sceneframe"
     },
     {
       "relation": "imports",
@@ -43226,9 +43670,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_sectiontitle",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_sectiontitle"
     },
     {
       "relation": "imports",
@@ -43238,9 +43682,9 @@
       "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_components_ui_dm_sheetheading",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_ui_dm_sheetheading"
     },
     {
       "relation": "imports_from",
@@ -43250,9 +43694,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_lib_api",
-      "confidence_score": 1.0
+      "target": "apps_web_src_lib_api"
     },
     {
       "relation": "imports",
@@ -43262,9 +43706,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_lib_api_api",
-      "confidence_score": 1.0
+      "target": "apps_web_src_lib_api_api"
     },
     {
       "relation": "imports_from",
@@ -43274,9 +43718,9 @@
       "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_lib_parsed10tables",
-      "confidence_score": 1.0
+      "target": "apps_web_src_lib_parsed10tables"
     },
     {
       "relation": "imports",
@@ -43286,9 +43730,9 @@
       "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_lib_parsed10tables_parsed10tables",
-      "confidence_score": 1.0
+      "target": "apps_web_src_lib_parsed10tables_parsed10tables"
     },
     {
       "relation": "imports_from",
@@ -43298,9 +43742,9 @@
       "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard",
-      "target": "apps_web_src_messages_index",
-      "confidence_score": 1.0
+      "target": "apps_web_src_messages_index"
     },
     {
       "relation": "references",
@@ -43334,9 +43778,9 @@
       "source_location": "L906",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_rollrandom",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_rollrandom"
     },
     {
       "relation": "calls",
@@ -43346,9 +43790,9 @@
       "source_location": "L142",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_challengeoptiongroup",
-      "target": "apps_web_src_components_setup_setupwizard_optioncardclass",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_optioncardclass"
     },
     {
       "relation": "calls",
@@ -43358,9 +43802,9 @@
       "source_location": "L604",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_optioncardclass",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_optioncardclass"
     },
     {
       "relation": "calls",
@@ -43370,9 +43814,9 @@
       "source_location": "L117",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_worldoptiongroup",
-      "target": "apps_web_src_components_setup_setupwizard_optioncardclass",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_optioncardclass"
     },
     {
       "relation": "calls",
@@ -43382,9 +43826,9 @@
       "source_location": "L376",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_parsedeity",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_parsedeity"
     },
     {
       "relation": "calls",
@@ -43394,9 +43838,9 @@
       "source_location": "L373",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_lines",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_lines"
     },
     {
       "relation": "calls",
@@ -43406,9 +43850,9 @@
       "source_location": "L861",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_components_setup_setupwizard_setupwizard",
-      "target": "apps_web_src_components_setup_setupwizard_grouptoolsbycategory",
-      "confidence_score": 1.0
+      "target": "apps_web_src_components_setup_setupwizard_grouptoolsbycategory"
     },
     {
       "relation": "imports",
@@ -43477,9 +43921,9 @@
       "source_location": "L9",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_messages_en_us",
-      "target": "apps_web_src_messages_en_us_enus",
-      "confidence_score": 1.0
+      "target": "apps_web_src_messages_en_us_enus"
     },
     {
       "relation": "imports_from",
@@ -43489,9 +43933,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_messages_en_us",
-      "target": "apps_web_src_messages_pt_br",
-      "confidence_score": 1.0
+      "target": "apps_web_src_messages_pt_br"
     },
     {
       "relation": "imports",
@@ -43501,9 +43945,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_messages_en_us",
-      "target": "apps_web_src_messages_pt_br_messagekey",
-      "confidence_score": 1.0
+      "target": "apps_web_src_messages_pt_br_messagekey"
     },
     {
       "relation": "imports_from",
@@ -43572,9 +44016,9 @@
       "source_location": "L256",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_messages_pt_br",
-      "target": "apps_web_src_messages_pt_br_messagekey",
-      "confidence_score": 1.0
+      "target": "apps_web_src_messages_pt_br_messagekey"
     },
     {
       "relation": "contains",
@@ -43583,9 +44027,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "apps_web_src_messages_pt_br",
-      "target": "apps_web_src_messages_pt_br_ptbr",
-      "confidence_score": 1.0
+      "target": "apps_web_src_messages_pt_br_ptbr"
     },
     {
       "relation": "imports",
@@ -43630,9 +44074,9 @@
       "source_location": "L194",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_102_gate_de_string_literal_no_jsx",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_102_gate_de_string_literal_no_jsx"
     },
     {
       "relation": "references",
@@ -43641,9 +44085,9 @@
       "source_location": "L35",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_153_aventura_deixa_de_ser_derivada_da_classe",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_153_aventura_deixa_de_ser_derivada_da_classe"
     },
     {
       "relation": "references",
@@ -43652,9 +44096,9 @@
       "source_location": "L6",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_157_tela_de_mundo_depois_da_revisao",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_157_tela_de_mundo_depois_da_revisao"
     },
     {
       "relation": "references",
@@ -43663,9 +44107,9 @@
       "source_location": "L150",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_164_orquestrador_motor_monta_aventura_gerada",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_164_orquestrador_motor_monta_aventura_gerada"
     },
     {
       "relation": "references",
@@ -43674,9 +44118,9 @@
       "source_location": "L153",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_190_antagonista_vira_passo_proprio_entre_segredos_e_encontros",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_190_antagonista_vira_passo_proprio_entre_segredos_e_encontros"
     },
     {
       "relation": "contains",
@@ -43685,9 +44129,9 @@
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura"
     },
     {
       "relation": "references",
@@ -43696,9 +44140,9 @@
       "source_location": "L118",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_46_acessibilidade_wcag_aa",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_46_acessibilidade_wcag_aa"
     },
     {
       "relation": "references",
@@ -43707,9 +44151,9 @@
       "source_location": "L117",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_66_telas_mobile_friendly",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_66_telas_mobile_friendly"
     },
     {
       "relation": "contains",
@@ -43718,9 +44162,9 @@
       "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_contexto_e_motiva\u00e7\u00e3o",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_contexto_e_motiva\u00e7\u00e3o"
     },
     {
       "relation": "contains",
@@ -43729,9 +44173,9 @@
       "source_location": "L147",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_copy_das_mensagens",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_copy_das_mensagens"
     },
     {
       "relation": "contains",
@@ -43740,9 +44184,9 @@
       "source_location": "L101",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_crit\u00e9rios_de_aceite",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_crit\u00e9rios_de_aceite"
     },
     {
       "relation": "contains",
@@ -43751,9 +44195,9 @@
       "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_escopo",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_escopo"
     },
     {
       "relation": "contains",
@@ -43762,9 +44206,9 @@
       "source_location": "L11",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_hist\u00f3ria",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_hist\u00f3ria"
     },
     {
       "relation": "contains",
@@ -43773,9 +44217,9 @@
       "source_location": "L127",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_notas_de_implementa\u00e7\u00e3o",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_notas_de_implementa\u00e7\u00e3o"
     },
     {
       "relation": "contains",
@@ -43784,9 +44228,9 @@
       "source_location": "L175",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_quest\u00f5es_em_aberto",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_quest\u00f5es_em_aberto"
     },
     {
       "relation": "contains",
@@ -43795,9 +44239,9 @@
       "source_location": "L184",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_us_197_tela_de_espera_com_carrossel_de_mensagens_na_cria\u00e7\u00e3o_da_aventura",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_refer\u00eancias_no_c\u00f3digo",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_refer\u00eancias_no_c\u00f3digo"
     },
     {
       "relation": "contains",
@@ -43806,9 +44250,9 @@
       "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_contexto_e_motiva\u00e7\u00e3o",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_a_proposta",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_a_proposta"
     },
     {
       "relation": "contains",
@@ -43817,9 +44261,9 @@
       "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_contexto_e_motiva\u00e7\u00e3o",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_o_problema_observado",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_o_problema_observado"
     },
     {
       "relation": "contains",
@@ -43828,9 +44272,9 @@
       "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_contexto_e_motiva\u00e7\u00e3o",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_por_que_a_solu\u00e7\u00e3o_atual_n\u00e3o_basta",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_por_que_a_solu\u00e7\u00e3o_atual_n\u00e3o_basta"
     },
     {
       "relation": "contains",
@@ -43839,9 +44283,9 @@
       "source_location": "L50",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_escopo",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_dentro_do_escopo",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_dentro_do_escopo"
     },
     {
       "relation": "contains",
@@ -43850,9 +44294,9 @@
       "source_location": "L84",
       "weight": 1.0,
       "_origin": "ast",
+      "confidence_score": 1.0,
       "source": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_escopo",
-      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_fora_do_escopo",
-      "confidence_score": 1.0
+      "target": "docs_sdlc_01_requisitos_us_197_tela_de_espera_com_carrossel_na_criacao_da_aventura_fora_do_escopo"
     },
     {
       "relation": "contains",
@@ -45397,450 +45841,6 @@
       "confidence_score": 1.0,
       "source": "packages_ai_engine_src_rubric_test",
       "target": "packages_ai_engine_src_rubric_renderreportmarkdown"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger_test",
-      "target": "apps_api_src_adventure_generation_seed_ledger"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger_test",
-      "target": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L30",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger_test",
-      "target": "apps_api_src_adventure_generation_seed_ledger_test_adventurefixture"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L25",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger_test",
-      "target": "apps_api_src_adventure_generation_seed_ledger_test_antagonist_base"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger_test",
-      "target": "apps_api_src_adventure_generation_seed_ledger_test_enc"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.test.ts",
-      "source_location": "L50",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger_test_adventurefixture",
-      "target": "apps_api_src_adventure_generation_seed_ledger_test_enc"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.ts",
-      "source_location": "L14",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service",
-      "target": "apps_api_src_adventure_generation_seed_ledger"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger",
-      "target": "apps_api_src_adventure_generation_monster_roles"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger",
-      "target": "apps_api_src_adventure_generation_monster_roles_monster_role_cr"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
-      "source_location": "L148",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger",
-      "target": "apps_api_src_adventure_generation_seed_ledger_findoccupiedlocationtitle"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
-      "source_location": "L16",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger",
-      "target": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.ts",
-      "source_location": "L14",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service",
-      "target": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure-generation/seed-ledger.ts",
-      "source_location": "L39",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_generation_seed_ledger_seedledgerfromgeneratedadventure",
-      "target": "apps_api_src_adventure_generation_seed_ledger_findoccupiedlocationtitle"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_adventureprofile"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_adventureservice"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_composestartbriefing"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L54",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_test_config"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L20",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_test_fakeai"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L1562",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_test_fakegenai"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L99",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_test_fakeprisma"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L86",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_test_recorded"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L1583",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_adventure_service_test_service"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_generation_lazy_encounter_benchmark"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_generation_lazy_encounter_benchmark_encounterdeadlythreshold"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_generation_monster_roles"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_generation_monster_roles_chooseantagonistrole"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_generation_monster_roles_monster_role_cr"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_generation_monster_roles_totalcr"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_generation_roll_adventure"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_adventure_generation_roll_adventure_rolladventure"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L9",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_ai_ai_service"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L9",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_ai_ai_service_aiservice"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L8",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_prisma_service"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L8",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "apps_api_src_prisma_service_prismaservice"
-    },
-    {
-      "relation": "cites",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L438",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test",
-      "target": "docref_adr_0012"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L963",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test_service",
-      "target": "apps_api_src_adventure_adventure_service_test_fakeai"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/api/src/adventure/adventure.service.test.ts",
-      "source_location": "L962",
-      "weight": 1.0,
-      "_origin": "ast",
-      "confidence_score": 1.0,
-      "source": "apps_api_src_adventure_adventure_service_test_service",
-      "target": "apps_api_src_adventure_adventure_service_test_fakeprisma"
     },
     {
       "relation": "imports_from",
@@ -102025,5 +102025,5 @@
       "source_file": "tools/kanban/kanban.html"
     }
   ],
-  "built_at_commit": "52424587f0634d3bac198313d327e6b550ac1254"
+  "built_at_commit": "74a54193eb40f9b01ff107bfc444f6919cb1fe9c"
 }

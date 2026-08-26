@@ -1,7 +1,7 @@
 # Graph Report - AI DM  (2026-08-26)
 
 ## Corpus Check
-- 492 files · ~1,030,816 words
+- 492 files · ~1,031,017 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `52424587`
+- Built from commit: `74a54193`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1286,7 +1286,7 @@ Cohesion: 0.43
 Nodes (5): findOccupiedLocationTitle(), seedLedgerFromGeneratedAdventure(), adventureFixture(), ANTAGONIST_BASE, enc()
 
 ## Knowledge Gaps
-- **2156 isolated node(s):** `LOADING_KEYS`, `{ listSystems, createCharacter, createAdventure }`, `steps`, `GENDERS`, `POINT_COST` (+2151 more)
+- **2156 isolated node(s):** `ANTAGONIST_BASE`, `config`, `Recorded`, `ADR-0012`, `LOADING_KEYS` (+2151 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **57 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1297,7 +1297,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **Why does `ADR 010 — Upload de livro: lore recuperável, nunca fonte de regra` connect `ADR 010 — Upload de livro: lore recuperável, nunca fonte de regra` to `backlog-motor-de-geracao-de-aventuras.md`?**
   _High betweenness centrality (0.012) - this node is a cross-community bridge._
-- **What connects `LOADING_KEYS`, `{ listSystems, createCharacter, createAdventure }`, `steps` to the rest of the system?**
+- **What connects `ANTAGONIST_BASE`, `config`, `Recorded` to the rest of the system?**
   _2156 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.08412698412698413 - nodes in this community are weakly interconnected._
