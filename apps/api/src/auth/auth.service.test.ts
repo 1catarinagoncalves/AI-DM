@@ -29,9 +29,9 @@ function fakePrisma(seed: { users?: U[]; characters?: C[]; adventures?: A[] }) {
         db.users.push(u)
         return u
       },
-      count: async ({ where }: { where: { NOT: { email: { endsWith: string } } } }) => {
-        const suffix = where.NOT.email.endsWith
-        return db.users.filter((u) => !u.email.endsWith(suffix)).length
+      count: async ({ where }: { where: { NOT: { OR: { email: { endsWith: string } }[] } } }) => {
+        const suffixes = where.NOT.OR.map((c) => c.email.endsWith)
+        return db.users.filter((u) => !suffixes.some((s) => u.email.endsWith(s))).length
       },
       findMany: async ({ where }: { where: { email: { endsWith: string } } }) => {
         const suffix = where.email.endsWith
@@ -110,6 +110,47 @@ describe('AuthService.sync — reivindicação única de órfãos (US-61 D1)', (
     expect(user.id).toBe('real_ana')
     expect(user.name).toBe('Ana Maria')
     expect(db.characters[0]!.userId).toBe('g3') // intacto — existing=true, sem claim
+  })
+})
+
+describe('AuthService.sync — conta de dev fora da reivindicação de órfãos (US-201, risco 1)', () => {
+  const DEV_EMAIL = 'dev@ai-dm.invalid'
+  const DEV_NAME = 'Agente de desenvolvimento'
+
+  it('dev primeiro: pnpm dev:token não reivindica, e o login Google real ainda reivindica depois', async () => {
+    const { prisma, db } = fakePrisma({
+      users: [{ id: 'g1', email: 'guest_abc@aidm.local', name: 'Jogador' }],
+      characters: [{ id: 'c1', userId: 'g1' }],
+      adventures: [{ id: 'a1', creatorId: 'g1' }],
+    })
+    const svc = new AuthService(prisma)
+
+    await svc.sync(DEV_EMAIL, DEV_NAME)
+    expect(db.characters[0]!.userId).toBe('g1') // conta de dev não levou o órfão
+    expect(db.users.find((u) => u.id === 'g1')).toBeDefined()
+
+    const ana = await svc.sync('ana@gmail.com', 'Ana')
+    expect(db.characters[0]!.userId).toBe(ana.id) // login real, depois da conta de dev, reivindica normalmente
+    expect(db.adventures[0]!.creatorId).toBe(ana.id)
+    expect(db.users.find((u) => u.id === 'g1')).toBeUndefined()
+  })
+
+  it('dev depois: conta de dev nascendo após um login real não leva os órfãos dele', async () => {
+    const { prisma, db } = fakePrisma({
+      users: [
+        { id: 'real_ana', email: 'ana@gmail.com', name: 'Ana' },
+        { id: 'g2', email: 'guest_xyz@aidm.local', name: 'Jogador' },
+      ],
+      characters: [{ id: 'c2', userId: 'g2' }],
+      adventures: [{ id: 'a2', creatorId: 'g2' }],
+    })
+    const svc = new AuthService(prisma)
+
+    await svc.sync(DEV_EMAIL, DEV_NAME)
+
+    expect(db.characters[0]!.userId).toBe('g2')
+    expect(db.adventures[0]!.creatorId).toBe('g2')
+    expect(db.users.find((u) => u.id === 'g2')).toBeDefined()
   })
 })
 

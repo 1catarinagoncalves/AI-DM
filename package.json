@@ -20,6 +20,8 @@
     "docs:shape": "node --test scripts/readme-shape.test.mjs",
     "i18n:literals": "node scripts/check-jsx-literals.mjs",
     "i18n:literals:test": "node --test scripts/check-jsx-literals.test.mjs",
+    "dev:token": "dotenv -e .env -- node scripts/dev-token.mjs",
+    "dev:token:test": "node --test scripts/dev-token.test.mjs",
     "srd:sync": "node scripts/srd/sync.mjs",
     "srd:ingest": "pnpm --fail-if-no-match --filter @ai-dm/ai-engine... build && dotenv -e .env -- node scripts/srd/ingest.mjs",
     "srd:ingest:test": "node --test scripts/srd/ingest.test.mjs",

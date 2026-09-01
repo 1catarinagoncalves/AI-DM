@@ -40,6 +40,10 @@ const DICT_DIR = join(WEB, "messages") + sep;
 // acima dela. Entrada que deixar de casar vira aviso, não erro (ver o fim).
 const LITERAL_ALLOW = new Map([
   ["AUTH_SECRET ausente no web", "apps/web/src/auth.ts:22 — mensagem de throw para quem opera, nunca renderizada"],
+  ["Entrar como agente de desenvolvimento",
+   "login/page.tsx — botão do login de dev (US-201); não é texto de produto, produção nunca o renderiza"],
+  ["Agente de desenvolvimento",
+   "lib/auth-providers.ts — nome fixo da conta de bancada do provider Credentials de dev (US-201), nunca chega a produção"],
 ]);
 
 /** Prosa é o que tem letra. Descarta os 15 separadores da baseline (·, —, /) e o alt="". */

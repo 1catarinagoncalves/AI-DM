@@ -23,6 +23,10 @@ async function bootstrap() {
     .setTitle('AI DM API')
     .setDescription('Game Server + REST API do AI Dungeon Master')
     .setVersion('1.0')
+    // US-201: registra o esquema 'bearer' (default do Nest, mesmo nome que todo
+    // @ApiBearerAuth() já referencia) para o botão "Authorize" existir no Swagger.
+    // Não afrouxa o guard — só desenha o campo; `pnpm dev:token` é quem dá o token.
+    .addBearerAuth()
     .build()
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, config))
 

@@ -1,6 +1,7 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import { useEffect, useState } from 'react'
+import { signIn, getProviders } from 'next-auth/react'
 import { Logo, Panel, SceneFrame } from '@/components/ui/dm'
 import { useT } from '@/components/LocaleProvider'
 
@@ -8,6 +9,14 @@ import { useT } from '@/components/LocaleProvider'
 // ao app autenticado. É a única porta (D3): sem sessão, o middleware traz para cá.
 export default function LoginPage() {
   const t = useT()
+  // US-201: `getProviders()` lê o array de verdade que o servidor registrou
+  // (GET /api/auth/providers) — nenhuma flag duplicada aqui. Em produção o
+  // provider 'dev' nunca é registrado (auth.ts), então este estado nunca vira
+  // `true` lá, mesmo que alguém adultere algo do lado do cliente.
+  const [devLoginAvailable, setDevLoginAvailable] = useState(false)
+  useEffect(() => {
+    getProviders().then((providers) => setDevLoginAvailable(!!providers?.['dev']))
+  }, [])
   return (
     <SceneFrame scene="/scenes/gate-entrance.png" dim="medium">
       <div className="flex flex-1 items-center justify-center px-4 py-10">
@@ -29,6 +38,15 @@ export default function LoginPage() {
             <GoogleIcon className="size-5" />
             {t('login.google')}
           </button>
+          {devLoginAvailable && (
+            <button
+              type="button"
+              onClick={() => signIn('dev', { redirectTo: '/' })}
+              className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-dashed border-border px-5 py-3 text-sm font-semibold text-muted-foreground transition-all hover:border-primary/60 hover:text-foreground active:translate-y-px"
+            >
+              Entrar como agente de desenvolvimento
+            </button>
+          )}
         </Panel>
       </div>
     </SceneFrame>

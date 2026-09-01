@@ -59,6 +59,12 @@ Roadmap incremental (fase atual: MVP single-player):
   `packages/shared`, tipo sem consumidor ou é apagado ou ganha comentário com a US que vai usá-lo.
 - Commits: mensagem de agente é `US-NN — título` (travessão em dash), assunto livre quando não
   há story. Commit manual da mantenedora é livre. Sem gate automático — ver `CLAUDE.md` e US-96.
+- **Autenticação de dev para agentes (US-201).** API → `pnpm dev:token` imprime um Bearer
+  (cola no botão "Authorize" de `/api/docs` ou num header `curl`); telas → botão "Entrar como
+  agente de desenvolvimento" em `/login`, atrás de `NODE_ENV !== 'production'` **e**
+  `DEV_LOGIN=1` (as duas, não uma alternativa). Os dois caminhos são separados de propósito
+  (ver *Armadilhas do repo* — CSRF do sign-in por Credentials). O token nunca vai para o repo,
+  para um `.md` nem para mensagem de commit.
 
 ### Frontend (`apps/web`)
 - Next.js 15 App Router, React Server Components onde possível
@@ -232,6 +238,12 @@ comportamento é o antigo.
   seguidas com o compute comprovadamente ativo). Contra banco hospedado: `prisma migrate status`
   para ler (é o que responde "Database schema is up to date!") e `prisma migrate deploy` para
   aplicar — sem shadow, sem checagem de drift. É o que o `render.yaml:35` já usa.
+- **O login de dev por `curl` volta um 302 silencioso, e não é bug.** O Auth.js exige um
+  token de CSRF no corpo do POST de sign-in; o `signIn()` do cliente resolve isso sozinho, um
+  `curl` direto não. Por isso os dois caminhos da US-201 são separados: `pnpm dev:token` cobre
+  a API sem navegador nenhum, e o botão de `/login` é para quando o agente já está dirigindo
+  um navegador (fluxos de tela). Não existe terceira via — scriptar o POST de sign-in é o jeito
+  de perder uma sessão de debug atrás de um redirect que não diz por quê.
 - **Instalar dependência nova pode travar todos os comandos pnpm.** O pnpm acrescenta
   pacotes com build script ao `allowBuilds:` do `pnpm-workspace.yaml` com um placeholder
   literal (`'@scarf/scarf': set this to true or false`), e isso derruba o preflight de

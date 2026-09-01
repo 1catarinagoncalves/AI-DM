@@ -2,7 +2,13 @@
 
 **Épico:** 5 — Ferramentas de projeto / SDLC
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (01/09/2026). Verificado ao vivo: `pnpm dev:token` cria a conta via
+`/auth/sync` e o token passa em `GET /characters/mine` (200; sem token, 401); botão "Authorize"
+funcional em `/api/docs` com o esquema `bearer`; botão de login de dev em `/login` só aparece com
+`DEV_LOGIN=1` e leva a `/setup` sem OAuth do Google; `providers` de `auth.ts` não traz o provider
+`dev` sem a porta dupla (teste de regressão). `pnpm test`, `pnpm typecheck` e `i18n:literals`
+verdes nos dois apps; `auth.service.int.test.ts` cobre o risco 1 mas exige Postgres local
+(`TEST_DATABASE_URL`) não disponível neste ambiente — não executado aqui.
 **Depende de:** [US-61](./US-61-login-do-jogador.md) (AuthGuard, JWT HS256 com `AUTH_SECRET` compartilhado)
 **Criada em:** 2026-09-01
 
@@ -134,40 +140,59 @@ existente ([`auth.service.ts`](../../../apps/api/src/auth/auth.service.ts)) — 
 
 ## Critérios de aceite
 
-- [ ] Em `http://localhost:3001/api/docs` existe o botão **Authorize** e um campo de Bearer token.
-- [ ] Colado o token do comando, um "Try it out" em `GET /api/v1/characters/mine` responde **200**
-      (hoje responde 401), e o mesmo request sem o token continua respondendo 401.
-- [ ] `pnpm dev:token` imprime **só** o token na saída padrão (sem cabeçalho, sem log), de modo que
-      a saída possa ser interpolada direto num header `Authorization`.
-- [ ] Rodar `pnpm dev:token` num banco vazio funciona: a conta de dev nasce pelo `/auth/sync`, e o
+- [x] Em `http://localhost:3001/api/docs` existe o botão **Authorize** e um campo de Bearer token.
+      Verificado ao vivo: as 9 rotas com `@ApiBearerAuth()` mostram o cadeado (unlocked → locked
+      após Authorize); `/users` (sem o decorator) não mostra.
+- [x] Colado o token do comando, um "Try it out" em `GET /api/v1/characters/mine` responde **200**
+      (hoje responde 401), e o mesmo request sem o token continua respondendo 401. Verificado ao
+      vivo (curl direto: 200 com token, 401 sem; "Try it out" no Swagger: 200, corpo `[]`).
+- [x] `pnpm dev:token` imprime **só** o token na saída padrão (sem cabeçalho, sem log), de modo que
+      a saída possa ser interpolada direto num header `Authorization`. Verificado ao vivo e por
+      teste (`dev-token.test.mjs`).
+- [x] Rodar `pnpm dev:token` num banco vazio funciona: a conta de dev nasce pelo `/auth/sync`, e o
       token gerado atravessa o `assertUserExists`. Com a API fora do ar, o comando falha com
       mensagem que diz para subir a API — não imprime token inválido nem stack trace cru.
-- [ ] A conta de dev **não** aparece no `db:seed`: `grep` por `ai-dm.invalid` em
+      Verificado ao vivo contra o Postgres de dev real (primeira execução criou a conta) e por
+      teste (API fora do ar / `AUTH_SECRET` ausente, com servidor HTTP falso).
+- [x] A conta de dev **não** aparece no `db:seed`: `grep` por `ai-dm.invalid` em
       [`prisma/seed.ts`](../../../apps/api/prisma/seed.ts) não casa (decisão 2 — o `render.yaml`
       roda o seed em toda build de produção).
-- [ ] **Não destrutivo (risco 1), nas duas ordens.** Teste de integração, não unitário — o bug
+- [x] **Não destrutivo (risco 1), nas duas ordens.** Teste de integração, não unitário — o bug
       mora na transação, e cada ordem exerce uma das duas condições:
       - *dev primeiro:* banco com personagens de convidado e nenhum login real → `pnpm dev:token`
         não move nenhum `Character.userId` nem apaga linha de `User`, e o login Google **depois**
         ainda reivindica os órfãos normalmente.
       - *dev depois:* banco com uma conta real já sincronizada e convidados órfãos → `pnpm
         dev:token` não leva nada para a conta de dev.
+      Coberto em `apps/api/src/auth/auth.service.int.test.ts` (Postgres real, `pnpm test:int`) e
+      espelhado como unitário em `auth.service.test.ts` (fakePrisma). O `.int.test.ts` não rodou
+      neste ambiente por falta de `TEST_DATABASE_URL` local — passa no typecheck, não na execução.
 - [ ] **Fonte única do segredo (risco 3):** `apps/web/.env.local` não define `AUTH_SECRET`; o
       valor vem só do `.env` da raiz. Verificado uma vez pela mantenedora — é o que faz o token do
       script e o do login de dev serem verificáveis pelo mesmo guard.
-- [ ] **Gates verdes (riscos 2 e 5):** `pnpm i18n:literals`, `pnpm dead` e `pnpm test` passam com
+      Não verificável pelo agente: `apps/web/.env.local` é gitignored e negado à leitura — pendente
+      da mantenedora (`grep -c AUTH_SECRET apps/web/.env.local`, esperado 0).
+- [x] **Gates verdes (riscos 2 e 5):** `pnpm i18n:literals`, `pnpm dead` e `pnpm test` passam com
       o botão de dev e o script novo no repo — a isenção do rótulo está no `LITERAL_ALLOW` com
       motivo escrito, e o `.mjs` e seu teste têm par de scripts no `package.json`.
-- [ ] Com `DEV_LOGIN=1` em dev, um agente chega a `/setup` no `localhost:3000` sem passar por
-      Google, e a sessão do cliente traz o mesmo `userId` do token.
-- [ ] **Segurança:** com `NODE_ENV=production`, o caminho de login de dev responde 404/401
+      `i18n:literals` e `test` (129 web + 479 api) verdes. `pnpm dead` reprova por 18 arquivos de
+      `.design-sync/` sem relação com esta story (pré-existente, commit "Configurar design-sync");
+      nenhum arquivo novo desta story aparece na lista.
+- [x] Com `DEV_LOGIN=1` em dev, um agente chega a `/setup` no `localhost:3000` sem passar por
+      Google, e a sessão do cliente traz o mesmo `userId` do token. Verificado ao vivo: clique no
+      botão de dev → sessão autenticada ("Olá, Aventureiro") → link "Criar meu personagem" aponta
+      para `/setup`.
+- [x] **Segurança:** com `NODE_ENV=production`, o caminho de login de dev responde 404/401
       **mesmo com `DEV_LOGIN=1` definido** — as duas condições são exigidas, não alternativas.
-- [ ] **Segurança:** o `AUTH_SECRET` nunca aparece na saída do comando nem em log; o que sai é só
+      Verificado por teste de regressão (`auth-providers.test.ts`) contra o array `providers` real;
+      não verificado com um build `next build`/`next start` completo em produção neste ambiente.
+- [x] **Segurança:** o `AUTH_SECRET` nunca aparece na saída do comando nem em log; o que sai é só
       o JWT assinado.
-- [ ] **Eval / teste de regressão:** teste unitário que (a) o token emitido pelo comando é aceito
+- [x] **Eval / teste de regressão:** teste unitário que (a) o token emitido pelo comando é aceito
       por `verifyJwt` com o mesmo segredo e rejeitado com segredo diferente; (b) o provider/rota de
       login de dev não é registrado quando `NODE_ENV === 'production'`. O (b) é o teste que falha
       se alguém remover a porta dupla num refactor.
+      (a) em `scripts/dev-token.test.mjs`; (b) em `apps/web/src/lib/auth-providers.test.ts`.
 
 ---
 

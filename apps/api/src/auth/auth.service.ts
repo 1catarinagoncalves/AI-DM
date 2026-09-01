@@ -6,6 +6,9 @@ import { PrismaService } from '../prisma.service'
 // (randomGuestId). Todo email de convidado termina neste sufixo; um login Google
 // real nunca. É por ele que distinguimos órfãos de contas reais.
 const GUEST_EMAIL_SUFFIX = '@aidm.local'
+// US-201: sufixo da conta de bancada do `pnpm dev:token`. Não é conta de jogador.
+const DEV_EMAIL_SUFFIX = '@ai-dm.invalid'
+const RESERVED_EMAIL_SUFFIXES = [GUEST_EMAIL_SUFFIX, DEV_EMAIL_SUFFIX]
 
 @Injectable()
 export class AuthService {
@@ -34,12 +37,19 @@ export class AuthService {
         ? await tx.user.update({ where: { email }, data: { name } })
         : await tx.user.create({ data: { email, name, locale: resolveLocale(locale) } })
 
-      // Conta real = email que NÃO é de convidado. Se, após o upsert, só existe
-      // uma conta real e ela acabou de nascer, é o primeiro login → reivindica.
+      // Conta real = email que NÃO é de convidado nem de bancada (US-201). Se, após
+      // o upsert, só existe uma conta real e ela acabou de nascer, é o primeiro
+      // login → reivindica.
+      //
+      // (a) a conta de dev não INFLA a contagem: senão, a mantenedora logando depois
+      //     dela veria realUserCount === 2 e perderia a reivindicação que é dela.
       const realUserCount = await tx.user.count({
-        where: { NOT: { email: { endsWith: GUEST_EMAIL_SUFFIX } } },
+        where: { NOT: { OR: RESERVED_EMAIL_SUFFIXES.map((s) => ({ email: { endsWith: s } })) } },
       })
-      const isFirstRealLogin = !existing && realUserCount === 1
+      // (b) a conta de dev nunca REIVINDICA: sem isto ela leva os órfãos no cenário
+      //     em que nasce depois de já existir uma conta real.
+      const isDevAccount = user.email.endsWith(DEV_EMAIL_SUFFIX)
+      const isFirstRealLogin = !existing && !isDevAccount && realUserCount === 1
 
       if (isFirstRealLogin) {
         const guests = await tx.user.findMany({
