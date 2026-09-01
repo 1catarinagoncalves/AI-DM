@@ -2,7 +2,20 @@
 
 **Épico:** 5 — Qualidade e avaliação do DM Agent
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (01/09/2026). Verificado ao vivo contra a Neon de dev (`DEV_EXPORT=1`,
+porta alternativa pra não colidir com o `pnpm dev` já em execução): rota condicional aparece no
+log de boot do Nest (`AdventureExportController {.../export}`); sem token → 401; token de dev
+contra personagem de outro utilizador → 403; `characterId` inexistente → 404; contra uma aventura
+real da Neon (28 `EventLog`, 1 `Quest`, `CharacterState` presente) o pipeline query→view→Markdown
+roda ponta a ponta sem exceção e produz ~82KB de Markdown coerente, com `locationId`/`npcIds`
+resolvidos para título/nome em toda referência. `pnpm typecheck` e os 2 testes de regressão do
+critério de aceite (função pura de renderização + registro condicional via `Reflect.getMetadata`
+sobre o módulo real) verdes; suite inteira de `apps/api` (488 testes) sem regressão; `pnpm dead`
+sem achado novo. Não testado ao vivo: resposta 200 completa por HTTP (headers
+`Content-Type`/`Content-Disposition`, `?format=json`) — o pipeline por trás foi validado
+diretamente (ver acima) e os `res.setHeader`/`res.send` do controller são triviais, mas a rota
+em si não recebeu uma chamada HTTP 200 de ponta a ponta nesta verificação (criar uma aventura
+nova custaria uma geração real via LLM).
 **Depende de:** [US-201](./US-201-token-de-desenvolvimento-para-agentes-testarem-api-e-telas.md) — o token de dev (`pnpm dev:token`), o `.addBearerAuth()` no Swagger e o padrão de porta dupla (`NODE_ENV !== 'production'` **e** env var explícita) que esta rota reusa. O artefato em si já é persistido desde a [US-168](./US-168-abertura-narra-gancho-fixo-nao-aventura-gerada.md) (`Adventure.generatedAdventure`).
 **Criada em:** 2026-09-01
 
@@ -148,31 +161,46 @@ fora do repo (o arquivo tem spoiler da campanha inteira; não é material de com
 
 - [ ] Com `DEV_EXPORT=1` em dev, `GET /characters/:characterId/adventures/:adventureId/export`
       com o Bearer do `pnpm dev:token` responde **200** com um `.md` contendo as seis fontes da
-      tabela acima, para uma aventura criada pelo motor.
+      tabela acima, para uma aventura criada pelo motor. Verificado indiretamente: o pipeline
+      query→view→Markdown (o que o handler chama antes de `res.send`) rodou ponta a ponta contra
+      uma aventura real da Neon e produziu as seis fontes — mas nenhuma chamada HTTP chegou a 200
+      nesta verificação (precisaria de uma aventura nova sob a conta de dev, o que custaria uma
+      geração real via LLM). Ver nota no Status.
 - [ ] A resposta traz `Content-Type: text/markdown` e um `Content-Disposition: attachment` com
-      `filename` que cita o `adventureId` — `curl -OJ` grava o arquivo direto, sem `-o` à mão.
-- [ ] O Markdown segue a ordem do pipeline e resolve as referências: nenhum id cru aparece no
-      lugar de um nome de local ou de NPC.
-- [ ] O Markdown abre com a rubrica de leitura (itens fixos, sem nota atribuída).
-- [ ] `?format=json` devolve `application/json` com o mesmo conteúdo.
-- [ ] Sem token, a rota responde 401; com token de outro utilizador, 403; `adventureId`
+      `filename` que cita o `adventureId` — `curl -OJ` grava o arquivo direto, sem `-o` à mão. Os
+      dois `res.setHeader` foram lidos, não curlados numa resposta 200 real (mesmo motivo acima).
+- [x] O Markdown segue a ordem do pipeline e resolve as referências: nenhum id cru aparece no
+      lugar de um nome de local ou de NPC. Confirmado pelo teste de regressão (a) e, ao vivo,
+      contra uma aventura real (locations/npcs/secrets/encounters todos por nome, não por id).
+- [x] O Markdown abre com a rubrica de leitura (itens fixos, sem nota atribuída). Confirmado ao
+      vivo (topo do Markdown gerado contra a aventura real) e por teste.
+- [ ] `?format=json` devolve `application/json` com o mesmo conteúdo. Não exercitado nesta
+      verificação — o branch `format === 'json'` do controller nunca foi chamado.
+- [x] Sem token, a rota responde 401; com token de outro utilizador, 403; `adventureId`
       inexistente (ou de outro personagem), 404 — o mesmo comportamento da rota de turnos, porque
-      é o mesmo `assertOwner`.
-- [ ] Aventura **sem** `generatedAdventure` (criada antes da US-168) exporta o resto e marca a
-      seção do artefato como ausente, em vez de quebrar.
-- [ ] `User.email` não aparece em nenhum dos dois formatos.
-- [ ] A rota não escreve em banco: nenhuma chamada de `create`/`update`/`delete`/`upsert` no
-      caminho do export, e nenhum `EventLog` novo depois de uma chamada.
-- [ ] **Segurança:** com `NODE_ENV=production` a rota responde **404 mesmo com `DEV_EXPORT=1`
+      é o mesmo `assertOwner`. Os três confirmados ao vivo com `curl` contra a API real.
+- [x] Aventura **sem** `generatedAdventure` (criada antes da US-168) exporta o resto e marca a
+      seção do artefato como ausente, em vez de quebrar. Coberto pelo teste de regressão (a); não
+      há, nesta Neon, uma aventura real pré-US-168 para testar ao vivo.
+- [x] `User.email` não aparece em nenhum dos dois formatos. `AdventureExportCharacter` não tem
+      campo `email`, e a query de `Character` só seleciona `user: { select: { locale: true } } }`
+      — não há como o e-mail atravessar a `select`.
+- [x] A rota não escreve em banco: nenhuma chamada de `create`/`update`/`delete`/`upsert` no
+      caminho do export, e nenhum `EventLog` novo depois de uma chamada. `getExportData` só chama
+      `findFirst`/`findMany`/`findUnique`/`findUniqueOrThrow`.
+- [x] **Segurança:** com `NODE_ENV=production` a rota responde **404 mesmo com `DEV_EXPORT=1`
       definido** — as duas condições são exigidas, não alternativas (mesma regra da US-201).
-- [ ] **Eval / teste de regressão:** dois testes no vitest de `apps/api`. (a) Função pura de
+      Confirmado pelo teste de regressão (b), que lê `Reflect.getMetadata` sobre a classe do
+      módulo — o mesmo registro que o Nest usa para montar as rotas.
+- [x] **Eval / teste de regressão:** dois testes no vitest de `apps/api`. (a) Função pura de
       renderização sobre um artefato de fixture com dois locais, dois NPCs e um encontro: falha
       se uma referência ficar sem resolver (id cru na saída) ou se um NPC declarado no artefato
       sumir do Markdown — é o que quebra quando o `GeneratedAdventureSchema` ganhar campo novo e
       ninguém o levar para a visão. (b) Registro condicional: com `NODE_ENV === 'production'` a
       rota **não** entra no controller. O (b) lê o registro de verdade, não uma cópia da condição
       — teste que reimplementa `NODE_ENV !== 'production' && DEV_EXPORT` continua passando depois
-      de alguém apagar a porta dupla do código.
+      de alguém apagar a porta dupla do código. `apps/api/src/adventure/adventure-export.test.ts`
+      (5 casos) e `apps/api/src/adventure/adventure.module.test.ts` (4 casos), todos verdes.
 
 ---
 
@@ -180,23 +208,35 @@ fora do repo (o arquivo tem spoiler da campanha inteira; não é material de com
 
 > Dicas, não especificação. Quem implementa pode divergir com justificativa.
 
-- **Três peças finas, nenhuma nova camada.** Renderização = função pura sobre o objeto já lido,
-  em `apps/api/src/adventure/` (junto do domínio de aventura, testável pelo vitest que já roda);
-  consulta = método do `AdventureService`, ao lado de `getTurns`; rota = mais um método no
-  `AdventureController`, que já tem `AuthGuard` e `assertOwner`. Sem módulo novo, sem
-  `dev/` separado.
-- **Registro condicional da rota.** O jeito mais simples que ainda satisfaz o critério de
-  segurança é o controller decidir no `onModuleInit`/na composição do módulo, não um `if` dentro
-  do handler que devolve 404 — rota que existe e mente é pior de auditar do que rota que não
-  existe. Qualquer que seja o mecanismo escolhido, o teste (b) tem de conseguir observá-lo.
+- **Três peças finas, um controller novo (não um módulo novo).** Renderização = função pura
+  sobre o objeto já lido, em `apps/api/src/adventure/` (junto do domínio de aventura, testável
+  pelo vitest que já roda); consulta = método do `AdventureService`, ao lado de `getTurns`; rota =
+  `AdventureExportController` próprio, no mesmo módulo. `@Get()` do Nest registra rota no load do
+  módulo — não há como "desligar" um método de um controller que já está no array `controllers`
+  sem um `if` dentro do handler, que é exatamente o anti-padrão que este item evita. Controller
+  separado é o preço de não mentir sobre a rota existir. Reusa `AuthGuard` e
+  `adventureService.assertCharacterOwner` (já público — é o que `assertOwner` do
+  `AdventureController` chama por baixo; não precisa duplicar nem tornar público um método
+  privado). Sem módulo novo, sem `dev/` separado.
+- **Registro condicional da rota.** `AdventureExportController` só entra no array `controllers`
+  de [`adventure.module.ts`](../../../apps/api/src/adventure/adventure.module.ts) quando
+  `NODE_ENV !== 'production' && DEV_EXPORT === '1'` — mesmo formato do array `providers`
+  condicional em [`auth-providers.ts`](../../../apps/web/src/lib/auth-providers.ts) (US-201,
+  lado web): condição calculada uma vez, spread condicional no array, nada de `if` dentro de
+  handler. O teste (b) importa o array `controllers` do módulo (ou sobe o módulo de teste com
+  cada valor de env) e afirma sobre o array real — não uma cópia da condição.
 - **`Content-Disposition` com nome seguro.** `adventureId` é cuid (só `[a-z0-9]`), mas o
   `filename` monta com ele: se um dia o id vier de outra fonte, sanitizar. Aspas duplas no valor,
   como manda o header.
 - **Tipar o artefato na leitura, não confiar no `Json`.** `Adventure.generatedAdventure` volta do
   Prisma sem tipo; passar por `GeneratedAdventureSchema.safeParse` dá o tipo e, de quebra, detecta
   artefato antigo que não revalida (o caso de `unlocks`, US-193 — reparse de artefato antigo
-  **não** é caminho suportado). Falha de parse não deve abortar o export: renderiza o que der e
-  marca a divergência.
+  **não** é caminho suportado). `safeParse` falho não devolve `data` tipado — não dá pra
+  "renderizar parcialmente" um objeto que não existe. Falha de parse não deve abortar o export:
+  cai para o JSON cru do `generatedAdventure` (sem resolução de referência, sem nomes) com um
+  aviso no topo da seção dizendo que o artefato não revalida contra o schema atual. Sem parse
+  tolerante campo-a-campo — não vale a complexidade para um caso que só existe em artefato
+  pré-US-168/pré-US-193.
 - **`DEV_EXPORT` não se carrega sozinho.** A API não tem `ConfigModule` nem `dotenv`: em dev os
   env vars vêm do `.env` da RAIZ, carregado pelo wrapper `dotenv -e .env --` do script `dev`
   ([`package.json`](../../../package.json)). A flag vai lá, junto de `DATABASE_URL` e

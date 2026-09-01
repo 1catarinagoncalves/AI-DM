@@ -13,6 +13,7 @@ import type { AdventureRegistryOverrides } from '../adventure-generation/roll-re
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
 import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-ledger'
 import { pickLocationIdForType } from '../adventure-generation/assign-location-vibe'
+import type { AdventureExportData } from './adventure-export'
 
 export interface CreateAdventureDto {
   // initialHookId REMOVIDO (US-153): a aventura é sempre gerada, não escolhida pelo cliente.
@@ -685,5 +686,72 @@ export class AdventureService {
     }
 
     return ordered
+  }
+
+  /**
+   * US-202: as seis fontes do export (Modelo de dados da US), no formato que
+   * `buildAdventureExportView` consome — somente leitura, nenhum `create`/`update`/
+   * `delete`/`upsert` no caminho. `adventureId` tem de pertencer a ESTE `characterId`
+   * (via `participants`), não só existir — `assertCharacterOwner` (chamado pelo
+   * controller antes desta função) já confirmou que o personagem pertence ao
+   * utilizador, mas não que a aventura pertence a ele; sem isso um `adventureId` de
+   * outro personagem vazaria o material dele. Inexistente ou de outro personagem: 404
+   * (mesmo comportamento da rota de turnos, mesmo `assertOwner`).
+   */
+  async getExportData(characterId: string, adventureId: string): Promise<AdventureExportData> {
+    const adventureRow = await this.prisma.adventure.findFirst({
+      where: { id: adventureId, participants: { some: { characterId } } },
+      select: { id: true, title: true, order: true, status: true, createdAt: true, memorySummary: true, entities: true, generatedAdventure: true, systemId: true },
+    })
+    if (!adventureRow) throw new NotFoundException(`Aventura ${adventureId} não encontrada para este personagem`)
+
+    const [quests, characterRow, characterState, eventLogs, system] = await Promise.all([
+      this.prisma.quest.findMany({
+        where: { adventureId },
+        select: { title: true, description: true, status: true, isPrimary: true, objective: true, conclusionHint: true },
+      }),
+      this.prisma.character.findUniqueOrThrow({
+        where: { id: characterId },
+        select: { name: true, race: true, class: true, level: true, background: true, origin: true, user: { select: { locale: true } } },
+      }),
+      this.prisma.characterState.findUnique({
+        where: { characterId_adventureId: { characterId, adventureId } },
+        select: { hp: true, maxHp: true, inventory: true, conditions: true, sceneState: true },
+      }),
+      this.prisma.eventLog.findMany({
+        where: { adventureId },
+        orderBy: { createdAt: 'asc' },
+        select: { type: true, payload: true, summarized: true, createdAt: true },
+      }),
+      getSystemCached(this.prisma, adventureRow.systemId),
+    ])
+
+    return {
+      adventure: {
+        id: adventureRow.id,
+        title: adventureRow.title,
+        order: adventureRow.order,
+        status: adventureRow.status,
+        createdAt: adventureRow.createdAt,
+        memorySummary: adventureRow.memorySummary,
+        entities: adventureRow.entities,
+        generatedAdventure: adventureRow.generatedAdventure,
+      },
+      quests,
+      character: {
+        name: characterRow.name,
+        race: characterRow.race,
+        class: characterRow.class,
+        level: characterRow.level,
+        background: characterRow.background,
+        origin: characterRow.origin,
+        // US-202 Modelo de dados, redação: `User.email`/`User.name` nunca entram no dump —
+        // só o locale (necessário pra `AdventureExportCharacter.locale`) atravessa a relação.
+        locale: resolveLocale(characterRow.user?.locale),
+      },
+      characterState,
+      eventLogs,
+      system: { id: system.id, name: system.name, version: system.version, sourceType: system.sourceType },
+    }
   }
 }

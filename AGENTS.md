@@ -65,6 +65,19 @@ Roadmap incremental (fase atual: MVP single-player):
   `DEV_LOGIN=1` (as duas, não uma alternativa). Os dois caminhos são separados de propósito
   (ver *Armadilhas do repo* — CSRF do sign-in por Credentials). O token nunca vai para o repo,
   para um `.md` nem para mensagem de commit.
+- **Export de aventura para leitura manual (US-202).** `GET /characters/:characterId/adventures/:adventureId/export`
+  despeja a aventura inteira (artefato gerado, ledger, quest, personagem, log de jogo) num
+  `.md` pronto para ler — atrás de `NODE_ENV !== 'production'` **e** `DEV_EXPORT=1` (flag
+  PRÓPRIA, não `DEV_LOGIN`: um deixa entrar, o outro deixa ler o material inteiro de uma
+  campanha — ligar login de dev não pode acender export sem ninguém pedir). Bearer é o mesmo
+  `pnpm dev:token`. `?format=json` devolve o mesmo conteúdo em JSON. Salva com o nome que o
+  servidor mandou:
+  ```bash
+  curl -OJ -H "Authorization: Bearer $TOKEN" \
+    http://localhost:3001/api/v1/characters/$CHARACTER_ID/adventures/$ADVENTURE_ID/export
+  ```
+  Carrega spoiler (segredos, fraqueza do antagonista, conclusão) — nunca commitar o `.md`
+  baixado nem colar o conteúdo numa mensagem de commit.
 
 ### Frontend (`apps/web`)
 - Next.js 15 App Router, React Server Components onde possível
