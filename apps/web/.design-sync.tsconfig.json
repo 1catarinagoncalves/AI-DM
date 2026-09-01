@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/messages": ["./src/messages/index.ts"],
+      "next/image": ["./.design-sync-shims/next-image.tsx"],
+      "next/link": ["./.design-sync-shims/next-link.tsx"],
+      "@/*": ["./src/*"]
+    }
+  }
+}

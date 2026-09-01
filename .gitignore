@@ -36,3 +36,15 @@ docs/.obsidian/plugins/
 graphify-out/*
 !graphify-out/graph.json
 !graphify-out/GRAPH_REPORT.md
+
+# design-sync: scripts baixados (.ds-sync, re-copiados a cada sync) e saída de
+# build (ds-bundle, apps/web/.design-sync-generated) nunca entram no repo. O
+# conjunto durável — .design-sync/config.json, NOTES.md, conventions.md,
+# previews/, overrides/ — e os shims/tsconfig de apps/web/.design-sync* NÃO
+# são ignorados (ver .design-sync/NOTES.md).
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
+apps/web/.design-sync-generated/

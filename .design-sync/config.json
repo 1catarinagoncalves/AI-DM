@@ -1,0 +1,32 @@
+{
+  "pkg": "web",
+  "projectId": "baedcdc7-00b7-4aba-8a79-ae24e73b7f49",
+  "globalName": "AiDm",
+  "shape": "package",
+  "tsconfig": ".design-sync.tsconfig.json",
+  "srcDir": "src/components",
+  "cssEntry": ".design-sync-generated/tailwind.css",
+  "componentSrcMap": {
+    "LocaleProvider": null,
+    "Providers": null,
+    "ThemeProvider": null
+  },
+  "provider": {
+    "component": "Providers",
+    "props": { "session": null },
+    "inner": { "component": "ThemeProvider" }
+  },
+  "guidelinesGlob": ["../../docs/sdlc/02-design/design-system.md"],
+  "readmeHeader": ".design-sync/conventions.md",
+  "extraEntries": ["next-auth/react"],
+  "storyImports": {
+    "shim": ["src/components/ui/dm."]
+  },
+  "libOverrides": {
+    "bundle.mjs": "process.env.* / process.platform / process.nextTick read at module top level by next-auth/react and src/lib/api.ts throw ReferenceError in a plain esbuild browser bundle (no Next DefinePlugin pass); added one banner-injected 'var process' global as a safety net, no other change"
+  },
+  "overrides": {
+    "AuthNav": { "cardMode": "single", "viewport": "420x120" },
+    "ThemeToggle": { "cardMode": "single", "viewport": "300x120" }
+  }
+}
