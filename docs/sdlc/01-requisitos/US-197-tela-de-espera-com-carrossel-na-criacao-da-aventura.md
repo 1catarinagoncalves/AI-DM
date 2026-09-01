@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (passo `world`, estado `starting`, `createWorldAdventure`)
 **Criada em:** 2026-08-24
 
