@@ -49,7 +49,9 @@ export const ptBR = {
   'setup.progress': 'Progresso',
   'setup.stepOf': 'Etapa {n} de {total} — {label}',
   'setup.step.system': 'Sistema',
-  'setup.step.race-class': 'Raça/Classe',
+  // US-205: `race-class` virou `class` + `race` — duas entradas na trilha em vez de uma.
+  'setup.step.class': 'Classe',
+  'setup.step.race': 'Raça',
   'setup.step.attributes': 'Atributos',
   'setup.step.skills': 'Perícias',
   'setup.step.background': 'Background',
@@ -94,15 +96,23 @@ export const ptBR = {
   'setup.system.hint.SRD': 'Regras oficiais de um sistema conhecido',
   'setup.system.hint.UPLOAD': 'Sistema customizado enviado por um usuário',
 
-  // ---- wizard: raça e classe ----
-  'setup.raceClass.titulo': 'Raça e Classe',
+  // ---- wizard: classe e raça (US-205: duas etapas, `class` seguida de `race`) ----
+  'setup.class.titulo': 'Classe',
+  'setup.race.titulo': 'Raça',
   'setup.raceClass.system': 'Sistema: {name}',
   'setup.raceClass.name': 'Nome do personagem',
   'setup.raceClass.namePlaceholder': 'Ex.: Lyra Silvermoon',
   'setup.raceClass.gender': 'Gênero',
+  // Reusados como LEGENDA da grade de cartão (US-205) — mesmo texto que já rotulava o <select>.
   'setup.raceClass.race': 'Raça',
   'setup.raceClass.class': 'Classe',
   'setup.raceClass.select': 'Selecionar…',
+  // US-205: subgrade de subclasse, aninhada no cartão de classe (só existe fisicamente
+  // quando a classe escolhida tem mais de uma opção — marshal, hoje).
+  'setup.subclass.legend': 'Subclasse',
+  'setup.class.detail.kit': 'Equipamento inicial',
+  'setup.class.detail.subclass': 'Subclasse',
+  'setup.race.detail.features': 'Traços raciais',
 
   // Rótulos de gênero. O VALOR enviado à API continua sendo o texto PT (ver SetupWizard):
   // gênero não é dado de SRD, não tem catálogo de onde vir.
@@ -172,6 +182,7 @@ export const ptBR = {
   'setup.review.gender': 'Gênero',
   'setup.review.race': 'Raça',
   'setup.review.class': 'Classe',
+  'setup.review.subclass': 'Subclasse',
   'setup.review.level': 'Nível',
   'setup.review.hp': 'PV inicial',
   'setup.review.attributes': 'Atributos',

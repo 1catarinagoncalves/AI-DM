@@ -36,6 +36,18 @@ export class CharacterService {
     const raceCatalog = config.raceFeatures ? Object.keys(config.raceFeatures).map((key) => ({ key })) : config.races
     const race = this.validateCatalogKey(raceCatalog, dto.race, 'Raça')
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
+    // US-205: subclasse pressupõe a classe já validada acima. `dto.subclass` presente →
+    // valida contra o catálogo da classe (BadRequestException se pertencer a outra classe,
+    // mesmo padrão de validateCatalogKey). Ausente + catálogo com 1 entrada só → preenche
+    // sozinho (classe sem escolha real, 12 das 13). Ausente + catálogo com 0 ou 2+ entradas
+    // → undefined (sem catálogo: sistema sem config.subclasses; 2+: escolha obrigatória que o
+    // wizard já deveria ter mandado — sem entrada aqui não é erro do service, é DTO incompleto).
+    const subclassCatalog = config.subclasses?.[charClass]
+    const subclass = dto.subclass
+      ? this.validateCatalogKey(subclassCatalog, dto.subclass, 'Subclasse')
+      : subclassCatalog?.length === 1
+        ? subclassCatalog[0]!.key
+        : undefined
     // US-42: magias conhecidas (truques + exceção nível 1 de paladino/patrulheiro),
     // do mesmo kit da classe. Não-conjurador → [] (sem seção, sem crash).
     const spells = getClassSpells(config, charClass)
@@ -77,6 +89,7 @@ export class CharacterService {
         gender: dto.gender,
         race,
         class: charClass,
+        subclass,
         level: 1,
         baseAttributes: finalAttributes,
         skills,

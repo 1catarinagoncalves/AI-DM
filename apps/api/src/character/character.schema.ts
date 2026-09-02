@@ -23,6 +23,10 @@ export const CreateCharacterSchema = z.object({
   gender: z.string().min(1).max(40),
   race: z.string().min(1).max(40),
   class: z.string().min(1).max(40),
+  // US-205: chave de config.subclasses[class] — opcional no DTO. Classe com 1 subclasse só
+  // nunca precisa mandar (o service preenche sozinho); classe com mais de uma (marshal) manda
+  // a escolhida. Validada contra o catálogo da classe no service, mesmo padrão de origin.key.
+  subclass: z.string().max(40).optional(),
   // Atributos dinâmicos: validados contra System.config.attributes no service, não aqui.
   attributes: z.record(z.string(), z.number()),
   // Perícias proficientes (US-27): keys validadas contra System.config.skills no service.

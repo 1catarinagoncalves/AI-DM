@@ -215,32 +215,42 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   })
   afterEach(() => cleanup())
 
+  // US-205: `race-class` virou `class` (nome, gênero, cartão de classe) + `race` (cartão de
+  // raça). O helper preenche as duas e devolve o wizard já NA etapa `race`, com a raça
+  // selecionada — o primeiro `fireEvent.click(Próximo)` de cada teste abaixo avança dali
+  // pra `background`, exatamente como avançava de `race-class` antes da story. Isso evita
+  // reescrever as dezenas de call-sites que só chamavam o helper e seguiam clicando Próximo.
   async function pickSystemAndFillRaceClass(config: SystemConfig = configWithBudget(2)) {
     listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
     render(<SetupWizard />)
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
-    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'elf' } })
-    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'wizard' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // class → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
   }
 
   it('navegação ida-e-volta preserva o preenchimento e marca estados na trilha', async () => {
     await pickSystemAndFillRaceClass()
 
-    // avança para Background (US-123: agora vem logo depois de Raça/Classe)
+    // avança para Background (US-205: agora vem logo depois de Raça)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(screen.getByRole('heading', { name: 'Background' })).toBeTruthy()
 
-    // trilha: Raça/Classe concluída, Background atual
-    expect(screen.getByRole('button', { name: /Raça\/Classe/ }).getAttribute('data-state')).toBe('concluída')
+    // trilha: Classe e Raça concluídas, Background atual
+    expect(screen.getByRole('button', { name: 'Classe' }).getAttribute('data-state')).toBe('concluída')
+    expect(screen.getByRole('button', { name: 'Raça' }).getAttribute('data-state')).toBe('concluída')
     expect(screen.getByRole('button', { name: /Background/ }).getAttribute('data-state')).toBe('atual')
 
-    // volta para Raça/Classe e avança de novo — valores mantidos
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ }))
+    // volta até Classe (Background → Raça → Classe) e avança de novo — valores mantidos
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → Raça
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → Classe
     expect((screen.getByLabelText('Nome do personagem') as HTMLInputElement).value).toBe('Lyra')
-    expect((screen.getByLabelText('Classe') as HTMLSelectElement).value).toBe('wizard')
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect((screen.getByRole('radio', { name: 'Mago' }) as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → Raça
+    expect((screen.getByRole('radio', { name: 'Elfo' }) as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → Background
     expect(screen.getByRole('heading', { name: 'Background' })).toBeTruthy()
   })
 
@@ -466,15 +476,16 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(screen.getByText('Solariel — Deus da justiça e da cura')).toBeTruthy()
   })
 
-  // US-105: o select é o catálogo do config — opção rotulada, `value` = chave — e é a CHAVE
-  // que viaja para a API. Falha se alguém voltar a mandar o rótulo (o defeito que a story fecha).
+  // US-105/US-205: o cartão mostra o RÓTULO do catálogo (nunca a chave), e é a CHAVE que
+  // viaja para a API. Falha se alguém voltar a mandar o rótulo (o defeito que a US-105 fechou
+  // e que trocar <select> por cartão poderia reabrir).
   it('as opções vêm do catálogo do config e a CHAVE é o que vai para a API', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBudget(2))
 
-    const races = [...screen.getByLabelText('Raça').querySelectorAll('option')]
-      .filter(o => o.getAttribute('value'))
-    expect(races.map(o => [o.getAttribute('value'), o.textContent])).toEqual([['elf', 'Elfo'], ['dwarf', 'Anão']])
+    // O cartão de raça mostra o RÓTULO, nunca a chave crua.
+    expect(screen.getByRole('radio', { name: 'Elfo' })).toBeTruthy()
+    expect(screen.queryByRole('radio', { name: 'elf' })).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
@@ -489,38 +500,39 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'elf', class: 'wizard' }))
   })
 
-  // US-142: subespécie (`parentKey`) agrupa sob um <optgroup> com o label da raiz — a raiz
-  // deixa de ser <option> solta quando tem subespécie (reverte a decisão da US-140: o SRD já
-  // documenta a variante, "só a raiz" vira uma opção mecanicamente incompleta ao lado da
-  // completa). Segue a ORDEM do catálogo (raiz, depois a sua subespécie), sem recalcular
-  // agrupamento no componente.
-  it('raiz com subespécie vira só optgroup — sem <option> solta fora do grupo', async () => {
+  // US-142/US-205: subespécie (`parentKey`) agrupa sob um cabeçalho com o label da raiz — a
+  // raiz deixa de ser cartão selecionável quando tem subespécie (reverte a decisão da US-140:
+  // o SRD já documenta a variante, "só a raiz" é uma opção mecanicamente incompleta ao lado da
+  // completa; a regra da US-142 preservada, agora como cabeçalho de subgrupo em vez de
+  // <optgroup>). Segue a ORDEM do catálogo (raiz, depois a sua subespécie), sem recalcular
+  // agrupamento no componente além de mesclar raízes soltas consecutivas.
+  it('raiz com subespécie vira cabeçalho de subgrupo — não é cartão selecionável', async () => {
     listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithRaceSubspecies(2) }])
     render(<SetupWizard />)
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
 
-    const select = screen.getByLabelText('Raça') as HTMLSelectElement
-    const groups = [...select.querySelectorAll('optgroup')]
-    expect(groups.map(g => g.getAttribute('label'))).toEqual(['Anão', 'Elfo'])
+    // Raiz com subespécie (Anão, Elfo) vira texto de cabeçalho — não tem role radio.
+    expect(screen.queryByRole('radio', { name: 'Anão' })).toBeNull()
+    expect(screen.queryByRole('radio', { name: 'Elfo' })).toBeNull()
+    expect(screen.getByText('Anão')).toBeTruthy()
+    expect(screen.getByText('Elfo')).toBeTruthy()
 
-    const dwarfGroup = groups.find(g => g.getAttribute('label') === 'Anão')!
-    expect([...dwarfGroup.querySelectorAll('option')].map(o => [o.getAttribute('value'), o.textContent]))
-      .toEqual([['hill-dwarf', 'Anão da Colina']])
-    const elfGroup = groups.find(g => g.getAttribute('label') === 'Elfo')!
-    expect([...elfGroup.querySelectorAll('option')].map(o => [o.getAttribute('value'), o.textContent]))
-      .toEqual([['high-elf', 'Alto-elfo']])
-
-    // Raiz NÃO aparece mais solta fora do grupo — só o placeholder sobra fora de optgroup.
-    const looseOptions = [...select.children].filter(el => el.tagName === 'OPTION')
-    expect(looseOptions.map(o => o.getAttribute('value'))).toEqual([''])
-
-    fireEvent.change(select, { target: { value: 'hill-dwarf' } })
-    expect(select.value).toBe('hill-dwarf')
+    // As subespécies são os cartões selecionáveis.
+    const hillDwarf = screen.getByRole('radio', { name: 'Anão da Colina' }) as HTMLInputElement
+    const highElf = screen.getByRole('radio', { name: 'Alto-elfo' }) as HTMLInputElement
+    fireEvent.click(hillDwarf)
+    expect(hillDwarf.checked).toBe(true)
+    expect(highElf.checked).toBe(false)
   })
 
-  // US-105: o catálogo passou a depender do sistema. Trocar de sistema com raça/classe já
-  // escolhidas deixaria uma chave que o catálogo novo não tem — o `Próximo` tem de barrar.
-  it('trocar de sistema limpa raça e classe', async () => {
+  // US-105/US-205: o catálogo passou a depender do sistema. Trocar de sistema com classe já
+  // escolhida deixaria uma chave que o catálogo novo não tem — o `Próximo` tem de barrar.
+  // Trocar de sistema devolve o wizard à etapa `class` (a primeira das duas).
+  it('trocar de sistema limpa classe (e devolve à etapa class)', async () => {
     listSystems.mockResolvedValue([
       { id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithBudget(2) },
       { id: 'sys-2', name: 'Free', sourceType: 'FREE', config: configWithBudget(2) },
@@ -529,14 +541,13 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
-    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'elf' } })
-    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'wizard' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
 
     fireEvent.click(screen.getByRole('button', { name: /Sistema/ })) // volta à etapa 1
     fireEvent.click(screen.getByText('Free'))
-    expect((screen.getByLabelText('Raça') as HTMLSelectElement).value).toBe('')
-    expect((screen.getByLabelText('Classe') as HTMLSelectElement).value).toBe('')
+    expect(screen.getByRole('heading', { name: 'Classe' })).toBeTruthy()
+    expect((screen.getByRole('radio', { name: 'Mago' }) as HTMLInputElement).checked).toBe(false)
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(true)
   })
 
@@ -746,8 +757,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Bram' } })
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Masculino' } })
-    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'dwarf' } })
-    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'fighter' } }) // sem entrada própria
+    fireEvent.click(screen.getByRole('radio', { name: 'Guerreiro' })) // sem entrada própria
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
@@ -786,8 +798,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
-    fireEvent.change(screen.getByLabelText('Raça'), { target: { value: 'elf' } })
-    fireEvent.change(screen.getByLabelText('Classe'), { target: { value: 'wizard' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_criminal' } })
@@ -1201,5 +1214,146 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: expect.objectContaining({ key: 'a5e-ag_folk-hero', toolChoice: ['smiths_tools', 'carriage'] }),
     }))
+  })
+})
+
+// --- US-205: etapas `class`/`race` por cartão, subgrade de subclasse aninhada ---
+
+// Subclasse com 1 entrada só (12 das 13 classes reais) — sem grade, preenche sozinha.
+const configWithSingleSubclass = (budget: number) => ({
+  ...configWithBudget(budget),
+  subclasses: {
+    wizard: [{ key: 'evocation', label: 'Escola de Evocação', blurb: 'Magia destrutiva pura.' }],
+  },
+})
+
+// Subclasse com mais de uma entrada (marshal, na vida real) — grade obrigatória. Duas classes
+// com catálogo próprio, pra provar que trocar de classe troca a subgrade inteira.
+const configWithMultiSubclass = (budget: number) => ({
+  ...configWithBudget(budget),
+  classes: [{ key: 'fighter', label: 'Guerreiro' }, { key: 'barbarian', label: 'Bárbaro' }],
+  subclasses: {
+    fighter: [
+      { key: 'champion', label: 'Campeão' },
+      { key: 'battle-master', label: 'Mestre de Batalha' },
+      { key: 'eldritch-knight', label: 'Cavaleiro Arcano' },
+    ],
+    barbarian: [
+      { key: 'berserker', label: 'Insano' },
+      { key: 'totem-warrior', label: 'Guerreiro do Totem' },
+    ],
+  },
+})
+
+describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205)', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  // Eval/teste de regressão pedido pela US-205: seleciona classe PELO CARTÃO na etapa `class`,
+  // avança pra `race`, seleciona raça PELO CARTÃO, e afirma que createCharacter recebe as
+  // chaves canônicas (`wizard`, `hill-dwarf`) — não os rótulos pt-BR. É o teste que falha se
+  // alguém, ao trocar <select> por cartão, passar a gravar o texto visível (o bug que a
+  // US-105 existiu para corrigir).
+  it('seleciona classe e raça pelo cartão; createCharacter recebe as chaves canônicas, não os rótulos', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithRaceSubspecies(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' })) // cartão de classe → key 'wizard'
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão da Colina' })) // cartão de subespécie → key 'hill-dwarf'
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ class: 'wizard', race: 'hill-dwarf' }))
+  })
+
+  it('classe com 1 subclasse só: sem grade, não bloqueia avanço, mostra a resolvida no painel, não manda subclass no DTO', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithSingleSubclass(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+
+    // Sem grade de subclasse (1 entrada só) — e o Próximo já libera sem escolha nenhuma.
+    expect(screen.queryByRole('radio', { name: 'Escola de Evocação' })).toBeNull()
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+    // Painel de detalhe mostra o que a jogadora ganhou, mesmo sem ter escolhido.
+    expect(screen.getByText('Escola de Evocação')).toBeTruthy()
+    expect(screen.getByText('Magia destrutiva pura.')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+
+    const payload = createCharacter.mock.calls[0]![0] as Record<string, unknown>
+    expect(payload['subclass']).toBeUndefined()
+  })
+
+  it('classe com mais de uma subclasse: grade obrigatória pra avançar, DTO manda a chave escolhida', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Bram' })
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithMultiSubclass(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Bram' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Masculino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Guerreiro' }))
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true) // classe escolhida, subclasse ainda não
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Campeão' }))
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(nextBtn()) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.click(nextBtn()) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(nextBtn())
+
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ class: 'fighter', subclass: 'champion' }))
+  })
+
+  // Trocar Guerreiro → Bárbaro não pode deixar `champion` gravado (US-205 §Critérios de aceite).
+  it('trocar de classe limpa a subclasse escolhida e troca a subgrade inteira', async () => {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithMultiSubclass(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Bram' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Masculino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Guerreiro' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Campeão' }))
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Bárbaro' }))
+
+    // A subgrade agora é a do Bárbaro — "Campeão" nem existe mais no DOM.
+    expect(screen.queryByRole('radio', { name: 'Campeão' })).toBeNull()
+    expect(screen.getByRole('radio', { name: 'Insano' })).toBeTruthy()
+    // Subclasse limpa — precisa escolher de novo antes de avançar.
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(true)
   })
 })

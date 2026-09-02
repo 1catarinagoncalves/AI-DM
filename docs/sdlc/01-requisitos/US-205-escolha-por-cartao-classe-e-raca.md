@@ -2,17 +2,17 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (02/09/2026)
 **Depende de:** [US-203](./US-203-prosa-de-catalogo-classe-e-raca.md) — sem `kicker`/`blurb` o
 cartão não tem o que mostrar. [US-204](./US-204-wizard-em-duas-colunas-com-ficha-viva.md) — o
 layout de duas colunas em que a grade cabe. [US-141](./US-141-catalogo-subclasses-srd-5-1-e-marshal.md)
-(**obrigatória e anterior**) — sem `config.subclasses` não há o que listar na
-subgrade de subclasse. Decisão de 2026-09-02: escolha de subclasse deixou de ser fora do escopo
-(ver *Contexto*); as três stories entram na mesma ordem de execução.
+(**obrigatória e anterior**) — sem `config.subclasses` não há o que listar na subgrade de
+subclasse. **Duas decisões de 2026-09-02** (ver *Contexto*): subclasse deixou de ser fora do
+escopo, e `race-class` deixou de ser etapa única — vira `class` + `race`.
 **Criada em:** 2026-09-01
 
 **Relacionada a:**
-- [backlog-redesenho-criacao-de-personagem.md](./backlog-redesenho-criacao-de-personagem.md) — o mapa; aqui a etapa `race-class` continua **uma etapa só**, contra as duas do protótipo.
+- [backlog-redesenho-criacao-de-personagem.md](./backlog-redesenho-criacao-de-personagem.md) — o mapa, atualizado com a divisão `class`/`race`.
 - [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) — catálogo por chave; o cartão guarda a chave, mostra o rótulo. O `validateCatalogKey` que ele introduz é o padrão que a validação de subclasse reusa.
 - [US-140](./US-140-catalogo-subracas-srd-5-1.md)/[US-142](./US-142-tracos-mecanicos-subespecie-srd-5-1.md) — raiz e subespécie: o `<optgroup>` que a grade tem de reproduzir sem `<optgroup>`.
 - [US-141](./US-141-catalogo-subclasses-srd-5-1-e-marshal.md) — catálogo de subclasse; a subgrade que esta story acrescenta é a "story separada" de wiring que a US-141 previa e não nomeava.
@@ -57,32 +57,27 @@ uma linha de descrição.
 
 ### A proposta
 
-Substituir os dois `<select>` por duas grades de cartão na mesma etapa — mais a subgrade de
-subclasse aninhada dentro do cartão de classe, quando a classe escolhida tem mais de uma opção —,
-cada uma com campo de painel de detalhe da opção selecionada e o espaço da arte reservado. Sem
-campo de busca em nenhuma delas — ver *Fora do escopo*. Nome e gênero continuam nesta
-etapa, acima das grades.
+Substituir os dois `<select>` por duas grades de cartão em **duas etapas** do wizard — `class`
+(grade de cartões de classe, mais a subgrade de subclasse aninhada dentro do cartão de classe
+quando a classe escolhida tem mais de uma opção) e `race` (grade de cartões de raça) —, cada uma
+com seu painel de detalhe da opção selecionada e o espaço da arte reservado. Sem campo de busca em
+nenhuma delas — ver *Fora do escopo*. Nome e gênero continuam na etapa `class`, a primeira das
+duas, acima da grade — não migram para uma etapa `Identidade` no fim.
 
-### Subclasse muda de "fora do escopo" para "story separada nomeada" (decisão de 2026-09-02)
+### Duas decisões de 2026-09-02
 
-A versão original desta story e o backlog que a originou cortavam subclasse com o mesmo motivo:
-"o catálogo não existe" (US-141 em backlog). Isso confundia duas coisas que a US-105 já tinha
-separado para raça/classe — **catálogo** (identidade, `{key,label}`) e **wiring** (`Character`
-grava a chave, service valida) — e o protótipo de referência já resolve as duas: `cls.subclasses`
-alimenta um `subclassCards` derivado, `selectSubclass(id)` grava `state.subclassId`, e o painel de
-detalhe lê `sub.blurb` junto do da classe
-([`wizard-criacao-personagem-referencia.html:387`](./wizard-criacao-personagem-referencia.html)).
-A US-141, por sua vez, já previa a separação ("wiring é story separada", sem nomear qual) — esta
-story é essa story.
-
-**O que isso reabre:** `Character.class`/`.race` são `String` obrigatório desde a US-105; não
-existe `Character.subclass` em lugar nenhum, e [`seed.ts:31-32`](../../../apps/api/prisma/seed.ts)
-documenta a decisão de não ter escolha de subclasse na Fase 1 como YAGNI explícito ("sem sistema
-de progressão para modelar contra ainda"). Essa nota fica **desatualizada** a partir desta story —
-a progressão continua sem existir (nível continua fixo em 1, US-141 §Fora do escopo), mas a
-escolha em si passa a ter onde gravar. É por isso que esta story ganha uma seção *Modelo de dados
-proposto* que a versão anterior dela não tinha: raça e classe já tinham wiring pronto da US-105,
-subclasse não tem, e não dá para desenhar "escolha por cartão" sem desenhar onde a escolha pousa.
+- **`race-class` vira `class` + `race`.** A versão original mantinha `race-class` como etapa
+  única — regra-âncora do [backlog](./backlog-redesenho-criacao-de-personagem.md), "sem mexer na
+  ordem das etapas". Essa regra ganha uma exceção nomeada: `race-class` vira `class` seguida de
+  `race`, ordem do protótipo. As etapas seguintes só deslocam uma posição, sem mudar de conteúdo.
+- **Subclasse sai de "fora do escopo".** O corte original citava "catálogo não existe" (US-141 em
+  backlog), confundindo **catálogo** (`{key,label}`) com **wiring** (`Character` grava a chave,
+  service valida) — distinção que a US-105 já fazia para raça/classe e que o protótipo resolve
+  para as duas (`subclassCards`, `selectSubclass`). Reabre `Character.subclass`, inexistente até
+  aqui: [`seed.ts:31-32`](../../../apps/api/prisma/seed.ts) documenta o YAGNI de subclasse como
+  decisão da Fase 1 ("sem sistema de progressão para modelar contra ainda") — fica desatualizado
+  a partir desta story (progressão em si continua sem existir; nível fixo em 1). Daí a seção
+  *Modelo de dados proposto* abaixo, que a versão anterior não tinha.
 
 ---
 
@@ -90,9 +85,12 @@ subclasse não tem, e não dá para desenhar "escolha por cartão" sem desenhar 
 
 ### Dentro do escopo
 
-- **Grade de cartões de classe** — `kicker`, nome, `blurb` (US-203) e o espaço reservado da arte.
-  Seleção acende a borda de acento (`optionCardClass`, já existente).
-- **Grade de cartões de raça**, mesma anatomia.
+- **`race-class` divide em duas etapas do wizard: `class` e `race`**, nessa ordem. `Step`/`steps`
+  ([`SetupWizard.tsx:28-29`](../../../apps/web/src/components/setup/SetupWizard.tsx)) trocam
+  `'race-class'` pelas duas chaves; etapas seguintes só deslocam uma posição no array.
+- **Grade de cartões de classe**, na etapa `class` — `kicker`, nome, `blurb` (US-203) e o espaço
+  reservado da arte. Seleção acende a borda de acento (`optionCardClass`, já existente).
+- **Grade de cartões de raça**, na etapa `race`, mesma anatomia.
 - **Subgrade de cartões de subclasse, aninhada dentro do cartão de classe escolhido** — mesma
   anatomia (`kicker`, nome, `blurb` de US-203), fonte é `config.subclasses[classKey]` (US-141).
   Duas regras de exibição, análogas à raiz/subespécie de raça mas invertidas (lá a maioria das
@@ -104,17 +102,17 @@ subclasse não tem, e não dá para desenhar "escolha por cartão" sem desenhar 
     cartão/rádio das outras duas, seleção obrigatória para avançar.
 - **`Character.subclass` (campo novo) grava a chave** — automática ou escolhida, mesma disciplina
   de chave-não-rótulo da US-105. Ver *Modelo de dados proposto*.
-- **Painel de detalhe da opção escolhida**, abaixo da grade: para classe, as `classFeatures` de
-  nível 1 (US-41), o kit inicial (US-51) e agora a subclasse resolvida (nome + `blurb`, mesmo
-  quando preenchida automaticamente — a jogadora vê o que ganhou mesmo sem ter escolhido); para
-  raça, os `raceFeatures` (US-142). É informação que **já existe no config** (subclasse por
-  chave-mãe desde a US-141) e que hoje a jogadora só vê na revisão — subclasse nem isso, hoje não
-  existe em lugar nenhum da ficha.
+- **Painel de detalhe da opção escolhida, um por etapa**, abaixo da grade: na etapa `class`, as
+  `classFeatures` de nível 1 (US-41), o kit inicial (US-51) e a subclasse resolvida (nome +
+  `blurb`, mesmo quando preenchida automaticamente — a jogadora vê o que ganhou mesmo sem ter
+  escolhido); na etapa `race`, os `raceFeatures` (US-142). É informação que **já existe no config**
+  (subclasse por chave-mãe desde a US-141) e que hoje a jogadora só vê na revisão — subclasse nem
+  isso, hoje não existe em lugar nenhum da ficha.
 - **Raiz e subespécie sem `<optgroup>`:** raiz **com** subespécies não é cartão selecionável —
   vira cabeçalho de um subgrupo de cartões (a regra da US-142 preservada, noutra forma). Raiz
   **sem** subespécie é cartão normal.
-- **Nome e gênero ficam nesta etapa**, acima das grades, como hoje. O protótipo os põe numa etapa
-  `Identidade` no fim; a ordem do produto manda (decisão do backlog).
+- **Nome e gênero ficam na etapa `class`**, a primeira das duas, acima da grade — não migram para
+  a etapa `Identidade` que o protótipo põe no fim; a ordem do produto manda (decisão do backlog).
 - **Grupo de rádio de verdade** (`<fieldset>` + `<legend>` + `<input type="radio" class="sr-only">`
   dentro de `<label>`), o padrão que `WorldOptionGroup` já usa no passo `world` — não `div`
   clicável. Vale para as três grades; a de subclasse só existe fisicamente quando `marshal` está
@@ -135,7 +133,6 @@ subclasse não tem, e não dá para desenhar "escolha por cartão" sem desenhar 
   catálogo (US-140); traduzir um desenho de dado no outro é mudança de modelo, não de tela.
 - **Arte por classe/raça/subclasse.** Espaço reservado; produzir os assets é outra story (backlog,
   *Fora do escopo*).
-- **Dividir `race-class` em duas etapas.** Decisão de produto do backlog.
 - **Cartão para o gênero.** São três valores sem prosa; o `<select>` continua adequado e o `value`
   em pt-BR (US-98) não muda.
 - **Busca em qualquer das três grades.** O protótipo tem `Buscar classe…`/`Buscar espécie…`; o
@@ -200,38 +197,44 @@ para decidir a UI; a gravação da chave não depende dele acertar isso.
 
 ## Critérios de aceite
 
-- [ ] A etapa `race-class` não tem nenhum `<select>` de raça ou de classe; tem duas grades de
-      cartão, mais a subgrade de subclasse aninhada quando a classe escolhida tem mais de uma.
-- [ ] Cada cartão mostra `kicker`, rótulo e `blurb` quando o catálogo os traz, e continua legível
+- [x] As etapas `class` e `race` não têm nenhum `<select>` de classe ou de raça; cada uma tem sua
+      grade de cartão — `class` mais a subgrade de subclasse aninhada quando a classe escolhida
+      tem mais de uma.
+- [x] `Step`/`steps` (`SetupWizard.tsx:28-29`) trocam `'race-class'` por `'class'` seguido de
+      `'race'`, nessa ordem; nenhuma etapa depois de `race` muda de posição relativa às outras
+      (`background` continua logo em seguida, agora na 4ª posição em vez da 3ª).
+- [x] Cada cartão mostra `kicker`, rótulo e `blurb` quando o catálogo os traz, e continua legível
       e selecionável quando **não** os traz (sistema `Free`, sistema de `UPLOAD`).
-- [ ] Escolher um cartão grava a **chave**, não o rótulo — a mesma chave que o `<select>` gravava
+- [x] Escolher um cartão grava a **chave**, não o rótulo — a mesma chave que o `<select>` gravava
       (US-105), verificável no corpo enviado à API. Vale para classe, raça **e subclasse**.
-- [ ] Raça raiz **com** subespécies não é selecionável e as suas subespécies aparecem agrupadas
+- [x] Raça raiz **com** subespécies não é selecionável e as suas subespécies aparecem agrupadas
       sob ela; raça raiz **sem** subespécie é selecionável (US-142 preservada).
-- [ ] Classe com **uma só** subclasse (12 das 13) não renderiza subgrade nenhuma, e
+- [x] Classe com **uma só** subclasse (12 das 13) não renderiza subgrade nenhuma, e
       `Character.subclass` grava a única chave disponível mesmo assim, sem interação da jogadora.
-- [ ] Classe com **mais de uma** subclasse (`marshal`) renderiza a subgrade, seleção obrigatória
+- [x] Classe com **mais de uma** subclasse (`marshal`) renderiza a subgrade, seleção obrigatória
       para avançar, mesma anatomia de cartão/rádio das outras grades.
-- [ ] Nenhuma das três grades tem campo de busca; todas as opções (13 classes, 9 raças
+- [x] Nenhuma das três grades tem campo de busca; todas as opções (13 classes, 9 raças
       selecionáveis, até 3 subclasses quando a subgrade existe) estão no DOM sem filtro nenhum.
-- [ ] Trocar de classe continua a limpar o que dela dependia (`skills`, kit) exatamente como hoje,
+- [x] Trocar de classe continua a limpar o que dela dependia (`skills`, kit) exatamente como hoje,
       **e agora também limpa `subclass`** — trocar de Guerreiro para Bárbaro não pode deixar
       `champion` gravado.
-- [ ] Navegar por teclado percorre os cartões como um grupo de rádio (setas), o foco é visível, e
+- [x] Navegar por teclado percorre os cartões como um grupo de rádio (setas), o foco é visível, e
       cada grade tem `legend` associada (US-46).
-- [ ] Em 360 px de largura a grade é uma coluna, sem rolagem horizontal (US-66).
-- [ ] `canAdvance('race-class')` ganha uma **quinta condição condicional**: quando a classe
-      escolhida tem mais de uma subclasse, `subclass` precisa estar preenchido para avançar; nas
-      12 classes com uma só, a condição já está satisfeita pelo preenchimento automático (não é
-      uma condição nova visível — é a mesma regra "raça e classe do catálogo" estendida).
-- [ ] Personagem criado com chave de subclasse que não pertence à classe escolhida (ex.: `class:
+- [x] Em 360 px de largura a grade é uma coluna, sem rolagem horizontal (US-66).
+- [x] `canAdvance('class')` exige nome, gênero e classe preenchidos e, quando a classe escolhida
+      tem mais de uma subclasse, também `subclass` preenchido — condição nova, análoga à regra que
+      hoje vive em `canAdvance('race-class')`. `canAdvance('race')` exige raça preenchida; nas 12
+      classes com subclasse única, a condição de `subclass` já está satisfeita pelo preenchimento
+      automático (não é visível pra jogadora — é a mesma regra "classe do catálogo" estendida).
+- [x] Personagem criado com chave de subclasse que não pertence à classe escolhida (ex.: `class:
       'fighter'`, `subclass: 'life-domain'`) é rejeitado com `BadRequestException`, mesmo padrão
       de `validateCatalogKey` para raça/classe/origem — sem gravação parcial.
-- [ ] **Eval / teste de regressão:** teste em `SetupWizard.test.tsx` que seleciona classe e raça
-      **pelos cartões** e afirma que `createCharacter` recebe as chaves canônicas (`wizard`,
-      `hill-dwarf`), não os rótulos pt-BR. É o teste que falha se alguém, ao trocar `<select>` por
-      cartão, passar a gravar o texto visível — o bug exato que a US-105 existiu para corrigir.
-- [ ] **Eval / teste de regressão (subclasse):** teste em `character.service.spec.ts` (ou
+- [x] **Eval / teste de regressão:** teste em `SetupWizard.test.tsx` que seleciona classe **pelo
+      cartão** na etapa `class`, avança para `race`, seleciona raça **pelo cartão** e afirma que
+      `createCharacter` recebe as chaves canônicas (`wizard`, `hill-dwarf`), não os rótulos pt-BR.
+      É o teste que falha se alguém, ao trocar `<select>` por cartão, passar a gravar o texto
+      visível — o bug exato que a US-105 existiu para corrigir.
+- [x] **Eval / teste de regressão (subclasse):** teste em `character.service.spec.ts` (ou
       equivalente) cobrindo três casos — classe com 1 subclasse sem DTO mandar `subclass` (grava
       a única chave sozinho), classe `marshal` com `subclass` válido do trio, e `subclass` que
       pertence a outra classe (rejeitado com `BadRequestException`, mensagem cita a chave e a
@@ -243,6 +246,11 @@ para decidir a UI; a gravação da chave não depende dele acertar isso.
 
 > Dicas, não especificação. Quem implementa pode divergir com justificativa.
 
+- **Dividir a etapa em duas mexe em `setStep`/`goNext`/`goBack`, não só em `Step`/`steps`.** Cada
+  ramo que hoje testa `step === 'race-class'`
+  ([`SetupWizard.tsx:397,403,629`](../../../apps/web/src/components/setup/SetupWizard.tsx)) vira
+  dois ramos, um por `'class'` e outro por `'race'`. O avanço `class` → `race` é uma transição nova
+  — dentro da etapa antiga não havia sub-navegação nenhuma, então não é troca mecânica de string.
 - **Um componente de grade, dois usos.** Classe e raça têm a mesma anatomia; um
   `CatalogCardGroup` parametrizado por catálogo, valor e `onChange` evita escrever a grade duas
   vezes — e é o mesmo componente que a [US-206](./US-206-origem-por-cartao-e-campos-livres-de-historia.md)
@@ -273,29 +281,10 @@ para decidir a UI; a gravação da chave não depende dele acertar isso.
 
 ---
 
-## Questões em aberto
-
-1. **Quando a busca volta a fazer sentido?** Não nesta story. Fica registrado o limiar informal —
-   por volta de ~8 opções selecionáveis — para quando alguma grade crescer o bastante (US-140 na
-   raça, ou um catálogo maior via `UPLOAD`) e a questão precisar ser reaberta.
-2. **O painel de detalhe fica abaixo da grade ou dentro do cartão selecionado?** Abaixo mantém a
-   grade estável (nenhum cartão muda de altura); dentro aproxima causa e efeito. O protótipo põe
-   abaixo.
-3. **A subclasse preenchida automaticamente aparece em algum lugar antes do painel de detalhe?**
-   Nas 12 classes com 1 subclasse só, a jogadora nunca vê uma grade — o primeiro lugar onde
-   `champion`/`life-domain`/etc. aparece é o painel de detalhe da classe. Isso é suficiente, ou o
-   cartão de classe merece uma segunda linha ("inclui: Campeão") mesmo sem grade? Sugestão: o
-   painel de detalhe já resolve — subir a informação para o cartão fecha o espaço que o `kicker`
-   de classe usa para a chamada dela mesma.
-4. **`marshal` ganhar uma 4ª subclasse no futuro muda a regra de exibição de alguma outra
-   classe?** Não — a regra é por classe (`subclassCatalog.length > 1`), não um número fixo cravado
-   no componente. Registrado só para não reabrir a pergunta achando que é hardcoded.
-
----
-
 ## Referências no código
 
-- [`apps/web/src/components/setup/SetupWizard.tsx`](../../../apps/web/src/components/setup/SetupWizard.tsx) — `optionCardClass`, `WorldOptionGroup`, o bloco `step === 'race-class'` e o agrupamento raiz/subespécie do `<select>`.
+- [`apps/web/src/components/setup/SetupWizard.tsx:28-29`](../../../apps/web/src/components/setup/SetupWizard.tsx) — `type Step` e `const steps`: onde `'race-class'` vira `'class'` + `'race'`.
+- [`apps/web/src/components/setup/SetupWizard.tsx`](../../../apps/web/src/components/setup/SetupWizard.tsx) — `optionCardClass`, `WorldOptionGroup`, os blocos `step === 'race-class'` (linhas 397, 403, 629) e o agrupamento raiz/subespécie do `<select>`.
 - [`packages/shared/src/types/system.ts`](../../../packages/shared/src/types/system.ts) — `RaceCatalogEntrySchema.parentKey`: a regra de raiz e subespécie; `config.subclasses` (US-141) é onde a subgrade lê.
 - [`packages/shared/src/starting-kit.ts`](../../../packages/shared/src/starting-kit.ts) — `getStartingInventory`: o "equipamento icônico" do cartão de classe, sem dado novo.
 - [`apps/web/src/components/setup/SetupWizard.test.tsx`](../../../apps/web/src/components/setup/SetupWizard.test.tsx) — os testes que hoje interagem com os `<select>` e vão precisar de interagir com cartões.

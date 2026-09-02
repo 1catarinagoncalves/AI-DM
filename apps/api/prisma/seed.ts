@@ -28,10 +28,15 @@ const dnd5eProficiency: SystemConfig['proficiency'] = { choices: 2, bonus: 2 }
 // Features de classe de NÍVEL 1 (US-41) e magias por classe (US-42) do Free: a CURADORIA (quais
 // entradas) e as entradas próprias vivem em free-catalog.ts; o TEXTO vem do artefato do locale
 // (US-106). Awareness read-only: o mestre oferece/narra; usos/custo/efeito são outra camada.
-// Classes cuja única feature de nível 1 depende de subclasse (Clérigo→domínio, Feiticeiro→origem,
-// Bruxo→patrono) seguem de fora (YAGNI, sem escolha de subclasse na Fase 1): caem no default [] e
-// o personagem fica sem features (sem crash, sem seção). O mesmo vale para não-conjurador em
-// `classSpells`. A chave canônica de classe é a mesma do inventário (ver getClassFeatures).
+// US-205: a escolha de subclasse deixou de ser YAGNI — `Character.subclass` grava a chave de
+// `config.subclasses[class]` na criação (US-141 fornece o catálogo). Mas classes cuja única
+// feature de nível 1 depende de subclasse (Clérigo→domínio, Feiticeiro→origem, Bruxo→patrono)
+// continuam de fora daqui: a US-205 trata toda subclasse como nível 1 por decisão de produto
+// (progressão de nível em si segue sem existir), mas a FEATURE mecânica da subclasse (o que o
+// domínio/origem/patrono concede) não é modelada — só nome+blurb do catálogo. Essas classes
+// caem no default [] e o personagem fica sem features (sem crash, sem seção). O mesmo vale
+// para não-conjurador em `classSpells`. A chave canônica de classe é a mesma do inventário
+// (ver getClassFeatures).
 
 // D&D 5e SRD: os campos SRD-derivados vêm do artefato (US-47); point-buy/proficiência/
 // aventuras são decisão de produto e seguem no seed.

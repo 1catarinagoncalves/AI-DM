@@ -834,4 +834,54 @@ describe('CharacterService.create', () => {
     expect(char.race).toBe('dwarf')
     expect(char.features).toEqual([])
   })
+
+  // US-205: subclasse pressupõe a classe já validada. `configWithSubclasses` espelha o real —
+  // wizard com 1 subclasse só (sem escolha), marshal com 3 (escolha obrigatória).
+  const configWithSubclasses: SystemConfig = {
+    ...config,
+    classes: [{ key: 'wizard', label: 'Wizard' }, { key: 'marshal', label: 'Marshal' }],
+    subclasses: {
+      wizard: [{ key: 'evocation', label: 'School of Evocation' }],
+      marshal: [
+        { key: 'blade', label: 'Order of the Blade' },
+        { key: 'stone', label: 'Order of the Stone' },
+        { key: 'skies', label: 'Order of the Skies' },
+      ],
+    },
+  }
+
+  it('classe com 1 subclasse só: grava a única chave sozinho, sem o DTO mandar subclass', async () => {
+    const service = new CharacterService(fakePrisma(configWithSubclasses))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'wizard',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.subclass).toBe('evocation')
+  })
+
+  it('classe com mais de uma subclasse (marshal): grava a chave escolhida do trio', async () => {
+    const service = new CharacterService(fakePrisma(configWithSubclasses))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'marshal',
+      attributes: { cool: 5, hard: 5 }, subclass: 'stone',
+    })
+    expect(char.subclass).toBe('stone')
+  })
+
+  it('rejeita subclass que pertence a outra classe, sem gravação parcial', async () => {
+    const service = new CharacterService(fakePrisma(configWithSubclasses))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'wizard',
+      attributes: { cool: 5, hard: 5 }, subclass: 'blade',
+    })).rejects.toThrow('Subclasse inválida')
+  })
+
+  it('classe sem catálogo de subclasse (config.subclasses ausente ou sem entrada): subclass undefined', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.subclass).toBeUndefined()
+  })
 })

@@ -6,17 +6,18 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
 import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
-  getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, MEMENTO_ITEM_LABEL,
-  resolveSheetEntries, resolveCharacterFeatures,
+  getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
+  MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
   type SystemConfig, type SystemTool,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { parseD10Tables } from '@/lib/parseD10Tables'
-import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, SheetHeading, cn, dmButtonClass, fieldClass } from '@/components/ui/dm'
+import { DmButton, FieldLabel, Panel, SceneFrame, SectionTitle, SheetHeading, cn, dmButtonClass, fieldClass, optionCardClass } from '@/components/ui/dm'
 import { useT, useLocale } from '@/components/LocaleProvider'
 import type { MessageKey } from '@/messages'
 import { BackgroundPanel, type CharacterBackground } from '@/components/character/BackgroundPanel'
 import { FeaturesPanel } from '@/components/character/FeaturesPanel'
+import { CatalogCardGroup, groupRaceCatalog } from './CatalogCardGroup'
 import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
@@ -25,8 +26,12 @@ import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 // trilha e a navegação sem tocar nessas funções.
 // US-157: `world` entra ao FINAL, depois de `review` — o registro da aventura (tom, US-173)
 // tem ciclo de decisão distinto do personagem, que `review` já fecha.
-type Step = 'system' | 'race-class' | 'background' | 'attributes' | 'skills' | 'review' | 'world'
-const steps: Step[] = ['system', 'race-class', 'background', 'attributes', 'skills', 'review', 'world']
+// US-205 (decisão de 2026-09-02): `race-class` virou `class` + `race` — nome e gênero ficam
+// na primeira (`class`), junto da grade de classe (e a subgrade de subclasse aninhada, quando
+// a classe escolhida tem mais de uma); `race` só tem a grade de raça. Etapas seguintes só
+// deslocam uma posição, sem mudar de conteúdo.
+type Step = 'system' | 'class' | 'race' | 'background' | 'attributes' | 'skills' | 'review' | 'world'
+const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 'skills', 'review', 'world']
 
 // US-98: os rótulos de gênero saíram desta lista para o dicionário, mas a lista FICA em
 // pt-BR — ela é o `value` que viaja para a API, não o texto da tela.
@@ -70,17 +75,6 @@ const SINGLE_BLOCK_IS_MEMENTO = new Set(['a5e-ag_sailor'])
 function rollRandom(rows: { roll: string; text: string }[], setRoll: (roll: string) => void) {
   if (rows.length === 0) return
   setRoll(rows[Math.floor(Math.random() * rows.length)]!.roll)
-}
-
-// Cartão de opção (sistema, perícia): a mesma materialidade em toda a escolha
-// múltipla do wizard. `selected` acende a borda de acento, `disabled` esmaece.
-function optionCardClass(selected: boolean) {
-  return cn(
-    'w-full rounded-md border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40',
-    selected
-      ? 'border-primary bg-primary/10 shadow-[inset_0_0_0_1px_var(--primary)]'
-      : 'border-border bg-background/40 hover:border-primary/60 hover:bg-background/70',
-  )
 }
 
 // US-123: selo do bônus de atributo do background — sólido (`+1 origem`) na linha fixa e na
@@ -215,6 +209,11 @@ export function SetupWizard() {
   const [system, setSystem] = useState<SystemOption | null>(null)
 
   const [charData, setCharData] = useState({ name: '', gender: '', race: '', class: '' })
+  // US-205: subclasse escolhida no cartão — só existe estado pra classe com MAIS de uma
+  // subclasse (marshal); as outras 12 preenchem sozinhas no service, sem passar por aqui
+  // (ver `resolvedSubclass` abaixo). Resetada junto de `class` (subclasse velha não sobrevive
+  // à troca de classe) e no reset de sistema (mesmo motivo de race/class).
+  const [subclass, setSubclass] = useState<string | undefined>(undefined)
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
@@ -269,6 +268,14 @@ export function SetupWizard() {
   // select é `key`; o texto é `label`. Catálogo fechado: sem opção "outra" e sem campo livre.
   const raceCatalog = system?.config?.races ?? []
   const classCatalog = system?.config?.classes ?? []
+  // US-205: subclasses da classe ESCOLHIDA (config.subclasses é por chave de classe, US-141).
+  // 0 ou 1 entrada → sem grade (a única, se houver, preenche sozinha); 2+ → grade obrigatória.
+  const subclassCatalog = system?.config?.subclasses?.[charData.class]
+  // Chave resolvida pra EXIBIÇÃO (painel de detalhe) — espelha a regra do service
+  // (character.service.ts): catálogo com 1 entrada só preenche sozinho, sem interação da
+  // jogadora; com 2+, é o `subclass` que ela escolheu no cartão.
+  const resolvedSubclass = subclassCatalog?.length === 1 ? subclassCatalog[0]!.key : subclass
+  const resolvedSubclassEntry = subclassCatalog?.find(s => s.key === resolvedSubclass)
   // US-122: catálogo de origens (backgrounds do A5E, US-121). Ausente → seção "Origem" não
   // aparece e a etapa `background` segue livre, mesmo padrão condicional de skillCatalog acima.
   const backgroundCatalog = system?.config?.backgrounds ?? []
@@ -281,6 +288,9 @@ export function SetupWizard() {
   // aparece na tela.
   const raceLabel = raceCatalog.find(r => r.key === charData.race)?.label ?? ''
   const classLabel = classCatalog.find(c => c.key === charData.class)?.label ?? ''
+  // US-205: rótulo da subclasse resolvida (automática ou escolhida) — mesma disciplina de
+  // raceLabel/classLabel acima: a chave nunca aparece na tela.
+  const subclassLabel = resolvedSubclassEntry?.label ?? ''
   // Background usa `name`, não `label` (SystemBackgroundSchema, US-121) — catalogLabel não serve.
   const originLabel = backgroundCatalog.find(o => o.key === origin)?.name ?? ''
   // US-124: benefícios narrativos da origem escolhida — `adventures_and_advancement` (parágrafo)
@@ -349,6 +359,19 @@ export function SetupWizard() {
   const previewSpells = system?.config
     ? resolveSheetEntries(system.config.classSpells, system.config.retiredSpells, charData.class, previewSpellKeys)
     : []
+  // US-205: painel de detalhe da etapa `class` — só as features DA CLASSE (US-41), sem origem
+  // (ainda não escolhida nesta etapa do wizard). `resolveCharacterFeatures` com `originKey`
+  // undefined devolve só o que `getClassFeatures` já resolve, mas com o campo `origin: 'class'`
+  // que o FeaturesPanel usa pro selo — reaproveitado em vez de montar `{name,description}` à mão.
+  const classStepFeatures = system?.config
+    ? resolveCharacterFeatures(system.config, charData.class, undefined, getClassFeatures(system.config, charData.class))
+    : []
+  // US-205: painel de detalhe da etapa `race` — traços raciais (US-142), já resolvidos pro
+  // locale ativo. Sem FeaturesPanel aqui: aquele componente FILTRA origin 'race' de propósito
+  // (US-142, é a aba Features/ficha, só classe/origem) — lista própria, mesmo formato de item.
+  const raceStepFeatures = system?.config && charData.race
+    ? resolveSheetEntries(system.config.raceFeatures, system.config.retiredFeatures, charData.race, getRaceFeatures(system.config, charData.race))
+    : []
   // Bloco "Features e magias" só existe se o config modela esse eixo — mesmo padrão
   // condicional de `backgroundCatalog.length > 0` para a linha "Origem".
   const hasClassAwareness = Boolean(system?.config?.classFeatures || system?.config?.classSpells)
@@ -383,6 +406,8 @@ export function SetupWizard() {
     // Voltar e trocar de sistema tem de limpá-las, senão fica selecionada uma chave que o
     // catálogo novo não tem — e o `canAdvance` deixaria passar o que a API vai rejeitar.
     setCharData(p => ({ ...p, race: '', class: '' }))
+    // US-205: subclasse depende da classe — mesmo motivo do reset acima.
+    setSubclass(undefined)
     // US-122: origem também depende do catálogo do sistema — mesmo motivo do reset acima.
     setOrigin(undefined)
     // US-124: conexão/memento dependem da origem — mesmo motivo.
@@ -394,17 +419,29 @@ export function SetupWizard() {
     setSkillChoice([])
     // US-132: ferramenta(s) da origem dependem da origem — mesmo motivo.
     setToolChoice([])
-    setStep('race-class')
+    setStep('class')
+  }
+
+  // US-205: troca de classe invalida a subclasse escolhida (chave de outra classe não pode
+  // sobreviver, ex.: trocar Guerreiro→Bárbaro não pode deixar `champion` gravado).
+  function selectClassCard(key: string) {
+    setCharData(p => ({ ...p, class: key }))
+    setSubclass(undefined)
   }
 
   function canAdvance(s: Step): boolean {
     switch (s) {
       case 'system': return !!system
-      case 'race-class':
+      // US-205: nome, gênero e classe — mais subclasse quando a classe escolhida tem mais de
+      // uma opção (marshal, hoje). Classe com 0 ou 1 subclasse não exige nada aqui: sem
+      // catálogo não há o que escolher, com 1 entrada só ela preenche sozinha no service.
+      case 'class':
         return charData.name.trim() !== ''
           && (GENDERS as readonly string[]).includes(charData.gender)
-          && raceCatalog.some(r => r.key === charData.race)
           && classCatalog.some(c => c.key === charData.class)
+          && (!subclassCatalog || subclassCatalog.length <= 1 || !!subclass)
+      case 'race':
+        return raceCatalog.some(r => r.key === charData.race)
       // US-123: além do point-buy fechado, background com grant.kind === 'ability' exige
       // uma linha escolhida para o +1 livre (a linha fixa não conta, é automática).
       case 'attributes':
@@ -460,8 +497,12 @@ export function SetupWizard() {
       const originPayload = origin
         ? { key: origin, connection: connectionText, memento: mementoText, abilityChoice, skillChoice: skillChoice.length > 0 ? skillChoice : undefined, toolChoice: toolChoice.length > 0 ? toolChoice : undefined }
         : undefined
+      // US-205: subclasse só viaja quando a classe tem MAIS de uma opção (marshal) — é a única
+      // situação em que `subclass` é escolha real da jogadora. Classe com 0 ou 1 entrada nunca
+      // manda o campo; o service resolve sozinho (ver character.service.ts).
+      const subclassPayload = subclassCatalog && subclassCatalog.length > 1 ? subclass : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
-      const char = await api.createCharacter({ systemId: system.id, ...charData, attributes: attrs, skills, background, origin: originPayload })
+      const char = await api.createCharacter({ systemId: system.id, ...charData, subclass: subclassPayload, attributes: attrs, skills, background, origin: originPayload })
       // Personagem já está salvo: guardamos o id e avançamos ao passo `world` (US-157).
       setCharId(char.id)
       setStep('world')
@@ -626,9 +667,12 @@ export function SetupWizard() {
               </div>
             )}
 
-            {step === 'race-class' && system && (
+            {/* US-205: `race-class` virou `class` + `race`. Nome e gênero ficam aqui (a primeira
+                das duas), acima da grade de classe — não migram pra uma etapa "Identidade" no
+                fim (decisão do backlog). */}
+            {step === 'class' && system && (
               <div>
-                <SectionTitle>{t('setup.raceClass.titulo')}</SectionTitle>
+                <SectionTitle>{t('setup.class.titulo')}</SectionTitle>
                 <p className="mt-1 text-sm text-muted-foreground">{t('setup.raceClass.system', { name: system.name })}</p>
                 <div className="mt-6 space-y-4">
                   {/* US-46: rótulo visível persistente acima de cada campo — placeholder deixa de ser o único rótulo. */}
@@ -638,7 +682,8 @@ export function SetupWizard() {
                       value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
                       className={fieldClass()} />
                   </div>
-                  {/* US-98: `value` em pt-BR (é o que a API entende), rótulo traduzido. */}
+                  {/* US-98: `value` em pt-BR (é o que a API entende), rótulo traduzido. US-205
+                      §Fora do escopo: gênero são 3 valores sem prosa, o <select> continua adequado. */}
                   <div>
                     <FieldLabel htmlFor="char-gender">{t('setup.raceClass.gender')}</FieldLabel>
                     <select id="char-gender" value={charData.gender}
@@ -648,42 +693,70 @@ export function SetupWizard() {
                       {GENDERS.map(g => <option key={g} value={g}>{t(`setup.gender.${g}`)}</option>)}
                     </select>
                   </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <FieldLabel htmlFor="char-race">{t('setup.raceClass.race')}</FieldLabel>
-                      <select id="char-race" value={charData.race}
-                        onChange={e => setCharData(p => ({ ...p, race: e.target.value }))}
-                        className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
-                        <option value="">{t('setup.raceClass.select')}</option>
-                        {/* US-142: raiz COM subespécie deixa de ser <option> solta — o SRD já
-                            documenta a variante, então "só a raiz" some e vira só o <optgroup>
-                            com a(s) subespécie(s) dentro (resolve também a duplicação visual
-                            "raiz" solta + "raiz" repetida no heading do grupo, US-140). Raiz SEM
-                            subespécie continua <option> solta normal, sem grupo. */}
-                        {raceCatalog.filter(r => !r.parentKey).map(root => {
-                          const subspecies = raceCatalog.filter(r => r.parentKey === root.key)
-                          if (subspecies.length === 0) {
-                            return <option key={root.key} value={root.key}>{root.label}</option>
-                          }
-                          return (
-                            <optgroup key={root.key} label={root.label}>
-                              {subspecies.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                            </optgroup>
-                          )
-                        })}
-                      </select>
+                  <CatalogCardGroup name="char-class" legend={t('setup.raceClass.class')}
+                    groups={[{ items: classCatalog }]} value={charData.class} onChange={selectClassCard} />
+                  {/* US-205: subgrade de subclasse aninhada no cartão de classe — só existe
+                      fisicamente quando a classe escolhida tem MAIS de uma opção (marshal, hoje).
+                      Classe com 0 ou 1 subclasse não renderiza nada aqui: sem catálogo, sem
+                      escolha; com 1 entrada, ela preenche sozinha (ver resolvedSubclass acima). */}
+                  {subclassCatalog && subclassCatalog.length > 1 && (
+                    <CatalogCardGroup name="char-subclass" legend={t('setup.subclass.legend')}
+                      groups={[{ items: subclassCatalog }]} value={subclass ?? ''} onChange={setSubclass} />
+                  )}
+                  {/* US-205: painel de detalhe — o que a classe escolhida concede, sem dado
+                      novo (getClassFeatures/getStartingInventory já existem no arquivo). */}
+                  {charData.class && (
+                    <div className="space-y-4 border-t border-border pt-4">
+                      {previewKit.length > 0 && (
+                        <div>
+                          <SheetHeading>{t('setup.class.detail.kit')}</SheetHeading>
+                          <p className="text-sm text-foreground">
+                            {previewKit.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
+                          </p>
+                        </div>
+                      )}
+                      {/* Subclasse resolvida — mostrada mesmo quando preenchida automaticamente
+                          (12 das 13 classes): a jogadora vê o que ganhou sem ter escolhido. */}
+                      {resolvedSubclassEntry && (
+                        <div>
+                          <SheetHeading>{t('setup.class.detail.subclass')}</SheetHeading>
+                          <p className="text-sm font-medium text-parchment">{resolvedSubclassEntry.label}</p>
+                          {resolvedSubclassEntry.blurb && <p className="mt-1 text-xs text-muted-foreground">{resolvedSubclassEntry.blurb}</p>}
+                        </div>
+                      )}
+                      {classStepFeatures.length > 0 && <FeaturesPanel features={classStepFeatures} />}
                     </div>
-                    <div>
-                      <FieldLabel htmlFor="char-class">{t('setup.raceClass.class')}</FieldLabel>
-                      <select id="char-class" value={charData.class}
-                        onChange={e => setCharData(p => ({ ...p, class: e.target.value }))}
-                        className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
-                        <option value="">{t('setup.raceClass.select')}</option>
-                        {classCatalog.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
-                      </select>
-                    </div>
-                  </div>
+                  )}
                 </div>
+              </div>
+            )}
+
+            {step === 'race' && system && (
+              <div>
+                <SectionTitle>{t('setup.race.titulo')}</SectionTitle>
+                {/* US-142: raiz COM subespécie deixa de ser cartão selecionável — vira cabeçalho
+                    de um subgrupo de cartões (a regra da US-142 preservada, noutra forma: era
+                    <optgroup>, agora `groupRaceCatalog` monta os grupos). Raiz SEM subespécie
+                    continua cartão normal, sem grupo. */}
+                <div className="mt-6">
+                  <CatalogCardGroup name="char-race" legend={t('setup.raceClass.race')}
+                    groups={groupRaceCatalog(raceCatalog)} value={charData.race}
+                    onChange={key => setCharData(p => ({ ...p, race: key }))} />
+                </div>
+                {/* US-205: painel de detalhe — traços raciais (US-142), sem dado novo. */}
+                {raceStepFeatures.length > 0 && (
+                  <div className="mt-6 space-y-4 border-t border-border pt-4">
+                    <SheetHeading>{t('setup.race.detail.features')}</SheetHeading>
+                    <ul className="flex flex-col gap-2">
+                      {raceStepFeatures.map((f, i) => (
+                        <li key={i} className="rounded-md border border-border bg-background/40 p-3">
+                          <p className="text-sm font-semibold text-parchment">{f.name}</p>
+                          {f.description?.trim() && <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{f.description}</p>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
@@ -996,6 +1069,14 @@ export function SetupWizard() {
                       <dd className="text-right text-sm font-medium text-parchment">{v}</dd>
                     </div>
                   ))}
+                  {/* US-205: linha própria da subclasse — só quando a classe escolhida tem
+                      catálogo (mesma condição de backgroundCatalog.length > 0 pra Origem, abaixo). */}
+                  {subclassCatalog && subclassCatalog.length > 0 && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.subclass')}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">{subclassLabel || '—'}</dd>
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-6 py-2.5">
                     <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.attributes')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">

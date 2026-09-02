@@ -64,7 +64,9 @@ describe('i18n da interface — dicionário ligado ao locale ativo (US-98)', () 
 
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
     expect(screen.getByLabelText('Character name')).toBeTruthy()
-    expect(screen.getByLabelText('Class')).toBeTruthy()
+    // US-205: classe deixou de ser um <select> — "Class" agora é a legenda da grade de cartão
+    // (o <fieldset> tem role "group", nomeado pelo <legend>).
+    expect(screen.getByRole('group', { name: 'Class' })).toBeTruthy()
   })
 
   it('trocar de idioma re-renderiza sem perder a etapa nem o texto já digitado', async () => {
@@ -84,16 +86,16 @@ describe('i18n da interface — dicionário ligado ao locale ativo (US-98)', () 
     expect(name.value).toBe('Lyra')
   })
 
-  // US-105: o value de classe é a CHAVE do catálogo, e o texto é o label que o config trouxe —
-  // não uma chave do dicionário da UI. Falha se alguém voltar a mandar o rótulo para a API.
+  // US-105/US-205: o value do cartão de classe é a CHAVE do catálogo, e o texto é o label que
+  // o config trouxe — não uma chave do dicionário da UI. Falha se alguém voltar a mandar o
+  // rótulo para a API.
   it('o VALUE de classe é a chave do catálogo, e o texto vem do config', async () => {
     localStorage.setItem(LOCALE_STORAGE_KEY, 'en-US')
     renderWithLocale(<SetupWizard />)
 
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
-    const options = screen.getByLabelText('Class').querySelectorAll('option')
-    const wizard = [...options].find(o => o.textContent === 'Wizard')
-    expect(wizard?.getAttribute('value')).toBe('wizard')
+    const wizard = screen.getByRole('radio', { name: 'Wizard' }) as HTMLInputElement
+    expect(wizard.value).toBe('wizard')
   })
 })
 

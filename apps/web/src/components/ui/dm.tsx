@@ -73,6 +73,19 @@ export function fieldClass(extra?: string) {
   )
 }
 
+// Cartão de opção (sistema, perícia, catálogo de classe/raça/subclasse): a mesma
+// materialidade em toda a escolha múltipla do wizard. `selected` acende a borda de
+// acento, `disabled` esmaece. Movido de SetupWizard.tsx (US-205) — primitiva do
+// design system, não específica de uma etapa.
+export function optionCardClass(selected: boolean) {
+  return cn(
+    'w-full rounded-md border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40',
+    selected
+      ? 'border-primary bg-primary/10 shadow-[inset_0_0_0_1px_var(--primary)]'
+      : 'border-border bg-background/40 hover:border-primary/60 hover:bg-background/70',
+  )
+}
+
 /** Rótulo de secção dentro de um painel (ficha, revisão). Caixa alta, acento, tracking largo. */
 export function SheetHeading({ children }: { children: ReactNode }) {
   return (

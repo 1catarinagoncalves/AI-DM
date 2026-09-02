@@ -45,7 +45,8 @@ export const enUS: Record<MessageKey, string> = {
   'setup.progress': 'Progress',
   'setup.stepOf': 'Step {n} of {total} — {label}',
   'setup.step.system': 'System',
-  'setup.step.race-class': 'Race/Class',
+  'setup.step.class': 'Class',
+  'setup.step.race': 'Race',
   'setup.step.attributes': 'Attributes',
   'setup.step.skills': 'Skills',
   'setup.step.background': 'Background',
@@ -87,8 +88,9 @@ export const enUS: Record<MessageKey, string> = {
   'setup.system.hint.SRD': 'Official rules from a well-known system',
   'setup.system.hint.UPLOAD': 'Custom system uploaded by a user',
 
-  // ---- wizard: raça e classe ----
-  'setup.raceClass.titulo': 'Race and Class',
+  // ---- wizard: class and race (US-205: two steps, `class` then `race`) ----
+  'setup.class.titulo': 'Class',
+  'setup.race.titulo': 'Race',
   'setup.raceClass.system': 'System: {name}',
   'setup.raceClass.name': 'Character name',
   'setup.raceClass.namePlaceholder': 'E.g.: Lyra Silvermoon',
@@ -96,6 +98,10 @@ export const enUS: Record<MessageKey, string> = {
   'setup.raceClass.race': 'Race',
   'setup.raceClass.class': 'Class',
   'setup.raceClass.select': 'Select…',
+  'setup.subclass.legend': 'Subclass',
+  'setup.class.detail.kit': 'Starting equipment',
+  'setup.class.detail.subclass': 'Subclass',
+  'setup.race.detail.features': 'Racial traits',
 
   // Só o RÓTULO é traduzido — o `value` enviado à API continua sendo a chave PT
   // (ver o comentário gêmeo no pt-BR.ts e em SetupWizard).
@@ -164,6 +170,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.gender': 'Gender',
   'setup.review.race': 'Race',
   'setup.review.class': 'Class',
+  'setup.review.subclass': 'Subclass',
   'setup.review.level': 'Level',
   'setup.review.hp': 'Starting HP',
   'setup.review.attributes': 'Attributes',
