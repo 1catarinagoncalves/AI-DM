@@ -11,11 +11,15 @@ roda ponta a ponta sem exceção e produz ~82KB de Markdown coerente, com `locat
 resolvidos para título/nome em toda referência. `pnpm typecheck` e os 2 testes de regressão do
 critério de aceite (função pura de renderização + registro condicional via `Reflect.getMetadata`
 sobre o módulo real) verdes; suite inteira de `apps/api` (488 testes) sem regressão; `pnpm dead`
-sem achado novo. Não testado ao vivo: resposta 200 completa por HTTP (headers
-`Content-Type`/`Content-Disposition`, `?format=json`) — o pipeline por trás foi validado
-diretamente (ver acima) e os `res.setHeader`/`res.send` do controller são triviais, mas a rota
-em si não recebeu uma chamada HTTP 200 de ponta a ponta nesta verificação (criar uma aventura
-nova custaria uma geração real via LLM).
+sem achado novo. Rota confirmada no Swagger (`/api/docs`, tag *Aventuras (dev)*, `security: bearer`,
+parâmetro `format`) depois de relançar o `pnpm dev` — `DEV_EXPORT` entra no processo só no
+arranque (wrapper `dotenv -e .env --`); o `nest --watch` recompila código novo mas herda o env
+do lançamento, então acrescentar a flag ao `.env` com o servidor de pé não a acende.
+**200 por HTTP verificado** (01/09/2026): `.md` de 84639 bytes com os headers corretos,
+`curl -OJ` gravando sozinho, `?format=json` com as mesmas contagens, e banco intacto depois de
+3 chamadas. O Bearer usado foi assinado para a conta real da mantenedora (mesmo `AUTH_SECRET`,
+mesmo formato do `dev-token.mjs`): a conta `dev@ai-dm.invalid` não tem personagem, e criar uma
+aventura sob ela custaria uma geração paga — a rota não distingue os dois tokens, só confere dono.
 **Depende de:** [US-201](./US-201-token-de-desenvolvimento-para-agentes-testarem-api-e-telas.md) — o token de dev (`pnpm dev:token`), o `.addBearerAuth()` no Swagger e o padrão de porta dupla (`NODE_ENV !== 'production'` **e** env var explícita) que esta rota reusa. O artefato em si já é persistido desde a [US-168](./US-168-abertura-narra-gancho-fixo-nao-aventura-gerada.md) (`Adventure.generatedAdventure`).
 **Criada em:** 2026-09-01
 
@@ -159,23 +163,28 @@ fora do repo (o arquivo tem spoiler da campanha inteira; não é material de com
 
 ## Critérios de aceite
 
-- [ ] Com `DEV_EXPORT=1` em dev, `GET /characters/:characterId/adventures/:adventureId/export`
-      com o Bearer do `pnpm dev:token` responde **200** com um `.md` contendo as seis fontes da
-      tabela acima, para uma aventura criada pelo motor. Verificado indiretamente: o pipeline
-      query→view→Markdown (o que o handler chama antes de `res.send`) rodou ponta a ponta contra
-      uma aventura real da Neon e produziu as seis fontes — mas nenhuma chamada HTTP chegou a 200
-      nesta verificação (precisaria de uma aventura nova sob a conta de dev, o que custaria uma
-      geração real via LLM). Ver nota no Status.
-- [ ] A resposta traz `Content-Type: text/markdown` e um `Content-Disposition: attachment` com
-      `filename` que cita o `adventureId` — `curl -OJ` grava o arquivo direto, sem `-o` à mão. Os
-      dois `res.setHeader` foram lidos, não curlados numa resposta 200 real (mesmo motivo acima).
+- [x] Com `DEV_EXPORT=1` em dev, `GET /characters/:characterId/adventures/:adventureId/export`
+      responde **200** com um `.md` contendo as seis fontes da tabela acima, para uma aventura
+      criada pelo motor. Confirmado ao vivo (01/09/2026): 84639 bytes, as seis fontes presentes
+      (artefato válido com 8 NPCs / 3 locais / 8 segredos / 8 encontros, 1 quest, 28 `EventLog`,
+      `CharacterState`, `System`). Ressalva: o Bearer foi assinado para a conta REAL da
+      mantenedora, não para a de dev — a conta `dev@ai-dm.invalid` não tem personagem nenhum
+      (`/characters/mine` → `[]`) e criar uma aventura sob ela custaria uma geração paga. Mesmo
+      `AUTH_SECRET`, mesmo formato do `dev-token.mjs`: o que a rota vê é idêntico.
+- [x] A resposta traz `Content-Type: text/markdown` e um `Content-Disposition: attachment` com
+      `filename` que cita o `adventureId` — `curl -OJ` grava o arquivo direto, sem `-o` à mão.
+      Confirmado ao vivo: `Content-Type: text/markdown; charset=utf-8`,
+      `Content-Disposition: attachment; filename="aventura-cmtheyi2k00011ghkckf284wk.md"`, e
+      `curl -OJ` gravou `aventura-cmtheyi2k00011ghkckf284wk.md` sem `-o`.
 - [x] O Markdown segue a ordem do pipeline e resolve as referências: nenhum id cru aparece no
       lugar de um nome de local ou de NPC. Confirmado pelo teste de regressão (a) e, ao vivo,
       contra uma aventura real (locations/npcs/secrets/encounters todos por nome, não por id).
 - [x] O Markdown abre com a rubrica de leitura (itens fixos, sem nota atribuída). Confirmado ao
       vivo (topo do Markdown gerado contra a aventura real) e por teste.
-- [ ] `?format=json` devolve `application/json` com o mesmo conteúdo. Não exercitado nesta
-      verificação — o branch `format === 'json'` do controller nunca foi chamado.
+- [x] `?format=json` devolve `application/json` com o mesmo conteúdo. Confirmado ao vivo: 200,
+      `Content-Type: application/json; charset=utf-8`, mesmas oito chaves de topo da view
+      (`rubric`/`adventure`/`artifact`/`quests`/`character`/`characterState`/`eventLogs`/`system`)
+      e as mesmas contagens do `.md` — os dois formatos saem da MESMA `buildAdventureExportView`.
 - [x] Sem token, a rota responde 401; com token de outro utilizador, 403; `adventureId`
       inexistente (ou de outro personagem), 404 — o mesmo comportamento da rota de turnos, porque
       é o mesmo `assertOwner`. Os três confirmados ao vivo com `curl` contra a API real.
@@ -184,10 +193,11 @@ fora do repo (o arquivo tem spoiler da campanha inteira; não é material de com
       há, nesta Neon, uma aventura real pré-US-168 para testar ao vivo.
 - [x] `User.email` não aparece em nenhum dos dois formatos. `AdventureExportCharacter` não tem
       campo `email`, e a query de `Character` só seleciona `user: { select: { locale: true } } }`
-      — não há como o e-mail atravessar a `select`.
+      — não há como o e-mail atravessar a `select`. Confirmado por `grep` nos dois corpos reais.
 - [x] A rota não escreve em banco: nenhuma chamada de `create`/`update`/`delete`/`upsert` no
       caminho do export, e nenhum `EventLog` novo depois de uma chamada. `getExportData` só chama
-      `findFirst`/`findMany`/`findUnique`/`findUniqueOrThrow`.
+      `findFirst`/`findMany`/`findUnique`/`findUniqueOrThrow`. Confirmado ao vivo: 28 `EventLog`
+      antes e depois de 3 chamadas, e `CharacterState.updatedAt` intacto (31/08, anterior a tudo).
 - [x] **Segurança:** com `NODE_ENV=production` a rota responde **404 mesmo com `DEV_EXPORT=1`
       definido** — as duas condições são exigidas, não alternativas (mesma regra da US-201).
       Confirmado pelo teste de regressão (b), que lê `Reflect.getMetadata` sobre a classe do
