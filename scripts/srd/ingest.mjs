@@ -89,7 +89,9 @@ const CLASS_MAP = {
 // Normaliza o `pk` tirando o prefixo do documento: `srd-2024_dwarf` e `srd_dwarf` → `dwarf`.
 // Sobrevive mesmo sem o par 5.2 (races/classes/spells já não os carregam) porque `buildTools`
 // ainda lê `Item.json` do `srd-2024` (US-134, fora do escopo desta troca de fonte).
-const stripDocument = (pk) => String(pk).replace(/^srd(-2024)?_/, '')
+// US-141: `a5e_` soma ao mesmo strip — as 3 subclasses do Marshal usam esse prefixo em vez de
+// `srd_` (ex.: `a5e_gambling-general` → `gambling-general`), mesmo mecanismo de stripDocument.
+const stripDocument = (pk) => String(pk).replace(/^(srd(-2024)?|a5e)_/, '')
 
 // Atributo abreviado (dataset) → chave canônica. Ordem fixa = ordem do config (idempotência).
 const ABILITY_MAP = { str: 'strength', dex: 'dexterity', con: 'constitution', int: 'intelligence', wis: 'wisdom', cha: 'charisma' }
@@ -140,7 +142,7 @@ async function load(name) {
 function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), features: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -273,6 +275,27 @@ function buildClasses(overlay, classes, resolve) {
       return { key, label: resolve('classes', key, { name: overlay.classes?.[key] }, c.fields.name).name }
     })
     .sort((a, b) => a.key.localeCompare(b.key))
+}
+
+// --- subclasses (15): CharacterClass com subclass_of !== null — filtro invertido de
+// buildClasses. Resolve a classe-mãe pelo MESMO CLASS_MAP (já aponta pro 5.1 + Marshal desde a
+// US-139); falha alto se `subclass_of` referenciar uma classe-mãe sem entrada (mesmo padrão de
+// erro alto que buildClassFeatures já tem pra `parent` órfão). As 13 chaves de classe-mãe
+// nascem com array vazio (Object.values(CLASS_MAP)) e nunca ficam ausentes do Record — decisão
+// US-141: quem consumir depois (US-205) indexa sem checar `undefined`.
+export function buildSubclasses(overlay, classes, resolve) {
+  const subclasses = Object.fromEntries(Object.values(CLASS_MAP).map((canon) => [canon, []]))
+  for (const c of classes) {
+    if (c.fields.subclass_of === null) continue
+    const canon = CLASS_MAP[c.fields.subclass_of]
+    if (!canon) throw new Error(`Subclasse ${c.pk}: subclass_of "${c.fields.subclass_of}" sem entrada no CLASS_MAP`)
+    const key = stripDocument(c.pk)
+    subclasses[canon].push({ key, label: resolve('subclasses', key, { name: overlay.subclasses?.[key] }, c.fields.name).name })
+  }
+  for (const canon of Object.keys(subclasses)) {
+    subclasses[canon].sort((a, b) => a.key.localeCompare(b.key))
+  }
+  return subclasses
 }
 
 // --- classFeatures: nível 1, só classe base, sem ruído de tabela nem motor de conjuração ---
@@ -782,6 +805,7 @@ function buildConfig(overlay, data) {
   const races = buildRaces(overlay, data.species2014, resolve)
   const raceFeatures = buildRaceFeatures(races, data.speciesTraits)
   const classes = buildClasses(overlay, data.classes, resolve)
+  const subclasses = buildSubclasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
   const startingKits = buildStartingKits(overlay, data.features, resolve)
@@ -802,7 +826,7 @@ function buildConfig(overlay, data) {
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  const artifact = { attributes, skills, races, raceFeatures, classes, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools }
+  const artifact = { attributes, skills, races, raceFeatures, classes, subclasses, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools }
   SystemConfigSchema.parse({ ...artifact, ...STUB })
   return { artifact, fallbacks, orphans, glossary }
 }

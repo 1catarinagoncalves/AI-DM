@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -219,6 +219,29 @@ test('buildClassFeatures: Marshal soma no mesmo CLASS_MAP; source por documento;
   assert.equal(result.barbarian[0].source, 'srd')
   assert.deepEqual(result.marshal.map((f) => f.key), ['marshal_commanding-presence'])
   assert.equal(result.marshal[0].source, 'a5e-ag')
+})
+
+// --- US-141 — buildSubclasses: filtro invertido de buildClasses; chave sempre presente ---
+// (array vazio pra classe sem subclasse na fixture, decidido US-141 §Notas de implementação)
+
+test('buildSubclasses: agrupa por classe-mãe via CLASS_MAP; classe sem subclasse na fixture fica com array vazio', () => {
+  const classes = [
+    classRow('srd_barbarian'), // classe base, sem subclass_of — não é subclasse, ignorada
+    classRow('srd_champion', 'srd_fighter'),
+    classRow('srd_circle-of-the-land', 'srd_druid'),
+    classRow('a5e_gambling-general', 'a5e_marshal'),
+  ]
+  const result = buildSubclasses({}, classes, identityResolve)
+  assert.equal(Object.keys(result).length, 13) // as 13 chaves de classe-mãe, sempre presentes
+  assert.deepEqual(result.fighter.map((s) => s.key), ['champion'])
+  assert.deepEqual(result.druid.map((s) => s.key), ['circle-of-the-land'])
+  assert.deepEqual(result.marshal.map((s) => s.key), ['gambling-general'])
+  assert.deepEqual(result.barbarian, []) // classe sem subclasse NESTA fixture — array vazio, chave presente
+})
+
+test('buildSubclasses: subclass_of sem entrada no CLASS_MAP falha alto (não descarta em silêncio)', () => {
+  const classes = [classRow('srd_champion', 'srd_unknown-class')]
+  assert.throws(() => buildSubclasses({}, classes, identityResolve), /subclass_of.*CLASS_MAP/)
 })
 
 const spellRow = (pk, name, level, classes) => ({ pk, fields: { name, level, desc: 'Texto.', classes } })
@@ -965,6 +988,17 @@ for (const locale of ['en-US', 'pt-BR']) {
     for (const t of artifact.tools) {
       assert.ok(t.key && t.label && t.category, `entrada incompleta: ${JSON.stringify(t)}`)
     }
+  })
+}
+
+// --- artefato: config.subclasses sai gravado nos dois locales, 13 chaves, 15 subclasses ---
+for (const locale of ['en-US', 'pt-BR']) {
+  test(`artefato ${locale}: config.subclasses tem 13 chaves de classe-mãe e 15 subclasses no total, cada uma com key/label`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    assert.equal(Object.keys(artifact.subclasses).length, 13)
+    const total = Object.values(artifact.subclasses).flat()
+    assert.equal(total.length, 15)
+    for (const s of total) assert.ok(s.key && s.label, `entrada incompleta: ${JSON.stringify(s)}`)
   })
 }
 

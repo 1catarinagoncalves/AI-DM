@@ -2,9 +2,9 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🗂️ Backlog
+**Status:** ✅ Implementada
 **Depende de:** [US-139](./US-139-catalogo-classes-marshal-a5e-adventurers-guide.md) (**obrigatória e anterior**: é ela que aponta o `CLASS_MAP` para o `srd-2014` e traz `a5e_marshal → marshal` — esta story reusa o mesmo mapa para resolver a classe-mãe de cada subclasse) · [US-41](./US-41-features-traits-de-classe.md) (formato `{key, label}` reusado)
-**Relacionado:** [ADR 009 §4](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (mediu a divergência de subclasse entre edições — moot depois que o 5.2 saiu de escopo, US-139) · [US-140](./US-140-catalogo-subracas-srd-5-1.md) (mesmo tipo de extensão — variante de entidade já catalogada —, story irmã com desenho diferente por razão explicada abaixo)
+**Relacionado:** [ADR 009 §4](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (mediu a divergência de subclasse entre edições — moot depois que o 5.2 saiu de escopo, US-139) · [US-140](./US-140-catalogo-subracas-srd-5-1.md) (mesmo tipo de extensão — variante de entidade já catalogada —, story irmã com desenho diferente por razão explicada abaixo) · [US-203](./US-203-prosa-de-catalogo-classe-e-raca.md) (estende `SystemCatalogEntrySchema` com `kicker`/`blurb` — chega a `config.subclasses` de graça por reuso) · [US-205](./US-205-escolha-por-cartao-classe-e-raca.md) (**decisão de 2026-09-02:** é a "story separada" de wiring que a seção *Fora do escopo* abaixo previa sem nomear — grava `Character.subclass`, valida no service)
 
 **Criada em:** 2026-08-15
 
@@ -14,7 +14,7 @@
 
 > **Como** desenvolvedora,
 > **quero** um catálogo de subclasses (`config.subclasses`, agrupado por classe-mãe) derivado do SRD 5.1 e do Marshal do `a5e-ag`,
-> **para que** o jogo saiba que arquétipos existem por classe — mesmo sem aplicar a escolha na criação de personagem ainda.
+> **para que** o jogo saiba que arquétipos existem por classe. *(Original: "mesmo sem aplicar a escolha na criação de personagem ainda" — desatualizado desde 2026-09-02, a US-205 aplica a escolha na criação.)*
 
 ---
 
@@ -55,7 +55,7 @@ Confirmado nas 12 entradas do 5.1 e nas 3 do Marshal: `fields.desc` vem vazio (m
 
 ### Por que `Record<classKey, …>` e não achatado em `config.classes` (diferente da US-140)
 
-Uma subclasse **não** é uma identidade jogável sozinha: "eu sou um Campeão" pressupõe "eu sou um Guerreiro" — é um refinamento da classe já escolhida, tipicamente adquirido num nível específico (1 para Clérigo/Feiticeiro/Bruxo, 3 para a maioria das outras), não uma alternativa a ela. Misturar subclasse em `config.classes` faria `Character.class = 'champion'` implicar perder a informação "é Guerreiro" — errado. Por isso o catálogo entra separado, `config.subclasses: Record<classKey, {key,label}[]>` — mesmo formato de `Record` já usado por `classFeatures`/`backgroundFeatures` (US-41/US-135), agrupado pela classe-mãe.
+Uma subclasse **não** é uma identidade jogável sozinha: "eu sou um Campeão" pressupõe "eu sou um Guerreiro" — é um refinamento da classe já escolhida, não uma alternativa a ela. (A regra oficial adquire a subclasse num nível específico — 1 para Clérigo/Feiticeiro/Bruxo, 3 para a maioria das outras; o produto simplifica isso para **nível 1 em todas**, decisão registrada abaixo em *Fora do escopo*.) Misturar subclasse em `config.classes` faria `Character.class = 'champion'` implicar perder a informação "é Guerreiro" — errado. Por isso o catálogo entra separado, `config.subclasses: Record<classKey, {key,label}[]>` — mesmo formato de `Record` já usado por `classFeatures`/`backgroundFeatures` (US-41/US-135), agrupado pela classe-mãe.
 
 ---
 
@@ -68,13 +68,20 @@ Uma subclasse **não** é uma identidade jogável sozinha: "eu sou um Campeão" 
 - **`SystemConfigSchema`** ganha `subclasses: z.record(z.string(), z.array(SystemCatalogEntrySchema)).optional()` — reusa o schema `{key,label}` já nomeado (`SystemCatalogEntrySchema`, mesmo usado por `races`/`classes`) dentro de um `Record` por classe-mãe, em vez de duplicar a forma como objeto literal solto (mesmo instinto de schema nomeado que a US-140 aplicou ao separar `RaceCatalogEntrySchema`).
 - **Overlay pt-BR**: 15 labels novas curadas à mão (12 do SRD + 3 do Marshal), mesmo padrão manual de `classes`/`races` (não entra em `MT_DOMAINS` — nome próprio curto, não prosa).
 - **`NOTICE-open5e.md`**: nenhuma atribuição nova — mesmos dois documentos (`srd-2014`, `a5e-ag`) já atribuídos pela US-105/US-121/US-139.
-- **Teste em `ingest.test.mjs`**: `buildSubclasses` com fixture sintética cobrindo uma classe com subclasse, uma sem (chave ausente ou array vazio — decidir e testar um dos dois, não os dois formatos ao mesmo tempo) e uma subclasse com `subclass_of` órfão (deve falhar o ingest, não ser descartada).
+- **Teste em `ingest.test.mjs`**: `buildSubclasses` com fixture sintética cobrindo uma classe com subclasse, uma sem (array vazio, chave presente — decidido 2026-09-02) e uma subclasse com `subclass_of` órfão (deve falhar o ingest, não ser descartada).
 
 ### Fora do escopo
 
 - **Features mecânicas de subclasse** (`ClassFeature` com `parent` = pk de subclasse, confirmado existente no dataset) — mesmo corte que a US-139 aplicou a feature de classe base: catálogo de identidade agora, mecânica é story própria.
-- **Escolha de subclasse na criação de personagem** — nenhuma mudança em `Character`, `character.service.ts` ou no wizard. Catálogo pronto para consumo, wiring é story separada (mesmo corte que a US-121 fez para background, a US-138/140 para raça).
-- **Nível em que a subclasse é escolhida** (1 para Clérigo/Feiticeiro/Bruxo, 3 para a maioria) — não modelado; o jogo não rastreia nível de personagem hoje. YAGNI: não há sistema de progressão para modelar contra ainda; a story que implementar a escolha decide isso quando o cenário existir.
+- **Escolha de subclasse na criação de personagem** — nenhuma mudança em `Character`, `character.service.ts` ou no wizard nesta story. Catálogo pronto para consumo, wiring é story separada: **[US-205](./US-205-escolha-por-cartao-classe-e-raca.md)** (nomeada em 2026-09-02 — até então esta seção previa "story separada" sem dizer qual).
+- **Nível real em que a subclasse é obtida por regra oficial** (1 para Clérigo/Feiticeiro/Bruxo, 3
+  para a maioria das outras) — não modelado, e não vai ser: decisão de produto (2026-09-02) é
+  tratar **toda subclasse como escolhida no nível 1**, para as 13 classes sem exceção. Não é
+  aproximação por falta de dado — é simplificação deliberada, coerente com `Character.level` fixo
+  em 1 nesta fase (o jogo não tem progressão, então "nível em que a subclasse chega" e "nível da
+  personagem" são o mesmo número o tempo todo). Consequência prática: nenhum código precisa saber
+  QUE nível cada classe originalmente pede — `getClassFeatures`/US-41 e a subclasse escolhida
+  (US-205) entram juntos, sem condicional por classe.
 - **As 4 divergências de nome entre edições** (`SRD_EQUIVALENTS` do ADR 009 §4) — moot, o 5.2 não é consultado (US-139).
 - **Catálogo de subespécie** — é a [US-140](./US-140-catalogo-subracas-srd-5-1.md), desenho de dado diferente (ver §Contexto).
 
@@ -117,27 +124,27 @@ Exemplo:
 
 ## Critérios de aceite
 
-- [ ] `buildSubclasses` deriva `config.subclasses` com **13 chaves** de classe-mãe (as 12 SRD + `marshal`), cada uma com sua(s) subclasse(s) — 1 por classe SRD, 3 para `marshal`.
-- [ ] Subclasse com `subclass_of` sem entrada no `CLASS_MAP` falha o ingest (erro alto, não descarte silencioso).
-- [ ] `SystemConfigSchema` valida `subclasses` opcional; config sem o campo (artefato pré-US-141) continua válido.
-- [ ] `config.classes` (US-139) **não muda** — subclasse não aparece na lista de classes selecionáveis.
-- [ ] `NOTICE-open5e.md` não precisa de entrada nova (mesmos documentos já atribuídos).
-- [ ] Ambos os artefatos (`en-US`, `pt-BR`) trazem as 15 subclasses.
-- [ ] **Eval / teste de regressão:** `ingest.test.mjs` cobre `buildSubclasses` com fixture sintética: classe com subclasse, classe sem, e subclasse com `subclass_of` órfão (falha esperada).
+- [x] `buildSubclasses` deriva `config.subclasses` com **13 chaves** de classe-mãe (as 12 SRD + `marshal`), cada uma com sua(s) subclasse(s) — 1 por classe SRD, 3 para `marshal`.
+- [x] Subclasse com `subclass_of` sem entrada no `CLASS_MAP` falha o ingest (erro alto, não descarte silencioso).
+- [x] `SystemConfigSchema` valida `subclasses` opcional; config sem o campo (artefato pré-US-141) continua válido.
+- [x] `config.classes` (US-139) **não muda** — subclasse não aparece na lista de classes selecionáveis.
+- [x] `NOTICE-open5e.md` não precisa de entrada nova (mesmos documentos já atribuídos).
+- [x] Ambos os artefatos (`en-US`, `pt-BR`) trazem as 15 subclasses.
+- [x] **Eval / teste de regressão:** `ingest.test.mjs` cobre `buildSubclasses` com fixture sintética: classe com subclasse, classe sem, e subclasse com `subclass_of` órfão (falha esperada).
 
 ---
 
 ## Notas de implementação
 
 - **Reuse o `CLASS_MAP` sem alteração** — ele já resolve tanto `srd_<classe>` (US-139) quanto `a5e_marshal` (US-139) para a mesma chave canônica que `buildClasses` usa; `buildSubclasses` só precisa do mesmo mapa para o lado `subclass_of`.
-- **Decida o formato de "classe sem subclasse" antes de escrever o teste** — array vazio (`fighter: []` mesmo se não tivesse) ou chave ausente do `Record`. Como as 13 classes catalogadas (US-139) **têm** exatamente 1 subclasse cada, esse caso só aparece na fixture sintética do teste — mas o formato importa para quem for consumir depois.
+- **Formato de "classe sem subclasse" (decidido 2026-09-02): array vazio, chave sempre presente.** `buildSubclasses` inicializa o `Record` com as 13 chaves de `CLASS_MAP` (mesmo universo de `config.classes`) e preenche cada uma com `[]` por padrão — nunca omite a chave. Como as 13 classes catalogadas (US-139) **têm** exatamente 1 subclasse cada, esse caso só aparece na fixture sintética do teste, mas quem for consumir depois (US-205) pode indexar `config.subclasses[classKey]` sem checar `undefined`.
 - **Cure as 15 labels pt-BR** — nenhuma delas foi traduzida ainda; nomes de arquétipo (`Champion`, `Life Domain`) têm precedente direto nas 12 classes já traduzidas (US-105), seguir o mesmo tom.
 
 ---
 
 ## Questões em aberto
 
-1. **A subclasse do Marshal usa o mesmo rótulo em `config.subclasses.marshal` que a US-139 já previa excluir?** A US-139 tinha marcado as três subclasses do Marshal como fora de escopo dela — esta story as importa pelo catálogo de subclasse, não pelo de classe. Confirmar que não há conflito de expectativa com quem revisar a US-139 depois desta.
+1. ~~A subclasse do Marshal usa o mesmo rótulo em `config.subclasses.marshal` que a US-139 já previa excluir?~~ **Resolvido: sem conflito.** A US-139 (§Fora do escopo) exclui as três subclasses do Marshal só de `config.classes`/`config.classFeatures` — mesmo filtro `subclass_of !== null` que já vale pras 12 classes SRD, cujas subclasses também não entram lá. Não é exclusão do dado, é exclusão de rota: catálogo de classe não lista subclasse, nunca listou. A própria US-139 (§Relacionado) já antecipa esta story: "estende o `CLASS_MAP` desta story com subclasse, incluindo as 3 do Marshal excluídas aqui". `config.subclasses.marshal` é a rota certa, sem expectativa quebrada para quem revisar a US-139 depois.
 
 ---
 

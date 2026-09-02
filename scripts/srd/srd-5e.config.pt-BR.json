@@ -4649,6 +4649,94 @@
       }
     ]
   },
+  "subclasses": {
+    "barbarian": [
+      {
+        "key": "path-of-the-berserker",
+        "label": "Caminho do Berserker"
+      }
+    ],
+    "bard": [
+      {
+        "key": "college-of-lore",
+        "label": "Colégio do Conhecimento"
+      }
+    ],
+    "cleric": [
+      {
+        "key": "life-domain",
+        "label": "Domínio da Vida"
+      }
+    ],
+    "druid": [
+      {
+        "key": "circle-of-the-land",
+        "label": "Círculo da Terra"
+      }
+    ],
+    "fighter": [
+      {
+        "key": "champion",
+        "label": "Campeão"
+      }
+    ],
+    "marshal": [
+      {
+        "key": "gambling-general",
+        "label": "General Apostador"
+      },
+      {
+        "key": "swift-strategist",
+        "label": "Estrategista Veloz"
+      },
+      {
+        "key": "talented-tactician",
+        "label": "Tático Talentoso"
+      }
+    ],
+    "monk": [
+      {
+        "key": "way-of-the-open-hand",
+        "label": "Caminho da Mão Aberta"
+      }
+    ],
+    "paladin": [
+      {
+        "key": "oath-of-devotion",
+        "label": "Juramento de Devoção"
+      }
+    ],
+    "ranger": [
+      {
+        "key": "hunter",
+        "label": "Caçador"
+      }
+    ],
+    "rogue": [
+      {
+        "key": "thief",
+        "label": "Ladrão"
+      }
+    ],
+    "sorcerer": [
+      {
+        "key": "draconic-bloodline",
+        "label": "Linhagem Dracônica"
+      }
+    ],
+    "warlock": [
+      {
+        "key": "the-fiend",
+        "label": "O Corruptor"
+      }
+    ],
+    "wizard": [
+      {
+        "key": "school-of-evocation",
+        "label": "Escola de Evocação"
+      }
+    ]
+  },
   "tools": [
     {
       "category": "artisan",

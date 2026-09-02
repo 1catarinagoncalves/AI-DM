@@ -166,6 +166,11 @@ export const SystemConfigSchema = z.object({
   // dedupe por `key` (Ability Score Increase da raiz e da subespécie somam como dois traços).
   raceFeatures: z.record(z.string(), z.array(SystemClassFeatureSchema)).optional(),
   classes: z.array(SystemCatalogEntrySchema).optional(),
+  // Catálogo de subclasses (US-141), agrupado por classe-mãe — reusa SystemCatalogEntrySchema
+  // (mesma forma {key,label} de races/classes) dentro de um Record por chave de classe. Uma
+  // subclasse pressupõe a classe já escolhida (Character.class), não é entidade jogável sozinha
+  // — por isso separado de `classes`, nunca achatado nele (ver US-141 §Contexto).
+  subclasses: z.record(z.string(), z.array(SystemCatalogEntrySchema)).optional(),
   // Catálogo de backgrounds do a5e-ag (US-121), derivado pelo ingest. Opcional como races/classes:
   // config legado sem ele não fica inválido. Mecânico apenas — escolha na criação é story separada.
   backgrounds: z.array(SystemBackgroundSchema).optional(),

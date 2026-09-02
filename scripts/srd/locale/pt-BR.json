@@ -62,6 +62,23 @@
     "warlock": "Bruxo",
     "wizard": "Mago"
   },
+  "subclasses": {
+    "champion": "Campeão",
+    "circle-of-the-land": "Círculo da Terra",
+    "college-of-lore": "Colégio do Conhecimento",
+    "draconic-bloodline": "Linhagem Dracônica",
+    "gambling-general": "General Apostador",
+    "hunter": "Caçador",
+    "life-domain": "Domínio da Vida",
+    "oath-of-devotion": "Juramento de Devoção",
+    "path-of-the-berserker": "Caminho do Berserker",
+    "school-of-evocation": "Escola de Evocação",
+    "swift-strategist": "Estrategista Veloz",
+    "talented-tactician": "Tático Talentoso",
+    "the-fiend": "O Corruptor",
+    "thief": "Ladrão",
+    "way-of-the-open-hand": "Caminho da Mão Aberta"
+  },
   "features": {
     "barbarian_rage": { "name": "Fúria", "description": "Entra em fúria, ganhando ímpeto e resistência no combate." },
     "barbarian_unarmored-defense": { "name": "Defesa sem Armadura", "description": "Protege-se sem armadura usando o próprio vigor." },

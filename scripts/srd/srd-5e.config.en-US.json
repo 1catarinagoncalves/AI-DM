@@ -4649,6 +4649,94 @@
       }
     ]
   },
+  "subclasses": {
+    "barbarian": [
+      {
+        "key": "path-of-the-berserker",
+        "label": "Path of the Berserker"
+      }
+    ],
+    "bard": [
+      {
+        "key": "college-of-lore",
+        "label": "College of Lore"
+      }
+    ],
+    "cleric": [
+      {
+        "key": "life-domain",
+        "label": "Life Domain"
+      }
+    ],
+    "druid": [
+      {
+        "key": "circle-of-the-land",
+        "label": "Circle of the Land"
+      }
+    ],
+    "fighter": [
+      {
+        "key": "champion",
+        "label": "Champion"
+      }
+    ],
+    "marshal": [
+      {
+        "key": "gambling-general",
+        "label": "Gambling General"
+      },
+      {
+        "key": "swift-strategist",
+        "label": "Swift Strategist"
+      },
+      {
+        "key": "talented-tactician",
+        "label": "Talented Tactician"
+      }
+    ],
+    "monk": [
+      {
+        "key": "way-of-the-open-hand",
+        "label": "Way of the Open Hand"
+      }
+    ],
+    "paladin": [
+      {
+        "key": "oath-of-devotion",
+        "label": "Oath of Devotion"
+      }
+    ],
+    "ranger": [
+      {
+        "key": "hunter",
+        "label": "Hunter"
+      }
+    ],
+    "rogue": [
+      {
+        "key": "thief",
+        "label": "Thief"
+      }
+    ],
+    "sorcerer": [
+      {
+        "key": "draconic-bloodline",
+        "label": "Draconic Bloodline"
+      }
+    ],
+    "warlock": [
+      {
+        "key": "the-fiend",
+        "label": "The Fiend"
+      }
+    ],
+    "wizard": [
+      {
+        "key": "school-of-evocation",
+        "label": "School of Evocation"
+      }
+    ]
+  },
   "tools": [
     {
       "category": "artisan",
