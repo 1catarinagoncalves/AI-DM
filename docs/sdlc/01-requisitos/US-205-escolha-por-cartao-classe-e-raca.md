@@ -18,6 +18,9 @@ subgrade de subclasse. Decisão de 2026-09-02: escolha de subclasse deixou de se
 - [US-141](./US-141-catalogo-subclasses-srd-5-1-e-marshal.md) — catálogo de subclasse; a subgrade que esta story acrescenta é a "story separada" de wiring que a US-141 previa e não nomeava.
 - [US-98](./US-98-i18n-da-interface-web.md) — gênero continua com `value` em pt-BR e rótulo traduzido.
 - [US-46](./US-46-acessibilidade-wcag-aa.md) — a grade continua sendo um grupo de rádio de verdade.
+- [Design System](../02-design/design-system.md) — cor, borda de acento e tipografia do cartão não
+  são decisão desta story: o protótipo usa os mesmos tokens `oklch` e a mesma Cinzel do produto
+  (verificado ao vivo, ver *Identidade visual* no [backlog](./backlog-redesenho-criacao-de-personagem.md)). `optionCardClass` já implementa isso — a novidade aqui é a anatomia do cartão, não a cor dele.
 
 ---
 

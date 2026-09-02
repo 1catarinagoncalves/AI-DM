@@ -9,7 +9,9 @@ e **sem perder** nenhum campo que o produto já grava, incluindo os campos livre
 
 **Decisão de produto:** onde protótipo e produto discordam de **ordem** ou de **conteúdo**,
 manda o produto. O protótipo é referência de **forma** (materialidade, densidade, hierarquia,
-copy de enquadramento), não de sequência nem de modelo de dados.
+copy de enquadramento), não de sequência nem de modelo de dados. **Identidade visual (cor,
+tipografia) não é decisão em aberto** — ver seção própria abaixo: o protótipo já usa os tokens do
+[Design System](../02-design/design-system.md) do produto.
 
 **Status:** 📋 Proposta — nenhuma tarefa iniciada
 **Criado em:** 2026-09-01
@@ -23,9 +25,12 @@ Cada item já tem story própria em `US-*.md`.
 
 Sete etapas (`Classe · Espécie · Antecedente · Atributos · Perícias · Identidade · Revisão`),
 cada uma com grade de **cartões** (chamada curta, resumo, "como é jogar", equipamento icônico,
-traços) e filtro de busca, uma coluna fixa **"Seu personagem"** que acumula o que já foi
-escolhido e mostra CA/PV/Percepção passiva/deslocamento a partir da etapa de atributos, e uma
-trilha de **chips numerados** (`1. Classe`, `2. Espécie`, …) no topo com `Etapa X de 7` no rodapé.
+traços) e filtro de busca, uma coluna fixa **"Ficha em construção"** que acumula o que já foi
+escolhido e mostra PV/CA/deslocamento e os seis atributos com modificador **desde a etapa 1**,
+antes de qualquer escolha (verificado ao vivo em 02/09/2026 — não há atraso até `attributes`, nem
+percepção passiva nessa coluna; percepção passiva só aparece na etapa 7, na ficha final), e uma
+trilha de **chips numerados** (`1. Classe`, `2. Espécie`, …) no topo. **Não há contador `Etapa X de
+N` nenhum** — nem no topo nem no rodapé; a trilha de chips é a única indicação de posição.
 
 ## O produto hoje, em uma linha
 
@@ -33,6 +38,39 @@ Sete etapas também — `system · race-class · background · attributes · ski
 ([`SetupWizard.tsx`](../../../apps/web/src/components/setup/SetupWizard.tsx)) — mas a escolha é
 por `<select>`, o resumo do personagem só existe na etapa `review` (US-127), e o enquadramento de
 cada etapa é um título nominal (`SectionTitle`) sem a pergunta.
+
+---
+
+## Identidade visual: o protótipo já usa os nossos tokens
+
+Não é semelhança de estilo — **é o mesmo CSS**. Inspecionado ao vivo em 02/09/2026 (DevTools na
+URL do protótipo, não no arquivo local): as variáveis `:root`/`.dark` do protótipo têm os mesmos
+nomes **e os mesmos valores `oklch`** dos tokens do produto
+([`globals.css`](../../../apps/web/src/app/globals.css), documentados no
+[Design System §1](../02-design/design-system.md)):
+
+| Token | Produto (`globals.css`, dark) | Protótipo (inspecionado, dark) |
+|---|---|---|
+| `--primary` | `oklch(0.68 0.16 55)` | `oklch(68% .16 55)` — igual |
+| `--accent` | `oklch(0.72 0.15 70)` | `oklch(72% .15 70)` — igual |
+| `--ember` | `oklch(0.62 0.19 45)` | `oklch(62% .19 45)` — igual |
+| `--gold` | `oklch(0.82 0.14 80)` | `oklch(82% .14 80)` — igual |
+| `--parchment` | `oklch(0.92 0.04 85)` | `oklch(92% .04 85)` — igual |
+
+O logotipo do protótipo (`Criação de Personagem`) renderiza em **Cinzel** — o mesmo serif de
+display que o [Design System §2](../02-design/design-system.md) já define para título de tela e
+nome de personagem. O CSS do protótipo também define a classe `.dm-vignette`, o nome exato da
+utility do produto ([direção visual §4](../02-design/direcao-visual-anti-slop.md),
+[Design System §4](../02-design/design-system.md)).
+
+**Conclusão prática: esta é uma decisão já tomada, não uma pendência.** Nenhuma story deste
+backlog precisa de escolher cor, fonte ou nome de token — a US-46/direção visual já fixou isso
+([direção visual anti-slop](../02-design/direcao-visual-anti-slop.md), status ✅ implementado) e o
+protótipo confirma o mesmo sistema, não propõe um diferente. "Materialidade" na *Decisão de
+produto* acima quer dizer **anatomia de cartão, densidade, hierarquia** — não cor nem tipografia:
+essas duas já são as do produto, no cartão como em qualquer outra tela. Onde uma story abaixo cita
+"a materialidade do protótipo", leia-se `optionCardClass`/tokens do Design System, nunca uma paleta
+nova a introduzir.
 
 ---
 
@@ -99,12 +137,17 @@ subclasse entrou no escopo de US-203/US-205, o que puxa US-141 para dentro desta
 ## Fora do escopo deste backlog
 
 - **Assistência de IA nos campos livres** ("Sugerir com IA" para nomes, "Ajudar a escrever" para
-  aparência/personalidade/história) e **retrato gerado por IA**. É a parte mais visível do
-  protótipo e a que menos tem a ver com layout: são chamadas pagas, com escada de provedor,
-  guardrail e custo por clique, e o retrato não tem precedente nenhum no repo (não há geração de
-  imagem em lado nenhum). Duas dessas três caixas (`appearance`, `personality`) nem existem no
-  `Character.background`, então entrariam junto com migração. **Story própria, decisão própria**
-  — este backlog entrega a forma, não a conta.
+  aparência/personalidade/história) e **retrato gerado por IA**. **Correção de 02/09/2026:** ao
+  verificar a referência ao vivo, nenhuma das duas existe nela — a etapa `Identidade` só tem quatro
+  chips de nome estáticos (sem geração) e três `textarea` simples, sem botão de IA nem espaço de
+  retrato em lugar nenhum do DOM. A menção original a isto como "a parte mais visível do protótipo"
+  era baseada num arquivo de referência local mais antigo, não na URL atual — fica registrado aqui
+  como hipótese descartada, não como corte de algo que existe. Se a equipe quiser assistência de IA
+  no futuro, é trabalho novo sem precedente na referência nem no repo (não há geração de imagem em
+  lado nenhum, e chamada de IA em campo de texto é custo por clique, escada de provedor e
+  guardrail). Duas das três caixas de escrita (`appearance`, `personality`) nem existem no
+  `Character.background` hoje, então entrariam junto com migração. **Story própria, decisão
+  própria** — este backlog entrega a forma, não a conta.
 - **Escolha do pacote de equipamento inicial.** O produto deriva o kit da classe
   (`getStartingInventory`, US-51); dar a escolher entre dois pacotes é mudança de regra, não de
   tela.

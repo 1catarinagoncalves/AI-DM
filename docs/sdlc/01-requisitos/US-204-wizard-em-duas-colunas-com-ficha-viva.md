@@ -13,6 +13,10 @@
 - [US-127](./US-127-revisao-espelha-ficha-completa.md) — o preview da revisão: a ficha viva é o **mesmo cálculo**, mostrado mais cedo.
 - [US-107](./US-107-voltar-ao-hub-de-personagens.md) — a saída da criação, que continua acima da trilha.
 - [US-46](./US-46-acessibilidade-wcag-aa.md) — foco, rótulo e contraste do chrome novo.
+- [Design System](../02-design/design-system.md)/[direção visual anti-slop](../02-design/direcao-visual-anti-slop.md)
+  — já ✅ implementados; esta story não escolhe cor nem fonte nova para a ficha viva, só a compõe
+  com o que existe. O protótipo confirma o mesmo sistema (mesmos tokens `oklch`, mesma Cinzel,
+  verificado ao vivo — ver *Identidade visual* no [backlog](./backlog-redesenho-criacao-de-personagem.md)).
 
 ---
 
@@ -155,9 +159,11 @@ avançar. No telemóvel a coluna direita colapsa para uma faixa resumida.
   guarda-chuva para `race-class`, e o protótipo não tem uma. É copy nova, não tradução.
 - **Não tocar em `canAdvance`, `next`, `back` nem no array `steps`.** Eles operam por índice de
   propósito (comentário da US-123 no topo do arquivo); esta story não reordena nada.
-- **Verificar no protótipo, não de memória:** a ficha de referência só mostra números a partir da
-  etapa 4 (`railShowStats: s.step >= 3`, índice base zero) — a regra "não mostrar `8 8 8 8 8 8`"
-  vem de lá.
+- **Verificado ao vivo em 02/09/2026, não de memória:** a referência **não** esconde números —
+  PV/CA/deslocamento e os seis atributos aparecem na coluna desde a etapa 1, com todo mundo em
+  base 8. A regra "não mostrar `8 8 8 8 8 8`" **não vem do protótipo** — é decisão própria do
+  produto, porque seis atributos idênticos sem contexto de classe/raça é ruído que a referência
+  aceita e nós preferimos evitar. Não citar a referência como fonte desta regra em nenhum PR.
 
 ---
 
@@ -178,4 +184,6 @@ avançar. No telemóvel a coluna direita colapsa para uma faixa resumida.
 - [`apps/web/src/components/character/BackgroundPanel.tsx`](../../../apps/web/src/components/character/BackgroundPanel.tsx) e [`FeaturesPanel.tsx`](../../../apps/web/src/components/character/FeaturesPanel.tsx) — painéis já compartilhados entre criação e ficha em jogo; o molde de como a ficha viva deve ser fatiada.
 - [`packages/shared/src/ability.ts`](../../../packages/shared/src/ability.ts) — `abilityModifier`, `buildSkillSheet`, `formatModifier`: os números da ficha.
 - [`docs/sdlc/02-design/direcao-visual-anti-slop.md`](../02-design/direcao-visual-anti-slop.md) — §4 (box-in-box, textura `fixed`) e §5 (arte no wizard): as duas regras que este layout tem de respeitar.
-- [`wizard-criacao-personagem-referencia.html`](./wizard-criacao-personagem-referencia.html) — o protótipo: coluna "Seu personagem", chips numerados, `Etapa X de 7`.
+- [`wizard-criacao-personagem-referencia.html`](./wizard-criacao-personagem-referencia.html) — o protótipo: coluna "Seu personagem" (números visíveis desde a etapa 1, sem gate), chips
+  numerados. **Não tem** `Etapa X de N`; esse contador é proposta nossa, inspirada no rótulo
+  mobile que a US-66 já usa no produto, não copiada da referência.

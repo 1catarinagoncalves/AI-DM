@@ -255,7 +255,10 @@ pelo caminho que a US-141 vai escrever. Chave de `primary` que não exista em `c
    classe/raça não se aplica às 12. Escrever os dois campos mesmo assim (curadoria mais barata que
    um `if` no schema para 3 exceções) é a proposta; a alternativa seria `kicker` opcional-mesmo-
    com-blurb só para essas 12, o que quebraria a regra "os dois preenchidos" do critério de
-   aceite acima.
+   aceite acima. **Nota de 02/09/2026:** a subgrade `marshal` da referência ao vivo renderiza cada
+   trilha só com nome + uma linha (sem `kicker` em caixa alta separado, diferente do cartão de
+   classe/raça) — indício de que, na prática, a curadoria pode preferir só `blurb` para subclasse;
+   mantém-se a proposta acima por schema, ajustar a curadoria se a leitura em tela pedir.
 
 ---
 
