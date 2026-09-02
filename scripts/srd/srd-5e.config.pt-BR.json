@@ -2196,28 +2196,28 @@
         "source": "srd"
       },
       {
-        "description": "Alveje uma Besta que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou ficará com a condição Enfeitiçado pela duração. Se você ou um de seus aliados causar dano ao alvo, a magia termina.",
+        "description": "Esta magia permite que você convença uma fera de que você não pretende feri-la. Escolha uma fera que você possa ver dentro do alcance. Ela deve ver e ouvir você. Se a Inteligência da fera for 4 ou maior, a magia falha. Caso contrário, a fera deve ser bem-sucedida em um teste de resistência de Sabedoria ou fica enfeitiçada por você pela duração da magia. Se você ou um de seus companheiros ferir o alvo, a magia termina.",
         "key": "animal-friendship",
         "level": 1,
-        "name": "Amizade Animal",
+        "name": "Amizade com Animais",
         "source": "srd"
       },
       {
-        "description": "Até três criaturas à sua escolha que você possa ver dentro do alcance devem, cada uma, fazer um teste de resistência de Carisma. Sempre que um alvo que falhar nesse teste fizer uma jogada de ataque ou um teste de resistência antes da magia terminar, o alvo deve subtrair 1d4 da jogada de ataque ou teste.",
+        "description": "Até três criaturas à sua escolha que você possa ver dentro do alcance devem fazer testes de resistência de Carisma. Sempre que um alvo que falhar nesse teste fizer uma jogada de ataque ou um teste de resistência antes que a magia termine, o alvo deve rolar 1d4 e subtrair o resultado da jogada de ataque ou do teste de resistência.",
         "key": "bane",
         "level": 1,
-        "name": "Perdição",
+        "name": "Maldição",
         "source": "srd"
       },
       {
-        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
+        "description": "Você tenta enfeitiçar um humanoide que possa ver dentro do alcance. Ele deve fazer um teste de resistência de Sabedoria, com vantagem se você ou seus companheiros estiverem lutando contra ele. Se falhar no teste, fica enfeitiçado por você até a magia terminar ou até que você ou seus companheiros façam algo prejudicial a ele. A criatura enfeitiçada o considera um conhecido amigável. Quando a magia termina, a criatura sabe que foi enfeitiçada por você.",
         "key": "charm-person",
         "level": 1,
-        "name": "Enfeitiçar Pessoa",
+        "name": "Amizade Fingida",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
+        "description": "Pela duração, você entende o significado literal de qualquer idioma falado que ouvir. Você também entende qualquer idioma escrito que veja, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica mensagens secretas em um texto ou em um símbolo, como uma runa arcana, que não faça parte de um idioma escrito.",
         "key": "comprehend-languages",
         "level": 1,
         "name": "Compreender Idiomas",
@@ -2231,105 +2231,105 @@
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você sente a presença de magia a até 30 pés de você. Se sentir magia dessa forma, você pode usar sua ação para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que porte magia, e você aprende a escola de magia dela, se houver. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-magic",
         "level": 1,
         "name": "Detectar Magia",
         "source": "srd"
       },
       {
-        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences em sua posse — pareça diferente até que a magia termine. Você pode parecer 1 pé mais baixo ou mais alto e pode parecer mais pesado ou mais leve. Você deve adotar uma forma que tenha o mesmo arranjo básico de membros que você possui. Caso contrário, a extensão da ilusão depende de você. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passarão através do chapéu, e qualquer um que o toque não sentirá nada. Para discernir que você está disfarçado, uma criatura deve realizar a ação Estudar para inspecionar sua aparência e ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
+        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences sobre sua pessoa — pareça diferente, até a magia terminar ou até você usar sua ação para dispensá-la. Você pode parecer 1 pé mais baixo ou mais alto, e pode parecer magro, gordo, ou algo entre os dois. Você não pode mudar seu tipo de corpo, então deve adotar uma forma que tenha o mesmo arranjo básico de membros. Fora isso, a extensão da ilusão fica a seu critério. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passam através do chapéu, e quem o tocar não sentirá nada, ou sentirá sua cabeça e cabelo. Se você usar esta magia para parecer mais magro do que é, a mão de alguém que tentar tocá-lo esbarrará em você enquanto ainda parecia estar no ar. Para perceber que você está disfarçado, uma criatura pode usar sua ação para examinar sua aparência e deve ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
         "key": "disguise-self",
         "level": 1,
-        "name": "Disfarçar-se",
+        "name": "Disfarce Pessoal",
         "source": "srd"
       },
       {
-        "description": "Objetos em um cubo de 6 metros dentro do alcance são contornados por uma luz azul, verde ou violeta (à sua escolha). Cada criatura no cubo também é contornada se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem Luz Penumbra em um raio de 3 metros e não podem se beneficiar da condição Invisível. Jogadas de ataque contra uma criatura ou objeto afetado têm Vantagem se o atacante puder vê-lo.",
+        "description": "Cada objeto em um cubo de 20 pés dentro do alcance é contornado por uma luz azul, verde ou violeta (à sua escolha). Qualquer criatura na área quando a magia é conjurada também é contornada por luz se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem luz fraca em um raio de 10 pés. Qualquer jogada de ataque contra uma criatura ou objeto afetado tem vantagem se o atacante puder vê-lo, e a criatura ou objeto afetado não pode se beneficiar de estar invisível.",
         "key": "faerie-fire",
         "level": 1,
-        "name": "Fogo das Fadas",
+        "name": "Fogo Feérico",
         "source": "srd"
       },
       {
-        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de descida de uma criatura caindo diminui para 18 metros por rodada até a magia terminar. Se uma criatura aterrissar antes da magia terminar, a criatura não sofre dano da queda e a magia termina para essa criatura.",
+        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de queda de uma criatura caindo diminui para 60 pés por rodada até a magia terminar. Se a criatura aterrissar antes de a magia terminar, ela não sofre dano de queda e pode aterrissar de pé, e a magia termina para essa criatura.",
         "key": "feather-fall",
         "level": 1,
-        "name": "Queda Suave",
+        "name": "Queda de Pluma",
         "source": "srd"
       },
       {
-        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera Pontos de Vida iguais a 2d4 mais seu modificador de habilidade de conjuração.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera pontos de vida iguais a 1d4 mais seu modificador de habilidade de conjuração. Esta magia não tem efeito sobre mortos-vivos ou constructos.",
         "key": "healing-word",
         "level": 1,
-        "name": "Palavra Curativa",
+        "name": "Palavra de Cura",
         "source": "srd"
       },
       {
-        "description": "Uma criatura voluntária que você toca é imbuída de bravura. Até o fim da magia, a criatura fica imune à condição Amedrontado e ganha Pontos de Vida Temporários iguais ao seu modificador de habilidade de conjuração no início de cada um de seus turnos.",
+        "description": "Uma criatura disposta que você toca é imbuída de coragem. Até a magia terminar, a criatura fica imune a ficar amedrontada e ganha pontos de vida temporários iguais ao seu modificador de habilidade de conjuração no início de cada um dos seus turnos. Quando a magia termina, o alvo perde quaisquer pontos de vida temporários restantes desta magia.",
         "key": "heroism",
         "level": 1,
         "name": "Heroísmo",
         "source": "srd"
       },
       {
-        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Se falhar, ela fica com as condições Caído e Incapacitado pela duração. Durante esse tempo, ela ri incontrolavelmente se for capaz de rir, e não pode encerrar a condição Caído por conta própria. No final de cada um de seus turnos e cada vez que sofrer dano, ela faz outro teste de resistência de Sabedoria. O alvo tem Vantagem no teste se ele for desencadeado por dano. Se obtiver sucesso no teste, a magia termina.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance percebe tudo como hilariamente engraçado e cai em acessos de riso, caso esta magia a afete. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou cai prostrado, ficando incapacitado e incapaz de se levantar pela duração. Uma criatura com pontuação de Inteligência 4 ou menor não é afetada. No fim de cada um dos seus turnos, e cada vez que sofrer dano, o alvo pode fazer outro teste de resistência de Sabedoria. O alvo tem vantagem no teste de resistência se ele for desencadeado por dano. Em um sucesso, a magia termina.",
         "key": "hideous-laughter",
         "level": 1,
-        "name": "Riso Histérico",
+        "name": "Riso Medonho",
         "source": "srd"
       },
       {
-        "description": "Você toca um objeto durante toda a conjuração da magia. Se o objeto for um item mágico ou algum outro objeto mágico, você aprende suas propriedades e como usá-las, se ele requer Sintonização e quantas cargas ele possui, se houver. Você aprende se alguma magia contínua está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende o nome dessa magia. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias contínuas, se houver, estão afetando-a atualmente.",
+        "description": "Você escolhe um objeto que deve tocar durante toda a conjuração da magia. Se for um item mágico ou algum outro objeto imbuído de magia, você aprende suas propriedades e como usá-las, se exige sintonização para ser usado, e quantas cargas ele possui, se houver. Você aprende se alguma magia está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende qual magia o criou. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias, se houver, estão atualmente afetando-a.",
         "key": "identify",
         "level": 1,
-        "name": "Identificação",
+        "name": "Identificar",
         "source": "srd"
       },
       {
-        "description": "Você escreve em pergaminho, papel ou outro material adequado e o imbui com uma ilusão que dura pela duração. Para você e quaisquer criaturas que você designar ao conjurar a magia, a escrita parece normal, parece ter sido escrita por sua mão e transmite qualquer significado que você pretendia quando escreveu o texto. Para todos os outros, a escrita parece como se tivesse sido escrita em um idioma desconhecido ou mágico que é ininteligível. Alternativamente, a ilusão pode alterar o significado, a caligrafia e o idioma do texto, embora o idioma deva ser um que você conheça. Se a magia for dissipada, tanto a escrita original quanto a ilusão desaparecem. Uma criatura que possua Visão Verdadeira pode ler a mensagem oculta.",
+        "description": "Você escreve em pergaminho, papel ou outro material de escrita adequado e o imbui com uma ilusão potente que dura pela duração. Para você e quaisquer criaturas que designar ao conjurar a magia, a escrita parece normal, escrita por sua mão, e transmite qualquer significado que você pretendia ao escrever o texto. Para todos os outros, a escrita parece ter sido escrita em um idioma desconhecido ou mágico, sendo ininteligível. Alternativamente, você pode fazer com que a escrita pareça ser uma mensagem inteiramente diferente, escrita por outra mão e em outro idioma, embora o idioma deva ser um que você conheça. Caso a magia seja dissipada, tanto o texto original quanto a ilusão desaparecem. Uma criatura com visão verdadeira pode ler a mensagem oculta.",
         "key": "illusory-script",
         "level": 1,
-        "name": "Escrita Ilusória",
+        "name": "Texto Ilusório",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura. O Deslocamento do alvo aumenta em 10 pés até o fim da magia.",
+        "description": "Você toca uma criatura. O deslocamento do alvo aumenta em 10 pés até a magia terminar.",
         "key": "longstrider",
         "level": 1,
-        "name": "Passo Longo",
+        "name": "Passo Largo",
         "source": "srd"
       },
       {
-        "description": "Você cria a imagem de um objeto, uma criatura ou algum outro fenômeno visível que não seja maior que um Cubo de 4,5 metros. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada por som, cheiro ou outros efeitos sensoriais. Como uma ação de Magia, você pode fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar uma imagem de uma criatura e movê-la, você pode alterar a imagem para que ela pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, já que as coisas podem passar através dela. Uma criatura que use uma ação de Estudo para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura discernir a ilusão pelo que ela é, a criatura pode ver através da imagem.",
+        "description": "Você cria a imagem de um objeto, uma criatura, ou algum outro fenômeno visível que não seja maior que um cubo de 15 pés. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada de som, cheiro ou outros efeitos sensoriais. Você pode usar sua ação para fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar a imagem de uma criatura e movê-la, pode alterar a imagem para que pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, pois as coisas podem atravessá-la. Uma criatura que usar sua ação para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura perceber a ilusão pelo que ela é, a criatura pode ver através da imagem.",
         "key": "silent-image",
         "level": 1,
         "name": "Imagem Silenciosa",
         "source": "srd"
       },
       {
-        "description": "Cada criatura à sua escolha em uma Esfera de 5 pés de raio centrada em um ponto dentro do alcance deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará com a condição Incapacitado até o final do seu próximo turno, momento em que deve repetir o teste. Se o alvo falhar no segundo teste, o alvo fica com a condição Inconsciente pela duração. A magia termina em um alvo se ele sofrer dano ou se alguém a até 5 pés dele usar uma ação para sacudi-lo e retirá-lo do efeito da magia. Criaturas que não dormem, como elfos, ou que possuem Imunidade à condição Exaustão, são automaticamente bem-sucedidas nos testes contra esta magia.",
+        "description": "Esta magia faz criaturas caírem em um sono mágico. Role 5d8; o total é quantos pontos de vida de criaturas esta magia pode afetar. Criaturas a até 20 pés de um ponto que você escolher dentro do alcance são afetadas em ordem crescente de seus pontos de vida atuais (ignorando criaturas inconscientes). Começando pela criatura com o menor número de pontos de vida atuais, cada criatura afetada por esta magia cai inconsciente até a magia terminar, até a criatura adormecida sofrer dano, ou até alguém usar uma ação para sacudir ou esbofetear a criatura adormecida e acordá-la. Subtraia os pontos de vida de cada criatura do total antes de passar para a criatura com o próximo menor número de pontos de vida. Os pontos de vida de uma criatura devem ser iguais ou menores que o total restante para que ela seja afetada. Mortos-vivos e criaturas imunes a ficar enfeitiçadas não são afetados por esta magia.",
         "key": "sleep",
         "level": 1,
         "name": "Sono",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
+        "description": "Você ganha a capacidade de compreender e se comunicar verbalmente com feras pela duração. O conhecimento e a percepção de muitas feras são limitados por sua inteligência, mas, no mínimo, feras podem lhe dar informações sobre locais e monstros próximos, incluindo o que perceberam ou tenham percebido no último dia. Você pode conseguir persuadir uma fera a lhe prestar um pequeno favor, a critério do mestre.",
         "key": "speak-with-animals",
         "level": 1,
         "name": "Falar com Animais",
         "source": "srd"
       },
       {
-        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
+        "description": "Uma onda de força trovejante se propaga a partir de você. Cada criatura em um cubo de 15 pés originado de você deve fazer um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano trovejante e é empurrada 10 pés para longe de você. Em um sucesso, a criatura sofre metade desse dano e não é empurrada. Além disso, objetos não fixados que estejam inteiramente dentro da área de efeito são automaticamente empurrados 10 pés para longe de você pelo efeito da magia, e a magia emite um estrondo trovejante audível a até 300 pés.",
         "key": "thunderwave",
         "level": 1,
-        "name": "Onda Trovejante",
+        "name": "Onda de Trovão",
         "source": "srd"
       },
       {
-        "description": "Esta magia cria uma força Invisível, sem mente, sem forma e de tamanho Médio que realiza tarefas simples sob seu comando até que a magia termine. O servo surge em um espaço desocupado no chão dentro do alcance. Ele possui CA 10, 1 Ponto de Vida e Força 2, e não pode atacar. Se ele cair para 0 Pontos de Vida, a magia termina. Uma vez em cada um dos seus turnos como uma Ação Bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir bebidas. Assim que você dá o comando, o servo realiza a tarefa da melhor maneira possível até completá-la, então aguarda seu próximo comando. Se você ordenar que o servo realize uma tarefa que o moveria a mais de 60 pés de distância de você, a magia termina.",
+        "description": "Esta magia cria uma força invisível, sem mente e sem forma, que realiza tarefas simples sob seu comando até a magia terminar. O servo surge em um espaço desocupado no chão dentro do alcance. Ele tem CA 10, 1 ponto de vida e Força 2, e não pode atacar. Se cair a 0 pontos de vida, a magia termina. Uma vez em cada um dos seus turnos, como uma ação bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um servo humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir vinho. Depois que você dá o comando, o servo realiza a tarefa da melhor forma possível até completá-la, então aguarda seu próximo comando. Se você comandar o servo a realizar uma tarefa que o moveria a mais de 60 pés de você, a magia termina.",
         "key": "unseen-servant",
         "level": 1,
         "name": "Servo Invisível",
@@ -2387,10 +2387,10 @@
         "source": "srd"
       },
       {
-        "description": "Até três criaturas à sua escolha que você possa ver dentro do alcance devem, cada uma, fazer um teste de resistência de Carisma. Sempre que um alvo que falhar nesse teste fizer uma jogada de ataque ou um teste de resistência antes da magia terminar, o alvo deve subtrair 1d4 da jogada de ataque ou teste.",
+        "description": "Até três criaturas à sua escolha que você possa ver dentro do alcance devem fazer testes de resistência de Carisma. Sempre que um alvo que falhar nesse teste fizer uma jogada de ataque ou um teste de resistência antes que a magia termine, o alvo deve rolar 1d4 e subtrair o resultado da jogada de ataque ou do teste de resistência.",
         "key": "bane",
         "level": 1,
-        "name": "Perdição",
+        "name": "Maldição",
         "source": "srd"
       },
       {
@@ -2401,28 +2401,28 @@
         "source": "srd"
       },
       {
-        "description": "Uma fina camada de chamas dispara de você. Cada criatura em um Cone de 15 pés faz um teste de resistência de Destreza, sofrendo 3d6 de dano de Fogo se falhar no teste ou metade desse dano se obtiver sucesso. Objetos inflamáveis no Cone que não estejam sendo vestidos ou carregados começam a queimar.",
+        "description": "Enquanto você segura as mãos com os polegares se tocando e os dedos espalhados, uma fina camada de chamas dispara das pontas dos seus dedos estendidos. Cada criatura em um cone de 15 pés deve fazer um teste de resistência de Destreza. Uma criatura sofre 3d6 de dano de fogo se falhar no teste, ou metade desse dano se for bem-sucedida. O fogo incendeia quaisquer objetos inflamáveis na área que não estejam sendo vestidos ou carregados.",
         "key": "burning-hands",
         "level": 1,
         "name": "Mãos Flamejantes",
         "source": "srd"
       },
       {
-        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
+        "description": "Você tenta enfeitiçar um humanoide que possa ver dentro do alcance. Ele deve fazer um teste de resistência de Sabedoria, com vantagem se você ou seus companheiros estiverem lutando contra ele. Se falhar no teste, fica enfeitiçado por você até a magia terminar ou até que você ou seus companheiros façam algo prejudicial a ele. A criatura enfeitiçada o considera um conhecido amigável. Quando a magia termina, a criatura sabe que foi enfeitiçada por você.",
         "key": "charm-person",
         "level": 1,
-        "name": "Enfeitiçar Pessoa",
+        "name": "Amizade Fingida",
         "source": "srd"
       },
       {
-        "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
+        "description": "Você diz uma palavra de comando a uma criatura que possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguir o comando no seu próximo turno. A magia não tem efeito se o alvo for morto-vivo, se não entender seu idioma, ou se o seu comando for diretamente prejudicial a ele. Seguem alguns comandos típicos e seus efeitos. Você pode emitir um comando diferente dos descritos aqui; nesse caso, o mestre determina como o alvo se comporta. Se o alvo não puder seguir o seu comando, a magia termina. **Aproximar.** O alvo se move em sua direção pela rota mais curta e direta, encerrando seu turno se chegar a até 5 pés de você. **Largar.** O alvo larga o que estiver segurando e então encerra seu turno. **Fugir.** O alvo gasta seu turno se afastando de você pelo meio disponível mais rápido. **Rastejar.** O alvo cai prostrado e então encerra seu turno. **Parar.** O alvo não se move e não realiza nenhuma ação. Uma criatura voadora permanece no ar, se for capaz; se precisar se mover para se manter no ar, voa a distância mínima necessária para isso.",
         "key": "command",
         "level": 1,
         "name": "Comando",
         "source": "srd"
       },
       {
-        "description": "Você faz uma das seguintes opções: **Criar Água.** Você cria até 10 galões de água limpa dentro do alcance em um recipiente aberto. Alternativamente, a água cai como chuva em um cubo de 30 pés dentro do alcance, extinguindo chamas expostas ali. **Destruir Água.** Você destrói até 10 galões de água em um recipiente aberto dentro do alcance. Alternativamente, você destrói névoa em um cubo de 30 pés dentro do alcance.",
+        "description": "Você cria ou destrói água. **Criar Água.** Você cria até 10 galões de água limpa dentro do alcance em um recipiente aberto. Alternativamente, a água cai como chuva em um cubo de 30 pés dentro do alcance. **Destruir Água.** Você destrói até 10 galões de água em um recipiente aberto dentro do alcance. Alternativamente, você destrói névoa em um cubo de 30 pés dentro do alcance.",
         "key": "create-or-destroy-water",
         "level": 1,
         "name": "Criar ou Destruir Água",
@@ -2436,122 +2436,122 @@
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a localização de qualquer Aberração, Celestial, Elemental, Fada, Corruptor ou Morto-vivo a até 30 pés de você. Você também sente se a magia Consagrar está ativa no local e, se estiver, onde. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você sabe se há uma aberração, um celestial, um elemental, um feérico, um infernal ou um morto-vivo a até 30 pés de você, bem como onde a criatura está localizada. De forma semelhante, você sabe se há um local ou objeto a até 30 pés de você que tenha sido magicamente consagrado ou profanado. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-evil-and-good",
         "level": 1,
         "name": "Detectar o Bem e o Mal",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você sente a presença de magia a até 30 pés de você. Se sentir magia dessa forma, você pode usar sua ação para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que porte magia, e você aprende a escola de magia dela, se houver. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-magic",
         "level": 1,
         "name": "Detectar Magia",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a localização de venenos, criaturas venenosas ou peçonhentas e contágios mágicos a até 30 pés de você. Você sente o tipo de veneno, criatura ou contágio em cada caso. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você pode sentir a presença e a localização de venenos, criaturas venenosas e doenças a até 30 pés de você. Você também identifica o tipo de veneno, criatura venenosa ou doença em cada caso. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-poison-and-disease",
         "level": 1,
         "name": "Detectar Veneno e Doença",
         "source": "srd"
       },
       {
-        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences em sua posse — pareça diferente até que a magia termine. Você pode parecer 1 pé mais baixo ou mais alto e pode parecer mais pesado ou mais leve. Você deve adotar uma forma que tenha o mesmo arranjo básico de membros que você possui. Caso contrário, a extensão da ilusão depende de você. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passarão através do chapéu, e qualquer um que o toque não sentirá nada. Para discernir que você está disfarçado, uma criatura deve realizar a ação Estudar para inspecionar sua aparência e ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
+        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences sobre sua pessoa — pareça diferente, até a magia terminar ou até você usar sua ação para dispensá-la. Você pode parecer 1 pé mais baixo ou mais alto, e pode parecer magro, gordo, ou algo entre os dois. Você não pode mudar seu tipo de corpo, então deve adotar uma forma que tenha o mesmo arranjo básico de membros. Fora isso, a extensão da ilusão fica a seu critério. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passam através do chapéu, e quem o tocar não sentirá nada, ou sentirá sua cabeça e cabelo. Se você usar esta magia para parecer mais magro do que é, a mão de alguém que tentar tocá-lo esbarrará em você enquanto ainda parecia estar no ar. Para perceber que você está disfarçado, uma criatura pode usar sua ação para examinar sua aparência e deve ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
         "key": "disguise-self",
         "level": 1,
-        "name": "Disfarçar-se",
+        "name": "Disfarce Pessoal",
         "source": "srd"
       },
       {
-        "description": "Até que a magia termine, seus ataques com armas causam 1d4 de dano Radiante extra em um acerto.",
+        "description": "Sua prece o empodera com radiância divina. Até a magia terminar, seus ataques com arma causam 1d4 de dano radiante extra ao acertar.",
         "key": "divine-favor",
         "level": 1,
         "name": "Favor Divino",
         "source": "srd"
       },
       {
-        "description": "Objetos em um cubo de 6 metros dentro do alcance são contornados por uma luz azul, verde ou violeta (à sua escolha). Cada criatura no cubo também é contornada se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem Luz Penumbra em um raio de 3 metros e não podem se beneficiar da condição Invisível. Jogadas de ataque contra uma criatura ou objeto afetado têm Vantagem se o atacante puder vê-lo.",
+        "description": "Cada objeto em um cubo de 20 pés dentro do alcance é contornado por uma luz azul, verde ou violeta (à sua escolha). Qualquer criatura na área quando a magia é conjurada também é contornada por luz se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem luz fraca em um raio de 10 pés. Qualquer jogada de ataque contra uma criatura ou objeto afetado tem vantagem se o atacante puder vê-lo, e a criatura ou objeto afetado não pode se beneficiar de estar invisível.",
         "key": "faerie-fire",
         "level": 1,
-        "name": "Fogo das Fadas",
+        "name": "Fogo Feérico",
         "source": "srd"
       },
       {
-        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
+        "description": "Você cria uma esfera de névoa com 20 pés de raio centrada em um ponto dentro do alcance. A esfera se espalha ao redor de cantos, e sua área fica fortemente obscurecida. Ela dura pela duração ou até que um vento de velocidade moderada ou maior (pelo menos 10 milhas por hora) a disperse.",
         "key": "fog-cloud",
         "level": 1,
-        "name": "Névoa Obscurecente",
+        "name": "Nuvem de Névoa",
         "source": "srd"
       },
       {
-        "description": "Você lança um raio de luz em direção a uma criatura dentro do alcance. Faça um ataque de magia à distância contra o alvo. Em um acerto, ele sofre 4d6 de dano Radiante, e a próxima jogada de ataque feita contra ele antes do final do seu próximo turno tem Vantagem.",
+        "description": "Um clarão de luz dispara em direção a uma criatura à sua escolha dentro do alcance. Faça um ataque de magia à distância contra o alvo. Em um acerto, o alvo sofre 4d6 de dano radiante, e a próxima jogada de ataque feita contra esse alvo antes do fim do seu próximo turno tem vantagem, graças à luz mística e cintilante que reluz sobre o alvo até então.",
         "key": "guiding-bolt",
         "level": 1,
-        "name": "Flecha Guiadora",
+        "name": "Raio Guia",
         "source": "srd"
       },
       {
-        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera Pontos de Vida iguais a 2d4 mais seu modificador de habilidade de conjuração.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera pontos de vida iguais a 1d4 mais seu modificador de habilidade de conjuração. Esta magia não tem efeito sobre mortos-vivos ou constructos.",
         "key": "healing-word",
         "level": 1,
-        "name": "Palavra Curativa",
+        "name": "Palavra de Cura",
         "source": "srd"
       },
       {
-        "description": "Você toca um objeto durante toda a conjuração da magia. Se o objeto for um item mágico ou algum outro objeto mágico, você aprende suas propriedades e como usá-las, se ele requer Sintonização e quantas cargas ele possui, se houver. Você aprende se alguma magia contínua está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende o nome dessa magia. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias contínuas, se houver, estão afetando-a atualmente.",
+        "description": "Você escolhe um objeto que deve tocar durante toda a conjuração da magia. Se for um item mágico ou algum outro objeto imbuído de magia, você aprende suas propriedades e como usá-las, se exige sintonização para ser usado, e quantas cargas ele possui, se houver. Você aprende se alguma magia está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende qual magia o criou. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias, se houver, estão atualmente afetando-a.",
         "key": "identify",
         "level": 1,
-        "name": "Identificação",
+        "name": "Identificar",
         "source": "srd"
       },
       {
-        "description": "Uma criatura que você toca faz um teste de resistência de Constituição, sofrendo 2d10 de dano Necrótico se falhar ou metade desse dano se obtiver sucesso.",
+        "description": "Faça um ataque de magia corpo a corpo contra uma criatura que você possa alcançar. Em um acerto, o alvo sofre 3d10 de dano necrótico.",
         "key": "inflict-wounds",
         "level": 1,
         "name": "Infligir Ferimentos",
         "source": "srd"
       },
       {
-        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
+        "description": "Até a magia terminar, uma criatura disposta que você toca fica protegida contra certos tipos de criaturas: aberrações, celestiais, elementais, feéricos, infernais e mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser enfeitiçado, amedrontado ou possuído por elas. Se o alvo já estiver enfeitiçado, amedrontado ou possuído por tal criatura, o alvo tem vantagem em qualquer novo teste de resistência contra o efeito relevante.",
         "key": "protection-from-evil-and-good",
         "level": 1,
         "name": "Proteção contra o Bem e o Mal",
         "source": "srd"
       },
       {
-        "description": "Você remove veneno e apodrecimento de comida e bebida não mágicas em uma Esfera de 1,5 metro de raio centrada em um ponto dentro do alcance.",
+        "description": "Toda comida e bebida não mágicas dentro de uma esfera de 5 pés de raio centrada em um ponto à sua escolha dentro do alcance são purificadas e ficam livres de veneno e doença.",
         "key": "purify-food-and-drink",
         "level": 1,
-        "name": "Purificar Alimentos e Bebidas",
+        "name": "Purificar Comida e Bebida",
         "source": "srd"
       },
       {
-        "description": "Você protege uma criatura dentro do alcance. Até o fim da magia, qualquer criatura que tenha como alvo a criatura protegida com uma jogada de ataque ou uma magia que cause dano deve ser bem-sucedida em um teste de resistência de Sabedoria ou deve escolher um novo alvo ou perder o ataque ou a magia. Esta magia não protege a criatura protegida de áreas de efeito. A magia termina se a criatura protegida fizer uma jogada de ataque, conjurar uma magia ou causar dano.",
+        "description": "Você protege uma criatura dentro do alcance contra ataques. Até a magia terminar, qualquer criatura que tenha como alvo a criatura protegida com um ataque ou uma magia prejudicial deve primeiro fazer um teste de resistência de Sabedoria. Em uma falha, a criatura deve escolher um novo alvo ou perder o ataque ou a magia. Esta magia não protege a criatura protegida de efeitos em área, como a explosão de uma bola de fogo. Se a criatura protegida fizer um ataque ou conjurar uma magia que afete uma criatura inimiga, esta magia termina.",
         "key": "sanctuary",
         "level": 1,
         "name": "Santuário",
         "source": "srd"
       },
       {
-        "description": "Um campo cintilante envolve uma criatura à sua escolha dentro do alcance, concedendo a ela um bônus de +2 na CA pela duração.",
+        "description": "Um campo cintilante surge e envolve uma criatura à sua escolha dentro do alcance, concedendo a ela um bônus de +2 na CA pela duração.",
         "key": "shield-of-faith",
         "level": 1,
         "name": "Escudo da Fé",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
+        "description": "Você ganha a capacidade de compreender e se comunicar verbalmente com feras pela duração. O conhecimento e a percepção de muitas feras são limitados por sua inteligência, mas, no mínimo, feras podem lhe dar informações sobre locais e monstros próximos, incluindo o que perceberam ou tenham percebido no último dia. Você pode conseguir persuadir uma fera a lhe prestar um pequeno favor, a critério do mestre.",
         "key": "speak-with-animals",
         "level": 1,
         "name": "Falar com Animais",
         "source": "srd"
       },
       {
-        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
+        "description": "Uma onda de força trovejante se propaga a partir de você. Cada criatura em um cubo de 15 pés originado de você deve fazer um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano trovejante e é empurrada 10 pés para longe de você. Em um sucesso, a criatura sofre metade desse dano e não é empurrada. Além disso, objetos não fixados que estejam inteiramente dentro da área de efeito são automaticamente empurrados 10 pés para longe de você pelo efeito da magia, e a magia emite um estrondo trovejante audível a até 300 pés.",
         "key": "thunderwave",
         "level": 1,
-        "name": "Onda Trovejante",
+        "name": "Onda de Trovão",
         "source": "srd"
       }
     ],
@@ -2607,21 +2607,21 @@
         "source": "srd"
       },
       {
-        "description": "Alveje uma Besta que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou ficará com a condição Enfeitiçado pela duração. Se você ou um de seus aliados causar dano ao alvo, a magia termina.",
+        "description": "Esta magia permite que você convença uma fera de que você não pretende feri-la. Escolha uma fera que você possa ver dentro do alcance. Ela deve ver e ouvir você. Se a Inteligência da fera for 4 ou maior, a magia falha. Caso contrário, a fera deve ser bem-sucedida em um teste de resistência de Sabedoria ou fica enfeitiçada por você pela duração da magia. Se você ou um de seus companheiros ferir o alvo, a magia termina.",
         "key": "animal-friendship",
         "level": 1,
-        "name": "Amizade Animal",
+        "name": "Amizade com Animais",
         "source": "srd"
       },
       {
-        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
+        "description": "Você tenta enfeitiçar um humanoide que possa ver dentro do alcance. Ele deve fazer um teste de resistência de Sabedoria, com vantagem se você ou seus companheiros estiverem lutando contra ele. Se falhar no teste, fica enfeitiçado por você até a magia terminar ou até que você ou seus companheiros façam algo prejudicial a ele. A criatura enfeitiçada o considera um conhecido amigável. Quando a magia termina, a criatura sabe que foi enfeitiçada por você.",
         "key": "charm-person",
         "level": 1,
-        "name": "Enfeitiçar Pessoa",
+        "name": "Amizade Fingida",
         "source": "srd"
       },
       {
-        "description": "Você faz uma das seguintes opções: **Criar Água.** Você cria até 10 galões de água limpa dentro do alcance em um recipiente aberto. Alternativamente, a água cai como chuva em um cubo de 30 pés dentro do alcance, extinguindo chamas expostas ali. **Destruir Água.** Você destrói até 10 galões de água em um recipiente aberto dentro do alcance. Alternativamente, você destrói névoa em um cubo de 30 pés dentro do alcance.",
+        "description": "Você cria ou destrói água. **Criar Água.** Você cria até 10 galões de água limpa dentro do alcance em um recipiente aberto. Alternativamente, a água cai como chuva em um cubo de 30 pés dentro do alcance. **Destruir Água.** Você destrói até 10 galões de água em um recipiente aberto dentro do alcance. Alternativamente, você destrói névoa em um cubo de 30 pés dentro do alcance.",
         "key": "create-or-destroy-water",
         "level": 1,
         "name": "Criar ou Destruir Água",
@@ -2635,103 +2635,103 @@
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você sente a presença de magia a até 30 pés de você. Se sentir magia dessa forma, você pode usar sua ação para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que porte magia, e você aprende a escola de magia dela, se houver. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-magic",
         "level": 1,
         "name": "Detectar Magia",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a localização de venenos, criaturas venenosas ou peçonhentas e contágios mágicos a até 30 pés de você. Você sente o tipo de veneno, criatura ou contágio em cada caso. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você pode sentir a presença e a localização de venenos, criaturas venenosas e doenças a até 30 pés de você. Você também identifica o tipo de veneno, criatura venenosa ou doença em cada caso. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-poison-and-disease",
         "level": 1,
         "name": "Detectar Veneno e Doença",
         "source": "srd"
       },
       {
-        "description": "Plantas agarradoras brotam do solo em um quadrado de 20 pés dentro do alcance. Pela duração, essas plantas transformam o solo na área em Terreno Difícil. Elas desaparecem quando a magia termina. Cada criatura (exceto você) na área quando você conjura a magia deve ser bem-sucedida em um teste de resistência de Força ou ficará com a condição Contido até que a magia termine. Uma criatura Contida pode realizar uma ação para fazer um teste de Força (Atletismo) contra a CD de resistência da sua magia. Em um sucesso, ela se liberta das plantas agarradoras e não está mais Contida por elas.",
+        "description": "Ervas daninhas e vinhas agarradoras brotam do solo em um quadrado de 20 pés a partir de um ponto dentro do alcance. Pela duração, essas plantas transformam o solo na área em terreno difícil. Uma criatura na área quando você conjura a magia deve ser bem-sucedida em um teste de resistência de Força ou fica contida pelas plantas emaranhadoras até a magia terminar. Uma criatura contida pelas plantas pode usar sua ação para fazer um teste de Força contra a CD de resistência da sua magia. Se for bem-sucedida, ela se liberta. Quando a magia termina, as plantas conjuradas murcham.",
         "key": "entangle",
         "level": 1,
         "name": "Emaranhar",
         "source": "srd"
       },
       {
-        "description": "Objetos em um cubo de 6 metros dentro do alcance são contornados por uma luz azul, verde ou violeta (à sua escolha). Cada criatura no cubo também é contornada se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem Luz Penumbra em um raio de 3 metros e não podem se beneficiar da condição Invisível. Jogadas de ataque contra uma criatura ou objeto afetado têm Vantagem se o atacante puder vê-lo.",
+        "description": "Cada objeto em um cubo de 20 pés dentro do alcance é contornado por uma luz azul, verde ou violeta (à sua escolha). Qualquer criatura na área quando a magia é conjurada também é contornada por luz se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem luz fraca em um raio de 10 pés. Qualquer jogada de ataque contra uma criatura ou objeto afetado tem vantagem se o atacante puder vê-lo, e a criatura ou objeto afetado não pode se beneficiar de estar invisível.",
         "key": "faerie-fire",
         "level": 1,
-        "name": "Fogo das Fadas",
+        "name": "Fogo Feérico",
         "source": "srd"
       },
       {
-        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
+        "description": "Você cria uma esfera de névoa com 20 pés de raio centrada em um ponto dentro do alcance. A esfera se espalha ao redor de cantos, e sua área fica fortemente obscurecida. Ela dura pela duração ou até que um vento de velocidade moderada ou maior (pelo menos 10 milhas por hora) a disperse.",
         "key": "fog-cloud",
         "level": 1,
-        "name": "Névoa Obscurecente",
+        "name": "Nuvem de Névoa",
         "source": "srd"
       },
       {
-        "description": "Dez frutas aparecem em sua mão e são infundidas com magia pela duração. Uma criatura pode usar uma Ação Bônus para comer uma fruta. Comer uma fruta restaura 1 Ponto de Vida, e a fruta fornece nutrição suficiente para sustentar uma criatura por um dia. Frutas não comidas desaparecem quando a magia termina.",
+        "description": "Até dez frutas surgem em sua mão e são infundidas com magia pela duração. Uma criatura pode usar sua ação para comer uma fruta. Comer uma fruta restaura 1 ponto de vida, e a fruta fornece nutrição suficiente para sustentar uma criatura por um dia. As frutas perdem sua potência se não forem consumidas dentro de 24 horas após a conjuração desta magia.",
         "key": "goodberry",
         "level": 1,
-        "name": "Fruta Sagrada",
+        "name": "Fruta Boa",
         "source": "srd"
       },
       {
-        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera Pontos de Vida iguais a 2d4 mais seu modificador de habilidade de conjuração.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance recupera pontos de vida iguais a 1d4 mais seu modificador de habilidade de conjuração. Esta magia não tem efeito sobre mortos-vivos ou constructos.",
         "key": "healing-word",
         "level": 1,
-        "name": "Palavra Curativa",
+        "name": "Palavra de Cura",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
+        "description": "Você toca uma criatura. A distância de salto da criatura triplica até a magia terminar.",
         "key": "jump",
         "level": 1,
-        "name": "Pulo",
+        "name": "Salto",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura. O Deslocamento do alvo aumenta em 10 pés até o fim da magia.",
+        "description": "Você toca uma criatura. O deslocamento do alvo aumenta em 10 pés até a magia terminar.",
         "key": "longstrider",
         "level": 1,
-        "name": "Passo Longo",
+        "name": "Passo Largo",
         "source": "srd"
       },
       {
-        "description": "Você remove veneno e apodrecimento de comida e bebida não mágicas em uma Esfera de 1,5 metro de raio centrada em um ponto dentro do alcance.",
+        "description": "Toda comida e bebida não mágicas dentro de uma esfera de 5 pés de raio centrada em um ponto à sua escolha dentro do alcance são purificadas e ficam livres de veneno e doença.",
         "key": "purify-food-and-drink",
         "level": 1,
-        "name": "Purificar Alimentos e Bebidas",
+        "name": "Purificar Comida e Bebida",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
+        "description": "Você ganha a capacidade de compreender e se comunicar verbalmente com feras pela duração. O conhecimento e a percepção de muitas feras são limitados por sua inteligência, mas, no mínimo, feras podem lhe dar informações sobre locais e monstros próximos, incluindo o que perceberam ou tenham percebido no último dia. Você pode conseguir persuadir uma fera a lhe prestar um pequeno favor, a critério do mestre.",
         "key": "speak-with-animals",
         "level": 1,
         "name": "Falar com Animais",
         "source": "srd"
       },
       {
-        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
+        "description": "Uma onda de força trovejante se propaga a partir de você. Cada criatura em um cubo de 15 pés originado de você deve fazer um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano trovejante e é empurrada 10 pés para longe de você. Em um sucesso, a criatura sofre metade desse dano e não é empurrada. Além disso, objetos não fixados que estejam inteiramente dentro da área de efeito são automaticamente empurrados 10 pés para longe de você pelo efeito da magia, e a magia emite um estrondo trovejante audível a até 300 pés.",
         "key": "thunderwave",
         "level": 1,
-        "name": "Onda Trovejante",
+        "name": "Onda de Trovão",
         "source": "srd"
       }
     ],
     "ranger": [
       {
-        "description": "Você define um alarme contra intrusão. Escolha uma porta, uma janela ou uma área dentro do alcance que não seja maior que um cubo de 20 pés. Até que a magia termine, um alarme alerta você sempre que uma criatura tocar ou entrar na área protegida. Quando você conjura a magia, você pode designar criaturas que não ativarão o alarme. Você também escolhe se o alarme é audível ou mental: **Alarme Audível.** O alarme produz o som de uma sineta por 10 segundos dentro de 60 pés da área protegida. **Alarme Mental.** Você é alertado por um sinal mental se estiver dentro de 1 milha da área protegida. Esse sinal acorda você se estiver dormindo.",
+        "description": "Você define um alarme contra intrusão indesejada. Escolha uma porta, uma janela ou uma área dentro do alcance que não seja maior que um cubo de 20 pés. Até que a magia termine, um alarme alerta você sempre que uma criatura de tamanho Miúdo ou maior tocar ou entrar na área protegida. Ao conjurar a magia, você pode designar criaturas que não acionarão o alarme. Você também escolhe se o alarme é mental ou audível. Um alarme mental alerta você com um sinal mental se estiver a até 1 milha da área protegida. Esse sinal acorda você se estiver dormindo. Um alarme audível produz o som de uma sineta por 10 segundos dentro de 60 pés.",
         "key": "alarm",
         "level": 1,
         "name": "Alarme",
         "source": "srd"
       },
       {
-        "description": "Alveje uma Besta que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou ficará com a condição Enfeitiçado pela duração. Se você ou um de seus aliados causar dano ao alvo, a magia termina.",
+        "description": "Esta magia permite que você convença uma fera de que você não pretende feri-la. Escolha uma fera que você possa ver dentro do alcance. Ela deve ver e ouvir você. Se a Inteligência da fera for 4 ou maior, a magia falha. Caso contrário, a fera deve ser bem-sucedida em um teste de resistência de Sabedoria ou fica enfeitiçada por você pela duração da magia. Se você ou um de seus companheiros ferir o alvo, a magia termina.",
         "key": "animal-friendship",
         "level": 1,
-        "name": "Amizade Animal",
+        "name": "Amizade com Animais",
         "source": "srd"
       },
       {
@@ -2742,31 +2742,31 @@
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você sente a presença de magia a até 30 pés de você. Se sentir magia dessa forma, você pode usar sua ação para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que porte magia, e você aprende a escola de magia dela, se houver. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-magic",
         "level": 1,
         "name": "Detectar Magia",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a localização de venenos, criaturas venenosas ou peçonhentas e contágios mágicos a até 30 pés de você. Você sente o tipo de veneno, criatura ou contágio em cada caso. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você pode sentir a presença e a localização de venenos, criaturas venenosas e doenças a até 30 pés de você. Você também identifica o tipo de veneno, criatura venenosa ou doença em cada caso. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-poison-and-disease",
         "level": 1,
         "name": "Detectar Veneno e Doença",
         "source": "srd"
       },
       {
-        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
+        "description": "Você cria uma esfera de névoa com 20 pés de raio centrada em um ponto dentro do alcance. A esfera se espalha ao redor de cantos, e sua área fica fortemente obscurecida. Ela dura pela duração ou até que um vento de velocidade moderada ou maior (pelo menos 10 milhas por hora) a disperse.",
         "key": "fog-cloud",
         "level": 1,
-        "name": "Névoa Obscurecente",
+        "name": "Nuvem de Névoa",
         "source": "srd"
       },
       {
-        "description": "Dez frutas aparecem em sua mão e são infundidas com magia pela duração. Uma criatura pode usar uma Ação Bônus para comer uma fruta. Comer uma fruta restaura 1 Ponto de Vida, e a fruta fornece nutrição suficiente para sustentar uma criatura por um dia. Frutas não comidas desaparecem quando a magia termina.",
+        "description": "Até dez frutas surgem em sua mão e são infundidas com magia pela duração. Uma criatura pode usar sua ação para comer uma fruta. Comer uma fruta restaura 1 ponto de vida, e a fruta fornece nutrição suficiente para sustentar uma criatura por um dia. As frutas perdem sua potência se não forem consumidas dentro de 24 horas após a conjuração desta magia.",
         "key": "goodberry",
         "level": 1,
-        "name": "Fruta Sagrada",
+        "name": "Fruta Boa",
         "source": "srd"
       },
       {
@@ -2777,21 +2777,21 @@
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
+        "description": "Você toca uma criatura. A distância de salto da criatura triplica até a magia terminar.",
         "key": "jump",
         "level": 1,
-        "name": "Pulo",
+        "name": "Salto",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura. O Deslocamento do alvo aumenta em 10 pés até o fim da magia.",
+        "description": "Você toca uma criatura. O deslocamento do alvo aumenta em 10 pés até a magia terminar.",
         "key": "longstrider",
         "level": 1,
-        "name": "Passo Longo",
+        "name": "Passo Largo",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você pode compreender e se comunicar verbalmente com Feras, e você pode usar qualquer uma das opções de perícia da ação Influenciar com elas. A maioria das Feras tem pouco a dizer sobre tópicos que não dizem respeito à sobrevivência ou companheirismo, mas, no mínimo, uma Fera pode lhe dar informações sobre locais e monstros próximos, incluindo tudo o que ela percebeu no último dia.",
+        "description": "Você ganha a capacidade de compreender e se comunicar verbalmente com feras pela duração. O conhecimento e a percepção de muitas feras são limitados por sua inteligência, mas, no mínimo, feras podem lhe dar informações sobre locais e monstros próximos, incluindo o que perceberam ou tenham percebido no último dia. Você pode conseguir persuadir uma fera a lhe prestar um pequeno favor, a critério do mestre.",
         "key": "speak-with-animals",
         "level": 1,
         "name": "Falar com Animais",
@@ -2898,122 +2898,122 @@
         "source": "srd"
       },
       {
-        "description": "Uma fina camada de chamas dispara de você. Cada criatura em um Cone de 15 pés faz um teste de resistência de Destreza, sofrendo 3d6 de dano de Fogo se falhar no teste ou metade desse dano se obtiver sucesso. Objetos inflamáveis no Cone que não estejam sendo vestidos ou carregados começam a queimar.",
+        "description": "Enquanto você segura as mãos com os polegares se tocando e os dedos espalhados, uma fina camada de chamas dispara das pontas dos seus dedos estendidos. Cada criatura em um cone de 15 pés deve fazer um teste de resistência de Destreza. Uma criatura sofre 3d6 de dano de fogo se falhar no teste, ou metade desse dano se for bem-sucedida. O fogo incendeia quaisquer objetos inflamáveis na área que não estejam sendo vestidos ou carregados.",
         "key": "burning-hands",
         "level": 1,
         "name": "Mãos Flamejantes",
         "source": "srd"
       },
       {
-        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
+        "description": "Você tenta enfeitiçar um humanoide que possa ver dentro do alcance. Ele deve fazer um teste de resistência de Sabedoria, com vantagem se você ou seus companheiros estiverem lutando contra ele. Se falhar no teste, fica enfeitiçado por você até a magia terminar ou até que você ou seus companheiros façam algo prejudicial a ele. A criatura enfeitiçada o considera um conhecido amigável. Quando a magia termina, a criatura sabe que foi enfeitiçada por você.",
         "key": "charm-person",
         "level": 1,
-        "name": "Enfeitiçar Pessoa",
+        "name": "Amizade Fingida",
         "source": "srd"
       },
       {
-        "description": "Você lança uma matriz deslumbrante de luzes coloridas e piscantes. Cada criatura em um Cone de 15 pés originado de você deve ser bem-sucedida em um teste de resistência de Constituição ou ficará com a condição Cego até o final do seu próximo turno.",
+        "description": "Uma matriz deslumbrante de luzes coloridas e piscantes surge da sua mão. Role 6d10; o total é quantos pontos de vida de criaturas esta magia pode afetar. Criaturas em um cone de 15 pés originado de você são afetadas em ordem crescente de seus pontos de vida atuais (ignorando criaturas inconscientes e criaturas que não podem ver). Começando pela criatura com o menor número de pontos de vida atuais, cada criatura afetada por esta magia fica cega até a magia terminar. Subtraia os pontos de vida de cada criatura do total antes de passar para a criatura com o próximo menor número de pontos de vida. Os pontos de vida de uma criatura devem ser iguais ou menores que o total restante para que ela seja afetada.",
         "key": "color-spray",
         "level": 1,
-        "name": "Leque Cromático",
+        "name": "Explosão de Cores",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
+        "description": "Pela duração, você entende o significado literal de qualquer idioma falado que ouvir. Você também entende qualquer idioma escrito que veja, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica mensagens secretas em um texto ou em um símbolo, como uma runa arcana, que não faça parte de um idioma escrito.",
         "key": "comprehend-languages",
         "level": 1,
         "name": "Compreender Idiomas",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você sente a presença de magia a até 30 pés de você. Se sentir magia dessa forma, você pode usar sua ação para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que porte magia, e você aprende a escola de magia dela, se houver. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-magic",
         "level": 1,
         "name": "Detectar Magia",
         "source": "srd"
       },
       {
-        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences em sua posse — pareça diferente até que a magia termine. Você pode parecer 1 pé mais baixo ou mais alto e pode parecer mais pesado ou mais leve. Você deve adotar uma forma que tenha o mesmo arranjo básico de membros que você possui. Caso contrário, a extensão da ilusão depende de você. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passarão através do chapéu, e qualquer um que o toque não sentirá nada. Para discernir que você está disfarçado, uma criatura deve realizar a ação Estudar para inspecionar sua aparência e ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
+        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences sobre sua pessoa — pareça diferente, até a magia terminar ou até você usar sua ação para dispensá-la. Você pode parecer 1 pé mais baixo ou mais alto, e pode parecer magro, gordo, ou algo entre os dois. Você não pode mudar seu tipo de corpo, então deve adotar uma forma que tenha o mesmo arranjo básico de membros. Fora isso, a extensão da ilusão fica a seu critério. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passam através do chapéu, e quem o tocar não sentirá nada, ou sentirá sua cabeça e cabelo. Se você usar esta magia para parecer mais magro do que é, a mão de alguém que tentar tocá-lo esbarrará em você enquanto ainda parecia estar no ar. Para perceber que você está disfarçado, uma criatura pode usar sua ação para examinar sua aparência e deve ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
         "key": "disguise-self",
         "level": 1,
-        "name": "Disfarçar-se",
+        "name": "Disfarce Pessoal",
         "source": "srd"
       },
       {
-        "description": "Você realiza a ação Disparada e, até que a magia termine, você pode realizar essa ação novamente como uma Ação Bônus.",
+        "description": "Esta magia permite que você se mova a um ritmo incrível. Ao conjurar esta magia, e então como uma ação bônus em cada um dos seus turnos até a magia terminar, você pode realizar a ação Disparada.",
         "key": "expeditious-retreat",
         "level": 1,
-        "name": "Recuada Acelerada",
+        "name": "Retirada Expedita",
         "source": "srd"
       },
       {
-        "description": "Você ganha 2d4 + 4 Pontos de Vida Temporários.",
+        "description": "Reforçando-se com uma réplica necromântica de vida, você ganha 1d4 + 4 pontos de vida temporários pela duração.",
         "key": "false-life",
         "level": 1,
-        "name": "Falsa Vida",
+        "name": "Vida Falsa",
         "source": "srd"
       },
       {
-        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de descida de uma criatura caindo diminui para 18 metros por rodada até a magia terminar. Se uma criatura aterrissar antes da magia terminar, a criatura não sofre dano da queda e a magia termina para essa criatura.",
+        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de queda de uma criatura caindo diminui para 60 pés por rodada até a magia terminar. Se a criatura aterrissar antes de a magia terminar, ela não sofre dano de queda e pode aterrissar de pé, e a magia termina para essa criatura.",
         "key": "feather-fall",
         "level": 1,
-        "name": "Queda Suave",
+        "name": "Queda de Pluma",
         "source": "srd"
       },
       {
-        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
+        "description": "Você cria uma esfera de névoa com 20 pés de raio centrada em um ponto dentro do alcance. A esfera se espalha ao redor de cantos, e sua área fica fortemente obscurecida. Ela dura pela duração ou até que um vento de velocidade moderada ou maior (pelo menos 10 milhas por hora) a disperse.",
         "key": "fog-cloud",
         "level": 1,
-        "name": "Névoa Obscurecente",
+        "name": "Nuvem de Névoa",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
+        "description": "Você toca uma criatura. A distância de salto da criatura triplica até a magia terminar.",
         "key": "jump",
         "level": 1,
-        "name": "Pulo",
+        "name": "Salto",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura voluntária que não esteja vestindo armadura. Até o fim da magia, a CA base do alvo torna-se 13 mais seu modificador de Destreza. A magia termina prematuramente se o alvo vestir uma armadura.",
+        "description": "Você toca uma criatura disposta que não esteja vestindo armadura, e uma força mágica protetora a envolve até a magia terminar. A CA base do alvo passa a ser 13 mais seu modificador de Destreza. A magia termina se o alvo vestir uma armadura, ou se você dispensar a magia como uma ação.",
         "key": "mage-armor",
         "level": 1,
-        "name": "Armadura Arcana",
+        "name": "Armadura de Mago",
         "source": "srd"
       },
       {
-        "description": "Você cria três dardos brilhantes de força mágica. Cada dardo atinge uma criatura à sua escolha que você possa ver dentro do alcance. Um dardo causa 1d4 + 1 de dano de Força ao seu alvo. Os dardos atingem simultaneamente, e você pode direcioná-los para atingir uma criatura ou várias.",
+        "description": "Você cria três dardos brilhantes de força mágica. Cada dardo atinge uma criatura à sua escolha que você possa ver dentro do alcance. Um dardo causa 1d4 + 1 de dano de força ao seu alvo. Os dardos atingem simultaneamente, e você pode direcioná-los para atingir uma criatura ou várias.",
         "key": "magic-missile",
         "level": 1,
         "name": "Mísseis Mágicos",
         "source": "srd"
       },
       {
-        "description": "Uma barreira imperceptível de força mágica protege você. Até o início do seu próximo turno, você tem um bônus de +5 na CA, incluindo contra o ataque que desencadeou a magia, e você não sofre dano de Mísseis Mágicos.",
+        "description": "Uma barreira invisível de força mágica surge e o protege. Até o início do seu próximo turno, você tem um bônus de +5 na CA, inclusive contra o ataque que a desencadeou, e você não sofre dano de mísseis mágicos.",
         "key": "shield",
         "level": 1,
         "name": "Escudo",
         "source": "srd"
       },
       {
-        "description": "Você cria a imagem de um objeto, uma criatura ou algum outro fenômeno visível que não seja maior que um Cubo de 4,5 metros. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada por som, cheiro ou outros efeitos sensoriais. Como uma ação de Magia, você pode fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar uma imagem de uma criatura e movê-la, você pode alterar a imagem para que ela pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, já que as coisas podem passar através dela. Uma criatura que use uma ação de Estudo para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura discernir a ilusão pelo que ela é, a criatura pode ver através da imagem.",
+        "description": "Você cria a imagem de um objeto, uma criatura, ou algum outro fenômeno visível que não seja maior que um cubo de 15 pés. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada de som, cheiro ou outros efeitos sensoriais. Você pode usar sua ação para fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar a imagem de uma criatura e movê-la, pode alterar a imagem para que pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, pois as coisas podem atravessá-la. Uma criatura que usar sua ação para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura perceber a ilusão pelo que ela é, a criatura pode ver através da imagem.",
         "key": "silent-image",
         "level": 1,
         "name": "Imagem Silenciosa",
         "source": "srd"
       },
       {
-        "description": "Cada criatura à sua escolha em uma Esfera de 5 pés de raio centrada em um ponto dentro do alcance deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará com a condição Incapacitado até o final do seu próximo turno, momento em que deve repetir o teste. Se o alvo falhar no segundo teste, o alvo fica com a condição Inconsciente pela duração. A magia termina em um alvo se ele sofrer dano ou se alguém a até 5 pés dele usar uma ação para sacudi-lo e retirá-lo do efeito da magia. Criaturas que não dormem, como elfos, ou que possuem Imunidade à condição Exaustão, são automaticamente bem-sucedidas nos testes contra esta magia.",
+        "description": "Esta magia faz criaturas caírem em um sono mágico. Role 5d8; o total é quantos pontos de vida de criaturas esta magia pode afetar. Criaturas a até 20 pés de um ponto que você escolher dentro do alcance são afetadas em ordem crescente de seus pontos de vida atuais (ignorando criaturas inconscientes). Começando pela criatura com o menor número de pontos de vida atuais, cada criatura afetada por esta magia cai inconsciente até a magia terminar, até a criatura adormecida sofrer dano, ou até alguém usar uma ação para sacudir ou esbofetear a criatura adormecida e acordá-la. Subtraia os pontos de vida de cada criatura do total antes de passar para a criatura com o próximo menor número de pontos de vida. Os pontos de vida de uma criatura devem ser iguais ou menores que o total restante para que ela seja afetada. Mortos-vivos e criaturas imunes a ficar enfeitiçadas não são afetados por esta magia.",
         "key": "sleep",
         "level": 1,
         "name": "Sono",
         "source": "srd"
       },
       {
-        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
+        "description": "Uma onda de força trovejante se propaga a partir de você. Cada criatura em um cubo de 15 pés originado de você deve fazer um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano trovejante e é empurrada 10 pés para longe de você. Em um sucesso, a criatura sofre metade desse dano e não é empurrada. Além disso, objetos não fixados que estejam inteiramente dentro da área de efeito são automaticamente empurrados 10 pés para longe de você pelo efeito da magia, e a magia emite um estrondo trovejante audível a até 300 pés.",
         "key": "thunderwave",
         "level": 1,
-        "name": "Onda Trovejante",
+        "name": "Onda de Trovão",
         "source": "srd"
       }
     ],
@@ -3068,84 +3068,84 @@
         "source": "srd"
       },
       {
-        "description": "Uma fina camada de chamas dispara de você. Cada criatura em um Cone de 15 pés faz um teste de resistência de Destreza, sofrendo 3d6 de dano de Fogo se falhar no teste ou metade desse dano se obtiver sucesso. Objetos inflamáveis no Cone que não estejam sendo vestidos ou carregados começam a queimar.",
+        "description": "Enquanto você segura as mãos com os polegares se tocando e os dedos espalhados, uma fina camada de chamas dispara das pontas dos seus dedos estendidos. Cada criatura em um cone de 15 pés deve fazer um teste de resistência de Destreza. Uma criatura sofre 3d6 de dano de fogo se falhar no teste, ou metade desse dano se for bem-sucedida. O fogo incendeia quaisquer objetos inflamáveis na área que não estejam sendo vestidos ou carregados.",
         "key": "burning-hands",
         "level": 1,
         "name": "Mãos Flamejantes",
         "source": "srd"
       },
       {
-        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
+        "description": "Você tenta enfeitiçar um humanoide que possa ver dentro do alcance. Ele deve fazer um teste de resistência de Sabedoria, com vantagem se você ou seus companheiros estiverem lutando contra ele. Se falhar no teste, fica enfeitiçado por você até a magia terminar ou até que você ou seus companheiros façam algo prejudicial a ele. A criatura enfeitiçada o considera um conhecido amigável. Quando a magia termina, a criatura sabe que foi enfeitiçada por você.",
         "key": "charm-person",
         "level": 1,
-        "name": "Enfeitiçar Pessoa",
+        "name": "Amizade Fingida",
         "source": "srd"
       },
       {
-        "description": "Você profere um comando de uma palavra para uma criatura que você possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no seu próximo turno. Escolha o comando destas opções: - **Derrubar.** O alvo solta o que estiver segurando e então encerra seu turno. - **Fugir.** O alvo gasta seu turno se movendo para longe de você pelos meios disponíveis mais rápidos. - **Rastejar.** O alvo fica com a condição Caído e então encerra seu turno. - **Parar.** Em seu turno, o alvo não se move e não realiza nenhuma ação ou Ação Bônus.",
+        "description": "Você diz uma palavra de comando a uma criatura que possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguir o comando no seu próximo turno. A magia não tem efeito se o alvo for morto-vivo, se não entender seu idioma, ou se o seu comando for diretamente prejudicial a ele. Seguem alguns comandos típicos e seus efeitos. Você pode emitir um comando diferente dos descritos aqui; nesse caso, o mestre determina como o alvo se comporta. Se o alvo não puder seguir o seu comando, a magia termina. **Aproximar.** O alvo se move em sua direção pela rota mais curta e direta, encerrando seu turno se chegar a até 5 pés de você. **Largar.** O alvo larga o que estiver segurando e então encerra seu turno. **Fugir.** O alvo gasta seu turno se afastando de você pelo meio disponível mais rápido. **Rastejar.** O alvo cai prostrado e então encerra seu turno. **Parar.** O alvo não se move e não realiza nenhuma ação. Uma criatura voadora permanece no ar, se for capaz; se precisar se mover para se manter no ar, voa a distância mínima necessária para isso.",
         "key": "command",
         "level": 1,
         "name": "Comando",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
+        "description": "Pela duração, você entende o significado literal de qualquer idioma falado que ouvir. Você também entende qualquer idioma escrito que veja, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica mensagens secretas em um texto ou em um símbolo, como uma runa arcana, que não faça parte de um idioma escrito.",
         "key": "comprehend-languages",
         "level": 1,
         "name": "Compreender Idiomas",
         "source": "srd"
       },
       {
-        "description": "Você realiza a ação Disparada e, até que a magia termine, você pode realizar essa ação novamente como uma Ação Bônus.",
+        "description": "Esta magia permite que você se mova a um ritmo incrível. Ao conjurar esta magia, e então como uma ação bônus em cada um dos seus turnos até a magia terminar, você pode realizar a ação Disparada.",
         "key": "expeditious-retreat",
         "level": 1,
-        "name": "Recuada Acelerada",
+        "name": "Retirada Expedita",
         "source": "srd"
       },
       {
-        "description": "Objetos em um cubo de 6 metros dentro do alcance são contornados por uma luz azul, verde ou violeta (à sua escolha). Cada criatura no cubo também é contornada se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem Luz Penumbra em um raio de 3 metros e não podem se beneficiar da condição Invisível. Jogadas de ataque contra uma criatura ou objeto afetado têm Vantagem se o atacante puder vê-lo.",
+        "description": "Cada objeto em um cubo de 20 pés dentro do alcance é contornado por uma luz azul, verde ou violeta (à sua escolha). Qualquer criatura na área quando a magia é conjurada também é contornada por luz se falhar em um teste de resistência de Destreza. Pela duração, objetos e criaturas afetadas emitem luz fraca em um raio de 10 pés. Qualquer jogada de ataque contra uma criatura ou objeto afetado tem vantagem se o atacante puder vê-lo, e a criatura ou objeto afetado não pode se beneficiar de estar invisível.",
         "key": "faerie-fire",
         "level": 1,
-        "name": "Fogo das Fadas",
+        "name": "Fogo Feérico",
         "source": "srd"
       },
       {
-        "description": "A criatura que causou dano a você é momentaneamente cercada por chamas verdes. Ela faz um teste de resistência de Destreza, sofrendo 2d10 de dano de Fogo se falhar ou metade desse dano se obtiver sucesso.",
+        "description": "Você aponta o dedo, e a criatura que causou dano a você fica momentaneamente cercada por chamas infernais. A criatura deve fazer um teste de resistência de Destreza. Ela sofre 2d10 de dano de fogo se falhar no teste, ou metade desse dano se for bem-sucedida.",
         "key": "hellish-rebuke",
         "level": 1,
         "name": "Repreensão Infernal",
         "source": "srd"
       },
       {
-        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Se falhar, ela fica com as condições Caído e Incapacitado pela duração. Durante esse tempo, ela ri incontrolavelmente se for capaz de rir, e não pode encerrar a condição Caído por conta própria. No final de cada um de seus turnos e cada vez que sofrer dano, ela faz outro teste de resistência de Sabedoria. O alvo tem Vantagem no teste se ele for desencadeado por dano. Se obtiver sucesso no teste, a magia termina.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance percebe tudo como hilariamente engraçado e cai em acessos de riso, caso esta magia a afete. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou cai prostrado, ficando incapacitado e incapaz de se levantar pela duração. Uma criatura com pontuação de Inteligência 4 ou menor não é afetada. No fim de cada um dos seus turnos, e cada vez que sofrer dano, o alvo pode fazer outro teste de resistência de Sabedoria. O alvo tem vantagem no teste de resistência se ele for desencadeado por dano. Em um sucesso, a magia termina.",
         "key": "hideous-laughter",
         "level": 1,
-        "name": "Riso Histérico",
+        "name": "Riso Medonho",
         "source": "srd"
       },
       {
-        "description": "Você escreve em pergaminho, papel ou outro material adequado e o imbui com uma ilusão que dura pela duração. Para você e quaisquer criaturas que você designar ao conjurar a magia, a escrita parece normal, parece ter sido escrita por sua mão e transmite qualquer significado que você pretendia quando escreveu o texto. Para todos os outros, a escrita parece como se tivesse sido escrita em um idioma desconhecido ou mágico que é ininteligível. Alternativamente, a ilusão pode alterar o significado, a caligrafia e o idioma do texto, embora o idioma deva ser um que você conheça. Se a magia for dissipada, tanto a escrita original quanto a ilusão desaparecem. Uma criatura que possua Visão Verdadeira pode ler a mensagem oculta.",
+        "description": "Você escreve em pergaminho, papel ou outro material de escrita adequado e o imbui com uma ilusão potente que dura pela duração. Para você e quaisquer criaturas que designar ao conjurar a magia, a escrita parece normal, escrita por sua mão, e transmite qualquer significado que você pretendia ao escrever o texto. Para todos os outros, a escrita parece ter sido escrita em um idioma desconhecido ou mágico, sendo ininteligível. Alternativamente, você pode fazer com que a escrita pareça ser uma mensagem inteiramente diferente, escrita por outra mão e em outro idioma, embora o idioma deva ser um que você conheça. Caso a magia seja dissipada, tanto o texto original quanto a ilusão desaparecem. Uma criatura com visão verdadeira pode ler a mensagem oculta.",
         "key": "illusory-script",
         "level": 1,
-        "name": "Escrita Ilusória",
+        "name": "Texto Ilusório",
         "source": "srd"
       },
       {
-        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
+        "description": "Até a magia terminar, uma criatura disposta que você toca fica protegida contra certos tipos de criaturas: aberrações, celestiais, elementais, feéricos, infernais e mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser enfeitiçado, amedrontado ou possuído por elas. Se o alvo já estiver enfeitiçado, amedrontado ou possuído por tal criatura, o alvo tem vantagem em qualquer novo teste de resistência contra o efeito relevante.",
         "key": "protection-from-evil-and-good",
         "level": 1,
         "name": "Proteção contra o Bem e o Mal",
         "source": "srd"
       },
       {
-        "description": "Cada criatura à sua escolha em uma Esfera de 5 pés de raio centrada em um ponto dentro do alcance deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará com a condição Incapacitado até o final do seu próximo turno, momento em que deve repetir o teste. Se o alvo falhar no segundo teste, o alvo fica com a condição Inconsciente pela duração. A magia termina em um alvo se ele sofrer dano ou se alguém a até 5 pés dele usar uma ação para sacudi-lo e retirá-lo do efeito da magia. Criaturas que não dormem, como elfos, ou que possuem Imunidade à condição Exaustão, são automaticamente bem-sucedidas nos testes contra esta magia.",
+        "description": "Esta magia faz criaturas caírem em um sono mágico. Role 5d8; o total é quantos pontos de vida de criaturas esta magia pode afetar. Criaturas a até 20 pés de um ponto que você escolher dentro do alcance são afetadas em ordem crescente de seus pontos de vida atuais (ignorando criaturas inconscientes). Começando pela criatura com o menor número de pontos de vida atuais, cada criatura afetada por esta magia cai inconsciente até a magia terminar, até a criatura adormecida sofrer dano, ou até alguém usar uma ação para sacudir ou esbofetear a criatura adormecida e acordá-la. Subtraia os pontos de vida de cada criatura do total antes de passar para a criatura com o próximo menor número de pontos de vida. Os pontos de vida de uma criatura devem ser iguais ou menores que o total restante para que ela seja afetada. Mortos-vivos e criaturas imunes a ficar enfeitiçadas não são afetados por esta magia.",
         "key": "sleep",
         "level": 1,
         "name": "Sono",
         "source": "srd"
       },
       {
-        "description": "Esta magia cria uma força Invisível, sem mente, sem forma e de tamanho Médio que realiza tarefas simples sob seu comando até que a magia termine. O servo surge em um espaço desocupado no chão dentro do alcance. Ele possui CA 10, 1 Ponto de Vida e Força 2, e não pode atacar. Se ele cair para 0 Pontos de Vida, a magia termina. Uma vez em cada um dos seus turnos como uma Ação Bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir bebidas. Assim que você dá o comando, o servo realiza a tarefa da melhor maneira possível até completá-la, então aguarda seu próximo comando. Se você ordenar que o servo realize uma tarefa que o moveria a mais de 60 pés de distância de você, a magia termina.",
+        "description": "Esta magia cria uma força invisível, sem mente e sem forma, que realiza tarefas simples sob seu comando até a magia terminar. O servo surge em um espaço desocupado no chão dentro do alcance. Ele tem CA 10, 1 ponto de vida e Força 2, e não pode atacar. Se cair a 0 pontos de vida, a magia termina. Uma vez em cada um dos seus turnos, como uma ação bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um servo humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir vinho. Depois que você dá o comando, o servo realiza a tarefa da melhor forma possível até completá-la, então aguarda seu próximo comando. Se você comandar o servo a realizar uma tarefa que o moveria a mais de 60 pés de você, a magia termina.",
         "key": "unseen-servant",
         "level": 1,
         "name": "Servo Invisível",
@@ -3252,189 +3252,189 @@
         "source": "srd"
       },
       {
-        "description": "Você define um alarme contra intrusão. Escolha uma porta, uma janela ou uma área dentro do alcance que não seja maior que um cubo de 20 pés. Até que a magia termine, um alarme alerta você sempre que uma criatura tocar ou entrar na área protegida. Quando você conjura a magia, você pode designar criaturas que não ativarão o alarme. Você também escolhe se o alarme é audível ou mental: **Alarme Audível.** O alarme produz o som de uma sineta por 10 segundos dentro de 60 pés da área protegida. **Alarme Mental.** Você é alertado por um sinal mental se estiver dentro de 1 milha da área protegida. Esse sinal acorda você se estiver dormindo.",
+        "description": "Você define um alarme contra intrusão indesejada. Escolha uma porta, uma janela ou uma área dentro do alcance que não seja maior que um cubo de 20 pés. Até que a magia termine, um alarme alerta você sempre que uma criatura de tamanho Miúdo ou maior tocar ou entrar na área protegida. Ao conjurar a magia, você pode designar criaturas que não acionarão o alarme. Você também escolhe se o alarme é mental ou audível. Um alarme mental alerta você com um sinal mental se estiver a até 1 milha da área protegida. Esse sinal acorda você se estiver dormindo. Um alarme audível produz o som de uma sineta por 10 segundos dentro de 60 pés.",
         "key": "alarm",
         "level": 1,
         "name": "Alarme",
         "source": "srd"
       },
       {
-        "description": "Uma fina camada de chamas dispara de você. Cada criatura em um Cone de 15 pés faz um teste de resistência de Destreza, sofrendo 3d6 de dano de Fogo se falhar no teste ou metade desse dano se obtiver sucesso. Objetos inflamáveis no Cone que não estejam sendo vestidos ou carregados começam a queimar.",
+        "description": "Enquanto você segura as mãos com os polegares se tocando e os dedos espalhados, uma fina camada de chamas dispara das pontas dos seus dedos estendidos. Cada criatura em um cone de 15 pés deve fazer um teste de resistência de Destreza. Uma criatura sofre 3d6 de dano de fogo se falhar no teste, ou metade desse dano se for bem-sucedida. O fogo incendeia quaisquer objetos inflamáveis na área que não estejam sendo vestidos ou carregados.",
         "key": "burning-hands",
         "level": 1,
         "name": "Mãos Flamejantes",
         "source": "srd"
       },
       {
-        "description": "Um Humanoide que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Ele o faz com Vantagem se você ou seus aliados estiverem lutando contra ele. Se falhar no teste, o alvo fica com a condição Enfeitiçado até a magia terminar ou até que você ou seus aliados causem dano a ele. A criatura Enfeitiçada é Amigável com você. Quando a magia termina, o alvo sabe que foi Enfeitiçado por você.",
+        "description": "Você tenta enfeitiçar um humanoide que possa ver dentro do alcance. Ele deve fazer um teste de resistência de Sabedoria, com vantagem se você ou seus companheiros estiverem lutando contra ele. Se falhar no teste, fica enfeitiçado por você até a magia terminar ou até que você ou seus companheiros façam algo prejudicial a ele. A criatura enfeitiçada o considera um conhecido amigável. Quando a magia termina, a criatura sabe que foi enfeitiçada por você.",
         "key": "charm-person",
         "level": 1,
-        "name": "Enfeitiçar Pessoa",
+        "name": "Amizade Fingida",
         "source": "srd"
       },
       {
-        "description": "Você lança uma matriz deslumbrante de luzes coloridas e piscantes. Cada criatura em um Cone de 15 pés originado de você deve ser bem-sucedida em um teste de resistência de Constituição ou ficará com a condição Cego até o final do seu próximo turno.",
+        "description": "Uma matriz deslumbrante de luzes coloridas e piscantes surge da sua mão. Role 6d10; o total é quantos pontos de vida de criaturas esta magia pode afetar. Criaturas em um cone de 15 pés originado de você são afetadas em ordem crescente de seus pontos de vida atuais (ignorando criaturas inconscientes e criaturas que não podem ver). Começando pela criatura com o menor número de pontos de vida atuais, cada criatura afetada por esta magia fica cega até a magia terminar. Subtraia os pontos de vida de cada criatura do total antes de passar para a criatura com o próximo menor número de pontos de vida. Os pontos de vida de uma criatura devem ser iguais ou menores que o total restante para que ela seja afetada.",
         "key": "color-spray",
         "level": 1,
-        "name": "Leque Cromático",
+        "name": "Explosão de Cores",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você entende o significado literal de qualquer idioma que ouvir ou ver sinalizado. Você também entende qualquer idioma escrito que vir, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica símbolos ou mensagens secretas.",
+        "description": "Pela duração, você entende o significado literal de qualquer idioma falado que ouvir. Você também entende qualquer idioma escrito que veja, mas deve estar tocando a superfície na qual as palavras estão escritas. Leva cerca de 1 minuto para ler uma página de texto. Esta magia não decodifica mensagens secretas em um texto ou em um símbolo, como uma runa arcana, que não faça parte de um idioma escrito.",
         "key": "comprehend-languages",
         "level": 1,
         "name": "Compreender Idiomas",
         "source": "srd"
       },
       {
-        "description": "Pela duração, você sente a presença de efeitos mágicos a até 30 pés de você. Se você sentir tais efeitos, pode realizar a ação Magia para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que possua magia, e se um efeito foi criado por uma magia, você aprende a escola de magia daquela magia. A magia é bloqueada por 1 pé de pedra, terra ou madeira; 1 polegada de metal; ou uma fina folha de chumbo.",
+        "description": "Pela duração, você sente a presença de magia a até 30 pés de você. Se sentir magia dessa forma, você pode usar sua ação para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que porte magia, e você aprende a escola de magia dela, se houver. A magia pode atravessar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina folha de chumbo, ou 3 pés de madeira ou terra.",
         "key": "detect-magic",
         "level": 1,
         "name": "Detectar Magia",
         "source": "srd"
       },
       {
-        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences em sua posse — pareça diferente até que a magia termine. Você pode parecer 1 pé mais baixo ou mais alto e pode parecer mais pesado ou mais leve. Você deve adotar uma forma que tenha o mesmo arranjo básico de membros que você possui. Caso contrário, a extensão da ilusão depende de você. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passarão através do chapéu, e qualquer um que o toque não sentirá nada. Para discernir que você está disfarçado, uma criatura deve realizar a ação Estudar para inspecionar sua aparência e ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
+        "description": "Você faz com que você mesmo — incluindo suas roupas, armadura, armas e outros pertences sobre sua pessoa — pareça diferente, até a magia terminar ou até você usar sua ação para dispensá-la. Você pode parecer 1 pé mais baixo ou mais alto, e pode parecer magro, gordo, ou algo entre os dois. Você não pode mudar seu tipo de corpo, então deve adotar uma forma que tenha o mesmo arranjo básico de membros. Fora isso, a extensão da ilusão fica a seu critério. As mudanças feitas por esta magia não resistem a uma inspeção física. Por exemplo, se você usar esta magia para adicionar um chapéu ao seu traje, objetos passam através do chapéu, e quem o tocar não sentirá nada, ou sentirá sua cabeça e cabelo. Se você usar esta magia para parecer mais magro do que é, a mão de alguém que tentar tocá-lo esbarrará em você enquanto ainda parecia estar no ar. Para perceber que você está disfarçado, uma criatura pode usar sua ação para examinar sua aparência e deve ser bem-sucedida em um teste de Inteligência (Investigação) contra a CD de resistência da sua magia.",
         "key": "disguise-self",
         "level": 1,
-        "name": "Disfarçar-se",
+        "name": "Disfarce Pessoal",
         "source": "srd"
       },
       {
-        "description": "Você realiza a ação Disparada e, até que a magia termine, você pode realizar essa ação novamente como uma Ação Bônus.",
+        "description": "Esta magia permite que você se mova a um ritmo incrível. Ao conjurar esta magia, e então como uma ação bônus em cada um dos seus turnos até a magia terminar, você pode realizar a ação Disparada.",
         "key": "expeditious-retreat",
         "level": 1,
-        "name": "Recuada Acelerada",
+        "name": "Retirada Expedita",
         "source": "srd"
       },
       {
-        "description": "Você ganha 2d4 + 4 Pontos de Vida Temporários.",
+        "description": "Reforçando-se com uma réplica necromântica de vida, você ganha 1d4 + 4 pontos de vida temporários pela duração.",
         "key": "false-life",
         "level": 1,
-        "name": "Falsa Vida",
+        "name": "Vida Falsa",
         "source": "srd"
       },
       {
-        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de descida de uma criatura caindo diminui para 18 metros por rodada até a magia terminar. Se uma criatura aterrissar antes da magia terminar, a criatura não sofre dano da queda e a magia termina para essa criatura.",
+        "description": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade de queda de uma criatura caindo diminui para 60 pés por rodada até a magia terminar. Se a criatura aterrissar antes de a magia terminar, ela não sofre dano de queda e pode aterrissar de pé, e a magia termina para essa criatura.",
         "key": "feather-fall",
         "level": 1,
-        "name": "Queda Suave",
+        "name": "Queda de Pluma",
         "source": "srd"
       },
       {
-        "description": "Você ganha o serviço de um familiar, um espírito que assume uma forma animal à sua escolha: Morcego, Gato, Sapo, Falcão, Lagarto, Polvo, Coruja, Rato, Corvo, Aranha, Doninha ou outra Besta que tenha um Desafio de 0. Aparecendo em um espaço desocupado dentro do alcance, o familiar possui as estatísticas da forma escolhida (veja \"Monstros\"), embora seja um Celestial, Fada ou Infernal (à sua escolha) em vez de uma Besta. Seu familiar age independentemente de você, mas obedece aos seus comandos. **_Conexão Telepática._** Enquanto seu familiar estiver a até 30 metros de você, você pode se comunicar com ele telepaticamente. Adicionalmente, como uma Ação Bônus, você pode ver através dos olhos do familiar e ouvir o que ele ouve até o início do seu próximo turno, ganhando os benefícios de quaisquer sentidos especiais que ele possua. Finalmente, quando você conjura uma magia com alcance de toque, seu familiar pode realizar o toque. Seu familiar deve estar a até 30 metros de você e deve usar uma Reação para realizar o toque quando você conjura a magia. **_Combate._** O familiar é um aliado seu e dos seus aliados. Ele rola sua própria Iniciativa e age em seu próprio turno. Um familiar não pode atacar, mas pode realizar outras ações normalmente. **_Desaparecimento do Familiar._** Quando o familiar cai para 0 Pontos de Vida, ele desaparece. Ele reaparece após você conjurar esta magia novamente. Como uma ação de Magia, você pode dispensar temporariamente o familiar para uma dimensão de bolso. Alternativamente, você pode dispensá-lo para sempre. Como uma ação de Magia enquanto ele estiver temporariamente dispensado, você pode fazer com que ele reapareça em um espaço desocupado a até 9 metros de você. Sempre que o familiar cai para 0 Pontos de Vida ou desaparece na dimensão de bolso, ele deixa para trás em seu espaço tudo o que estava vestindo ou carregando. **_Apenas um Familiar._** Você não pode ter mais de um familiar por vez. Se você conjurar esta magia enquanto tiver um familiar, você faz com que ele adote uma nova forma elegível.",
+        "description": "Você ganha o serviço de um familiar, um espírito que assume uma forma animal à sua escolha: morcego, gato, caranguejo, rã (ou sapo), falcão, lagarto, polvo, coruja, cobra venenosa, peixe (tipo caramujeira), rato, corvo, cavalo-marinho, aranha, ou doninha. Surgindo em um espaço desocupado dentro do alcance, o familiar possui as estatísticas da forma escolhida, embora seja um celestial, feérico ou infernal (à sua escolha) em vez de uma fera. Seu familiar age independentemente de você, mas sempre obedece aos seus comandos. Em combate, ele rola sua própria iniciativa e age em seu próprio turno. Um familiar não pode atacar, mas pode realizar outras ações normalmente. Quando o familiar cai a 0 pontos de vida, ele desaparece, sem deixar forma física para trás. Ele reaparece depois que você conjura esta magia novamente. Enquanto seu familiar estiver a até 100 pés de você, você pode se comunicar com ele telepaticamente. Além disso, como uma ação, você pode ver através dos olhos do familiar e ouvir o que ele ouve até o início do seu próximo turno, ganhando os benefícios de quaisquer sentidos especiais que o familiar tenha. Durante esse tempo, você fica surdo e cego quanto aos seus próprios sentidos. Como uma ação, você pode dispensar seu familiar temporariamente. Ele desaparece em uma dimensão de bolso, onde aguarda o seu chamado. Alternativamente, você pode dispensá-lo para sempre. Como uma ação enquanto ele está temporariamente dispensado, você pode fazer com que ele reapareça em qualquer espaço desocupado a até 30 pés de você. Você não pode ter mais de um familiar por vez. Se você conjurar esta magia enquanto já tiver um familiar, em vez disso faz com que ele adote uma nova forma. Escolha uma das formas da lista acima. Seu familiar se transforma na criatura escolhida. Por fim, quando você conjura uma magia com alcance de toque, seu familiar pode entregar a magia como se ele mesmo a tivesse conjurado. Seu familiar deve estar a até 100 pés de você, e deve usar sua reação para entregar a magia quando você a conjurar. Se a magia exigir uma jogada de ataque, você usa seu modificador de ataque para a jogada.",
         "key": "find-familiar",
         "level": 1,
         "name": "Encontrar Familiar",
         "source": "srd"
       },
       {
-        "description": "Esta magia cria um plano de força circular e horizontal, com 90 centímetros de diâmetro e 2,5 centímetros de espessura, que flutua a 90 centímetros acima do solo em um espaço desocupado à sua escolha que você possa ver dentro do alcance. O disco permanece pela duração e pode carregar até 225 quilos. Se mais peso for colocado sobre ele, a magia termina e tudo sobre o disco cai no chão. O disco é imóvel enquanto você estiver a até 6 metros dele. Se você se mover para mais de 6 metros de distância dele, o disco segue você para que permaneça a até 6 metros de você. Ele pode se mover sobre terreno irregular, subir ou descer escadas, encostas e similares, mas não pode cruzar uma mudança de elevação de 3 metros ou mais. Por exemplo, o disco não pode se mover sobre um fosso de 3 metros de profundidade, nem poderia sair de tal fosso se fosse criado no fundo. Se você se mover para mais de 30 metros do disco (tipicamente porque ele não pode contornar um obstáculo para segui-lo), a magia termina.",
+        "description": "Esta magia cria um plano de força circular e horizontal, com 3 pés de diâmetro e 1 polegada de espessura, que flutua 3 pés acima do solo em um espaço desocupado à sua escolha que você possa ver dentro do alcance. O disco permanece pela duração e pode carregar até 500 libras. Se mais peso for colocado sobre ele, a magia termina, e tudo o que estiver sobre o disco cai no chão. O disco fica imóvel enquanto você estiver a até 20 pés dele. Se você se afastar mais de 20 pés dele, o disco o segue de modo a permanecer a até 20 pés de você. Ele pode se mover sobre terreno irregular, subir ou descer escadas, encostas e semelhantes, mas não pode cruzar uma mudança de elevação de 10 pés ou mais. Por exemplo, o disco não pode se mover sobre um fosso de 10 pés de profundidade, nem poderia sair de tal fosso se fosse criado no fundo dele. Se você se afastar mais de 100 pés do disco (tipicamente porque ele não conseguiu contornar um obstáculo para segui-lo), a magia termina.",
         "key": "floating-disk",
         "level": 1,
         "name": "Disco Flutuante",
         "source": "srd"
       },
       {
-        "description": "Você cria uma esfera de névoa com 6 metros de raio centrada em um ponto dentro do alcance. A esfera é Fortemente Obscurecida. Ela dura pela duração ou até que um vento forte (como um criado por Rajada de Vento) a disperse.",
+        "description": "Você cria uma esfera de névoa com 20 pés de raio centrada em um ponto dentro do alcance. A esfera se espalha ao redor de cantos, e sua área fica fortemente obscurecida. Ela dura pela duração ou até que um vento de velocidade moderada ou maior (pelo menos 10 milhas por hora) a disperse.",
         "key": "fog-cloud",
         "level": 1,
-        "name": "Névoa Obscurecente",
+        "name": "Nuvem de Névoa",
         "source": "srd"
       },
       {
-        "description": "Graxa não inflamável cobre o solo em um quadrado de 3 metros centrado em um ponto dentro do alcance e o transforma em Terreno Difícil pela duração. Quando a graxa aparece, cada criatura em pé na área deve ser bem-sucedida em um teste de resistência de Destreza ou ficará com a condição Caído. Uma criatura que entrar na área ou terminar seu turno nela também deve ser bem-sucedida nesse teste ou cairá Caída.",
+        "description": "Graxa escorregadia cobre o solo em um quadrado de 10 pés centrado em um ponto dentro do alcance e o transforma em terreno difícil pela duração. Quando a graxa aparece, cada criatura em pé em sua área deve ser bem-sucedida em um teste de resistência de Destreza ou cai prostrada. Uma criatura que entrar na área ou terminar seu turno nela também deve ser bem-sucedida em um teste de resistência de Destreza ou cai prostrada.",
         "key": "grease",
         "level": 1,
         "name": "Graxa",
         "source": "srd"
       },
       {
-        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance faz um teste de resistência de Sabedoria. Se falhar, ela fica com as condições Caído e Incapacitado pela duração. Durante esse tempo, ela ri incontrolavelmente se for capaz de rir, e não pode encerrar a condição Caído por conta própria. No final de cada um de seus turnos e cada vez que sofrer dano, ela faz outro teste de resistência de Sabedoria. O alvo tem Vantagem no teste se ele for desencadeado por dano. Se obtiver sucesso no teste, a magia termina.",
+        "description": "Uma criatura à sua escolha que você possa ver dentro do alcance percebe tudo como hilariamente engraçado e cai em acessos de riso, caso esta magia a afete. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou cai prostrado, ficando incapacitado e incapaz de se levantar pela duração. Uma criatura com pontuação de Inteligência 4 ou menor não é afetada. No fim de cada um dos seus turnos, e cada vez que sofrer dano, o alvo pode fazer outro teste de resistência de Sabedoria. O alvo tem vantagem no teste de resistência se ele for desencadeado por dano. Em um sucesso, a magia termina.",
         "key": "hideous-laughter",
         "level": 1,
-        "name": "Riso Histérico",
+        "name": "Riso Medonho",
         "source": "srd"
       },
       {
-        "description": "Você toca um objeto durante toda a conjuração da magia. Se o objeto for um item mágico ou algum outro objeto mágico, você aprende suas propriedades e como usá-las, se ele requer Sintonização e quantas cargas ele possui, se houver. Você aprende se alguma magia contínua está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende o nome dessa magia. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias contínuas, se houver, estão afetando-a atualmente.",
+        "description": "Você escolhe um objeto que deve tocar durante toda a conjuração da magia. Se for um item mágico ou algum outro objeto imbuído de magia, você aprende suas propriedades e como usá-las, se exige sintonização para ser usado, e quantas cargas ele possui, se houver. Você aprende se alguma magia está afetando o item e quais são elas. Se o item foi criado por uma magia, você aprende qual magia o criou. Se, em vez disso, você tocar uma criatura durante a conjuração, você aprende quais magias, se houver, estão atualmente afetando-a.",
         "key": "identify",
         "level": 1,
-        "name": "Identificação",
+        "name": "Identificar",
         "source": "srd"
       },
       {
-        "description": "Você escreve em pergaminho, papel ou outro material adequado e o imbui com uma ilusão que dura pela duração. Para você e quaisquer criaturas que você designar ao conjurar a magia, a escrita parece normal, parece ter sido escrita por sua mão e transmite qualquer significado que você pretendia quando escreveu o texto. Para todos os outros, a escrita parece como se tivesse sido escrita em um idioma desconhecido ou mágico que é ininteligível. Alternativamente, a ilusão pode alterar o significado, a caligrafia e o idioma do texto, embora o idioma deva ser um que você conheça. Se a magia for dissipada, tanto a escrita original quanto a ilusão desaparecem. Uma criatura que possua Visão Verdadeira pode ler a mensagem oculta.",
+        "description": "Você escreve em pergaminho, papel ou outro material de escrita adequado e o imbui com uma ilusão potente que dura pela duração. Para você e quaisquer criaturas que designar ao conjurar a magia, a escrita parece normal, escrita por sua mão, e transmite qualquer significado que você pretendia ao escrever o texto. Para todos os outros, a escrita parece ter sido escrita em um idioma desconhecido ou mágico, sendo ininteligível. Alternativamente, você pode fazer com que a escrita pareça ser uma mensagem inteiramente diferente, escrita por outra mão e em outro idioma, embora o idioma deva ser um que você conheça. Caso a magia seja dissipada, tanto o texto original quanto a ilusão desaparecem. Uma criatura com visão verdadeira pode ler a mensagem oculta.",
         "key": "illusory-script",
         "level": 1,
-        "name": "Escrita Ilusória",
+        "name": "Texto Ilusório",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura voluntária. Uma vez em cada um de seus turnos até o fim da magia, essa criatura pode saltar até 30 pés gastando 10 pés de movimento.",
+        "description": "Você toca uma criatura. A distância de salto da criatura triplica até a magia terminar.",
         "key": "jump",
         "level": 1,
-        "name": "Pulo",
+        "name": "Salto",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura. O Deslocamento do alvo aumenta em 10 pés até o fim da magia.",
+        "description": "Você toca uma criatura. O deslocamento do alvo aumenta em 10 pés até a magia terminar.",
         "key": "longstrider",
         "level": 1,
-        "name": "Passo Longo",
+        "name": "Passo Largo",
         "source": "srd"
       },
       {
-        "description": "Você toca uma criatura voluntária que não esteja vestindo armadura. Até o fim da magia, a CA base do alvo torna-se 13 mais seu modificador de Destreza. A magia termina prematuramente se o alvo vestir uma armadura.",
+        "description": "Você toca uma criatura disposta que não esteja vestindo armadura, e uma força mágica protetora a envolve até a magia terminar. A CA base do alvo passa a ser 13 mais seu modificador de Destreza. A magia termina se o alvo vestir uma armadura, ou se você dispensar a magia como uma ação.",
         "key": "mage-armor",
         "level": 1,
-        "name": "Armadura Arcana",
+        "name": "Armadura de Mago",
         "source": "srd"
       },
       {
-        "description": "Você cria três dardos brilhantes de força mágica. Cada dardo atinge uma criatura à sua escolha que você possa ver dentro do alcance. Um dardo causa 1d4 + 1 de dano de Força ao seu alvo. Os dardos atingem simultaneamente, e você pode direcioná-los para atingir uma criatura ou várias.",
+        "description": "Você cria três dardos brilhantes de força mágica. Cada dardo atinge uma criatura à sua escolha que você possa ver dentro do alcance. Um dardo causa 1d4 + 1 de dano de força ao seu alvo. Os dardos atingem simultaneamente, e você pode direcioná-los para atingir uma criatura ou várias.",
         "key": "magic-missile",
         "level": 1,
         "name": "Mísseis Mágicos",
         "source": "srd"
       },
       {
-        "description": "Até o fim da magia, uma criatura voluntária que você tocar estará protegida contra criaturas que sejam Aberrações, Celestiais, Elementais, Fadas, Corruptores ou Mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm Desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser possuído ou sofrer as condições Enfeitiçado ou Amedrontado por elas. Se o alvo já estiver possuído, Enfeitiçado ou Amedrontado por tal criatura, o alvo tem Vantagem em qualquer novo teste de resistência contra o efeito relevante.",
+        "description": "Até a magia terminar, uma criatura disposta que você toca fica protegida contra certos tipos de criaturas: aberrações, celestiais, elementais, feéricos, infernais e mortos-vivos. A proteção concede vários benefícios. Criaturas desses tipos têm desvantagem em jogadas de ataque contra o alvo. O alvo também não pode ser enfeitiçado, amedrontado ou possuído por elas. Se o alvo já estiver enfeitiçado, amedrontado ou possuído por tal criatura, o alvo tem vantagem em qualquer novo teste de resistência contra o efeito relevante.",
         "key": "protection-from-evil-and-good",
         "level": 1,
         "name": "Proteção contra o Bem e o Mal",
         "source": "srd"
       },
       {
-        "description": "Uma barreira imperceptível de força mágica protege você. Até o início do seu próximo turno, você tem um bônus de +5 na CA, incluindo contra o ataque que desencadeou a magia, e você não sofre dano de Mísseis Mágicos.",
+        "description": "Uma barreira invisível de força mágica surge e o protege. Até o início do seu próximo turno, você tem um bônus de +5 na CA, inclusive contra o ataque que a desencadeou, e você não sofre dano de mísseis mágicos.",
         "key": "shield",
         "level": 1,
         "name": "Escudo",
         "source": "srd"
       },
       {
-        "description": "Você cria a imagem de um objeto, uma criatura ou algum outro fenômeno visível que não seja maior que um Cubo de 4,5 metros. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada por som, cheiro ou outros efeitos sensoriais. Como uma ação de Magia, você pode fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar uma imagem de uma criatura e movê-la, você pode alterar a imagem para que ela pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, já que as coisas podem passar através dela. Uma criatura que use uma ação de Estudo para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura discernir a ilusão pelo que ela é, a criatura pode ver através da imagem.",
+        "description": "Você cria a imagem de um objeto, uma criatura, ou algum outro fenômeno visível que não seja maior que um cubo de 15 pés. A imagem aparece em um local dentro do alcance e dura pela duração. A imagem é puramente visual; não é acompanhada de som, cheiro ou outros efeitos sensoriais. Você pode usar sua ação para fazer a imagem se mover para qualquer local dentro do alcance. Conforme a imagem muda de local, você pode alterar sua aparência para que seus movimentos pareçam naturais para a imagem. Por exemplo, se você criar a imagem de uma criatura e movê-la, pode alterar a imagem para que pareça estar andando. A interação física com a imagem revela que ela é uma ilusão, pois as coisas podem atravessá-la. Uma criatura que usar sua ação para examinar a imagem pode determinar que é uma ilusão com um teste de Inteligência (Investigação) bem-sucedido contra a CD de resistência da sua magia. Se uma criatura perceber a ilusão pelo que ela é, a criatura pode ver através da imagem.",
         "key": "silent-image",
         "level": 1,
         "name": "Imagem Silenciosa",
         "source": "srd"
       },
       {
-        "description": "Cada criatura à sua escolha em uma Esfera de 5 pés de raio centrada em um ponto dentro do alcance deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará com a condição Incapacitado até o final do seu próximo turno, momento em que deve repetir o teste. Se o alvo falhar no segundo teste, o alvo fica com a condição Inconsciente pela duração. A magia termina em um alvo se ele sofrer dano ou se alguém a até 5 pés dele usar uma ação para sacudi-lo e retirá-lo do efeito da magia. Criaturas que não dormem, como elfos, ou que possuem Imunidade à condição Exaustão, são automaticamente bem-sucedidas nos testes contra esta magia.",
+        "description": "Esta magia faz criaturas caírem em um sono mágico. Role 5d8; o total é quantos pontos de vida de criaturas esta magia pode afetar. Criaturas a até 20 pés de um ponto que você escolher dentro do alcance são afetadas em ordem crescente de seus pontos de vida atuais (ignorando criaturas inconscientes). Começando pela criatura com o menor número de pontos de vida atuais, cada criatura afetada por esta magia cai inconsciente até a magia terminar, até a criatura adormecida sofrer dano, ou até alguém usar uma ação para sacudir ou esbofetear a criatura adormecida e acordá-la. Subtraia os pontos de vida de cada criatura do total antes de passar para a criatura com o próximo menor número de pontos de vida. Os pontos de vida de uma criatura devem ser iguais ou menores que o total restante para que ela seja afetada. Mortos-vivos e criaturas imunes a ficar enfeitiçadas não são afetados por esta magia.",
         "key": "sleep",
         "level": 1,
         "name": "Sono",
         "source": "srd"
       },
       {
-        "description": "Você libera uma onda de energia trovejante. Cada criatura em um Cubo de 15 pés originado de você faz um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano Trovejante e é empurrada 10 pés para longe de você. Em um sucesso, uma criatura sofre apenas metade do dano. Além disso, objetos não fixados que estejam inteiramente dentro do Cubo são empurrados 10 pés para longe de você, e um estrondo trovejante é audível a até 300 pés.",
+        "description": "Uma onda de força trovejante se propaga a partir de você. Cada criatura em um cubo de 15 pés originado de você deve fazer um teste de resistência de Constituição. Em uma falha, uma criatura sofre 2d8 de dano trovejante e é empurrada 10 pés para longe de você. Em um sucesso, a criatura sofre metade desse dano e não é empurrada. Além disso, objetos não fixados que estejam inteiramente dentro da área de efeito são automaticamente empurrados 10 pés para longe de você pelo efeito da magia, e a magia emite um estrondo trovejante audível a até 300 pés.",
         "key": "thunderwave",
         "level": 1,
-        "name": "Onda Trovejante",
+        "name": "Onda de Trovão",
         "source": "srd"
       },
       {
-        "description": "Esta magia cria uma força Invisível, sem mente, sem forma e de tamanho Médio que realiza tarefas simples sob seu comando até que a magia termine. O servo surge em um espaço desocupado no chão dentro do alcance. Ele possui CA 10, 1 Ponto de Vida e Força 2, e não pode atacar. Se ele cair para 0 Pontos de Vida, a magia termina. Uma vez em cada um dos seus turnos como uma Ação Bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir bebidas. Assim que você dá o comando, o servo realiza a tarefa da melhor maneira possível até completá-la, então aguarda seu próximo comando. Se você ordenar que o servo realize uma tarefa que o moveria a mais de 60 pés de distância de você, a magia termina.",
+        "description": "Esta magia cria uma força invisível, sem mente e sem forma, que realiza tarefas simples sob seu comando até a magia terminar. O servo surge em um espaço desocupado no chão dentro do alcance. Ele tem CA 10, 1 ponto de vida e Força 2, e não pode atacar. Se cair a 0 pontos de vida, a magia termina. Uma vez em cada um dos seus turnos, como uma ação bônus, você pode comandar mentalmente o servo para se mover até 15 pés e interagir com um objeto. O servo pode realizar tarefas simples que um servo humano poderia fazer, como buscar coisas, limpar, consertar, dobrar roupas, acender fogueiras, servir comida e servir vinho. Depois que você dá o comando, o servo realiza a tarefa da melhor forma possível até completá-la, então aguarda seu próximo comando. Se você comandar o servo a realizar uma tarefa que o moveria a mais de 60 pés de você, a magia termina.",
         "key": "unseen-servant",
         "level": 1,
         "name": "Servo Invisível",
@@ -3570,577 +3570,577 @@
   "raceFeatures": {
     "dragonborn": [
       {
-        "description": "Your Strength score increases by 2, and your Charisma score increases by 1.",
+        "description": "Seu valor de Força aumenta em 2, e seu valor de Carisma aumenta em 1.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "dragonborn"
       },
       {
-        "description": "Your base walking speed is 30 feet.",
+        "description": "Seu deslocamento base de caminhada é 30 pés.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "dragonborn"
       },
       {
-        "description": "Young dragonborn grow quickly. They walk hours after hatching, attain the size and development of a 10-year-old human child by the age of 3, and reach adulthood by 15. They live to be around 80.",
+        "description": "Dragonborn jovens crescem rapidamente. Eles andam horas após eclodirem, atingem o tamanho e o desenvolvimento de uma criança humana de 10 anos aos 3 anos de idade e alcançam a idade adulta aos 15. Eles vivem cerca de 80 anos.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "dragonborn"
       },
       {
-        "description": "Dragonborn tend to extremes, making a conscious choice for one side or the other in the cosmic war between good and evil. Most dragonborn are good, but those who side with evil can be terrible villains.",
+        "description": "Dragonborn tendem aos extremos, fazendo uma escolha consciente por um lado ou outro na guerra cósmica entre o bem e o mal. A maioria dos dragonborn é boa, mas aqueles que se aliam ao mal podem ser vilões terríveis.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "dragonborn"
       },
       {
-        "description": "Dragonborn are taller and heavier than humans, standing well over 6 feet tall and averaging almost 250 pounds. Your size is Medium.",
+        "description": "Dragonborn são mais altos e pesados que humanos, medindo bem mais de 6 pés de altura e pesando em média quase 250 libras. Seu tamanho é Médio.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "dragonborn"
       },
       {
-        "description": "You can speak, read, and write Common and Draconic. Draconic is thought to be one of the oldest languages and is often used in the study of magic. The language sounds harsh to most other creatures and includes numerous hard consonants and sibilants.",
+        "description": "Você pode falar, ler e escrever Comum e Dracônico. O Dracônico é considerado um dos idiomas mais antigos e é frequentemente usado no estudo da magia. O idioma soa áspero para a maioria das outras criaturas e inclui inúmeras consoantes fortes e sibilantes.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "dragonborn"
       },
       {
-        "description": "| Dragon | Damage Type | Breath Weapon | |--------------|-------------------|------------------------------| | Black | Acid | 5 by 30 ft. line (Dex. save) | | Blue | Lightning | 5 by 30 ft. line (Dex. save) | | Brass | Fire | 5 by 30 ft. line (Dex. save) | | Bronze | Lightning | 5 by 30 ft. line (Dex. save) | | Copper | Acid | 5 by 30 ft. line (Dex. save) | | Gold | Fire | 15 ft. cone (Dex. save) | | Green | Poison | 15 ft. cone (Con. save) | | Red | Fire | 15 ft. cone (Dex. save) | | Silver | Cold | 15 ft. cone (Con. save) | | White | Cold | 15 ft. cone (Con. save) |",
+        "description": "| Dragão | Tipo de Dano | Arma de Sopro | |--------------|-------------------|------------------------------| | Negro | Ácido | Linha de 5 por 30 pés (Teste de Destreza) | | Azul | Elétrico | Linha de 5 por 30 pés (Teste de Destreza) | | Latão | Fogo | Linha de 5 por 30 pés (Teste de Destreza) | | Bronze | Elétrico | Linha de 5 por 30 pés (Teste de Destreza) | | Cobre | Ácido | Linha de 5 por 30 pés (Teste de Destreza) | | Ouro | Fogo | Cone de 15 pés (Teste de Destreza) | | Verde | Veneno | Cone de 15 pés (Teste de Constituição) | | Vermelho | Fogo | Cone de 15 pés (Teste de Destreza) | | Prata | Frio | Cone de 15 pés (Teste de Constituição) | | Branco | Frio | Cone de 15 pés (Teste de Constituição) |",
         "key": "draconic-ancestry-table",
-        "name": "Draconic Ancestry table",
+        "name": "Tabela de Ancestralidade Dracônica",
         "source": "dragonborn"
       },
       {
-        "description": "You have draconic ancestry. Choose one type of dragon from the Draconic Ancestry table. Your breath weapon and damage resistance are determined by the dragon type, as shown in the table.",
+        "description": "Você possui ancestralidade dracônica. Escolha um tipo de dragão da tabela de Ancestralidade Dracônica. Sua arma de sopro e resistência a dano são determinadas pelo tipo de dragão, conforme mostrado na tabela.",
         "key": "draconic-ancestry",
-        "name": "Draconic Ancestry",
+        "name": "Ancestralidade Dracônica",
         "source": "dragonborn"
       },
       {
-        "description": "You can use your action to exhale destructive energy. Your draconic ancestry determines the size, shape, and damage type of the exhalation. When you use your breath weapon, each creature in the area of the exhalation must make a saving throw, the type of which is determined by your draconic ancestry. The DC for this saving throw equals 8 + your Constitution modifier + your proficiency bonus. A creature takes 2d6 damage on a failed save, and half as much damage on a successful one. The damage increases to 3d6 at 6th level, 4d6 at 11th level, and 5d6 at 16th level.",
+        "description": "Você pode usar sua ação para exalar energia destrutiva. Sua ancestralidade dracônica determina o tamanho, a forma e o tipo de dano da exalação. Quando você usa sua arma de sopro, cada criatura na área da exalação deve realizar um teste de resistência, cujo tipo é determinado pela sua ancestralidade dracônica. A CD para este teste de resistência é igual a 8 + seu modificador de Constituição + seu bônus de proficiência. Uma criatura sofre 2d6 de dano em uma falha, e metade desse dano em um sucesso. O dano aumenta para 3d6 no 6º nível, 4d6 no 11º nível e 5d6 no 16º nível.",
         "key": "breath-weapon",
-        "name": "Breath Weapon",
+        "name": "Arma de Sopro",
         "source": "dragonborn"
       },
       {
-        "description": "You have resistance to the damage type associated with your draconic ancestry.",
+        "description": "Você tem resistência ao tipo de dano associado à sua ancestralidade dracônica.",
         "key": "damage-resistance",
-        "name": "Damage Resistance",
+        "name": "Resistência a Dano",
         "source": "dragonborn"
       }
     ],
     "half-elf": [
       {
-        "description": "Your Charisma score increases by 2, and two other ability scores of your choice increase by 1.",
+        "description": "Seu valor de Carisma aumenta em 2 e dois outros valores de habilidade à sua escolha aumentam em 1.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "half-elf"
       },
       {
-        "description": "Your base walking speed is 30 feet.",
+        "description": "Seu deslocamento base de caminhada é 30 pés.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "half-elf"
       },
       {
-        "description": "Thanks to your elf blood, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.",
+        "description": "Graças ao seu sangue élfico, você possui uma visão superior em condições de escuridão e penumbra. Você pode enxergar na penumbra a até 60 pés de você como se fosse luz plena, e na escuridão como se fosse penumbra. Você não consegue discernir cores na escuridão, apenas tons de cinza.",
         "key": "darkvision",
-        "name": "Darkvision",
+        "name": "Visão no Escuro",
         "source": "half-elf"
       },
       {
-        "description": "Half-elves mature at the same rate humans do and reach adulthood around the age of 20. They live much longer than humans, however, often exceeding 180 years.",
+        "description": "Meio-elfos amadurecem na mesma proporção que os humanos e atingem a idade adulta por volta dos 20 anos. Eles vivem muito mais que os humanos, no entanto, frequentemente excedendo 180 anos.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "half-elf"
       },
       {
-        "description": "Half-elves share the chaotic bent of their elven heritage. They value both personal freedom and creative expression, demonstrating neither love of leaders nor desire for followers. They chafe at rules, resent others' demands, and sometimes prove unreliable, or at least unpredictable.",
+        "description": "Meio-elfos compartilham a inclinação caótica de sua herança élfica. Eles valorizam tanto a liberdade pessoal quanto a expressão criativa, não demonstrando amor por líderes nem desejo por seguidores. Eles se irritam com regras, ressentem-se das exigências dos outros e, às vezes, provam ser pouco confiáveis, ou pelo menos imprevisíveis.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "half-elf"
       },
       {
-        "description": "Half-elves are about the same size as humans, ranging from 5 to 6 feet tall. Your size is Medium.",
+        "description": "Meio-elfos têm aproximadamente o mesmo tamanho que os humanos, variando de 5 a 6 pés de altura. Seu tamanho é Médio.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "half-elf"
       },
       {
-        "description": "You can speak, read, and write Common, Elvish, and one extra language of your choice.",
+        "description": "Você pode falar, ler e escrever Comum, Élfico e um idioma extra à sua escolha.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "half-elf"
       },
       {
-        "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
+        "description": "Você tem vantagem em testes de resistência contra ser enfeitiçado, e a magia não pode colocá-lo para dormir.",
         "key": "fey-ancestry",
-        "name": "Fey Ancestry",
+        "name": "Ancestralidade Feérica",
         "source": "half-elf"
       },
       {
-        "description": "You gain proficiency in two skills of your choice.",
+        "description": "Você ganha proficiência em duas perícias à sua escolha.",
         "key": "skill-versatility",
-        "name": "Skill Versatility",
+        "name": "Versatilidade em Perícias",
         "source": "half-elf"
       }
     ],
     "half-orc": [
       {
-        "description": "Your Strength score increases by 2, and your Constitution score increases by 1.",
+        "description": "Seu valor de Força aumenta em 2 e seu valor de Constituição aumenta em 1.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "half-orc"
       },
       {
-        "description": "Your base walking speed is 30 feet.",
+        "description": "Seu deslocamento base de caminhada é 30 pés.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "half-orc"
       },
       {
-        "description": "Thanks to your orc blood, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.",
+        "description": "Graças ao seu sangue orc, você possui uma visão superior em condições de escuridão e penumbra. Você pode enxergar na penumbra a até 60 pés de você como se fosse luz plena, e na escuridão como se fosse penumbra. Você não consegue discernir cores na escuridão, apenas tons de cinza.",
         "key": "darkvision",
-        "name": "Darkvision",
+        "name": "Visão no Escuro",
         "source": "half-orc"
       },
       {
-        "description": "Half-orcs mature a little faster than humans, reaching adulthood around age 14. They age noticeably faster and rarely live longer than 75 years.",
+        "description": "Meio-orcs amadurecem um pouco mais rápido que humanos, atingindo a idade adulta por volta dos 14 anos. Eles envelhecem visivelmente mais rápido e raramente vivem mais que 75 anos.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "half-orc"
       },
       {
-        "description": "Half-orcs inherit a tendency toward chaos from their orc parents and are not strongly inclined toward good. Half-orcs raised among orcs and willing to live out their lives among them are usually evil.",
+        "description": "Meio-orcs herdam uma tendência ao caos de seus pais orcs e não são fortemente inclinados ao bem. Meio-orcs criados entre orcs e dispostos a viver suas vidas entre eles são geralmente maus.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "half-orc"
       },
       {
-        "description": "Half-orcs are somewhat larger and bulkier than humans, and they range from 5 to well over 6 feet tall. Your size is Medium.",
+        "description": "Meio-orcs são um pouco maiores e mais robustos que humanos, e variam de 5 a bem mais de 6 pés de altura. Seu tamanho é Médio.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "half-orc"
       },
       {
-        "description": "You can speak, read, and write Common and Orc. Orc is a harsh, grating language with hard consonants. It has no script of its own but is written in the Dwarvish script.",
+        "description": "Você pode falar, ler e escrever Comum e Orc. Orc é um idioma áspero e estridente, com consoantes fortes. Ele não possui um alfabeto próprio, mas é escrito usando o alfabeto Anão.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "half-orc"
       },
       {
-        "description": "You gain proficiency in the Intimidation skill.",
+        "description": "Você ganha proficiência na perícia Intimidação.",
         "key": "menacing",
-        "name": "Menacing",
+        "name": "Ameaçador",
         "source": "half-orc"
       },
       {
-        "description": "When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. You can't use this feature again until you finish a long rest.",
+        "description": "Quando você é reduzido a 0 pontos de vida, mas não morto instantaneamente, você pode cair para 1 ponto de vida em vez disso. Você não pode usar essa característica novamente até terminar um descanso longo.",
         "key": "relentless-endurance",
-        "name": "Relentless Endurance",
+        "name": "Resistência Implacável",
         "source": "half-orc"
       },
       {
-        "description": "When you score a critical hit with a melee weapon attack, you can roll one of the weapon's damage dice one additional time and add it to the extra damage of the critical hit.",
+        "description": "Quando você consegue um acerto crítico com um ataque de arma corpo-a-corpo, você pode rolar um dos dados de dano da arma uma vez adicional e adicioná-lo ao dano extra do acerto crítico.",
         "key": "savage-attacks",
-        "name": "Savage Attacks",
+        "name": "Ataques Selvagens",
         "source": "half-orc"
       }
     ],
     "high-elf": [
       {
-        "description": "Your Dexterity score increases by 2.",
+        "description": "Seu valor de Destreza aumenta em 2.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "elf"
       },
       {
-        "description": "Your base walking speed is 30 feet.",
+        "description": "Seu deslocamento base de caminhada é 30 pés.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "elf"
       },
       {
-        "description": "Accustomed to twilit forests and the night sky, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.",
+        "description": "Acostumado a florestas crepusculares e ao céu noturno, você tem uma visão superior em condições de escuridão e penumbra. Você pode enxergar na penumbra a até 60 pés de você como se fosse luz plena, e na escuridão como se fosse penumbra. Você não consegue discernir cores na escuridão, apenas tons de cinza.",
         "key": "darkvision",
-        "name": "Darkvision",
+        "name": "Visão no Escuro",
         "source": "elf"
       },
       {
-        "description": "Although elves reach physical maturity at about the same age as humans, the elven understanding of adulthood goes beyond physical growth to encompass worldly experience. An elf typically claims adulthood and an adult name around the age of 100 and can live to be 750 years old.",
+        "description": "Embora os elfos alcancem a maturidade física por volta da mesma idade que os humanos, a compreensão élfica da idade adulta vai além do crescimento físico para abranger a experiência mundana. Um elfo tipicamente reivindica a idade adulta e um nome adulto por volta dos 100 anos e pode viver até 750 anos.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "elf"
       },
       {
-        "description": "Elves love freedom, variety, and self-­expression, so they lean strongly toward the gentler aspects of chaos. They value and protect others’ freedom as well as their own, and they are more often good than not.",
+        "description": "Elfos amam a liberdade, a variedade e a autoexpressão, por isso inclinam-se fortemente para os aspectos mais gentis do caos. Eles valorizam e protegem a liberdade dos outros tanto quanto a sua própria, e são mais frequentemente bons do que o contrário.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "elf"
       },
       {
-        "description": "Elves range from under 5 to over 6 feet tall and have slender builds. Your size is Medium.",
+        "description": "Elfos variam de menos de 5 a mais de 6 pés de altura e possuem constituições esguias. Seu tamanho é Médio.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "elf"
       },
       {
-        "description": "You can speak, read, and write Common and Elvish. Elvish is fluid, with subtle intonations and intricate grammar. Elven literature is rich and varied, and their songs and poems are famous among other races. Many bards learn their language so they can add Elvish ballads to their repertoires.",
+        "description": "Você pode falar, ler e escrever Comum e Élfico. O Élfico é fluido, com entonações sutis e gramática complexa. A literatura élfica é rica e variada, e suas canções e poemas são famosos entre as outras raças. Muitos bardos aprendem seu idioma para que possam adicionar baladas élficas aos seus repertórios.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "elf"
       },
       {
-        "description": "You have proficiency in the Perception skill.",
+        "description": "Você possui proficiência na perícia Percepção.",
         "key": "keen-senses",
-        "name": "Keen Senses",
+        "name": "Sentidos Aguçados",
         "source": "elf"
       },
       {
-        "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
+        "description": "Você tem vantagem em testes de resistência contra ser enfeitiçado, e a magia não pode colocá-lo para dormir.",
         "key": "fey-ancestry",
-        "name": "Fey Ancestry",
+        "name": "Ancestralidade Feérica",
         "source": "elf"
       },
       {
-        "description": "Elves don't need to sleep. Instead, they meditate deeply, remaining semiconscious, for 4 hours a day. (The Common word for such meditation is “trance.”) While meditating, you can dream after a fashion; such dreams are actually mental exercises that have become reflexive through years of practice. After resting in this way, you gain the same benefit that a human does from 8 hours of sleep.",
+        "description": "Elfos não precisam dormir. Em vez disso, eles meditam profundamente, permanecendo semiconscientes, por 4 horas por dia. (A palavra comum para tal meditação é “transe”.) Enquanto medita, você pode sonhar de certa forma; tais sonhos são, na verdade, exercícios mentais que se tornaram reflexivos através de anos de prática. Após descansar desta forma, você ganha o mesmo benefício que um humano obtém de 8 horas de sono.",
         "key": "trance",
-        "name": "Trance",
+        "name": "Transe",
         "source": "elf"
       },
       {
-        "description": "Your Intelligence score increases by 1.",
+        "description": "Seu valor de Inteligência aumenta em 1.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "high-elf"
       },
       {
-        "description": "You have proficiency with the longsword, shortsword, shortbow, and longbow.",
+        "description": "Você tem proficiência com espada longa, espada curta, arco curto e arco longo.",
         "key": "elf-weapon-training",
-        "name": "Elf Weapon Training",
+        "name": "Treinamento com Armas Élficas",
         "source": "high-elf"
       },
       {
-        "description": "You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it.",
+        "description": "Você conhece um truque à sua escolha da lista de magias de mago. Inteligência é sua habilidade de conjuração para ele.",
         "key": "cantrip",
-        "name": "Cantrip",
+        "name": "Truque",
         "source": "high-elf"
       },
       {
-        "description": "You can speak, read, and write one extra language of your choice.",
+        "description": "Você pode falar, ler e escrever um idioma adicional à sua escolha.",
         "key": "extra-language",
-        "name": "Extra Language",
+        "name": "Idioma Adicional",
         "source": "high-elf"
       }
     ],
     "hill-dwarf": [
       {
-        "description": "Your Constitution score increases by 2.",
+        "description": "Seu valor de Constituição aumenta em 2.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "dwarf"
       },
       {
-        "description": "Your base walking speed is 25 feet. Your speed is not reduced by wearing heavy armor.",
+        "description": "Seu deslocamento base de caminhada é 25 pés. Seu deslocamento não é reduzido por usar armadura pesada.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "dwarf"
       },
       {
-        "description": "Accustomed to life underground, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.",
+        "description": "Acostumado à vida subterrânea, você tem uma visão superior em condições de escuridão e penumbra. Você pode enxergar na penumbra a até 60 pés de você como se fosse luz plena, e na escuridão como se fosse penumbra. Você não consegue discernir cores na escuridão, apenas tons de cinza.",
         "key": "darkvision",
-        "name": "Darkvision",
+        "name": "Visão no Escuro",
         "source": "dwarf"
       },
       {
-        "description": "Dwarves mature at the same rate as humans, but they're considered young until they reach the age of 50. On average, they live about 350 years.",
+        "description": "Anões amadurecem na mesma proporção que humanos, mas são considerados jovens até atingirem a idade de 50 anos. Em média, eles vivem cerca de 350 anos.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "dwarf"
       },
       {
-        "description": "Most dwarves are lawful, believing firmly in the benefits of a well-ordered society. They tend toward good as well, with a strong sense of fair play and a belief that everyone deserves to share in the benefits of a just order.",
+        "description": "A maioria dos anões é leal, acreditando firmemente nos benefícios de uma sociedade bem ordenada. Eles tendem ao bem também, com um forte senso de jogo justo e a crença de que todos merecem compartilhar os benefícios de uma ordem justa.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "dwarf"
       },
       {
-        "description": "Dwarves stand between 4 and 5 feet tall and average about 150 pounds. Your size is Medium.",
+        "description": "Anões têm entre 4 e 5 pés de altura e pesam em média cerca de 150 libras. Seu tamanho é Médio.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "dwarf"
       },
       {
-        "description": "You can speak, read, and write Common and Dwarvish. Dwarvish is full of hard consonants and guttural sounds, and those characteristics spill over into whatever other language a dwarf might speak.",
+        "description": "Você pode falar, ler e escrever Comum e Anão. O idioma Anão é cheio de consoantes duras e sons guturais, e essas características transbordam para qualquer outro idioma que um anão possa falar.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "dwarf"
       },
       {
-        "description": "You have advantage on saving throws against poison, and you have resistance against poison damage.",
+        "description": "Você tem vantagem em testes de resistência contra veneno e possui resistência contra dano de veneno.",
         "key": "dwarven-resilience",
-        "name": "Dwarven Resilience",
+        "name": "Resiliência Anã",
         "source": "dwarf"
       },
       {
-        "description": "You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
+        "description": "Você tem proficiência com machado de batalha, machadinha, martelo leve e martelo de guerra.",
         "key": "dwarven-combat-training",
-        "name": "Dwarven Combat Training",
+        "name": "Treinamento de Combate Anão",
         "source": "dwarf"
       },
       {
-        "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
+        "description": "Você ganha proficiência com as ferramentas de artesão de sua escolha: ferramentas de ferreiro, suprimentos de cervejeiro ou ferramentas de pedreiro.",
         "key": "tool-proficiency",
-        "name": "Tool Proficiency",
+        "name": "Proficiência com Ferramentas",
         "source": "dwarf"
       },
       {
-        "description": "Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check, instead of your normal proficiency bonus.",
+        "description": "Sempre que você realizar um teste de Inteligência (História) relacionado à origem de trabalhos em pedra, você é considerado proficiente na perícia História e adiciona o dobro do seu bônus de proficiência ao teste, em vez do seu bônus de proficiência normal.",
         "key": "stonecunning",
-        "name": "Stonecunning",
+        "name": "Conhecimento de Pedras",
         "source": "dwarf"
       },
       {
-        "description": "Your Wisdom score increases by 1.",
+        "description": "Seu valor de Sabedoria aumenta em 1.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "hill-dwarf"
       },
       {
-        "description": "Your hit point maximum increases by 1, and it increases by 1 every time you gain a level.",
+        "description": "Seu máximo de pontos de vida aumenta em 1, e aumenta em 1 cada vez que você ganha um nível.",
         "key": "dwarven-toughness",
-        "name": "Dwarven Toughness",
+        "name": "Resistência Anã",
         "source": "hill-dwarf"
       }
     ],
     "human": [
       {
-        "description": "Your ability scores each increase by 1.",
+        "description": "Seus valores de habilidade aumentam em 1 cada.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "human"
       },
       {
-        "description": "Your base walking speed is 30 feet.",
+        "description": "Seu deslocamento base de caminhada é 30 pés.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "human"
       },
       {
-        "description": "Humans reach adulthood in their late teens and live less than a century.",
+        "description": "Humanos atingem a idade adulta no final da adolescência e vivem menos de um século.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "human"
       },
       {
-        "description": "Humans tend toward no particular alignment. The best and the worst are found among them.",
+        "description": "Humanos tendem a não ter uma tendência específica. Os melhores e os piores são encontrados entre eles.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "human"
       },
       {
-        "description": "Humans vary widely in height and build, from barely 5 feet to well over 6 feet tall. Regardless of your position in that range, your size is Medium.",
+        "description": "Humanos variam muito em altura e compleição, de pouco mais de 5 pés a bem mais de 6 pés de altura. Independentemente da sua posição nessa faixa, seu tamanho é Médio.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "human"
       },
       {
-        "description": "You can speak, read, and write Common and one extra language of your choice. Humans typically learn the languages of other peoples they deal with, including obscure dialects. They are fond of sprinkling their speech with words borrowed from other tongues: Orc curses, Elvish musical expressions, Dwarvish military phrases, and so on.",
+        "description": "Você pode falar, ler e escrever Comum e um idioma extra à sua escolha. Humanos tipicamente aprendem os idiomas de outros povos com os quais lidam, incluindo dialetos obscuros. Eles gostam de salpicar sua fala com palavras emprestadas de outras línguas: maldições de Orc, expressões musicais de Elfo, frases militares de Anão, e assim por diante.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "human"
       }
     ],
     "lightfoot": [
       {
-        "description": "Your Dexterity score increases by 2.",
+        "description": "Seu valor de Destreza aumenta em 2.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "halfling"
       },
       {
-        "description": "Your base walking speed is 25 feet.",
+        "description": "Seu deslocamento base de caminhada é 25 pés.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "halfling"
       },
       {
-        "description": "A halfling reaches adulthood at the age of 20 and generally lives into the middle of his or her second century.",
+        "description": "Um halfling atinge a idade adulta aos 20 anos e geralmente vive até meados do seu segundo século.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "halfling"
       },
       {
-        "description": "Most halflings are lawful good. As a rule, they are good-hearted and kind, hate to see others in pain, and have no tolerance for oppression. They are also very orderly and traditional, leaning heavily on the support of their community and the comfort of their old ways.",
+        "description": "A maioria dos halflings é leal e boa. Como regra, eles são bondosos e gentis, odeiam ver outros sofrendo e não têm tolerância para a opressão. Eles também são muito ordeiros e tradicionais, apoiando-se fortemente no suporte de sua comunidade e no conforto de seus velhos costumes.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "halfling"
       },
       {
-        "description": "Halflings average about 3 feet tall and weigh about 40 pounds. Your size is Small.",
+        "description": "Halflings têm em média cerca de 3 pés de altura e pesam cerca de 40 libras. Seu tamanho é Pequeno.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "halfling"
       },
       {
-        "description": "You can speak, read, and write Common and Halfling. The Halfling language isn't secret, but halflings are loath to share it with others. They write very little, so they don't have a rich body of literature. Their oral tradition, however, is very strong. Almost all halflings speak Common to converse with the people in whose lands they dwell or through which they are traveling.",
+        "description": "Você pode falar, ler e escrever Comum e Halfling. O idioma Halfling não é secreto, mas os halflings relutam em compartilhá-lo com outros. Eles escrevem muito pouco, por isso não possuem um rico corpo de literatura. Sua tradição oral, no entanto, é muito forte. Quase todos os halflings falam Comum para conversar com as pessoas em cujas terras eles habitam ou através das quais estão viajando.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "halfling"
       },
       {
-        "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.",
+        "description": "Quando você rolar um 1 no d20 para uma jogada de ataque, teste de habilidade ou teste de resistência, você pode rolar o dado novamente e deve usar o novo resultado.",
         "key": "lucky",
-        "name": "Lucky",
+        "name": "Sortudo",
         "source": "halfling"
       },
       {
-        "description": "You have advantage on saving throws against being frightened.",
+        "description": "Você tem vantagem em testes de resistência contra ser amedrontado.",
         "key": "brave",
-        "name": "Brave",
+        "name": "Bravo",
         "source": "halfling"
       },
       {
-        "description": "You can move through the space of any creature that is of a size larger than yours.",
+        "description": "Você pode se mover através do espaço de qualquer criatura que seja de um tamanho maior que o seu.",
         "key": "halfling-nimbleness",
-        "name": "Halfling Nimbleness",
+        "name": "Agilidade Halfling",
         "source": "halfling"
       },
       {
-        "description": "Your Charisma score increases by 1.",
+        "description": "Seu valor de Carisma aumenta em 1.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "lightfoot"
       },
       {
-        "description": "You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you.",
+        "description": "Você pode tentar se esconder mesmo quando estiver obscurecido apenas por uma criatura que seja pelo menos um tamanho maior que você.",
         "key": "naturally-stealthy",
-        "name": "Naturally Stealthy",
+        "name": "Naturalmente Furtivo",
         "source": "lightfoot"
       }
     ],
     "rock-gnome": [
       {
-        "description": "Your Intelligence score increases by 2.",
+        "description": "Seu valor de Inteligência aumenta em 2.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "gnome"
       },
       {
-        "description": "Your base walking speed is 25 feet.",
+        "description": "Seu deslocamento base de caminhada é 25 pés.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "gnome"
       },
       {
-        "description": "Accustomed to life underground, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.",
+        "description": "Acostumado à vida subterrânea, você tem uma visão superior em condições de escuridão e penumbra. Você pode enxergar na penumbra a até 60 pés de você como se fosse luz plena, e na escuridão como se fosse penumbra. Você não consegue discernir cores na escuridão, apenas tons de cinza.",
         "key": "darkvision",
-        "name": "Darkvision",
+        "name": "Visão no Escuro",
         "source": "gnome"
       },
       {
-        "description": "Gnomes mature at the same rate humans do, and most are expected to settle down into an adult life by around age 40. They can live 350 to almost 500 years.",
+        "description": "Gnomos amadurecem na mesma proporção que os humanos, e a maioria espera se estabelecer em uma vida adulta por volta dos 40 anos. Eles podem viver de 350 a quase 500 anos.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "gnome"
       },
       {
-        "description": "Gnomes are most often good. Those who tend toward law are sages, engineers, researchers, scholars, investigators, or inventors. Those who tend toward chaos are minstrels, tricksters, wanderers, or fanciful jewelers. Gnomes are good-hearted, and even the tricksters among them are more playful than vicious.",
+        "description": "Gnomos são, na maioria das vezes, bons. Aqueles que tendem à ordem são sábios, engenheiros, pesquisadores, estudiosos, investigadores ou inventores. Aqueles que tendem ao caos são menestréis, trapaceiros, andarilhos ou joalheiros criativos. Gnomos são bondosos, e mesmo os trapaceiros entre eles são mais brincalhões do que cruéis.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "gnome"
       },
       {
-        "description": "Gnomes are between 3 and 4 feet tall and average about 40 pounds. Your size is Small.",
+        "description": "Gnomos têm entre 3 e 4 pés de altura e pesam em média cerca de 40 libras. Seu tamanho é Pequeno.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "gnome"
       },
       {
-        "description": "You can speak, read, and write Common and Gnomish. The Gnomish language, which uses the Dwarvish script, is renowned for its technical treatises and its catalogs of knowledge about the natural world.",
+        "description": "Você pode falar, ler e escrever Comum e Gnomo. O idioma Gnomo, que usa o alfabeto Anão, é renomado por seus tratados técnicos e seus catálogos de conhecimento sobre o mundo natural.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "gnome"
       },
       {
-        "description": "You have advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
+        "description": "Você tem vantagem em todos os testes de resistência de Inteligência, Sabedoria e Carisma contra magia.",
         "key": "gnome-cunning",
-        "name": "Gnome Cunning",
+        "name": "Astúcia Gnomo",
         "source": "gnome"
       },
       {
-        "description": "Your Constitution score increases by 1.",
+        "description": "Seu valor de Constituição aumenta em 1.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "rock-gnome"
       },
       {
-        "description": "Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.",
+        "description": "Sempre que você fizer um teste de Inteligência (História) relacionado a itens mágicos, objetos alquímicos ou dispositivos tecnológicos, você pode adicionar o dobro do seu bônus de proficiência, em vez de qualquer bônus de proficiência que você normalmente aplicaria.",
         "key": "artificers-lore",
-        "name": "Artificer's Lore",
+        "name": "Conhecimento do Artífice",
         "source": "rock-gnome"
       },
       {
-        "description": "You have proficiency with artisan's tools (tinker's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time. When you create a device, choose one of the following options: * _Clockwork Toy._ This toy is a clockwork animal, monster, or person, such as a frog, mouse, bird, dragon, or soldier. When placed on the ground, the toy moves 5 feet across the ground on each of your turns in a random direction. It makes noises as appropriate to the creature it represents. * _Fire Starter._ The device produces a miniature flame, which you can use to light a candle, torch, or campfire. Using the device requires your action. * _Music Box._ When opened, this music box plays a single song at a moderate volume. The box stops playing when it reaches the song's end or when it is closed.",
+        "description": "Você tem proficiência com ferramentas de artesão (ferramentas de funileiro). Usando essas ferramentas, você pode gastar 1 hora e 10 po em materiais para construir um dispositivo mecânico Minúsculo (CA 5, 1 pv). O dispositivo para de funcionar após 24 horas (a menos que você gaste 1 hora consertando-o para mantê-lo funcionando), ou quando você usa sua ação para desmontá-lo; nesse momento, você pode recuperar os materiais usados para criá-lo. Você pode ter até três desses dispositivos ativos por vez. Quando você cria um dispositivo, escolha uma das seguintes opções: * Brinquedo Mecânico. Este brinquedo é um animal, monstro ou pessoa mecânica, como um sapo, rato, pássaro, dragão ou soldado. Quando colocado no chão, o brinquedo se move 5 pés pelo chão em cada um dos seus turnos em uma direção aleatória. Ele faz ruídos apropriados à criatura que representa. * Acendedor de Fogo. O dispositivo produz uma chama em miniatura, que você pode usar para acender uma vela, tocha ou fogueira. Usar o dispositivo requer sua ação. * Caixa de Música. Quando aberta, esta caixa de música toca uma única canção em volume moderado. A caixa para de tocar quando chega ao fim da canção ou quando é fechada.",
         "key": "tinker",
-        "name": "Tinker",
+        "name": "Engenho",
         "source": "rock-gnome"
       }
     ],
     "tiefling": [
       {
-        "description": "Your Intelligence score increases by 1, and your Charisma score increases by 2.",
+        "description": "Seu valor de Inteligência aumenta em 1 e seu valor de Carisma aumenta em 2.",
         "key": "ability-score-increase",
-        "name": "Ability Score Increase",
+        "name": "Aumento no Valor de Habilidade",
         "source": "tiefling"
       },
       {
-        "description": "Your base walking speed is 30 feet.",
+        "description": "Seu deslocamento base de caminhada é 30 pés.",
         "key": "speed",
-        "name": "Speed",
+        "name": "Deslocamento",
         "source": "tiefling"
       },
       {
-        "description": "Thanks to your infernal heritage, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.",
+        "description": "Graças à sua herança infernal, você possui uma visão superior em condições de escuridão e penumbra. Você pode enxergar na penumbra a até 60 pés de você como se fosse luz plena, e na escuridão como se fosse penumbra. Você não consegue discernir cores na escuridão, apenas tons de cinza.",
         "key": "darkvision",
-        "name": "Darkvision",
+        "name": "Visão no Escuro",
         "source": "tiefling"
       },
       {
-        "description": "Tieflings mature at the same rate as humans but live a few years longer.",
+        "description": "Tieflings amadurecem na mesma proporção que os humanos, mas vivem alguns anos a mais.",
         "key": "age",
-        "name": "Age",
+        "name": "Idade",
         "source": "tiefling"
       },
       {
-        "description": "Tieflings might not have an innate tendency toward evil, but many of them end up there. Evil or not, an independent nature inclines many tieflings toward a chaotic alignment.",
+        "description": "Tieflings podem não ter uma tendência inata para o mal, mas muitos deles acabam seguindo esse caminho. Sendo malignos ou não, uma natureza independente inclina muitos tieflings para uma tendência caótica.",
         "key": "alignment",
-        "name": "Alignment",
+        "name": "Tendência",
         "source": "tiefling"
       },
       {
-        "description": "Tieflings are about the same size and build as humans. Your size is Medium.",
+        "description": "Tieflings têm aproximadamente o mesmo tamanho e compleição física que os humanos. Seu tamanho é Médio.",
         "key": "size",
-        "name": "Size",
+        "name": "Tamanho",
         "source": "tiefling"
       },
       {
-        "description": "You can speak, read, and write Common and Infernal.",
+        "description": "Você pode falar, ler e escrever Comum e Infernal.",
         "key": "languages",
-        "name": "Languages",
+        "name": "Idiomas",
         "source": "tiefling"
       },
       {
-        "description": "You have resistance to fire damage.",
+        "description": "Você possui resistência a dano de fogo.",
         "key": "hellish-resistance",
-        "name": "Hellish Resistance",
+        "name": "Resistência Infernal",
         "source": "tiefling"
       },
       {
-        "description": "You know the thaumaturgy cantrip. When you reach 3rd level, you can cast the hellish rebuke spell as a 2nd-level spell once with this trait and regain the ability to do so when you finish a long rest. When you reach 5th level, you can cast the darkness spell once with this trait and regain the ability to do so when you finish a long rest. Charisma is your spellcasting ability for these spells.",
+        "description": "Você conhece o truque taumaturgia. Quando você atinge o 3º nível, você pode conjurar a magia repreensão infernal como uma magia de 2º nível uma vez com este traço e recupera a habilidade de fazê-lo quando terminar um descanso longo. Quando você atinge o 5º nível, você pode conjurar a magia escuridão uma vez com este traço e recupera a habilidade de fazê-lo quando terminar um descanso longo. Carisma é sua habilidade de conjuração para essas magias.",
         "key": "infernal-legacy",
-        "name": "Infernal Legacy",
+        "name": "Legado Infernal",
         "source": "tiefling"
       }
     ]
@@ -4148,6 +4148,7 @@
   "races": [
     {
       "blurb": "Sangue dracônico à vista: escamas, sopro elemental e uma reputação que chega antes de você.",
+      "bonus": "+2 Força, +1 Carisma",
       "key": "dragonborn",
       "kicker": "Herança de dragão",
       "label": "Dragonborn"
@@ -4160,6 +4161,7 @@
     },
     {
       "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão.",
+      "bonus": "+2 Constituição, +1 Sabedoria",
       "key": "hill-dwarf",
       "kicker": "Intuição das colinas",
       "label": "Anão da Colina",
@@ -4173,6 +4175,7 @@
     },
     {
       "blurb": "Não precisa de sono de verdade, enxerga no escuro e se move com uma elegância que poucos povos conseguem imitar.",
+      "bonus": "+2 Destreza, +1 Inteligência",
       "key": "high-elf",
       "kicker": "Magia no sangue élfico",
       "label": "Alto-elfo",
@@ -4186,6 +4189,7 @@
     },
     {
       "blurb": "Pequeno, esperto e imune a boa parte da magia que mexe com a mente — a curiosidade dele já causou mais problema (e solução) do que se imagina.",
+      "bonus": "+1 Constituição, +2 Inteligência",
       "key": "rock-gnome",
       "kicker": "Mãos de inventor",
       "label": "Gnomo das Rochas",
@@ -4193,12 +4197,14 @@
     },
     {
       "blurb": "Não é totalmente humano nem totalmente élfico, e usa esse trânsito entre os dois povos para conversar com quase qualquer um.",
+      "bonus": "+2 Carisma, +1 em 2 outros atributos à sua escolha",
       "key": "half-elf",
       "kicker": "Entre dois mundos",
       "label": "Meio-Elfo"
     },
     {
       "blurb": "Herdou o fôlego e o músculo do sangue orc — cai, levanta de novo e continua batendo até o fim da luta.",
+      "bonus": "+2 Força, +1 Constituição",
       "key": "half-orc",
       "kicker": "Força que não recua",
       "label": "Meio-Orc"
@@ -4211,6 +4217,7 @@
     },
     {
       "blurb": "Baixinho, ágil e estranhamente difícil de acertar — a sorte parece favorecer quem sabe se esconder atrás de qualquer coisa maior que ele.",
+      "bonus": "+2 Destreza, +1 Carisma",
       "key": "lightfoot",
       "kicker": "Invisível na multidão",
       "label": "Halfling Pés-Leves",
@@ -4218,12 +4225,14 @@
     },
     {
       "blurb": "Não tem truque racial nenhum — só adaptabilidade, ambição e a capacidade de virar praticamente qualquer coisa que decidir ser.",
+      "bonus": "+1 em todos os atributos",
       "key": "human",
       "kicker": "Versátil, sem exagero",
       "label": "Humano"
     },
     {
       "blurb": "Carrega chifres, cauda e um pedaço de herança infernal que assusta quem não conhece — e resistência a fogo que salva a pele em mais de uma briga.",
+      "bonus": "+1 Inteligência, +2 Carisma",
       "key": "tiefling",
       "kicker": "Marca infernal",
       "label": "Tiefling"

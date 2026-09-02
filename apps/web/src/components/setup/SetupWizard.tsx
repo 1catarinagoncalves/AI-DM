@@ -733,7 +733,11 @@ export function SetupWizard() {
 
             {step === 'race' && system && (
               <div>
-                <SectionTitle>{t('setup.race.titulo')}</SectionTitle>
+                {/* Cabeçalho de 3 partes (eyebrow/heading/subtítulo) — bate com o protótipo
+                    de referência em vez do titulo curto que as outras etapas usam. */}
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">{t('setup.race.eyebrow')}</p>
+                <SectionTitle>{t('setup.race.heading')}</SectionTitle>
+                <p className="mt-1 max-w-prose text-sm text-muted-foreground">{t('setup.race.subtitulo')}</p>
                 {/* US-142: raiz COM subespécie deixa de ser cartão selecionável — vira cabeçalho
                     de um subgrupo de cartões (a regra da US-142 preservada, noutra forma: era
                     <optgroup>, agora `groupRaceCatalog` monta os grupos). Raiz SEM subespécie

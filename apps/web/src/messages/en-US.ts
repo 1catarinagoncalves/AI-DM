@@ -90,7 +90,9 @@ export const enUS: Record<MessageKey, string> = {
 
   // ---- wizard: class and race (US-205: two steps, `class` then `race`) ----
   'setup.class.titulo': 'Class',
-  'setup.race.titulo': 'Race',
+  'setup.race.eyebrow': 'Choose a species',
+  'setup.race.heading': 'Where does your blood come from?',
+  'setup.race.subtitulo': 'Your species brings ability bonuses, senses, and unique traits — some have variants to refine further.',
   'setup.raceClass.system': 'System: {name}',
   'setup.raceClass.name': 'Character name',
   'setup.raceClass.namePlaceholder': 'E.g.: Lyra Silvermoon',

@@ -14,6 +14,7 @@ import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures,
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
 import { parseD20Tests } from './d20-tests.mjs'
+import { parseAbilityScoreIncrease, buildRaceBonuses } from './race-bonus.mjs'
 
 const OVERLAY_PATH = join(import.meta.dirname, 'locale', 'pt-BR.json')
 
@@ -98,7 +99,7 @@ test('buildRaceFeatures: raiz com subespécie combina raiz+próprios sem dedupe;
     traitRow('srd_hill-dwarf_dwarven-toughness', 'Dwarven Toughness', '+1 HP per level.', 'srd_hill-dwarf'),
     traitRow('srd_human_ability-score-increase', 'Ability Score Increase', '+1 all.', 'srd_human'),
   ]
-  const result = buildRaceFeatures(races, speciesTraits)
+  const result = buildRaceFeatures({}, races, speciesTraits, identityResolve)
 
   // Raiz-com-subespécie some do mapa — não é mais chave jogável (US-142 reverte a US-140 #1).
   assert.equal(result.dwarf, undefined)
@@ -120,7 +121,73 @@ test('buildRaceFeatures: raiz com subespécie combina raiz+próprios sem dedupe;
 
 test('buildRaceFeatures: raça sem trait nenhum no dataset entra com lista vazia (nunca some da chave)', () => {
   const races = [{ key: 'tiefling', label: 'Tiefling' }]
-  assert.deepEqual(buildRaceFeatures(races, []), { tiefling: [] })
+  assert.deepEqual(buildRaceFeatures({}, races, [], identityResolve), { tiefling: [] })
+})
+
+// Reverte o "Fora do escopo" da US-142 — raceFeatures passa a ter overlay/resolve (mesmo
+// padrão de buildClassFeatures), chave combinada pra não colidir ("darkvision" existe em
+// várias raças com descrição diferente).
+test('buildRaceFeatures: overlay traduz por chave "raça_slug"; sem entrada cai no fallback EN e registra em `fallbacks`', () => {
+  const races = [{ key: 'dwarf', label: 'Dwarf' }]
+  const speciesTraits = [
+    traitRow('srd_dwarf_darkvision', 'Darkvision', 'You can see in the dark.', 'srd_dwarf'),
+    traitRow('srd_dwarf_stonecunning', 'Stonecunning', 'You add double your proficiency.', 'srd_dwarf'),
+  ]
+  const overlay = { raceFeatures: { dwarf_darkvision: { name: 'Visão no Escuro', description: 'Você enxerga no escuro.' } } }
+  const { resolve, fallbacks } = makeResolver()
+  const result = buildRaceFeatures(overlay, races, speciesTraits, resolve)
+
+  assert.deepEqual(result.dwarf, [
+    { key: 'darkvision', name: 'Visão no Escuro', description: 'Você enxerga no escuro.', source: 'dwarf' },
+    { key: 'stonecunning', name: 'Stonecunning', description: 'You add double your proficiency.', source: 'dwarf' },
+  ])
+  assert.deepEqual(fallbacks.map((f) => f.key), ['dwarf_stonecunning'])
+})
+
+const ATTRS = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
+
+test('parseAbilityScoreIncrease: duas cláusulas fixas ("Your X ..., and your Y ...")', () => {
+  assert.deepEqual(
+    parseAbilityScoreIncrease('Your Strength score increases by 2, and your Constitution score increases by 1.', ATTRS),
+    { fixed: [{ attr: 'strength', amount: 2 }, { attr: 'constitution', amount: 1 }], choice: null },
+  )
+})
+
+test('parseAbilityScoreIncrease: "each increase by N" (Human) vira as 6 chaves na ordem recebida', () => {
+  assert.deepEqual(parseAbilityScoreIncrease('Your ability scores each increase by 1.', ATTRS), {
+    fixed: ATTRS.map((attr) => ({ attr, amount: 1 })),
+    choice: null,
+  })
+})
+
+test('parseAbilityScoreIncrease: cláusula de escolha livre (Half-Elf) separa fixo de choice', () => {
+  assert.deepEqual(
+    parseAbilityScoreIncrease('Your Charisma score increases by 2, and two other ability scores of your choice increase by 1.', ATTRS),
+    { fixed: [{ attr: 'charisma', amount: 2 }], choice: { count: 2, amount: 1 } },
+  )
+})
+
+test('buildRaceBonuses: subespécie soma o bônus da raiz com o próprio, formatado com o rótulo do attributes', () => {
+  const raceFeatures = {
+    'hill-dwarf': [
+      { key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your Constitution score increases by 2.', source: 'dwarf' },
+      { key: 'darkvision', name: 'Darkvision', description: '60 feet.', source: 'dwarf' },
+      { key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your Wisdom score increases by 1.', source: 'hill-dwarf' },
+    ],
+  }
+  const attributes = [{ key: 'constitution', label: 'Constituição' }, { key: 'wisdom', label: 'Sabedoria' }]
+  assert.deepEqual(buildRaceBonuses(raceFeatures, attributes, 'pt-BR'), { 'hill-dwarf': '+2 Constituição, +1 Sabedoria' })
+})
+
+test('buildRaceBonuses: raça sem traço "Ability Score Increase" não entra no resultado', () => {
+  const raceFeatures = { tiefling: [{ key: 'darkvision', name: 'Darkvision', description: '60 feet.', source: 'tiefling' }] }
+  assert.deepEqual(buildRaceBonuses(raceFeatures, [], 'pt-BR'), {})
+})
+
+test('buildRaceBonuses: Human vira frase curta em vez de 6 fragmentos "+1 X"', () => {
+  const raceFeatures = { human: [{ key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your ability scores each increase by 1.', source: 'human' }] }
+  const attributes = ATTRS.map((key) => ({ key, label: key }))
+  assert.deepEqual(buildRaceBonuses(raceFeatures, attributes, 'en-US'), { human: '+1 to all abilities' })
 })
 
 const RAGE = { en: 'Rage', pt: 'Fúria' }
@@ -561,12 +628,29 @@ test('artefato en-US: high-elf combina os 10 traços de elf + os 4 próprios, AS
   assert.deepEqual(asi.map((f) => f.source), ['elf', 'high-elf'])
 })
 
-// US-142: raceFeatures nasce EN puro nos dois locales (decisão de produto, §Fora do escopo) —
-// sem overlay pt-BR, os dois artefatos têm de ser byte-a-byte iguais neste campo.
-test('raceFeatures: EN e pt-BR são idênticos (sem overlay de tradução nesta story)', () => {
+// Reverte o "Fora do escopo" da US-142: raceFeatures agora traduz por overlay (mesmo padrão
+// de backgroundEquipment logo abaixo) — nome/descrição podem divergir por locale, mas a
+// ESTRUTURA (quais raças, quantos traços cada uma, `key`/`source` por posição) tem que bater:
+// é o mesmo dataset lido duas vezes, só o texto muda.
+test('raceFeatures: EN e pt-BR têm as mesmas raças, mesma contagem e mesma key/source por posição', () => {
   const en = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
   const ptBr = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.pt-BR.json'), 'utf8'))
-  assert.deepEqual(ptBr.raceFeatures, en.raceFeatures)
+  assert.deepEqual(Object.keys(ptBr.raceFeatures).sort(), Object.keys(en.raceFeatures).sort())
+  for (const raceKey of Object.keys(en.raceFeatures)) {
+    const shape = (list) => list.map((f) => ({ key: f.key, source: f.source }))
+    assert.deepEqual(shape(ptBr.raceFeatures[raceKey]), shape(en.raceFeatures[raceKey]), `raceFeatures.${raceKey}`)
+  }
+})
+
+// O bônus de atributo lê o traço "Ability Score Increase" em INGLÊS mesmo na passagem pt-BR
+// — regressão direta de ter ligado a tradução: sem o recálculo com resolve identidade
+// (`EN_IDENTITY_RESOLVE`), o parser (que só entende a frase EN do SRD) veria prosa
+// em português e o bônus sumiria silenciosamente do config pt-BR inteiro.
+test('config pt-BR: bônus de atributo sobrevive à tradução dos traços raciais', () => {
+  const ptBr = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.pt-BR.json'), 'utf8'))
+  const withBonus = ptBr.races.filter((r) => r.bonus)
+  assert.ok(withBonus.length >= 9, `esperava >=9 raças com bonus, achou ${withBonus.length}`)
+  assert.equal(ptBr.races.find((r) => r.key === 'human').bonus, '+1 em todos os atributos')
 })
 
 // US-128: os dois artefatos concordam nos nomes EN dos itens (mesma fonte, `b.fields.desc`

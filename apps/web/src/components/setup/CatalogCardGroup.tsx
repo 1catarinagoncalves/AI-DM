@@ -3,10 +3,13 @@
 import { optionCardClass } from '@/components/ui/dm'
 
 // US-205: cartão de catálogo (classe, raça, subclasse) — nome, `kicker`/`blurb` opcionais
-// (US-203) e espaço reservado da arte (US-205 §Fora do escopo: arte em si não é desta story).
+// (US-203) no layout do protótipo de referência (nome, depois kicker, depois blurb, sem
+// espaço reservado de arte — o placeholder original nunca chegou a ganhar arte de verdade,
+// tirado num pedido posterior de ajuste visual). `bonus` (ex.: "+2 Destreza") é o aumento de
+// atributo da raça, derivado no ingest do SRD (ver `scripts/srd/race-bonus.mjs`).
 // Mesmo contrato de campo que `SystemCatalogEntry` (@ai-dm/shared), sem importar o tipo
-// inteiro: este componente só lê key/label/kicker/blurb, nunca grava no catálogo.
-export type CatalogCardEntry = { key: string; label: string; kicker?: string; blurb?: string }
+// inteiro: este componente só lê key/label/kicker/blurb/bonus, nunca grava no catálogo.
+export type CatalogCardEntry = { key: string; label: string; kicker?: string; blurb?: string; bonus?: string }
 
 // Um grupo de cartões, com cabeçalho opcional — usado pela raiz de raça que TEM subespécie
 // (US-142): a raiz vira `header`, a(s) subespécie(s) são os `items` selecionáveis. Grupo sem
@@ -38,19 +41,17 @@ export function CatalogCardGroup({ name, legend, groups, value, onChange }: {
             {group.header && (
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.header}</p>
             )}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
               {group.items.map(entry => (
                 <label key={entry.key} className={optionCardClass(value === entry.key)}>
                   <input type="radio" name={name} value={entry.key} checked={value === entry.key}
                     onChange={() => onChange(entry.key)} className="sr-only" />
-                  {/* Espaço reservado da arte (US-205 §Fora do escopo) — sem `alt`/conteúdo,
-                      `aria-hidden` pra não virar ruído no nome acessível do rádio. */}
-                  <span aria-hidden className="mb-2 block aspect-[3/1] rounded-sm bg-background/60" />
-                  {entry.kicker && (
-                    <span className="block text-[10px] font-semibold uppercase tracking-wide text-primary/80">{entry.kicker}</span>
-                  )}
                   <span className="block font-serif text-base font-semibold text-parchment">{entry.label}</span>
+                  {entry.kicker && (
+                    <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{entry.kicker}</span>
+                  )}
                   {entry.blurb && <span className="mt-1 block text-xs text-muted-foreground">{entry.blurb}</span>}
+                  {entry.bonus && <span className="mt-2 block text-[11px] font-medium text-primary">{entry.bonus}</span>}
                 </label>
               ))}
             </div>

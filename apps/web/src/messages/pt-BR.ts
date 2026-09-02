@@ -98,7 +98,12 @@ export const ptBR = {
 
   // ---- wizard: classe e raça (US-205: duas etapas, `class` seguida de `race`) ----
   'setup.class.titulo': 'Classe',
-  'setup.race.titulo': 'Raça',
+  // Cabeçalho de 3 partes da etapa raça (eyebrow/heading/subtítulo), pra bater com o
+  // protótipo de referência (wizard-criacao-personagem-referencia.html) — as outras etapas
+  // ainda usam só titulo+subtitulo, este é o único com a pergunta evocativa em separado.
+  'setup.race.eyebrow': 'Escolha uma espécie',
+  'setup.race.heading': 'De onde vem o seu sangue?',
+  'setup.race.subtitulo': 'Sua espécie traz bônus de atributo, sentidos e traços únicos — algumas têm variantes para refinar ainda mais.',
   'setup.raceClass.system': 'Sistema: {name}',
   'setup.raceClass.name': 'Nome do personagem',
   'setup.raceClass.namePlaceholder': 'Ex.: Lyra Silvermoon',

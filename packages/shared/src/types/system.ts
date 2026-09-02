@@ -45,8 +45,13 @@ export const SystemCatalogEntrySchema = z.object({
 // só para `config.races` — `classes` fica no schema genérico acima, sem o campo (subclasse
 // é catálogo `Record<classKey, …>` separado, US-141, desenho de dado diferente).
 // Ausente = raiz; presente = subespécie, valor é a `key` da raiz (não o `pk` cru do dataset).
+// `bonus`: texto curto de aumento de atributo ("+2 Destreza"), derivado no ingest a
+// partir do traço "Ability Score Increase" (SpeciesTrait.2014.json) — não é autoral como
+// kicker/blurb, é regra do SRD formatada. Ausente quando a raiz tem subespécie (vira cabeçalho
+// não selecionável, ver groupRaceCatalog no web) ou quando o traço não teve match no parser.
 export const RaceCatalogEntrySchema = SystemCatalogEntrySchema.extend({
   parentKey: z.string().min(1).optional(),
+  bonus: z.string().min(1).optional(),
 })
 
 // Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,

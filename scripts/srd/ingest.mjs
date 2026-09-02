@@ -36,6 +36,7 @@ import { parseAbilityModifiers } from './ability-modifiers.mjs'
 // US-110: as tabelas de exemplo do d20 test — estas SIM têm consumidor de runtime (o system
 // prompt do Mestre), por isso o artefato é gravado dentro do pacote que o importa.
 import { parseD20Tests } from './d20-tests.mjs'
+import { buildRaceBonuses } from './race-bonus.mjs'
 import { TAG } from './sync.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -64,7 +65,7 @@ const NO_MT = process.argv.includes('--no-mt')
 // com races/skills/classes/kitItems, dezena ou menos cada). O `desc` que alimenta a tradução é o
 // texto de regra do item (`Item.json.desc`), nunca guardado no artefato — só dá contexto ao
 // modelo; ver `buildTools`.
-const MT_DOMAINS = ['features', 'spells', 'backgrounds', 'tools']
+const MT_DOMAINS = ['features', 'spells', 'backgrounds', 'tools', 'raceFeatures']
 
 // Mapa explícito das 13 classes (12 SRD + Marshal) → chave canônica do config. NÃO reusa o
 // CLASS_SYNONYMS de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte
@@ -138,6 +139,11 @@ const A5E_SKILLS = [
 const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
+// `resolve()` que ignora overlay e devolve sempre o texto EN cru do dataset — usado só pra
+// recalcular `raceFeatures` em inglês na hora de derivar o bônus de atributo, que precisa da
+// frase original do SRD ("Your X score increases by N") mesmo na passagem pt-BR.
+const EN_IDENTITY_RESOLVE = (_domain, _key, _overlayEntry, enName, enDesc) => ({ name: enName, description: enDesc })
+
 // US-203: overlay de races/classes/subclasses aceita string ("dwarf": "Anão", só o rótulo,
 // forma legada) OU objeto ("dwarf": { name, kicker, blurb }). Normaliza no ÚNICO ponto de
 // leitura — `resolve()` e os builders abaixo não precisam saber que existem duas formas.
@@ -175,7 +181,7 @@ async function load(name) {
 export function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), raceFeatures: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -287,16 +293,21 @@ export function buildRaces(overlay, species2014, resolve) {
 // --- raceFeatures (93 traços): SpeciesTrait.json do srd-2014, por chave JOGÁVEL de `races` ---
 // US-142: raiz SEM subespécie ganha os próprios traços; raiz COM subespécie some da chave
 // jogável (ver validateCatalogKey em character.service.ts) e cede lugar à(s) subespécie(s),
-// cada uma com raiz+próprios concatenados (raiz primeiro). Sem overlay/resolve — o texto nasce
-// EN puro nos dois locales (decisão de produto, US-142 §Fora do escopo), então `buildConfig`
-// chama esta função a mesma forma nas duas passagens (base e localizada).
-export function buildRaceFeatures(races, speciesTraits) {
+// cada uma com raiz+próprios concatenados (raiz primeiro).
+// Reverte o "Fora do escopo" da US-142 (pedido posterior de tradução): passa a ter
+// overlay/resolve, mesmo padrão de `buildClassFeatures` — chave combinada
+// `${raça-ou-subespécie}_${slug}` (o slug sozinho colide: "darkvision" existe em 6+ raças
+// com descrição diferente cada). Cai no fallback EN (e no MT da US-52, `raceFeatures` em
+// `MT_DOMAINS`) até o overlay ganhar a entrada.
+export function buildRaceFeatures(overlay, races, speciesTraits, resolve) {
   const traitsByParent = new Map()
   for (const t of speciesTraits) {
     const parentKey = stripDocument(t.fields.parent)
     const slug = t.pk.slice(t.fields.parent.length + 1) // srd_high-elf_cantrip → cantrip
+    const featKey = `${parentKey}_${slug}`
+    const resolved = resolve('raceFeatures', featKey, overlay.raceFeatures?.[featKey], t.fields.name, norm(t.fields.desc))
     const list = traitsByParent.get(parentKey) ?? []
-    list.push({ key: slug, name: t.fields.name, description: norm(t.fields.desc), source: parentKey })
+    list.push({ key: slug, name: resolved.name, description: resolved.description, source: parentKey })
     traitsByParent.set(parentKey, list)
   }
   const rootsWithSubspecies = new Set(races.filter((r) => r.parentKey).map((r) => r.parentKey))
@@ -864,12 +875,24 @@ export function buildTools(overlay, itemsRaw, resolve) {
 }
 
 // Monta um artefato completo a partir do dataset + um overlay. Overlay `{}` = base EN crua.
-function buildConfig(overlay, data) {
+// `locale` só serve ao bônus de atributo: a frase de escolha livre do Half-Elf e o "+1 em
+// todos" do Human não têm de onde vir do dataset, viram literal por idioma abaixo.
+function buildConfig(overlay, data, locale) {
   const { resolve, fallbacks, orphans, usedOverlay, glossary } = makeResolver()
   const attributes = buildAttributes(overlay, data.abilities, resolve)
   const skills = buildSkills(overlay, data.skillsRaw, resolve)
   const races = buildRaces(overlay, data.species2014, resolve)
-  const raceFeatures = buildRaceFeatures(races, data.speciesTraits)
+  const raceFeatures = buildRaceFeatures(overlay, races, data.speciesTraits, resolve)
+  // O bônus tem de ler o traço "Ability Score Increase" em INGLÊS mesmo na passagem pt-BR —
+  // agora que `raceFeatures` traduz (reverteu o "Fora do escopo" da US-142), o texto que
+  // chega em `raceFeatures` pode estar em português, e o parser do bônus só entende a frase
+  // EN do SRD. Recalcula com `EN_IDENTITY_RESOLVE` (nunca olha o overlay) só pra este
+  // cálculo — o artefato final continua usando o `raceFeatures` resolvido no locale certo.
+  const raceFeaturesEn = buildRaceFeatures({}, races, data.speciesTraits, EN_IDENTITY_RESOLVE)
+  const raceBonuses = buildRaceBonuses(raceFeaturesEn, attributes, locale)
+  for (const race of races) {
+    if (raceBonuses[race.key]) race.bonus = raceBonuses[race.key]
+  }
   const classes = buildClasses(overlay, data.classes, resolve, attributes)
   const subclasses = buildSubclasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
@@ -885,7 +908,7 @@ function buildConfig(overlay, data) {
   // US-138: `races` entra na lista pela primeira vez — antes da união reverter (ADR 009 §8),
   // as 11 chaves do overlay sempre casavam com as 11 do catálogo, então não fazia diferença.
   // Agora goliath/orc ficam no overlay sem chave no catálogo (9 raízes) e precisam aparecer aqui.
-  for (const domain of ['races', 'features', 'spells', 'kitItems', 'backgrounds', 'tools']) {
+  for (const domain of ['races', 'features', 'raceFeatures', 'spells', 'kitItems', 'backgrounds', 'tools']) {
     for (const key of Object.keys(overlay[domain] || {})) {
       if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
     }
@@ -931,14 +954,14 @@ async function main() {
   const featureItems = [...featureItems2014, ...marshalFeatureItems]
   const data = { abilities, skillsRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items }
 
-  const base = buildConfig(overlayEn, data)
-  let localized = buildConfig(overlay, data)
+  const base = buildConfig(overlayEn, data, 'en-US')
+  let localized = buildConfig(overlay, data, 'pt-BR')
 
   // --- US-52: preenche as lacunas por tradução de máquina e RECONSTRÓI com o overlay novo ---
   const drafted = await draftMissing(overlay, localized)
   if (drafted.length) {
     await writeFile(OVERLAY_PATH, formatOverlay(overlay))
-    localized = buildConfig(overlay, data)
+    localized = buildConfig(overlay, data, 'pt-BR')
   }
 
   // --- grava artefatos (chaves ordenadas → idempotente byte-a-byte) ---
