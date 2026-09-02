@@ -1,0 +1,50 @@
+{
+  "_comment": "Overlay en-US (US-203) — só kicker/blurb de races/classes/subclasses. Sem `name`: o rótulo EN já vem de graça do `name` do dataset (resolve() cai nele quando o overlay não tem `name`). Sem lugar aqui para attributes/skills/features/spells/backgrounds/tools/etc — esses domínios são nativamente EN no dataset, sem curadoria própria. Mesma disciplina de herança da pt-BR.json: subespécie repete o blurb da raiz, sobrescreve só o kicker.",
+  "races": {
+    "dragonborn": { "kicker": "Dragon's heritage", "blurb": "Draconic blood on full display: scales, an elemental breath, and a reputation that arrives before you do." },
+    "dwarf": { "kicker": "Rock that won't crack", "blurb": "Built to last: resistant to poison, sees in the dark of the mine, and carries clan pride into every decision." },
+    "elf": { "kicker": "Grace that never sleeps", "blurb": "Doesn't need real sleep, sees in the dark, and moves with an elegance few peoples can match." },
+    "gnome": { "kicker": "Curiosity with no brakes", "blurb": "Small, sharp, and immune to most magic that meddles with the mind — their curiosity has caused more trouble (and more solutions) than you'd expect." },
+    "half-elf": { "kicker": "Between two worlds", "blurb": "Neither fully human nor fully elven, and uses that in-between status to talk their way into almost any room." },
+    "half-orc": { "kicker": "Strength that doesn't quit", "blurb": "Inherited the orcish blood's stamina and muscle — falls, gets back up, and keeps swinging until the fight is over." },
+    "halfling": { "kicker": "Small, but lucky", "blurb": "Short, quick, and oddly hard to hit — luck seems to favor whoever knows how to duck behind anything bigger than they are." },
+    "high-elf": { "kicker": "Magic in elven blood", "blurb": "Doesn't need real sleep, sees in the dark, and moves with an elegance few peoples can match." },
+    "hill-dwarf": { "kicker": "Hill-born instinct", "blurb": "Built to last: resistant to poison, sees in the dark of the mine, and carries clan pride into every decision." },
+    "human": { "kicker": "Versatile, no gimmicks", "blurb": "No racial trick at all — just adaptability, ambition, and the ability to become nearly anything they decide to be." },
+    "lightfoot": { "kicker": "Invisible in a crowd", "blurb": "Short, quick, and oddly hard to hit — luck seems to favor whoever knows how to duck behind anything bigger than they are." },
+    "rock-gnome": { "kicker": "An inventor's hands", "blurb": "Small, sharp, and immune to most magic that meddles with the mind — their curiosity has caused more trouble (and more solutions) than you'd expect." },
+    "tiefling": { "kicker": "Infernal mark", "blurb": "Carries horns, a tail, and a slice of infernal heritage that unsettles strangers — plus fire resistance that saves their skin more than once." }
+  },
+  "classes": {
+    "barbarian": { "kicker": "Rage and hide", "blurb": "Charges into the front line and hits harder the worse things get. Short on words, long on raw physical presence." },
+    "bard": { "kicker": "A word that cuts and heals", "blurb": "A double-edged blade of music, lore, and easy confidence: inspires allies, talks enemies in circles, and knows a little about almost everything." },
+    "cleric": { "kicker": "Faith with a blade in hand", "blurb": "Carries their god's healing and wrath onto the battlefield — prays little, acts constantly, and the party survives because of it." },
+    "druid": { "kicker": "Nature as a weapon", "blurb": "Becomes a bear, a wolf, or a bird when a human shape isn't enough, and calls the wind and the earth to fight alongside them." },
+    "fighter": { "kicker": "Pure trained combat", "blurb": "No magic, no tricks — just discipline, steel, and reflex. Survives and dominates any melee through sheer mastery of the craft." },
+    "marshal": { "kicker": "Command that turns a fight", "blurb": "Leads from inside the brawl: every shouted order buys an ally an extra strike or one more breath to keep standing." },
+    "monk": { "kicker": "The body as the only weapon", "blurb": "Strikes too fast for the eye to follow, walks on water, and slips out of restraints — all trained, none of it borrowed from magic." },
+    "paladin": { "kicker": "An oath that burns", "blurb": "A sacred vow becomes light in their hands: heals whoever falls beside them, and burns whoever dares stand in the way." },
+    "ranger": { "kicker": "The hunt on home ground", "blurb": "Tracks any prey through any wilderness, fights alongside an animal companion, and never gets lost where others would." },
+    "rogue": { "kicker": "A clean strike, a cleaner exit", "blurb": "Shows up where no one expects, hits the weak point before anyone notices, and vanishes before the response comes." },
+    "sorcerer": { "kicker": "Magic in the blood", "blurb": "Never studied a single spell — born with the power in their veins, and bends every spell to their will when the normal rules don't apply." },
+    "warlock": { "kicker": "Borrowed power, a price owed", "blurb": "Struck a pact with something greater than themselves, and now casts borrowed spells whose true price only they understand." },
+    "wizard": { "kicker": "Knowledge as power", "blurb": "Studied every arcane formula into a spellbook, and has a magical answer ready for nearly any problem the party runs into." }
+  },
+  "subclasses": {
+    "champion": { "kicker": "Simple and relentless", "blurb": "Fewer tricks, more sharpened steel: lands critical hits more often and is decent at nearly anything physical." },
+    "circle-of-the-land": { "blurb": "Guardian of one specific biome, with extra spells tied to it and a personal pool of magic that refills partway through the day." },
+    "college-of-lore": { "blurb": "Collects secrets and spells from other classes, and uses a sharp word to wreck an enemy's defenses at just the right moment." },
+    "draconic-bloodline": { "blurb": "A dragon ancestor left its mark: tougher skin, an affinity for one type of elemental damage, and spells that feel grander for it." },
+    "gambling-general": { "kicker": "High risk, greater command", "blurb": "Every tier is a gamble: take a penalty to hit for more damage, or trade safety for advantage. Leads troops willing to give ground to win the round." },
+    "hunter": { "blurb": "A specialist at taking down one specific threat: picks tactics against groups, against big creatures, or against a single dangerous target." },
+    "life-domain": { "blurb": "The healer's cleric, through and through: every healing spell comes back bigger, and keeps the party standing through the worst of it." },
+    "oath-of-devotion": { "blurb": "The most classic oath: protects the weak, punishes evil, and never breaks their word, even when it costs them dearly." },
+    "path-of-the-berserker": { "blurb": "Rage without limits: attacks more times per round and shrugs off fear while the rage lasts, at the cost of exhaustion once it fades." },
+    "school-of-evocation": { "blurb": "A specialist in controlled destruction: shapes their own spells to spare allies caught in the blast, and deals more damage for it." },
+    "swift-strategist": { "kicker": "Always one step ahead", "blurb": "Pushes the squad forward on speed: extra movement, disengage without provoking, escape from area effects. No one in your unit gets caught standing still." },
+    "talented-tactician": { "kicker": "Tactical edge, always on", "blurb": "Backs the party with a tactics die that boosts any ally's attack, plus quiet coordination and field expertise. Steady advantage, no bets placed." },
+    "the-fiend": { "blurb": "Struck a pact with something from the infernal planes: stronger fire spells and a burst of extra hit points on dropping an enemy." },
+    "thief": { "blurb": "The nimblest-handed rogue: climbs, balances, and uses magic items faster than any other class in the game." },
+    "way-of-the-open-hand": { "blurb": "The most versatile unarmed fighting style: every strike can knock down, push back, or stun, with no extra resource spent." }
+  }
+}

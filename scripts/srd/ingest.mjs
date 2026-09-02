@@ -1,9 +1,11 @@
 // US-47 — ingest: mapeia o dataset SRD (scripts/srd/_data, do sync) → subset do SystemConfig,
 // aplica o overlay pt-BR (locale/pt-BR.json), valida e grava os artefatos por locale.
 //
-// US-99: grava DOIS artefatos completos — a base EN (`srd-5e.config.en-US.json`, sem overlay)
-// e a localização (`srd-5e.config.pt-BR.json`, com overlay). Gerar o inglês é rodar o MESMO
-// código com o overlay vazio: `resolve()` já cai no texto do dataset quando falta tradução.
+// US-99: grava DOIS artefatos completos — a base EN (`srd-5e.config.en-US.json`) e a
+// localização (`srd-5e.config.pt-BR.json`). Gerar o inglês é rodar o MESMO código com um
+// overlay diferente: `resolve()` já cai no texto do dataset quando falta tradução, então o
+// overlay EN (US-203, `locale/en-US.json`) só precisa cobrir o que o dataset NÃO tem —
+// `kicker`/`blurb` de races/classes/subclasses, 100% autorais nos dois locales.
 //
 // Deriva 4 campos (attributes, skills, classFeatures, classSpells). Os demais campos do
 // SystemConfig (startingKits, pointBuy, proficiency, initialAdventures) NÃO são regra de SRD
@@ -39,6 +41,12 @@ import { TAG } from './sync.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 const DATA = join(HERE, '_data')
 const OVERLAY_PATH = join(HERE, 'locale', 'pt-BR.json')
+// US-203: `kicker`/`blurb` de races/classes/subclasses não têm semente no dataset (nem EN) —
+// são 100% autorais nos DOIS locales, ao contrário do rótulo (que a base EN tira de graça do
+// `name` do dataset). Precisam de overlay próprio também para o EN, ou a base nunca teria o
+// texto. Só carrega `races`/`classes`/`subclasses`; os demais domínios continuam vindo do
+// dataset sem curadoria em inglês (é a língua nativa dele).
+const EN_OVERLAY_PATH = join(HERE, 'locale', 'en-US.json')
 // US-110: único derivado que NÃO mora aqui. Ele é importado como JSON pelo builder do
 // prompt, e importar de fora do pacote arrastaria o `rootDir` do tsc (armadilha da US-108).
 const D20_TESTS_PATH = join(HERE, '..', '..', 'packages', 'ai-engine', 'src', 'prompts', 'd20-tests.srd-2024.json')
@@ -130,6 +138,31 @@ const A5E_SKILLS = [
 const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
+// US-203: overlay de races/classes/subclasses aceita string ("dwarf": "Anão", só o rótulo,
+// forma legada) OU objeto ("dwarf": { name, kicker, blurb }). Normaliza no ÚNICO ponto de
+// leitura — `resolve()` e os builders abaixo não precisam saber que existem duas formas.
+const normalizeOverlayEntry = (entry) => (typeof entry === 'string' ? { name: entry } : (entry ?? {}))
+
+// US-203: atributos principais por classe — decisão de PRODUTO, não SRD (`primary_abilities`
+// vem `[]` nas 24 entradas do dataset, medido). Mesmo precedente de DEFAULT_KIT/ATTR_RANGE:
+// literal curada, comentário citando a origem. Não varia por locale (chave de atributo é EN
+// canônica nos dois artefatos), por isso mora aqui e não num overlay de tradução.
+const CLASS_PRIMARY_ABILITIES = {
+  barbarian: ['strength', 'constitution'],
+  bard: ['charisma'],
+  cleric: ['wisdom'],
+  druid: ['wisdom'],
+  fighter: ['strength', 'dexterity'],
+  marshal: ['strength', 'charisma'],
+  monk: ['dexterity', 'wisdom'],
+  paladin: ['strength', 'charisma'],
+  ranger: ['dexterity', 'wisdom'],
+  rogue: ['dexterity'],
+  sorcerer: ['charisma'],
+  warlock: ['charisma'],
+  wizard: ['intelligence'],
+}
+
 async function load(name) {
   return JSON.parse(await readFile(join(DATA, name), 'utf8'))
 }
@@ -139,7 +172,7 @@ async function load(name) {
 //
 // US-99: o estado vive POR BUILD, não no módulo — o ingest roda duas vezes (base EN e pt-BR)
 // e os relatórios de uma passagem não podem contaminar a outra.
-function makeResolver() {
+export function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
   const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set() }
@@ -149,10 +182,17 @@ function makeResolver() {
   const glossary = new Map() // en → pt
 
   // Resolve texto do overlay; registra fallback quando ausente/vazio. `enName`/`enDesc` = base EN do dataset.
+  //
+  // US-203: `kicker`/`blurb` passam direto quando o overlay os tem — sem fallback EN (não há
+  // `enKicker`/`enBlurb` do dataset, ver EN_OVERLAY_PATH acima) e sem entrar no cálculo de
+  // `missing`: a ausência dos dois é normal para todo domínio que não seja races/classes/
+  // subclasses, e mesmo nesses três os campos são opcionais no schema.
   function resolve(domain, key, overlayEntry, enName, enDesc) {
     const name = overlayEntry?.name?.trim()
     const description = overlayEntry?.description?.trim()
-    if (name || description) usedOverlay[domain].add(key)
+    const kicker = overlayEntry?.kicker?.trim()
+    const blurb = overlayEntry?.blurb?.trim()
+    if (name || description || kicker || blurb) usedOverlay[domain].add(key)
     // Rascunho de máquina NÃO entra no glossário: ele é o que se quer validar, não a régua.
     if (name && enName && !overlayEntry?._mt && !glossary.has(enName)) glossary.set(enName, name)
     const missing = !name || (enDesc !== undefined && !description)
@@ -160,6 +200,8 @@ function makeResolver() {
     return {
       name: name || enName,
       ...(enDesc !== undefined ? { description: description || enDesc } : {}),
+      ...(kicker ? { kicker } : {}),
+      ...(blurb ? { blurb } : {}),
     }
   }
 
@@ -217,7 +259,10 @@ export function buildSkills(overlay, skillsRaw, resolve) {
 export function buildRaces(overlay, species2014, resolve) {
   const toEntry = (s) => {
     const key = stripDocument(s.pk)
-    const entry = { key, label: resolve('races', key, { name: overlay.races?.[key] }, s.fields.name).name }
+    const resolved = resolve('races', key, normalizeOverlayEntry(overlay.races?.[key]), s.fields.name)
+    const entry = { key, label: resolved.name }
+    if (resolved.kicker) entry.kicker = resolved.kicker
+    if (resolved.blurb) entry.blurb = resolved.blurb
     if (s.fields.subspecies_of !== null) entry.parentKey = stripDocument(s.fields.subspecies_of)
     return entry
   }
@@ -266,13 +311,30 @@ export function buildRaceFeatures(races, speciesTraits) {
 
 // --- classes (12): o CLASS_MAP já ERA o catálogo; aqui ele passa a ser emitido ---
 // Sem par 2014: as 12 classes base são idênticas nas duas edições (ADR 009 §4).
-function buildClasses(overlay, classes, resolve) {
+//
+// US-203: `attributes` chega como parâmetro extra para validar `primary` contra as chaves
+// reais do config — chave de CLASS_PRIMARY_ABILITIES que não existir ali falha o ingest
+// (mesma disciplina de perícia órfã da US-131), não fica em silêncio no artefato.
+export function buildClasses(overlay, classes, resolve, attributes) {
+  const attributeKeys = new Set(attributes.map((a) => a.key))
   return classes
     .filter((c) => c.fields.subclass_of === null)
     .map((c) => {
       const key = CLASS_MAP[c.pk]
       if (!key) throw new Error(`Classe base sem entrada no CLASS_MAP: ${c.pk}`)
-      return { key, label: resolve('classes', key, { name: overlay.classes?.[key] }, c.fields.name).name }
+      const resolved = resolve('classes', key, normalizeOverlayEntry(overlay.classes?.[key]), c.fields.name)
+      const primary = CLASS_PRIMARY_ABILITIES[key]
+      if (!primary) throw new Error(`Classe ${key}: sem entrada em CLASS_PRIMARY_ABILITIES`)
+      for (const abilityKey of primary) {
+        if (!attributeKeys.has(abilityKey)) {
+          throw new Error(`Classe ${key}: chave de atributo "${abilityKey}" em primary não existe em config.attributes`)
+        }
+      }
+      const entry = { key, label: resolved.name }
+      if (resolved.kicker) entry.kicker = resolved.kicker
+      if (resolved.blurb) entry.blurb = resolved.blurb
+      entry.primary = primary
+      return entry
     })
     .sort((a, b) => a.key.localeCompare(b.key))
 }
@@ -290,7 +352,11 @@ export function buildSubclasses(overlay, classes, resolve) {
     const canon = CLASS_MAP[c.fields.subclass_of]
     if (!canon) throw new Error(`Subclasse ${c.pk}: subclass_of "${c.fields.subclass_of}" sem entrada no CLASS_MAP`)
     const key = stripDocument(c.pk)
-    subclasses[canon].push({ key, label: resolve('subclasses', key, { name: overlay.subclasses?.[key] }, c.fields.name).name })
+    const resolved = resolve('subclasses', key, normalizeOverlayEntry(overlay.subclasses?.[key]), c.fields.name)
+    const entry = { key, label: resolved.name }
+    if (resolved.kicker) entry.kicker = resolved.kicker
+    if (resolved.blurb) entry.blurb = resolved.blurb
+    subclasses[canon].push(entry)
   }
   for (const canon of Object.keys(subclasses)) {
     subclasses[canon].sort((a, b) => a.key.localeCompare(b.key))
@@ -804,7 +870,7 @@ function buildConfig(overlay, data) {
   const skills = buildSkills(overlay, data.skillsRaw, resolve)
   const races = buildRaces(overlay, data.species2014, resolve)
   const raceFeatures = buildRaceFeatures(races, data.speciesTraits)
-  const classes = buildClasses(overlay, data.classes, resolve)
+  const classes = buildClasses(overlay, data.classes, resolve, attributes)
   const subclasses = buildSubclasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
@@ -833,6 +899,10 @@ function buildConfig(overlay, data) {
 
 async function main() {
   const overlay = JSON.parse(await readFile(OVERLAY_PATH, 'utf8'))
+  // US-203: overlay EN — só kicker/blurb de races/classes/subclasses, curadoria autoral sem
+  // fonte no dataset (ver EN_OVERLAY_PATH acima). Alimenta a passagem BASE no lugar do `{}`
+  // que bastava antes desta story (quando toda base EN vinha de graça do `name` do dataset).
+  const overlayEn = JSON.parse(await readFile(EN_OVERLAY_PATH, 'utf8'))
   const [
     abilities, rules, skillsRaw, classes2014, features2014, featureItems2014, spells, species2014,
     speciesTraits, backgrounds, backgroundBenefits, items, marshalClasses, marshalFeatures, marshalFeatureItems,
@@ -861,7 +931,7 @@ async function main() {
   const featureItems = [...featureItems2014, ...marshalFeatureItems]
   const data = { abilities, skillsRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items }
 
-  const base = buildConfig({}, data)
+  const base = buildConfig(overlayEn, data)
   let localized = buildConfig(overlay, data)
 
   // --- US-52: preenche as lacunas por tradução de máquina e RECONSTRÓI com o overlay novo ---

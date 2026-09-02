@@ -3444,56 +3444,127 @@
   },
   "classes": [
     {
+      "blurb": "Entra na frente, aguenta o que vier e bate mais forte quanto pior a situação fica. Pouca conversa, muita presença física.",
       "key": "barbarian",
-      "label": "Bárbaro"
+      "kicker": "Fúria e couro",
+      "label": "Bárbaro",
+      "primary": [
+        "strength",
+        "constitution"
+      ]
     },
     {
+      "blurb": "Vira faca de dois gumes com música, história e um sorriso confiante: inspira aliados, engana inimigos e sabe um pouco de quase tudo.",
       "key": "bard",
-      "label": "Bardo"
+      "kicker": "Palavra que corta e cura",
+      "label": "Bardo",
+      "primary": [
+        "charisma"
+      ]
     },
     {
+      "blurb": "Carrega a cura e a punição do seu deus para o campo de batalha — reza pouco, age muito, e o grupo sobrevive graças a isso.",
       "key": "cleric",
-      "label": "Clérigo"
+      "kicker": "Fé com espada na mão",
+      "label": "Clérigo",
+      "primary": [
+        "wisdom"
+      ]
     },
     {
+      "blurb": "Vira urso, lobo ou ave quando a forma humana não basta, e chama o vento e a terra para lutar ao seu lado.",
       "key": "druid",
-      "label": "Druida"
+      "kicker": "A natureza como arma",
+      "label": "Druida",
+      "primary": [
+        "wisdom"
+      ]
     },
     {
+      "blurb": "Sem magia, sem truque — só disciplina, aço e reflexo. Sobrevive e domina qualquer luta corpo a corpo pela pura repetição do ofício.",
       "key": "fighter",
-      "label": "Guerreiro"
+      "kicker": "Puro treino de combate",
+      "label": "Guerreiro",
+      "primary": [
+        "strength",
+        "dexterity"
+      ]
     },
     {
+      "blurb": "Lidera de dentro da briga: cada ordem gritada rende um ataque extra ou um fôlego a mais para quem está ao seu lado.",
       "key": "marshal",
-      "label": "Marechal"
+      "kicker": "Comando que muda o combate",
+      "label": "Marechal",
+      "primary": [
+        "strength",
+        "charisma"
+      ]
     },
     {
+      "blurb": "Golpeia rápido demais para o olho acompanhar, anda sobre água e foge de correntes — tudo isso treinado, nada emprestado de magia.",
       "key": "monk",
-      "label": "Monge"
+      "kicker": "Corpo como única arma",
+      "label": "Monge",
+      "primary": [
+        "dexterity",
+        "wisdom"
+      ]
     },
     {
+      "blurb": "Um voto sagrado vira luz nas mãos: cura quem cai ao seu lado e queima quem se atreve a ficar no caminho.",
       "key": "paladin",
-      "label": "Paladino"
+      "kicker": "Juramento que arde",
+      "label": "Paladino",
+      "primary": [
+        "strength",
+        "charisma"
+      ]
     },
     {
+      "blurb": "Rastreia qualquer presa através de qualquer mata, luta lado a lado com um companheiro animal e nunca se perde onde outros se perderiam.",
       "key": "ranger",
-      "label": "Patrulheiro"
+      "kicker": "Caça no próprio terreno",
+      "label": "Patrulheiro",
+      "primary": [
+        "dexterity",
+        "wisdom"
+      ]
     },
     {
+      "blurb": "Aparece de onde ninguém espera, acerta o ponto fraco antes que alguém perceba, e some antes da resposta.",
       "key": "rogue",
-      "label": "Ladino"
+      "kicker": "Golpe certeiro, saída limpa",
+      "label": "Ladino",
+      "primary": [
+        "dexterity"
+      ]
     },
     {
+      "blurb": "Não estuda feitiço nenhum — nasceu com o poder na veia, e dobra cada magia à própria vontade quando as regras normais não bastam.",
       "key": "sorcerer",
-      "label": "Feiticeiro"
+      "kicker": "Magia no sangue",
+      "label": "Feiticeiro",
+      "primary": [
+        "charisma"
+      ]
     },
     {
+      "blurb": "Fechou um pacto com algo maior que ele, e agora conjura magias emprestadas cujo preço só ele conhece de verdade.",
       "key": "warlock",
-      "label": "Bruxo"
+      "kicker": "Poder emprestado, preço cobrado",
+      "label": "Bruxo",
+      "primary": [
+        "charisma"
+      ]
     },
     {
+      "blurb": "Estudou cada fórmula arcana num grimório, e tem uma resposta mágica preparada para quase qualquer problema que o grupo encontrar.",
       "key": "wizard",
-      "label": "Mago"
+      "kicker": "Conhecimento como poder",
+      "label": "Mago",
+      "primary": [
+        "intelligence"
+      ]
     }
   ],
   "raceFeatures": {
@@ -4076,59 +4147,85 @@
   },
   "races": [
     {
+      "blurb": "Sangue dracônico à vista: escamas, sopro elemental e uma reputação que chega antes de você.",
       "key": "dragonborn",
+      "kicker": "Herança de dragão",
       "label": "Dragonborn"
     },
     {
+      "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão.",
       "key": "dwarf",
+      "kicker": "Rocha que não quebra",
       "label": "Anão"
     },
     {
+      "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão.",
       "key": "hill-dwarf",
+      "kicker": "Intuição das colinas",
       "label": "Anão da Colina",
       "parentKey": "dwarf"
     },
     {
+      "blurb": "Não precisa de sono de verdade, enxerga no escuro e se move com uma elegância que poucos povos conseguem imitar.",
       "key": "elf",
+      "kicker": "Graça que não dorme",
       "label": "Elfo"
     },
     {
+      "blurb": "Não precisa de sono de verdade, enxerga no escuro e se move com uma elegância que poucos povos conseguem imitar.",
       "key": "high-elf",
+      "kicker": "Magia no sangue élfico",
       "label": "Alto-elfo",
       "parentKey": "elf"
     },
     {
+      "blurb": "Pequeno, esperto e imune a boa parte da magia que mexe com a mente — a curiosidade dele já causou mais problema (e solução) do que se imagina.",
       "key": "gnome",
+      "kicker": "Curiosidade sem freio",
       "label": "Gnomo"
     },
     {
+      "blurb": "Pequeno, esperto e imune a boa parte da magia que mexe com a mente — a curiosidade dele já causou mais problema (e solução) do que se imagina.",
       "key": "rock-gnome",
+      "kicker": "Mãos de inventor",
       "label": "Gnomo das Rochas",
       "parentKey": "gnome"
     },
     {
+      "blurb": "Não é totalmente humano nem totalmente élfico, e usa esse trânsito entre os dois povos para conversar com quase qualquer um.",
       "key": "half-elf",
+      "kicker": "Entre dois mundos",
       "label": "Meio-Elfo"
     },
     {
+      "blurb": "Herdou o fôlego e o músculo do sangue orc — cai, levanta de novo e continua batendo até o fim da luta.",
       "key": "half-orc",
+      "kicker": "Força que não recua",
       "label": "Meio-Orc"
     },
     {
+      "blurb": "Baixinho, ágil e estranhamente difícil de acertar — a sorte parece favorecer quem sabe se esconder atrás de qualquer coisa maior que ele.",
       "key": "halfling",
+      "kicker": "Pequeno, mas com sorte",
       "label": "Halfling"
     },
     {
+      "blurb": "Baixinho, ágil e estranhamente difícil de acertar — a sorte parece favorecer quem sabe se esconder atrás de qualquer coisa maior que ele.",
       "key": "lightfoot",
+      "kicker": "Invisível na multidão",
       "label": "Halfling Pés-Leves",
       "parentKey": "halfling"
     },
     {
+      "blurb": "Não tem truque racial nenhum — só adaptabilidade, ambição e a capacidade de virar praticamente qualquer coisa que decidir ser.",
       "key": "human",
+      "kicker": "Versátil, sem exagero",
       "label": "Humano"
     },
     {
+      "blurb": "Carrega chifres, cauda e um pedaço de herança infernal que assusta quem não conhece — e resistência a fogo que salva a pele em mais de uma briga.",
       "key": "tiefling",
+      "kicker": "Marca infernal",
       "label": "Tiefling"
     }
   ],
@@ -4652,86 +4749,105 @@
   "subclasses": {
     "barbarian": [
       {
+        "blurb": "Fúria sem limite: ataca mais vezes por rodada e ignora o medo enquanto a fúria durar, ao custo de ficar exausto quando ela passa.",
         "key": "path-of-the-berserker",
         "label": "Caminho do Berserker"
       }
     ],
     "bard": [
       {
+        "blurb": "Coleciona segredos e magias de outras classes, e usa uma palavra afiada para arruinar a defesa de um inimigo no momento certo.",
         "key": "college-of-lore",
         "label": "Colégio do Conhecimento"
       }
     ],
     "cleric": [
       {
+        "blurb": "O clérigo curador por excelência: toda cura que conjura vem maior, e mantém o grupo de pé mesmo na pior enrascada.",
         "key": "life-domain",
         "label": "Domínio da Vida"
       }
     ],
     "druid": [
       {
+        "blurb": "Guardião de um bioma específico, com magias extras dele e uma reserva própria de energia mágica que recarrega no meio do dia.",
         "key": "circle-of-the-land",
         "label": "Círculo da Terra"
       }
     ],
     "fighter": [
       {
+        "blurb": "Menos truque, mais fio de espada: acerta crítico com mais frequência e é bom em quase tudo que exige o corpo.",
         "key": "champion",
+        "kicker": "Simples e implacável",
         "label": "Campeão"
       }
     ],
     "marshal": [
       {
+        "blurb": "Cada nível oferece uma aposta: penalidade no ataque por mais dano, ou segurança trocada por vantagem. Comanda tropas dispostas a perder terreno para ganhar a rodada.",
         "key": "gambling-general",
+        "kicker": "Aposta alta, comando maior",
         "label": "General Apostador"
       },
       {
+        "blurb": "Empurra o grupo pela velocidade: mais deslocamento, fuga sem provocar ataque, escape de área de efeito. Ninguém do seu esquadrão fica parado no lugar errado.",
         "key": "swift-strategist",
+        "kicker": "Sempre um passo à frente",
         "label": "Estrategista Veloz"
       },
       {
+        "blurb": "Sustenta o grupo com um dado tático que reforça qualquer ataque aliado, coordenação silenciosa e perícias de campo. Vantagem constante, sem apostar nada.",
         "key": "talented-tactician",
+        "kicker": "Vantagem tática, sempre presente",
         "label": "Tático Talentoso"
       }
     ],
     "monk": [
       {
+        "blurb": "O estilo de combate desarmado mais versátil: cada golpe pode derrubar, empurrar ou atordoar, sem gastar nenhum recurso extra.",
         "key": "way-of-the-open-hand",
         "label": "Caminho da Mão Aberta"
       }
     ],
     "paladin": [
       {
+        "blurb": "O juramento mais clássico: protege os fracos, pune o mal e nunca quebra a própria palavra, nem quando isso custa caro.",
         "key": "oath-of-devotion",
         "label": "Juramento de Devoção"
       }
     ],
     "ranger": [
       {
+        "blurb": "Especialista em derrubar uma ameaça específica: escolhe táticas contra grupos, contra criaturas grandes, ou contra um único alvo perigoso.",
         "key": "hunter",
         "label": "Caçador"
       }
     ],
     "rogue": [
       {
+        "blurb": "O ladino mais ágil de mãos: escala, equilibra e usa objetos mágicos mais rápido que qualquer outra classe do jogo.",
         "key": "thief",
         "label": "Ladrão"
       }
     ],
     "sorcerer": [
       {
+        "blurb": "Um ancestral dragão deixou marca: pele mais resistente, afinidade com um tipo de dano elemental e magia que soa mais grandiosa.",
         "key": "draconic-bloodline",
         "label": "Linhagem Dracônica"
       }
     ],
     "warlock": [
       {
+        "blurb": "Fez pacto com algo do plano infernal: magias de fogo mais fortes e um fôlego extra de pontos de vida quando derruba um inimigo.",
         "key": "the-fiend",
         "label": "O Corruptor"
       }
     ],
     "wizard": [
       {
+        "blurb": "Especialista em explosão controlada: molda a própria magia para poupar aliados no meio da área de efeito e causa mais dano em troca.",
         "key": "school-of-evocation",
         "label": "Escola de Evocação"
       }

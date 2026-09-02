@@ -3444,56 +3444,127 @@
   },
   "classes": [
     {
+      "blurb": "Charges into the front line and hits harder the worse things get. Short on words, long on raw physical presence.",
       "key": "barbarian",
-      "label": "Barbarian"
+      "kicker": "Rage and hide",
+      "label": "Barbarian",
+      "primary": [
+        "strength",
+        "constitution"
+      ]
     },
     {
+      "blurb": "A double-edged blade of music, lore, and easy confidence: inspires allies, talks enemies in circles, and knows a little about almost everything.",
       "key": "bard",
-      "label": "Bard"
+      "kicker": "A word that cuts and heals",
+      "label": "Bard",
+      "primary": [
+        "charisma"
+      ]
     },
     {
+      "blurb": "Carries their god's healing and wrath onto the battlefield — prays little, acts constantly, and the party survives because of it.",
       "key": "cleric",
-      "label": "Cleric"
+      "kicker": "Faith with a blade in hand",
+      "label": "Cleric",
+      "primary": [
+        "wisdom"
+      ]
     },
     {
+      "blurb": "Becomes a bear, a wolf, or a bird when a human shape isn't enough, and calls the wind and the earth to fight alongside them.",
       "key": "druid",
-      "label": "Druid"
+      "kicker": "Nature as a weapon",
+      "label": "Druid",
+      "primary": [
+        "wisdom"
+      ]
     },
     {
+      "blurb": "No magic, no tricks — just discipline, steel, and reflex. Survives and dominates any melee through sheer mastery of the craft.",
       "key": "fighter",
-      "label": "Fighter"
+      "kicker": "Pure trained combat",
+      "label": "Fighter",
+      "primary": [
+        "strength",
+        "dexterity"
+      ]
     },
     {
+      "blurb": "Leads from inside the brawl: every shouted order buys an ally an extra strike or one more breath to keep standing.",
       "key": "marshal",
-      "label": "Marshal"
+      "kicker": "Command that turns a fight",
+      "label": "Marshal",
+      "primary": [
+        "strength",
+        "charisma"
+      ]
     },
     {
+      "blurb": "Strikes too fast for the eye to follow, walks on water, and slips out of restraints — all trained, none of it borrowed from magic.",
       "key": "monk",
-      "label": "Monk"
+      "kicker": "The body as the only weapon",
+      "label": "Monk",
+      "primary": [
+        "dexterity",
+        "wisdom"
+      ]
     },
     {
+      "blurb": "A sacred vow becomes light in their hands: heals whoever falls beside them, and burns whoever dares stand in the way.",
       "key": "paladin",
-      "label": "Paladin"
+      "kicker": "An oath that burns",
+      "label": "Paladin",
+      "primary": [
+        "strength",
+        "charisma"
+      ]
     },
     {
+      "blurb": "Tracks any prey through any wilderness, fights alongside an animal companion, and never gets lost where others would.",
       "key": "ranger",
-      "label": "Ranger"
+      "kicker": "The hunt on home ground",
+      "label": "Ranger",
+      "primary": [
+        "dexterity",
+        "wisdom"
+      ]
     },
     {
+      "blurb": "Shows up where no one expects, hits the weak point before anyone notices, and vanishes before the response comes.",
       "key": "rogue",
-      "label": "Rogue"
+      "kicker": "A clean strike, a cleaner exit",
+      "label": "Rogue",
+      "primary": [
+        "dexterity"
+      ]
     },
     {
+      "blurb": "Never studied a single spell — born with the power in their veins, and bends every spell to their will when the normal rules don't apply.",
       "key": "sorcerer",
-      "label": "Sorcerer"
+      "kicker": "Magic in the blood",
+      "label": "Sorcerer",
+      "primary": [
+        "charisma"
+      ]
     },
     {
+      "blurb": "Struck a pact with something greater than themselves, and now casts borrowed spells whose true price only they understand.",
       "key": "warlock",
-      "label": "Warlock"
+      "kicker": "Borrowed power, a price owed",
+      "label": "Warlock",
+      "primary": [
+        "charisma"
+      ]
     },
     {
+      "blurb": "Studied every arcane formula into a spellbook, and has a magical answer ready for nearly any problem the party runs into.",
       "key": "wizard",
-      "label": "Wizard"
+      "kicker": "Knowledge as power",
+      "label": "Wizard",
+      "primary": [
+        "intelligence"
+      ]
     }
   ],
   "raceFeatures": {
@@ -4076,59 +4147,85 @@
   },
   "races": [
     {
+      "blurb": "Draconic blood on full display: scales, an elemental breath, and a reputation that arrives before you do.",
       "key": "dragonborn",
+      "kicker": "Dragon's heritage",
       "label": "Dragonborn"
     },
     {
+      "blurb": "Built to last: resistant to poison, sees in the dark of the mine, and carries clan pride into every decision.",
       "key": "dwarf",
+      "kicker": "Rock that won't crack",
       "label": "Dwarf"
     },
     {
+      "blurb": "Built to last: resistant to poison, sees in the dark of the mine, and carries clan pride into every decision.",
       "key": "hill-dwarf",
+      "kicker": "Hill-born instinct",
       "label": "Hill Dwarf",
       "parentKey": "dwarf"
     },
     {
+      "blurb": "Doesn't need real sleep, sees in the dark, and moves with an elegance few peoples can match.",
       "key": "elf",
+      "kicker": "Grace that never sleeps",
       "label": "Elf"
     },
     {
+      "blurb": "Doesn't need real sleep, sees in the dark, and moves with an elegance few peoples can match.",
       "key": "high-elf",
+      "kicker": "Magic in elven blood",
       "label": "High Elf",
       "parentKey": "elf"
     },
     {
+      "blurb": "Small, sharp, and immune to most magic that meddles with the mind — their curiosity has caused more trouble (and more solutions) than you'd expect.",
       "key": "gnome",
+      "kicker": "Curiosity with no brakes",
       "label": "Gnome"
     },
     {
+      "blurb": "Small, sharp, and immune to most magic that meddles with the mind — their curiosity has caused more trouble (and more solutions) than you'd expect.",
       "key": "rock-gnome",
+      "kicker": "An inventor's hands",
       "label": "Rock Gnome",
       "parentKey": "gnome"
     },
     {
+      "blurb": "Neither fully human nor fully elven, and uses that in-between status to talk their way into almost any room.",
       "key": "half-elf",
+      "kicker": "Between two worlds",
       "label": "Half-Elf"
     },
     {
+      "blurb": "Inherited the orcish blood's stamina and muscle — falls, gets back up, and keeps swinging until the fight is over.",
       "key": "half-orc",
+      "kicker": "Strength that doesn't quit",
       "label": "Half-Orc"
     },
     {
+      "blurb": "Short, quick, and oddly hard to hit — luck seems to favor whoever knows how to duck behind anything bigger than they are.",
       "key": "halfling",
+      "kicker": "Small, but lucky",
       "label": "Halfling"
     },
     {
+      "blurb": "Short, quick, and oddly hard to hit — luck seems to favor whoever knows how to duck behind anything bigger than they are.",
       "key": "lightfoot",
+      "kicker": "Invisible in a crowd",
       "label": "Lightfoot",
       "parentKey": "halfling"
     },
     {
+      "blurb": "No racial trick at all — just adaptability, ambition, and the ability to become nearly anything they decide to be.",
       "key": "human",
+      "kicker": "Versatile, no gimmicks",
       "label": "Human"
     },
     {
+      "blurb": "Carries horns, a tail, and a slice of infernal heritage that unsettles strangers — plus fire resistance that saves their skin more than once.",
       "key": "tiefling",
+      "kicker": "Infernal mark",
       "label": "Tiefling"
     }
   ],
@@ -4652,86 +4749,105 @@
   "subclasses": {
     "barbarian": [
       {
+        "blurb": "Rage without limits: attacks more times per round and shrugs off fear while the rage lasts, at the cost of exhaustion once it fades.",
         "key": "path-of-the-berserker",
         "label": "Path of the Berserker"
       }
     ],
     "bard": [
       {
+        "blurb": "Collects secrets and spells from other classes, and uses a sharp word to wreck an enemy's defenses at just the right moment.",
         "key": "college-of-lore",
         "label": "College of Lore"
       }
     ],
     "cleric": [
       {
+        "blurb": "The healer's cleric, through and through: every healing spell comes back bigger, and keeps the party standing through the worst of it.",
         "key": "life-domain",
         "label": "Life Domain"
       }
     ],
     "druid": [
       {
+        "blurb": "Guardian of one specific biome, with extra spells tied to it and a personal pool of magic that refills partway through the day.",
         "key": "circle-of-the-land",
         "label": "Circle of the Land"
       }
     ],
     "fighter": [
       {
+        "blurb": "Fewer tricks, more sharpened steel: lands critical hits more often and is decent at nearly anything physical.",
         "key": "champion",
+        "kicker": "Simple and relentless",
         "label": "Champion"
       }
     ],
     "marshal": [
       {
+        "blurb": "Every tier is a gamble: take a penalty to hit for more damage, or trade safety for advantage. Leads troops willing to give ground to win the round.",
         "key": "gambling-general",
+        "kicker": "High risk, greater command",
         "label": "Gambling General"
       },
       {
+        "blurb": "Pushes the squad forward on speed: extra movement, disengage without provoking, escape from area effects. No one in your unit gets caught standing still.",
         "key": "swift-strategist",
+        "kicker": "Always one step ahead",
         "label": "Swift Strategist"
       },
       {
+        "blurb": "Backs the party with a tactics die that boosts any ally's attack, plus quiet coordination and field expertise. Steady advantage, no bets placed.",
         "key": "talented-tactician",
+        "kicker": "Tactical edge, always on",
         "label": "Talented Tactician"
       }
     ],
     "monk": [
       {
+        "blurb": "The most versatile unarmed fighting style: every strike can knock down, push back, or stun, with no extra resource spent.",
         "key": "way-of-the-open-hand",
         "label": "Way of the Open Hand"
       }
     ],
     "paladin": [
       {
+        "blurb": "The most classic oath: protects the weak, punishes evil, and never breaks their word, even when it costs them dearly.",
         "key": "oath-of-devotion",
         "label": "Oath of Devotion"
       }
     ],
     "ranger": [
       {
+        "blurb": "A specialist at taking down one specific threat: picks tactics against groups, against big creatures, or against a single dangerous target.",
         "key": "hunter",
         "label": "Hunter"
       }
     ],
     "rogue": [
       {
+        "blurb": "The nimblest-handed rogue: climbs, balances, and uses magic items faster than any other class in the game.",
         "key": "thief",
         "label": "Thief"
       }
     ],
     "sorcerer": [
       {
+        "blurb": "A dragon ancestor left its mark: tougher skin, an affinity for one type of elemental damage, and spells that feel grander for it.",
         "key": "draconic-bloodline",
         "label": "Draconic Bloodline"
       }
     ],
     "warlock": [
       {
+        "blurb": "Struck a pact with something from the infernal planes: stronger fire spells and a burst of extra hit points on dropping an enemy.",
         "key": "the-fiend",
         "label": "The Fiend"
       }
     ],
     "wizard": [
       {
+        "blurb": "A specialist in controlled destruction: shapes their own spells to spare allies caught in the blast, and deals more damage for it.",
         "key": "school-of-evocation",
         "label": "School of Evocation"
       }

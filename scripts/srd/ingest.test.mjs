@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -242,6 +242,71 @@ test('buildSubclasses: agrupa por classe-mãe via CLASS_MAP; classe sem subclass
 test('buildSubclasses: subclass_of sem entrada no CLASS_MAP falha alto (não descarta em silêncio)', () => {
   const classes = [classRow('srd_champion', 'srd_unknown-class')]
   assert.throws(() => buildSubclasses({}, classes, identityResolve), /subclass_of.*CLASS_MAP/)
+})
+
+// --- US-203 — kicker/blurb de catálogo (races/classes/subclasses): overlay aceita string OU
+// objeto no MESMO arquivo, kicker/blurb chegam ao artefato, `primary` inexistente falha alto ---
+
+const classRowFull = (pk, name, subclassOf = null) => ({ pk, fields: { name, subclass_of: subclassOf } })
+const attr = (key) => ({ key, label: key, min: 10, max: 18, default: 10 })
+
+// (a) regressão do diff pequeno: é o que quebra quando alguém "simplifica" o overlay pra só
+// objeto — o caminho que apaga o rótulo de ficha legada que só tinha a forma string.
+test('buildRaces: overlay aceita string ("só o rótulo") e objeto ({name,kicker,blurb}) no mesmo arquivo — as duas resolvem pro label certo', () => {
+  const overlay = {
+    races: {
+      dwarf: 'Anão',
+      elf: { name: 'Elfo', kicker: 'Graça que não dorme', blurb: 'Não precisa de sono de verdade.' },
+    },
+  }
+  const { resolve } = makeResolver()
+  const species2014 = [raceRow('srd_dwarf', 'Dwarf'), raceRow('srd_elf', 'Elf')]
+  const result = buildRaces(overlay, species2014, resolve)
+
+  const dwarf = result.find((r) => r.key === 'dwarf')
+  const elf = result.find((r) => r.key === 'elf')
+  assert.equal(dwarf.label, 'Anão')
+  assert.equal(dwarf.kicker, undefined) // forma string legada não carrega kicker/blurb
+  assert.equal(dwarf.blurb, undefined)
+  assert.equal(elf.label, 'Elfo')
+  assert.equal(elf.kicker, 'Graça que não dorme')
+  assert.equal(elf.blurb, 'Não precisa de sono de verdade.')
+})
+
+test('buildClasses: kicker/blurb do overlay (forma objeto) chegam ao artefato; primary vem de CLASS_PRIMARY_ABILITIES', () => {
+  const overlay = { classes: { barbarian: { name: 'Bárbaro', kicker: 'Fúria e couro', blurb: 'Bate mais forte quanto pior fica.' } } }
+  const { resolve } = makeResolver()
+  const classes = [classRowFull('srd_barbarian', 'Barbarian')]
+  const attributes = [attr('strength'), attr('constitution')]
+  const result = buildClasses(overlay, classes, resolve, attributes)
+
+  assert.equal(result.length, 1)
+  assert.equal(result[0].label, 'Bárbaro')
+  assert.equal(result[0].kicker, 'Fúria e couro')
+  assert.equal(result[0].blurb, 'Bate mais forte quanto pior fica.')
+  assert.deepEqual(result[0].primary, ['strength', 'constitution'])
+})
+
+test('buildClasses: primary com chave de atributo inexistente em config.attributes falha alto, citando a classe e a chave', () => {
+  const { resolve } = makeResolver()
+  const classes = [classRowFull('srd_barbarian', 'Barbarian')]
+  const attributes = [attr('strength')] // falta 'constitution' — CLASS_PRIMARY_ABILITIES.barbarian exige as duas
+  assert.throws(() => buildClasses({}, classes, resolve, attributes), /Classe barbarian.*"constitution"/)
+})
+
+test('buildSubclasses: kicker/blurb do overlay (forma objeto) chegam ao artefato; forma string continua só rótulo', () => {
+  const overlay = {
+    subclasses: {
+      champion: { name: 'Campeão', kicker: 'Simples e implacável', blurb: 'Menos truque, mais fio de espada.' },
+      hunter: 'Caçador',
+    },
+  }
+  const { resolve } = makeResolver()
+  const classes = [classRowFull('srd_champion', 'Champion', 'srd_fighter'), classRowFull('srd_hunter', 'Hunter', 'srd_ranger')]
+  const result = buildSubclasses(overlay, classes, resolve)
+
+  assert.deepEqual(result.fighter[0], { key: 'champion', label: 'Campeão', kicker: 'Simples e implacável', blurb: 'Menos truque, mais fio de espada.' })
+  assert.deepEqual(result.ranger[0], { key: 'hunter', label: 'Caçador' })
 })
 
 const spellRow = (pk, name, level, classes) => ({ pk, fields: { name, level, desc: 'Texto.', classes } })

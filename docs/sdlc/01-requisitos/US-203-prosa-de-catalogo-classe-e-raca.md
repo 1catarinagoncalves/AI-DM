@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (02/09/2026)
 **Depende de:** [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) — o catálogo por chave é onde a prosa se pendura. [US-138](./US-138-catalogo-racas-srd-5-1-como-referencia.md)/[US-140](./US-140-catalogo-subracas-srd-5-1.md) definem quais raças existem. [US-141](./US-141-catalogo-subclasses-srd-5-1-e-marshal.md) (**obrigatória e anterior**) — `config.subclasses` é onde a prosa de subclasse se pendura; sem `config.subclasses` existindo não há `{key,label}` de subclasse para estender com `kicker`/`blurb`. Decisão de 2026-09-02: subclasse deixou de ser "fora do escopo" nesta story e na US-205, então US-141 entra na ordem de execução, antes das duas.
 **Criada em:** 2026-09-01
 
@@ -161,13 +161,35 @@ como algo que a personagem já é desde a criação, igual a classe e raça.
       }
     ],
     "marshal": [
-      { "key": "gambling-general", "label": "…", "kicker": "…", "blurb": "…" },
-      { "key": "swift-strategist", "label": "…", "kicker": "…", "blurb": "…" },
-      { "key": "talented-tactician", "label": "…", "kicker": "…", "blurb": "…" }
+      { "key": "gambling-general", "label": "General Apostador", "kicker": "Aposta alta, comando maior", "blurb": "Cada nível oferece uma aposta: penalidade no ataque por mais dano, ou segurança trocada por vantagem. Comanda tropas dispostas a perder terreno para ganhar a rodada." },
+      { "key": "swift-strategist", "label": "Estrategista Veloz", "kicker": "Sempre um passo à frente", "blurb": "Empurra o grupo pela velocidade: mais deslocamento, fuga sem provocar ataque, escape de área de efeito. Ninguém do seu esquadrão fica parado no lugar errado." },
+      { "key": "talented-tactician", "label": "Tático Talentoso", "kicker": "Vantagem tática, sempre presente", "blurb": "Sustenta o grupo com um dado tático que reforça qualquer ataque aliado, coordenação silenciosa e perícias de campo. Vantagem constante, sem apostar nada." }
     ]
   }
 }
 ```
+
+Curadoria fundamentada no `desc` real de cada subclasse (`scripts/srd/_data/ClassFeature.a5e-ag.json`,
+não só no nome): `gambling-general` gira em torno de trocas risco-por-recompensa (*Daring Commander*
+penaliza o ataque por mais dano, *Risky Tactics* troca segurança por vantagem); `swift-strategist` é
+mobilidade pura (*Skirmisher*, *Make Haste*, *Portentous Escape*); `talented-tactician` é suporte
+estável sem risco (dado tático de *Tactical Edge* bonifica qualquer ataque aliado todo turno,
+*Operations Leader* coordena o grupo). As três discriminam entre si por identidade mecânica, não só
+por adjetivo.
+
+`en-US` (mesmo par, mesmo teto de 200 caracteres):
+
+| `key` | `kicker` | `blurb` |
+|---|---|---|
+| `gambling-general` | High risk, greater command | Every tier is a gamble: take a penalty to hit for more damage, or trade safety for advantage. Leads troops willing to give ground to win the round. |
+| `swift-strategist` | Always one step ahead | Pushes the squad forward on speed: extra movement, disengage without provoking, escape from area effects. No one in your unit gets caught standing still. |
+| `talented-tactician` | Tactical edge, always on | Backs the party with a tactics die that boosts any ally's attack, plus quiet coordination and field expertise. Steady advantage, no bets placed. |
+
+`label` en-US é o `name` cru do dataset (`CharacterClass.a5e-ag.json`), sem curadoria — já é nome
+próprio em inglês. `label` pt-BR (`gambling-general` → "General Apostador", `swift-strategist` →
+"Estrategista Veloz", `talented-tactician` → "Tático Talentoso") segue o mesmo tom de tradução
+direta das 12 subclasses SRD já traduzidas (`Champion` → "Campeão", `Life Domain` → "Domínio da
+Vida", US-141 §Modelo de dados) — sem trocadilho, sem manter aliteração do inglês à força.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
@@ -188,28 +210,40 @@ pelo caminho que a US-141 vai escrever. Chave de `primary` que não exista em `c
 
 ## Critérios de aceite
 
-- [ ] `SystemCatalogEntrySchema` aceita `kicker`, `blurb` e `primary` opcionais, e um config sem
+- [x] `SystemCatalogEntrySchema` aceita `kicker`, `blurb` e `primary` opcionais, e um config sem
       nenhum dos três continua válido (o sistema `Free` é a prova viva).
-- [ ] As 13 classes, as 13 raças e as 15 subclasses do sistema `srd-5e` têm `kicker` e `blurb`
-      preenchidos nos dois locales, e as 13 classes têm `primary` com 1 ou 2 chaves de atributo.
-- [ ] Nenhum `blurb` de raça é cópia literal do `Species.desc` do dataset nas 13 entradas — o
+- [x] As 13 classes, as 13 raças e as 15 subclasses do sistema `srd-5e` têm `blurb` preenchido nos
+      dois locales; `kicker` preenchido nas 13 classes, nas 13 raças e nas 3 subclasses do Marshal
+      (as com irmã na mesma classe) — nas 12 subclasses SRD sem irmã, `kicker` é opcional e pode
+      ficar ausente. As 13 classes têm `primary` com 1 ou 2 chaves de atributo.
+- [x] Nenhum `blurb` de raça é cópia literal do `Species.desc` do dataset nas 13 entradas — o
       dataset é semente, a revisão é o produto.
-- [ ] Nas 3 subclasses do Marshal, `kicker`/`blurb` discriminam entre si (mesmo teste de leitura
-      que classe/raça); nas 12 subclasses SRD sem irmã na mesma classe, o texto descreve o
-      arquétipo sem depender de comparação.
-- [ ] O overlay aceita as duas formas para `races`/`classes` (`"dwarf": "Anão"` e
+- [x] Nas 3 subclasses do Marshal, `kicker`/`blurb` discriminam entre si (mesmo teste de leitura
+      que classe/raça); nas 12 subclasses SRD sem irmã na mesma classe, o `blurb` descreve o
+      arquétipo sem depender de comparação, com ou sem `kicker`.
+- [x] O overlay aceita as duas formas para `races`/`classes` (`"dwarf": "Anão"` e
       `"dwarf": { "name": "Anão", "kicker": "…", "blurb": "…" }`), e as entradas em string que já
       existem continuam a resolver para o **mesmo rótulo** — ficha legada tem de resolver de volta
       para o mesmo texto que a jogadora via (é o motivo declarado no `_comment` do overlay).
-- [ ] `primary` com chave que não existe em `config.attributes` **falha o ingest**, com mensagem
+- [x] `primary` com chave que não existe em `config.attributes` **falha o ingest**, com mensagem
       que cita a chave ofensora e a classe.
-- [ ] `pnpm typecheck` verde sem tocar em nenhum consumidor de `SystemCatalogEntry` — os campos
+- [x] `pnpm typecheck` verde sem tocar em nenhum consumidor de `SystemCatalogEntry` — os campos
       são opcionais.
-- [ ] **Eval / teste de regressão:** teste do `ingest` que (a) lê um overlay com as duas formas no
+- [x] **Eval / teste de regressão:** teste do `ingest` que (a) lê um overlay com as duas formas no
       mesmo arquivo e afirma que ambas produzem o `label` correto, (b) afirma que `kicker`/`blurb`
       do overlay chegam ao artefato, e (c) falha quando `primary` cita atributo inexistente. O (a)
       é o que quebra quando alguém "simplifica" o overlay para só objeto — o caminho que apaga o
       rótulo de toda ficha legada.
+
+### Nota de implementação (02/09/2026)
+
+`primary` acabou NÃO indo para o overlay: as chaves de atributo (`strength`, `constitution`…)
+são canônicas EN e idênticas nos dois locales — não é texto traduzido, é dado. Curada como
+`CLASS_PRIMARY_ABILITIES` dentro de `ingest.mjs` (mesmo precedente de `DEFAULT_KIT`/
+`ATTR_RANGE`), não em `locale/{pt-BR,en-US}.json`. `kicker`/`blurb`, esses sim são prosa e
+precisam de curadoria por locale — como o dataset não tem semente nenhuma para eles (nem em
+EN), a base EN passou a rodar com um overlay próprio (`locale/en-US.json`, novo) em vez do
+`{}` que bastava antes desta story.
 
 ---
 
@@ -241,24 +275,25 @@ pelo caminho que a US-141 vai escrever. Chave de `primary` que não exista em `c
 
 ## Questões em aberto
 
-1. **`kicker` é copy autoral ou deriva do `blurb`?** A proposta é autoral — o protótipo usa uma
+Todas as três decididas em 02/09/2026; mantidas aqui pelo histórico do porquê.
+
+1. **`kicker` é copy autoral ou deriva do `blurb`?** **Decidido: autoral.** O protótipo usa uma
    chamada com voz própria, não as primeiras palavras do resumo. Cortar o `kicker` e ficar só com
-   o `blurb` continua a ser a degradação possível, mas **custa mais sem busca na grade**: sobram
-   13 blocos de duas frases para ler um a um, sem nenhuma linha que se leia em varredura.
-2. **Raiz e subespécie repetem `blurb`?** Hoje a raiz com subespécie nem aparece como opção
-   (US-142); a subespécie herdar o `blurb` da raiz e sobrescrever só o `kicker` evita escrever 4
-   textos quase iguais. Decidir na curadoria, não no schema.
-3. **Subclasse sem irmã ainda precisa de `kicker`?** Nas 12 classes com uma única subclasse, o
-   cartão de subclasse (US-205) aparece sem grade — preenchido automaticamente, sem a jogadora
-   escolher. `kicker`/`blurb` continuam valendo a pena ali (o painel de detalhe da classe os
-   mostra), mas o argumento de "discriminar numa varredura" que justifica o `kicker` de
-   classe/raça não se aplica às 12. Escrever os dois campos mesmo assim (curadoria mais barata que
-   um `if` no schema para 3 exceções) é a proposta; a alternativa seria `kicker` opcional-mesmo-
-   com-blurb só para essas 12, o que quebraria a regra "os dois preenchidos" do critério de
-   aceite acima. **Nota de 02/09/2026:** a subgrade `marshal` da referência ao vivo renderiza cada
-   trilha só com nome + uma linha (sem `kicker` em caixa alta separado, diferente do cartão de
-   classe/raça) — indício de que, na prática, a curadoria pode preferir só `blurb` para subclasse;
-   mantém-se a proposta acima por schema, ajustar a curadoria se a leitura em tela pedir.
+   o `blurb` custa mais sem busca na grade: sobram 13 blocos de duas frases para ler um a um, sem
+   nenhuma linha que se leia em varredura.
+2. **Raiz e subespécie repetem `blurb`?** **Decidido: sim, por herança.** Hoje a raiz com
+   subespécie nem aparece como opção (US-142); a subespécie herda o `blurb` da raiz e sobrescreve
+   só o `kicker`, evitando escrever 4 textos quase iguais. Decisão de curadoria, não de schema —
+   nenhum campo novo.
+3. **Subclasse sem irmã ainda precisa de `kicker`?** **Decidido: não — `kicker` vira
+   opcional-mesmo-com-`blurb` nas 12 subclasses sem irmã na mesma classe.** Nas 12 classes com uma
+   única subclasse, o cartão de subclasse (US-205) aparece sem grade — preenchido automaticamente,
+   sem a jogadora escolher — e o argumento de "discriminar numa varredura" que justifica o
+   `kicker` de classe/raça não se aplica a elas. A referência ao vivo confirma isso na prática: a
+   subgrade `marshal` (as 3 com irmã) renderiza cada trilha com `kicker` em caixa alta separado,
+   mas o painel de detalhe das 12 sem irmã mostra só nome + `blurb`. Nas 3 subclasses do Marshal
+   `kicker` continua obrigatório, igual classe/raça. O critério de aceite abaixo foi ajustado para
+   refletir essa exceção.
 
 ---
 

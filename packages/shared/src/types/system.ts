@@ -24,9 +24,21 @@ export const SystemSkillSchema = z.object({
 // Entrada de catálogo do sistema (US-105): chave canônica EN + rótulo no locale do config.
 // Serve `races` e `classes`, e é o mesmo contrato de `skills` sem a âncora de atributo:
 // o Character guarda a CHAVE, a tela e o prompt resolvem o rótulo na leitura.
+//
+// US-203: `kicker`/`blurb` opcionais — prosa curta de catálogo (chamada de 3-6 palavras +
+// resumo de 1-2 frases). Servem `races`, `classes` E `subclasses` de graça: os três reusam
+// este mesmo schema (subclasse via `config.subclasses`, US-141), então os campos chegam aos
+// três sem schema novo. `blurb` tem teto de 200 caracteres no schema (não no CSS) — sem teto
+// a curadoria escreve parágrafo e o cartão da US-205 quebra o alinhamento da grade.
+// `primary` (chaves de `config.attributes`) só é POVOADO em `classes` pelo ingest — o schema
+// não restringe por domínio (mesmo raciocínio dos outros campos deste contrato), mas
+// races/subclasses nunca ganham valor aqui: o atributo principal é da classe-mãe.
 export const SystemCatalogEntrySchema = z.object({
   key: z.string().min(1),
   label: z.string().min(1),
+  kicker: z.string().min(1).optional(),
+  blurb: z.string().min(1).max(200).optional(),
+  primary: z.array(z.string().min(1)).optional(),
 })
 
 // Entrada de catálogo de RAÇA (US-140): estende SystemCatalogEntrySchema com `parentKey`,
