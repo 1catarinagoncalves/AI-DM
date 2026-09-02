@@ -3,15 +3,36 @@
 **Objetivo:** trazer o wizard de criação para o desenho do protótipo
 [`wizard-criacao-personagem-referencia.html`](./wizard-criacao-personagem-referencia.html) —
 escolha por **cartão com prosa** em vez de `<select>`, **ficha viva ao lado** das etapas,
-pergunta como título, orçamento visível — **sem mexer na ordem das etapas que o produto já tem**
-e **sem perder** nenhum campo que o produto já grava, incluindo os campos livres de história
-(US-39/US-40).
+pergunta como título, orçamento visível — **sem mexer na ordem das etapas que o produto já tem**,
+salvo a divisão de `race-class` em `class` + `race` (exceção decidida em 2026-09-02, ver
+*Mapeamento das etapas* abaixo) — e **sem perder** nenhum campo que o produto já grava, incluindo
+os campos livres de história (US-39/US-40).
 
 **Decisão de produto:** onde protótipo e produto discordam de **ordem** ou de **conteúdo**,
 manda o produto. O protótipo é referência de **forma** (materialidade, densidade, hierarquia,
 copy de enquadramento), não de sequência nem de modelo de dados. **Identidade visual (cor,
 tipografia) não é decisão em aberto** — ver seção própria abaixo: o protótipo já usa os tokens do
 [Design System](../02-design/design-system.md) do produto.
+
+**Exceções de 2026-09-02 (duas):** a regra "sem mexer na ordem das etapas" ganha duas exceções
+nomeadas. (1) `race-class` passa a seguir a sequência do protótipo (`1. Classe` → `2. Espécie`),
+dividida em duas etapas do produto (`class`, `race`) — detalhe em
+[US-205](./US-205-escolha-por-cartao-classe-e-raca.md) → *Contexto*. (2) Identidade (nome, gênero,
++ alinhamento novo) ganha etapa própria (`identity`), entre `system` e `class` — reabre a recusa que
+a própria US-205 registrou no mesmo dia (ver *Segunda referência* abaixo e
+[US-210](./US-210-identidade-como-etapa-propria.md) → *Contexto*). Fora dessas duas, todo o resto
+do mapeamento abaixo continua sem mexer em ordem.
+
+### Segunda referência (2026-09-02): a etapa Identidade
+
+A US-210 parte de uma referência diferente do protótipo local citado acima —
+`https://twirl-skate-47309606.figma.site/` (link fornecido pela mantenedora), inspecionada ao vivo
+navegando o fluxo completo. Seis etapas — `Identidade · Raça · Classe · Atributos · Antecedente ·
+Revisão` —, com `Identidade` **primeiro** (nome, pronomes, alinhamento), não no fim como o
+protótipo local. As duas referências convivem: o protótipo local segue mandando na forma de
+`class`/`race`/`background`/`attributes`/`skills`/`review` (US-203 a US-208); esta segunda manda
+só na posição e no conteúdo da etapa `identity` (US-210). Onde citarem "o protótipo" sem qualificar,
+as stories abaixo referem-se ao local; a US-210 é a única que cita a segunda.
 
 **Status:** 📋 Proposta — nenhuma tarefa iniciada
 **Criado em:** 2026-09-01
@@ -74,21 +95,31 @@ nova a introduzir.
 
 ---
 
-## Mapeamento das etapas (a ordem que fica é a do produto)
+## Mapeamento das etapas (a ordem que fica é a do produto, com a exceção de 2026-09-02 abaixo)
 
 | # | Etapa do produto | Etapa do protótipo | O que o redesenho faz |
 |---|---|---|---|
 | 1 | `system` | *(não existe)* | Fica. Já é escolha por cartão; ganha o mesmo enquadramento das outras. |
-| 2 | `race-class` | `1. Classe` + `2. Espécie` | **Continua uma etapa só.** Classe e raça viram duas grades de cartão na mesma tela; nome e gênero continuam aqui (US-26), não numa etapa `Identidade` no fim. |
-| 3 | `background` | `3. Antecedente` | Origem vira cartão; benefícios (US-123/131/132/135), conexão/memento (US-124) e **os campos livres de história (US-39/US-40) continuam aqui**. |
-| 4 | `attributes` | `4. Atributos` | Selo de pontos restantes, selo `Principal`, modificador e bônus de origem na mesma linha. |
-| 5 | `skills` | `5. Perícias` | Selo `X / Y escolhidas`. Sem o pacote de equipamento do protótipo (ver *Fora do escopo*). |
-| 6 | `review` | `7. Revisão` | Revisão passa a ler como **ficha**, não como lista de `dt`/`dd`. |
-| 7 | `world` | *(não existe)* | Fica ao final (US-157). Ganha o mesmo enquadramento; nada mais muda. |
+| 2 | `identity` | *(não existe no protótipo local — `1. Identidade` na 2ª referência)* | **Nova etapa (decisão de 2026-09-02, ver US-210), antes de `class`.** Nome, gênero e alinhamento (campo novo) — sai de dentro de `class`, ganha etapa própria. |
+| 3 | `class` | `1. Classe` | **Nova etapa (decisão de 2026-09-02, ver US-205), antes metade de `race-class`.** Grade de cartão de classe, com a subgrade de subclasse aninhada (`marshal`); nome e gênero **saíram** daqui para `identity` (US-210 reabre a recusa que a US-205 registrou no mesmo dia). |
+| 4 | `race` | `2. Espécie` | **Nova etapa, a outra metade de `race-class`.** Grade de cartão de raça; raiz com subespécie agrupada sem virar cartão próprio (US-142 preservada). |
+| 5 | `background` | `3. Antecedente` | Origem vira cartão; benefícios (US-123/131/132/135), conexão/memento (US-124) e **os campos livres de história (US-39/US-40) continuam aqui**. |
+| 6 | `attributes` | `4. Atributos` | Selo de pontos restantes, selo `Principal`, modificador e bônus de origem na mesma linha. |
+| 7 | `skills` | `5. Perícias` | Selo `X / Y escolhidas`. Sem o pacote de equipamento do protótipo (ver *Fora do escopo*). |
+| 8 | `review` | `7. Revisão` | Revisão passa a ler como **ficha**, não como lista de `dt`/`dd`. |
+| 9 | `world` | *(não existe)* | Fica ao final (US-157). Ganha o mesmo enquadramento; nada mais muda. |
 
-**A etapa `6. Identidade` do protótipo não vira etapa.** O produto já pede nome e gênero na etapa
-2 e a história na etapa 3; mover isso para o fim é justamente a mudança de ordem que esta decisão
-de produto proíbe.
+**Correção de 2026-09-02 (a mesma data desta frase original — ver US-210 §Contexto):** a frase
+abaixo, mantida por rastro de decisão, deixou de valer. `identity` **virou** etapa (a 2ª, antes de
+`class`) — não a `6. Identidade` do protótipo local, que segue sem virar etapa (ela é a etapa **no
+fim**, com aparência/personalidade/história em texto livre, ainda fora de escopo); a etapa nova
+segue a posição e o conteúdo da **segunda referência** (`identity` primeiro, com alinhamento).
+História narrativa (US-39/US-40) continua em `background`, sem mudar de etapa.
+
+> ~~A etapa `6. Identidade` do protótipo não vira etapa. O produto pede nome e gênero na etapa
+> `class` (2ª) e a história na etapa `background` (agora 4ª, era 3ª); mover isso para o fim continua
+> sendo a mudança de ordem que esta decisão de produto proíbe — a exceção de 2026-09-02 cobre só a
+> divisão `race-class` → `class`+`race`, nada além disso.~~
 
 ---
 
@@ -125,10 +156,13 @@ parecida com o protótipo.
 | Origem por cartão, com os campos livres de história no mesmo desenho | [US-206](./US-206-origem-por-cartao-e-campos-livres-de-historia.md) |
 | Orçamento de pontos, atributo `Principal`, modificador, contador de perícias | [US-207](./US-207-atributos-e-pericias-com-orcamento-visivel.md) |
 | Revisão em forma de ficha | [US-208](./US-208-revisao-em-forma-de-ficha.md) |
+| Etapa `identity` própria (nome, gênero, alinhamento novo), antes de `class` — 2ª referência, não o protótipo local | [US-210](./US-210-identidade-como-etapa-propria.md) |
 
 **Ordem de execução:** US-141 → US-203 → US-205 e US-206 (dependem do texto) · US-204 → US-207 →
-US-208 (independentes entre si depois do chrome). A US-204 é a que muda o esqueleto: fazer as
-outras antes dela obriga a refazer o layout de cada etapa duas vezes. **Decisão de 2026-09-02:**
+US-208 (independentes entre si depois do chrome) · **US-210 depois de US-205** (move nome/gênero
+para fora da etapa `class` que a US-205 acabou de montar — fazer antes obrigaria a US-205 a
+escrever o bloco só para a US-210 arrancá-lo dias depois). A US-204 é a que muda o esqueleto: fazer
+as outras antes dela obriga a refazer o layout de cada etapa duas vezes. **Decisão de 2026-09-02:**
 US-141 estava em backlog separado ("catálogo não existe" bloqueava subclasse fora deste mapa);
 subclasse entrou no escopo de US-203/US-205, o que puxa US-141 para dentro desta ordem, na frente.
 
@@ -156,4 +190,5 @@ subclasse entrou no escopo de US-203/US-205, o que puxa US-141 para dentro desta
   lugar certo — mas gerar 9 raças × 12 classes de arte consistente é um trabalho de asset com
   orçamento próprio. As stories abaixo desenham o cartão com **espaço reservado** para a imagem;
   quem preencher é outra story.
-- **Mudar a ordem das etapas.** É a decisão de produto no topo deste documento.
+- **Mudar a ordem das etapas**, além da exceção `race-class` → `class`+`race` de 2026-09-02
+  (*Mapeamento das etapas*). Fora essa, é a decisão de produto no topo deste documento.
