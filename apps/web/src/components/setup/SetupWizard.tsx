@@ -17,7 +17,7 @@ import { useT, useLocale } from '@/components/LocaleProvider'
 import type { MessageKey } from '@/messages'
 import { BackgroundPanel, type CharacterBackground } from '@/components/character/BackgroundPanel'
 import { FeaturesPanel } from '@/components/character/FeaturesPanel'
-import { CatalogCardGroup, groupRaceCatalog } from './CatalogCardGroup'
+import { CatalogCardGroup } from './CatalogCardGroup'
 import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
@@ -267,6 +267,16 @@ export function SetupWizard() {
   // US-105: catálogos de raça e classe do sistema escolhido, no locale ativo. O `value` do
   // select é `key`; o texto é `label`. Catálogo fechado: sem opção "outra" e sem campo livre.
   const raceCatalog = system?.config?.races ?? []
+  // US-142 (correção de 2026-09-02): a grade principal só lista RAÍZES — raiz-com-subespécie
+  // deixou de ser cabeçalho fixo e virou cartão selecionável (como qualquer outra), com o
+  // PRÓPRIO bônus de atributo (`race-bonus.mjs` agora emite isso à parte do total da folha).
+  // A escolha da variante vira uma segunda grade condicional, logo abaixo — reverte a decisão
+  // original da US-142/US-205 nesse ponto específico (ver backlog do redesenho §Correção de
+  // 2026-09-02); `charData.race` continua sempre a chave JOGÁVEL (folha quando há subespécie,
+  // raiz quando não — nunca a raiz-com-subespécie, ver validateCatalogKey em character.service.ts).
+  const raceRoots = raceCatalog.filter(r => !r.parentKey)
+  const selectedRootKey = raceCatalog.find(r => r.key === charData.race)?.parentKey ?? charData.race
+  const raceVariants = raceCatalog.filter(r => r.parentKey === selectedRootKey)
   const classCatalog = system?.config?.classes ?? []
   // US-205: subclasses da classe ESCOLHIDA (config.subclasses é por chave de classe, US-141).
   // 0 ou 1 entrada → sem grade (a única, se houver, preenche sozinha); 2+ → grade obrigatória.
@@ -427,6 +437,15 @@ export function SetupWizard() {
   function selectClassCard(key: string) {
     setCharData(p => ({ ...p, class: key }))
     setSubclass(undefined)
+  }
+
+  // US-142 (correção de 2026-09-02): clicar a raiz não é a escolha final quando ela tem
+  // subespécie — a raiz sozinha não é chave jogável (ver validateCatalogKey), então preenche a
+  // PRIMEIRA variante do catálogo (ordem alfabética por raiz já vem do ingest) até a jogadora
+  // trocar na grade de variante. Raiz sem subespécie grava a própria chave, como sempre foi.
+  function selectRootCard(key: string) {
+    const variants = raceCatalog.filter(r => r.parentKey === key)
+    setCharData(p => ({ ...p, race: variants[0]?.key ?? key }))
   }
 
   function canAdvance(s: Step): boolean {
@@ -694,14 +713,14 @@ export function SetupWizard() {
                     </select>
                   </div>
                   <CatalogCardGroup name="char-class" legend={t('setup.raceClass.class')}
-                    groups={[{ items: classCatalog }]} value={charData.class} onChange={selectClassCard} />
+                    items={classCatalog} value={charData.class} onChange={selectClassCard} />
                   {/* US-205: subgrade de subclasse aninhada no cartão de classe — só existe
                       fisicamente quando a classe escolhida tem MAIS de uma opção (marshal, hoje).
                       Classe com 0 ou 1 subclasse não renderiza nada aqui: sem catálogo, sem
                       escolha; com 1 entrada, ela preenche sozinha (ver resolvedSubclass acima). */}
                   {subclassCatalog && subclassCatalog.length > 1 && (
                     <CatalogCardGroup name="char-subclass" legend={t('setup.subclass.legend')}
-                      groups={[{ items: subclassCatalog }]} value={subclass ?? ''} onChange={setSubclass} />
+                      items={subclassCatalog} value={subclass ?? ''} onChange={setSubclass} />
                   )}
                   {/* US-205: painel de detalhe — o que a classe escolhida concede, sem dado
                       novo (getClassFeatures/getStartingInventory já existem no arquivo). */}
@@ -738,15 +757,20 @@ export function SetupWizard() {
                 <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">{t('setup.race.eyebrow')}</p>
                 <SectionTitle>{t('setup.race.heading')}</SectionTitle>
                 <p className="mt-1 max-w-prose text-sm text-muted-foreground">{t('setup.race.subtitulo')}</p>
-                {/* US-142: raiz COM subespécie deixa de ser cartão selecionável — vira cabeçalho
-                    de um subgrupo de cartões (a regra da US-142 preservada, noutra forma: era
-                    <optgroup>, agora `groupRaceCatalog` monta os grupos). Raiz SEM subespécie
-                    continua cartão normal, sem grupo. */}
                 <div className="mt-6">
                   <CatalogCardGroup name="char-race" legend={t('setup.raceClass.race')}
-                    groups={groupRaceCatalog(raceCatalog)} value={charData.race}
-                    onChange={key => setCharData(p => ({ ...p, race: key }))} />
+                    items={raceRoots} value={selectedRootKey} onChange={selectRootCard} />
                 </div>
+                {/* US-142 (correção de 2026-09-02): segunda grade, só quando a raiz escolhida
+                    tem subespécie — mostra o DELTA de cada variante (`variantBonus`), não o
+                    total já visível no cartão da raiz logo acima. */}
+                {raceVariants.length > 0 && (
+                  <div className="mt-6">
+                    <CatalogCardGroup name="char-race-variant" legend={t('setup.race.variant.legend')}
+                      items={raceVariants.map(v => ({ ...v, bonus: v.variantBonus }))} value={charData.race}
+                      onChange={key => setCharData(p => ({ ...p, race: key }))} />
+                  </div>
+                )}
                 {/* US-205: painel de detalhe — traços raciais (US-142), sem dado novo. */}
                 {raceStepFeatures.length > 0 && (
                   <div className="mt-6 space-y-4 border-t border-border pt-4">

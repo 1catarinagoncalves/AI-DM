@@ -889,9 +889,11 @@ function buildConfig(overlay, data, locale) {
   // EN do SRD. Recalcula com `EN_IDENTITY_RESOLVE` (nunca olha o overlay) só pra este
   // cálculo — o artefato final continua usando o `raceFeatures` resolvido no locale certo.
   const raceFeaturesEn = buildRaceFeatures({}, races, data.speciesTraits, EN_IDENTITY_RESOLVE)
-  const raceBonuses = buildRaceBonuses(raceFeaturesEn, attributes, locale)
+  const { bonuses, variantBonuses, rootBonuses } = buildRaceBonuses(raceFeaturesEn, races, attributes, locale)
   for (const race of races) {
-    if (raceBonuses[race.key]) race.bonus = raceBonuses[race.key]
+    if (bonuses[race.key]) race.bonus = bonuses[race.key]
+    if (rootBonuses[race.key]) race.bonus = rootBonuses[race.key] // disjunto de `bonuses` — só raiz-com-subespécie
+    if (variantBonuses[race.key]) race.variantBonus = variantBonuses[race.key]
   }
   const classes = buildClasses(overlay, data.classes, resolve, attributes)
   const subclasses = buildSubclasses(overlay, data.classes, resolve)

@@ -4155,6 +4155,7 @@
     },
     {
       "blurb": "Built to last: resistant to poison, sees in the dark of the mine, and carries clan pride into every decision.",
+      "bonus": "+2 Constitution",
       "key": "dwarf",
       "kicker": "Rock that won't crack",
       "label": "Dwarf"
@@ -4165,10 +4166,12 @@
       "key": "hill-dwarf",
       "kicker": "Hill-born instinct",
       "label": "Hill Dwarf",
-      "parentKey": "dwarf"
+      "parentKey": "dwarf",
+      "variantBonus": "+1 Wisdom"
     },
     {
       "blurb": "Doesn't need real sleep, sees in the dark, and moves with an elegance few peoples can match.",
+      "bonus": "+2 Dexterity",
       "key": "elf",
       "kicker": "Grace that never sleeps",
       "label": "Elf"
@@ -4179,10 +4182,12 @@
       "key": "high-elf",
       "kicker": "Magic in elven blood",
       "label": "High Elf",
-      "parentKey": "elf"
+      "parentKey": "elf",
+      "variantBonus": "+1 Intelligence"
     },
     {
       "blurb": "Small, sharp, and immune to most magic that meddles with the mind — their curiosity has caused more trouble (and more solutions) than you'd expect.",
+      "bonus": "+2 Intelligence",
       "key": "gnome",
       "kicker": "Curiosity with no brakes",
       "label": "Gnome"
@@ -4193,7 +4198,8 @@
       "key": "rock-gnome",
       "kicker": "An inventor's hands",
       "label": "Rock Gnome",
-      "parentKey": "gnome"
+      "parentKey": "gnome",
+      "variantBonus": "+1 Constitution"
     },
     {
       "blurb": "Neither fully human nor fully elven, and uses that in-between status to talk their way into almost any room.",
@@ -4211,6 +4217,7 @@
     },
     {
       "blurb": "Short, quick, and oddly hard to hit — luck seems to favor whoever knows how to duck behind anything bigger than they are.",
+      "bonus": "+2 Dexterity",
       "key": "halfling",
       "kicker": "Small, but lucky",
       "label": "Halfling"
@@ -4221,7 +4228,8 @@
       "key": "lightfoot",
       "kicker": "Invisible in a crowd",
       "label": "Lightfoot",
-      "parentKey": "halfling"
+      "parentKey": "halfling",
+      "variantBonus": "+1 Charisma"
     },
     {
       "blurb": "No racial trick at all — just adaptability, ambition, and the ability to become nearly anything they decide to be.",

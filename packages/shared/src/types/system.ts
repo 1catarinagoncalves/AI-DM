@@ -47,11 +47,19 @@ export const SystemCatalogEntrySchema = z.object({
 // Ausente = raiz; presente = subespécie, valor é a `key` da raiz (não o `pk` cru do dataset).
 // `bonus`: texto curto de aumento de atributo ("+2 Destreza"), derivado no ingest a
 // partir do traço "Ability Score Increase" (SpeciesTrait.2014.json) — não é autoral como
-// kicker/blurb, é regra do SRD formatada. Ausente quando a raiz tem subespécie (vira cabeçalho
-// não selecionável, ver groupRaceCatalog no web) ou quando o traço não teve match no parser.
+// kicker/blurb, é regra do SRD formatada. Na raiz é só o ASI PRÓPRIO dela; na subespécie é o
+// ASI JÁ SOMADO com o da raiz (mecânica real do personagem — quem consome fora do wizard, ex.
+// prompt do Mestre, precisa do total). Correção de 2026-09-02: raiz-com-subespécie passou a ter
+// `bonus` próprio (era ausente — decisão original da US-142/US-205, revertida porque o wizard
+// agora exibe a raiz como cartão selecionável, ver CatalogCardGroup.tsx no web).
 export const RaceCatalogEntrySchema = SystemCatalogEntrySchema.extend({
   parentKey: z.string().min(1).optional(),
   bonus: z.string().min(1).optional(),
+  // `variantBonus`: só em subespécie — o ASI QUE ELA SOZINHA ADICIONA além da raiz (ex.: raiz
+  // Gnomo "+2 Inteligência", subespécie Gnomo das Rochas `bonus` "+1 Constituição, +2
+  // Inteligência" mas `variantBonus` só "+1 Constituição"). Existe só pro cartão de variante do
+  // wizard não repetir o bônus da raiz que já está visível no cartão de cima.
+  variantBonus: z.string().min(1).optional(),
 })
 
 // Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,

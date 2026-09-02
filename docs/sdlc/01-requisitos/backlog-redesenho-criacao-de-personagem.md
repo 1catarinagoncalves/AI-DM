@@ -102,7 +102,7 @@ nova a introduzir.
 | 1 | `system` | *(não existe)* | Fica. Já é escolha por cartão; ganha o mesmo enquadramento das outras. |
 | 2 | `identity` | *(não existe no protótipo local — `1. Identidade` na 2ª referência)* | **Nova etapa (decisão de 2026-09-02, ver US-210), antes de `class`.** Nome, gênero e alinhamento (campo novo) — sai de dentro de `class`, ganha etapa própria. |
 | 3 | `class` | `1. Classe` | **Nova etapa (decisão de 2026-09-02, ver US-205), antes metade de `race-class`.** Grade de cartão de classe, com a subgrade de subclasse aninhada (`marshal`); nome e gênero **saíram** daqui para `identity` (US-210 reabre a recusa que a US-205 registrou no mesmo dia). |
-| 4 | `race` | `2. Espécie` | **Nova etapa, a outra metade de `race-class`.** Grade de cartão de raça; raiz com subespécie agrupada sem virar cartão próprio (US-142 preservada). |
+| 4 | `race` | `2. Espécie` | **Nova etapa, a outra metade de `race-class`.** Grade de cartão de raça; ~~raiz com subespécie agrupada sem virar cartão próprio (US-142 preservada)~~ **correção de 2026-09-02 (ver nota abaixo): raiz virou cartão selecionável, com uma segunda grade de variante condicional.** |
 | 5 | `background` | `3. Antecedente` | Origem vira cartão; benefícios (US-123/131/132/135), conexão/memento (US-124) e **os campos livres de história (US-39/US-40) continuam aqui**. |
 | 6 | `attributes` | `4. Atributos` | Selo de pontos restantes, selo `Principal`, modificador e bônus de origem na mesma linha. |
 | 7 | `skills` | `5. Perícias` | Selo `X / Y escolhidas`. Sem o pacote de equipamento do protótipo (ver *Fora do escopo*). |
@@ -131,8 +131,17 @@ parecida com o protótipo.
 
 - **Escolha de sistema** (`system`) e a coluna `sourceType` — o wizard é multi-sistema.
 - **Gênero** (US-98) — `value` em pt-BR, rótulo traduzido.
-- **Subespécie por `optgroup`** (US-140/US-142) — o protótipo tem "variantes de espécie", que é
-  outro desenho de dado; o produto tem raiz + subespécie no mesmo catálogo.
+- ~~**Subespécie por `optgroup`** (US-140/US-142) — o protótipo tem "variantes de espécie", que é
+  outro desenho de dado; o produto tem raiz + subespécie no mesmo catálogo.~~ **Correção de
+  2026-09-02:** revertido — o produto passou a adotar o desenho de "variante de espécie" do
+  protótipo (pedido explícito da mantenedora). A raiz virou cartão selecionável, com o PRÓPRIO
+  bônus de atributo (`race-bonus.mjs` agora separa `bonus` da raiz do `variantBonus` da
+  subespécie); uma segunda grade condicional, "escolha uma variante", aparece abaixo quando a
+  raiz escolhida tem subespécie. `charData.race` continua gravando sempre a chave JOGÁVEL — a
+  raiz-com-subespécie sozinha nunca é valor final (ver `character.service.ts`
+  `validateCatalogKey`, que segue rejeitando-a). Código: `CatalogCardGroup.tsx`,
+  `SetupWizard.tsx` (etapa `race`), `scripts/srd/race-bonus.mjs`,
+  `RaceCatalogEntrySchema.variantBonus` (`@ai-dm/shared`).
 - **Benefícios de origem com `grant`** — bônus de atributo (US-123), perícias (US-131),
   ferramentas (US-132), feature (US-135). O protótipo mostra texto; o produto **aplica**.
 - **Conexão e memento** com sorteio d10 (US-124).

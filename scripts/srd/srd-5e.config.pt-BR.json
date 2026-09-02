@@ -4155,6 +4155,7 @@
     },
     {
       "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão.",
+      "bonus": "+2 Constituição",
       "key": "dwarf",
       "kicker": "Rocha que não quebra",
       "label": "Anão"
@@ -4165,10 +4166,12 @@
       "key": "hill-dwarf",
       "kicker": "Intuição das colinas",
       "label": "Anão da Colina",
-      "parentKey": "dwarf"
+      "parentKey": "dwarf",
+      "variantBonus": "+1 Sabedoria"
     },
     {
       "blurb": "Não precisa de sono de verdade, enxerga no escuro e se move com uma elegância que poucos povos conseguem imitar.",
+      "bonus": "+2 Destreza",
       "key": "elf",
       "kicker": "Graça que não dorme",
       "label": "Elfo"
@@ -4179,10 +4182,12 @@
       "key": "high-elf",
       "kicker": "Magia no sangue élfico",
       "label": "Alto-elfo",
-      "parentKey": "elf"
+      "parentKey": "elf",
+      "variantBonus": "+1 Inteligência"
     },
     {
       "blurb": "Pequeno, esperto e imune a boa parte da magia que mexe com a mente — a curiosidade dele já causou mais problema (e solução) do que se imagina.",
+      "bonus": "+2 Inteligência",
       "key": "gnome",
       "kicker": "Curiosidade sem freio",
       "label": "Gnomo"
@@ -4193,7 +4198,8 @@
       "key": "rock-gnome",
       "kicker": "Mãos de inventor",
       "label": "Gnomo das Rochas",
-      "parentKey": "gnome"
+      "parentKey": "gnome",
+      "variantBonus": "+1 Constituição"
     },
     {
       "blurb": "Não é totalmente humano nem totalmente élfico, e usa esse trânsito entre os dois povos para conversar com quase qualquer um.",
@@ -4211,6 +4217,7 @@
     },
     {
       "blurb": "Baixinho, ágil e estranhamente difícil de acertar — a sorte parece favorecer quem sabe se esconder atrás de qualquer coisa maior que ele.",
+      "bonus": "+2 Destreza",
       "key": "halfling",
       "kicker": "Pequeno, mas com sorte",
       "label": "Halfling"
@@ -4221,7 +4228,8 @@
       "key": "lightfoot",
       "kicker": "Invisível na multidão",
       "label": "Halfling Pés-Leves",
-      "parentKey": "halfling"
+      "parentKey": "halfling",
+      "variantBonus": "+1 Carisma"
     },
     {
       "blurb": "Não tem truque racial nenhum — só adaptabilidade, ambição e a capacidade de virar praticamente qualquer coisa que decidir ser.",

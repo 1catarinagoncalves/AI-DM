@@ -118,6 +118,9 @@ export const ptBR = {
   'setup.class.detail.kit': 'Equipamento inicial',
   'setup.class.detail.subclass': 'Subclasse',
   'setup.race.detail.features': 'Traços raciais',
+  // US-142 (correção de 2026-09-02): legenda da segunda grade de cartão da etapa raça — só
+  // aparece quando a raiz escolhida tem subespécie.
+  'setup.race.variant.legend': 'Escolha uma variante',
 
   // Rótulos de gênero. O VALOR enviado à API continua sendo o texto PT (ver SetupWizard):
   // gênero não é dado de SRD, não tem catálogo de onde vir.

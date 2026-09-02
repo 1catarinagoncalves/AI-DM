@@ -24,11 +24,14 @@ const configWithBudget = (budget: number) => ({
 
 // US-140: catálogo de raça com subespécie — mesma ordem que buildRaces emite (raiz seguida
 // da(s) sua(s) subespécie(s)), pra provar que o wizard só itera, não reordena por parentKey.
+// Anão tem DUAS variantes (Colina e Montanha) — prova que clicar a segunda troca a chave
+// gravada, não só a auto-seleção da primeira ao clicar a raiz (US-142, correção 2026-09-02).
 const configWithRaceSubspecies = (budget: number) => ({
   ...configWithBudget(budget),
   races: [
     { key: 'dwarf', label: 'Anão' },
     { key: 'hill-dwarf', label: 'Anão da Colina', parentKey: 'dwarf' },
+    { key: 'mountain-dwarf', label: 'Anão da Montanha', parentKey: 'dwarf' },
     { key: 'elf', label: 'Elfo' },
     { key: 'high-elf', label: 'Alto-elfo', parentKey: 'elf' },
   ],
@@ -500,13 +503,12 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'elf', class: 'wizard' }))
   })
 
-  // US-142/US-205: subespécie (`parentKey`) agrupa sob um cabeçalho com o label da raiz — a
-  // raiz deixa de ser cartão selecionável quando tem subespécie (reverte a decisão da US-140:
-  // o SRD já documenta a variante, "só a raiz" é uma opção mecanicamente incompleta ao lado da
-  // completa; a regra da US-142 preservada, agora como cabeçalho de subgrupo em vez de
-  // <optgroup>). Segue a ORDEM do catálogo (raiz, depois a sua subespécie), sem recalcular
-  // agrupamento no componente além de mesclar raízes soltas consecutivas.
-  it('raiz com subespécie vira cabeçalho de subgrupo — não é cartão selecionável', async () => {
+  // US-142 (correção de 2026-09-02, reverte a decisão original desta mesma story): a raiz com
+  // subespécie voltou a ser cartão selecionável — clicar nela grava a PRIMEIRA variante (chave
+  // jogável, nunca a raiz sozinha — ver validateCatalogKey em character.service.ts) e abre uma
+  // segunda grade, "escolha uma variante", com as subespécies daquela raiz. Trocar de raiz troca
+  // a grade inteira; clicar outra variante na mesma raiz troca só a chave gravada.
+  it('raiz com subespécie é cartão selecionável e abre a grade de variante', async () => {
     listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithRaceSubspecies(2) }])
     render(<SetupWizard />)
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
@@ -515,18 +517,30 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
 
-    // Raiz com subespécie (Anão, Elfo) vira texto de cabeçalho — não tem role radio.
-    expect(screen.queryByRole('radio', { name: 'Anão' })).toBeNull()
-    expect(screen.queryByRole('radio', { name: 'Elfo' })).toBeNull()
-    expect(screen.getByText('Anão')).toBeTruthy()
-    expect(screen.getByText('Elfo')).toBeTruthy()
+    // Antes de escolher raiz, nenhuma grade de variante existe ainda.
+    expect(screen.queryByRole('radio', { name: 'Anão da Colina' })).toBeNull()
 
-    // As subespécies são os cartões selecionáveis.
+    // Clicar a raiz (Anão) é permitido — e preenche a primeira variante sozinho.
+    const dwarf = screen.getByRole('radio', { name: 'Anão' }) as HTMLInputElement
+    fireEvent.click(dwarf)
+    expect(dwarf.checked).toBe(true)
     const hillDwarf = screen.getByRole('radio', { name: 'Anão da Colina' }) as HTMLInputElement
-    const highElf = screen.getByRole('radio', { name: 'Alto-elfo' }) as HTMLInputElement
-    fireEvent.click(hillDwarf)
+    const mountainDwarf = screen.getByRole('radio', { name: 'Anão da Montanha' }) as HTMLInputElement
     expect(hillDwarf.checked).toBe(true)
-    expect(highElf.checked).toBe(false)
+    expect(mountainDwarf.checked).toBe(false)
+
+    // Clicar a SEGUNDA variante da mesma raiz troca a chave — a raiz continua marcada (mesmo
+    // grupo `parentKey`), só a subespécie escolhida muda.
+    fireEvent.click(mountainDwarf)
+    expect(mountainDwarf.checked).toBe(true)
+    expect(hillDwarf.checked).toBe(false)
+    expect(dwarf.checked).toBe(true)
+
+    // Trocar de raiz (Elfo) troca a grade de variante inteira — a de Anão some.
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    expect(screen.queryByRole('radio', { name: 'Anão da Colina' })).toBeNull()
+    expect(screen.queryByRole('radio', { name: 'Anão da Montanha' })).toBeNull()
+    expect((screen.getByRole('radio', { name: 'Alto-elfo' }) as HTMLInputElement).checked).toBe(true)
   })
 
   // US-105/US-205: o catálogo passou a depender do sistema. Trocar de sistema com classe já
@@ -1266,7 +1280,8 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.click(screen.getByRole('radio', { name: 'Mago' })) // cartão de classe → key 'wizard'
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
-    fireEvent.click(screen.getByRole('radio', { name: 'Anão da Colina' })) // cartão de subespécie → key 'hill-dwarf'
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' })) // cartão de raiz → abre a grade de variante
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão da Colina' })) // cartão de variante → key 'hill-dwarf'
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos

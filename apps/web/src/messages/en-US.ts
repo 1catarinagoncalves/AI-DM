@@ -104,6 +104,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.class.detail.kit': 'Starting equipment',
   'setup.class.detail.subclass': 'Subclass',
   'setup.race.detail.features': 'Racial traits',
+  'setup.race.variant.legend': 'Choose a variant',
 
   // Só o RÓTULO é traduzido — o `value` enviado à API continua sendo a chave PT
   // (ver o comentário gêmeo no pt-BR.ts e em SetupWizard).

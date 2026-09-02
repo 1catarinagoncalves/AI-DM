@@ -167,6 +167,8 @@ test('parseAbilityScoreIncrease: cláusula de escolha livre (Half-Elf) separa fi
   )
 })
 
+const DWARF_RACES = [{ key: 'dwarf' }, { key: 'hill-dwarf', parentKey: 'dwarf' }]
+
 test('buildRaceBonuses: subespécie soma o bônus da raiz com o próprio, formatado com o rótulo do attributes', () => {
   const raceFeatures = {
     'hill-dwarf': [
@@ -176,18 +178,44 @@ test('buildRaceBonuses: subespécie soma o bônus da raiz com o próprio, format
     ],
   }
   const attributes = [{ key: 'constitution', label: 'Constituição' }, { key: 'wisdom', label: 'Sabedoria' }]
-  assert.deepEqual(buildRaceBonuses(raceFeatures, attributes, 'pt-BR'), { 'hill-dwarf': '+2 Constituição, +1 Sabedoria' })
+  assert.deepEqual(buildRaceBonuses(raceFeatures, DWARF_RACES, attributes, 'pt-BR').bonuses, { 'hill-dwarf': '+2 Constituição, +1 Sabedoria' })
+})
+
+// Correção de 2026-09-02: o cartão de raiz (Anão) do wizard agora é selecionável e mostra o
+// PRÓPRIO bônus da raiz — sem isto, ficaria sem cartão-de-atributo, só as subespécies tinham.
+test('buildRaceBonuses: raiz-com-subespécie ganha o próprio ASI em rootBonuses, sem o da subespécie', () => {
+  const raceFeatures = {
+    'hill-dwarf': [
+      { key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your Constitution score increases by 2.', source: 'dwarf' },
+      { key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your Wisdom score increases by 1.', source: 'hill-dwarf' },
+    ],
+  }
+  const attributes = [{ key: 'constitution', label: 'Constituição' }, { key: 'wisdom', label: 'Sabedoria' }]
+  assert.deepEqual(buildRaceBonuses(raceFeatures, DWARF_RACES, attributes, 'pt-BR').rootBonuses, { dwarf: '+2 Constituição' })
+})
+
+// Cartão de variante (US replicando a referência): mostra só o DELTA que a subespécie soma,
+// não o total já mostrado no cartão da raiz logo acima.
+test('buildRaceBonuses: variantBonuses tem só o ASI que a subespécie soma além da raiz', () => {
+  const raceFeatures = {
+    'hill-dwarf': [
+      { key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your Constitution score increases by 2.', source: 'dwarf' },
+      { key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your Wisdom score increases by 1.', source: 'hill-dwarf' },
+    ],
+  }
+  const attributes = [{ key: 'constitution', label: 'Constituição' }, { key: 'wisdom', label: 'Sabedoria' }]
+  assert.deepEqual(buildRaceBonuses(raceFeatures, DWARF_RACES, attributes, 'pt-BR').variantBonuses, { 'hill-dwarf': '+1 Sabedoria' })
 })
 
 test('buildRaceBonuses: raça sem traço "Ability Score Increase" não entra no resultado', () => {
   const raceFeatures = { tiefling: [{ key: 'darkvision', name: 'Darkvision', description: '60 feet.', source: 'tiefling' }] }
-  assert.deepEqual(buildRaceBonuses(raceFeatures, [], 'pt-BR'), {})
+  assert.deepEqual(buildRaceBonuses(raceFeatures, [{ key: 'tiefling' }], [], 'pt-BR'), { bonuses: {}, variantBonuses: {}, rootBonuses: {} })
 })
 
 test('buildRaceBonuses: Human vira frase curta em vez de 6 fragmentos "+1 X"', () => {
   const raceFeatures = { human: [{ key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your ability scores each increase by 1.', source: 'human' }] }
   const attributes = ATTRS.map((key) => ({ key, label: key }))
-  assert.deepEqual(buildRaceBonuses(raceFeatures, attributes, 'en-US'), { human: '+1 to all abilities' })
+  assert.deepEqual(buildRaceBonuses(raceFeatures, [{ key: 'human' }], attributes, 'en-US').bonuses, { human: '+1 to all abilities' })
 })
 
 const RAGE = { en: 'Rage', pt: 'Fúria' }
@@ -648,9 +676,15 @@ test('raceFeatures: EN e pt-BR têm as mesmas raças, mesma contagem e mesma key
 // em português e o bônus sumiria silenciosamente do config pt-BR inteiro.
 test('config pt-BR: bônus de atributo sobrevive à tradução dos traços raciais', () => {
   const ptBr = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.pt-BR.json'), 'utf8'))
+  // Correção de 2026-09-02: todas as 13 raças (9 raízes + 4 subespécies) ganham `bonus` —
+  // raiz-com-subespécie deixou de ficar sem cartão-de-atributo (rootBonuses).
   const withBonus = ptBr.races.filter((r) => r.bonus)
-  assert.ok(withBonus.length >= 9, `esperava >=9 raças com bonus, achou ${withBonus.length}`)
+  assert.equal(withBonus.length, ptBr.races.length, `esperava bonus em todas as ${ptBr.races.length} raças, achou ${withBonus.length}`)
   assert.equal(ptBr.races.find((r) => r.key === 'human').bonus, '+1 em todos os atributos')
+  // Raiz mostra só o próprio ASI; subespécie mostra o total (bonus) E o delta (variantBonus).
+  assert.equal(ptBr.races.find((r) => r.key === 'gnome').bonus, '+2 Inteligência')
+  assert.equal(ptBr.races.find((r) => r.key === 'rock-gnome').bonus, '+1 Constituição, +2 Inteligência')
+  assert.equal(ptBr.races.find((r) => r.key === 'rock-gnome').variantBonus, '+1 Constituição')
 })
 
 // US-128: os dois artefatos concordam nos nomes EN dos itens (mesma fonte, `b.fields.desc`
