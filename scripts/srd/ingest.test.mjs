@@ -651,7 +651,7 @@ for (const locale of ['en-US', 'pt-BR']) {
 test('artefato en-US: high-elf combina os 10 traços de elf + os 4 próprios, ASI da raiz e da subespécie sobrevivem separados', () => {
   const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
   const highElf = artifact.raceFeatures['high-elf']
-  assert.equal(highElf.length, 14)
+  assert.equal(highElf.length, 13)
   const asi = highElf.filter((f) => f.key === 'ability-score-increase')
   assert.deepEqual(asi.map((f) => f.source), ['elf', 'high-elf'])
 })

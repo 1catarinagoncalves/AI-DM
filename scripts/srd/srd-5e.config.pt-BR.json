@@ -3588,12 +3588,6 @@
         "source": "dragonborn"
       },
       {
-        "description": "Dragonborn tendem aos extremos, fazendo uma escolha consciente por um lado ou outro na guerra cósmica entre o bem e o mal. A maioria dos dragonborn é boa, mas aqueles que se aliam ao mal podem ser vilões terríveis.",
-        "key": "alignment",
-        "name": "Tendência",
-        "source": "dragonborn"
-      },
-      {
         "description": "Dragonborn são mais altos e pesados que humanos, medindo bem mais de 6 pés de altura e pesando em média quase 250 libras. Seu tamanho é Médio.",
         "key": "size",
         "name": "Tamanho",
@@ -3656,12 +3650,6 @@
         "source": "half-elf"
       },
       {
-        "description": "Meio-elfos compartilham a inclinação caótica de sua herança élfica. Eles valorizam tanto a liberdade pessoal quanto a expressão criativa, não demonstrando amor por líderes nem desejo por seguidores. Eles se irritam com regras, ressentem-se das exigências dos outros e, às vezes, provam ser pouco confiáveis, ou pelo menos imprevisíveis.",
-        "key": "alignment",
-        "name": "Tendência",
-        "source": "half-elf"
-      },
-      {
         "description": "Meio-elfos têm aproximadamente o mesmo tamanho que os humanos, variando de 5 a 6 pés de altura. Seu tamanho é Médio.",
         "key": "size",
         "name": "Tamanho",
@@ -3709,12 +3697,6 @@
         "description": "Meio-orcs amadurecem um pouco mais rápido que humanos, atingindo a idade adulta por volta dos 14 anos. Eles envelhecem visivelmente mais rápido e raramente vivem mais que 75 anos.",
         "key": "age",
         "name": "Idade",
-        "source": "half-orc"
-      },
-      {
-        "description": "Meio-orcs herdam uma tendência ao caos de seus pais orcs e não são fortemente inclinados ao bem. Meio-orcs criados entre orcs e dispostos a viver suas vidas entre eles são geralmente maus.",
-        "key": "alignment",
-        "name": "Tendência",
         "source": "half-orc"
       },
       {
@@ -3771,12 +3753,6 @@
         "description": "Embora os elfos alcancem a maturidade física por volta da mesma idade que os humanos, a compreensão élfica da idade adulta vai além do crescimento físico para abranger a experiência mundana. Um elfo tipicamente reivindica a idade adulta e um nome adulto por volta dos 100 anos e pode viver até 750 anos.",
         "key": "age",
         "name": "Idade",
-        "source": "elf"
-      },
-      {
-        "description": "Elfos amam a liberdade, a variedade e a autoexpressão, por isso inclinam-se fortemente para os aspectos mais gentis do caos. Eles valorizam e protegem a liberdade dos outros tanto quanto a sua própria, e são mais frequentemente bons do que o contrário.",
-        "key": "alignment",
-        "name": "Tendência",
         "source": "elf"
       },
       {
@@ -3860,12 +3836,6 @@
         "source": "dwarf"
       },
       {
-        "description": "A maioria dos anões é leal, acreditando firmemente nos benefícios de uma sociedade bem ordenada. Eles tendem ao bem também, com um forte senso de jogo justo e a crença de que todos merecem compartilhar os benefícios de uma ordem justa.",
-        "key": "alignment",
-        "name": "Tendência",
-        "source": "dwarf"
-      },
-      {
         "description": "Anões têm entre 4 e 5 pés de altura e pesam em média cerca de 150 libras. Seu tamanho é Médio.",
         "key": "size",
         "name": "Tamanho",
@@ -3934,12 +3904,6 @@
         "source": "human"
       },
       {
-        "description": "Humanos tendem a não ter uma tendência específica. Os melhores e os piores são encontrados entre eles.",
-        "key": "alignment",
-        "name": "Tendência",
-        "source": "human"
-      },
-      {
         "description": "Humanos variam muito em altura e compleição, de pouco mais de 5 pés a bem mais de 6 pés de altura. Independentemente da sua posição nessa faixa, seu tamanho é Médio.",
         "key": "size",
         "name": "Tamanho",
@@ -3969,12 +3933,6 @@
         "description": "Um halfling atinge a idade adulta aos 20 anos e geralmente vive até meados do seu segundo século.",
         "key": "age",
         "name": "Idade",
-        "source": "halfling"
-      },
-      {
-        "description": "A maioria dos halflings é leal e boa. Como regra, eles são bondosos e gentis, odeiam ver outros sofrendo e não têm tolerância para a opressão. Eles também são muito ordeiros e tradicionais, apoiando-se fortemente no suporte de sua comunidade e no conforto de seus velhos costumes.",
-        "key": "alignment",
-        "name": "Tendência",
         "source": "halfling"
       },
       {
@@ -4046,12 +4004,6 @@
         "source": "gnome"
       },
       {
-        "description": "Gnomos são, na maioria das vezes, bons. Aqueles que tendem à ordem são sábios, engenheiros, pesquisadores, estudiosos, investigadores ou inventores. Aqueles que tendem ao caos são menestréis, trapaceiros, andarilhos ou joalheiros criativos. Gnomos são bondosos, e mesmo os trapaceiros entre eles são mais brincalhões do que cruéis.",
-        "key": "alignment",
-        "name": "Tendência",
-        "source": "gnome"
-      },
-      {
         "description": "Gnomos têm entre 3 e 4 pés de altura e pesam em média cerca de 40 libras. Seu tamanho é Pequeno.",
         "key": "size",
         "name": "Tamanho",
@@ -4111,12 +4063,6 @@
         "description": "Tieflings amadurecem na mesma proporção que os humanos, mas vivem alguns anos a mais.",
         "key": "age",
         "name": "Idade",
-        "source": "tiefling"
-      },
-      {
-        "description": "Tieflings podem não ter uma tendência inata para o mal, mas muitos deles acabam seguindo esse caminho. Sendo malignos ou não, uma natureza independente inclina muitos tieflings para uma tendência caótica.",
-        "key": "alignment",
-        "name": "Tendência",
         "source": "tiefling"
       },
       {

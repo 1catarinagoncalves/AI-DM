@@ -290,7 +290,7 @@ export function buildRaces(overlay, species2014, resolve) {
   ])
 }
 
-// --- raceFeatures (93 traços): SpeciesTrait.json do srd-2014, por chave JOGÁVEL de `races` ---
+// --- raceFeatures (84 traços): SpeciesTrait.json do srd-2014, por chave JOGÁVEL de `races` ---
 // US-142: raiz SEM subespécie ganha os próprios traços; raiz COM subespécie some da chave
 // jogável (ver validateCatalogKey em character.service.ts) e cede lugar à(s) subespécie(s),
 // cada uma com raiz+próprios concatenados (raiz primeiro).
@@ -299,11 +299,14 @@ export function buildRaces(overlay, species2014, resolve) {
 // `${raça-ou-subespécie}_${slug}` (o slug sozinho colide: "darkvision" existe em 6+ raças
 // com descrição diferente cada). Cai no fallback EN (e no MT da US-52, `raceFeatures` em
 // `MT_DOMAINS`) até o overlay ganhar a entrada.
+// "alignment" (Tendência) descartado na fonte: as 9 raízes têm o traço, nenhuma subespécie
+// tem o próprio — fluff sem mecânica, pedido posterior de remoção (2026-09-03).
 export function buildRaceFeatures(overlay, races, speciesTraits, resolve) {
   const traitsByParent = new Map()
   for (const t of speciesTraits) {
-    const parentKey = stripDocument(t.fields.parent)
     const slug = t.pk.slice(t.fields.parent.length + 1) // srd_high-elf_cantrip → cantrip
+    if (slug === 'alignment') continue
+    const parentKey = stripDocument(t.fields.parent)
     const featKey = `${parentKey}_${slug}`
     const resolved = resolve('raceFeatures', featKey, overlay.raceFeatures?.[featKey], t.fields.name, norm(t.fields.desc))
     const list = traitsByParent.get(parentKey) ?? []

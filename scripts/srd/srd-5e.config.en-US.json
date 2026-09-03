@@ -3588,12 +3588,6 @@
         "source": "dragonborn"
       },
       {
-        "description": "Dragonborn tend to extremes, making a conscious choice for one side or the other in the cosmic war between good and evil. Most dragonborn are good, but those who side with evil can be terrible villains.",
-        "key": "alignment",
-        "name": "Alignment",
-        "source": "dragonborn"
-      },
-      {
         "description": "Dragonborn are taller and heavier than humans, standing well over 6 feet tall and averaging almost 250 pounds. Your size is Medium.",
         "key": "size",
         "name": "Size",
@@ -3656,12 +3650,6 @@
         "source": "half-elf"
       },
       {
-        "description": "Half-elves share the chaotic bent of their elven heritage. They value both personal freedom and creative expression, demonstrating neither love of leaders nor desire for followers. They chafe at rules, resent others' demands, and sometimes prove unreliable, or at least unpredictable.",
-        "key": "alignment",
-        "name": "Alignment",
-        "source": "half-elf"
-      },
-      {
         "description": "Half-elves are about the same size as humans, ranging from 5 to 6 feet tall. Your size is Medium.",
         "key": "size",
         "name": "Size",
@@ -3709,12 +3697,6 @@
         "description": "Half-orcs mature a little faster than humans, reaching adulthood around age 14. They age noticeably faster and rarely live longer than 75 years.",
         "key": "age",
         "name": "Age",
-        "source": "half-orc"
-      },
-      {
-        "description": "Half-orcs inherit a tendency toward chaos from their orc parents and are not strongly inclined toward good. Half-orcs raised among orcs and willing to live out their lives among them are usually evil.",
-        "key": "alignment",
-        "name": "Alignment",
         "source": "half-orc"
       },
       {
@@ -3771,12 +3753,6 @@
         "description": "Although elves reach physical maturity at about the same age as humans, the elven understanding of adulthood goes beyond physical growth to encompass worldly experience. An elf typically claims adulthood and an adult name around the age of 100 and can live to be 750 years old.",
         "key": "age",
         "name": "Age",
-        "source": "elf"
-      },
-      {
-        "description": "Elves love freedom, variety, and self-­expression, so they lean strongly toward the gentler aspects of chaos. They value and protect others’ freedom as well as their own, and they are more often good than not.",
-        "key": "alignment",
-        "name": "Alignment",
         "source": "elf"
       },
       {
@@ -3860,12 +3836,6 @@
         "source": "dwarf"
       },
       {
-        "description": "Most dwarves are lawful, believing firmly in the benefits of a well-ordered society. They tend toward good as well, with a strong sense of fair play and a belief that everyone deserves to share in the benefits of a just order.",
-        "key": "alignment",
-        "name": "Alignment",
-        "source": "dwarf"
-      },
-      {
         "description": "Dwarves stand between 4 and 5 feet tall and average about 150 pounds. Your size is Medium.",
         "key": "size",
         "name": "Size",
@@ -3934,12 +3904,6 @@
         "source": "human"
       },
       {
-        "description": "Humans tend toward no particular alignment. The best and the worst are found among them.",
-        "key": "alignment",
-        "name": "Alignment",
-        "source": "human"
-      },
-      {
         "description": "Humans vary widely in height and build, from barely 5 feet to well over 6 feet tall. Regardless of your position in that range, your size is Medium.",
         "key": "size",
         "name": "Size",
@@ -3969,12 +3933,6 @@
         "description": "A halfling reaches adulthood at the age of 20 and generally lives into the middle of his or her second century.",
         "key": "age",
         "name": "Age",
-        "source": "halfling"
-      },
-      {
-        "description": "Most halflings are lawful good. As a rule, they are good-hearted and kind, hate to see others in pain, and have no tolerance for oppression. They are also very orderly and traditional, leaning heavily on the support of their community and the comfort of their old ways.",
-        "key": "alignment",
-        "name": "Alignment",
         "source": "halfling"
       },
       {
@@ -4046,12 +4004,6 @@
         "source": "gnome"
       },
       {
-        "description": "Gnomes are most often good. Those who tend toward law are sages, engineers, researchers, scholars, investigators, or inventors. Those who tend toward chaos are minstrels, tricksters, wanderers, or fanciful jewelers. Gnomes are good-hearted, and even the tricksters among them are more playful than vicious.",
-        "key": "alignment",
-        "name": "Alignment",
-        "source": "gnome"
-      },
-      {
         "description": "Gnomes are between 3 and 4 feet tall and average about 40 pounds. Your size is Small.",
         "key": "size",
         "name": "Size",
@@ -4111,12 +4063,6 @@
         "description": "Tieflings mature at the same rate as humans but live a few years longer.",
         "key": "age",
         "name": "Age",
-        "source": "tiefling"
-      },
-      {
-        "description": "Tieflings might not have an innate tendency toward evil, but many of them end up there. Evil or not, an independent nature inclines many tieflings toward a chaotic alignment.",
-        "key": "alignment",
-        "name": "Alignment",
         "source": "tiefling"
       },
       {
