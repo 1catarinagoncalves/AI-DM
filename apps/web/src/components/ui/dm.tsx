@@ -139,21 +139,28 @@ export function SceneFrame({
 }) {
   return (
     <div className="dm-vignette relative flex min-h-dvh w-full flex-col overflow-hidden">
-      {/* next/image (e não background-image) para o Next servir WebP/AVIF redimensionado:
-          os PNG de origem têm ~2 MB cada e o plano é custo zero (ADR 006). */}
-      <Image
-        src={scene}
-        alt=""
-        aria-hidden
-        fill
-        priority
-        quality={60}
-        sizes="100vw"
-        className="object-cover"
-        style={{ imageRendering: 'pixelated' }}
-      />
-      <div className={cn('absolute inset-0', DIM_CLASS[dim])} aria-hidden />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-transparent to-background/90" aria-hidden />
+      {/* `fixed` (não `absolute`) — etapas do wizard que expandem conteúdo (US-205, subgrade
+          de subclasse/variante) esticam este container além de 100dvh; um fundo `absolute`
+          preso a ele reamostra `object-cover` para a altura nova a cada expansão e pixela
+          visivelmente (`imageRendering: pixelated`). `fixed` prende a arte ao viewport, imune
+          à altura do conteúdo. */}
+      <div className="fixed inset-0">
+        {/* next/image (e não background-image) para o Next servir WebP/AVIF redimensionado:
+            os PNG de origem têm ~2 MB cada e o plano é custo zero (ADR 006). */}
+        <Image
+          src={scene}
+          alt=""
+          aria-hidden
+          fill
+          priority
+          quality={60}
+          sizes="100vw"
+          className="object-cover"
+          style={{ imageRendering: 'pixelated' }}
+        />
+        <div className={cn('absolute inset-0', DIM_CLASS[dim])} aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-transparent to-background/90" aria-hidden />
+      </div>
 
       <header className="relative z-10 flex items-center gap-2 px-4 py-3 sm:px-6">
         <Logo className="size-8" />
