@@ -18,16 +18,17 @@ export type CatalogCardEntry = { key: string; label: string; kicker?: string; bl
 // acessibilidade do `WorldOptionGroup` (SetupWizard.tsx, US-157): um `<fieldset>`/`<legend>`
 // por grade inteira, `<label>` envolve `<input type="radio" class="sr-only">` — o cartão
 // inteiro é o alvo de clique/foco, nunca um `div` clicável (US-46).
-export function CatalogCardGroup({ name, legend, items, value, onChange }: {
+export function CatalogCardGroup({ name, legend, hideLegend, items, value, onChange }: {
   name: string
   legend: string
+  hideLegend?: boolean
   items: CatalogCardEntry[]
   value: string
   onChange: (key: string) => void
 }) {
   return (
     <fieldset>
-      <legend className="mb-2 text-sm font-medium text-parchment">{legend}</legend>
+      <legend className={hideLegend ? 'sr-only' : 'mb-2 text-sm font-medium text-parchment'}>{legend}</legend>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
         {items.map(entry => (
           <label key={entry.key} className={optionCardClass(value === entry.key)}>

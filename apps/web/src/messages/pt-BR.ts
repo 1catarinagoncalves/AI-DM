@@ -51,7 +51,7 @@ export const ptBR = {
   'setup.step.system': 'Sistema',
   // US-205: `race-class` virou `class` + `race` — duas entradas na trilha em vez de uma.
   'setup.step.class': 'Classe',
-  'setup.step.race': 'Raça',
+  'setup.step.race': 'Espécie',
   'setup.step.attributes': 'Atributos',
   'setup.step.skills': 'Perícias',
   'setup.step.background': 'Background',

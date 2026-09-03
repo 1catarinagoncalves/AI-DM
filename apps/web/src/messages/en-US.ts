@@ -46,7 +46,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.stepOf': 'Step {n} of {total} — {label}',
   'setup.step.system': 'System',
   'setup.step.class': 'Class',
-  'setup.step.race': 'Race',
+  'setup.step.race': 'Species',
   'setup.step.attributes': 'Attributes',
   'setup.step.skills': 'Skills',
   'setup.step.background': 'Background',

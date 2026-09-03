@@ -758,7 +758,7 @@ export function SetupWizard() {
                 <SectionTitle>{t('setup.race.heading')}</SectionTitle>
                 <p className="mt-1 max-w-prose text-sm text-muted-foreground">{t('setup.race.subtitulo')}</p>
                 <div className="mt-6">
-                  <CatalogCardGroup name="char-race" legend={t('setup.raceClass.race')}
+                  <CatalogCardGroup name="char-race" legend={t('setup.raceClass.race')} hideLegend
                     items={raceRoots} value={selectedRootKey} onChange={selectRootCard} />
                 </div>
                 {/* US-142 (correção de 2026-09-02): segunda grade, só quando a raiz escolhida
