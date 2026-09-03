@@ -103,7 +103,7 @@ não redesenha nenhuma.
 | `SceneFrame` | moldura de cena: arte de fundo + scrim + vinheta + cabeçalho da marca | `<div>`, **nunca** `<main>` — o landmark vive no layout (US-46) |
 | `Panel` | superfície emoldurada (`.dm-panel`) | a **única** unidade de card do sistema |
 | `SectionTitle` | título de tela (serif + acento + `text-shadow-fantasy`) | um por tela |
-| `SheetHeading` | rótulo de secção dentro de um painel | caixa alta, `text-accent`, tracking largo |
+| `SheetHeading` | rótulo de secção dentro de um painel | caixa alta, tracking largo; `tone="accent"` (default) ou `tone="primary"` — use `primary` só na tela que já tem outro rótulo em `--primary` no mesmo ecrã (etapa `race` do wizard, por causa do eyebrow), senão os dois acentos lado a lado leem como cor errada |
 | `DmButton` / `dmButtonClass` | botão nas variantes `primary` \| `ghost` \| `danger` | a função é para quando o elemento tem de ser `<Link>` |
 | `FieldLabel` | rótulo visível e persistente acima do campo | US-46: placeholder nunca é o único rótulo |
 | `fieldClass(extra?)` | classe única de `input`/`select`/`textarea` | função, não componente — serve os três |

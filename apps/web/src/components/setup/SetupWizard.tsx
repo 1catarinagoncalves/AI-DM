@@ -7,8 +7,8 @@ import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
 import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
-  MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
-  type SystemConfig, type SystemTool,
+  MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures, DRACONIC_ANCESTRY_TABLE,
+  type SystemConfig, type SystemTool, type DraconicDamageType,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { parseD10Tables } from '@/lib/parseD10Tables'
@@ -68,6 +68,35 @@ const SELECT_ARROW =
 // da origem, que não é traduzida. Curadoria manual pontual, mesmo espírito do overlay
 // `kitItems` (US-51): sem entrada aqui, cai no default posicional.
 const SINGLE_BLOCK_IS_MEMENTO = new Set(['a5e-ag_sailor'])
+
+// US-211: as duas entradas de raceFeatures['dragonborn'] que a grade de ancestralidade
+// substitui — a tabela crua em markdown e o texto "escolha um tipo de dragão…" ficam
+// redundantes assim que a escolha vira card. `breath-weapon`/`damage-resistance` continuam
+// no painel (fórmula de dano/CD e a existência da resistência não são explicadas em outro lugar).
+const HIDDEN_DRAGONBORN_FEATURE_KEYS = new Set(['draconic-ancestry-table', 'draconic-ancestry'])
+
+// US-211: DRACONIC_ANCESTRY_TABLE (@ai-dm/shared) não tem rótulo embutido — não é conteúdo do
+// SRD ingerido, é regra fixa do PHB 2014 (ver draconic-ancestry.ts). Nome e sopro de cada
+// dragão viram chave de tradução da UI, mesmo padrão de SOURCE_TYPE_HINT/TOOL_CATEGORY_LABEL.
+const DRACONIC_ANCESTRY_COPY: Record<string, { name: MessageKey; blurb: MessageKey }> = {
+  black: { name: 'setup.race.draconicAncestry.black.name', blurb: 'setup.race.draconicAncestry.black.blurb' },
+  blue: { name: 'setup.race.draconicAncestry.blue.name', blurb: 'setup.race.draconicAncestry.blue.blurb' },
+  brass: { name: 'setup.race.draconicAncestry.brass.name', blurb: 'setup.race.draconicAncestry.brass.blurb' },
+  bronze: { name: 'setup.race.draconicAncestry.bronze.name', blurb: 'setup.race.draconicAncestry.bronze.blurb' },
+  copper: { name: 'setup.race.draconicAncestry.copper.name', blurb: 'setup.race.draconicAncestry.copper.blurb' },
+  gold: { name: 'setup.race.draconicAncestry.gold.name', blurb: 'setup.race.draconicAncestry.gold.blurb' },
+  green: { name: 'setup.race.draconicAncestry.green.name', blurb: 'setup.race.draconicAncestry.green.blurb' },
+  red: { name: 'setup.race.draconicAncestry.red.name', blurb: 'setup.race.draconicAncestry.red.blurb' },
+  silver: { name: 'setup.race.draconicAncestry.silver.name', blurb: 'setup.race.draconicAncestry.silver.blurb' },
+  white: { name: 'setup.race.draconicAncestry.white.name', blurb: 'setup.race.draconicAncestry.white.blurb' },
+}
+const DRACONIC_DAMAGE_TYPE_LABEL: Record<DraconicDamageType, MessageKey> = {
+  acid: 'setup.race.draconicAncestry.damageType.acid',
+  cold: 'setup.race.draconicAncestry.damageType.cold',
+  fire: 'setup.race.draconicAncestry.damageType.fire',
+  lightning: 'setup.race.draconicAncestry.damageType.lightning',
+  poison: 'setup.race.draconicAncestry.damageType.poison',
+}
 
 // US-124: sorteia uma linha da tabela d10 e devolve o `roll` (não o `text`) — o <select>
 // é controlado pelo roll, o texto persistido é derivado dele na hora de enviar. Texto de
@@ -214,6 +243,10 @@ export function SetupWizard() {
   // (ver `resolvedSubclass` abaixo). Resetada junto de `class` (subclasse velha não sobrevive
   // à troca de classe) e no reset de sistema (mesmo motivo de race/class).
   const [subclass, setSubclass] = useState<string | undefined>(undefined)
+  // US-211: ancestralidade dracônica escolhida — só existe estado pra `dragonborn` (mesmo
+  // padrão condicional de `subclass`). Resetada ao trocar de raça/raiz (selectRootCard) e de
+  // sistema (mesmo motivo de subclass/race).
+  const [draconicAncestry, setDraconicAncestry] = useState<string | undefined>(undefined)
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
@@ -277,6 +310,14 @@ export function SetupWizard() {
   const raceRoots = raceCatalog.filter(r => !r.parentKey)
   const selectedRootKey = raceCatalog.find(r => r.key === charData.race)?.parentKey ?? charData.race
   const raceVariants = raceCatalog.filter(r => r.parentKey === selectedRootKey)
+  // US-211: cartões da grade de ancestralidade dracônica — mesmos 3 campos que
+  // CatalogCardEntry já aceita (label/bonus/blurb), sem mudança no componente.
+  const draconicAncestryCards = DRACONIC_ANCESTRY_TABLE.map(d => ({
+    key: d.key,
+    label: t(DRACONIC_ANCESTRY_COPY[d.key]!.name),
+    bonus: t('setup.race.draconicAncestry.resistance', { damageType: t(DRACONIC_DAMAGE_TYPE_LABEL[d.damageType]) }),
+    blurb: t(DRACONIC_ANCESTRY_COPY[d.key]!.blurb),
+  }))
   const classCatalog = system?.config?.classes ?? []
   // US-205: subclasses da classe ESCOLHIDA (config.subclasses é por chave de classe, US-141).
   // 0 ou 1 entrada → sem grade (a única, se houver, preenche sozinha); 2+ → grade obrigatória.
@@ -301,6 +342,13 @@ export function SetupWizard() {
   // US-205: rótulo da subclasse resolvida (automática ou escolhida) — mesma disciplina de
   // raceLabel/classLabel acima: a chave nunca aparece na tela.
   const subclassLabel = resolvedSubclassEntry?.label ?? ''
+  // US-211: rótulo + resistência da ancestralidade dracônica escolhida, para a revisão e a
+  // ficha — a chave (`red`) nunca aparece na tela, mesma disciplina de raceLabel/classLabel.
+  const draconicAncestryEntry = DRACONIC_ANCESTRY_TABLE.find(d => d.key === draconicAncestry)
+  const draconicAncestryLabel = draconicAncestryEntry ? t(DRACONIC_ANCESTRY_COPY[draconicAncestryEntry.key]!.name) : ''
+  const draconicAncestryResistance = draconicAncestryEntry
+    ? t('setup.race.draconicAncestry.resistance', { damageType: t(DRACONIC_DAMAGE_TYPE_LABEL[draconicAncestryEntry.damageType]) })
+    : ''
   // Background usa `name`, não `label` (SystemBackgroundSchema, US-121) — catalogLabel não serve.
   const originLabel = backgroundCatalog.find(o => o.key === origin)?.name ?? ''
   // US-124: benefícios narrativos da origem escolhida — `adventures_and_advancement` (parágrafo)
@@ -379,8 +427,12 @@ export function SetupWizard() {
   // US-205: painel de detalhe da etapa `race` — traços raciais (US-142), já resolvidos pro
   // locale ativo. Sem FeaturesPanel aqui: aquele componente FILTRA origin 'race' de propósito
   // (US-142, é a aba Features/ficha, só classe/origem) — lista própria, mesmo formato de item.
+  // US-211: dragonborn esconde as 2 entradas que a grade de ancestralidade substitui (a
+  // tabela crua e o texto "escolha um tipo de dragão…") — redundantes assim que a escolha
+  // vira card. `breath-weapon`/`damage-resistance` continuam (não explicadas em outro lugar).
   const raceStepFeatures = system?.config && charData.race
     ? resolveSheetEntries(system.config.raceFeatures, system.config.retiredFeatures, charData.race, getRaceFeatures(system.config, charData.race))
+      .filter(f => charData.race !== 'dragonborn' || !HIDDEN_DRAGONBORN_FEATURE_KEYS.has(f.key))
     : []
   // Bloco "Features e magias" só existe se o config modela esse eixo — mesmo padrão
   // condicional de `backgroundCatalog.length > 0` para a linha "Origem".
@@ -418,6 +470,8 @@ export function SetupWizard() {
     setCharData(p => ({ ...p, race: '', class: '' }))
     // US-205: subclasse depende da classe — mesmo motivo do reset acima.
     setSubclass(undefined)
+    // US-211: ancestralidade dracônica depende da raça — mesmo motivo do reset acima.
+    setDraconicAncestry(undefined)
     // US-122: origem também depende do catálogo do sistema — mesmo motivo do reset acima.
     setOrigin(undefined)
     // US-124: conexão/memento dependem da origem — mesmo motivo.
@@ -446,6 +500,10 @@ export function SetupWizard() {
   function selectRootCard(key: string) {
     const variants = raceCatalog.filter(r => r.parentKey === key)
     setCharData(p => ({ ...p, race: variants[0]?.key ?? key }))
+    // US-211: ancestralidade dracônica é escolha da RAIZ dragonborn — trocar de raiz (mesmo pra
+    // outra que também seja dragonborn, clique repetido) invalida a escolha, mesmo espírito do
+    // reset de subclass em selectClassCard.
+    setDraconicAncestry(undefined)
   }
 
   function canAdvance(s: Step): boolean {
@@ -459,8 +517,11 @@ export function SetupWizard() {
           && (GENDERS as readonly string[]).includes(charData.gender)
           && classCatalog.some(c => c.key === charData.class)
           && (!subclassCatalog || subclassCatalog.length <= 1 || !!subclass)
+      // US-211: dragonborn exige a ancestralidade dracônica escolhida — mesmo espírito da
+      // checagem de subclass em canAdvance('class').
       case 'race':
         return raceCatalog.some(r => r.key === charData.race)
+          && (charData.race !== 'dragonborn' || !!draconicAncestry)
       // US-123: além do point-buy fechado, background com grant.kind === 'ability' exige
       // uma linha escolhida para o +1 livre (a linha fixa não conta, é automática).
       case 'attributes':
@@ -520,8 +581,11 @@ export function SetupWizard() {
       // situação em que `subclass` é escolha real da jogadora. Classe com 0 ou 1 entrada nunca
       // manda o campo; o service resolve sozinho (ver character.service.ts).
       const subclassPayload = subclassCatalog && subclassCatalog.length > 1 ? subclass : undefined
+      // US-211: só viaja quando a raça é dragonborn — qualquer outra raça nem tem a grade
+      // no wizard (canAdvance('race') já bloqueia o avanço sem a escolha, quando dragonborn).
+      const draconicAncestryPayload = charData.race === 'dragonborn' ? draconicAncestry : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
-      const char = await api.createCharacter({ systemId: system.id, ...charData, subclass: subclassPayload, attributes: attrs, skills, background, origin: originPayload })
+      const char = await api.createCharacter({ systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload, attributes: attrs, skills, background, origin: originPayload })
       // Personagem já está salvo: guardamos o id e avançamos ao passo `world` (US-157).
       setCharId(char.id)
       setStep('world')
@@ -691,6 +755,10 @@ export function SetupWizard() {
                 fim (decisão do backlog). */}
             {step === 'class' && system && (
               <div>
+                {/* Cabeçalho de 3 partes (eyebrow/heading/subtítulo) — mesmo padrão da etapa
+                    `race` (eyebrow em --primary, SectionTitle, subtítulo em muted-foreground),
+                    pra não ler como duas telas de sistemas diferentes dentro do mesmo wizard. */}
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">{t('setup.class.eyebrow')}</p>
                 <SectionTitle>{t('setup.class.titulo')}</SectionTitle>
                 <p className="mt-1 text-sm text-muted-foreground">{t('setup.raceClass.system', { name: system.name })}</p>
                 <div className="mt-6 space-y-4">
@@ -728,7 +796,7 @@ export function SetupWizard() {
                     <div className="space-y-4 border-t border-border pt-4">
                       {previewKit.length > 0 && (
                         <div>
-                          <SheetHeading>{t('setup.class.detail.kit')}</SheetHeading>
+                          <SheetHeading tone="primary">{t('setup.class.detail.kit')}</SheetHeading>
                           <p className="text-sm text-foreground">
                             {previewKit.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
                           </p>
@@ -738,12 +806,12 @@ export function SetupWizard() {
                           (12 das 13 classes): a jogadora vê o que ganhou sem ter escolhido. */}
                       {resolvedSubclassEntry && (
                         <div>
-                          <SheetHeading>{t('setup.class.detail.subclass')}</SheetHeading>
+                          <SheetHeading tone="primary">{t('setup.class.detail.subclass')}</SheetHeading>
                           <p className="text-sm font-medium text-parchment">{resolvedSubclassEntry.label}</p>
                           {resolvedSubclassEntry.blurb && <p className="mt-1 text-xs text-muted-foreground">{resolvedSubclassEntry.blurb}</p>}
                         </div>
                       )}
-                      {classStepFeatures.length > 0 && <FeaturesPanel features={classStepFeatures} />}
+                      {classStepFeatures.length > 0 && <FeaturesPanel features={classStepFeatures} tone="primary" />}
                     </div>
                   )}
                 </div>
@@ -771,10 +839,21 @@ export function SetupWizard() {
                       onChange={key => setCharData(p => ({ ...p, race: key }))} />
                   </div>
                 )}
-                {/* US-205: painel de detalhe — traços raciais (US-142), sem dado novo. */}
+                {/* US-211 (correção): grade de ancestralidade dracônica — só pra dragonborn, ANTES
+                    do painel de traços raciais (mesma posição da grade de variante acima, não
+                    mais abaixo dos traços). */}
+                {charData.race === 'dragonborn' && (
+                  <div className="mt-6">
+                    <CatalogCardGroup name="char-draconic-ancestry" legend={t('setup.race.variant.legend')}
+                      items={draconicAncestryCards} value={draconicAncestry ?? ''} onChange={setDraconicAncestry} />
+                  </div>
+                )}
+                {/* US-205: painel de detalhe — traços raciais (US-142), sem dado novo.
+                    tone="primary": única etapa com eyebrow em --primary logo acima (ver
+                    SheetHeading em dm.tsx) — accent aqui liam como duas cores em conflito. */}
                 {raceStepFeatures.length > 0 && (
                   <div className="mt-6 space-y-4 border-t border-border pt-4">
-                    <SheetHeading>{t('setup.race.detail.features')}</SheetHeading>
+                    <SheetHeading tone="primary">{t('setup.race.detail.features')}</SheetHeading>
                     <ul className="flex flex-col gap-2">
                       {raceStepFeatures.map((f, i) => (
                         <li key={i} className="rounded-md border border-border bg-background/40 p-3">
@@ -1103,6 +1182,16 @@ export function SetupWizard() {
                     <div className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.subclass')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">{subclassLabel || '—'}</dd>
+                    </div>
+                  )}
+                  {/* US-211: só quando a raça é dragonborn — mostra o tipo de dragão e a
+                      resistência RESOLVIDOS, não a chave crua. */}
+                  {charData.race === 'dragonborn' && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.draconicAncestry')}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">
+                        {draconicAncestryEntry ? `${draconicAncestryLabel} — ${draconicAncestryResistance}` : '—'}
+                      </dd>
                     </div>
                   )}
                   <div className="flex items-start justify-between gap-6 py-2.5">

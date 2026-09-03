@@ -31,7 +31,7 @@
     "engineering": "Engenharia"
   },
   "races": {
-    "dragonborn": { "name": "Dragonborn", "kicker": "Herança de dragão", "blurb": "Sangue dracônico à vista: escamas, sopro elemental e uma reputação que chega antes de você." },
+    "dragonborn": { "name": "Draconato", "kicker": "Herança de dragão", "blurb": "Sangue dracônico à vista: escamas, sopro elemental e uma reputação que chega antes de você." },
     "dwarf": { "name": "Anão", "kicker": "Rocha que não quebra", "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão." },
     "elf": { "name": "Elfo", "kicker": "Graça que não dorme", "blurb": "Não precisa de sono de verdade, enxerga no escuro e se move com uma elegância que poucos povos conseguem imitar." },
     "gnome": { "name": "Gnomo", "kicker": "Curiosidade sem freio", "blurb": "Pequeno, esperto e imune a boa parte da magia que mexe com a mente — a curiosidade dele já causou mais problema (e solução) do que se imagina." },

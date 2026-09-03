@@ -34,6 +34,9 @@ model Character {
   subclass       String?                // US-205: chave de config.subclasses[class] — automática
                                           // quando a classe tem 1 subclasse só, escolhida quando tem
                                           // mais (marshal). null = sistema sem config.subclasses.
+  draconicAncestry String?              // US-211: chave de DRACONIC_ANCESTRY_TABLE (@ai-dm/shared)
+                                          // — obrigatória quando race === 'dragonborn', null pra
+                                          // qualquer outra raça (a tabela não é config de sistema).
   level          Int                    @default(1)
   baseAttributes Json
   skills         Json                   @default("[]") // US-27: keys de perícia proficientes (string[])

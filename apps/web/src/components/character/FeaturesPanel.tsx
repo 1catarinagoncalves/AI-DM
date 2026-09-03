@@ -26,7 +26,11 @@ export interface ClassFeature {
 // US-127: extraído de GameView.tsx para cá — a etapa `review` da criação (SetupWizard)
 // e a ficha em jogo (GameView) consomem o MESMO componente, com dados diferentes
 // (preview local vs. persistido). Um muda, os dois mudam juntos.
-export function FeaturesPanel({ features, spells }: { features?: ClassFeature[]; spells?: SystemSpell[] }) {
+// `tone`: repassado ao SheetHeading interno (dm.tsx) — "primary" só na tela que já tem outro
+// rótulo em `--primary` no mesmo ecrã (etapa `class` do wizard, eyebrow "ESCOLHA UMA CLASSE"),
+// senão os dois acentos lado a lado leem como cor errada. Default "accent": ficha/mesa/revisão
+// não têm esse eyebrow, então mantêm a cor de sempre.
+export function FeaturesPanel({ features, spells, tone = 'accent' }: { features?: ClassFeature[]; spells?: SystemSpell[]; tone?: 'accent' | 'primary' }) {
   const t = useT()
   // US-100: o nome da magia chega já resolvido no locale (a página resolve a chave da ficha);
   // o rótulo de nível é o único texto desta lista que se monta aqui — e acompanha.
@@ -50,7 +54,7 @@ export function FeaturesPanel({ features, spells }: { features?: ClassFeature[];
     <div className="flex flex-col gap-4">
       {featureList.length > 0 && (
         <section>
-          <SheetHeading>{t('game.features.title')}</SheetHeading>
+          <SheetHeading tone={tone}>{t('game.features.title')}</SheetHeading>
           <ul className="flex flex-col gap-2">
             {featureList.map((f, i) => (
               <li key={i} className="rounded-md border border-border bg-background/40 p-3">
@@ -73,7 +77,7 @@ export function FeaturesPanel({ features, spells }: { features?: ClassFeature[];
 
       {spellList.length > 0 && (
         <section>
-          <SheetHeading>{t('game.spells.title')}</SheetHeading>
+          <SheetHeading tone={tone}>{t('game.spells.title')}</SheetHeading>
           <ul className="flex flex-col gap-2">
             {spellList.map((s, i) => {
               // Rótulo vindo de @ai-dm/shared — a MESMA regra que o prompt do mestre usa

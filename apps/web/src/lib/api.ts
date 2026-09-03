@@ -60,6 +60,9 @@ async function del(path: string): Promise<void> {
 export const api = {
   createCharacter: (data: {
     systemId: string; name: string; gender: string; race: string; class: string
+    // US-211: chave de DRACONIC_ANCESTRY_TABLE — só manda quando `race === 'dragonborn'`
+    // (outra raça nem tem a grade no wizard, ver SetupWizard.tsx).
+    draconicAncestry?: string
     // US-205: chave de config.subclasses[class] — omitido quando a classe tem 1 subclasse só
     // (o service preenche sozinho); a etapa `class` do wizard só manda quando `marshal` (3 opções).
     subclass?: string

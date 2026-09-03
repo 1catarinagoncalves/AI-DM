@@ -24,12 +24,22 @@ describe('migração US-105 — texto legado vira chave do catálogo', () => {
   const LEGACY_RACES = ['Anão', 'Meio-Orc', 'Elfo', 'Halfling', 'Humano', 'Dragonborn', 'Gnomo', 'Meio-Elfo', 'Tiefling']
   const LEGACY_CLASSES = ['Bárbaro', 'Bardo', 'Clérigo', 'Druida', 'Guerreiro', 'Monge', 'Paladino', 'Patrulheiro', 'Ladino', 'Feiticeiro', 'Bruxo', 'Mago']
 
+  // US-211: `dragonborn` ganhou curadoria pt-BR ("Draconato") — era a única das 9 raízes
+  // ainda em inglês (`scripts/srd/locale/pt-BR.json` esquecera o `name`). O texto legado do
+  // wizard antigo ("Dragonborn") continua migrando pra mesma chave; só o RÓTULO exibido muda,
+  // de propósito — por isso sai do loop de "MESMO texto" e ganha uma checagem própria abaixo.
   it('toda raça do wizard antigo tem destino, e o rótulo pt-BR volta a ser o MESMO texto', () => {
-    for (const legacy of LEGACY_RACES) {
+    for (const legacy of LEGACY_RACES.filter((r) => r !== 'Dragonborn')) {
       const key = toRace(legacy)
       expect(key, `raça sem destino: ${legacy}`).not.toBeNull()
       expect(catalogLabel(races, key!)).toBe(legacy)
     }
+  })
+
+  it('"Dragonborn" (texto legado em inglês) migra pra `dragonborn`, mas o rótulo pt-BR agora é "Draconato" (US-211)', () => {
+    const key = toRace('Dragonborn')
+    expect(key).toBe('dragonborn')
+    expect(catalogLabel(races, key!)).toBe('Draconato')
   })
 
   it('toda classe do wizard antigo tem destino, e o rótulo pt-BR volta a ser o MESMO texto', () => {

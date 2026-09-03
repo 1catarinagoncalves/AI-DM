@@ -1,7 +1,7 @@
-# Graph Report - AI DM  (2026-09-02)
+# Graph Report - AI DM  (2026-09-03)
 
 ## Corpus Check
-- 538 files · ~1,092,269 words
+- 538 files · ~1,092,334 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `825144c0`
+- Built from commit: `79bfc60d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -362,10 +362,10 @@
   apps/api/src/adventure-generation/adventure-gate.ts → packages/shared/src/types/adventure-generation.ts
 - `US-77 — Reancorar as assertivas de prompt restantes` --references--> `Prompt Anchors Convention`  [EXTRACTED]
   docs/sdlc/01-requisitos/US-77-reancorar-assertivas-de-prompt-e-guard-de-regressao.md → evals/PROMPT-ANCHORS.md
+- `LocaleToggle()` --calls--> `cn()`  [EXTRACTED]
+  apps/web/src/components/LocaleToggle.tsx → apps/web/src/components/ui/dm.tsx
 - `buildConfig()` --calls--> `buildRaceBonuses()`  [EXTRACTED]
   scripts/srd/ingest.mjs → scripts/srd/race-bonus.mjs
-- `formatAsiPhrase()` --indirect_call--> `attr()`  [INFERRED]
-  scripts/srd/race-bonus.mjs → scripts/srd/ingest.test.mjs
 
 ## Import Cycles
 - None detected.
@@ -1406,7 +1406,7 @@ Cohesion: 0.22
 Nodes (9): Backlog — Redesenho da criação de personagem (protótipo de referência), Fora do escopo deste backlog, Identidade visual: o protótipo já usa os nossos tokens, Mapeamento das etapas (a ordem que fica é a do produto, com a exceção de 2026-09-02 abaixo), O produto hoje, em uma linha, O protótipo, em uma linha, O que o produto tem e o protótipo não — nada disto se perde, O que o protótipo tem e o produto não (+1 more)
 
 ## Knowledge Gaps
-- **2327 isolated node(s):** `CatalogCardEntry`, `{ listSystems, createCharacter, createAdventure }`, `steps`, `GENDERS`, `POINT_COST` (+2322 more)
+- **2327 isolated node(s):** `DmVariant`, `VARIANT_CLASS`, `BtnProps`, `DIM_CLASS`, `CatalogCardEntry` (+2322 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **72 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1414,12 +1414,12 @@ Nodes (9): Backlog — Redesenho da criação de personagem (protótipo de refer
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `ADR-0005` connect `seed.ts` to `ingest.mjs`, `dm-system.ts`, `roll-content.ts`, `AuthService`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **Why does `US-148 — Perfil do personagem como entrada do motor` connect `US-148 — Perfil do personagem como entrada do motor` to `US-121-catalogo-backgrounds-a5e-adventurers-guide.md`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **Why does `US-143 — ADR: aventura gerada é regenerável ou congelada, e onde ela mora` connect `US-143 — ADR: aventura gerada é regenerável ou congelada, e onde ela mora` to `backlog-motor-de-geracao-de-aventuras.md`?**
   _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **What connects `CatalogCardEntry`, `{ listSystems, createCharacter, createAdventure }`, `steps` to the rest of the system?**
+- **What connects `DmVariant`, `VARIANT_CLASS`, `BtnProps` to the rest of the system?**
   _2327 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ingest.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.07823613086770982 - nodes in this community are weakly interconnected._

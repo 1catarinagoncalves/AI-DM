@@ -241,9 +241,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(screen.getByRole('heading', { name: 'Background' })).toBeTruthy()
 
-    // trilha: Classe e Raça concluídas, Background atual
+    // trilha: Classe e Espécie concluídas, Background atual
     expect(screen.getByRole('button', { name: 'Classe' }).getAttribute('data-state')).toBe('concluída')
-    expect(screen.getByRole('button', { name: 'Raça' }).getAttribute('data-state')).toBe('concluída')
+    expect(screen.getByRole('button', { name: 'Espécie' }).getAttribute('data-state')).toBe('concluída')
     expect(screen.getByRole('button', { name: /Background/ }).getAttribute('data-state')).toBe('atual')
 
     // volta até Classe (Background → Raça → Classe) e avança de novo — valores mantidos
@@ -1370,5 +1370,98 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     expect(screen.getByRole('radio', { name: 'Insano' })).toBeTruthy()
     // Subclasse limpa — precisa escolher de novo antes de avançar.
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(true)
+  })
+})
+
+// --- US-211: grade de ancestralidade dracônica, só para dragonborn ---
+
+const configWithDragonborn = (budget: number) => ({
+  ...configWithBudget(budget),
+  races: [
+    { key: 'dragonborn', label: 'Draconato' },
+    { key: 'elf', label: 'Elfo' },
+  ],
+})
+
+// As 4 entradas reais de raceFeatures['dragonborn'] (US-142) — a grade de ancestralidade
+// esconde as 2 primeiras (redundantes assim que a escolha vira card); sopro/resistência ficam.
+const configWithDragonbornFeatures = (budget: number) => ({
+  ...configWithDragonborn(budget),
+  raceFeatures: {
+    dragonborn: [
+      { key: 'draconic-ancestry-table', source: 'dragonborn', name: 'Tabela de Ancestralidade Dracônica', description: 'x' },
+      { key: 'draconic-ancestry', source: 'dragonborn', name: 'Ancestralidade Dracônica', description: 'Escolha um tipo de dragão…' },
+      { key: 'breath-weapon', source: 'dragonborn', name: 'Arma de Sopro', description: 'x' },
+      { key: 'damage-resistance', source: 'dragonborn', name: 'Resistência a Dano', description: 'x' },
+    ],
+  },
+})
+
+describe('SetupWizard — ancestralidade dracônica do dragonborn (US-211)', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickDragonbornConfig(config: SystemConfig) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Vex' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+  }
+
+  it('escolher Draconato revela a grade de 10 cards; escolher outra raça não deixa resíduo', async () => {
+    await pickDragonbornConfig(configWithDragonborn(2))
+
+    expect(screen.queryByRole('radio', { name: /Ancestral Negro/ })).toBeNull()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Draconato' }))
+    expect(screen.getAllByRole('radio', { name: /^Ancestral /})).toHaveLength(10)
+    expect(screen.getByRole('radio', { name: /Ancestral Vermelho/ })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    expect(screen.queryByRole('radio', { name: /Ancestral/ })).toBeNull()
+  })
+
+  it('bloqueia avanço da etapa raça sem ancestralidade escolhida; libera ao escolher uma', async () => {
+    await pickDragonbornConfig(configWithDragonborn(2))
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Draconato' }))
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.click(screen.getByRole('radio', { name: /Ancestral Vermelho/ }))
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it('painel de traços esconde a tabela crua e "escolha um tipo…", mantém sopro e resistência', async () => {
+    await pickDragonbornConfig(configWithDragonbornFeatures(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Draconato' }))
+
+    expect(screen.queryByText('Tabela de Ancestralidade Dracônica')).toBeNull()
+    expect(screen.queryByText('Ancestralidade Dracônica')).toBeNull()
+    expect(screen.getByText('Arma de Sopro')).toBeTruthy()
+    expect(screen.getByText('Resistência a Dano')).toBeTruthy()
+  })
+
+  it('DTO manda a chave escolhida quando dragonborn', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Vex' })
+    await pickDragonbornConfig(configWithDragonborn(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Draconato' }))
+    fireEvent.click(screen.getByRole('radio', { name: /Ancestral Vermelho/ }))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'dragonborn', draconicAncestry: 'red' }))
   })
 })

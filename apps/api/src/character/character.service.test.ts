@@ -884,4 +884,45 @@ describe('CharacterService.create', () => {
     })
     expect(char.subclass).toBeUndefined()
   })
+
+  // US-211: dragonborn exige a ancestralidade dracônica escolhida, validada contra
+  // DRACONIC_ANCESTRY_TABLE (regra fixa do PHB 2014, packages/shared) — não config.races.
+  const configWithDragonborn: SystemConfig = {
+    ...config,
+    races: [{ key: 'dragonborn', label: 'Dragonborn' }, { key: 'elf', label: 'Elf' }],
+  }
+
+  it('dragonborn sem draconicAncestry é rejeitado, com o valor ofensor na mensagem', async () => {
+    const service = new CharacterService(fakePrisma(configWithDragonborn))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'dragonborn', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })).rejects.toThrow('Ancestralidade dracônica inválida: ""')
+  })
+
+  it('dragonborn com draconicAncestry fora das 10 chaves é rejeitado', async () => {
+    const service = new CharacterService(fakePrisma(configWithDragonborn))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'dragonborn', class: 'x',
+      attributes: { cool: 5, hard: 5 }, draconicAncestry: 'rainbow',
+    })).rejects.toThrow('Ancestralidade dracônica inválida: "rainbow"')
+  })
+
+  it('dragonborn com draconicAncestry válido persiste a chave', async () => {
+    const service = new CharacterService(fakePrisma(configWithDragonborn))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'dragonborn', class: 'x',
+      attributes: { cool: 5, hard: 5 }, draconicAncestry: 'red',
+    })
+    expect(char.draconicAncestry).toBe('red')
+  })
+
+  it('raça não-dragonborn ignora draconicAncestry mandado por engano, sem erro nem gravação', async () => {
+    const service = new CharacterService(fakePrisma(configWithDragonborn))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, draconicAncestry: 'red',
+    })
+    expect(char.draconicAncestry).toBeUndefined()
+  })
 })

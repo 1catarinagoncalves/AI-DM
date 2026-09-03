@@ -89,6 +89,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.system.hint.UPLOAD': 'Custom system uploaded by a user',
 
   // ---- wizard: class and race (US-205: two steps, `class` then `race`) ----
+  'setup.class.eyebrow': 'Choose a class',
   'setup.class.titulo': 'Class',
   'setup.race.eyebrow': 'Choose a species',
   'setup.race.heading': 'Where does your blood come from?',
@@ -105,6 +106,35 @@ export const enUS: Record<MessageKey, string> = {
   'setup.class.detail.subclass': 'Subclass',
   'setup.race.detail.features': 'Racial traits',
   'setup.race.variant.legend': 'Choose a variant',
+
+  // US-211: dragonborn draconic ancestry — see the pt-BR.ts comment for why the label lives
+  // here instead of the SRD overlay (DRACONIC_ANCESTRY_TABLE has no embedded label).
+  'setup.race.draconicAncestry.resistance': 'Resistance to {damageType}',
+  'setup.race.draconicAncestry.damageType.acid': 'Acid',
+  'setup.race.draconicAncestry.damageType.cold': 'Cold',
+  'setup.race.draconicAncestry.damageType.fire': 'Fire',
+  'setup.race.draconicAncestry.damageType.lightning': 'Lightning',
+  'setup.race.draconicAncestry.damageType.poison': 'Poison',
+  'setup.race.draconicAncestry.black.name': 'Black Dragon',
+  'setup.race.draconicAncestry.black.blurb': 'Breath in a line of corrosive acid.',
+  'setup.race.draconicAncestry.blue.name': 'Blue Dragon',
+  'setup.race.draconicAncestry.blue.blurb': 'Breath in a line of crackling lightning.',
+  'setup.race.draconicAncestry.brass.name': 'Brass Dragon',
+  'setup.race.draconicAncestry.brass.blurb': 'Breath in a line of scorching fire.',
+  'setup.race.draconicAncestry.bronze.name': 'Bronze Dragon',
+  'setup.race.draconicAncestry.bronze.blurb': 'Breath in a line of crackling lightning.',
+  'setup.race.draconicAncestry.copper.name': 'Copper Dragon',
+  'setup.race.draconicAncestry.copper.blurb': 'Breath in a line of corrosive acid.',
+  'setup.race.draconicAncestry.gold.name': 'Gold Dragon',
+  'setup.race.draconicAncestry.gold.blurb': 'Breath in a cone of searing fire.',
+  'setup.race.draconicAncestry.green.name': 'Green Dragon',
+  'setup.race.draconicAncestry.green.blurb': 'Breath in a cone of choking poison.',
+  'setup.race.draconicAncestry.red.name': 'Red Dragon',
+  'setup.race.draconicAncestry.red.blurb': 'Breath in a cone of searing fire.',
+  'setup.race.draconicAncestry.silver.name': 'Silver Dragon',
+  'setup.race.draconicAncestry.silver.blurb': 'Breath in a cone of freezing cold.',
+  'setup.race.draconicAncestry.white.name': 'White Dragon',
+  'setup.race.draconicAncestry.white.blurb': 'Breath in a cone of freezing cold.',
 
   // Só o RÓTULO é traduzido — o `value` enviado à API continua sendo a chave PT
   // (ver o comentário gêmeo no pt-BR.ts e em SetupWizard).
@@ -174,6 +204,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.race': 'Race',
   'setup.review.class': 'Class',
   'setup.review.subclass': 'Subclass',
+  'setup.review.draconicAncestry': 'Draconic ancestry',
   'setup.review.level': 'Level',
   'setup.review.hp': 'Starting HP',
   'setup.review.attributes': 'Attributes',

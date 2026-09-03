@@ -86,10 +86,19 @@ export function optionCardClass(selected: boolean) {
   )
 }
 
-/** Rótulo de secção dentro de um painel (ficha, revisão). Caixa alta, acento, tracking largo. */
-export function SheetHeading({ children }: { children: ReactNode }) {
+/**
+ * Rótulo de secção dentro de um painel (ficha, revisão). Caixa alta, tracking largo.
+ *
+ * `tone="accent"` (default) é o acento secundário de sempre. `tone="primary"` serve a tela
+ * que já usa `--primary` como rótulo dominante no mesmo ecrã (etapa `race`: eyebrow "ESCOLHA
+ * UMA ESPÉCIE") — dois acentos de rótulo lado a lado, do mesmo peso visual, liam como cor
+ * errada em vez de dois papéis diferentes.
+ */
+export function SheetHeading({ children, tone = 'accent' }: { children: ReactNode; tone?: 'accent' | 'primary' }) {
   return (
-    <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-accent">{children}</h3>
+    <h3 className={cn('mb-2 text-[11px] font-semibold uppercase tracking-[0.15em]', tone === 'primary' ? 'text-primary' : 'text-accent')}>
+      {children}
+    </h3>
   )
 }
 

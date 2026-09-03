@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -35,6 +35,12 @@ export class CharacterService {
     // Config legado sem `raceFeatures` cai no `config.races` cheio de sempre, sem mudar comportamento.
     const raceCatalog = config.raceFeatures ? Object.keys(config.raceFeatures).map((key) => ({ key })) : config.races
     const race = this.validateCatalogKey(raceCatalog, dto.race, 'Raça')
+    // US-211: dragonborn exige a ancestralidade dracônica escolhida — validada contra
+    // DRACONIC_ANCESTRY_TABLE (regra fixa do PHB 2014, packages/shared), não config.races
+    // (a tabela não vem do SRD ingerido). Qualquer outra raça ignora o campo, mesmo se vier.
+    const draconicAncestry = race === 'dragonborn'
+      ? this.validateCatalogKey(DRACONIC_ANCESTRY_TABLE, dto.draconicAncestry ?? '', 'Ancestralidade dracônica')
+      : undefined
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
     // US-205: subclasse pressupõe a classe já validada acima. `dto.subclass` presente →
     // valida contra o catálogo da classe (BadRequestException se pertencer a outra classe,
@@ -88,6 +94,7 @@ export class CharacterService {
         name: dto.name,
         gender: dto.gender,
         race,
+        draconicAncestry,
         class: charClass,
         subclass,
         level: 1,

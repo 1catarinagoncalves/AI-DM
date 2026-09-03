@@ -97,6 +97,9 @@ export const ptBR = {
   'setup.system.hint.UPLOAD': 'Sistema customizado enviado por um usuário',
 
   // ---- wizard: classe e raça (US-205: duas etapas, `class` seguida de `race`) ----
+  // Eyebrow em --primary, mesmo padrão de 3 partes da etapa `race` (eyebrow/heading/subtítulo)
+  // — as duas etapas de escolha do wizard usam agora o mesmo cabeçalho.
+  'setup.class.eyebrow': 'Escolha uma classe',
   'setup.class.titulo': 'Classe',
   // Cabeçalho de 3 partes da etapa raça (eyebrow/heading/subtítulo), pra bater com o
   // protótipo de referência (wizard-criacao-personagem-referencia.html) — as outras etapas
@@ -121,6 +124,38 @@ export const ptBR = {
   // US-142 (correção de 2026-09-02): legenda da segunda grade de cartão da etapa raça — só
   // aparece quando a raiz escolhida tem subespécie.
   'setup.race.variant.legend': 'Escolha uma variante',
+
+  // US-211: ancestralidade dracônica do dragonborn — DRACONIC_ANCESTRY_TABLE (@ai-dm/shared)
+  // não tem rótulo embutido (não é conteúdo do SRD ingerido, é regra fixa do PHB 2014), então
+  // o rótulo de cada dragão e de cada tipo de dano vira chave de tradução da UI, como as demais
+  // strings do wizard — reusa `setup.race.variant.legend` como heading da grade (mesmo texto
+  // "Escolha uma variante" do protótipo de referência).
+  'setup.race.draconicAncestry.resistance': 'Resistência a {damageType}',
+  'setup.race.draconicAncestry.damageType.acid': 'Ácido',
+  'setup.race.draconicAncestry.damageType.cold': 'Frio',
+  'setup.race.draconicAncestry.damageType.fire': 'Fogo',
+  'setup.race.draconicAncestry.damageType.lightning': 'Raio',
+  'setup.race.draconicAncestry.damageType.poison': 'Veneno',
+  'setup.race.draconicAncestry.black.name': 'Ancestral Negro',
+  'setup.race.draconicAncestry.black.blurb': 'Sopro em linha de ácido corrosivo.',
+  'setup.race.draconicAncestry.blue.name': 'Ancestral Azul',
+  'setup.race.draconicAncestry.blue.blurb': 'Sopro em linha de raio elétrico.',
+  'setup.race.draconicAncestry.brass.name': 'Ancestral Latão',
+  'setup.race.draconicAncestry.brass.blurb': 'Sopro em linha de fogo abrasador.',
+  'setup.race.draconicAncestry.bronze.name': 'Ancestral Bronze',
+  'setup.race.draconicAncestry.bronze.blurb': 'Sopro em linha de raio crepitante.',
+  'setup.race.draconicAncestry.copper.name': 'Ancestral Cobre',
+  'setup.race.draconicAncestry.copper.blurb': 'Sopro em linha de ácido corrosivo.',
+  'setup.race.draconicAncestry.gold.name': 'Ancestral Ouro',
+  'setup.race.draconicAncestry.gold.blurb': 'Sopro em cone de fogo intenso.',
+  'setup.race.draconicAncestry.green.name': 'Ancestral Verde',
+  'setup.race.draconicAncestry.green.blurb': 'Sopro em cone de veneno sufocante.',
+  'setup.race.draconicAncestry.red.name': 'Ancestral Vermelho',
+  'setup.race.draconicAncestry.red.blurb': 'Sopro em cone de fogo intenso.',
+  'setup.race.draconicAncestry.silver.name': 'Ancestral Prata',
+  'setup.race.draconicAncestry.silver.blurb': 'Sopro em cone de frio congelante.',
+  'setup.race.draconicAncestry.white.name': 'Ancestral Branco',
+  'setup.race.draconicAncestry.white.blurb': 'Sopro em cone de frio congelante.',
 
   // Rótulos de gênero. O VALOR enviado à API continua sendo o texto PT (ver SetupWizard):
   // gênero não é dado de SRD, não tem catálogo de onde vir.
@@ -191,6 +226,8 @@ export const ptBR = {
   'setup.review.race': 'Raça',
   'setup.review.class': 'Classe',
   'setup.review.subclass': 'Subclasse',
+  // US-211: só aparece na revisão quando `race === 'dragonborn'`.
+  'setup.review.draconicAncestry': 'Ancestralidade dracônica',
   'setup.review.level': 'Nível',
   'setup.review.hp': 'PV inicial',
   'setup.review.attributes': 'Atributos',
