@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SystemConfig } from './types/system'
-import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, resolveCharacterFeatures, MEMENTO_ITEM_LABEL } from './starting-kit'
+import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, getRaceToolEquipment, resolveCharacterFeatures, MEMENTO_ITEM_LABEL } from './starting-kit'
 
 const dnd5eConfig: SystemConfig = {
   attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
@@ -78,6 +78,44 @@ describe('MEMENTO_ITEM_LABEL (US-128)', () => {
   it('tem rótulo pro pt-BR e en-US, mesma palavra dos dois lados (game.background.memento)', () => {
     expect(MEMENTO_ITEM_LABEL['pt-BR']).toBe('Memento')
     expect(MEMENTO_ITEM_LABEL['en-US']).toBe('Memento')
+  })
+})
+
+// Traço "Tool Proficiency" do anão — item físico da ferramenta escolhida, além da
+// proficiência (que entra em Character.tools por applyToolGrant, US-132).
+describe('getRaceToolEquipment', () => {
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    tools: [
+      { key: 'smiths_tools', label: 'Ferramentas de Ferreiro', category: 'artisan' },
+      { key: 'brewers_supplies', label: 'Suprimentos de Cervejeiro', category: 'artisan' },
+      { key: 'masons_tools', label: 'Ferramentas de Pedreiro', category: 'artisan' },
+      { key: 'thieves_tools', label: "Ferramentas de Ladrão", category: 'thieves_tools' },
+    ],
+  }
+
+  it('devolve o item com o rótulo resolvido para hill-dwarf com escolha válida', () => {
+    expect(getRaceToolEquipment(config, 'hill-dwarf', 'smiths_tools')).toEqual([
+      { name: 'Ferramentas de Ferreiro', qty: 1 },
+    ])
+  })
+
+  it('raça diferente de hill-dwarf devolve lista vazia, mesmo com toolChoice preenchido', () => {
+    expect(getRaceToolEquipment(config, 'elf', 'smiths_tools')).toEqual([])
+  })
+
+  it('hill-dwarf sem toolChoice devolve lista vazia (nunca lança)', () => {
+    expect(getRaceToolEquipment(config, 'hill-dwarf', undefined)).toEqual([])
+  })
+
+  it('toolChoice fora das 3 chaves do traço devolve lista vazia', () => {
+    expect(getRaceToolEquipment(config, 'hill-dwarf', 'thieves_tools')).toEqual([])
+  })
+
+  it('config sem catálogo de ferramentas devolve lista vazia', () => {
+    const noTools: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
+    expect(getRaceToolEquipment(noTools, 'hill-dwarf', 'smiths_tools')).toEqual([])
   })
 })
 

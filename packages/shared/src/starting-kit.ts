@@ -1,6 +1,7 @@
 import type { InventoryItem } from './types/character'
 import { resolveSheetEntries, type SystemClassFeature, type SystemConfig } from './types/system'
 import type { Locale } from './locale'
+import { DWARF_TOOL_PROFICIENCY_CHOICES } from './dwarf-tool-proficiency'
 
 // US-105: `classKey` é a CHAVE canônica gravada no Character (`wizard`, `paladin`), validada
 // contra `config.classes` na criação — não é mais o texto livre que o jogador digitava. Por isso
@@ -55,6 +56,21 @@ export function getBackgroundFeatures(config: SystemConfig, originKey?: string):
   const map = config.backgroundFeatures
   if (!map) return []
   return (map[originKey] ?? []).map((f) => f.key)
+}
+
+/**
+ * Ferramenta de artesão do traço racial do anão (`Character.raceToolChoice`), como item físico
+ * do kit inicial — pedido explícito além da proficiência em si (que já entra em `Character.tools`
+ * pelo mesmo caminho de `applyToolGrant`, US-132): a jogadora que escolhe "Ferramentas de
+ * Ferreiro" espera achar o item no inventário, não só a proficiência na ficha. `raceKey` diferente
+ * de `hill-dwarf` (único anão jogável) ou `toolChoice` ausente/fora das 3 chaves do traço →
+ * lista vazia, nunca lança (mesmo tratamento sem-crash de `getBackgroundEquipment`).
+ */
+export function getRaceToolEquipment(config: SystemConfig, raceKey: string, toolChoice?: string): InventoryItem[] {
+  if (raceKey !== 'hill-dwarf') return []
+  if (!toolChoice || !(DWARF_TOOL_PROFICIENCY_CHOICES as readonly string[]).includes(toolChoice)) return []
+  const label = config.tools?.find((t) => t.key === toolChoice)?.label
+  return label ? [{ name: label, qty: 1 }] : []
 }
 
 /**

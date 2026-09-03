@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -40,6 +40,14 @@ export class CharacterService {
     // (a tabela não vem do SRD ingerido). Qualquer outra raça ignora o campo, mesmo se vier.
     const draconicAncestry = race === 'dragonborn'
       ? this.validateCatalogKey(DRACONIC_ANCESTRY_TABLE, dto.draconicAncestry ?? '', 'Ancestralidade dracônica')
+      : undefined
+    // Traço "Tool Proficiency" do anão: mesmo par condicional de draconicAncestry acima,
+    // validado contra a tabela fixa (regra do PHB 2014, não catálogo do sistema) — só
+    // 'hill-dwarf' (único anão jogável) exige o campo.
+    const raceToolChoice = race === 'hill-dwarf'
+      ? this.validateCatalogKey(
+        DWARF_TOOL_PROFICIENCY_CHOICES.map((key) => ({ key })), dto.raceToolChoice ?? '', 'Ferramenta racial',
+      )
       : undefined
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
     // US-205: subclasse pressupõe a classe já validada acima. `dto.subclass` presente →
@@ -89,7 +97,9 @@ export class CharacterService {
     // US-132: ferramenta/veículo do background (`grant.kind === 'tools'`) — mesmo par find/apply
     // de perícia (US-131), mas sem etapa própria pra mesclar: a origem é a ÚNICA fonte.
     const toolGrant = this.findToolGrant(config.backgrounds, originKey)
-    const tools = this.applyToolGrant(toolGrant, dto.origin?.toolChoice)
+    // Ferramenta racial soma à de origem — as duas são proficiências independentes, mesmo
+    // raciocínio cumulativo de applyRaceGrant/applyAbilityGrant acima.
+    const tools = [...this.applyToolGrant(toolGrant, dto.origin?.toolChoice), ...(raceToolChoice ? [raceToolChoice] : [])]
 
     return this.prisma.character.create({
       data: {
@@ -99,6 +109,7 @@ export class CharacterService {
         gender: dto.gender,
         race,
         draconicAncestry,
+        raceToolChoice,
         class: charClass,
         subclass,
         level: 1,

@@ -1023,4 +1023,68 @@ describe('CharacterService.create', () => {
     })
     expect(char.draconicAncestry).toBeUndefined()
   })
+
+  // Traço "Tool Proficiency" do anão: hill-dwarf exige raceToolChoice, validado contra
+  // DWARF_TOOL_PROFICIENCY_CHOICES (regra fixa do PHB 2014, packages/shared) — mesmo par de
+  // testes de draconicAncestry acima, com o valor somando a `tools` em vez de coluna solitária.
+  const configWithHillDwarf: SystemConfig = {
+    ...config,
+    races: [{ key: 'hill-dwarf', label: 'Hill Dwarf' }, { key: 'elf', label: 'Elf' }],
+  }
+
+  it('hill-dwarf sem raceToolChoice é rejeitado, com o valor ofensor na mensagem', async () => {
+    const service = new CharacterService(fakePrisma(configWithHillDwarf))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'hill-dwarf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })).rejects.toThrow('Ferramenta racial inválida: ""')
+  })
+
+  it('hill-dwarf com raceToolChoice fora das 3 chaves do traço é rejeitado', async () => {
+    const service = new CharacterService(fakePrisma(configWithHillDwarf))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'hill-dwarf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceToolChoice: 'thieves_tools',
+    })).rejects.toThrow('Ferramenta racial inválida: "thieves_tools"')
+  })
+
+  it('hill-dwarf com raceToolChoice válido persiste a chave e soma a tools', async () => {
+    const service = new CharacterService(fakePrisma(configWithHillDwarf))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'hill-dwarf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceToolChoice: 'smiths_tools',
+    })
+    expect(char.raceToolChoice).toBe('smiths_tools')
+    expect(char.tools).toEqual(['smiths_tools'])
+  })
+
+  it('raça não-hill-dwarf ignora raceToolChoice mandado por engano, sem erro nem gravação', async () => {
+    const service = new CharacterService(fakePrisma(configWithHillDwarf))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceToolChoice: 'smiths_tools',
+    })
+    expect(char.raceToolChoice).toBeUndefined()
+    expect(char.tools).toEqual([])
+  })
+
+  it('ferramenta racial soma à ferramenta de origem, sem uma pisar na outra', async () => {
+    const configWithBoth: SystemConfig = {
+      ...configWithHillDwarf,
+      backgrounds: [{
+        key: 'a5e-ag_artisan', name: 'Artisan', source: 'a5e-ag',
+        benefits: [{
+          type: 'tool_proficiency', name: 'Tool Proficiency', description: 'x',
+          grant: { kind: 'tools', fixed: ['navigators_tools'], chooseFrom: [], chooseCount: 0 },
+        }],
+      }],
+    }
+    const service = new CharacterService(fakePrisma(configWithBoth))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'hill-dwarf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceToolChoice: 'masons_tools',
+      origin: { key: 'a5e-ag_artisan' },
+    })
+    expect(char.tools).toEqual(['navigators_tools', 'masons_tools'])
+  })
 })

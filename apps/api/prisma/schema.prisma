@@ -37,6 +37,13 @@ model Character {
   draconicAncestry String?              // US-211: chave de DRACONIC_ANCESTRY_TABLE (@ai-dm/shared)
                                           // — obrigatória quando race === 'dragonborn', null pra
                                           // qualquer outra raça (a tabela não é config de sistema).
+  raceToolChoice String?                // chave de DWARF_TOOL_PROFICIENCY_CHOICES (@ai-dm/shared)
+                                          // — obrigatória quando race === 'hill-dwarf', null pra
+                                          // qualquer outra raça. Além de entrar em `tools` (proficiência),
+                                          // fica em coluna própria porque a criação da aventura precisa
+                                          // saber QUAL ferramenta veio da raça pra montar o item físico
+                                          // do kit inicial (getRaceToolEquipment) sem ambiguidade com
+                                          // ferramenta de origem que caia na mesma chave.
   level          Int                    @default(1)
   baseAttributes Json
   skills         Json                   @default("[]") // US-27: keys de perícia proficientes (string[])

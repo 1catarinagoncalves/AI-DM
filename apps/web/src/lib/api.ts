@@ -63,6 +63,9 @@ export const api = {
     // US-211: chave de DRACONIC_ANCESTRY_TABLE — só manda quando `race === 'dragonborn'`
     // (outra raça nem tem a grade no wizard, ver SetupWizard.tsx).
     draconicAncestry?: string
+    // Ferramenta de artesão escolhida para o traço "Tool Proficiency" do anão — só manda
+    // quando `race === 'hill-dwarf'` (único anão jogável, mesma raça que tem a grade no wizard).
+    raceToolChoice?: string
     // US-212: atributo(s) escolhido(s) para o `choice` do grant de RAÇA — só manda quando o
     // grant da raça exige escolha (a maioria não exige, ver config.races[].grant).
     raceAbilityChoice?: string[]

@@ -124,6 +124,9 @@ export const ptBR = {
   // US-142 (correção de 2026-09-02): legenda da segunda grade de cartão da etapa raça — só
   // aparece quando a raiz escolhida tem subespécie.
   'setup.race.variant.legend': 'Escolha uma variante',
+  // Traço "Tool Proficiency" do anão — legenda da grade de escolha da ferramenta de artesão,
+  // só aparece para hill-dwarf.
+  'setup.race.dwarfTool.legend': 'Escolha a ferramenta de artesão',
 
   // US-211: ancestralidade dracônica do dragonborn — DRACONIC_ANCESTRY_TABLE (@ai-dm/shared)
   // não tem rótulo embutido (não é conteúdo do SRD ingerido, é regra fixa do PHB 2014), então

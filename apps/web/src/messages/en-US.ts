@@ -106,6 +106,8 @@ export const enUS: Record<MessageKey, string> = {
   'setup.class.detail.subclass': 'Subclass',
   'setup.race.detail.features': 'Racial traits',
   'setup.race.variant.legend': 'Choose a variant',
+  // Dwarf "Tool Proficiency" trait — legend for the artisan's tool choice grid, hill-dwarf only.
+  'setup.race.dwarfTool.legend': "Choose your artisan's tool",
 
   // US-211: dragonborn draconic ancestry — see the pt-BR.ts comment for why the label lives
   // here instead of the SRD overlay (DRACONIC_ANCESTRY_TABLE has no embedded label).

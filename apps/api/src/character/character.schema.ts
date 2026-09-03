@@ -32,6 +32,11 @@ export const CreateCharacterSchema = z.object({
   // race === 'dragonborn' (não aqui: a tabela é regra fixa do PHB 2014, não catálogo do
   // sistema). Qualquer outra raça ignora o campo, mesmo se vier no DTO.
   draconicAncestry: z.string().max(40).optional(),
+  // Ferramenta de artesão escolhida para o traço "Tool Proficiency" do anão — regra fixa do
+  // PHB 2014/SRD (DWARF_TOOL_PROFICIENCY_CHOICES, @ai-dm/shared), mesmo raciocínio de
+  // `draconicAncestry` acima: obrigatória no service quando race === 'hill-dwarf' (único anão
+  // jogável do catálogo), ignorada para qualquer outra raça mesmo se vier no DTO.
+  raceToolChoice: z.string().max(60).optional(),
   class: z.string().min(1).max(40),
   // US-205: chave de config.subclasses[class] — opcional no DTO. Classe com 1 subclasse só
   // nunca precisa mandar (o service preenche sozinho); classe com mais de uma (marshal) manda

@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type AdventureAntagonist, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
+import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type AdventureAntagonist, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
@@ -469,7 +469,11 @@ export class AdventureService {
       ...getBackgroundEquipment(config, origin.key ?? '').map((item) => ({ ...item, origin: 'equipment' as const })),
       ...(origin.memento ? [{ name: MEMENTO_ITEM_LABEL[locale], qty: 1, origin: 'memento' as const }] : []),
     ]
-    const fullInventory = [...startingInventory, ...originItems]
+    // Traço "Tool Proficiency" do anão: a ferramenta escolhida (Character.raceToolChoice) vira
+    // item físico do kit também, não só proficiência — mesma materialização de originItems acima.
+    const raceItems = getRaceToolEquipment(config, character.race, character.raceToolChoice ?? undefined)
+      .map((item) => ({ ...item, origin: 'equipment' as const }))
+    const fullInventory = [...startingInventory, ...originItems, ...raceItems]
 
     // US-153: order calculado ANTES da transação — generateGatedAdventure roda fora do
     // lock (LLM é lento, mesma disciplina de generateOpeningNarration abaixo) e precisa

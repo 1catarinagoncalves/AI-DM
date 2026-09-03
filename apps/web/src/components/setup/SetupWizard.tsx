@@ -7,7 +7,8 @@ import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
 import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
-  MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures, DRACONIC_ANCESTRY_TABLE,
+  getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
+  DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES,
   type SystemConfig, type SystemTool, type DraconicDamageType,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
@@ -248,6 +249,10 @@ export function SetupWizard() {
   // padrão condicional de `subclass`). Resetada ao trocar de raça/raiz (selectRootCard) e de
   // sistema (mesmo motivo de subclass/race).
   const [draconicAncestry, setDraconicAncestry] = useState<string | undefined>(undefined)
+  // Traço "Tool Proficiency" do anão — ferramenta de artesão escolhida, só existe estado pra
+  // `hill-dwarf` (mesmo padrão condicional de draconicAncestry acima). Resetada ao trocar de
+  // raça/raiz (selectRootCard) e de sistema, mesmo motivo de draconicAncestry.
+  const [raceToolChoice, setRaceToolChoice] = useState<string | undefined>(undefined)
   // US-212: atributo(s) escolhido(s) para o `choice` do `grant` de RAÇA — array (não string
   // única, como `abilityChoice` de origem) porque `choice.count` pode ser 2 (Meio-Elfo hoje).
   // Resetado ao trocar de raça/variante e de sistema, mesmo motivo de draconicAncestry acima.
@@ -384,6 +389,9 @@ export function SetupWizard() {
   const toolGrant = toolBenefit?.grant?.kind === 'tools' ? toolBenefit.grant : undefined
   const toolCatalog = system?.config?.tools ?? []
   const toolLabel = Object.fromEntries(toolCatalog.map(tl => [tl.key, tl.label]))
+  // Traço "Tool Proficiency" do anão: cartões da grade de escolha — rótulo vem do catálogo de
+  // ferramentas (toolLabel acima), a chave nunca aparece na tela.
+  const dwarfToolCards = DWARF_TOOL_PROFICIENCY_CHOICES.map(key => ({ key, label: toolLabel[key] ?? key }))
   const adventuresBenefit = originBenefits.find(b => b.type === 'adventures_and_advancement')
   const camBenefit = originBenefits.find(b => b.type === 'connection_and_memento')
   const camTables = camBenefit ? parseD10Tables(camBenefit.description).tables : []
@@ -410,9 +418,13 @@ export function SetupWizard() {
   // que já tem linha própria mais abaixo); gate é `mementoText` truthy, mesma condição do
   // `originPayload.memento` que handleConfirm envia.
   const previewOriginEquipment = system?.config && origin ? getBackgroundEquipment(system.config, origin) : []
+  // Traço "Tool Proficiency" do anão: mesma regra de AdventureService.createForCharacter — a
+  // ferramenta escolhida também é item físico do kit, não só proficiência.
+  const previewRaceEquipment = system?.config ? getRaceToolEquipment(system.config, charData.race, raceToolChoice) : []
   const previewFullKit = [
     ...previewKit,
     ...previewOriginEquipment,
+    ...previewRaceEquipment,
     ...(mementoText ? [{ name: MEMENTO_ITEM_LABEL[locale], qty: 1 }] : []),
   ]
   // US-135: as chaves de origem (getBackgroundFeatures) somam às de classe assim que `origin.key`
@@ -464,7 +476,12 @@ export function SetupWizard() {
     .filter(sk => sk.proficient)
   // US-132: ferramenta(s) fixa(s) + escolhida(s) da origem, já resolvidas pro rótulo — mesma
   // forma que a API vai persistir (Character.tools), pro preview não divergir do salvo.
-  const reviewToolKeys = toolGrant ? [...toolGrant.fixed, ...toolChoice] : []
+  // Traço "Tool Proficiency" do anão soma à mesma lista — outra fonte independente de
+  // proficiência de ferramenta, mesmo raciocínio cumulativo do service (character.service.ts).
+  const reviewToolKeys = [
+    ...(toolGrant ? [...toolGrant.fixed, ...toolChoice] : []),
+    ...(charData.race === 'hill-dwarf' && raceToolChoice ? [raceToolChoice] : []),
+  ]
   const reviewTools = reviewToolKeys.map(k => toolLabel[k] ?? k)
   // Mesma forma que `handleConfirm` envia à API — reaproveitada aqui para o `BackgroundPanel`
   // (US-45) mostrar por extenso o que vai ser salvo, em vez de "Preenchido"/"—".
@@ -487,6 +504,8 @@ export function SetupWizard() {
     setSubclass(undefined)
     // US-211: ancestralidade dracônica depende da raça — mesmo motivo do reset acima.
     setDraconicAncestry(undefined)
+    // Traço "Tool Proficiency" do anão depende da raça — mesmo motivo do reset acima.
+    setRaceToolChoice(undefined)
     // US-212: bônus de atributo de raça depende do catálogo de raça — mesmo motivo do reset acima.
     setRaceAbilityChoice([])
     // US-122: origem também depende do catálogo do sistema — mesmo motivo do reset acima.
@@ -521,6 +540,8 @@ export function SetupWizard() {
     // outra que também seja dragonborn, clique repetido) invalida a escolha, mesmo espírito do
     // reset de subclass em selectClassCard.
     setDraconicAncestry(undefined)
+    // Traço "Tool Proficiency" do anão é escolha da raça — mesmo motivo do reset acima.
+    setRaceToolChoice(undefined)
     // US-212: o `grant` muda de raça pra raça (e de variante pra variante) — uma escolha feita
     // pra uma raça pode colidir com o `fixed` de outra, mesmo motivo do reset acima.
     setRaceAbilityChoice([])
@@ -542,6 +563,8 @@ export function SetupWizard() {
       case 'race':
         return raceCatalog.some(r => r.key === charData.race)
           && (charData.race !== 'dragonborn' || !!draconicAncestry)
+          // Traço "Tool Proficiency" do anão: mesmo espírito da checagem de draconicAncestry acima.
+          && (charData.race !== 'hill-dwarf' || !!raceToolChoice)
       // US-123: além do point-buy fechado, background com grant.kind === 'ability' exige
       // uma linha escolhida para o +1 livre (a linha fixa não conta, é automática).
       // US-212: além do point-buy e do grant de origem, raça com grant.choice exige o número
@@ -608,11 +631,15 @@ export function SetupWizard() {
       // US-211: só viaja quando a raça é dragonborn — qualquer outra raça nem tem a grade
       // no wizard (canAdvance('race') já bloqueia o avanço sem a escolha, quando dragonborn).
       const draconicAncestryPayload = charData.race === 'dragonborn' ? draconicAncestry : undefined
+      // Traço "Tool Proficiency" do anão: só viaja quando a raça é hill-dwarf — mesmo espírito
+      // de draconicAncestryPayload acima.
+      const raceToolChoicePayload = charData.race === 'hill-dwarf' ? raceToolChoice : undefined
       // US-212: só viaja quando o grant da raça exige escolha — [] vira undefined (nada a validar).
       const raceAbilityChoicePayload = raceAbilityChoice.length > 0 ? raceAbilityChoice : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({
         systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload,
+        raceToolChoice: raceToolChoicePayload,
         raceAbilityChoice: raceAbilityChoicePayload, attributes: attrs, skills, background, origin: originPayload,
       })
       // Personagem já está salvo: guardamos o id e avançamos ao passo `world` (US-157).
@@ -875,6 +902,28 @@ export function SetupWizard() {
                   <div className="mt-6">
                     <CatalogCardGroup name="char-draconic-ancestry" legend={t('setup.race.variant.legend')}
                       items={draconicAncestryCards} value={draconicAncestry ?? ''} onChange={setDraconicAncestry} />
+                  </div>
+                )}
+                {/* Traço "Tool Proficiency" do anão: escolha subordinada dentro do traço, não um
+                    eixo de decisão do nível de raça/variante/ancestralidade — CatalogCardGroup
+                    (fonte serifada grande, peso de "Anão da Colina"/"Ancestral Vermelho") ficava
+                    grande demais pra 3 opções de ferramenta. Mesmo <select> que o grant de
+                    ferramenta da ORIGEM já usa (etapa `background`, mais abaixo) para o mesmo
+                    tipo de escolha. Rótulo no MESMO estilo do `legend` do CatalogCardGroup logo
+                    acima ("Escolha uma variante") — não SheetHeading (maiúsculo, cor accent):
+                    as duas são a mesma instrução "Escolha X" dentro do MESMO passo, dois
+                    tratamentos diferentes lado a lado destoavam. */}
+                {charData.race === 'hill-dwarf' && (
+                  <div className="mt-6">
+                    <label htmlFor="char-dwarf-tool" className="mb-2 block text-sm font-medium text-parchment">
+                      {t('setup.race.dwarfTool.legend')}
+                    </label>
+                    <select id="char-dwarf-tool" value={raceToolChoice ?? ''}
+                      onChange={e => setRaceToolChoice(e.target.value || undefined)}
+                      className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                      <option value="">{t('setup.raceClass.select')}</option>
+                      {dwarfToolCards.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
+                    </select>
                   </div>
                 )}
                 {/* US-205: painel de detalhe — traços raciais (US-142), sem dado novo.
@@ -1259,8 +1308,10 @@ export function SetupWizard() {
                   </div>
                   {/* US-132: linha própria, condicionada a haver grant.kind 'tools' na origem
                       escolhida — mesma condição de escopo do backgroundCatalog/connectionTable
-                      abaixo (US-132 §Onde aparece na criação e na ficha). */}
-                  {toolGrant && (
+                      abaixo (US-132 §Onde aparece na criação e na ficha). Traço "Tool
+                      Proficiency" do anão soma na mesma linha (reviewToolKeys já inclui as duas
+                      fontes) — sem linha própria, mesmo espírito de "Proficiências" genérico. */}
+                  {(toolGrant || (charData.race === 'hill-dwarf' && raceToolChoice)) && (
                     <div className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.tools')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">

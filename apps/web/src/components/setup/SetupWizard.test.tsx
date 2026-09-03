@@ -1425,6 +1425,10 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
     fireEvent.click(screen.getByRole('radio', { name: 'Anão' })) // cartão de raiz → abre a grade de variante
     fireEvent.click(screen.getByRole('radio', { name: 'Anão da Colina' })) // cartão de variante → key 'hill-dwarf'
+    // Traço "Tool Proficiency" do anão bloqueia o avanço — config sem catálogo de ferramentas
+    // (`configWithRaceSubspecies` não declara `tools`), então a option cai no fallback da
+    // própria chave (toolLabel vazio).
+    fireEvent.change(screen.getByLabelText('Escolha a ferramenta de artesão'), { target: { value: 'smiths_tools' } })
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
@@ -1606,5 +1610,101 @@ describe('SetupWizard — ancestralidade dracônica do dragonborn (US-211)', () 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
 
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'dragonborn', draconicAncestry: 'red' }))
+  })
+})
+
+// --- traço "Tool Proficiency" do anão: grade de escolha, só para hill-dwarf ---
+
+// `hill-dwarf` é a ÚNICA variante de `dwarf` no catálogo real — clicar a raiz "Anão"
+// já auto-seleciona a variante (selectRootCard, US-142), sem precisar de um segundo clique.
+const configWithHillDwarf = (budget: number) => ({
+  ...configWithBudget(budget),
+  races: [
+    { key: 'dwarf', label: 'Anão' },
+    { key: 'hill-dwarf', label: 'Anão da Colina', parentKey: 'dwarf' },
+    { key: 'elf', label: 'Elfo' },
+  ],
+  tools: [
+    { key: 'smiths_tools', label: 'Ferramentas de Ferreiro', category: 'artisan' },
+    { key: 'brewers_supplies', label: 'Suprimentos de Cervejeiro', category: 'artisan' },
+    { key: 'masons_tools', label: 'Ferramentas de Pedreiro', category: 'artisan' },
+  ],
+})
+
+describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickHillDwarfConfig(config: SystemConfig) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Thrain' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Masculino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+  }
+
+  it('escolher Anão revela o select de 3 ferramentas; escolher outra raça não deixa resíduo', async () => {
+    await pickHillDwarfConfig(configWithHillDwarf(2))
+
+    expect(screen.queryByLabelText('Escolha a ferramenta de artesão')).toBeNull()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    const toolSelect = screen.getByLabelText('Escolha a ferramenta de artesão')
+    expect(within(toolSelect).getByRole('option', { name: 'Ferramentas de Ferreiro' })).toBeTruthy()
+    expect(within(toolSelect).getByRole('option', { name: 'Suprimentos de Cervejeiro' })).toBeTruthy()
+    expect(within(toolSelect).getByRole('option', { name: 'Ferramentas de Pedreiro' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    expect(screen.queryByLabelText('Escolha a ferramenta de artesão')).toBeNull()
+  })
+
+  it('bloqueia avanço da etapa raça sem ferramenta escolhida; libera ao escolher uma', async () => {
+    await pickHillDwarfConfig(configWithHillDwarf(2))
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.change(screen.getByLabelText('Escolha a ferramenta de artesão'), { target: { value: 'smiths_tools' } })
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it('DTO manda a chave escolhida quando hill-dwarf', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Thrain' })
+    await pickHillDwarfConfig(configWithHillDwarf(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    fireEvent.change(screen.getByLabelText('Escolha a ferramenta de artesão'), { target: { value: 'masons_tools' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'hill-dwarf', raceToolChoice: 'masons_tools' }))
+  })
+
+  it('kit inicial da revisão inclui a ferramenta escolhida', async () => {
+    await pickHillDwarfConfig(configWithHillDwarf(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    fireEvent.change(screen.getByLabelText('Escolha a ferramenta de artesão'), { target: { value: 'smiths_tools' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    // Aparece duas vezes na revisão: na linha "Proficiências" (mesma ferramenta some com o
+    // grant do background, quando houver) e na linha "Kit inicial" (item físico).
+    expect(screen.getAllByText(/Ferramentas de Ferreiro/).length).toBeGreaterThan(0)
   })
 })
