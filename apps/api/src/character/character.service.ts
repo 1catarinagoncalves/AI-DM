@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, type SystemConfig, type SystemBackgroundGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -75,7 +75,11 @@ export class CharacterService {
     // US-123: bônus de atributo do background soma POR CIMA do point-buy já validado acima —
     // por isso aplicado depois do parse de min/max, que segue valendo só para o point-buy puro.
     const abilityGrant = this.findAbilityGrant(config.backgrounds, originKey)
-    const finalAttributes = this.applyAbilityGrant(baseAttributes, config.attributes, abilityGrant, dto.origin?.abilityChoice)
+    const attributesWithOrigin = this.applyAbilityGrant(baseAttributes, config.attributes, abilityGrant, dto.origin?.abilityChoice)
+    // US-212: bônus de atributo de RAÇA soma DEPOIS do de origem, sobre o resultado dele — os
+    // dois são somadores independentes (podem tocar o mesmo atributo, sempre cumulativos no 5e).
+    const raceGrant = this.findRaceGrant(config.races, race)
+    const finalAttributes = this.applyRaceGrant(attributesWithOrigin, config.attributes, raceGrant, dto.raceAbilityChoice)
     // US-131: perícias do background (fixas + escolhida) são resolvidas ANTES de validar as
     // `choices` da etapa `skills` — `validateSkills` exclui essas chaves do catálogo que
     // valida, para o mesmo par não poder ser escolhido duas vezes nem sobrar de fora.
@@ -208,6 +212,49 @@ export class CharacterService {
       [grant.fixed]: (baseAttributes[grant.fixed] ?? 0) + 1,
       [abilityChoice]: (baseAttributes[abilityChoice] ?? 0) + 1,
     }
+  }
+
+  /**
+   * US-212: resolve `config.races[].grant` da raça já validada, se o ingest reconheceu o
+   * traço `ability-score-increase` para ela. Raça sem `grant` (config legado, ou raiz-com-
+   * subespécie — não-jogável, ver ingest.mjs) devolve `undefined`, sem exigir nada do DTO.
+   */
+  private findRaceGrant(races: SystemConfig['races'], raceKey: string): SystemRaceGrant | undefined {
+    return races?.find((r) => r.key === raceKey)?.grant
+  }
+
+  /**
+   * US-212: soma cada `grant.fixed[].amount` incondicionalmente (a raça não pede escolha para
+   * isso — Elfo, Anão da Colina, Humano com as 6 chaves). Se `grant.choice` presente (hoje só
+   * Meio-Elfo), `raceAbilityChoice` precisa ter EXATAMENTE `choice.count` chaves de
+   * `config.attributes`, distintas entre si e distintas de qualquer `grant.fixed[].attr`
+   * (repetir o fixo da raça não é "outro atributo", mesmo raciocínio RAW de `applyAbilityGrant`
+   * para background). Rejeita os três casos (contagem errada, chave fora do catálogo, colisão
+   * com fixo) numa `BadRequestException` só, mesmo padrão de mensagem das demais validações.
+   */
+  private applyRaceGrant(
+    baseAttributes: Record<string, number>,
+    attributes: SystemConfig['attributes'],
+    grant: SystemRaceGrant | undefined,
+    raceAbilityChoice?: string[],
+  ): Record<string, number> {
+    if (!grant) return baseAttributes
+    const out = { ...baseAttributes }
+    for (const { attr, amount } of grant.fixed) out[attr] = (out[attr] ?? 0) + amount
+    if (!grant.choice) return out
+
+    const valid = new Set(attributes.map((a) => a.key))
+    const fixedKeys = new Set(grant.fixed.map((f) => f.attr))
+    const chosen = [...new Set(raceAbilityChoice ?? [])]
+    const invalid = chosen.length !== grant.choice.count || chosen.some((k) => !valid.has(k) || fixedKeys.has(k))
+    if (invalid) {
+      throw new BadRequestException(
+        `raceAbilityChoice inválido: [${(raceAbilityChoice ?? []).join(', ')}]. Esperado ${grant.choice.count} chave(s) de config.attributes, `
+        + `distintas entre si e diferentes de [${[...fixedKeys].join(', ')}].`,
+      )
+    }
+    for (const attr of chosen) out[attr] = (out[attr] ?? 0) + grant.choice.amount
+    return out
   }
 
   /**

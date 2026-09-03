@@ -4095,6 +4095,18 @@
     {
       "blurb": "Draconic blood on full display: scales, an elemental breath, and a reputation that arrives before you do.",
       "bonus": "+2 Strength, +1 Charisma",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "strength"
+          },
+          {
+            "amount": 1,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "dragonborn",
       "kicker": "Dragon's heritage",
       "label": "Dragonborn"
@@ -4109,6 +4121,18 @@
     {
       "blurb": "Built to last: resistant to poison, sees in the dark of the mine, and carries clan pride into every decision.",
       "bonus": "+2 Constitution, +1 Wisdom",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "constitution"
+          },
+          {
+            "amount": 1,
+            "attr": "wisdom"
+          }
+        ]
+      },
       "key": "hill-dwarf",
       "kicker": "Hill-born instinct",
       "label": "Hill Dwarf",
@@ -4125,6 +4149,18 @@
     {
       "blurb": "Doesn't need real sleep, sees in the dark, and moves with an elegance few peoples can match.",
       "bonus": "+2 Dexterity, +1 Intelligence",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "dexterity"
+          },
+          {
+            "amount": 1,
+            "attr": "intelligence"
+          }
+        ]
+      },
       "key": "high-elf",
       "kicker": "Magic in elven blood",
       "label": "High Elf",
@@ -4141,6 +4177,18 @@
     {
       "blurb": "Small, sharp, and immune to most magic that meddles with the mind — their curiosity has caused more trouble (and more solutions) than you'd expect.",
       "bonus": "+1 Constitution, +2 Intelligence",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 1,
+            "attr": "constitution"
+          },
+          {
+            "amount": 2,
+            "attr": "intelligence"
+          }
+        ]
+      },
       "key": "rock-gnome",
       "kicker": "An inventor's hands",
       "label": "Rock Gnome",
@@ -4150,6 +4198,18 @@
     {
       "blurb": "Neither fully human nor fully elven, and uses that in-between status to talk their way into almost any room.",
       "bonus": "+2 Charisma, +1 to 2 other abilities of your choice",
+      "grant": {
+        "choice": {
+          "amount": 1,
+          "count": 2
+        },
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "half-elf",
       "kicker": "Between two worlds",
       "label": "Half-Elf"
@@ -4157,6 +4217,18 @@
     {
       "blurb": "Inherited the orcish blood's stamina and muscle — falls, gets back up, and keeps swinging until the fight is over.",
       "bonus": "+2 Strength, +1 Constitution",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "strength"
+          },
+          {
+            "amount": 1,
+            "attr": "constitution"
+          }
+        ]
+      },
       "key": "half-orc",
       "kicker": "Strength that doesn't quit",
       "label": "Half-Orc"
@@ -4171,6 +4243,18 @@
     {
       "blurb": "Short, quick, and oddly hard to hit — luck seems to favor whoever knows how to duck behind anything bigger than they are.",
       "bonus": "+2 Dexterity, +1 Charisma",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "dexterity"
+          },
+          {
+            "amount": 1,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "lightfoot",
       "kicker": "Invisible in a crowd",
       "label": "Lightfoot",
@@ -4180,6 +4264,34 @@
     {
       "blurb": "No racial trick at all — just adaptability, ambition, and the ability to become nearly anything they decide to be.",
       "bonus": "+1 to all abilities",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 1,
+            "attr": "strength"
+          },
+          {
+            "amount": 1,
+            "attr": "dexterity"
+          },
+          {
+            "amount": 1,
+            "attr": "constitution"
+          },
+          {
+            "amount": 1,
+            "attr": "intelligence"
+          },
+          {
+            "amount": 1,
+            "attr": "wisdom"
+          },
+          {
+            "amount": 1,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "human",
       "kicker": "Versatile, no gimmicks",
       "label": "Human"
@@ -4187,6 +4299,18 @@
     {
       "blurb": "Carries horns, a tail, and a slice of infernal heritage that unsettles strangers — plus fire resistance that saves their skin more than once.",
       "bonus": "+1 Intelligence, +2 Charisma",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 1,
+            "attr": "intelligence"
+          },
+          {
+            "amount": 2,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "tiefling",
       "kicker": "Infernal mark",
       "label": "Tiefling"

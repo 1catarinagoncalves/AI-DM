@@ -892,11 +892,15 @@ function buildConfig(overlay, data, locale) {
   // EN do SRD. Recalcula com `EN_IDENTITY_RESOLVE` (nunca olha o overlay) só pra este
   // cálculo — o artefato final continua usando o `raceFeatures` resolvido no locale certo.
   const raceFeaturesEn = buildRaceFeatures({}, races, data.speciesTraits, EN_IDENTITY_RESOLVE)
-  const { bonuses, variantBonuses, rootBonuses } = buildRaceBonuses(raceFeaturesEn, races, attributes, locale)
+  const { bonuses, variantBonuses, rootBonuses, grants } = buildRaceBonuses(raceFeaturesEn, races, attributes, locale)
   for (const race of races) {
     if (bonuses[race.key]) race.bonus = bonuses[race.key]
     if (rootBonuses[race.key]) race.bonus = rootBonuses[race.key] // disjunto de `bonuses` — só raiz-com-subespécie
     if (variantBonuses[race.key]) race.variantBonus = variantBonuses[race.key]
+    // US-212: só chave JOGÁVEL entra em `grants` (mesma cobertura de `bonuses`) — raiz-com-
+    // subespécie fica sem `grant` de propósito, mesma raiz que a valida como não-jogável em
+    // character.service.ts (validateCatalogKey contra raceFeatures, não config.races).
+    if (grants[race.key]) race.grant = grants[race.key]
   }
   const classes = buildClasses(overlay, data.classes, resolve, attributes)
   const subclasses = buildSubclasses(overlay, data.classes, resolve)

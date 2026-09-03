@@ -4095,6 +4095,18 @@
     {
       "blurb": "Sangue dracônico à vista: escamas, sopro elemental e uma reputação que chega antes de você.",
       "bonus": "+2 Força, +1 Carisma",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "strength"
+          },
+          {
+            "amount": 1,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "dragonborn",
       "kicker": "Herança de dragão",
       "label": "Draconato"
@@ -4109,6 +4121,18 @@
     {
       "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão.",
       "bonus": "+2 Constituição, +1 Sabedoria",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "constitution"
+          },
+          {
+            "amount": 1,
+            "attr": "wisdom"
+          }
+        ]
+      },
       "key": "hill-dwarf",
       "kicker": "Intuição das colinas",
       "label": "Anão da Colina",
@@ -4125,6 +4149,18 @@
     {
       "blurb": "Não precisa de sono de verdade, enxerga no escuro e se move com uma elegância que poucos povos conseguem imitar.",
       "bonus": "+2 Destreza, +1 Inteligência",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "dexterity"
+          },
+          {
+            "amount": 1,
+            "attr": "intelligence"
+          }
+        ]
+      },
       "key": "high-elf",
       "kicker": "Magia no sangue élfico",
       "label": "Alto-elfo",
@@ -4141,6 +4177,18 @@
     {
       "blurb": "Pequeno, esperto e imune a boa parte da magia que mexe com a mente — a curiosidade dele já causou mais problema (e solução) do que se imagina.",
       "bonus": "+1 Constituição, +2 Inteligência",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 1,
+            "attr": "constitution"
+          },
+          {
+            "amount": 2,
+            "attr": "intelligence"
+          }
+        ]
+      },
       "key": "rock-gnome",
       "kicker": "Mãos de inventor",
       "label": "Gnomo das Rochas",
@@ -4150,6 +4198,18 @@
     {
       "blurb": "Não é totalmente humano nem totalmente élfico, e usa esse trânsito entre os dois povos para conversar com quase qualquer um.",
       "bonus": "+2 Carisma, +1 em 2 outros atributos à sua escolha",
+      "grant": {
+        "choice": {
+          "amount": 1,
+          "count": 2
+        },
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "half-elf",
       "kicker": "Entre dois mundos",
       "label": "Meio-Elfo"
@@ -4157,6 +4217,18 @@
     {
       "blurb": "Herdou o fôlego e o músculo do sangue orc — cai, levanta de novo e continua batendo até o fim da luta.",
       "bonus": "+2 Força, +1 Constituição",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "strength"
+          },
+          {
+            "amount": 1,
+            "attr": "constitution"
+          }
+        ]
+      },
       "key": "half-orc",
       "kicker": "Força que não recua",
       "label": "Meio-Orc"
@@ -4171,6 +4243,18 @@
     {
       "blurb": "Baixinho, ágil e estranhamente difícil de acertar — a sorte parece favorecer quem sabe se esconder atrás de qualquer coisa maior que ele.",
       "bonus": "+2 Destreza, +1 Carisma",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 2,
+            "attr": "dexterity"
+          },
+          {
+            "amount": 1,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "lightfoot",
       "kicker": "Invisível na multidão",
       "label": "Halfling Pés-Leves",
@@ -4180,6 +4264,34 @@
     {
       "blurb": "Não tem truque racial nenhum — só adaptabilidade, ambição e a capacidade de virar praticamente qualquer coisa que decidir ser.",
       "bonus": "+1 em todos os atributos",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 1,
+            "attr": "strength"
+          },
+          {
+            "amount": 1,
+            "attr": "dexterity"
+          },
+          {
+            "amount": 1,
+            "attr": "constitution"
+          },
+          {
+            "amount": 1,
+            "attr": "intelligence"
+          },
+          {
+            "amount": 1,
+            "attr": "wisdom"
+          },
+          {
+            "amount": 1,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "human",
       "kicker": "Versátil, sem exagero",
       "label": "Humano"
@@ -4187,6 +4299,18 @@
     {
       "blurb": "Carrega chifres, cauda e um pedaço de herança infernal que assusta quem não conhece — e resistência a fogo que salva a pele em mais de uma briga.",
       "bonus": "+1 Inteligência, +2 Carisma",
+      "grant": {
+        "fixed": [
+          {
+            "amount": 1,
+            "attr": "intelligence"
+          },
+          {
+            "amount": 2,
+            "attr": "charisma"
+          }
+        ]
+      },
       "key": "tiefling",
       "kicker": "Marca infernal",
       "label": "Tiefling"

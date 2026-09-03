@@ -22,6 +22,12 @@ export const CreateCharacterSchema = z.object({
   name: z.string().min(1).max(60),
   gender: z.string().min(1).max(40),
   race: z.string().min(1).max(40),
+  // US-212: atributo(s) escolhido(s) para o `choice` do `grant` de RAÇA (config.races[].grant,
+  // ver system.ts) — sibling de `race`, não aninhado em `origin` (raça não é origem, mesma
+  // separação que a US-122 já fez entre `origin` e `background`). Array porque `choice.count`
+  // pode ser 2 (Meio-Elfo hoje) — validado contra o grant no service, mesmo espírito de
+  // `origin.abilityChoice` (US-123), mas em quantidade variável em vez de um par fixo+escolhido.
+  raceAbilityChoice: z.array(z.string().max(40)).max(6).optional(),
   // US-211: chave de DRACONIC_ANCESTRY_TABLE (@ai-dm/shared) — obrigatória no service quando
   // race === 'dragonborn' (não aqui: a tabela é regra fixa do PHB 2014, não catálogo do
   // sistema). Qualquer outra raça ignora o campo, mesmo se vier no DTO.

@@ -529,6 +529,104 @@ describe('CharacterService.create', () => {
     expect(char.baseAttributes).toEqual({ cool: 5, hard: 5 })
   })
 
+  // US-212: bônus de atributo de RAÇA (`config.races[].grant`) — par find/apply espelhando
+  // `findAbilityGrant`/`applyAbilityGrant` (US-123) acima, mas por RAÇA em vez de origem, e
+  // aplicado DEPOIS (soma independente, por cima do resultado do grant de origem).
+  const configWithRaceGrant: SystemConfig = {
+    ...config,
+    races: [
+      { key: 'elf', label: 'Elf', grant: { fixed: [{ attr: 'hard', amount: 2 }] } },
+      { key: 'human', label: 'Human', grant: { fixed: [{ attr: 'cool', amount: 1 }, { attr: 'hard', amount: 1 }] } },
+      { key: 'half-elf', label: 'Half-Elf', grant: { fixed: [{ attr: 'cool', amount: 2 }], choice: { count: 1, amount: 1 } } },
+      { key: 'dwarf', label: 'Dwarf' },
+    ],
+  }
+
+  it('raça só-fixo soma automaticamente, sem exigir nada no DTO', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.baseAttributes).toEqual({ cool: 5, hard: 7 })
+  })
+
+  it('raça com fixed em dois atributos (Humano) soma os dois automaticamente', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.baseAttributes).toEqual({ cool: 6, hard: 6 })
+  })
+
+  it('raça sem grant reconhecido não exige nada, comportamento idêntico ao de hoje', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'dwarf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.baseAttributes).toEqual({ cool: 5, hard: 5 })
+  })
+
+  it('rejeita raceAbilityChoice ausente quando o grant.choice exige', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })).rejects.toThrow('raceAbilityChoice inválido')
+  })
+
+  it('rejeita raceAbilityChoice com contagem diferente de grant.choice.count', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceAbilityChoice: [],
+    })).rejects.toThrow('raceAbilityChoice inválido')
+  })
+
+  it('rejeita raceAbilityChoice fora de config.attributes', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceAbilityChoice: ['strength'],
+    })).rejects.toThrow('raceAbilityChoice inválido')
+  })
+
+  it('rejeita raceAbilityChoice igual ao fixed da própria raça (repetir o fixo não é "outro atributo")', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceGrant))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceAbilityChoice: ['cool'],
+    })).rejects.toThrow('raceAbilityChoice inválido')
+  })
+
+  it('aplica fixed + choice do Meio-Elfo com raceAbilityChoice válido', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceGrant))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceAbilityChoice: ['hard'],
+    })
+    expect(char.baseAttributes).toEqual({ cool: 7, hard: 6 })
+  })
+
+  // US-212: origem com grant.kind === 'ability' E raça com grant tocando o MESMO atributo —
+  // os dois somam, sem um mascarar o outro (fontes diferentes, sempre cumulativas no 5e).
+  it('grant de origem e grant de raça no mesmo atributo somam, sem se sobrescrever', async () => {
+    const configWithBoth: SystemConfig = {
+      ...configWithAbilityGrant,
+      races: [{ key: 'elf', label: 'Elf', grant: { fixed: [{ attr: 'cool', amount: 1 }] } }],
+    }
+    const service = new CharacterService(fakePrisma(configWithBoth))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+      origin: { key: 'a5e-ag_acolyte', abilityChoice: 'hard' },
+    })
+    // origem: +1 cool (fixo) e +1 hard (escolhido); raça: +1 cool. cool = 5+1+1=7, hard = 5+1=6.
+    expect(char.baseAttributes).toEqual({ cool: 7, hard: 6 })
+  })
+
   // US-131: perícias do background (`grant.kind === 'skills'`) mescladas com as `choices` da
   // etapa `skills` — mesmo par find/apply de `abilityChoice` acima. `a5e-ag_acolyte` real:
   // Religion fixa + escolha Insight/Persuasion (US-131 §Critérios de aceite).

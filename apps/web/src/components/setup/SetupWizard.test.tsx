@@ -1023,8 +1023,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     expect(nextBtn().disabled).toBe(true) // nenhuma linha escolhida ainda
 
-    // US-123: o clique é no SELO (+1 bônus), não na linha inteira.
-    fireEvent.click(screen.getByRole('button', { name: '+1 bônus' }))
+    // US-123: o clique é no SELO (+1 origem, fantasma), não na linha inteira.
+    fireEvent.click(screen.getByRole('button', { name: '+1 origem' }))
     expect(nextBtn().disabled).toBe(false)
 
     fireEvent.click(nextBtn()) // → perícias
@@ -1045,18 +1045,18 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const wisdomRow = screen.getByText('Sabedoria').closest('div')!
     expect(within(wisdomRow).getByText('+1 origem')).toBeTruthy()
     expect(within(wisdomRow).queryByRole('button', { name: '+1 origem' })).toBeNull()
-    expect(within(wisdomRow).queryByText('+1 bônus')).toBeNull()
 
-    // Linha elegível: o selo "+1 bônus" É um botão — clique nele, não na linha.
+    // Linha elegível: o selo "+1 origem" (fantasma) É um botão — clique nele, não na linha.
+    // US-212: mesmo texto no fantasma e no sólido (antes o fantasma dizia "+1 bônus") — só a
+    // borda/preenchimento muda, então a asserção é sobre CLICÁVEL, não sobre o texto mudar.
     const strengthRow = screen.getByText('Força').closest('div')!
-    const ghostBadge = within(strengthRow).getByRole('button', { name: '+1 bônus' })
+    const ghostBadge = within(strengthRow).getByRole('button', { name: '+1 origem' })
 
     fireEvent.click(ghostBadge)
-    expect(within(strengthRow).getByRole('button', { name: '+1 origem' })).toBeTruthy() // vira sólido, ainda clicável (desmarca)
-    expect(within(strengthRow).queryByText('+1 bônus')).toBeNull()
+    expect(within(strengthRow).getByRole('button', { name: '+1 origem' })).toBeTruthy() // ainda clicável (desmarca)
 
     fireEvent.click(within(strengthRow).getByRole('button', { name: '+1 origem' })) // clicar de novo desmarca
-    expect(within(strengthRow).getByRole('button', { name: '+1 bônus' })).toBeTruthy()
+    expect(within(strengthRow).getByRole('button', { name: '+1 origem' })).toBeTruthy() // volta a fantasma, mesmo texto
   })
 
   it('background sem grant.kind "ability" não exige escolha nem mostra banner/selos', async () => {
@@ -1066,10 +1066,153 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
     expect(screen.queryByText('+1 origem')).toBeNull()
-    expect(screen.queryByText('+1 bônus')).toBeNull()
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc) // fecha orçamento — nada mais deveria bloquear
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  // --- US-212: bônus de atributo de RAÇA (config.races[].grant) ---
+
+  // `dexterity` reaproveita o mesmo par [strength, dexterity] das demais fixtures — só fixo,
+  // um atributo, quantidade 2 (Elfo real). `budget: 0` isola do point-buy, mesmo padrão de
+  // configWithAbilityGrant.
+  const configWithRaceGrant = (budget: number) => ({
+    ...configWithBudget(budget),
+    attributes: [
+      { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
+      { key: 'dexterity', label: 'Destreza', min: 8, max: 15, default: 8 },
+    ],
+    races: [
+      { key: 'elf', label: 'Elfo', bonus: '+2 Destreza', grant: { fixed: [{ attr: 'dexterity', amount: 2 }] } },
+      { key: 'human', label: 'Humano', bonus: '+1 em todos os atributos', grant: { fixed: [{ attr: 'strength', amount: 1 }, { attr: 'dexterity', amount: 1 }] } },
+      { key: 'half-elf', label: 'Meio-Elfo', bonus: '+2 Força, +1 em outro atributo à sua escolha', grant: { fixed: [{ attr: 'strength', amount: 2 }], choice: { count: 1, amount: 1 } } },
+      { key: 'dwarf', label: 'Anão' },
+    ],
+  })
+
+  async function pickSystemAndFillClass(config: SystemConfig) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+  }
+
+  it('raça só-fixo mostra selo sólido não-clicável com a quantidade certa, soma no valor exibido', async () => {
+    await pickSystemAndFillClass(configWithRaceGrant(0))
+    fireEvent.click(screen.getByRole('radio', { name: /^Elfo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    // US-212: banner reforça o bônus da raça, mesma frase do cartão da etapa `race`.
+    expect(screen.getByText('Elfo concede +2 Destreza.')).toBeTruthy()
+
+    const dexRow = screen.getByText('Destreza').closest('div')!
+    expect(within(dexRow).getByText('+2 raça')).toBeTruthy()
+    expect(within(dexRow).queryByRole('button', { name: '+2 raça' })).toBeNull() // não-clicável
+    expect(within(dexRow).getByText('10')).toBeTruthy() // default 8 + 2
+
+    const strRow = screen.getByText('Força').closest('div')!
+    expect(within(strRow).queryByText(/raça/)).toBeNull()
+
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('Humano (fixed nas duas chaves, sem choice) mostra selo sólido nas duas linhas, nenhuma interação', async () => {
+    await pickSystemAndFillClass(configWithRaceGrant(0))
+    fireEvent.click(screen.getByRole('radio', { name: /^Humano/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    for (const label of ['Força', 'Destreza']) {
+      const row = screen.getByText(label).closest('div')!
+      expect(within(row).getByText('+1 raça')).toBeTruthy()
+      expect(within(row).queryByRole('button', { name: '+1 raça' })).toBeNull()
+    }
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('raça sem grant reconhecido não mostra selo nem bloqueia avanço', async () => {
+    await pickSystemAndFillClass(configWithRaceGrant(0))
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    expect(screen.queryByText(/raça/)).toBeNull()
+    expect(screen.queryByText(/concede/)).toBeNull() // sem banner também
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('Meio-Elfo (fixed + choice): bloqueia avanço até escolher; selo fantasma vira sólido clicável; clicar de novo desmarca', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillClass(configWithRaceGrant(0))
+    fireEvent.click(screen.getByRole('radio', { name: /^Meio-Elfo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    const strRow = screen.getByText('Força').closest('div')!
+    expect(within(strRow).getByText('+2 raça')).toBeTruthy()
+    expect(within(strRow).queryByRole('button', { name: '+2 raça' })).toBeNull() // fixo, não-clicável
+
+    const dexRow = screen.getByText('Destreza').closest('div')!
+    const ghost = within(dexRow).getByRole('button', { name: '+1 raça' })
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true) // choice.count = 1, nada escolhido ainda
+
+    fireEvent.click(ghost)
+    expect(within(dexRow).getByRole('button', { name: '+1 raça' })).toBeTruthy() // sólido, ainda clicável
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(within(dexRow).getByRole('button', { name: '+1 raça' })) // desmarca
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.click(within(dexRow).getByRole('button', { name: '+1 raça' })) // escolhe de novo
+    fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ raceAbilityChoice: ['dexterity'] }))
+  })
+
+  // US-212: painel de traços raciais some com "Aumento no Valor de Habilidade" para QUALQUER
+  // raça (não só dragonborn, que já tinha filtro próprio pré-US-211) — vira redundante assim
+  // que o selo `+N raça` já mostra o mesmo bônus na etapa `attributes`.
+  it('painel de traços esconde "Aumento no Valor de Habilidade" pra raça comum, mantém os demais traços', async () => {
+    const config = {
+      ...configWithRaceGrant(0),
+      raceFeatures: {
+        elf: [
+          { key: 'ability-score-increase', source: 'elf', name: 'Aumento no Valor de Habilidade', description: '+2 Destreza.' },
+          { key: 'darkvision', source: 'elf', name: 'Visão no Escuro', description: '18 metros.' },
+        ],
+      },
+    }
+    await pickSystemAndFillClass(config)
+    fireEvent.click(screen.getByRole('radio', { name: /^Elfo/ }))
+
+    expect(screen.queryByText('Aumento no Valor de Habilidade')).toBeNull()
+    expect(screen.getByText('Visão no Escuro')).toBeTruthy()
+  })
+
+  // US-212: bônus de origem (background) e de raça no mesmo atributo — os dois selos aparecem
+  // lado a lado, sem se sobrescrever, e o valor exibido soma as duas fontes.
+  it('linha com selo de origem e de raça ao mesmo tempo mostra os dois, valor soma as duas fontes', async () => {
+    const config = {
+      ...configWithAbilityGrant(0),
+      races: [{ key: 'elf', label: 'Elfo', grant: { fixed: [{ attr: 'wisdom', amount: 2 }] } }],
+    }
+    await pickSystemAndFillClass(config)
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    const wisdomRow = screen.getByText('Sabedoria').closest('div')!
+    expect(within(wisdomRow).getByText('+1 origem')).toBeTruthy()
+    expect(within(wisdomRow).getByText('+2 raça')).toBeTruthy()
+    expect(within(wisdomRow).getByText('11')).toBeTruthy() // default 8 + 1 (origem, fixo) + 2 (raça)
   })
 
   // --- US-131: perícias do background (grant.kind === 'skills') ---

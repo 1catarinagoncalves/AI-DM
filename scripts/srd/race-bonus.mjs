@@ -42,10 +42,10 @@ const ALL_ATTRS_PHRASE = {
   'pt-BR': (amount) => `+${amount} em todos os atributos`,
 }
 
-// Formata a lista de traços (já filtrada pra quem interessa) numa frase "+N Atributo, +M Outro"
-// — extraído do corpo original de `buildRaceBonuses` pra servir três cálculos com a mesma regra
-// (raça jogável mesclada, raiz sozinha, delta de subespécie), sem repetir merge/choice/Human.
-function formatAsiPhrase(traits, attrOrder, labelFor, locale) {
+// US-212: calcula o merge raiz+subespécie (`merged`/`choice`) uma vez só — `formatAsiPhrase`
+// (frase) e `buildRaceBonuses` (grant estruturado) leem daqui em vez de cada um rodar
+// `parseAbilityScoreIncrease` de novo sobre os mesmos traços.
+function computeAsi(traits, attrOrder) {
   const asiTraits = traits.filter((f) => f.key === 'ability-score-increase')
   if (asiTraits.length === 0) return undefined
   const merged = new Map()
@@ -55,6 +55,14 @@ function formatAsiPhrase(traits, attrOrder, labelFor, locale) {
     for (const { attr, amount } of parsed.fixed) merged.set(attr, (merged.get(attr) ?? 0) + amount)
     if (parsed.choice) choice = parsed.choice
   }
+  return { merged, choice }
+}
+
+// Formata o resultado de `computeAsi` numa frase "+N Atributo, +M Outro" — serve três cálculos
+// com a mesma regra (raça jogável mesclada, raiz sozinha, delta de subespécie).
+function formatAsiPhrase(asi, attrOrder, labelFor, locale) {
+  if (!asi) return undefined
+  const { merged, choice } = asi
   // Human (única raça com as 6 chaves) some por um texto curto em vez de 6 fragmentos "+1 X".
   const allSixEqual = merged.size === attrOrder.length && new Set(merged.values()).size === 1
   const parts = allSixEqual
@@ -62,6 +70,16 @@ function formatAsiPhrase(traits, attrOrder, labelFor, locale) {
     : attrOrder.filter((attr) => merged.has(attr)).map((attr) => `+${merged.get(attr)} ${labelFor(attr)}`)
   if (choice) parts.push(CHOICE_PHRASE[locale](choice))
   return parts.length ? parts.join(', ') : undefined
+}
+
+// US-212: mesmo `merged`/`choice` de `formatAsiPhrase`, só que devolvido como estrutura
+// (`SystemRaceGrant`, packages/shared/src/types/system.ts) em vez de texto — para a etapa
+// `attributes` do wizard aplicar o bônus de verdade, não só exibi-lo no cartão de raça.
+function toGrant(asi, attrOrder) {
+  if (!asi) return undefined
+  const { merged, choice } = asi
+  const fixed = attrOrder.filter((attr) => merged.has(attr)).map((attr) => ({ attr, amount: merged.get(attr) }))
+  return choice ? { fixed, choice } : { fixed }
 }
 
 // Roda DEPOIS de `buildRaceFeatures` (ingest.mjs): reusa o combinado raiz+subespécie que ela já
@@ -85,16 +103,23 @@ function formatAsiPhrase(traits, attrOrder, labelFor, locale) {
 export function buildRaceBonuses(raceFeatures, races, attributes, locale) {
   const attrOrder = attributes.map((a) => a.key)
   const labelFor = (attr) => attributes.find((a) => a.key === attr)?.label ?? attr
-  const phrase = (traits) => formatAsiPhrase(traits, attrOrder, labelFor, locale)
+  const asiOf = (traits) => computeAsi(traits, attrOrder)
+  const phrase = (asi) => formatAsiPhrase(asi, attrOrder, labelFor, locale)
 
   const bonuses = {}
   const variantBonuses = {}
+  // US-212: `grants` é o MESMO cálculo de `bonuses` (total jogável, raiz+subespécie já
+  // mesclados) — mesma chave, mesma cobertura (13/13 jogáveis), estrutura em vez de frase.
+  const grants = {}
   for (const [raceKey, features] of Object.entries(raceFeatures)) {
-    const total = phrase(features)
+    const asi = asiOf(features)
+    const total = phrase(asi)
     if (total) bonuses[raceKey] = total
+    const grant = toGrant(asi, attrOrder)
+    if (grant) grants[raceKey] = grant
     const parentKey = races.find((r) => r.key === raceKey)?.parentKey
     if (parentKey) {
-      const ownOnly = phrase(features.filter((f) => f.source === raceKey))
+      const ownOnly = phrase(asiOf(features.filter((f) => f.source === raceKey)))
       if (ownOnly) variantBonuses[raceKey] = ownOnly
     }
   }
@@ -103,9 +128,9 @@ export function buildRaceBonuses(raceFeatures, races, attributes, locale) {
   for (const leaf of races.filter((r) => r.parentKey)) {
     if (rootBonuses[leaf.parentKey]) continue
     const inherited = (raceFeatures[leaf.key] ?? []).filter((f) => f.source === leaf.parentKey)
-    const own = phrase(inherited)
+    const own = phrase(asiOf(inherited))
     if (own) rootBonuses[leaf.parentKey] = own
   }
 
-  return { bonuses, variantBonuses, rootBonuses }
+  return { bonuses, variantBonuses, rootBonuses, grants }
 }

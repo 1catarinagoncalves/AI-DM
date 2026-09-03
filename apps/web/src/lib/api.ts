@@ -63,6 +63,9 @@ export const api = {
     // US-211: chave de DRACONIC_ANCESTRY_TABLE — só manda quando `race === 'dragonborn'`
     // (outra raça nem tem a grade no wizard, ver SetupWizard.tsx).
     draconicAncestry?: string
+    // US-212: atributo(s) escolhido(s) para o `choice` do grant de RAÇA — só manda quando o
+    // grant da raça exige escolha (a maioria não exige, ver config.races[].grant).
+    raceAbilityChoice?: string[]
     // US-205: chave de config.subclasses[class] — omitido quando a classe tem 1 subclasse só
     // (o service preenche sozinho); a etapa `class` do wizard só manda quando `marshal` (3 opções).
     subclass?: string

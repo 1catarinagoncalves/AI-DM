@@ -41,6 +41,21 @@ export const SystemCatalogEntrySchema = z.object({
   primary: z.array(z.string().min(1)).optional(),
 })
 
+// US-212: bônus de atributo de RAÇA (traço `ability-score-increase`, US-142), derivado pelo
+// ingest (`buildRaceBonuses`, race-bonus.mjs). Ao contrário do grant de background (US-123,
+// SystemBackgroundGrantSchema, sempre 1 fixo + 1 livre), a raça tem 3 formas medidas no
+// dataset: só fixo — 1 ou 2 atributos, quantidade própria cada (a maioria) —, "+1 em todos"
+// (`fixed` com as 6 chaves, Humano) e fixo + N livres à escolha (Meio-Elfo, `choice.count = 2`).
+// `fixed` cobre as duas primeiras; `choice` é ausente nelas e presente só na terceira.
+export const SystemRaceGrantSchema = z.object({
+  fixed: z.array(z.object({ attr: z.string().min(1), amount: z.number().int().positive() })),
+  choice: z.object({
+    count: z.number().int().positive(),
+    amount: z.number().int().positive(),
+  }).optional(),
+})
+export type SystemRaceGrant = z.infer<typeof SystemRaceGrantSchema>
+
 // Entrada de catálogo de RAÇA (US-140): estende SystemCatalogEntrySchema com `parentKey`,
 // só para `config.races` — `classes` fica no schema genérico acima, sem o campo (subclasse
 // é catálogo `Record<classKey, …>` separado, US-141, desenho de dado diferente).
@@ -60,6 +75,10 @@ export const RaceCatalogEntrySchema = SystemCatalogEntrySchema.extend({
   // Inteligência" mas `variantBonus` só "+1 Constituição"). Existe só pro cartão de variante do
   // wizard não repetir o bônus da raiz que já está visível no cartão de cima.
   variantBonus: z.string().min(1).optional(),
+  // US-212: estrutura numérica do mesmo bônus que `bonus` já formata em texto — presente só
+  // quando o parser reconhece o traço `ability-score-increase` (hoje 100% das 13 raças
+  // jogáveis, mesma cobertura de `bonus`). Ausente na raiz-com-subespécie (não-jogável).
+  grant: SystemRaceGrantSchema.optional(),
 })
 
 // Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,

@@ -150,8 +150,15 @@ export const enUS: Record<MessageKey, string> = {
   'setup.attributes.increase': 'Increase {label}',
   // US-123: background ability bonus (grant.kind === 'ability').
   'setup.attributes.abilityBanner': '{origin} grants +1 fixed to {attr} and a +1 bonus — choose another attribute below.',
+  // US-212: `{bonus}` is the SAME phrase from the race card (race-bonus.mjs), e.g. "+2 Dexterity"
+  // or "+2 Charisma, +1 to 2 other abilities of your choice" — no own text to avoid duplicating it.
+  'setup.attributes.raceBanner': '{race} grants {bonus}.',
+  // US-212: same solid/ghost text (the ghost used to say "+1 bonus") — unified with the race
+  // badge pattern below, the line's own amount/state already tells it apart visually.
   'setup.attributes.abilityBadgeFixed': '+1 origin',
-  'setup.attributes.abilityBadgeGhost': '+1 bonus',
+  // US-212: race ability-score bonus badge — same solid/ghost text (the race's own amount
+  // already tells the line apart, no need for a separate "bonus" label).
+  'setup.attributes.raceBadge': '+{amount} race',
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Skills',

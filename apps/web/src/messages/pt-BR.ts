@@ -172,8 +172,15 @@ export const ptBR = {
   'setup.attributes.increase': 'Aumentar {label}',
   // US-123: bônus de atributo do background (grant.kind === 'ability').
   'setup.attributes.abilityBanner': '{origin} concede +1 fixo em {attr} e +1 bônus — escolha outro atributo abaixo.',
+  // US-212: `{bonus}` é a MESMA frase do cartão de raça (race-bonus.mjs), ex. "+2 Destreza" ou
+  // "+2 Carisma, +1 em 2 outros atributos à sua escolha" — sem texto próprio pra não duplicar.
+  'setup.attributes.raceBanner': '{race} concede {bonus}.',
+  // US-212: mesmo texto sólido/fantasma (antes o fantasma dizia "+1 bônus") — unificado com o
+  // padrão do selo de raça abaixo, a quantidade/estado da linha já diferencia visualmente.
   'setup.attributes.abilityBadgeFixed': '+1 origem',
-  'setup.attributes.abilityBadgeGhost': '+1 bônus',
+  // US-212: selo do bônus de atributo de RAÇA — mesmo texto sólido/fantasma (a quantidade
+  // própria da raça já diferencia a linha, sem precisar de rótulo "fantasma" à parte).
+  'setup.attributes.raceBadge': '+{amount} raça',
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Perícias',

@@ -106,9 +106,10 @@ function rollRandom(rows: { roll: string; text: string }[], setRoll: (roll: stri
   setRoll(rows[Math.floor(Math.random() * rows.length)]!.roll)
 }
 
-// US-123: selo do bônus de atributo do background — sólido (`+1 origem`) na linha fixa e na
-// linha escolhida, fantasma tracejado (`+1 bônus`) nas demais linhas elegíveis enquanto nada
-// estiver escolhido. Mesma forma/posição nas duas variantes, só a borda/preenchimento muda.
+// US-123: selo do bônus de atributo do background — sólido na linha fixa e na linha escolhida,
+// fantasma tracejado nas demais linhas elegíveis enquanto nada estiver escolhido. Mesmo texto
+// (`+1 origem`) nas duas variantes (US-212 unificou com o mesmo padrão do selo de raça) — só a
+// borda/preenchimento muda.
 // `onClick` presente → o SELO em si é o alvo de clique (não a linha inteira): vira <button>.
 function AbilityBonusBadge({ variant, label, onClick }: { variant: 'solid' | 'ghost'; label: string; onClick?: () => void }) {
   const className = cn(
@@ -247,6 +248,10 @@ export function SetupWizard() {
   // padrão condicional de `subclass`). Resetada ao trocar de raça/raiz (selectRootCard) e de
   // sistema (mesmo motivo de subclass/race).
   const [draconicAncestry, setDraconicAncestry] = useState<string | undefined>(undefined)
+  // US-212: atributo(s) escolhido(s) para o `choice` do `grant` de RAÇA — array (não string
+  // única, como `abilityChoice` de origem) porque `choice.count` pode ser 2 (Meio-Elfo hoje).
+  // Resetado ao trocar de raça/variante e de sistema, mesmo motivo de draconicAncestry acima.
+  const [raceAbilityChoice, setRaceAbilityChoice] = useState<string[]>([])
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
@@ -356,6 +361,12 @@ export function SetupWizard() {
   const originBenefits = backgroundCatalog.find(o => o.key === origin)?.benefits ?? []
   // US-123: bônus de atributo do background, se o ingest reconheceu o padrão de `ability_score`.
   const abilityGrant = originBenefits.find(b => b.grant?.kind === 'ability')?.grant
+  // US-212: bônus de atributo da RAÇA escolhida, se o ingest reconheceu o traço
+  // `ability-score-increase` para ela — segunda fonte independente do bônus de origem acima.
+  const raceGrant = raceCatalog.find(r => r.key === charData.race)?.grant
+  // `bonus` é a MESMA frase já mostrada no cartão da etapa `race` (race-bonus.mjs) — reaproveitada
+  // aqui pro banner da etapa `attributes` em vez de reconstruir o texto a partir de `raceGrant`.
+  const raceBonusText = raceCatalog.find(r => r.key === charData.race)?.bonus
   // US-131: perícias do background, se o ingest reconheceu o padrão de `skill_proficiency`.
   // `skillBenefit` guarda name/description JÁ resolvidos (texto do dataset, ex. "Skill
   // Proficiencies: Deception, and either Culture, Insight, or Sleight of Hand.") — o aviso na
@@ -430,8 +441,12 @@ export function SetupWizard() {
   // US-211: dragonborn esconde as 2 entradas que a grade de ancestralidade substitui (a
   // tabela crua e o texto "escolha um tipo de dragão…") — redundantes assim que a escolha
   // vira card. `breath-weapon`/`damage-resistance` continuam (não explicadas em outro lugar).
+  // US-212: `ability-score-increase` some do painel para TODA raça (não só dragonborn) — vira
+  // redundante assim que o selo `+N raça` já mostra o mesmo bônus na etapa `attributes`. O
+  // traço continua em `config.raceFeatures` (não é removido do ingest); só sai desta exibição.
   const raceStepFeatures = system?.config && charData.race
     ? resolveSheetEntries(system.config.raceFeatures, system.config.retiredFeatures, charData.race, getRaceFeatures(system.config, charData.race))
+      .filter(f => f.key !== 'ability-score-increase')
       .filter(f => charData.race !== 'dragonborn' || !HIDDEN_DRAGONBORN_FEATURE_KEYS.has(f.key))
     : []
   // Bloco "Features e magias" só existe se o config modela esse eixo — mesmo padrão
@@ -472,6 +487,8 @@ export function SetupWizard() {
     setSubclass(undefined)
     // US-211: ancestralidade dracônica depende da raça — mesmo motivo do reset acima.
     setDraconicAncestry(undefined)
+    // US-212: bônus de atributo de raça depende do catálogo de raça — mesmo motivo do reset acima.
+    setRaceAbilityChoice([])
     // US-122: origem também depende do catálogo do sistema — mesmo motivo do reset acima.
     setOrigin(undefined)
     // US-124: conexão/memento dependem da origem — mesmo motivo.
@@ -504,6 +521,9 @@ export function SetupWizard() {
     // outra que também seja dragonborn, clique repetido) invalida a escolha, mesmo espírito do
     // reset de subclass em selectClassCard.
     setDraconicAncestry(undefined)
+    // US-212: o `grant` muda de raça pra raça (e de variante pra variante) — uma escolha feita
+    // pra uma raça pode colidir com o `fixed` de outra, mesmo motivo do reset acima.
+    setRaceAbilityChoice([])
   }
 
   function canAdvance(s: Step): boolean {
@@ -524,8 +544,12 @@ export function SetupWizard() {
           && (charData.race !== 'dragonborn' || !!draconicAncestry)
       // US-123: além do point-buy fechado, background com grant.kind === 'ability' exige
       // uma linha escolhida para o +1 livre (a linha fixa não conta, é automática).
+      // US-212: além do point-buy e do grant de origem, raça com grant.choice exige o número
+      // certo de escolhas feitas — mesmo espírito das duas checagens acima, terceira fonte.
       case 'attributes':
-        return (budget === undefined || remaining === 0) && (abilityGrant?.kind !== 'ability' || !!abilityChoice)
+        return (budget === undefined || remaining === 0)
+          && (abilityGrant?.kind !== 'ability' || !!abilityChoice)
+          && (!raceGrant?.choice || raceAbilityChoice.length === raceGrant.choice.count)
       // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`. US-131:
       // além disso, background com grant.kind === 'skills' exige as `chooseCount` chaves da
       // origem (mesmo espírito do bônus de atributo, mas aqui a escolha acontece nesta etapa,
@@ -584,8 +608,13 @@ export function SetupWizard() {
       // US-211: só viaja quando a raça é dragonborn — qualquer outra raça nem tem a grade
       // no wizard (canAdvance('race') já bloqueia o avanço sem a escolha, quando dragonborn).
       const draconicAncestryPayload = charData.race === 'dragonborn' ? draconicAncestry : undefined
+      // US-212: só viaja quando o grant da raça exige escolha — [] vira undefined (nada a validar).
+      const raceAbilityChoicePayload = raceAbilityChoice.length > 0 ? raceAbilityChoice : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
-      const char = await api.createCharacter({ systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload, attributes: attrs, skills, background, origin: originPayload })
+      const char = await api.createCharacter({
+        systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload,
+        raceAbilityChoice: raceAbilityChoicePayload, attributes: attrs, skills, background, origin: originPayload,
+      })
       // Personagem já está salvo: guardamos o id e avançamos ao passo `world` (US-157).
       setCharId(char.id)
       setStep('world')
@@ -836,7 +865,7 @@ export function SetupWizard() {
                   <div className="mt-6">
                     <CatalogCardGroup name="char-race-variant" legend={t('setup.race.variant.legend')}
                       items={raceVariants.map(v => ({ ...v, bonus: v.variantBonus }))} value={charData.race}
-                      onChange={key => setCharData(p => ({ ...p, race: key }))} />
+                      onChange={key => { setCharData(p => ({ ...p, race: key })); setRaceAbilityChoice([]) }} />
                   </div>
                 )}
                 {/* US-211 (correção): grade de ancestralidade dracônica — só pra dragonborn, ANTES
@@ -883,6 +912,14 @@ export function SetupWizard() {
                     {t('setup.attributes.abilityBanner', { origin: originLabel, attr: attrLabel[abilityGrant.fixed] ?? abilityGrant.fixed })}
                   </p>
                 )}
+                {/* US-212: mesmo padrão do banner de origem acima, pra RAÇA — reforça o que o
+                    cartão da etapa `race` já anunciou (`bonus`), agora com o selo mecânico ao lado. */}
+                {raceGrant && raceBonusText && (
+                  <p className="mt-4 flex items-start gap-2 rounded-md border border-success/40 bg-success/10 p-3 text-sm text-foreground">
+                    <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                    {t('setup.attributes.raceBanner', { race: raceLabel, bonus: raceBonusText })}
+                  </p>
+                )}
                 {/* Agrupado por `divide` em vez de card por linha (direção §4: menos box-in-box). */}
                 <div className="mt-6 divide-y divide-border">
                   {attributes.map(a => {
@@ -893,15 +930,27 @@ export function SetupWizard() {
                     const isFixed = abilityGrant?.kind === 'ability' && a.key === abilityGrant.fixed
                     const isChosen = abilityGrant?.kind === 'ability' && a.key === abilityChoice
                     const clickable = abilityGrant?.kind === 'ability' && !isFixed
-                    const bonus = isFixed || isChosen ? 1 : 0
                     const toggle = () => setAbilityChoice(c => (c === a.key ? undefined : a.key))
+                    // US-212: segunda fonte independente — mesma forma fixo/escolha da origem
+                    // acima, mas lendo `raceGrant` e somando ao MESMO `bonus` exibido embaixo.
+                    const raceFixed = raceGrant?.fixed.find(f => f.attr === a.key)
+                    const raceChosen = !!raceGrant?.choice && raceAbilityChoice.includes(a.key)
+                    const raceChoiceFull = !!raceGrant?.choice && raceAbilityChoice.length >= raceGrant.choice.count
+                    const raceEligible = !!raceGrant?.choice && !raceFixed
+                    const toggleRace = () => setRaceAbilityChoice(prev => prev.includes(a.key) ? prev.filter(k => k !== a.key) : [...prev, a.key])
+                    const bonus = (isFixed || isChosen ? 1 : 0) + (raceFixed?.amount ?? (raceChosen ? raceGrant!.choice!.amount : 0))
                     return (
                       <div key={a.key} className="flex items-center justify-between gap-3 py-3">
                         <span className="flex items-center gap-2">
                           <label className="text-sm font-medium text-foreground">{a.label}</label>
                           {isFixed && <AbilityBonusBadge variant="solid" label={t('setup.attributes.abilityBadgeFixed')} />}
                           {isChosen && <AbilityBonusBadge variant="solid" label={t('setup.attributes.abilityBadgeFixed')} onClick={toggle} />}
-                          {clickable && !isChosen && !abilityChoice && <AbilityBonusBadge variant="ghost" label={t('setup.attributes.abilityBadgeGhost')} onClick={toggle} />}
+                          {clickable && !isChosen && !abilityChoice && <AbilityBonusBadge variant="ghost" label={t('setup.attributes.abilityBadgeFixed')} onClick={toggle} />}
+                          {raceFixed && <AbilityBonusBadge variant="solid" label={t('setup.attributes.raceBadge', { amount: raceFixed.amount })} />}
+                          {raceChosen && <AbilityBonusBadge variant="solid" label={t('setup.attributes.raceBadge', { amount: raceGrant!.choice!.amount })} onClick={toggleRace} />}
+                          {raceEligible && !raceChosen && !raceChoiceFull && (
+                            <AbilityBonusBadge variant="ghost" label={t('setup.attributes.raceBadge', { amount: raceGrant!.choice!.amount })} onClick={toggleRace} />
+                          )}
                         </span>
                         {budget !== undefined ? (
                           <div className="flex items-center gap-2">

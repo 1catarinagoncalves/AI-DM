@@ -209,13 +209,54 @@ test('buildRaceBonuses: variantBonuses tem só o ASI que a subespécie soma alé
 
 test('buildRaceBonuses: raça sem traço "Ability Score Increase" não entra no resultado', () => {
   const raceFeatures = { tiefling: [{ key: 'darkvision', name: 'Darkvision', description: '60 feet.', source: 'tiefling' }] }
-  assert.deepEqual(buildRaceBonuses(raceFeatures, [{ key: 'tiefling' }], [], 'pt-BR'), { bonuses: {}, variantBonuses: {}, rootBonuses: {} })
+  assert.deepEqual(buildRaceBonuses(raceFeatures, [{ key: 'tiefling' }], [], 'pt-BR'), { bonuses: {}, variantBonuses: {}, rootBonuses: {}, grants: {} })
 })
 
 test('buildRaceBonuses: Human vira frase curta em vez de 6 fragmentos "+1 X"', () => {
   const raceFeatures = { human: [{ key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your ability scores each increase by 1.', source: 'human' }] }
   const attributes = ATTRS.map((key) => ({ key, label: key }))
   assert.deepEqual(buildRaceBonuses(raceFeatures, [{ key: 'human' }], attributes, 'en-US').bonuses, { human: '+1 to all abilities' })
+})
+
+// US-212: grants[raceKey] é o mesmo cálculo de bonuses[raceKey], só que estruturado em vez de
+// frase — cobre as 3 formas medidas em race-bonus.mjs:8-11.
+test('US-212 buildRaceBonuses: grants estrutura o merge raiz+subespécie em fixed (Anão da Colina)', () => {
+  const raceFeatures = {
+    'hill-dwarf': [
+      { key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your Constitution score increases by 2.', source: 'dwarf' },
+      { key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your Wisdom score increases by 1.', source: 'hill-dwarf' },
+    ],
+  }
+  const attributes = [{ key: 'constitution', label: 'Constituição' }, { key: 'wisdom', label: 'Sabedoria' }]
+  assert.deepEqual(buildRaceBonuses(raceFeatures, DWARF_RACES, attributes, 'pt-BR').grants, {
+    'hill-dwarf': { fixed: [{ attr: 'constitution', amount: 2 }, { attr: 'wisdom', amount: 1 }] },
+  })
+})
+
+test('US-212 buildRaceBonuses: grants do Human tem as 6 chaves em fixed, sem choice', () => {
+  const raceFeatures = { human: [{ key: 'ability-score-increase', name: 'Ability Score Increase', description: 'Your ability scores each increase by 1.', source: 'human' }] }
+  const attributes = ATTRS.map((key) => ({ key, label: key }))
+  assert.deepEqual(buildRaceBonuses(raceFeatures, [{ key: 'human' }], attributes, 'en-US').grants, {
+    human: { fixed: ATTRS.map((attr) => ({ attr, amount: 1 })) },
+  })
+})
+
+test('US-212 buildRaceBonuses: grants do Half-Elf tem fixed + choice (fixo + N livres)', () => {
+  const raceFeatures = {
+    'half-elf': [{
+      key: 'ability-score-increase', name: 'Ability Score Increase', source: 'half-elf',
+      description: 'Your Charisma score increases by 2, and two other ability scores of your choice increase by 1.',
+    }],
+  }
+  const attributes = ATTRS.map((key) => ({ key, label: key }))
+  assert.deepEqual(buildRaceBonuses(raceFeatures, [{ key: 'half-elf' }], attributes, 'en-US').grants, {
+    'half-elf': { fixed: [{ attr: 'charisma', amount: 2 }], choice: { count: 2, amount: 1 } },
+  })
+})
+
+test('US-212 buildRaceBonuses: raça sem traço não ganha entrada em grants', () => {
+  const raceFeatures = { tiefling: [{ key: 'darkvision', name: 'Darkvision', description: '60 feet.', source: 'tiefling' }] }
+  assert.deepEqual(buildRaceBonuses(raceFeatures, [{ key: 'tiefling' }], [], 'pt-BR').grants, {})
 })
 
 const RAGE = { en: 'Rage', pt: 'Fúria' }
