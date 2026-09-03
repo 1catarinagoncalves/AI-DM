@@ -21,6 +21,17 @@ export const SystemSkillSchema = z.object({
   ability: z.string().min(1),
 })
 
+// Idioma do sistema (US-133), derivado de `Language.json` (mesmo doc `core` que Skill.json).
+// Mesmo contrato de `SystemSkillSchema` (key/label + âncora extra), estendido com `secret`
+// pelo mesmo motivo: um consumidor (US-129) precisa do campo pra não oferecer Druidic/
+// Thieves' Cant como "idioma à escolha" genérico de background — concedidos só por
+// classe/feature própria, nunca pela escolha livre.
+export const SystemLanguageSchema = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+  secret: z.boolean(),
+})
+
 // Entrada de catálogo do sistema (US-105): chave canônica EN + rótulo no locale do config.
 // Serve `races` e `classes`, e é o mesmo contrato de `skills` sem a âncora de atributo:
 // o Character guarda a CHAVE, a tela e o prompt resolvem o rótulo na leitura.
@@ -199,6 +210,10 @@ export const SystemConfigSchema = z.object({
   // `proficiency.choices` proficiências são escolhidas na criação, cada uma somando
   // `proficiency.bonus` ao modificador do atributo-âncora.
   skills: z.array(SystemSkillSchema).optional(),
+  // Catálogo de idiomas (US-133), derivado do SRD pelo ingest. Opcional como skills/races:
+  // config legado sem ele não fica inválido. Fecha a lacuna que bloqueava a US-129 (escolha
+  // do benefício `language` do background) — catálogo cru, aplicar a um personagem é a US-129.
+  languages: z.array(SystemLanguageSchema).optional(),
   // Catálogos de raça e de classe (US-105), derivados do SRD pelo ingest. Opcionais como
   // `skills`: config legado sem eles não fica inválido — e é o que decide se o service
   // valida a chave da ficha contra catálogo ou aceita o que vier (ver character.service).

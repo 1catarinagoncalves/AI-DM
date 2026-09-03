@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -1211,6 +1211,48 @@ for (const locale of ['en-US', 'pt-BR']) {
     assert.equal(artifact.tools.length, 50)
     for (const t of artifact.tools) {
       assert.ok(t.key && t.label && t.category, `entrada incompleta: ${JSON.stringify(t)}`)
+    }
+  })
+}
+
+// --- US-133 — buildLanguages: Language.json (doc `core`, mesmo de Skill.json) → config.languages ---
+
+const language = (pk, name, isSecret, desc = 'Typical speakers are Humans.') => ({ pk, fields: { name, is_secret: isSecret, desc } })
+
+test('buildLanguages: key normalizada (kebab → snake), secret sobrevive sem normalização de valor', () => {
+  const languagesRaw = [
+    language('deep-speech', 'Deep Speech', false),
+    language('druidic', 'Druidic', true),
+    language('common', 'Common', false),
+  ]
+  const result = buildLanguages({}, languagesRaw, identityResolve)
+  assert.deepEqual(result.map((l) => l.key), ['common', 'deep_speech', 'druidic'])
+  assert.deepEqual(result.find((l) => l.key === 'deep_speech'), { key: 'deep_speech', label: 'Deep Speech', secret: false })
+  assert.deepEqual(result.find((l) => l.key === 'druidic'), { key: 'druidic', label: 'Druidic', secret: true })
+})
+
+test('buildLanguages: label pega tradução do overlay pt-BR igual a buildTools', () => {
+  const overlay = { languages: { common: { name: 'Comum', description: 'Falantes típicos são humanos.' } } }
+  const ptResolve = (_domain, _key, entry, enName) => ({ name: entry?.name?.trim() || enName })
+  const result = buildLanguages(overlay, [language('common', 'Common', false)], ptResolve)
+  assert.deepEqual(result, [{ key: 'common', label: 'Comum', secret: false }])
+})
+
+// Contra o dataset PINADO real (não fixture): as 18 entradas medidas em US-133 §Contexto batem.
+test('buildLanguages: as 18 entradas reais do Language.json pinado batem — 2 secret (druidic, thieves_cant)', () => {
+  const languagesRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Language.json'), 'utf8'))
+  const result = buildLanguages({}, languagesRaw, identityResolve)
+  assert.equal(result.length, 18)
+  assert.deepEqual(result.filter((l) => l.secret).map((l) => l.key), ['druidic', 'thieves_cant'])
+})
+
+// --- artefato: config.languages sai gravado nos dois locales, mesma contagem que o dataset real ---
+for (const locale of ['en-US', 'pt-BR']) {
+  test(`artefato ${locale}: config.languages tem 18 entradas com key/label/secret`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    assert.equal(artifact.languages.length, 18)
+    for (const l of artifact.languages) {
+      assert.ok(l.key && l.label && typeof l.secret === 'boolean', `entrada incompleta: ${JSON.stringify(l)}`)
     }
   })
 }

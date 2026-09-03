@@ -3567,6 +3567,98 @@
       ]
     }
   ],
+  "languages": [
+    {
+      "key": "abyssal",
+      "label": "Abissal",
+      "secret": false
+    },
+    {
+      "key": "celestial",
+      "label": "Celestial",
+      "secret": false
+    },
+    {
+      "key": "common",
+      "label": "Comum",
+      "secret": false
+    },
+    {
+      "key": "deep_speech",
+      "label": "Discurso Profundo",
+      "secret": false
+    },
+    {
+      "key": "draconic",
+      "label": "Dracônico",
+      "secret": false
+    },
+    {
+      "key": "druidic",
+      "label": "Druídico",
+      "secret": true
+    },
+    {
+      "key": "dwarvish",
+      "label": "Anão",
+      "secret": false
+    },
+    {
+      "key": "elvish",
+      "label": "Élfico",
+      "secret": false
+    },
+    {
+      "key": "giant",
+      "label": "Gigante",
+      "secret": false
+    },
+    {
+      "key": "gnomish",
+      "label": "Gnômico",
+      "secret": false
+    },
+    {
+      "key": "goblin",
+      "label": "Goblin",
+      "secret": false
+    },
+    {
+      "key": "halfling",
+      "label": "Halfling",
+      "secret": false
+    },
+    {
+      "key": "infernal",
+      "label": "Infernal",
+      "secret": false
+    },
+    {
+      "key": "orc",
+      "label": "Orc",
+      "secret": false
+    },
+    {
+      "key": "primordial",
+      "label": "Primordial",
+      "secret": false
+    },
+    {
+      "key": "sylvan",
+      "label": "Silvestre",
+      "secret": false
+    },
+    {
+      "key": "thieves_cant",
+      "label": "Gíria dos Ladrões",
+      "secret": true
+    },
+    {
+      "key": "undercommon",
+      "label": "Subcomum",
+      "secret": false
+    }
+  ],
   "raceFeatures": {
     "dragonborn": [
       {

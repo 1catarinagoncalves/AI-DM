@@ -65,7 +65,10 @@ const NO_MT = process.argv.includes('--no-mt')
 // com races/skills/classes/kitItems, dezena ou menos cada). O `desc` que alimenta a tradução é o
 // texto de regra do item (`Item.json.desc`), nunca guardado no artefato — só dá contexto ao
 // modelo; ver `buildTools`.
-const MT_DOMAINS = ['features', 'spells', 'backgrounds', 'tools', 'raceFeatures']
+// US-133: `languages` entra — mesmo padrão de `tools`: o `desc` (`Language.json.desc`, frase
+// curta "Typical speakers are Humans.") alimenta a tradução do `label` mas não é guardado no
+// artefato (SystemLanguageSchema não tem campo description); ver `buildLanguages`.
+const MT_DOMAINS = ['features', 'spells', 'backgrounds', 'tools', 'raceFeatures', 'languages']
 
 // Mapa explícito das 13 classes (12 SRD + Marshal) → chave canônica do config. NÃO reusa o
 // CLASS_SYNONYMS de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte
@@ -181,7 +184,7 @@ async function load(name) {
 export function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), raceFeatures: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), raceFeatures: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set(), languages: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -250,6 +253,21 @@ export function buildSkills(overlay, skillsRaw, resolve) {
     ability,
   }))
   return [...core, ...a5e].sort((a, b) => a.key.localeCompare(b.key))
+}
+
+// --- languages (18): Language.json do mesmo doc `core` que Skill.json — catálogo flat key/label
+// (mesmo corpo de `buildRaces`), mais `secret` (`fields.is_secret`, cru, sem normalização de
+// valor) e resolve com `enDesc` (mesmo padrão de `buildTools`) para a tradução do `label` ter
+// contexto — o `desc` em si nunca entra no artefato (US-129: `secret: true` em Druidic/Thieves'
+// Cant sinaliza ao consumidor para excluir do pool de "um idioma à escolha" genérico).
+export function buildLanguages(overlay, languagesRaw, resolve) {
+  return languagesRaw
+    .map((l) => {
+      const key = String(l.pk).replace(/-/g, '_') // deep-speech → deep_speech, mesma regra de buildSkills
+      const label = resolve('languages', key, overlay.languages?.[key], l.fields.name, norm(l.fields.desc)).name
+      return { key, label, secret: l.fields.is_secret }
+    })
+    .sort((a, b) => a.key.localeCompare(b.key))
 }
 
 // --- races (13): as 9 RAÍZES do SRD 5.1 (ADR 009 §8, US-138) e as 4 subespécies que o
@@ -884,6 +902,7 @@ function buildConfig(overlay, data, locale) {
   const { resolve, fallbacks, orphans, usedOverlay, glossary } = makeResolver()
   const attributes = buildAttributes(overlay, data.abilities, resolve)
   const skills = buildSkills(overlay, data.skillsRaw, resolve)
+  const languages = buildLanguages(overlay, data.languagesRaw, resolve)
   const races = buildRaces(overlay, data.species2014, resolve)
   const raceFeatures = buildRaceFeatures(overlay, races, data.speciesTraits, resolve)
   // O bônus tem de ler o traço "Ability Score Increase" em INGLÊS mesmo na passagem pt-BR —
@@ -917,14 +936,14 @@ function buildConfig(overlay, data, locale) {
   // US-138: `races` entra na lista pela primeira vez — antes da união reverter (ADR 009 §8),
   // as 11 chaves do overlay sempre casavam com as 11 do catálogo, então não fazia diferença.
   // Agora goliath/orc ficam no overlay sem chave no catálogo (9 raízes) e precisam aparecer aqui.
-  for (const domain of ['races', 'features', 'raceFeatures', 'spells', 'kitItems', 'backgrounds', 'tools']) {
+  for (const domain of ['races', 'features', 'raceFeatures', 'spells', 'kitItems', 'backgrounds', 'tools', 'languages']) {
     for (const key of Object.keys(overlay[domain] || {})) {
       if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
     }
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  const artifact = { attributes, skills, races, raceFeatures, classes, subclasses, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools }
+  const artifact = { attributes, skills, languages, races, raceFeatures, classes, subclasses, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools }
   SystemConfigSchema.parse({ ...artifact, ...STUB })
   return { artifact, fallbacks, orphans, glossary }
 }
@@ -936,12 +955,13 @@ async function main() {
   // que bastava antes desta story (quando toda base EN vinha de graça do `name` do dataset).
   const overlayEn = JSON.parse(await readFile(EN_OVERLAY_PATH, 'utf8'))
   const [
-    abilities, rules, skillsRaw, classes2014, features2014, featureItems2014, spells, species2014,
+    abilities, rules, skillsRaw, languagesRaw, classes2014, features2014, featureItems2014, spells, species2014,
     speciesTraits, backgrounds, backgroundBenefits, items, marshalClasses, marshalFeatures, marshalFeatureItems,
   ] = await Promise.all([
     load('AbilityDescription.json'),
     load('Rule.json'),
     load('Skill.json'),
+    load('Language.json'),
     load('CharacterClass.json'),
     load('ClassFeature.json'),
     load('ClassFeatureItem.json'),
@@ -961,7 +981,7 @@ async function main() {
   const classes = [...classes2014, ...marshalClasses]
   const features = [...features2014, ...marshalFeatures]
   const featureItems = [...featureItems2014, ...marshalFeatureItems]
-  const data = { abilities, skillsRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items }
+  const data = { abilities, skillsRaw, languagesRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items }
 
   const base = buildConfig(overlayEn, data, 'en-US')
   let localized = buildConfig(overlay, data, 'pt-BR')

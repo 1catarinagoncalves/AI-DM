@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🗂️ Backlog
+**Status:** ✅ Concluído
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, artefato por locale) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (dois artefatos, um por locale)
 **Relacionado:** [US-129](./US-129-escolha-idioma-beneficio-language-background.md) (consumidor bloqueado — é a story-base que ela pede em sua *Questão em aberto 1*; esta story fecha exatamente essa lacuna) · [US-130](./US-130-culture-engineering-catalogo-pericias.md) (mesmo formato: fechar lacuna de catálogo que bloqueia mecanização de um benefício de background) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (`SystemCatalogEntrySchema`, contrato `key`/`label` que esta story estende, mesmo precedente de `SystemSkillSchema.ability`) · [US-134](./US-134-catalogo-de-ferramentas-do-sistema.md) (catálogo irmão, mesma investigação, mesmo dia — fecha a lacuna equivalente para `tool_proficiency`)
 **Criada em:** 2026-08-13
@@ -97,14 +97,14 @@ languages: z.array(SystemLanguageSchema).optional(),
 
 ## Critérios de aceite
 
-- [ ] `sync.mjs` baixa `Language.json` de `${CORE}` (mesmo diretório de `Skill.json`), no `TAG` já pinado — sem tag nova, sem entrada nova em `NOTICE-open5e.md`.
-- [ ] `ingest.mjs` deriva `languages`: 18 entradas, cada uma com `key`, `label`, `secret`.
-- [ ] `secret: true` em exatamente 2 entradas (`druidic`, `thieves_cant`, ou chave equivalente normalizada) — as outras 16, `secret: false`.
-- [ ] `SystemConfigSchema` valida `languages` opcional; config sem o campo continua válido (compatibilidade com artefato anterior a esta story).
-- [ ] `languages` entra em `MT_DOMAINS`; `pnpm srd:ingest` produz `pt-BR` com `label` traduzido e marcado `_mt: true` onde não houver overlay curado.
-- [ ] `pnpm srd:ingest --strict` passa sem chave `languages` no relatório de fallback EN pendente (18 nomes curados manualmente em `locale/pt-BR.json`, mesmo padrão de `races`/`classes`/`backgrounds`).
-- [ ] Os dois artefatos seguem passando em `SystemConfigSchema.parse()` e byte-a-byte idênticos entre duas rodadas (idempotência).
-- [ ] **Eval / teste de regressão:** `ingest.test.mjs` cobre `buildLanguages` com fixture sintética contendo pelo menos uma entrada `is_secret: true` e uma `false`, confirmando que o campo sobrevive ao ingest sem normalização de valor (só de chave).
+- [x] `sync.mjs` baixa `Language.json` de `${CORE}` (mesmo diretório de `Skill.json`), no `TAG` já pinado — sem tag nova, sem entrada nova em `NOTICE-open5e.md`.
+- [x] `ingest.mjs` deriva `languages`: 18 entradas, cada uma com `key`, `label`, `secret`.
+- [x] `secret: true` em exatamente 2 entradas (`druidic`, `thieves_cant`, ou chave equivalente normalizada) — as outras 16, `secret: false`.
+- [x] `SystemConfigSchema` valida `languages` opcional; config sem o campo continua válido (compatibilidade com artefato anterior a esta story).
+- [x] `languages` entra em `MT_DOMAINS`; `pnpm srd:ingest` produz `pt-BR` com `label` traduzido e marcado `_mt: true` onde não houver overlay curado.
+- [x] `pnpm srd:ingest --strict` passa sem chave `languages` no relatório de fallback EN pendente (18 nomes curados manualmente em `locale/pt-BR.json`, mesmo padrão de `races`/`classes`/`backgrounds`).
+- [x] Os dois artefatos seguem passando em `SystemConfigSchema.parse()` e byte-a-byte idênticos entre duas rodadas (idempotência).
+- [x] **Eval / teste de regressão:** `ingest.test.mjs` cobre `buildLanguages` com fixture sintética contendo pelo menos uma entrada `is_secret: true` e uma `false`, confirmando que o campo sobrevive ao ingest sem normalização de valor (só de chave).
 
 ---
 

@@ -50,6 +50,9 @@ const FILES = [
   // sem entrada nova em NOTICE-open5e.md. Catálogo de ferramentas/veículos (config.tools).
   [`${SRD}/Item.json`, 'Item.json'],
   [`${CORE}/Skill.json`, 'Skill.json'],
+  // US-133: mesmo diretório de Skill.json — sem tag nova, sem entrada nova em NOTICE-open5e.md.
+  // Catálogo de idiomas (config.languages).
+  [`${CORE}/Language.json`, 'Language.json'],
   [`${SRD_2014}/CharacterClass.json`, 'CharacterClass.json'],
   [`${SRD_2014}/Species.json`, 'Species.2014.json'],
   // US-142: mesmo documento srd-2014 de Species.json acima — traço mecânico por trás da

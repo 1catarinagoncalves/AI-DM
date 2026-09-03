@@ -30,6 +30,26 @@
     "culture": "Cultura",
     "engineering": "Engenharia"
   },
+  "languages": {
+    "abyssal": { "name": "Abissal", "description": "Falantes típicos são demônios." },
+    "celestial": { "name": "Celestial", "description": "Falantes típicos são celestiais." },
+    "common": { "name": "Comum", "description": "Falantes típicos são humanos." },
+    "deep_speech": { "name": "Discurso Profundo", "description": "Falantes típicos incluem aboleths e cloakers. É um idioma só falado." },
+    "draconic": { "name": "Dracônico", "description": "Falantes típicos incluem dragões e draconatos." },
+    "druidic": { "name": "Druídico", "description": "A língua secreta dos druidas. Quem a conhece pode falar o idioma e usá-lo para deixar mensagens ocultas. Quem conhece este idioma percebe automaticamente tal mensagem. Outros percebem a presença da mensagem com um teste de Sabedoria (Percepção) CD 15 bem-sucedido, mas não conseguem decifrá-la sem magia." },
+    "dwarvish": { "name": "Anão", "description": "Falantes típicos são anões." },
+    "elvish": { "name": "Élfico", "description": "Falantes típicos são elfos." },
+    "giant": { "name": "Gigante", "description": "Falantes típicos incluem ogros e gigantes." },
+    "gnomish": { "name": "Gnômico", "description": "Falantes típicos são gnomos." },
+    "goblin": { "name": "Goblin", "description": "Falantes típicos são goblinoides." },
+    "halfling": { "name": "Halfling", "description": "Falantes típicos são halflings." },
+    "infernal": { "name": "Infernal", "description": "Falantes típicos são diabos." },
+    "orc": { "name": "Orc", "description": "Falantes típicos são orcs." },
+    "primordial": { "name": "Primordial", "description": "Falantes típicos são elementais." },
+    "sylvan": { "name": "Silvestre", "description": "Falantes típicos são criaturas feéricas." },
+    "thieves_cant": { "name": "Gíria dos Ladrões", "description": "Uma mistura secreta de dialeto, gíria e código que permite ao falante esconder mensagens em conversas aparentemente normais. Só outra criatura que conhece a gíria dos ladrões entende tais mensagens. Transmitir uma mensagem assim leva quatro vezes mais tempo do que dizer a mesma ideia diretamente." },
+    "undercommon": { "name": "Subcomum", "description": "Falantes típicos são comerciantes do submundo." }
+  },
   "races": {
     "dragonborn": { "name": "Draconato", "kicker": "Herança de dragão", "blurb": "Sangue dracônico à vista: escamas, sopro elemental e uma reputação que chega antes de você." },
     "dwarf": { "name": "Anão", "kicker": "Rocha que não quebra", "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão." },

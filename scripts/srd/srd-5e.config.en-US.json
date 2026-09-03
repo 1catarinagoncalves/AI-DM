@@ -3567,6 +3567,98 @@
       ]
     }
   ],
+  "languages": [
+    {
+      "key": "abyssal",
+      "label": "Abyssal",
+      "secret": false
+    },
+    {
+      "key": "celestial",
+      "label": "Celestial",
+      "secret": false
+    },
+    {
+      "key": "common",
+      "label": "Common",
+      "secret": false
+    },
+    {
+      "key": "deep_speech",
+      "label": "Deep Speech",
+      "secret": false
+    },
+    {
+      "key": "draconic",
+      "label": "Draconic",
+      "secret": false
+    },
+    {
+      "key": "druidic",
+      "label": "Druidic",
+      "secret": true
+    },
+    {
+      "key": "dwarvish",
+      "label": "Dwarvish",
+      "secret": false
+    },
+    {
+      "key": "elvish",
+      "label": "Elvish",
+      "secret": false
+    },
+    {
+      "key": "giant",
+      "label": "Giant",
+      "secret": false
+    },
+    {
+      "key": "gnomish",
+      "label": "Gnomish",
+      "secret": false
+    },
+    {
+      "key": "goblin",
+      "label": "Goblin",
+      "secret": false
+    },
+    {
+      "key": "halfling",
+      "label": "Halfling",
+      "secret": false
+    },
+    {
+      "key": "infernal",
+      "label": "Infernal",
+      "secret": false
+    },
+    {
+      "key": "orc",
+      "label": "Orc",
+      "secret": false
+    },
+    {
+      "key": "primordial",
+      "label": "Primordial",
+      "secret": false
+    },
+    {
+      "key": "sylvan",
+      "label": "Sylvan",
+      "secret": false
+    },
+    {
+      "key": "thieves_cant",
+      "label": "Thieves' Cant",
+      "secret": true
+    },
+    {
+      "key": "undercommon",
+      "label": "Undercommon",
+      "secret": false
+    }
+  ],
   "raceFeatures": {
     "dragonborn": [
       {
