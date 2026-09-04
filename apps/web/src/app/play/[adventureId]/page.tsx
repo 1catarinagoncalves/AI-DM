@@ -47,6 +47,9 @@ export default async function PlayPage({ params, searchParams }: Props) {
   // mesmo padrão de raça/classe (catalogLabel). Chave sem entrada mostra a própria chave
   // (mesma rede de segurança de catalogLabel), nunca some da lista.
   const tools = ((character.tools ?? []) as string[]).map((key) => catalogLabel(config?.tools, key))
+  // Traço "Extra Language" do alto-elfo: mesma resolução de chave→rótulo de `tools` acima,
+  // contra config.languages (US-133) em vez de config.tools.
+  const languages = ((character.languages ?? []) as string[]).map((key) => catalogLabel(config?.languages, key))
 
   // US-105: a ficha guarda a CHAVE (`dwarf`); o rótulo sai do catálogo do config, que a API já
   // serve no locale do dono — a mesma ficha diz "Anão" ou "Dwarf" sem tocar no banco.
@@ -89,6 +92,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       conditions={state?.conditions ?? []}
       skills={skills}
       tools={tools}
+      languages={languages}
       background={character.background}
       characterOrigin={originName}
       characterConnection={originConnection}

@@ -90,6 +90,19 @@ describe('GameView — abas na ficha (US-45)', () => {
     expect(screen.queryByText('Proficiências')).toBeNull()
   })
 
+  // Traço "Extra Language" do alto-elfo: mesmo padrão condicional de tools acima, bloco próprio.
+  it('mostra o bloco de idiomas na aba Ficha quando presente', async () => {
+    render(<GameView {...baseProps} languages={['Dracônico']} />)
+    expect(await screen.findByText('Idiomas')).toBeTruthy()
+    expect(screen.getByText('Dracônico')).toBeTruthy()
+  })
+
+  it('sem languages (ou lista vazia) o bloco de idiomas não aparece', async () => {
+    render(<GameView {...baseProps} languages={[]} />)
+    expect(await screen.findByText('Atributos')).toBeTruthy()
+    expect(screen.queryByText('Idiomas')).toBeNull()
+  })
+
   it('ao clicar na aba Background mostra a história e uma fraqueza', async () => {
     render(
       <GameView

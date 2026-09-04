@@ -127,6 +127,9 @@ export const ptBR = {
   // Traço "Tool Proficiency" do anão — legenda da grade de escolha da ferramenta de artesão,
   // só aparece para hill-dwarf.
   'setup.race.dwarfTool.legend': 'Escolha a ferramenta de artesão',
+  // Traço "Extra Language" do alto-elfo — legenda do <select> de idioma extra, só aparece
+  // para high-elf, mesmo padrão de dwarfTool.legend acima.
+  'setup.race.elfLanguage.legend': 'Escolha o idioma adicional',
 
   // US-211: ancestralidade dracônica do dragonborn — DRACONIC_ANCESTRY_TABLE (@ai-dm/shared)
   // não tem rótulo embutido (não é conteúdo do SRD ingerido, é regra fixa do PHB 2014), então
@@ -243,6 +246,7 @@ export const ptBR = {
   'setup.review.attributes': 'Atributos',
   'setup.review.skills': 'Perícias',
   'setup.review.tools': 'Proficiências',
+  'setup.review.languages': 'Idiomas',
   'setup.review.kit': 'Kit inicial',
   'setup.review.background': 'Background',
   'setup.review.origin': 'Origem',
@@ -283,6 +287,7 @@ export const ptBR = {
   'game.skills': 'Perícias',
   'game.proficient': 'Proficiente',
   'game.tools': 'Proficiências',
+  'game.languages': 'Idiomas',
   'game.inventory': 'Inventário ({n})',
   'game.inventoryEmpty': 'Nenhum item',
   'game.background.empty': 'Este personagem ainda não tem história.',

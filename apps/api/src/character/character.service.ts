@@ -49,6 +49,14 @@ export class CharacterService {
         DWARF_TOOL_PROFICIENCY_CHOICES.map((key) => ({ key })), dto.raceToolChoice ?? '', 'Ferramenta racial',
       )
       : undefined
+    // Traço "Extra Language" do alto-elfo: mesmo par condicional de raceToolChoice acima, mas
+    // validado contra config.languages (US-133, catálogo do SISTEMA, não regra fixa do PHB) —
+    // `secret` (Druidic/Thieves' Cant) excluído do pool, mesmo motivo de US-129 §Modelo de dados.
+    const raceLanguageChoice = race === 'high-elf'
+      ? this.validateCatalogKey(
+        (config.languages ?? []).filter((l) => !l.secret), dto.raceLanguageChoice ?? '', 'Idioma racial',
+      )
+      : undefined
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
     // US-205: subclasse pressupõe a classe já validada acima. `dto.subclass` presente →
     // valida contra o catálogo da classe (BadRequestException se pertencer a outra classe,
@@ -100,6 +108,9 @@ export class CharacterService {
     // Ferramenta racial soma à de origem — as duas são proficiências independentes, mesmo
     // raciocínio cumulativo de applyRaceGrant/applyAbilityGrant acima.
     const tools = [...this.applyToolGrant(toolGrant, dto.origin?.toolChoice), ...(raceToolChoice ? [raceToolChoice] : [])]
+    // Traço "Extra Language" do alto-elfo: única fonte de `languages` hoje — sem coluna
+    // própria de raça (ver schema.prisma), a chave entra direto no array.
+    const languages = raceLanguageChoice ? [raceLanguageChoice] : []
 
     return this.prisma.character.create({
       data: {
@@ -116,6 +127,7 @@ export class CharacterService {
         baseAttributes: finalAttributes,
         skills,
         tools,
+        languages,
         features,
         spells,
         background: this.normalizeBackground(dto.background),

@@ -1708,3 +1708,98 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
     expect(screen.getAllByText(/Ferramentas de Ferreiro/).length).toBeGreaterThan(0)
   })
 })
+
+// --- traço "Extra Language" do alto-elfo: <select> de escolha, só para high-elf ---
+
+// `high-elf` é a ÚNICA variante de `elf` no catálogo real — clicar a raiz "Elfo"
+// já auto-seleciona a variante (selectRootCard, US-142), sem precisar de um segundo clique.
+const configWithHighElf = (budget: number) => ({
+  ...configWithBudget(budget),
+  races: [
+    { key: 'elf', label: 'Elfo' },
+    { key: 'high-elf', label: 'Alto-elfo', parentKey: 'elf' },
+    { key: 'dwarf', label: 'Anão' },
+  ],
+  languages: [
+    { key: 'draconic', label: 'Dracônico', secret: false },
+    { key: 'sylvan', label: 'Silvestre', secret: false },
+    { key: 'thieves_cant', label: 'Gíria de Ladrões', secret: true },
+  ],
+})
+
+describe('SetupWizard — traço "Extra Language" do alto-elfo', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickHighElfConfig(config: SystemConfig) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+  }
+
+  it('escolher Elfo revela o select de idiomas (sem os secretos); escolher outra raça não deixa resíduo', async () => {
+    await pickHighElfConfig(configWithHighElf(2))
+
+    expect(screen.queryByLabelText('Escolha o idioma adicional')).toBeNull()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    const languageSelect = screen.getByLabelText('Escolha o idioma adicional')
+    expect(within(languageSelect).getByRole('option', { name: 'Dracônico' })).toBeTruthy()
+    expect(within(languageSelect).getByRole('option', { name: 'Silvestre' })).toBeTruthy()
+    expect(within(languageSelect).queryByRole('option', { name: 'Gíria de Ladrões' })).toBeNull()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    expect(screen.queryByLabelText('Escolha o idioma adicional')).toBeNull()
+  })
+
+  it('bloqueia avanço da etapa raça sem idioma escolhido; libera ao escolher um', async () => {
+    await pickHighElfConfig(configWithHighElf(2))
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'draconic' } })
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it('DTO manda a chave escolhida quando high-elf', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickHighElfConfig(configWithHighElf(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'sylvan' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'high-elf', raceLanguageChoice: 'sylvan' }))
+  })
+
+  it('revisão mostra o idioma escolhido na linha "Idiomas"', async () => {
+    await pickHighElfConfig(configWithHighElf(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'draconic' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    expect(screen.getByText('Idiomas')).toBeTruthy()
+    expect(screen.getByText('Dracônico')).toBeTruthy()
+  })
+})

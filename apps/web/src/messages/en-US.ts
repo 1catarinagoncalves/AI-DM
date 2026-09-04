@@ -108,6 +108,8 @@ export const enUS: Record<MessageKey, string> = {
   'setup.race.variant.legend': 'Choose a variant',
   // Dwarf "Tool Proficiency" trait — legend for the artisan's tool choice grid, hill-dwarf only.
   'setup.race.dwarfTool.legend': "Choose your artisan's tool",
+  // High Elf "Extra Language" trait — legend for the extra language <select>, high-elf only.
+  'setup.race.elfLanguage.legend': 'Choose your extra language',
 
   // US-211: dragonborn draconic ancestry — see the pt-BR.ts comment for why the label lives
   // here instead of the SRD overlay (DRACONIC_ANCESTRY_TABLE has no embedded label).
@@ -219,6 +221,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.attributes': 'Attributes',
   'setup.review.skills': 'Skills',
   'setup.review.tools': 'Proficiencies',
+  'setup.review.languages': 'Languages',
   'setup.review.kit': 'Starting kit',
   'setup.review.background': 'Background',
   'setup.review.origin': 'Origin',
@@ -254,6 +257,7 @@ export const enUS: Record<MessageKey, string> = {
   'game.skills': 'Skills',
   'game.proficient': 'Proficient',
   'game.tools': 'Proficiencies',
+  'game.languages': 'Languages',
   'game.inventory': 'Inventory ({n})',
   'game.inventoryEmpty': 'No items',
   'game.background.empty': "This character doesn't have a story yet.",
