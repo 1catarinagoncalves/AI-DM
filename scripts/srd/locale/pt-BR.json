@@ -51,19 +51,19 @@
     "undercommon": { "name": "Subcomum", "description": "Falantes típicos são comerciantes do submundo." }
   },
   "races": {
-    "dragonborn": { "name": "Draconato", "kicker": "Herança de dragão", "blurb": "Sangue dracônico à vista: escamas, sopro elemental e uma reputação que chega antes de você." },
-    "dwarf": { "name": "Anão", "kicker": "Rocha que não quebra", "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão." },
-    "elf": { "name": "Elfo", "kicker": "Graça que não dorme", "blurb": "Não precisa de sono de verdade, enxerga no escuro e se move com uma elegância que poucos povos conseguem imitar." },
-    "gnome": { "name": "Gnomo", "kicker": "Curiosidade sem freio", "blurb": "Pequeno, esperto e imune a boa parte da magia que mexe com a mente — a curiosidade dele já causou mais problema (e solução) do que se imagina." },
-    "half-elf": { "name": "Meio-Elfo", "kicker": "Entre dois mundos", "blurb": "Não é totalmente humano nem totalmente élfico, e usa esse trânsito entre os dois povos para conversar com quase qualquer um." },
-    "half-orc": { "name": "Meio-Orc", "kicker": "Força que não recua", "blurb": "Herdou o fôlego e o músculo do sangue orc — cai, levanta de novo e continua batendo até o fim da luta." },
-    "halfling": { "name": "Halfling", "kicker": "Pequeno, mas com sorte", "blurb": "Baixinho, ágil e estranhamente difícil de acertar — a sorte parece favorecer quem sabe se esconder atrás de qualquer coisa maior que ele." },
-    "high-elf": { "name": "Alto-elfo", "kicker": "Magia no sangue élfico", "blurb": "Não precisa de sono de verdade, enxerga no escuro e se move com uma elegância que poucos povos conseguem imitar." },
-    "hill-dwarf": { "name": "Anão da Colina", "kicker": "Intuição das colinas", "blurb": "Feito para durar: resistente a veneno, enxerga no escuro da mina e carrega orgulho de clã em cada decisão." },
-    "human": { "name": "Humano", "kicker": "Versátil, sem exagero", "blurb": "Não tem truque racial nenhum — só adaptabilidade, ambição e a capacidade de virar praticamente qualquer coisa que decidir ser." },
-    "lightfoot": { "name": "Halfling Pés-Leves", "kicker": "Invisível na multidão", "blurb": "Baixinho, ágil e estranhamente difícil de acertar — a sorte parece favorecer quem sabe se esconder atrás de qualquer coisa maior que ele." },
-    "rock-gnome": { "name": "Gnomo das Rochas", "kicker": "Mãos de inventor", "blurb": "Pequeno, esperto e imune a boa parte da magia que mexe com a mente — a curiosidade dele já causou mais problema (e solução) do que se imagina." },
-    "tiefling": { "name": "Tiefling", "kicker": "Marca infernal", "blurb": "Carrega chifres, cauda e um pedaço de herança infernal que assusta quem não conhece — e resistência a fogo que salva a pele em mais de uma briga." }
+    "dragonborn": { "name": "Draconato", "kicker": "Sangue de dragão", "blurb": "Guerreiros orgulhosos com a forma de dragões, sem asas nem cauda." },
+    "dwarf": { "name": "Anão", "kicker": "Resiliente", "blurb": "Robustos e obstinados, com afinidade ancestral pela pedra e pelo metal." },
+    "elf": { "name": "Elfo", "kicker": "Mágico e ágil", "blurb": "Criaturas de magia com sentidos aguçados e ligação com a natureza ou o arcano." },
+    "gnome": { "name": "Gnomo", "kicker": "Engenhoso", "blurb": "Curiosos e inventivos, com uma mente afiada para o pequeno e o intricado." },
+    "half-elf": { "name": "Meio-Elfo", "kicker": "Entre dois mundos", "blurb": "Combinam o melhor da herança élfica e humana, sem pertencer totalmente a nenhuma." },
+    "half-orc": { "name": "Meio-Orc", "kicker": "Força implacável", "blurb": "Fortes e resilientes, provam seu valor através de pura determinação." },
+    "halfling": { "name": "Halfling", "kicker": "Pequeno e sortudo", "blurb": "Práticos e corajosos, driblam o perigo com sorte e discrição." },
+    "high-elf": { "name": "Alto-elfo", "kicker": "Magia no sangue élfico", "blurb": "Criaturas de magia com sentidos aguçados e ligação com a natureza ou o arcano." },
+    "hill-dwarf": { "name": "Anão da Colina", "kicker": "Intuição das colinas", "blurb": "Robustos e obstinados, com afinidade ancestral pela pedra e pelo metal." },
+    "human": { "name": "Humano", "kicker": "Versátil", "blurb": "Inovadores e adaptáveis, encontrados em todos os cantos do mundo." },
+    "lightfoot": { "name": "Halfling Pés-Leves", "kicker": "Invisível na multidão", "blurb": "Práticos e corajosos, driblam o perigo com sorte e discrição." },
+    "rock-gnome": { "name": "Gnomo das Rochas", "kicker": "Mãos de inventor", "blurb": "Curiosos e inventivos, com uma mente afiada para o pequeno e o intricado." },
+    "tiefling": { "name": "Tiefling", "kicker": "Legado infernal", "blurb": "Carregam a marca de uma herança infernal, mas seguem seu próprio caminho." }
   },
   "classes": {
     "barbarian": { "name": "Bárbaro", "kicker": "Fúria e couro", "blurb": "Entra na frente, aguenta o que vier e bate mais forte quanto pior a situação fica. Pouca conversa, muita presença física." },

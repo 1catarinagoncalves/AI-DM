@@ -5,7 +5,11 @@
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-205](./US-205-escolha-por-cartao-classe-e-raca.md) (**reabre** a decisão "nome e
 gênero ficam na etapa `class`" — ver *Contexto*) · [US-204](./US-204-wizard-em-duas-colunas-com-ficha-viva.md)
-(a ficha viva ao lado precisa existir antes de mais uma etapa nova ter onde mostrar seu resumo)
+(a ficha viva ao lado precisa existir antes de mais uma etapa nova ter onde mostrar seu resumo) ·
+[US-213](./US-213-etapa-magias-e-escolha-de-truque-do-alto-elfo.md) (**nova, 2026-09-04**: `identity`
+passa a entrar depois de `spells`, não direto depois de `skills` — ver *Revisão de posição
+(2026-09-04)* em *Contexto*. Se `spells` ainda não existir quando esta story rodar, implementar
+US-213 primeiro evita inserir `identity` duas vezes no array `steps`.)
 **Relacionada a:**
 - [backlog-redesenho-criacao-de-personagem.md](./backlog-redesenho-criacao-de-personagem.md) — o
   mapa, atualizado com a etapa `identity` e a segunda referência.
@@ -23,10 +27,11 @@ gênero ficam na etapa `class`" — ver *Contexto*) · [US-204](./US-204-wizard-
 ## História
 
 > **Como** jogadora criando um personagem,
-> **quero** definir nome, gênero e alinhamento numa etapa própria de Identidade, antes de escolher
-> classe e raça,
-> **para que** a etapa `class` não misture "quem meu personagem é" com "o que ele faz", e eu possa
-> decidir a identidade antes de decidir a mecânica.
+> **quero** definir nome, gênero e alinhamento numa etapa própria de Identidade, como última etapa
+> antes de revisar a ficha,
+> **para que** a etapa `class` não misture "quem meu personagem é" com "o que ele faz", e eu feche
+> a mecânica (classe, raça, atributos, perícias, antecedente) antes de fechar a identidade — e veja
+> os dois juntos na revisão logo em seguida.
 
 ---
 
@@ -56,8 +61,23 @@ colateral de layout.
 
 **Decisão de produto (2026-09-02, revisita a US-205):** onde as duas referências divergem, a mais
 recente e inspecionada ao vivo prevalece para a posição da identidade — `identity` vira etapa
-própria, entre `system` e `class`. `system` continua primeiro (é quem carrega o catálogo de que
-`class`/`race` dependem); a referência nova não tem etapa de sistema para comparar.
+própria. `system` continua primeiro (é quem carrega o catálogo de que `class`/`race` dependem); a
+referência nova não tem etapa de sistema para comparar.
+
+**Revisão de posição (2026-09-03):** a posição de `identity` na trilha muda de novo, por instrução
+direta da mantenedora — não é mais logo após `system`, e sim **a última etapa antes da revisão da
+ficha** (`review`). Isso substitui a posição "primeiro" fixada acima; o resto da decisão de
+2026-09-02 (etapa própria, campos `name`/`gender`/`alignment`, mesma forma de `gender`) continua de
+pé. Fica registrado sem apagar o parágrafo anterior — mesma disciplina que este documento já cobra
+para o comentário desatualizado da US-205 (ver *Notas de implementação*).
+
+**Revisão de posição (2026-09-04):** entra uma etapa nova entre `skills` e `review` —
+[US-213](./US-213-etapa-magias-e-escolha-de-truque-do-alto-elfo.md), "Magias" (`spells`) —, e a
+mantenedora decidiu que `identity` fica **depois** dela. `identity` continua sendo a última etapa
+antes de `review` (a posição de 2026-09-03 não muda); o que muda é o vizinho imediato: antes era
+`skills → identity → review`, passa a ser `skills → spells → identity → review`. Mesma disciplina de
+não apagar os parágrafos anteriores — só o "depois de `skills`" das seções abaixo passa a ler
+"depois de `spells`".
 
 ### Por que não simplesmente mover o bloco de dentro de `class`
 
@@ -76,11 +96,12 @@ própria, entre `system` e `class`. `system` continua primeiro (é quem carrega 
 
 ### Dentro do escopo
 
-- **Nova etapa `identity`, entre `system` e `class`.** `Step`/`steps`
+- **Nova etapa `identity`, última antes de `review`** (entre `spells` e `review` — ver *Revisão de
+  posição (2026-09-04)* em *Contexto*; sem `spells` implementada ainda, cai direto após `skills`).
+  `Step`/`steps`
   ([`SetupWizard.tsx:33-34`](../../../apps/web/src/components/setup/SetupWizard.tsx)) ganham a
-  chave nova nessa posição — `class`/`race`/`background`/`attributes`/`skills`/`review`/`world`
-  cada uma desloca uma posição, sem mudar de conteúdo (mesma disciplina da US-205 ao inserir
-  `race`).
+  chave nova nessa posição — só `review` e `world` deslocam uma posição, sem mudar de conteúdo
+  (mesma disciplina da US-205 ao inserir `race`).
 - **Campo `name` e `gender` saem da etapa `class` e entram em `identity`**, mesmos campos, mesmo
   `<input>`/`<select>`, sem mudança de tipo nem de validação — só de etapa.
 - **Campo novo `alignment`**, mesma forma de `gender`: constante `ALIGNMENTS` com os 9 valores
@@ -168,8 +189,9 @@ sem enum forçado no backend).
 
 ## Critérios de aceite
 
-- [ ] `Step`/`steps` (`SetupWizard.tsx:33-34`) ganham `'identity'` entre `'system'` e `'class'`;
-      nenhuma etapa depois de `class` muda de posição relativa às outras.
+- [ ] `Step`/`steps` (`SetupWizard.tsx:33-34`) ganham `'identity'` entre `'spells'` (US-213) e
+      `'review'` (última etapa antes da revisão da ficha); só `'review'` e `'world'` deslocam uma
+      posição, nenhuma outra etapa muda de posição relativa às demais.
 - [ ] A etapa `identity` tem os campos `name`, `gender` (mesmo `<select>` de hoje) e `alignment`
       (`<select>` novo, 9 valores de `ALIGNMENTS`) — nenhum outro campo.
 - [ ] A etapa `class` não tem mais `<input>` de nome nem `<select>` de gênero — só a grade de classe
@@ -177,8 +199,9 @@ sem enum forçado no backend).
 - [ ] `canAdvance('identity')` exige nome não vazio, gênero em `GENDERS` e alinhamento em
       `ALIGNMENTS`; `canAdvance('class')` exige só classe (e subclasse, quando aplicável) — a
       condição composta que hoje vive em `canAdvance('class')` se divide em duas.
-- [ ] A trilha de progresso mostra um chip `Identidade` antes de `Classe`, navegável de volta como
-      as demais (US-107: `goTo` só permite etapas já concluídas).
+- [ ] A trilha de progresso mostra um chip `Identidade` depois de `Magias` (`spells`, US-213) e antes
+      de `Revisão` (`review`), navegável de volta como as demais (US-107: `goTo` só permite etapas já
+      concluídas).
 - [ ] Personagem criado sem `alignment` no DTO é aceito (campo opcional no schema/DTO) — mas o
       wizard nunca envia esse estado, porque `canAdvance('identity')` bloqueia antes.
 - [ ] `Character.alignment` grava o valor canônico enviado (`'Leal e Bom'`, etc.), verificável no
@@ -186,10 +209,11 @@ sem enum forçado no backend).
 - [ ] Em 360 px de largura a etapa `identity` é coluna única, sem rolagem horizontal (US-66).
 - [ ] Navegar por teclado no `<select>` de alinhamento funciona como qualquer `<select>` nativo —
       sem grupo de rádio customizado (não é grade de cartão, ver *Fora do escopo*).
-- [ ] **Eval / teste de regressão:** teste em `SetupWizard.test.tsx` que preenche nome, gênero e
-      alinhamento na etapa `identity`, avança até `class`, escolhe uma classe pelo cartão, e afirma
-      que `createCharacter` recebe `alignment` com o valor canônico escolhido — o teste que falha
-      se alguém mover o campo de volta para dentro de `class` sem atualizar o DTO.
+- [ ] **Eval / teste de regressão:** teste em `SetupWizard.test.tsx` que avança o wizard até
+      `identity` (última etapa antes de `review`), preenche nome, gênero e alinhamento, avança para
+      `review` e confirma a criação, e afirma que `createCharacter` recebe `alignment` com o valor
+      canônico escolhido — o teste que falha se alguém mover o campo de volta para dentro de
+      `class` sem atualizar o DTO.
 - [ ] **Eval / teste de regressão (service):** teste em `character.service.test.ts` que cria
       personagem com `alignment` presente e ausente — os dois caminhos persistem sem erro
       (`alignment` é opcional no schema, mas grava o valor quando vem).
@@ -206,8 +230,11 @@ sem enum forçado no backend).
   lado (mesmo `fieldClass`/`SELECT_ARROW` que `gender` já usa).
 - **Comentário da US-205 em `SetupWizard.tsx:670-672` fica desatualizado por esta story** — ele
   documenta exatamente a decisão que esta story reverte ("não migram pra uma etapa Identidade no
-  fim"). Reescrever para apontar aqui, não apagar (`AGENTS.md`: comentário existente não some, mas
-  pode ficar factualmente errado se não for atualizado — e este é o caso raiz que motivou a regra).
+  fim"). Com a *Revisão de posição* de 2026-09-03, `identity` volta a ser a última etapa — mas por
+  motivo diferente do protótipo local que a US-205 recusou (campos estruturados `name`/`gender`/
+  `alignment`, não texto livre de aparência/personalidade/história). Reescrever o comentário para
+  apontar aqui, não apagar (`AGENTS.md`: comentário existente não some, mas pode ficar factualmente
+  errado se não for atualizado — e este é o caso raiz que motivou a regra).
 - **`canAdvance` muda de forma, não só de posição.** A condição hoje é um `&&` de quatro partes em
   `case 'class'`; vira duas `case` menores (`'identity'` com três partes, `'class'` com uma).
 - **`ALIGNMENTS` é `as const`, mesmo padrão de `GENDERS`** — nove valores, sem depender de catálogo
@@ -227,7 +254,8 @@ sem enum forçado no backend).
 
 ## Referências no código
 
-- [`apps/web/src/components/setup/SetupWizard.tsx:33-34`](../../../apps/web/src/components/setup/SetupWizard.tsx) — `type Step` e `const steps`: onde `'identity'` entra entre `'system'` e `'class'`.
+- [`apps/web/src/components/setup/SetupWizard.tsx:33-34`](../../../apps/web/src/components/setup/SetupWizard.tsx) — `type Step` e `const steps`: onde `'identity'` entra entre `'spells'` (US-213) e `'review'` (última etapa antes da revisão da ficha).
+- [US-213](./US-213-etapa-magias-e-escolha-de-truque-do-alto-elfo.md) — etapa `spells`, o novo vizinho imediato de `identity` (decisão de 2026-09-04).
 - [`apps/web/src/components/setup/SetupWizard.tsx:43`](../../../apps/web/src/components/setup/SetupWizard.tsx) — `GENDERS`: o molde direto para `ALIGNMENTS`.
 - [`apps/web/src/components/setup/SetupWizard.tsx:670-695`](../../../apps/web/src/components/setup/SetupWizard.tsx) — bloco `step === 'class'` com `char-name`/`char-gender`: o que se move para `step === 'identity'`.
 - [`apps/web/src/components/setup/SetupWizard.tsx:432-442`](../../../apps/web/src/components/setup/SetupWizard.tsx) — `canAdvance`, `case 'class'`: a condição que se divide em `'identity'` + `'class'`.

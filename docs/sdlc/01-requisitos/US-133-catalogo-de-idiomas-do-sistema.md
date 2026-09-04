@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluído
+**Status:** ✅ Implementada
 **Depende de:** [US-47](./US-47-ingestao-srd-como-dado.md) (pipeline `sync`+`ingest`, artefato por locale) · [US-99](./US-99-config-do-sistema-no-locale-ativo.md) (dois artefatos, um por locale)
 **Relacionado:** [US-129](./US-129-escolha-idioma-beneficio-language-background.md) (consumidor bloqueado — é a story-base que ela pede em sua *Questão em aberto 1*; esta story fecha exatamente essa lacuna) · [US-130](./US-130-culture-engineering-catalogo-pericias.md) (mesmo formato: fechar lacuna de catálogo que bloqueia mecanização de um benefício de background) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (`SystemCatalogEntrySchema`, contrato `key`/`label` que esta story estende, mesmo precedente de `SystemSkillSchema.ability`) · [US-134](./US-134-catalogo-de-ferramentas-do-sistema.md) (catálogo irmão, mesma investigação, mesmo dia — fecha a lacuna equivalente para `tool_proficiency`)
 **Criada em:** 2026-08-13

@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🗂️ Backlog
+**Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-121](./US-121-catalogo-backgrounds-a5e-adventurers-guide.md) (catálogo `config.backgrounds`, benefit `type: "language"` já extraído, sem mecanização) · [US-133](./US-133-catalogo-de-idiomas-do-sistema.md) (catálogo `config.languages` — a story-base que faltava, ver §Questões em aberto)
 **Relacionado:** [US-123](./US-123-integracao-mecanica-background-pointbuy.md)/[US-131](./US-131-integracao-mecanica-background-proficiency.md) (mecanizaram `ability_score`/`skill_proficiency` dos mesmos 21 backgrounds e excluíram `language`/`tool_proficiency` explicitamente por essa mesma falta de catálogo — §Fora do escopo de cada uma) · [US-122](./US-122-escolha-background-catalogo-na-criacao.md) (escolha de origem — é o `origin.key` que decide se o benefício `language` existe pra este personagem)
 **Criada em:** 2026-08-12

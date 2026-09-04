@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-123](./US-123-integracao-mecanica-background-pointbuy.md) (precedente direto e idêntico em espírito — mecaniza o bônus de atributo do *background*; esta story faz o mesmo para o bônus de *raça*, reusando `AbilityBonusBadge` e o par find/apply) · [US-142](./US-142-tracos-mecanicos-subespecie-srd-5-1.md) (`raceFeatures` já mescla raiz+subespécie e já contém o traço `ability-score-increase` resolvido — o parser `parseAbilityScoreIncrease`/`buildRaceBonuses` em [`scripts/srd/race-bonus.mjs`](../../../scripts/srd/race-bonus.mjs) já lê esse traço, só descarta a estrutura numa frase de texto) · [US-207](./US-207-atributos-e-pericias-com-orcamento-visivel.md) (etapa `attributes` atual — orçamento, `remaining`, layout por linha que esta story estende)
 **Relacionado:** [US-140](./US-140-catalogo-subracas-srd-5-1.md) (subespécie — raiz+variante já mescladas em `raceFeatures`, mesma fonte que esta story consome) · [US-211](./US-211-ancestralidade-draconica-do-dragonborn.md) (mais recente da linha de raça; nomeou explicitamente "não reabre ASI de raça em geral" como fora do próprio escopo — esta story é esse reabrir) · [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) (dado vem do SRD ingerido, não é regra hardcoded como a tabela da US-211)
 
