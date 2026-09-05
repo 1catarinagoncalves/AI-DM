@@ -23,6 +23,8 @@
   header .spacer { flex: 1; }
   button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
   button:hover { border-color: var(--accent); }
+  #busca { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; width: 220px; }
+  #busca:focus { outline: none; border-color: var(--accent); }
   #status { color: var(--muted); font-size: 13px; }
   .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 18px 20px; align-items: start; }
   @media (max-width: 800px) { .board { grid-template-columns: 1fr; } }
@@ -58,6 +60,7 @@
   <h1>📋 Kanban — User Stories</h1>
   <span id="status"></span>
   <span class="spacer"></span>
+  <input id="busca" type="search" placeholder="buscar título ou código…" />
   <button id="reload">↻ Recarregar</button>
 </header>
 <div id="app"></div>
@@ -72,6 +75,7 @@ const COLS = [
 const app = document.getElementById('app');
 const statusEl = document.getElementById('status');
 let stories = [];
+let termo = '';
 
 async function carregar() {
   statusEl.textContent = 'carregando…';
@@ -91,7 +95,7 @@ function render() {
   const board = document.createElement('div');
   board.className = 'board';
   for (const col of COLS) {
-    const itens = stories.filter((s) => s.coluna === col.id);
+    const itens = stories.filter((s) => s.coluna === col.id && casaTermo(s));
     const el = document.createElement('div');
     el.className = 'col';
     el.dataset.col = col.id;
@@ -108,6 +112,11 @@ function render() {
     board.appendChild(el);
   }
   app.replaceChildren(board);
+}
+
+function casaTermo(s) {
+  if (!termo) return true;
+  return s.titulo.toLowerCase().includes(termo) || s.codigo.toLowerCase().includes(termo);
 }
 
 function cardEl(s) {
@@ -193,6 +202,10 @@ function esc(s) {
 }
 
 document.getElementById('reload').addEventListener('click', carregar);
+document.getElementById('busca').addEventListener('input', (e) => {
+  termo = e.target.value.trim().toLowerCase();
+  render();
+});
 carregar();
 </script>
 </body>
