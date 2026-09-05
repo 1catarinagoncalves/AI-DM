@@ -133,7 +133,7 @@ export const ptBR = {
   'setup.race.variant.legend': 'Escolha uma variante',
   // Traço "Tool Proficiency" do anão — legenda da grade de escolha da ferramenta de artesão,
   // só aparece para hill-dwarf.
-  'setup.race.dwarfTool.legend': 'Escolha a ferramenta de artesão',
+  'setup.race.dwarfTool.legend': 'Escolha a proeficiência de ferramenta de artesão',
   // Traço "Extra Language" do alto-elfo — legenda do <select> de idioma extra, só aparece
   // para high-elf, mesmo padrão de dwarfTool.legend acima.
   'setup.race.extraLanguage.legend': 'Escolha o idioma adicional',

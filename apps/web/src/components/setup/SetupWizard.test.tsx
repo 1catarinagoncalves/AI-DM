@@ -1521,7 +1521,7 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     // Traço "Tool Proficiency" do anão bloqueia o avanço — config sem catálogo de ferramentas
     // (`configWithRaceSubspecies` não declara `tools`), então a option cai no fallback da
     // própria chave (toolLabel vazio).
-    fireEvent.change(screen.getByLabelText('Escolha a ferramenta de artesão'), { target: { value: 'smiths_tools' } })
+    fireEvent.change(screen.getByLabelText('Escolha a proeficiência de ferramenta de artesão'), { target: { value: 'smiths_tools' } })
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
@@ -1744,16 +1744,16 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
   it('escolher Anão revela o select de 3 ferramentas; escolher outra raça não deixa resíduo', async () => {
     await pickHillDwarfConfig(configWithHillDwarf(2))
 
-    expect(screen.queryByLabelText('Escolha a ferramenta de artesão')).toBeNull()
+    expect(screen.queryByLabelText('Escolha a proeficiência de ferramenta de artesão')).toBeNull()
 
     fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
-    const toolSelect = screen.getByLabelText('Escolha a ferramenta de artesão')
+    const toolSelect = screen.getByLabelText('Escolha a proeficiência de ferramenta de artesão')
     expect(within(toolSelect).getByRole('option', { name: 'Ferramentas de Ferreiro' })).toBeTruthy()
     expect(within(toolSelect).getByRole('option', { name: 'Suprimentos de Cervejeiro' })).toBeTruthy()
     expect(within(toolSelect).getByRole('option', { name: 'Ferramentas de Pedreiro' })).toBeTruthy()
 
     fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
-    expect(screen.queryByLabelText('Escolha a ferramenta de artesão')).toBeNull()
+    expect(screen.queryByLabelText('Escolha a proeficiência de ferramenta de artesão')).toBeNull()
   })
 
   it('bloqueia avanço da etapa raça sem ferramenta escolhida; libera ao escolher uma', async () => {
@@ -1763,7 +1763,7 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
     expect(nextBtn().disabled).toBe(true)
 
-    fireEvent.change(screen.getByLabelText('Escolha a ferramenta de artesão'), { target: { value: 'smiths_tools' } })
+    fireEvent.change(screen.getByLabelText('Escolha a proeficiência de ferramenta de artesão'), { target: { value: 'smiths_tools' } })
     expect(nextBtn().disabled).toBe(false)
   })
 
@@ -1771,7 +1771,7 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Thrain' })
     await pickHillDwarfConfig(configWithHillDwarf(2))
     fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
-    fireEvent.change(screen.getByLabelText('Escolha a ferramenta de artesão'), { target: { value: 'masons_tools' } })
+    fireEvent.change(screen.getByLabelText('Escolha a proeficiência de ferramenta de artesão'), { target: { value: 'masons_tools' } })
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
@@ -1787,7 +1787,7 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
   it('kit inicial da revisão inclui a ferramenta escolhida', async () => {
     await pickHillDwarfConfig(configWithHillDwarf(2))
     fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
-    fireEvent.change(screen.getByLabelText('Escolha a ferramenta de artesão'), { target: { value: 'smiths_tools' } })
+    fireEvent.change(screen.getByLabelText('Escolha a proeficiência de ferramenta de artesão'), { target: { value: 'smiths_tools' } })
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
