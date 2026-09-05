@@ -8,6 +8,14 @@
 
 ---
 
+> ⚠️ **Correção (2026-09-05):** ao testar esta story implementada, a mantenedora pediu que
+> "Aventura pronta" voltasse a ser **zero geração** (como a US-28, antes da US-153 existir) —
+> não só "zero configuração" com o motor rodando por baixo, como o escopo abaixo (e o
+> `git diff` intacto de `apps/api/src/adventure/`) originalmente previa. A
+> [US-217](./US-217-aventura-pronta-sem-motor-de-geracao.md) reabre esse ponto específico:
+> ver *Fora do escopo* e os critérios de aceite marcados abaixo — o resto desta story
+> (a bifurcação em si, o cartão de prévia, a UI) continua válido e sem mudança.
+
 > ⚠️ **Esta story reabre uma decisão de produto fechada duas vezes.**
 > [backlog-aventuras-autorais-lazygm.md §Uma campanha só para todas as classes](./backlog-aventuras-autorais-lazygm.md)
 > registra, em 06/08/2026 e reafirmado em 07/08/2026: *"Não existe US de seleção de aventura.
@@ -68,12 +76,16 @@ da classe do jogador (não o catálogo inteiro de 12 classes + `default`) — en
 para os dois ramos — o `hookSeed` do motor de geração **nunca dependeu** de nada que
 o passo `world` envia; ele já vem só da classe, em `buildAdventureProfile`
 ([adventure.service.ts:144](../../../apps/api/src/adventure/adventure.service.ts)), antes desta
-story e depois dela. Logo: **nenhum campo novo no `CreateAdventureDto`, nenhuma mudança de
-backend.** "Aventura pronta" e "Criar minha história" chegam ao mesmo `createAdventure` com o
-mesmo formato de payload — a diferença inteira é a experiência do passo `world`: um cartão de
-prévia + atalho vs. a tela de configuração completa. O motor de geração
-([US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md)) continua rodando idêntico nos
-dois casos, aventura sempre gerada e determinística por `characterId` + `order`.
+story e depois dela.
+
+> ⚠️ **Correção (2026-09-05):** ~~Logo: nenhum campo novo no `CreateAdventureDto`, nenhuma
+> mudança de backend. "Aventura pronta" e "Criar minha história" chegam ao mesmo
+> `createAdventure` com o mesmo formato de payload... O motor de geração continua rodando
+> idêntico nos dois casos.~~ Isto valia até a mantenedora testar e pedir de volta o
+> comportamento pré-US-153 (zero geração) especificamente pro ramo "pronta" — ver
+> [US-217](./US-217-aventura-pronta-sem-motor-de-geracao.md). O achado acima (gancho da
+> classe = `resolveInitialHook`, sem duplicar regra) continua verdadeiro; só a conclusão
+> "logo, zero mudança de backend" não se sustentou.
 
 ---
 
@@ -106,12 +118,12 @@ dois casos, aventura sempre gerada e determinística por `characterId` + `order`
 
 ### Fora do escopo
 
-- **Reverter a US-153.** A aventura continua sempre gerada pelo motor nos dois ramos — isto NÃO
-  reintroduz nenhum caminho de aventura fixa/estática. Nada no `hookSeed` muda de fonte; ele
-  sempre veio, e continua vindo, só da classe.
-  **É por isso que esta reabertura é mais estreita que a decisão original do backlog** — a
-  decisão fechada falava em não ter tela de seleção *de aventura*; o que existe pra ver aqui é só
-  a *prévia do gancho já automático*, a aventura em si nunca deixa de ser gerada nem muda de fonte.
+- ~~**Reverter a US-153.** A aventura continua sempre gerada pelo motor nos dois ramos — isto NÃO
+  reintroduz nenhum caminho de aventura fixa/estática.~~ **Superado pela
+  [US-217](./US-217-aventura-pronta-sem-motor-de-geracao.md)** (correção de 2026-09-05): o ramo
+  "pronta" especificamente PULA o motor — reverte a US-153 só para este ramo, com AC e
+  justificativa próprios. "Criar minha história" continua exatamente como descrito abaixo,
+  100% no motor, sem mudança.
 - **Aventuras autorais completas (Pegāna/*O Lamento*)** — continuam adiadas para a fase 4
   ([backlog-aventuras-autorais-lazygm.md §Adiado para a fase 4](./backlog-aventuras-autorais-lazygm.md)).
   "Aventura pronta" aqui é "prévia do gancho da classe", não "campanha escrita à mão".
@@ -150,10 +162,10 @@ já vivem hoje (US-157); nunca é enviado ao backend.
 
 - [x] O passo `world` mostra, como primeiro conteúdo, dois cartões: "Aventura pronta" e "Criar minha história" — nenhum grupo de opção visível antes dessa escolha.
 - [x] Selecionar "Aventura pronta" mostra um cartão de prévia com o gancho da classe do personagem (`title` + `pitch`, placeholders resolvidos) e o botão "Criar aventura" direto — nenhum grupo Cenário/Tom/Área/Desafio aparece neste ramo.
-- [x] Confirmar no ramo "pronta" chama `api.createAdventure` com o mesmo payload vazio que o ramo "criar" envia hoje quando tudo fica em Aleatório — nenhum campo novo, nenhuma diferença de contrato entre os dois ramos.
+- [x] ~~Confirmar no ramo "pronta" chama `api.createAdventure` com o mesmo payload vazio que o ramo "criar" envia hoje~~ — **superado pela US-217**: o ramo "pronta" manda `{ preset: true }`, um contrato próprio (ver US-217 §Critérios de aceite).
 - [x] Selecionar "Criar minha história" mostra exatamente a tela `world` de hoje (três grupos + Desafio) — comportamento idêntico ao pré-existente, sem regressão.
 - [x] O gancho mostrado no cartão de prévia é o mesmo que `resolveInitialHook(config, character.class)` resolveria no backend (classe do personagem, com fallback `default`) — sem duplicar regra divergente no client.
-- [x] A aventura continua sendo sempre gerada pelo motor (US-153) nos dois ramos, sem nenhuma mudança de comportamento do backend — confirmável por `git diff` não tocando `apps/api/src/adventure/`.
+- [x] ~~A aventura continua sendo sempre gerada pelo motor (US-153) nos dois ramos, sem nenhuma mudança de comportamento do backend — confirmável por `git diff` não tocando `apps/api/src/adventure/`.~~ **Superado pela US-217**: o ramo "pronta" não gera mais nada; só "criar" preserva este comportamento.
 - [x] Todo texto novo vem de `setup.world.mode.*` (dicionário), nos dois locales — gate US-102.
 - [x] Passa critérios de acessibilidade (US-46) e mobile (US-66) para o sub-passo novo.
 - [x] `pnpm typecheck` e `pnpm test` passam.

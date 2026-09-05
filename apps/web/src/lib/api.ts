@@ -95,7 +95,9 @@ export const api = {
 
   // US-157: dto omite o campo quando o jogador deixa o grupo em Aleatório — nunca envia
   // uma chave "random" (mesma disciplina de ausência = aleatório da US-156).
-  createAdventure: (characterId: string, dto: { tone?: string; setting?: string; areaType?: string; challenge?: 'adventure' | 'challenge' }) =>
+  // US-217: `preset` pula o motor de geração inteiro (ramo "Aventura pronta", US-216) — os
+  // outros 4 campos nunca viajam junto (esse ramo nem mostra os grupos que os preenchem).
+  createAdventure: (characterId: string, dto: { tone?: string; setting?: string; areaType?: string; challenge?: 'adventure' | 'challenge'; preset?: boolean }) =>
     post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, dto),
 
   // US-61: as fichas do próprio utilizador, derivadas do token (sem userId no caminho).

@@ -10,6 +10,7 @@ import { resolveInitialHook } from './starting-inventory'
 describe('resolveInitialHook (US-28/US-54/US-105)', () => {
   const hook = (id: string, classKey: string) => ({
     id, classKey, title: id, pitch: '',
+    primaryQuestTitle: '', primaryQuestDescription: '',
     openingNarration: '', tags: [],
   })
   const config: SystemConfig = {

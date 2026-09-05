@@ -159,11 +159,14 @@ const configWithInitialAdventures = (budget: number) => ({
       {
         id: 'hook-wizard', classKey: 'wizard', title: 'O chamado de {characterName}',
         pitch: 'Um pergaminho antigo chama {characterName}, {characterClass}, para a torre.',
+        primaryQuestTitle: 'x', primaryQuestDescription: 'x',
         openingNarration: 'x', tags: [],
       },
       {
         id: 'hook-default', classKey: 'default', title: 'Aventura genérica',
-        pitch: 'Um chamado qualquer para {characterName}.', openingNarration: 'x', tags: [],
+        pitch: 'Um chamado qualquer para {characterName}.',
+        primaryQuestTitle: 'x', primaryQuestDescription: 'x',
+        openingNarration: 'x', tags: [],
       },
     ],
   },
@@ -665,13 +668,15 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
       expect(screen.getByRole('button', { name: /Criar aventura/ })).toBeTruthy()
     })
 
-    it('confirmar no ramo "pronta" envia o mesmo DTO vazio que o ramo "criar" envia sem tocar em nenhum grupo', async () => {
+    // US-217: revert pontual — "pronta" pula o motor de geração inteiro (não é mais "DTO
+    // vazio igual ao ramo criar"; ver adventure.service.ts §dto.preset). Manda só `preset`.
+    it('confirmar no ramo "pronta" envia { preset: true }, sem nenhum campo de setting/tone/areaType/challenge', async () => {
       createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
       await reachWorldStep(configWithInitialAdventures(2))
       fireEvent.click(screen.getByRole('radio', { name: /Aventura pronta/ }))
       fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
 
-      expect(createAdventure).toHaveBeenCalledWith('char-1', {})
+      expect(createAdventure).toHaveBeenCalledWith('char-1', { preset: true })
     })
   })
 

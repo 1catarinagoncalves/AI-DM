@@ -16,12 +16,19 @@ import { pickLocationIdForType } from '../adventure-generation/assign-location-v
 import type { AdventureExportData } from './adventure-export'
 
 export interface CreateAdventureDto {
-  // initialHookId REMOVIDO (US-153): a aventura é sempre gerada, não escolhida pelo cliente.
+  // initialHookId REMOVIDO (US-153): a aventura passou a ser sempre gerada. US-217 reabre
+  // essa decisão só para o ramo "Aventura pronta" (US-216) — ver `preset` abaixo.
   // setting/areaType voltaram na US-184 (revert do corte da US-173).
   tone?: string // US-156: chave do catálogo, ou ausente = sorteado pelo seed
   setting?: string
   areaType?: string
   challenge?: 'adventure' | 'challenge' // US-165: risco de combate (US-161); ausente = 'adventure'
+  // US-217: `true` pula o motor de geração inteiro — usa o gancho fixo da classe
+  // (title/primaryQuestTitle/primaryQuestDescription/openingNarration) sem nenhuma chamada
+  // de IA, como a criação funcionava antes da US-153. Ausente/false = comportamento de hoje
+  // (motor sempre gera). `tone`/`setting`/`areaType`/`challenge` são ignorados quando `true`
+  // — o ramo "pronta" não passa por Cenário/Tom/Área/Desafio (US-216).
+  preset?: boolean
 }
 
 /**
@@ -442,8 +449,9 @@ export class AdventureService {
     const locale = resolveLocale(character.user?.locale)
     const config = SystemConfigSchema.parse(configForLocale(system, locale))
 
-    // US-153: a classe não escolhe mais a aventura inteira — o gancho continua vivo só
-    // como hookSeed do motor de geração (buildAdventureProfile), via US-148.
+    // US-153: no ramo gerado (abaixo), a classe não escolhe mais a aventura inteira — o
+    // gancho vive só como hookSeed do motor (buildAdventureProfile), via US-148. US-217:
+    // no ramo `dto.preset`, é o gancho INTEIRO que vira a aventura, de novo (ver abaixo).
     // US-105: a chave vai para o lookup (kit); o rótulo, para todo texto que uma
     // pessoa lê — mensagem de erro e prompt do Mestre.
     const className = catalogLabel(config.classes, character.class)
@@ -479,6 +487,57 @@ export class AdventureService {
     // lock (LLM é lento, mesma disciplina de generateOpeningNarration abaixo) e precisa
     // do valor pronto; a transação recebe este MESMO `order`, não recalcula.
     const order = (await this.prisma.adventureParticipant.count({ where: { characterId } })) + 1
+
+    // US-217: ramo "Aventura pronta" (US-216) — pula o motor de geração inteiro, de volta
+    // ao gancho fixo por classe que a US-28 usava antes de a US-153 existir. Zero chamada a
+    // `this.ai.*`; `generatedAdventure`/`entities`/`sceneState`/`Quest.objective`/
+    // `conclusionHint` ficam ausentes — o mesmo caminho "Free/legado" que `ai.service.ts`
+    // já trata de graça (US-199, ver `ai.service.ts` §isAntagonistRevealed/tone-setting-areaType),
+    // não um caso novo. `tone`/`setting`/`areaType`/`challenge` do dto são ignorados aqui —
+    // o ramo "pronta" nunca passou por Cenário/Tom/Área/Desafio (US-216).
+    if (dto.preset) {
+      const vars = { characterName: character.name, characterClass: className }
+      const title = resolveHookTemplate(rawHook.title, vars)
+      const questTitle = resolveHookTemplate(rawHook.primaryQuestTitle, vars)
+      const questDescription = resolveHookTemplate(rawHook.primaryQuestDescription, vars)
+      const openingText = resolveHookTemplate(rawHook.openingNarration, vars)
+
+      return this.prisma.$transaction(async (tx) => {
+        // Fecha a aventura ativa anterior do personagem (continuidade sequencial, ver ADR 002)
+        await tx.adventure.updateMany({
+          where: { status: 'ACTIVE', participants: { some: { characterId } } },
+          data: { status: 'COMPLETED', completedAt: new Date() },
+        })
+
+        const adventure = await tx.adventure.create({
+          data: { systemId: character.systemId, creatorId: character.userId, title, order },
+        })
+
+        await tx.adventureParticipant.create({ data: { adventureId: adventure.id, characterId } })
+
+        await tx.characterState.create({
+          data: {
+            characterId,
+            adventureId: adventure.id,
+            hp: maxHp,
+            maxHp,
+            attributes: character.baseAttributes as object,
+            inventory: fullInventory as unknown as object,
+          },
+        })
+
+        await tx.quest.create({
+          data: { adventureId: adventure.id, title: questTitle, description: questDescription, isPrimary: true },
+        })
+
+        await tx.eventLog.create({
+          data: { adventureId: adventure.id, characterId, type: 'NARRATION', payload: { text: openingText } },
+        })
+
+        return adventure
+      })
+    }
+
     const profile = this.buildAdventureProfile(character, config, dto.challenge ?? 'adventure')
 
     // US-153: motor de geração (US-164) substitui o catálogo fixo por classe (US-28) — o

@@ -71,12 +71,14 @@ const config: SystemConfig = {
       {
         id: 'mago-arquivo', classKey: 'wizard', title: 'O Arquivo Que Sussurra',
         pitch: 'Um grimório reconhece {characterName}.',
+        primaryQuestTitle: 'Decifrar o Arquivo', primaryQuestDescription: 'Descubra o que o grimório sussurra a {characterName}.',
         openingNarration: 'A vela curva-se, {characterName}.',
         tags: [],
       },
       {
         id: 'default-sinal', classKey: 'default', title: 'O Primeiro Sinal de {characterClass}',
         pitch: 'Algo reconhece {characterName}.',
+        primaryQuestTitle: 'Responder ao Chamado', primaryQuestDescription: 'Descubra o que o mundo espera de {characterName}, {characterClass}.',
         openingNarration: 'Alguém pronuncia a tua classe: {characterClass}.', tags: [],
       },
     ],
@@ -844,6 +846,94 @@ describe('AdventureService.createForCharacter', () => {
     await service.createForCharacter('char-1', {})
 
     expect(recorded.characterStateCreate).toMatchObject({ inventory: [{ name: 'Adaga', qty: 1 }] })
+  })
+
+  // US-217: ramo "Aventura pronta" (US-216) — `dto.preset: true` pula o motor de geração
+  // inteiro, de volta ao gancho fixo por classe que a US-28 usava antes da US-153 existir.
+  describe('ramo "Aventura pronta" (dto.preset, US-217)', () => {
+    function fakeAiSpy(): AiService {
+      return {
+        generateOpeningNarration: vi.fn(),
+        extractOpeningScene: vi.fn(),
+        extractOpeningEntities: vi.fn(),
+        generatePremissa: vi.fn(),
+        generateLocationsAndNpcs: vi.fn(),
+        generateSecrets: vi.fn(),
+        generateAntagonist: vi.fn(),
+        generateClosing: vi.fn(),
+        generateAntagonistLocationProse: vi.fn(),
+      } as unknown as AiService
+    }
+
+    it('persiste Adventure/Quest/EventLog do gancho fixo da classe, sem nenhuma chamada de IA', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config },
+      }
+      const { prisma, recorded } = fakePrisma(character)
+      const ai = fakeAiSpy()
+      const service = new AdventureService(prisma, ai)
+
+      const adventure = await service.createForCharacter('char-1', { preset: true })
+
+      expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: 'O Arquivo Que Sussurra', order: 1 })
+      expect(recorded.questCreate).toMatchObject({
+        title: 'Decifrar o Arquivo',
+        description: 'Descubra o que o grimório sussurra a Elara.',
+        isPrimary: true,
+      })
+      expect(recorded.eventLogCreate).toMatchObject({ type: 'NARRATION', payload: { text: 'A vela curva-se, Elara.' } })
+      for (const method of Object.values(ai)) expect(method).not.toHaveBeenCalled()
+    })
+
+    // US-199: Adventure sem `generatedAdventure`/`entities`, CharacterState sem `sceneState`
+    // e Quest sem `objective`/`conclusionHint` são o mesmo caminho "Free/legado" que
+    // ai.service.ts já trata de graça — não um estado novo e não testado em produção.
+    it('Adventure sem generatedAdventure/entities; CharacterState sem sceneState; Quest sem objective/conclusionHint', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config },
+      }
+      const { prisma, recorded } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAiSpy())
+
+      await service.createForCharacter('char-1', { preset: true })
+
+      expect(recorded.adventureCreate).not.toHaveProperty('generatedAdventure')
+      expect(recorded.adventureCreate).not.toHaveProperty('entities')
+      expect(recorded.characterStateCreate).not.toHaveProperty('sceneState')
+      expect(recorded.questCreate).not.toHaveProperty('objective')
+      expect(recorded.questCreate).not.toHaveProperty('conclusionHint')
+    })
+
+    it('classe sem gancho próprio cai no hook default, placeholder {characterClass} resolvido', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Bram', class: 'fighter', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config },
+      }
+      const { prisma, recorded } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAiSpy())
+
+      await service.createForCharacter('char-1', { preset: true })
+
+      // 'fighter' não está em config.classes (só 'wizard') — catalogLabel cai na própria chave.
+      expect(recorded.eventLogCreate).toMatchObject({ payload: { text: 'Alguém pronuncia a tua classe: fighter.' } })
+      expect(recorded.questCreate).toMatchObject({ title: 'Responder ao Chamado' })
+    })
+
+    it('preset ausente mantém o comportamento gerado de hoje — sem regressão', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config },
+      }
+      const { prisma, recorded } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAi())
+
+      await service.createForCharacter('char-1', {})
+
+      expect(recorded.adventureCreate).toHaveProperty('generatedAdventure')
+      expect(recorded.questCreate).not.toMatchObject({ title: 'Decifrar o Arquivo' })
+    })
   })
 })
 

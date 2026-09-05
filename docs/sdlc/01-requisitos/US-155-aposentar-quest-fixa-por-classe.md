@@ -9,6 +9,14 @@
 
 ---
 
+> ⚠️ **Correção (2026-09-05):** a [US-217](./US-217-aventura-pronta-sem-motor-de-geracao.md)
+> reintroduziu `primaryQuestTitle`/`primaryQuestDescription` em `InitialAdventureHookSchema`
+> e nos 13 ganchos — só para o ramo "Aventura pronta" (US-216), que pula o motor de geração
+> inteiro e volta a precisar de uma quest fixa por classe. O raciocínio desta story
+> (campo morto sem consumidor) continua correto para o ramo "Criar minha história", que
+> segue 100% no motor — os dois campos não voltaram a ser código morto, ganharam um
+> segundo consumidor estreito.
+
 ## História
 
 > **Como** mantenedora,

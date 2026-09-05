@@ -9,10 +9,10 @@ import { initialAdventuresByLocale } from './initial-adventures'
 const ptBR = initialAdventuresByLocale['pt-BR'].hooks
 const enUS = initialAdventuresByLocale['en-US'].hooks
 
-// Os 3 campos que são TEXTO. `id`, `classKey` e `tags` são chave e ficam de fora de propósito.
-// primaryQuestTitle/primaryQuestDescription saíram do hook (US-155): a quest primária vem
-// do artefato de aventura gerado (US-153), não mais do gancho fixo por classe.
-const textFields = ['title', 'pitch', 'openingNarration'] as const
+// Os 5 campos que são TEXTO. `id`, `classKey` e `tags` são chave e ficam de fora de propósito.
+// primaryQuestTitle/primaryQuestDescription voltaram na US-217 (o ramo "Aventura pronta"
+// pula o motor de geração e precisa de uma quest fixa por classe de novo).
+const textFields = ['title', 'pitch', 'primaryQuestTitle', 'primaryQuestDescription', 'openingNarration'] as const
 
 const twinOf = (hook: InitialAdventureHook) => enUS.find(candidate => candidate.id === hook.id)
 
@@ -23,21 +23,21 @@ describe('ganchos iniciais nos dois locales', () => {
     expect(enUS.some(h => h.classKey === 'default')).toBe(true)
   })
 
-  it('cada gancho en-US é válido pelo schema e tem os 3 campos preenchidos', () => {
+  it('cada gancho en-US é válido pelo schema e tem os 5 campos preenchidos', () => {
     for (const hook of enUS) {
       expect(() => InitialAdventureHookSchema.parse(hook)).not.toThrow()
       for (const field of textFields) expect(hook[field].trim().length).toBeGreaterThan(0)
     }
   })
 
-  // US-155: regressão — o schema não exige mais primaryQuestTitle/primaryQuestDescription.
-  it('o schema aceita um gancho sem primaryQuestTitle/primaryQuestDescription', () => {
+  // US-217: regressão inversa da US-155 — o ramo "Aventura pronta" pula o motor de geração
+  // e precisa de uma quest fixa por classe de novo; o schema volta a EXIGIR os dois campos.
+  it('o schema rejeita um gancho sem primaryQuestTitle/primaryQuestDescription', () => {
     const hookSemQuest = {
       id: 'gancho-sem-quest', classKey: 'default', title: 'Título',
       pitch: 'Pitch.', openingNarration: 'Narração.', tags: [],
     }
-    expect(() => InitialAdventureHookSchema.parse(hookSemQuest)).not.toThrow()
-    expect('primaryQuestTitle' in hookSemQuest).toBe(false)
+    expect(() => InitialAdventureHookSchema.parse(hookSemQuest)).toThrow()
   })
 
   it('todo campo de texto muda de idioma — nenhum ficou para trás em português', () => {

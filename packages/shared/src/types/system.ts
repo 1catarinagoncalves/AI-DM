@@ -194,8 +194,13 @@ export const InitialAdventureHookSchema = z.object({
   // Classe base à qual se aplica, ou 'default' (fallback para classes desconhecidas/custom).
   classKey: z.string().min(1),
   pitch: z.string().min(1),
-  // primaryQuestTitle e primaryQuestDescription REMOVIDOS (US-155): a quest primária vem
-  // do artefato de aventura gerado (US-153), não mais deste hook fixo por classe.
+  // primaryQuestTitle/primaryQuestDescription: removidos na US-155 (quest passou a vir só
+  // do artefato gerado, US-153) e REINTRODUZIDOS na US-217 — o ramo "Aventura pronta" do
+  // passo `world` (US-216) pula o motor de geração inteiro, então precisa de volta de uma
+  // quest fixa por classe (mesmo par de campos que existia antes da US-155, mesmo formato
+  // de placeholder). O ramo "Criar minha história" continua 100% no motor, sem usá-los.
+  primaryQuestTitle: z.string().min(1),
+  primaryQuestDescription: z.string().min(1),
   openingNarration: z.string().min(1),
   tags: z.array(z.string()).default([]),
 })

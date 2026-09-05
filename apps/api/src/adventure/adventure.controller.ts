@@ -8,7 +8,9 @@ import { CurrentUser, type AuthUser } from '../auth/current-user.decorator'
 
 // US-153: a aventura é sempre gerada (US-164) — sem initialHookId escolhido pelo cliente.
 // `tone`/`setting`/`areaType` são opcionais (US-156; `setting`/`areaType` voltaram na US-184):
-// ausente = sorteado pelo seed determinístico.
+// ausente = sorteado pelo seed determinístico. US-217: `preset` é a exceção — pula o motor
+// inteiro para o ramo "Aventura pronta" (US-216); os outros 4 campos são ignorados quando ele
+// vem `true` (ver comentário de `CreateAdventureDto`, adventure.service.ts).
 const CreateAdventureSchema = z.object({
   tone: z.string().min(1).optional(),
   setting: z.string().min(1).optional(),
@@ -16,6 +18,7 @@ const CreateAdventureSchema = z.object({
   // US-167: sem isto o zod descarta o campo antes de chegar a createForCharacter — a
   // escolha da tela (US-165) nunca alcançaria o motor, mesmo com o service já pronto.
   challenge: z.enum(['adventure', 'challenge']).optional(),
+  preset: z.boolean().optional(),
 })
 
 @ApiTags('Aventuras')

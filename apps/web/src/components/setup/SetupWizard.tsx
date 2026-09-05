@@ -712,16 +712,20 @@ export function SetupWizard() {
 
   // US-157: Aleatório OMITE o campo — nunca envia a chave "random" (mesma disciplina de
   // ausência = aleatório da US-156). US-184: mesma regra para `setting`/`areaType`.
+  // US-217: ramo "pronta" manda só `preset: true` — nunca toca em setting/tone/areaType/
+  // challenge (esse ramo nem mostra os grupos que os preenchem, US-216).
   async function createWorldAdventure() {
     setStarting(true); setError('')
     try {
-      const dto = {
-        ...(setting !== 'random' && { setting }),
-        ...(tone !== 'random' && { tone }),
-        ...(areaType !== 'random' && { areaType }),
-        // US-165: Modo aventura (default) omite o campo — mesmo contrato de default da US-161.
-        ...(challenge !== 'adventure' && { challenge }),
-      }
+      const dto = worldMode === 'ready'
+        ? { preset: true }
+        : {
+          ...(setting !== 'random' && { setting }),
+          ...(tone !== 'random' && { tone }),
+          ...(areaType !== 'random' && { areaType }),
+          // US-165: Modo aventura (default) omite o campo — mesmo contrato de default da US-161.
+          ...(challenge !== 'adventure' && { challenge }),
+        }
       const adv = await api.createAdventure(charId, dto)
       router.push(`/play/${adv.id}?characterId=${charId}`)
     } catch { setError(t('setup.error.start')); setStarting(false) }
