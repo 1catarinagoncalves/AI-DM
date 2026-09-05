@@ -467,9 +467,11 @@ export function SetupWizard() {
   // US-212: `ability-score-increase` some do painel para TODA raça (não só dragonborn) — vira
   // redundante assim que o selo `+N raça` já mostra o mesmo bônus na etapa `attributes`. O
   // traço continua em `config.raceFeatures` (não é removido do ingest); só sai desta exibição.
+  // `age` (idade) some do painel para TODA raça — flavor text sem efeito mecânico,
+  // mesma lógica de remoção de exibição do ability-score-increase acima.
   const raceStepFeatures = system?.config && charData.race
     ? resolveSheetEntries(system.config.raceFeatures, system.config.retiredFeatures, charData.race, getRaceFeatures(system.config, charData.race))
-      .filter(f => f.key !== 'ability-score-increase')
+      .filter(f => f.key !== 'ability-score-increase' && f.key !== 'age')
       .filter(f => charData.race !== 'dragonborn' || !HIDDEN_DRAGONBORN_FEATURE_KEYS.has(f.key))
     : []
   // Bloco "Features e magias" só existe se o config modela esse eixo — mesmo padrão
