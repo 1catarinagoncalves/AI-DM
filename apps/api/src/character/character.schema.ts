@@ -37,10 +37,10 @@ export const CreateCharacterSchema = z.object({
   // `draconicAncestry` acima: obrigatória no service quando race === 'hill-dwarf' (único anão
   // jogável do catálogo), ignorada para qualquer outra raça mesmo se vier no DTO.
   raceToolChoice: z.string().max(60).optional(),
-  // Idioma extra escolhido para o traço "Extra Language" do alto-elfo — chave de
-  // config.languages (US-133), mesmo raciocínio de `raceToolChoice` acima: obrigatória no
-  // service quando race === 'high-elf' (único elfo jogável do catálogo), ignorada para
-  // qualquer outra raça mesmo se vier no DTO.
+  // US-214: idioma extra escolhido para o traço "Extra Language" — chave de config.languages
+  // (US-133), mesmo raciocínio de `raceToolChoice` acima: obrigatória no service quando a raça
+  // está em RACE_EXTRA_LANGUAGE_CHOICE (@ai-dm/shared: high-elf, human, half-elf), ignorada
+  // para qualquer outra raça mesmo se vier no DTO.
   raceLanguageChoice: z.string().max(60).optional(),
   class: z.string().min(1).max(40),
   // US-205: chave de config.subclasses[class] — opcional no DTO. Classe com 1 subclasse só

@@ -1088,6 +1088,12 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
       { key: 'half-elf', label: 'Meio-Elfo', bonus: '+2 Força, +1 em outro atributo à sua escolha', grant: { fixed: [{ attr: 'strength', amount: 2 }], choice: { count: 1, amount: 1 } } },
       { key: 'dwarf', label: 'Anão' },
     ],
+    // US-214: human/half-elf também exigem raceLanguageChoice — 'orc' é a única opção não
+    // excluída pelo pool de nenhum dos dois (RACE_LANGUAGES['human']/['half-elf'] cobrem common/elvish).
+    languages: [
+      { key: 'common', label: 'Comum', secret: false },
+      { key: 'orc', label: 'Orc', secret: false },
+    ],
   })
 
   async function pickSystemAndFillClass(config: SystemConfig) {
@@ -1123,6 +1129,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('Humano (fixed nas duas chaves, sem choice) mostra selo sólido nas duas linhas, nenhuma interação', async () => {
     await pickSystemAndFillClass(configWithRaceGrant(0))
     fireEvent.click(screen.getByRole('radio', { name: /^Humano/ }))
+    // US-214: Humano também exige idioma extra escolhido — sem relação com o selo de
+    // atributo que este teste cobre, só destrava o avanço.
+    fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'orc' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
@@ -1149,6 +1158,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillClass(configWithRaceGrant(0))
     fireEvent.click(screen.getByRole('radio', { name: /^Meio-Elfo/ }))
+    // US-214: Meio-Elfo também exige idioma extra escolhido — selecionado já aqui pra isolar
+    // as asserções de bloqueio abaixo à escolha de ATRIBUTO (US-212), que é o que este teste cobre.
+    fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'orc' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
@@ -1709,32 +1721,45 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
   })
 })
 
-// --- traço "Extra Language" do alto-elfo: <select> de escolha, só para high-elf ---
+// --- US-214: traço "Extra Language" — <select> de escolha, generalizado às 3 raças de
+// RACE_EXTRA_LANGUAGE_CHOICE (high-elf, human, half-elf) ---
 
 // `high-elf` é a ÚNICA variante de `elf` no catálogo real — clicar a raiz "Elfo"
 // já auto-seleciona a variante (selectRootCard, US-142), sem precisar de um segundo clique.
-const configWithHighElf = (budget: number) => ({
+// `human`/`half-elf` são raízes SEM subespécie — um clique só, mesma etapa.
+// Catálogo de idiomas inclui `common`/`elvish` (fixos de RACE_LANGUAGES) para provar que o
+// pool exclui exatamente o que CADA raça já sabe — não a mesma lista fixa pras 3.
+const configWithExtraLanguageRaces = (budget: number) => ({
   ...configWithBudget(budget),
   races: [
     { key: 'elf', label: 'Elfo' },
     { key: 'high-elf', label: 'Alto-elfo', parentKey: 'elf' },
+    { key: 'human', label: 'Humano' },
+    { key: 'half-elf', label: 'Meio-elfo' },
     { key: 'dwarf', label: 'Anão' },
+    // Real RACE_LANGUAGES entry SEM escolha extra — prova que a linha "Idiomas" da revisão
+    // aparece pras 9 raças jogáveis, não só as 3 de RACE_EXTRA_LANGUAGE_CHOICE ('dwarf' acima
+    // é raiz genérica de teste, sem entrada real na tabela).
+    { key: 'tiefling', label: 'Tiefling' },
   ],
   languages: [
+    { key: 'common', label: 'Comum', secret: false },
+    { key: 'elvish', label: 'Élfico', secret: false },
     { key: 'draconic', label: 'Dracônico', secret: false },
+    { key: 'infernal', label: 'Infernal', secret: false },
     { key: 'sylvan', label: 'Silvestre', secret: false },
     { key: 'thieves_cant', label: 'Gíria de Ladrões', secret: true },
   ],
 })
 
-describe('SetupWizard — traço "Extra Language" do alto-elfo', () => {
+describe('SetupWizard — US-214 traço "Extra Language" (Alto-elfo/Humano/Meio-elfo)', () => {
   beforeEach(() => {
     listSystems.mockReset()
     createCharacter.mockReset()
   })
   afterEach(() => cleanup())
 
-  async function pickHighElfConfig(config: SystemConfig) {
+  async function pickExtraLanguageConfig(config: SystemConfig) {
     listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
     render(<SetupWizard />)
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
@@ -1744,36 +1769,75 @@ describe('SetupWizard — traço "Extra Language" do alto-elfo', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
   }
 
-  it('escolher Elfo revela o select de idiomas (sem os secretos); escolher outra raça não deixa resíduo', async () => {
-    await pickHighElfConfig(configWithHighElf(2))
-
+  it('escolher Anão (sem traço) não mostra o select', async () => {
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
     expect(screen.queryByLabelText('Escolha o idioma adicional')).toBeNull()
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    expect(screen.queryByLabelText('Escolha o idioma adicional')).toBeNull()
+  })
 
+  it('Elfo (alto-elfo): select exclui common+elvish (já fixos) e os secretos', async () => {
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
     fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
     const languageSelect = screen.getByLabelText('Escolha o idioma adicional')
     expect(within(languageSelect).getByRole('option', { name: 'Dracônico' })).toBeTruthy()
     expect(within(languageSelect).getByRole('option', { name: 'Silvestre' })).toBeTruthy()
+    expect(within(languageSelect).queryByRole('option', { name: 'Comum' })).toBeNull()
+    expect(within(languageSelect).queryByRole('option', { name: 'Élfico' })).toBeNull()
     expect(within(languageSelect).queryByRole('option', { name: 'Gíria de Ladrões' })).toBeNull()
 
     fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
     expect(screen.queryByLabelText('Escolha o idioma adicional')).toBeNull()
   })
 
-  it('bloqueia avanço da etapa raça sem idioma escolhido; libera ao escolher um', async () => {
-    await pickHighElfConfig(configWithHighElf(2))
+  it('Humano: select exclui só common (único idioma fixo dele) — elvish continua na lista', async () => {
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Humano' }))
+    const languageSelect = screen.getByLabelText('Escolha o idioma adicional')
+    expect(within(languageSelect).getByRole('option', { name: 'Élfico' })).toBeTruthy()
+    expect(within(languageSelect).getByRole('option', { name: 'Dracônico' })).toBeTruthy()
+    expect(within(languageSelect).queryByRole('option', { name: 'Comum' })).toBeNull()
+  })
+
+  it('Meio-elfo: select exclui common+elvish, mesmo pool do alto-elfo', async () => {
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Meio-elfo' }))
+    const languageSelect = screen.getByLabelText('Escolha o idioma adicional')
+    expect(within(languageSelect).getByRole('option', { name: 'Dracônico' })).toBeTruthy()
+    expect(within(languageSelect).queryByRole('option', { name: 'Comum' })).toBeNull()
+    expect(within(languageSelect).queryByRole('option', { name: 'Élfico' })).toBeNull()
+  })
+
+  it.each([
+    ['Elfo', 'high-elf'],
+    ['Humano', 'human'],
+    ['Meio-elfo', 'half-elf'],
+  ] as const)('%s: bloqueia avanço sem idioma escolhido; libera ao escolher um', async (radioName, _raceKey) => {
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(screen.getByRole('radio', { name: radioName }))
     expect(nextBtn().disabled).toBe(true)
 
     fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'draconic' } })
     expect(nextBtn().disabled).toBe(false)
   })
 
-  it('DTO manda a chave escolhida quando high-elf', async () => {
+  it('Anão nunca bloqueia avanço (sem traço de escolha extra)', async () => {
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it.each([
+    ['Elfo', 'high-elf'],
+    ['Humano', 'human'],
+    ['Meio-elfo', 'half-elf'],
+  ] as const)('%s: DTO manda a chave escolhida', async (radioName, raceKey) => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
-    await pickHighElfConfig(configWithHighElf(2))
-    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
+    fireEvent.click(screen.getByRole('radio', { name: radioName }))
     fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'sylvan' } })
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
@@ -1784,11 +1848,11 @@ describe('SetupWizard — traço "Extra Language" do alto-elfo', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
 
-    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'high-elf', raceLanguageChoice: 'sylvan' }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: raceKey, raceLanguageChoice: 'sylvan' }))
   })
 
-  it('revisão mostra o idioma escolhido na linha "Idiomas"', async () => {
-    await pickHighElfConfig(configWithHighElf(2))
+  it('revisão mostra o idioma FIXO junto do escolhido na linha "Idiomas", não só o escolhido', async () => {
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
     fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
     fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'draconic' } })
 
@@ -1800,6 +1864,21 @@ describe('SetupWizard — traço "Extra Language" do alto-elfo', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.getByText('Idiomas')).toBeTruthy()
-    expect(screen.getByText('Dracônico')).toBeTruthy()
+    expect(screen.getByText('Comum · Élfico · Dracônico')).toBeTruthy()
+  })
+
+  it('revisão mostra "Idiomas" pra raça SEM traço de escolha (só o fixo, ex.: tiefling)', async () => {
+    await pickExtraLanguageConfig(configWithExtraLanguageRaces(2))
+    fireEvent.click(screen.getByRole('radio', { name: 'Tiefling' }))
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    expect(screen.getByText('Idiomas')).toBeTruthy()
+    expect(screen.getByText('Comum · Infernal')).toBeTruthy()
   })
 })

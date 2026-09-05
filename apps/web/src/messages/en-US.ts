@@ -109,7 +109,7 @@ export const enUS: Record<MessageKey, string> = {
   // Dwarf "Tool Proficiency" trait — legend for the artisan's tool choice grid, hill-dwarf only.
   'setup.race.dwarfTool.legend': "Choose your artisan's tool",
   // High Elf "Extra Language" trait — legend for the extra language <select>, high-elf only.
-  'setup.race.elfLanguage.legend': 'Choose your extra language',
+  'setup.race.extraLanguage.legend': 'Choose your extra language',
 
   // US-211: dragonborn draconic ancestry — see the pt-BR.ts comment for why the label lives
   // here instead of the SRD overlay (DRACONIC_ANCESTRY_TABLE has no embedded label).

@@ -324,6 +324,10 @@ export function buildRaceFeatures(overlay, races, speciesTraits, resolve) {
   for (const t of speciesTraits) {
     const slug = t.pk.slice(t.fields.parent.length + 1) // srd_high-elf_cantrip → cantrip
     if (slug === 'alignment') continue
+    // US-214: idioma fixo/extra agora mecanizado (RACE_LANGUAGES/RACE_EXTRA_LANGUAGE_CHOICE,
+    // @ai-dm/shared) — manter a prosa aqui duplicaria a mesma informação que a seção "Idiomas"
+    // da ficha já mostra estruturada.
+    if (slug === 'languages' || slug === 'extra-language') continue
     const parentKey = stripDocument(t.fields.parent)
     const featKey = `${parentKey}_${slug}`
     const resolved = resolve('raceFeatures', featKey, overlay.raceFeatures?.[featKey], t.fields.name, norm(t.fields.desc))

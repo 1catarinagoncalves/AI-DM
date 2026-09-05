@@ -8,7 +8,7 @@ import {
   abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
-  DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES,
+  DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE,
   type SystemConfig, type SystemTool, type DraconicDamageType,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
@@ -396,11 +396,13 @@ export function SetupWizard() {
   // Traço "Tool Proficiency" do anão: cartões da grade de escolha — rótulo vem do catálogo de
   // ferramentas (toolLabel acima), a chave nunca aparece na tela.
   const dwarfToolCards = DWARF_TOOL_PROFICIENCY_CHOICES.map(key => ({ key, label: toolLabel[key] ?? key }))
-  // Traço "Extra Language" do alto-elfo: cartões da grade de escolha — catálogo do SISTEMA
-  // (config.languages, US-133), não regra fixa do PHB como DWARF_TOOL_PROFICIENCY_CHOICES.
-  // `secret` (Druidic/Thieves' Cant) excluído do pool, mesmo motivo de US-129 §Modelo de dados.
+  // US-214: Traço "Extra Language" (Alto-elfo/Humano/Meio-elfo, RACE_EXTRA_LANGUAGE_CHOICE) —
+  // cartões da grade de escolha, catálogo do SISTEMA (config.languages, US-133), não regra fixa
+  // do PHB como DWARF_TOOL_PROFICIENCY_CHOICES. Pool exclui `secret` (Druidic/Thieves' Cant,
+  // mesmo motivo de US-129 §Modelo de dados) e os idiomas que RACE_LANGUAGES já concede de
+  // graça pra ESTA raça — cada raça exclui só o que ela já sabe.
   const languageCatalog = system?.config?.languages ?? []
-  const elfLanguageCards = languageCatalog.filter(l => !l.secret)
+  const extraLanguageCards = languageCatalog.filter(l => !l.secret && !(RACE_LANGUAGES[charData.race] ?? []).includes(l.key))
   const adventuresBenefit = originBenefits.find(b => b.type === 'adventures_and_advancement')
   const camBenefit = originBenefits.find(b => b.type === 'connection_and_memento')
   const camTables = camBenefit ? parseD10Tables(camBenefit.description).tables : []
@@ -492,10 +494,15 @@ export function SetupWizard() {
     ...(charData.race === 'hill-dwarf' && raceToolChoice ? [raceToolChoice] : []),
   ]
   const reviewTools = reviewToolKeys.map(k => toolLabel[k] ?? k)
-  // Traço "Extra Language" do alto-elfo: única fonte de `languages` hoje — mesmo raciocínio
-  // de reviewToolKeys acima, sem soma de origem (não existe grant.kind 'languages' ainda).
+  // US-214: idioma(s) fixo(s) de RACE_LANGUAGES + escolha extra (quando a raça exige) — mesma
+  // verdade completa que a ficha (GameView) mostra depois de criado, pra revisão nunca divergir
+  // do que vai ser salvo.
   const languageLabel = Object.fromEntries(languageCatalog.map(l => [l.key, l.label]))
-  const reviewLanguages = charData.race === 'high-elf' && raceLanguageChoice ? [languageLabel[raceLanguageChoice] ?? raceLanguageChoice] : []
+  const reviewLanguageKeys = [
+    ...(RACE_LANGUAGES[charData.race] ?? []),
+    ...(RACE_EXTRA_LANGUAGE_CHOICE.includes(charData.race) && raceLanguageChoice ? [raceLanguageChoice] : []),
+  ]
+  const reviewLanguages = reviewLanguageKeys.map(k => languageLabel[k] ?? k)
   // Mesma forma que `handleConfirm` envia à API — reaproveitada aqui para o `BackgroundPanel`
   // (US-45) mostrar por extenso o que vai ser salvo, em vez de "Preenchido"/"—".
   const reviewBackground: CharacterBackground = {
@@ -519,7 +526,7 @@ export function SetupWizard() {
     setDraconicAncestry(undefined)
     // Traço "Tool Proficiency" do anão depende da raça — mesmo motivo do reset acima.
     setRaceToolChoice(undefined)
-    // Traço "Extra Language" do alto-elfo depende da raça — mesmo motivo do reset acima.
+    // US-214: escolha de idioma extra depende da raça — mesmo motivo do reset acima.
     setRaceLanguageChoice(undefined)
     // US-212: bônus de atributo de raça depende do catálogo de raça — mesmo motivo do reset acima.
     setRaceAbilityChoice([])
@@ -557,7 +564,7 @@ export function SetupWizard() {
     setDraconicAncestry(undefined)
     // Traço "Tool Proficiency" do anão é escolha da raça — mesmo motivo do reset acima.
     setRaceToolChoice(undefined)
-    // Traço "Extra Language" do alto-elfo é escolha da raça — mesmo motivo do reset acima.
+    // US-214: escolha de idioma extra é escolha da raça — mesmo motivo do reset acima.
     setRaceLanguageChoice(undefined)
     // US-212: o `grant` muda de raça pra raça (e de variante pra variante) — uma escolha feita
     // pra uma raça pode colidir com o `fixed` de outra, mesmo motivo do reset acima.
@@ -582,8 +589,9 @@ export function SetupWizard() {
           && (charData.race !== 'dragonborn' || !!draconicAncestry)
           // Traço "Tool Proficiency" do anão: mesmo espírito da checagem de draconicAncestry acima.
           && (charData.race !== 'hill-dwarf' || !!raceToolChoice)
-          // Traço "Extra Language" do alto-elfo: mesmo espírito das duas checagens acima.
-          && (charData.race !== 'high-elf' || !!raceLanguageChoice)
+          // US-214: mesmo espírito das duas checagens acima, generalizado às 3 raças de
+          // RACE_EXTRA_LANGUAGE_CHOICE — nunca bloqueia as outras 6.
+          && (!RACE_EXTRA_LANGUAGE_CHOICE.includes(charData.race) || !!raceLanguageChoice)
       // US-123: além do point-buy fechado, background com grant.kind === 'ability' exige
       // uma linha escolhida para o +1 livre (a linha fixa não conta, é automática).
       // US-212: além do point-buy e do grant de origem, raça com grant.choice exige o número
@@ -653,9 +661,9 @@ export function SetupWizard() {
       // Traço "Tool Proficiency" do anão: só viaja quando a raça é hill-dwarf — mesmo espírito
       // de draconicAncestryPayload acima.
       const raceToolChoicePayload = charData.race === 'hill-dwarf' ? raceToolChoice : undefined
-      // Traço "Extra Language" do alto-elfo: só viaja quando a raça é high-elf — mesmo
-      // espírito de raceToolChoicePayload acima.
-      const raceLanguageChoicePayload = charData.race === 'high-elf' ? raceLanguageChoice : undefined
+      // US-214: só viaja quando a raça está em RACE_EXTRA_LANGUAGE_CHOICE — mesmo espírito de
+      // raceToolChoicePayload acima.
+      const raceLanguageChoicePayload = RACE_EXTRA_LANGUAGE_CHOICE.includes(charData.race) ? raceLanguageChoice : undefined
       // US-212: só viaja quando o grant da raça exige escolha — [] vira undefined (nada a validar).
       const raceAbilityChoicePayload = raceAbilityChoice.length > 0 ? raceAbilityChoice : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
@@ -949,20 +957,20 @@ export function SetupWizard() {
                     </select>
                   </div>
                 )}
-                {/* Traço "Extra Language" do alto-elfo: mesmo <select> subordinado do traço
-                    "Tool Proficiency" do anão acima — mesma escolha de widget (grade grande
-                    demais pro tamanho da decisão), catálogo do sistema (config.languages, US-133)
-                    em vez de regra fixa do PHB. */}
-                {charData.race === 'high-elf' && (
+                {/* US-214: mesmo <select> subordinado do traço "Tool Proficiency" do anão acima
+                    — mesma escolha de widget (grade grande demais pro tamanho da decisão),
+                    catálogo do sistema (config.languages, US-133) em vez de regra fixa do PHB.
+                    Aparece para as 3 raças de RACE_EXTRA_LANGUAGE_CHOICE. */}
+                {RACE_EXTRA_LANGUAGE_CHOICE.includes(charData.race) && (
                   <div className="mt-6">
-                    <label htmlFor="char-elf-language" className="mb-2 block text-sm font-medium text-parchment">
-                      {t('setup.race.elfLanguage.legend')}
+                    <label htmlFor="char-extra-language" className="mb-2 block text-sm font-medium text-parchment">
+                      {t('setup.race.extraLanguage.legend')}
                     </label>
-                    <select id="char-elf-language" value={raceLanguageChoice ?? ''}
+                    <select id="char-extra-language" value={raceLanguageChoice ?? ''}
                       onChange={e => setRaceLanguageChoice(e.target.value || undefined)}
                       className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                       <option value="">{t('setup.raceClass.select')}</option>
-                      {elfLanguageCards.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
+                      {extraLanguageCards.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
                     </select>
                   </div>
                 )}
@@ -1359,13 +1367,13 @@ export function SetupWizard() {
                       </dd>
                     </div>
                   )}
-                  {/* Traço "Extra Language" do alto-elfo: linha própria, mesma condição de
-                      escopo do bloco de ferramentas acima — só aparece pra high-elf. */}
-                  {charData.race === 'high-elf' && (
+                  {/* US-214: linha própria — idioma(s) fixo(s) de RACE_LANGUAGES pra qualquer
+                      raça (as 9 concedem ao menos 1) + escolha extra quando a raça exige. */}
+                  {reviewLanguages.length > 0 && (
                     <div className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.languages')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">
-                        {reviewLanguages.length > 0 ? reviewLanguages.join(' · ') : '—'}
+                        {reviewLanguages.join(' · ')}
                       </dd>
                     </div>
                   )}

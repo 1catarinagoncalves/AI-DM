@@ -124,6 +124,23 @@ test('buildRaceFeatures: raça sem trait nenhum no dataset entra com lista vazia
   assert.deepEqual(buildRaceFeatures({}, races, [], identityResolve), { tiefling: [] })
 })
 
+// US-214: 'languages'/'extra-language' agora mecanizados (RACE_LANGUAGES/RACE_EXTRA_LANGUAGE_CHOICE,
+// @ai-dm/shared) — mesmo skip de 'alignment' acima, evita duplicar na aba Features o que a
+// seção "Idiomas" da ficha já mostra estruturado.
+test('buildRaceFeatures: não emite entrada "languages" nem "extra-language", mesmo skip de "alignment"', () => {
+  const races = [{ key: 'high-elf', label: 'High Elf' }]
+  const speciesTraits = [
+    traitRow('srd_high-elf_languages', 'Languages', 'You can speak Common and Elvish.', 'srd_high-elf'),
+    traitRow('srd_high-elf_extra-language', 'Extra Language', 'One extra language of your choice.', 'srd_high-elf'),
+    traitRow('srd_high-elf_darkvision', 'Darkvision', '60 feet.', 'srd_high-elf'),
+  ]
+  const result = buildRaceFeatures({}, races, speciesTraits, identityResolve)
+
+  assert.deepEqual(result['high-elf'], [
+    { key: 'darkvision', name: 'Darkvision', description: '60 feet.', source: 'high-elf' },
+  ])
+})
+
 // Reverte o "Fora do escopo" da US-142 — raceFeatures passa a ter overlay/resolve (mesmo
 // padrão de buildClassFeatures), chave combinada pra não colidir ("darkvision" existe em
 // várias raças com descrição diferente).
@@ -689,10 +706,12 @@ for (const locale of ['en-US', 'pt-BR']) {
 
 // US-142: subespécie combina raiz + próprios — o par mais visível (Alto-elfo, 2 Ability Score
 // Increase separados) prova a concatenação sem dedupe direto no artefato gravado.
-test('artefato en-US: high-elf combina os 10 traços de elf + os 4 próprios, ASI da raiz e da subespécie sobrevivem separados', () => {
+// US-214: 11, não 13 — 'languages' (elf) e 'extra-language' (high-elf) saíram (mecanizados
+// em RACE_LANGUAGES/RACE_EXTRA_LANGUAGE_CHOICE, @ai-dm/shared).
+test('artefato en-US: high-elf combina os traços de elf + os próprios, ASI da raiz e da subespécie sobrevivem separados', () => {
   const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
   const highElf = artifact.raceFeatures['high-elf']
-  assert.equal(highElf.length, 13)
+  assert.equal(highElf.length, 11)
   const asi = highElf.filter((f) => f.key === 'ability-score-increase')
   assert.deepEqual(asi.map((f) => f.source), ['elf', 'high-elf'])
 })

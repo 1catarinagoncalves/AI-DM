@@ -3686,12 +3686,6 @@
         "source": "dragonborn"
       },
       {
-        "description": "Você pode falar, ler e escrever Comum e Dracônico. O Dracônico é considerado um dos idiomas mais antigos e é frequentemente usado no estudo da magia. O idioma soa áspero para a maioria das outras criaturas e inclui inúmeras consoantes fortes e sibilantes.",
-        "key": "languages",
-        "name": "Idiomas",
-        "source": "dragonborn"
-      },
-      {
         "description": "| Dragão | Tipo de Dano | Arma de Sopro | |--------------|-------------------|------------------------------| | Negro | Ácido | Linha de 5 por 30 pés (Teste de Destreza) | | Azul | Elétrico | Linha de 5 por 30 pés (Teste de Destreza) | | Latão | Fogo | Linha de 5 por 30 pés (Teste de Destreza) | | Bronze | Elétrico | Linha de 5 por 30 pés (Teste de Destreza) | | Cobre | Ácido | Linha de 5 por 30 pés (Teste de Destreza) | | Ouro | Fogo | Cone de 15 pés (Teste de Destreza) | | Verde | Veneno | Cone de 15 pés (Teste de Constituição) | | Vermelho | Fogo | Cone de 15 pés (Teste de Destreza) | | Prata | Frio | Cone de 15 pés (Teste de Constituição) | | Branco | Frio | Cone de 15 pés (Teste de Constituição) |",
         "key": "draconic-ancestry-table",
         "name": "Tabela de Ancestralidade Dracônica",
@@ -3748,12 +3742,6 @@
         "source": "half-elf"
       },
       {
-        "description": "Você pode falar, ler e escrever Comum, Élfico e um idioma extra à sua escolha.",
-        "key": "languages",
-        "name": "Idiomas",
-        "source": "half-elf"
-      },
-      {
         "description": "Você tem vantagem em testes de resistência contra ser enfeitiçado, e a magia não pode colocá-lo para dormir.",
         "key": "fey-ancestry",
         "name": "Ancestralidade Feérica",
@@ -3795,12 +3783,6 @@
         "description": "Meio-orcs são um pouco maiores e mais robustos que humanos, e variam de 5 a bem mais de 6 pés de altura. Seu tamanho é Médio.",
         "key": "size",
         "name": "Tamanho",
-        "source": "half-orc"
-      },
-      {
-        "description": "Você pode falar, ler e escrever Comum e Orc. Orc é um idioma áspero e estridente, com consoantes fortes. Ele não possui um alfabeto próprio, mas é escrito usando o alfabeto Anão.",
-        "key": "languages",
-        "name": "Idiomas",
         "source": "half-orc"
       },
       {
@@ -3854,12 +3836,6 @@
         "source": "elf"
       },
       {
-        "description": "Você pode falar, ler e escrever Comum e Élfico. O Élfico é fluido, com entonações sutis e gramática complexa. A literatura élfica é rica e variada, e suas canções e poemas são famosos entre as outras raças. Muitos bardos aprendem seu idioma para que possam adicionar baladas élficas aos seus repertórios.",
-        "key": "languages",
-        "name": "Idiomas",
-        "source": "elf"
-      },
-      {
         "description": "Você possui proficiência na perícia Percepção.",
         "key": "keen-senses",
         "name": "Sentidos Aguçados",
@@ -3894,12 +3870,6 @@
         "key": "cantrip",
         "name": "Truque",
         "source": "high-elf"
-      },
-      {
-        "description": "Você pode falar, ler e escrever um idioma adicional à sua escolha.",
-        "key": "extra-language",
-        "name": "Idioma Adicional",
-        "source": "high-elf"
       }
     ],
     "hill-dwarf": [
@@ -3931,12 +3901,6 @@
         "description": "Anões têm entre 4 e 5 pés de altura e pesam em média cerca de 150 libras. Seu tamanho é Médio.",
         "key": "size",
         "name": "Tamanho",
-        "source": "dwarf"
-      },
-      {
-        "description": "Você pode falar, ler e escrever Comum e Anão. O idioma Anão é cheio de consoantes duras e sons guturais, e essas características transbordam para qualquer outro idioma que um anão possa falar.",
-        "key": "languages",
-        "name": "Idiomas",
         "source": "dwarf"
       },
       {
@@ -4000,12 +3964,6 @@
         "key": "size",
         "name": "Tamanho",
         "source": "human"
-      },
-      {
-        "description": "Você pode falar, ler e escrever Comum e um idioma extra à sua escolha. Humanos tipicamente aprendem os idiomas de outros povos com os quais lidam, incluindo dialetos obscuros. Eles gostam de salpicar sua fala com palavras emprestadas de outras línguas: maldições de Orc, expressões musicais de Elfo, frases militares de Anão, e assim por diante.",
-        "key": "languages",
-        "name": "Idiomas",
-        "source": "human"
       }
     ],
     "lightfoot": [
@@ -4031,12 +3989,6 @@
         "description": "Halflings têm em média cerca de 3 pés de altura e pesam cerca de 40 libras. Seu tamanho é Pequeno.",
         "key": "size",
         "name": "Tamanho",
-        "source": "halfling"
-      },
-      {
-        "description": "Você pode falar, ler e escrever Comum e Halfling. O idioma Halfling não é secreto, mas os halflings relutam em compartilhá-lo com outros. Eles escrevem muito pouco, por isso não possuem um rico corpo de literatura. Sua tradição oral, no entanto, é muito forte. Quase todos os halflings falam Comum para conversar com as pessoas em cujas terras eles habitam ou através das quais estão viajando.",
-        "key": "languages",
-        "name": "Idiomas",
         "source": "halfling"
       },
       {
@@ -4102,12 +4054,6 @@
         "source": "gnome"
       },
       {
-        "description": "Você pode falar, ler e escrever Comum e Gnomo. O idioma Gnomo, que usa o alfabeto Anão, é renomado por seus tratados técnicos e seus catálogos de conhecimento sobre o mundo natural.",
-        "key": "languages",
-        "name": "Idiomas",
-        "source": "gnome"
-      },
-      {
         "description": "Você tem vantagem em todos os testes de resistência de Inteligência, Sabedoria e Carisma contra magia.",
         "key": "gnome-cunning",
         "name": "Astúcia Gnomo",
@@ -4161,12 +4107,6 @@
         "description": "Tieflings têm aproximadamente o mesmo tamanho e compleição física que os humanos. Seu tamanho é Médio.",
         "key": "size",
         "name": "Tamanho",
-        "source": "tiefling"
-      },
-      {
-        "description": "Você pode falar, ler e escrever Comum e Infernal.",
-        "key": "languages",
-        "name": "Idiomas",
         "source": "tiefling"
       },
       {

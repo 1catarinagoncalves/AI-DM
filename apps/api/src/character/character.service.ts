@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -49,12 +49,18 @@ export class CharacterService {
         DWARF_TOOL_PROFICIENCY_CHOICES.map((key) => ({ key })), dto.raceToolChoice ?? '', 'Ferramenta racial',
       )
       : undefined
-    // Traço "Extra Language" do alto-elfo: mesmo par condicional de raceToolChoice acima, mas
-    // validado contra config.languages (US-133, catálogo do SISTEMA, não regra fixa do PHB) —
-    // `secret` (Druidic/Thieves' Cant) excluído do pool, mesmo motivo de US-129 §Modelo de dados.
-    const raceLanguageChoice = race === 'high-elf'
+    // US-214: idioma(s) fixo(s) que a raça concede de graça — RACE_LANGUAGES é regra fixa do
+    // PHB 2014 (@ai-dm/shared), não catálogo do sistema. Incondicional (toda raça, não só
+    // high-elf) porque a seção "Idiomas" da ficha precisa mostrar a verdade completa.
+    const raceLanguages = RACE_LANGUAGES[race] ?? []
+    // Traço "Extra Language" (Alto-elfo/Humano/Meio-elfo, RACE_EXTRA_LANGUAGE_CHOICE): mesmo par
+    // condicional de raceToolChoice acima, mas validado contra config.languages (US-133,
+    // catálogo do SISTEMA, não regra fixa do PHB) — o pool exclui `secret` (Druidic/Thieves'
+    // Cant, mesmo motivo de US-129 §Modelo de dados) e os idiomas que `raceLanguages` já concede
+    // de graça, para a escolha nunca oferecer o que o personagem já sabe.
+    const raceLanguageChoice = RACE_EXTRA_LANGUAGE_CHOICE.includes(race)
       ? this.validateCatalogKey(
-        (config.languages ?? []).filter((l) => !l.secret), dto.raceLanguageChoice ?? '', 'Idioma racial',
+        (config.languages ?? []).filter((l) => !l.secret && !raceLanguages.includes(l.key)), dto.raceLanguageChoice ?? '', 'Idioma racial',
       )
       : undefined
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
@@ -108,9 +114,9 @@ export class CharacterService {
     // Ferramenta racial soma à de origem — as duas são proficiências independentes, mesmo
     // raciocínio cumulativo de applyRaceGrant/applyAbilityGrant acima.
     const tools = [...this.applyToolGrant(toolGrant, dto.origin?.toolChoice), ...(raceToolChoice ? [raceToolChoice] : [])]
-    // Traço "Extra Language" do alto-elfo: única fonte de `languages` hoje — sem coluna
-    // própria de raça (ver schema.prisma), a chave entra direto no array.
-    const languages = raceLanguageChoice ? [raceLanguageChoice] : []
+    // US-214: união do(s) idioma(s) fixo(s) de raça com a escolha extra (quando exigida) — sem
+    // coluna própria de raça (ver schema.prisma), tudo entra direto no mesmo array.
+    const languages = [...raceLanguages, ...(raceLanguageChoice ? [raceLanguageChoice] : [])]
 
     return this.prisma.character.create({
       data: {

@@ -1088,52 +1088,103 @@ describe('CharacterService.create', () => {
     expect(char.tools).toEqual(['navigators_tools', 'masons_tools'])
   })
 
-  // Traço "Extra Language" do alto-elfo: high-elf exige raceLanguageChoice, validado contra
-  // config.languages (US-133, catálogo do SISTEMA — ao contrário de raceToolChoice, não é
-  // regra fixa do PHB) — mesmo par de testes de raceToolChoice acima, sem somar a `tools`.
-  const configWithHighElf: SystemConfig = {
+  // US-214: RACE_LANGUAGES (@ai-dm/shared) soma idioma fixo a `Character.languages` pra
+  // TODA raça; RACE_EXTRA_LANGUAGE_CHOICE (high-elf/human/half-elf) exige mais uma escolha
+  // validada contra config.languages (US-133, catálogo do SISTEMA — ao contrário de
+  // raceToolChoice, não é regra fixa do PHB), pool excluindo `secret` e o que a raça já sabe.
+  const configWithRaceLanguages: SystemConfig = {
     ...config,
-    races: [{ key: 'high-elf', label: 'High Elf' }, { key: 'human', label: 'Human' }],
+    races: [
+      { key: 'half-orc', label: 'Half-Orc' },
+      { key: 'lightfoot', label: 'Lightfoot' },
+      { key: 'rock-gnome', label: 'Rock Gnome' },
+      { key: 'tiefling', label: 'Tiefling' },
+      { key: 'high-elf', label: 'High Elf' },
+      { key: 'human', label: 'Human' },
+      { key: 'half-elf', label: 'Half-Elf' },
+    ],
     languages: [
       { key: 'common', label: 'Common', secret: false },
       { key: 'draconic', label: 'Draconic', secret: false },
-      { key: 'sylvan', label: 'Sylvan', secret: false },
+      { key: 'elvish', label: 'Elvish', secret: false },
+      { key: 'gnomish', label: 'Gnomish', secret: false },
+      { key: 'halfling', label: 'Halfling', secret: false },
+      { key: 'infernal', label: 'Infernal', secret: false },
+      { key: 'orc', label: 'Orc', secret: false },
       { key: 'thieves_cant', label: "Thieves' Cant", secret: true },
     ],
   }
 
-  it('high-elf sem raceLanguageChoice é rejeitado, com o valor ofensor na mensagem', async () => {
-    const service = new CharacterService(fakePrisma(configWithHighElf))
+  // Sem traço de escolha extra (RACE_LANGUAGES → direto em `languages`, sem exigir nem aceitar
+  // raceLanguageChoice) — 3 famílias distintas, nenhuma com OUTRO campo condicional (evita
+  // colidir com draconicAncestry/raceToolChoice, que são de outras raças).
+  it.each([
+    ['half-orc', ['common', 'orc']],
+    ['lightfoot', ['common', 'halfling']],
+    ['rock-gnome', ['common', 'gnomish']],
+  ] as const)('%s sem traço de escolha ganha só o idioma fixo de RACE_LANGUAGES', async (race, languages) => {
+    const service = new CharacterService(fakePrisma(configWithRaceLanguages))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race, class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceLanguageChoice: 'orc', // ignorado por engano, ver teste abaixo
+    })
+    expect(char.languages).toEqual(languages)
+  })
+
+  it('raça sem escolha extra (tiefling) ignora raceLanguageChoice mandado por engano, sem erro', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceLanguages))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'tiefling', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceLanguageChoice: 'draconic',
+    })
+    expect(char.languages).toEqual(['common', 'infernal'])
+  })
+
+  // As 3 raças de RACE_EXTRA_LANGUAGE_CHOICE: sem escolha rejeita; escolha igual a um idioma já
+  // fixo (duplicado) rejeita; escolha válida soma ao(s) fixo(s).
+  it.each([
+    ['high-elf', ['common', 'elvish']],
+    ['human', ['common']],
+    ['half-elf', ['common', 'elvish']],
+  ] as const)('%s sem raceLanguageChoice é rejeitado, com o valor ofensor na mensagem', async (race, _fixed) => {
+    const service = new CharacterService(fakePrisma(configWithRaceLanguages))
     await expect(service.create({
-      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race, class: 'x',
       attributes: { cool: 5, hard: 5 },
     })).rejects.toThrow('Idioma racial inválida: ""')
   })
 
+  it.each([
+    ['high-elf', 'elvish'],
+    ['human', 'common'],
+    ['half-elf', 'common'],
+  ] as const)('%s tentando escolher "%s" (idioma já concedido fixo) é rejeitado', async (race, duplicate) => {
+    const service = new CharacterService(fakePrisma(configWithRaceLanguages))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race, class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceLanguageChoice: duplicate,
+    })).rejects.toThrow(`Idioma racial inválida: "${duplicate}"`)
+  })
+
   it('high-elf com raceLanguageChoice secreto (Thieves\' Cant) é rejeitado', async () => {
-    const service = new CharacterService(fakePrisma(configWithHighElf))
+    const service = new CharacterService(fakePrisma(configWithRaceLanguages))
     await expect(service.create({
       userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
       attributes: { cool: 5, hard: 5 }, raceLanguageChoice: 'thieves_cant',
     })).rejects.toThrow('Idioma racial inválida: "thieves_cant"')
   })
 
-  it('high-elf com raceLanguageChoice válido persiste em languages, sem tocar em tools', async () => {
-    const service = new CharacterService(fakePrisma(configWithHighElf))
+  it.each([
+    ['high-elf', 'draconic', ['common', 'elvish', 'draconic']],
+    ['human', 'orc', ['common', 'orc']],
+    ['half-elf', 'draconic', ['common', 'elvish', 'draconic']],
+  ] as const)('%s com raceLanguageChoice válido (%s) persiste em languages, sem tocar em tools', async (race, choice, languages) => {
+    const service = new CharacterService(fakePrisma(configWithRaceLanguages))
     const char = await service.create({
-      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
-      attributes: { cool: 5, hard: 5 }, raceLanguageChoice: 'draconic',
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race, class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceLanguageChoice: choice,
     })
-    expect(char.languages).toEqual(['draconic'])
+    expect(char.languages).toEqual(languages)
     expect(char.tools).toEqual([])
-  })
-
-  it('raça não-high-elf ignora raceLanguageChoice mandado por engano, sem erro nem gravação', async () => {
-    const service = new CharacterService(fakePrisma(configWithHighElf))
-    const char = await service.create({
-      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'x',
-      attributes: { cool: 5, hard: 5 }, raceLanguageChoice: 'draconic',
-    })
-    expect(char.languages).toEqual([])
   })
 })

@@ -66,8 +66,8 @@ export const api = {
     // Ferramenta de artesão escolhida para o traço "Tool Proficiency" do anão — só manda
     // quando `race === 'hill-dwarf'` (único anão jogável, mesma raça que tem a grade no wizard).
     raceToolChoice?: string
-    // Idioma extra escolhido para o traço "Extra Language" do alto-elfo — só manda quando
-    // `race === 'high-elf'` (único elfo jogável, mesma raça que tem a grade no wizard).
+    // US-214: idioma extra escolhido para o traço "Extra Language" — só manda quando a raça
+    // está em RACE_EXTRA_LANGUAGE_CHOICE (@ai-dm/shared: high-elf, human, half-elf).
     raceLanguageChoice?: string
     // US-212: atributo(s) escolhido(s) para o `choice` do grant de RAÇA — só manda quando o
     // grant da raça exige escolha (a maioria não exige, ver config.races[].grant).
