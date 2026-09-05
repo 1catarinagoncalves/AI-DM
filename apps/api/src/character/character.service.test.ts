@@ -1188,3 +1188,58 @@ describe('CharacterService.create', () => {
     expect(char.tools).toEqual([])
   })
 })
+
+// US-215: proficiência de arma/ferramenta FIXA de raça (RACE_WEAPON_PROFICIENCIES/
+// RACE_TOOL_PROFICIENCIES, @ai-dm/shared) — soma incondicional, sem DTO novo (ao contrário de
+// raceToolChoice/draconicAncestry, que exigem campo do jogador).
+describe('CharacterService.create (US-215 — proficiência de arma e ferramenta fixa de raça)', () => {
+  const configWithRaceWeapons: SystemConfig = {
+    ...config,
+    races: [
+      { key: 'hill-dwarf', label: 'Hill Dwarf' },
+      { key: 'high-elf', label: 'High Elf' },
+      { key: 'rock-gnome', label: 'Rock Gnome' },
+      { key: 'human', label: 'Human' },
+    ],
+  }
+
+  it('hill-dwarf: Character.weapons ganha as 4 chaves do combate anão, sem exigir campo novo no DTO', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceWeapons))
+    const char = await service.create({
+      // raceToolChoice é do traço DE ESCOLHA (Tool Proficiency), continua exigido — esta US
+      // não o toca; a asserção é só sobre `weapons`, mecanismo à parte.
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'hill-dwarf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceToolChoice: 'smiths_tools',
+    })
+    expect(char.weapons).toEqual(['battleaxe', 'handaxe', 'light_hammer', 'warhammer'])
+  })
+
+  it('high-elf: Character.weapons ganha as 4 chaves de arma élfica', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceWeapons))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.weapons).toEqual(['longsword', 'shortsword', 'shortbow', 'longbow'])
+  })
+
+  it('rock-gnome: Character.tools inclui tinkers_tools mesmo sem ferramenta de origem escolhida', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceWeapons))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'rock-gnome', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.tools).toEqual(['tinkers_tools'])
+    expect(char.weapons).toEqual([])
+  })
+
+  it('raça sem traço de arma/ferramenta fixa (human) não ganha weapons nem tinkers_tools', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceWeapons))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.weapons).toEqual([])
+    expect(char.tools).toEqual([])
+  })
+})

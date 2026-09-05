@@ -48,6 +48,10 @@ model Character {
   baseAttributes Json
   skills         Json                   @default("[]") // US-27: keys de perícia proficientes (string[])
   tools          Json                   @default("[]") // US-132: keys de ferramenta/veículo proficientes (string[])
+  weapons        Json                   @default("[]") // US-215: keys de config.weapons proficientes por
+                                          // RACE_WEAPON_PROFICIENCIES (@ai-dm/shared) — string[]. Sem coluna
+                                          // própria de proveniência (mesmo corte de `languages`): nenhum
+                                          // consumidor downstream precisa saber que veio da raça.
   languages      Json                   @default("[]") // US-214: idioma(s) fixo(s) de RACE_LANGUAGES
                                           // (@ai-dm/shared) + escolha extra (Alto-elfo/Humano/Meio-elfo,
                                           // chave de config.languages). Sem coluna própria de raça (ao

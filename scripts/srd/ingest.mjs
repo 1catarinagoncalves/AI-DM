@@ -68,7 +68,10 @@ const NO_MT = process.argv.includes('--no-mt')
 // US-133: `languages` entra — mesmo padrão de `tools`: o `desc` (`Language.json.desc`, frase
 // curta "Typical speakers are Humans.") alimenta a tradução do `label` mas não é guardado no
 // artefato (SystemLanguageSchema não tem campo description); ver `buildLanguages`.
-const MT_DOMAINS = ['features', 'spells', 'backgrounds', 'tools', 'raceFeatures', 'languages']
+// US-215: `weapons` entra — mesmo padrão de `tools`/`languages`: o `desc` (`Item.json.desc`,
+// frase curta "A battleaxe.") alimenta a tradução do `label` mas não é guardado no artefato
+// (SystemWeaponSchema não tem campo description); ver `buildWeapons`.
+const MT_DOMAINS = ['features', 'spells', 'backgrounds', 'tools', 'raceFeatures', 'languages', 'weapons']
 
 // Mapa explícito das 13 classes (12 SRD + Marshal) → chave canônica do config. NÃO reusa o
 // CLASS_SYNONYMS de starting-inventory.ts: aquele casa entrada do usuário em PT; este converte
@@ -184,7 +187,7 @@ async function load(name) {
 export function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), raceFeatures: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set(), languages: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), raceFeatures: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set(), languages: new Set(), weapons: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -328,6 +331,10 @@ export function buildRaceFeatures(overlay, races, speciesTraits, resolve) {
     // @ai-dm/shared) — manter a prosa aqui duplicaria a mesma informação que a seção "Idiomas"
     // da ficha já mostra estruturada.
     if (slug === 'languages' || slug === 'extra-language') continue
+    // US-215: combate do anão / armas do elfo / Tinker do gnomo agora mecanizados
+    // (RACE_WEAPON_PROFICIENCIES/RACE_TOOL_PROFICIENCIES, @ai-dm/shared) — manter a prosa aqui
+    // duplicaria o que as seções "Armas"/"Proficiências" da ficha já mostram estruturado.
+    if (slug === 'dwarven-combat-training' || slug === 'elf-weapon-training' || slug === 'tinker') continue
     const parentKey = stripDocument(t.fields.parent)
     const featKey = `${parentKey}_${slug}`
     const resolved = resolve('raceFeatures', featKey, overlay.raceFeatures?.[featKey], t.fields.name, norm(t.fields.desc))
@@ -899,6 +906,22 @@ export function buildTools(overlay, itemsRaw, resolve) {
     .sort((a, b) => a.key.localeCompare(b.key))
 }
 
+// US-215: catálogo de arma (44 itens `category: 'weapon'` de Item.json), pro traço de arma
+// fixa de raça (RACE_WEAPON_PROFICIENCIES, @ai-dm/shared) resolver chave→rótulo. Espelha
+// buildTools acima — mesmo filtro/normalização de key — mas sem `category`: arma não tem
+// subcategoria de proficiência como ferramenta tem (artisan/musical-instrument/etc.).
+export function buildWeapons(overlay, itemsRaw, resolve) {
+  const relevant = itemsRaw.filter((i) => i.fields.category === 'weapon')
+  return relevant
+    .map((item) => {
+      const key = stripDocument(item.pk).replace(/-/g, '_')
+      const enLabel = item.fields.name.replace(PRICE_SUFFIX, '')
+      const label = resolve('weapons', key, overlay.weapons?.[key], enLabel, norm(item.fields.desc)).name
+      return { key, label }
+    })
+    .sort((a, b) => a.key.localeCompare(b.key))
+}
+
 // Monta um artefato completo a partir do dataset + um overlay. Overlay `{}` = base EN crua.
 // `locale` só serve ao bônus de atributo: a frase de escolha livre do Half-Elf e o "+1 em
 // todos" do Human não têm de onde vir do dataset, viram literal por idioma abaixo.
@@ -934,20 +957,23 @@ function buildConfig(overlay, data, locale) {
   // `tool_proficiency` precisa de `config.tools` já resolvido (chaves) mais o `data.items` bruto
   // (distinção terrestre/aquático que `config.tools` colapsa, ver buildToolCategories).
   const tools = buildTools(overlay, data.items, resolve)
+  // US-215: catálogo de arma, mesma fonte crua (data.items) de buildTools — filtro de
+  // categoria disjunto ('weapon' vs 'tools'/'land-vehicle'/'waterborne-vehicle'), sem overlap.
+  const weapons = buildWeapons(overlay, data.items, resolve)
   const { backgrounds, backgroundEquipment, backgroundFeatures } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, tools, data.items, orphans)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---
   // US-138: `races` entra na lista pela primeira vez — antes da união reverter (ADR 009 §8),
   // as 11 chaves do overlay sempre casavam com as 11 do catálogo, então não fazia diferença.
   // Agora goliath/orc ficam no overlay sem chave no catálogo (9 raízes) e precisam aparecer aqui.
-  for (const domain of ['races', 'features', 'raceFeatures', 'spells', 'kitItems', 'backgrounds', 'tools', 'languages']) {
+  for (const domain of ['races', 'features', 'raceFeatures', 'spells', 'kitItems', 'backgrounds', 'tools', 'languages', 'weapons']) {
     for (const key of Object.keys(overlay[domain] || {})) {
       if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
     }
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  const artifact = { attributes, skills, languages, races, raceFeatures, classes, subclasses, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools }
+  const artifact = { attributes, skills, languages, races, raceFeatures, classes, subclasses, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools, weapons }
   SystemConfigSchema.parse({ ...artifact, ...STUB })
   return { artifact, fallbacks, orphans, glossary }
 }

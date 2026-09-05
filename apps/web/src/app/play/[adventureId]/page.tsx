@@ -47,6 +47,9 @@ export default async function PlayPage({ params, searchParams }: Props) {
   // mesmo padrão de raça/classe (catalogLabel). Chave sem entrada mostra a própria chave
   // (mesma rede de segurança de catalogLabel), nunca some da lista.
   const tools = ((character.tools ?? []) as string[]).map((key) => catalogLabel(config?.tools, key))
+  // US-215: arma(s) fixa(s) de raça — chaves resolvidas pro rótulo do locale ativo, mesmo
+  // padrão de `tools` acima, contra config.weapons em vez de config.tools.
+  const weapons = ((character.weapons ?? []) as string[]).map((key) => catalogLabel(config?.weapons, key))
   // Traço "Extra Language" do alto-elfo: mesma resolução de chave→rótulo de `tools` acima,
   // contra config.languages (US-133) em vez de config.tools.
   const languages = ((character.languages ?? []) as string[]).map((key) => catalogLabel(config?.languages, key))
@@ -92,6 +95,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       conditions={state?.conditions ?? []}
       skills={skills}
       tools={tools}
+      weapons={weapons}
       languages={languages}
       background={character.background}
       characterOrigin={originName}

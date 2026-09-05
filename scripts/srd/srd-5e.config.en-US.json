@@ -3860,12 +3860,6 @@
         "source": "high-elf"
       },
       {
-        "description": "You have proficiency with the longsword, shortsword, shortbow, and longbow.",
-        "key": "elf-weapon-training",
-        "name": "Elf Weapon Training",
-        "source": "high-elf"
-      },
-      {
         "description": "You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it.",
         "key": "cantrip",
         "name": "Cantrip",
@@ -3907,12 +3901,6 @@
         "description": "You have advantage on saving throws against poison, and you have resistance against poison damage.",
         "key": "dwarven-resilience",
         "name": "Dwarven Resilience",
-        "source": "dwarf"
-      },
-      {
-        "description": "You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
-        "key": "dwarven-combat-training",
-        "name": "Dwarven Combat Training",
         "source": "dwarf"
       },
       {
@@ -4069,12 +4057,6 @@
         "description": "Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.",
         "key": "artificers-lore",
         "name": "Artificer's Lore",
-        "source": "rock-gnome"
-      },
-      {
-        "description": "You have proficiency with artisan's tools (tinker's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time. When you create a device, choose one of the following options: * _Clockwork Toy._ This toy is a clockwork animal, monster, or person, such as a frog, mouse, bird, dragon, or soldier. When placed on the ground, the toy moves 5 feet across the ground on each of your turns in a random direction. It makes noises as appropriate to the creature it represents. * _Fire Starter._ The device produces a miniature flame, which you can use to light a candle, torch, or campfire. Using the device requires your action. * _Music Box._ When opened, this music box plays a single song at a moderate volume. The box stops playing when it reaches the song's end or when it is closed.",
-        "key": "tinker",
-        "name": "Tinker",
         "source": "rock-gnome"
       }
     ],
@@ -5222,6 +5204,184 @@
       "category": "artisan",
       "key": "woodcarvers_tools",
       "label": "Woodcarver's Tools"
+    }
+  ],
+  "weapons": [
+    {
+      "key": "acid",
+      "label": "Acid"
+    },
+    {
+      "key": "alchemists_fire",
+      "label": "Alchemist's Fire"
+    },
+    {
+      "key": "battleaxe",
+      "label": "Battleaxe"
+    },
+    {
+      "key": "blowgun",
+      "label": "Blowgun"
+    },
+    {
+      "key": "club",
+      "label": "Club"
+    },
+    {
+      "key": "dagger",
+      "label": "Dagger"
+    },
+    {
+      "key": "dart",
+      "label": "Dart"
+    },
+    {
+      "key": "flail",
+      "label": "Flail"
+    },
+    {
+      "key": "glaive",
+      "label": "Glaive"
+    },
+    {
+      "key": "greataxe",
+      "label": "Greataxe"
+    },
+    {
+      "key": "greatclub",
+      "label": "Greatclub"
+    },
+    {
+      "key": "greatsword",
+      "label": "Greatsword"
+    },
+    {
+      "key": "halberd",
+      "label": "Halberd"
+    },
+    {
+      "key": "hand_crossbow",
+      "label": "Hand Crossbow"
+    },
+    {
+      "key": "handaxe",
+      "label": "Handaxe"
+    },
+    {
+      "key": "heavy_crossbow",
+      "label": "Heavy Crossbow"
+    },
+    {
+      "key": "holy_water",
+      "label": "Holy Water"
+    },
+    {
+      "key": "javelin",
+      "label": "Javelin"
+    },
+    {
+      "key": "lance",
+      "label": "Lance"
+    },
+    {
+      "key": "light_crossbow",
+      "label": "Light Crossbow"
+    },
+    {
+      "key": "light_hammer",
+      "label": "Light Hammer"
+    },
+    {
+      "key": "longbow",
+      "label": "Longbow"
+    },
+    {
+      "key": "longsword",
+      "label": "Longsword"
+    },
+    {
+      "key": "mace",
+      "label": "Mace"
+    },
+    {
+      "key": "maul",
+      "label": "Maul"
+    },
+    {
+      "key": "morningstar",
+      "label": "Morningstar"
+    },
+    {
+      "key": "musket",
+      "label": "Musket"
+    },
+    {
+      "key": "net",
+      "label": "Net"
+    },
+    {
+      "key": "oil",
+      "label": "Oil"
+    },
+    {
+      "key": "pike",
+      "label": "Pike"
+    },
+    {
+      "key": "pistol",
+      "label": "Pistol"
+    },
+    {
+      "key": "quarterstaff",
+      "label": "Quarterstaff"
+    },
+    {
+      "key": "rapier",
+      "label": "Rapier"
+    },
+    {
+      "key": "scimitar",
+      "label": "Scimitar"
+    },
+    {
+      "key": "shortbow",
+      "label": "Shortbow"
+    },
+    {
+      "key": "shortsword",
+      "label": "Shortsword"
+    },
+    {
+      "key": "sickle",
+      "label": "Sickle"
+    },
+    {
+      "key": "sling",
+      "label": "Sling"
+    },
+    {
+      "key": "spear",
+      "label": "Spear"
+    },
+    {
+      "key": "torch",
+      "label": "Torch"
+    },
+    {
+      "key": "trident",
+      "label": "Trident"
+    },
+    {
+      "key": "war_pick",
+      "label": "War Pick"
+    },
+    {
+      "key": "warhammer",
+      "label": "Warhammer"
+    },
+    {
+      "key": "whip",
+      "label": "Whip"
     }
   ]
 }

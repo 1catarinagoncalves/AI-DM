@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (05/09/2026)
 **Depende de:** [US-134](./US-134-catalogo-de-ferramentas-do-sistema.md) (`config.tools`/`tinkers_tools` — catálogo contra o qual o Tinker do gnomo resolve, sem precisar de entrada nova) · [US-142](./US-142-tracos-mecanicos-subespecie-srd-5-1.md) (`raceFeatures` por chave jogável — as 3 chaves com esses traços vêm de lá)
 **Relacionado:** [US-132](./US-132-escolha-ferramenta-beneficio-tool-proficiency-background.md) (mesmo raciocínio de soma cumulativa em `Character.tools`, mais de uma fonte independente) · [US-211](./US-211-ancestralidade-draconica-do-dragonborn.md) (mesmo padrão de tabela fixa do PHB 2014 em `packages/shared`, fora do pipeline `sync`/`ingest`) · [US-214](./US-214-idiomas-fixos-de-raca-e-escolha-do-idioma-extra.md) (mesmo formato de problema: traço racial que só existe como prosa em `raceFeatures`, sem chave estruturada)
 **Criada em:** 2026-09-05
@@ -50,7 +50,7 @@ O motor não modela rolagem de ataque (`docs/sdlc/01-requisitos/backlog-classe-d
 - **`scripts/srd/ingest.mjs`**:
   - Nova função `buildWeapons(overlay, itemsRaw, resolve)`, espelhando `buildTools` (`:887-900`): filtra `itemsRaw.filter(i => i.fields.category === 'weapon')` (44 itens), monta `{ key, label }` (sem `description`, mesmo corte do tools). Chamada em `buildConfig` (perto de `buildTools`), resultado exposto como `config.weapons` nos dois artefatos (`en-US`/`pt-BR`).
   - `buildRaceFeatures` (`:322-330`, mesmo bloco do skip de `languages`/`extra-language` da US-214): pular também os slugs `dwarven-combat-training`, `elf-weapon-training` e `tinker` — a prosa correspondente para de ser gerada em `raceFeatures`, evitando que `Character.features` acumule uma entrada morta (mesmo raciocínio da US-214 sobre `resolveSheetEntries` cair no fallback `{key, name: key}` se a chave sumir do config depois de já persistida).
-- **`packages/shared/src/types/system.ts`**: `SystemWeaponSchema` (`key`/`label`, mesmo contrato mínimo de `SystemToolSchema` menos `category` — arma não tem subcategoria de proficiência), `SystemConfigSchema.weapons: z.array(SystemWeaponSchema).optional()` (opcional, mesmo motivo de `tools` — config legado sem o campo não fica inválido), tipo `SystemWeapon` exportado.
+- **`packages/shared/src/types/system.ts`**: `SystemWeaponSchema` (`key`/`label`, mesmo contrato mínimo de `SystemToolSchema` menos `category` — arma não tem subcategoria de proficiência), `SystemConfigSchema.weapons: z.array(SystemWeaponSchema).optional()` (opcional, mesmo motivo de `tools` — config legado sem o campo não fica inválido). Divergência da implementação: sem tipo `SystemWeapon` exportado — nenhum consumidor precisa dele como anotação explícita (ao contrário de `SystemTool`, usado em `groupToolsByCategory`), e o knip (US-89, `includeEntryExports`) reprova export sem consumidor; adicionar quando um consumidor real pedir.
 - **`packages/shared/src/race-weapon-proficiency.ts`** novo: `RACE_WEAPON_PROFICIENCIES: Record<string, readonly string[]>` — `hill-dwarf` e `high-elf`, cada uma com as 4 chaves de `config.weapons` que o traço concede. Exportado em `packages/shared/src/index.ts`.
 - **`packages/shared/src/race-tool-proficiency.ts`** novo: `RACE_TOOL_PROFICIENCIES: Record<string, readonly string[]>` — `rock-gnome: ['tinkers_tools']`. Nome deliberadamente distinto de `DWARF_TOOL_PROFICIENCY_CHOICES` (comentário explicando a diferença: aquela é escolha do jogador validada contra `raceToolChoice`; esta é concessão fixa, sem campo de DTO, mesmo formato de `RACE_LANGUAGES`). Exportado em `packages/shared/src/index.ts`.
 - **`apps/api/prisma/schema.prisma`**: nova coluna `weapons Json @default("[]")` no `Character`, comentário citando `RACE_WEAPON_PROFICIENCIES` e US-215, sem coluna própria de proveniência (mesmo corte de `languages` — nenhum consumidor downstream precisa saber que a proficiência veio da raça). Migração Prisma nova.
@@ -137,22 +137,22 @@ weapons: raceWeapons,
 
 ## Critérios de aceite
 
-- [ ] `config.weapons` existe nos dois artefatos (`en-US`/`pt-BR`) depois de `pnpm srd:ingest`, com os 44 itens de categoria `weapon` de `Item.json`, cada um com `key`/`label` (sem `description`).
-- [ ] `RACE_WEAPON_PROFICIENCIES` cobre `hill-dwarf` (4 chaves) e `high-elf` (4 chaves), cada uma existente em `config.weapons`.
-- [ ] `RACE_TOOL_PROFICIENCIES` = `{ 'rock-gnome': ['tinkers_tools'] }`, chave existente em `config.tools`.
-- [ ] Criar personagem `hill-dwarf`: `Character.weapons` = `['battleaxe', 'handaxe', 'light_hammer', 'warhammer']`, sem exigir campo novo no DTO.
-- [ ] Criar personagem `high-elf`: `Character.weapons` = `['longsword', 'shortsword', 'shortbow', 'longbow']`.
-- [ ] Criar personagem `rock-gnome`: `Character.tools` inclui `tinkers_tools`, mesmo sem ferramenta de origem escolhida (`toolGrant` ausente/vazio).
-- [ ] Criar personagem de qualquer uma das outras 6 raças jogáveis: `Character.weapons` = `[]`; `Character.tools` não ganha `tinkers_tools`.
-- [ ] A ficha (`GameView`) mostra a seção "Armas" só quando `weapons.length > 0`, com rótulo resolvido no locale ativo via `config.weapons`.
-- [ ] A ficha mostra "Ferramentas de Funileiro"/"Tinker's Tools" na seção "Proficiências" para personagem `rock-gnome`, resolvido via `config.tools` existente — sem mudança na resolução de `tools` em `page.tsx` além da nova fonte no service.
-- [ ] Revisão (`SetupWizard`) mostra a linha "Proficiências de arma" só para `hill-dwarf`/`high-elf`, com as mesmas chaves que a API vai persistir (mesmo princípio da US-127).
-- [ ] Revisão mostra ferramenta de funileiro na linha "Proficiências" para `rock-gnome`, mesma condição estendida (`:1362`).
-- [ ] `buildRaceFeatures` (`ingest.mjs`) não emite mais entrada com `key: 'dwarven-combat-training'`, `key: 'elf-weapon-training'` nem `key: 'tinker'`, em nenhuma raça jogável, depois de `pnpm srd:ingest`.
-- [ ] Criar personagem novo de `hill-dwarf`/`high-elf`/`rock-gnome`: `Character.features` não inclui essas três chaves — a aba Features não guarda prosa morta que nenhuma UI mostra.
-- [ ] **Eval / teste de regressão (ingest):** `ingest.test.mjs` cobre `buildWeapons` contra uma fixture sintética de `Item.json` e `buildRaceFeatures` excluindo as 3 chaves novas, mesmo formato dos testes de US-142/US-214 já existentes ali.
-- [ ] **Eval / teste de regressão (service):** `character.service.test.ts` cobre `weapons` para as 2 raças com traço de arma, `tools` para `rock-gnome`, e ausência para as outras 6.
-- [ ] **Eval / teste de regressão (wizard):** `SetupWizard.test.tsx` cobre a linha "Proficiências de arma" aparecendo/sumindo por raça, e a linha "Proficiências" incluindo Tinker's Tools para `rock-gnome`.
+- [x] `config.weapons` existe nos dois artefatos (`en-US`/`pt-BR`) depois de `pnpm srd:ingest`, com os 44 itens de categoria `weapon` de `Item.json`, cada um com `key`/`label` (sem `description`).
+- [x] `RACE_WEAPON_PROFICIENCIES` cobre `hill-dwarf` (4 chaves) e `high-elf` (4 chaves), cada uma existente em `config.weapons`.
+- [x] `RACE_TOOL_PROFICIENCIES` = `{ 'rock-gnome': ['tinkers_tools'] }`, chave existente em `config.tools`.
+- [x] Criar personagem `hill-dwarf`: `Character.weapons` = `['battleaxe', 'handaxe', 'light_hammer', 'warhammer']`, sem exigir campo novo no DTO.
+- [x] Criar personagem `high-elf`: `Character.weapons` = `['longsword', 'shortsword', 'shortbow', 'longbow']`.
+- [x] Criar personagem `rock-gnome`: `Character.tools` inclui `tinkers_tools`, mesmo sem ferramenta de origem escolhida (`toolGrant` ausente/vazio).
+- [x] Criar personagem de qualquer uma das outras 6 raças jogáveis: `Character.weapons` = `[]`; `Character.tools` não ganha `tinkers_tools`.
+- [x] A ficha (`GameView`) mostra a seção "Armas" só quando `weapons.length > 0`, com rótulo resolvido no locale ativo via `config.weapons`.
+- [x] A ficha mostra "Ferramentas de Funileiro"/"Tinker's Tools" na seção "Proficiências" para personagem `rock-gnome`, resolvido via `config.tools` existente — sem mudança na resolução de `tools` em `page.tsx` além da nova fonte no service.
+- [x] Revisão (`SetupWizard`) mostra a linha "Proficiências de arma" só para `hill-dwarf`/`high-elf`, com as mesmas chaves que a API vai persistir (mesmo princípio da US-127).
+- [x] Revisão mostra ferramenta de funileiro na linha "Proficiências" para `rock-gnome`, mesma condição estendida (`:1362`).
+- [x] `buildRaceFeatures` (`ingest.mjs`) não emite mais entrada com `key: 'dwarven-combat-training'`, `key: 'elf-weapon-training'` nem `key: 'tinker'`, em nenhuma raça jogável, depois de `pnpm srd:ingest`.
+- [x] Criar personagem novo de `hill-dwarf`/`high-elf`/`rock-gnome`: `Character.features` não inclui essas três chaves — a aba Features não guarda prosa morta que nenhuma UI mostra.
+- [x] **Eval / teste de regressão (ingest):** `ingest.test.mjs` cobre `buildWeapons` contra uma fixture sintética de `Item.json` e `buildRaceFeatures` excluindo as 3 chaves novas, mesmo formato dos testes de US-142/US-214 já existentes ali.
+- [x] **Eval / teste de regressão (service):** `character.service.test.ts` cobre `weapons` para as 2 raças com traço de arma, `tools` para `rock-gnome`, e ausência para as outras 6.
+- [x] **Eval / teste de regressão (wizard):** `SetupWizard.test.tsx` cobre a linha "Proficiências de arma" aparecendo/sumindo por raça, e a linha "Proficiências" incluindo Tinker's Tools para `rock-gnome`.
 
 ---
 
@@ -164,7 +164,7 @@ weapons: raceWeapons,
 - **`buildWeapons` pode reaproveitar quase tudo de `buildTools`** (`ingest.mjs:887-900`) — a única diferença é o filtro de categoria (`weapon` em vez de `['tools', 'land-vehicle', 'waterborne-vehicle']`) e a ausência do campo `category` no retorno (arma não tem subcategoria de proficiência como ferramenta tem `artisan`/`musical-instrument`/etc.).
 - **Ordem de trabalho do lado do ingest**: mudar `ingest.mjs` → rodar `pnpm srd:ingest` (regenera os 2 artefatos com `config.weapons` novo e sem as 3 chaves de `raceFeatures`) → rodar `pnpm db:seed` (mesma disciplina de ordem que a US-214 já cobrou, senão o config em memória do sistema ainda tem a prosa velha).
 - **`RACE_TOOL_PROFICIENCIES` como tabela, mesmo com 1 entrada só hoje** — mesmo formato de `RACE_LANGUAGES`, deixa a porta aberta sem custo se uma raça futura ganhar outra ferramenta fixa; não é um `if (race === 'rock-gnome')` solto no meio do service.
-- **Import direto de `@ai-dm/shared`** no front para as duas tabelas e `SystemWeapon`, mesmo padrão de `RACE_LANGUAGES`/`DWARF_TOOL_PROFICIENCY_CHOICES` já importados em `SetupWizard.tsx`.
+- **Import direto de `@ai-dm/shared`** no front para as duas tabelas (`RACE_WEAPON_PROFICIENCIES`/`RACE_TOOL_PROFICIENCIES`), mesmo padrão de `RACE_LANGUAGES`/`DWARF_TOOL_PROFICIENCY_CHOICES` já importados em `SetupWizard.tsx`.
 - **`weaponLabel` no `SetupWizard`** pode seguir exatamente a forma de `languageLabel` (`:500`): `Object.fromEntries((system?.config?.weapons ?? []).map(w => [w.key, w.label]))`.
 
 ---

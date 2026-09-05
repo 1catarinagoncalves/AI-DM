@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -122,6 +122,35 @@ test('buildRaceFeatures: raiz com subespécie combina raiz+próprios sem dedupe;
 test('buildRaceFeatures: raça sem trait nenhum no dataset entra com lista vazia (nunca some da chave)', () => {
   const races = [{ key: 'tiefling', label: 'Tiefling' }]
   assert.deepEqual(buildRaceFeatures({}, races, [], identityResolve), { tiefling: [] })
+})
+
+// US-215: 'dwarven-combat-training'/'elf-weapon-training'/'tinker' agora mecanizados
+// (RACE_WEAPON_PROFICIENCIES/RACE_TOOL_PROFICIENCIES, @ai-dm/shared) — mesmo skip de
+// 'languages'/'extra-language' acima, evita duplicar na aba Features o que as seções
+// "Armas"/"Proficiências" da ficha já mostram estruturado.
+test('buildRaceFeatures: não emite entrada "dwarven-combat-training", "elf-weapon-training" nem "tinker"', () => {
+  const races = [
+    { key: 'hill-dwarf', label: 'Hill Dwarf' },
+    { key: 'high-elf', label: 'High Elf' },
+    { key: 'rock-gnome', label: 'Rock Gnome' },
+  ]
+  const speciesTraits = [
+    traitRow('srd_hill-dwarf_dwarven-combat-training', 'Dwarven Combat Training', 'You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.', 'srd_hill-dwarf'),
+    traitRow('srd_hill-dwarf_darkvision', 'Darkvision', '60 feet.', 'srd_hill-dwarf'),
+    traitRow('srd_high-elf_elf-weapon-training', 'Elf Weapon Training', 'You have proficiency with the longsword, shortsword, shortbow, and longbow.', 'srd_high-elf'),
+    traitRow('srd_rock-gnome_tinker', 'Tinker', 'You have proficiency with artisan\'s tools (tinker\'s tools).', 'srd_rock-gnome'),
+    traitRow('srd_rock-gnome_gnome-cunning', 'Gnome Cunning', 'Advantage on INT/WIS/CHA saves against magic.', 'srd_rock-gnome'),
+  ]
+  const result = buildRaceFeatures({}, races, speciesTraits, identityResolve)
+
+  assert.deepEqual(result['hill-dwarf'], [
+    { key: 'darkvision', name: 'Darkvision', description: '60 feet.', source: 'hill-dwarf' },
+  ])
+  assert.deepEqual(result['high-elf'], [])
+  // "Gnome Cunning" não é Tinker (traço distinto, sem proficiência) — continua emitido.
+  assert.deepEqual(result['rock-gnome'], [
+    { key: 'gnome-cunning', name: 'Gnome Cunning', description: 'Advantage on INT/WIS/CHA saves against magic.', source: 'rock-gnome' },
+  ])
 })
 
 // US-214: 'languages'/'extra-language' agora mecanizados (RACE_LANGUAGES/RACE_EXTRA_LANGUAGE_CHOICE,
@@ -708,10 +737,12 @@ for (const locale of ['en-US', 'pt-BR']) {
 // Increase separados) prova a concatenação sem dedupe direto no artefato gravado.
 // US-214: 11, não 13 — 'languages' (elf) e 'extra-language' (high-elf) saíram (mecanizados
 // em RACE_LANGUAGES/RACE_EXTRA_LANGUAGE_CHOICE, @ai-dm/shared).
+// US-215: 10, não 11 — 'elf-weapon-training' (high-elf) saiu (mecanizado em
+// RACE_WEAPON_PROFICIENCIES, @ai-dm/shared).
 test('artefato en-US: high-elf combina os traços de elf + os próprios, ASI da raiz e da subespécie sobrevivem separados', () => {
   const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
   const highElf = artifact.raceFeatures['high-elf']
-  assert.equal(highElf.length, 11)
+  assert.equal(highElf.length, 10)
   const asi = highElf.filter((f) => f.key === 'ability-score-increase')
   assert.deepEqual(asi.map((f) => f.source), ['elf', 'high-elf'])
 })
@@ -1230,6 +1261,52 @@ for (const locale of ['en-US', 'pt-BR']) {
     assert.equal(artifact.tools.length, 50)
     for (const t of artifact.tools) {
       assert.ok(t.key && t.label && t.category, `entrada incompleta: ${JSON.stringify(t)}`)
+    }
+  })
+}
+
+// --- US-215 — buildWeapons: Item.json (category weapon) → config.weapons ---
+
+test('buildWeapons: filtra só category "weapon", key sem "srd-2024_", sem campo category no retorno', () => {
+  const items = [
+    item('srd-2024_battleaxe', 'Battleaxe', 'weapon'),
+    item('srd-2024_light-hammer', 'Light Hammer', 'weapon'),
+    item('srd-2024_smiths-tools', "Smith's Tools (20 GP)", 'tools'),
+    item('srd-2024_cart', 'Cart', 'land-vehicle'),
+  ]
+  const result = buildWeapons({}, items, identityResolve)
+  assert.deepEqual(result, [
+    { key: 'battleaxe', label: 'Battleaxe' },
+    { key: 'light_hammer', label: 'Light Hammer' },
+  ])
+})
+
+test('buildWeapons: label pt-BR vem do overlay igual a buildTools', () => {
+  const overlay = { weapons: { battleaxe: { name: 'Machado de Batalha', description: 'Regra.' } } }
+  const ptResolve = (_domain, _key, entry, enName) => ({ name: entry?.name?.trim() || enName })
+  const result = buildWeapons(overlay, [item('srd-2024_battleaxe', 'Battleaxe', 'weapon')], ptResolve)
+  assert.equal(result[0].label, 'Machado de Batalha')
+})
+
+// Contra o dataset PINADO real (não fixture): as 44 entradas medidas em US-215 §Contexto batem,
+// e as 8 chaves de RACE_WEAPON_PROFICIENCIES (anão + elfo) existem no catálogo gerado.
+test('buildWeapons: as 44 entradas reais do Item.json pinado batem, com as 8 chaves de arma de raça', () => {
+  const itemsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Item.json'), 'utf8'))
+  const result = buildWeapons({}, itemsRaw, identityResolve)
+  assert.equal(result.length, 44)
+  const keys = new Set(result.map((w) => w.key))
+  for (const key of ['battleaxe', 'handaxe', 'light_hammer', 'warhammer', 'longsword', 'shortsword', 'shortbow', 'longbow']) {
+    assert.ok(keys.has(key), `chave de arma de raça ausente do catálogo: ${key}`)
+  }
+})
+
+// --- artefato: config.weapons sai gravado nos dois locales, mesma contagem que o dataset real ---
+for (const locale of ['en-US', 'pt-BR']) {
+  test(`artefato ${locale}: config.weapons tem 44 entradas com key/label`, () => {
+    const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
+    assert.equal(artifact.weapons.length, 44)
+    for (const w of artifact.weapons) {
+      assert.ok(w.key && w.label, `entrada incompleta: ${JSON.stringify(w)}`)
     }
   })
 }

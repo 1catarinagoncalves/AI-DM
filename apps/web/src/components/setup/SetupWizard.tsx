@@ -9,6 +9,7 @@ import {
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
   DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE,
+  RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES,
   type SystemConfig, type SystemTool, type DraconicDamageType, type InitialAdventureHook,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
@@ -430,6 +431,9 @@ export function SetupWizard() {
   // mesmo motivo de US-129 §Modelo de dados) e os idiomas que RACE_LANGUAGES já concede de
   // graça pra ESTA raça — cada raça exclui só o que ela já sabe.
   const languageCatalog = system?.config?.languages ?? []
+  // US-215: catálogo de arma (config.weapons) — rótulo pro traço de arma fixa de raça
+  // (RACE_WEAPON_PROFICIENCIES), mesma forma de toolLabel/languageLabel acima.
+  const weaponLabel = Object.fromEntries((system?.config?.weapons ?? []).map(w => [w.key, w.label]))
   const extraLanguageCards = languageCatalog.filter(l => !l.secret && !(RACE_LANGUAGES[charData.race] ?? []).includes(l.key))
   const adventuresBenefit = originBenefits.find(b => b.type === 'adventures_and_advancement')
   const camBenefit = originBenefits.find(b => b.type === 'connection_and_memento')
@@ -519,11 +523,18 @@ export function SetupWizard() {
   // forma que a API vai persistir (Character.tools), pro preview não divergir do salvo.
   // Traço "Tool Proficiency" do anão soma à mesma lista — outra fonte independente de
   // proficiência de ferramenta, mesmo raciocínio cumulativo do service (character.service.ts).
+  // US-215: Tinker do gnomo das rochas soma à mesma lista — ferramenta FIXA de raça, mesma
+  // fonte independente cumulativa de raceToolChoice (traço de ESCOLHA do anão) acima.
   const reviewToolKeys = [
     ...(toolGrant ? [...toolGrant.fixed, ...toolChoice] : []),
     ...(charData.race === 'hill-dwarf' && raceToolChoice ? [raceToolChoice] : []),
+    ...(RACE_TOOL_PROFICIENCIES[charData.race] ?? []),
   ]
   const reviewTools = reviewToolKeys.map(k => toolLabel[k] ?? k)
+  // US-215: arma(s) fixa(s) de raça (combate do anão / armas do elfo) — mesma verdade completa
+  // que a API vai persistir (Character.weapons), pro preview não divergir do salvo.
+  const reviewWeaponKeys = RACE_WEAPON_PROFICIENCIES[charData.race] ?? []
+  const reviewWeapons = reviewWeaponKeys.map(k => weaponLabel[k] ?? k)
   // US-214: idioma(s) fixo(s) de RACE_LANGUAGES + escolha extra (quando a raça exige) — mesma
   // verdade completa que a ficha (GameView) mostra depois de criado, pra revisão nunca divergir
   // do que vai ser salvo.
@@ -1392,12 +1403,25 @@ export function SetupWizard() {
                       escolhida — mesma condição de escopo do backgroundCatalog/connectionTable
                       abaixo (US-132 §Onde aparece na criação e na ficha). Traço "Tool
                       Proficiency" do anão soma na mesma linha (reviewToolKeys já inclui as duas
-                      fontes) — sem linha própria, mesmo espírito de "Proficiências" genérico. */}
-                  {(toolGrant || (charData.race === 'hill-dwarf' && raceToolChoice)) && (
+                      fontes) — sem linha própria, mesmo espírito de "Proficiências" genérico.
+                      US-215: Tinker do gnomo das rochas soma na mesma linha (reviewToolKeys já
+                      inclui a fonte) — condição estendida pra a linha aparecer mesmo sem
+                      toolGrant/raceToolChoice de origem. */}
+                  {(toolGrant || (charData.race === 'hill-dwarf' && raceToolChoice) || charData.race === 'rock-gnome') && (
                     <div className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.tools')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">
                         {reviewTools.length > 0 ? reviewTools.join(' · ') : '—'}
+                      </dd>
+                    </div>
+                  )}
+                  {/* US-215: linha própria — arma(s) fixa(s) de raça (combate do anão / armas do
+                      elfo), só para hill-dwarf/high-elf (as únicas com traço de arma no PHB 2014). */}
+                  {reviewWeapons.length > 0 && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.weapons')}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">
+                        {reviewWeapons.join(' · ')}
                       </dd>
                     </div>
                   )}

@@ -105,6 +105,14 @@ export const SystemToolSchema = z.object({
   category: z.string().min(1),
 })
 
+// Arma do sistema (US-215), derivado de `Item.json` (categoria `weapon`, 44 itens). Mesmo
+// contrato mínimo de SystemToolSchema menos `category`: arma não tem subcategoria de
+// proficiência do 5e como ferramenta (artisan/musical-instrument/gaming-set/kit/vehicle).
+export const SystemWeaponSchema = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+})
+
 // Feature de classe (US-41): o que o personagem SABE FAZER de especial (Sentido
 // Divino, Fúria, Ataque Furtivo…). Awareness apenas — sem usos/custo/mecânica.
 // NÃO é atributo (`ability`) nem perícia (`skill`): é uma terceira coisa.
@@ -250,6 +258,10 @@ export const SystemConfigSchema = z.object({
   // como races/classes/backgrounds: config legado sem ele não fica inválido. Fecha a lacuna que
   // bloqueava a US-132 (escolha do benefício `tool_proficiency` do background).
   tools: z.array(SystemToolSchema).optional(),
+  // Catálogo de arma (US-215), derivado do `Item.json` pelo ingest. Opcional como tools: config
+  // legado sem ele não fica inválido. Fecha a lacuna que bloqueava o traço de arma fixa de
+  // raça (RACE_WEAPON_PROFICIENCIES) — catálogo cru, aplicar a um personagem é a US-215.
+  weapons: z.array(SystemWeaponSchema).optional(),
   proficiency: z.object({
     choices: z.number().int().min(0),
     bonus: z.number().int(),

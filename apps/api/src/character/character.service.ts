@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -111,12 +111,19 @@ export class CharacterService {
     // US-132: ferramenta/veículo do background (`grant.kind === 'tools'`) — mesmo par find/apply
     // de perícia (US-131), mas sem etapa própria pra mesclar: a origem é a ÚNICA fonte.
     const toolGrant = this.findToolGrant(config.backgrounds, originKey)
+    // US-215: ferramenta FIXA da raça (Tinker do gnomo das rochas) — RACE_TOOL_PROFICIENCIES é
+    // regra fixa do PHB 2014 (@ai-dm/shared), não catálogo do sistema. Incondicional (mesmo
+    // raciocínio de raceLanguages) porque a raça concede de graça, sem escolha do jogador.
+    const raceTools = RACE_TOOL_PROFICIENCIES[race] ?? []
     // Ferramenta racial soma à de origem — as duas são proficiências independentes, mesmo
     // raciocínio cumulativo de applyRaceGrant/applyAbilityGrant acima.
-    const tools = [...this.applyToolGrant(toolGrant, dto.origin?.toolChoice), ...(raceToolChoice ? [raceToolChoice] : [])]
+    const tools = [...this.applyToolGrant(toolGrant, dto.origin?.toolChoice), ...(raceToolChoice ? [raceToolChoice] : []), ...raceTools]
     // US-214: união do(s) idioma(s) fixo(s) de raça com a escolha extra (quando exigida) — sem
     // coluna própria de raça (ver schema.prisma), tudo entra direto no mesmo array.
     const languages = [...raceLanguages, ...(raceLanguageChoice ? [raceLanguageChoice] : [])]
+    // US-215: arma(s) fixa(s) da raça (combate do anão / armas do elfo) — RACE_WEAPON_PROFICIENCIES
+    // é regra fixa do PHB 2014, mesmo raciocínio de raceLanguages/raceTools acima.
+    const raceWeapons = RACE_WEAPON_PROFICIENCIES[race] ?? []
 
     return this.prisma.character.create({
       data: {
@@ -134,6 +141,7 @@ export class CharacterService {
         skills,
         tools,
         languages,
+        weapons: raceWeapons,
         features,
         spells,
         background: this.normalizeBackground(dto.background),

@@ -51,6 +51,10 @@ interface Props {
   // por atributo fixo no 5e). Bloco próprio, ao lado do de perícias, nunca dentro do
   // `BackgroundPanel` (que é só narrativa, ver US-132 §Onde aparece na criação e na ficha).
   tools?: string[]
+  // US-215: arma(s) fixa(s) de raça (combate do anão / armas do elfo), já resolvidas pro
+  // rótulo do locale ativo (mesmo padrão de tools acima). Bloco próprio, entre "Proficiências"
+  // e "Idiomas".
+  weapons?: string[]
   // Traço "Extra Language" do alto-elfo: idiomas extras conhecidos, já resolvidos pro rótulo
   // do locale ativo (mesmo padrão de tools acima). Bloco próprio, ao lado do de proficiências.
   languages?: string[]
@@ -104,7 +108,7 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(persistable))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, tools, languages, background, characterOrigin, characterConnection, characterMemento, characterAdventures, features, spells }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, tools, weapons, languages, background, characterOrigin, characterConnection, characterMemento, characterAdventures, features, spells }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
   // então trocar de aba não remonta nada nem perde estado de jogo.
@@ -543,6 +547,17 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                 <SheetHeading>{t('game.tools')}</SheetHeading>
                 <ul className="scrollbar-thin max-h-40 space-y-0.5 overflow-y-auto pr-1">
                   {tools.map((label, i) => (
+                    <li key={i} className="px-1.5 py-1 text-[13px] text-foreground">{label}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {weapons && weapons.length > 0 && (
+              <div className="md:w-full">
+                <SheetHeading>{t('game.weapons')}</SheetHeading>
+                <ul className="scrollbar-thin max-h-40 space-y-0.5 overflow-y-auto pr-1">
+                  {weapons.map((label, i) => (
                     <li key={i} className="px-1.5 py-1 text-[13px] text-foreground">{label}</li>
                   ))}
                 </ul>

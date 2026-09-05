@@ -1963,3 +1963,101 @@ describe('SetupWizard — US-214 traço "Extra Language" (Alto-elfo/Humano/Meio-
     expect(screen.getByText('Comum · Infernal')).toBeTruthy()
   })
 })
+
+// --- US-215: proficiência de arma/ferramenta FIXA de raça (Anão da Colina, Alto-elfo, Gnomo
+// das Rochas) — sem <select> nenhum (traço fixo, sem escolha no PHB 2014): a revisão só
+// reflete o que RACE_WEAPON_PROFICIENCIES/RACE_TOOL_PROFICIENCIES (@ai-dm/shared) vão persistir. ---
+
+// `hill-dwarf`/`high-elf`/`rock-gnome` são a ÚNICA variante da respectiva raiz no catálogo
+// real — clicar a raiz já auto-seleciona a variante (selectRootCard, US-142), mesmo padrão
+// dos describes de Tool Proficiency/Extra Language acima.
+const configWithRaceWeapons = (budget: number) => ({
+  ...configWithBudget(budget),
+  races: [
+    { key: 'dwarf', label: 'Anão' },
+    { key: 'hill-dwarf', label: 'Anão da Colina', parentKey: 'dwarf' },
+    { key: 'elf', label: 'Elfo' },
+    { key: 'high-elf', label: 'Alto-elfo', parentKey: 'elf' },
+    { key: 'gnome', label: 'Gnomo' },
+    { key: 'rock-gnome', label: 'Gnomo das Rochas', parentKey: 'gnome' },
+    { key: 'tiefling', label: 'Tiefling' },
+  ],
+  weapons: [
+    { key: 'battleaxe', label: 'Machado de Batalha' },
+    { key: 'handaxe', label: 'Machadinha' },
+    { key: 'light_hammer', label: 'Martelo Leve' },
+    { key: 'warhammer', label: 'Martelo de Guerra' },
+    { key: 'longsword', label: 'Espada Longa' },
+    { key: 'shortsword', label: 'Espada Curta' },
+    { key: 'shortbow', label: 'Arco Curto' },
+    { key: 'longbow', label: 'Arco Longo' },
+  ],
+  tools: [
+    { key: 'tinkers_tools', label: 'Ferramentas de Funileiro', category: 'artisan' },
+    { key: 'smiths_tools', label: 'Ferramentas de Ferreiro', category: 'artisan' },
+  ],
+  languages: [
+    { key: 'common', label: 'Comum', secret: false },
+    { key: 'elvish', label: 'Élfico', secret: false },
+    { key: 'draconic', label: 'Dracônico', secret: false },
+  ],
+})
+
+describe('SetupWizard — US-215 proficiência de arma e ferramenta fixa de raça', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickRaceWeaponConfig(config: SystemConfig, radioName: string) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Thrain' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Masculino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: radioName }))
+    // Traços de ESCOLHA (Tool Proficiency do anão / Extra Language do elfo) são de OUTRA US
+    // (DWARF_TOOL_PROFICIENCY_CHOICES/RACE_EXTRA_LANGUAGE_CHOICE) — preenchidos aqui só pra
+    // liberar o avanço da etapa, sem relação com a proficiência FIXA que este describe testa.
+    if (radioName === 'Anão') {
+      fireEvent.change(screen.getByLabelText('Escolha a proeficiência de ferramenta de artesão'), { target: { value: 'smiths_tools' } })
+    }
+    if (radioName === 'Elfo') {
+      fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'draconic' } })
+    }
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+  }
+
+  it('revisão mostra "Proficiências de arma" com as 4 chaves do combate anão, só para hill-dwarf', async () => {
+    await pickRaceWeaponConfig(configWithRaceWeapons(2), 'Anão')
+    expect(screen.getByText('Proficiências de arma')).toBeTruthy()
+    expect(screen.getByText('Machado de Batalha · Machadinha · Martelo Leve · Martelo de Guerra')).toBeTruthy()
+  })
+
+  it('revisão mostra "Proficiências de arma" com as 4 chaves de arma élfica, só para high-elf', async () => {
+    await pickRaceWeaponConfig(configWithRaceWeapons(2), 'Elfo')
+    expect(screen.getByText('Proficiências de arma')).toBeTruthy()
+    expect(screen.getByText('Espada Longa · Espada Curta · Arco Curto · Arco Longo')).toBeTruthy()
+  })
+
+  it('revisão NÃO mostra "Proficiências de arma" para raça sem o traço (tiefling)', async () => {
+    await pickRaceWeaponConfig(configWithRaceWeapons(2), 'Tiefling')
+    expect(screen.queryByText('Proficiências de arma')).toBeNull()
+  })
+
+  it('revisão mostra ferramenta de funileiro na linha "Proficiências" para rock-gnome, mesmo sem ferramenta de origem', async () => {
+    await pickRaceWeaponConfig(configWithRaceWeapons(2), 'Gnomo')
+    expect(screen.getByText('Proficiências')).toBeTruthy()
+    expect(screen.getByText('Ferramentas de Funileiro')).toBeTruthy()
+    // Gnomo das Rochas não tem traço de ARMA — a linha "Proficiências de arma" não aparece.
+    expect(screen.queryByText('Proficiências de arma')).toBeNull()
+  })
+})
