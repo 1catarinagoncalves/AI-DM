@@ -9,7 +9,7 @@ import {
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
   DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE,
-  type SystemConfig, type SystemTool, type DraconicDamageType,
+  type SystemConfig, type SystemTool, type DraconicDamageType, type InitialAdventureHook,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
 import { parseD10Tables } from '@/lib/parseD10Tables'
@@ -176,6 +176,22 @@ function ChallengeOptionGroup({ name, legend, value, onChange, options }: {
   )
 }
 
+// US-216: duplicado de apps/api/src/character/starting-inventory.ts (`resolveInitialHook`/
+// `resolveHookTemplate`) — web não importa de apps/api (mesma fronteira que impede
+// `getStartingInventory` de morar lá, US-127). Função pequena e estável desde a US-54;
+// risco de drift aceito, ver *Notas de implementação* da US-216.
+function resolveInitialHookLocal(config: SystemConfig, classKey: string): InitialAdventureHook | null {
+  const hooks = config.initialAdventures?.hooks
+  if (!hooks || hooks.length === 0) return null
+  return hooks.find(h => h.classKey === classKey) ?? hooks.find(h => h.classKey === 'default') ?? null
+}
+
+function resolveHookTemplateLocal(text: string, vars: { characterName: string; characterClass: string }): string {
+  return text
+    .replace(/\{characterName\}/g, vars.characterName)
+    .replace(/\{characterClass\}/g, vars.characterClass)
+}
+
 // US-40: campo único "Divindade/Patrono" → {name, portfolio}. Split na PRIMEIRA
 // vírgula: antes = name, depois (trim) = portfolio. Sem vírgula → só name.
 // Vazio → undefined (sem objeto). Vírgulas seguintes ficam dentro do portfolio.
@@ -299,6 +315,10 @@ export function SetupWizard() {
   const [areaType, setAreaType] = useState('random')
   // US-165: sem sentinela 'random' — Modo aventura é o default real (US-161), não sorteio.
   const [challenge, setChallenge] = useState<'adventure' | 'challenge'>('adventure')
+  // US-216: bifurcação do passo `world` — "pronta" pula os grupos abaixo (fica tudo em
+  // Aleatório/`adventure`), "criar" é a tela de sempre. `null` até a jogadora escolher: nenhum
+  // padrão pré-selecionado (ao contrário de `setting`/`tone`/`areaType`, que defendem 'random').
+  const [worldMode, setWorldMode] = useState<'ready' | 'custom' | null>(null)
 
   useEffect(() => {
     // US-61: a identidade vem do login (token); o wizard só carrega o catálogo.
@@ -353,6 +373,14 @@ export function SetupWizard() {
   // aparece na tela.
   const raceLabel = raceCatalog.find(r => r.key === charData.race)?.label ?? ''
   const classLabel = classCatalog.find(c => c.key === charData.class)?.label ?? ''
+  // US-216: gancho da classe do personagem para o cartão de prévia do ramo "pronta" — mesma
+  // regra que `resolveInitialHook(config, character.class)` resolveria no backend
+  // (buildAdventureProfile, adventure.service.ts), placeholders já resolvidos com o nome e a
+  // classe (rótulo, não chave — mesma variável que o backend usa em `resolveHook`).
+  const initialHook = system?.config ? resolveInitialHookLocal(system.config, charData.class) : null
+  const hookVars = { characterName: charData.name, characterClass: classLabel }
+  const initialHookTitle = initialHook ? resolveHookTemplateLocal(initialHook.title, hookVars) : ''
+  const initialHookPitch = initialHook ? resolveHookTemplateLocal(initialHook.pitch, hookVars) : ''
   // US-205: rótulo da subclasse resolvida (automática ou escolhida) — mesma disciplina de
   // raceLabel/classLabel acima: a chave nunca aparece na tela.
   const subclassLabel = resolvedSubclassEntry?.label ?? ''
@@ -1434,21 +1462,51 @@ export function SetupWizard() {
             {step === 'world' && (
               <div>
                 <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
-                <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
-                <div className="mt-6 space-y-6">
-                  <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
-                    catalog={settingCatalog} value={setting} onChange={setSetting} />
-                  <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
-                    catalog={toneCatalog} value={tone} onChange={setTone} />
-                  <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
-                    catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
-                  <ChallengeOptionGroup name="challenge" legend={t('setup.world.challenge')} value={challenge}
-                    onChange={key => setChallenge(key as 'adventure' | 'challenge')}
-                    options={[
-                      { key: 'adventure', label: t('setup.world.challenge.adventure.label'), hint: t('setup.world.challenge.adventure.hint') },
-                      { key: 'challenge', label: t('setup.world.challenge.challenge.label'), hint: t('setup.world.challenge.challenge.hint') },
-                    ]} />
+                {/* US-216: bifurcação — primeiro conteúdo do passo, antes de qualquer grupo.
+                    `worldMode` começa null: nenhuma prévia nem grupo aparece até a escolha. */}
+                <p className="mt-2 text-sm text-muted-foreground">{t('setup.world.mode.subtitulo')}</p>
+                <div className="mt-6">
+                  <CatalogCardGroup name="world-mode" legend={t('setup.world.mode.subtitulo')} hideLegend
+                    items={[
+                      { key: 'ready', label: t('setup.world.mode.ready.title'), blurb: t('setup.world.mode.ready.hint') },
+                      { key: 'custom', label: t('setup.world.mode.custom.title'), blurb: t('setup.world.mode.custom.hint') },
+                    ]}
+                    value={worldMode ?? ''} onChange={key => setWorldMode(key as 'ready' | 'custom')} />
                 </div>
+
+                {/* Ramo "pronta": só o cartão de prévia do gancho da classe — nenhum grupo de
+                    Cenário/Tom/Área/Desafio aparece, todos ficam Aleatório/`adventure`
+                    (createWorldAdventure já omite o campo nesse estado, sem mudança). */}
+                {worldMode === 'ready' && initialHook && (
+                  <div className={cn(optionCardClass(true), 'mt-6')}>
+                    <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t('setup.world.mode.ready.title')}
+                    </span>
+                    <span className="mt-1 block font-serif text-base font-semibold text-parchment">{initialHookTitle}</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">{initialHookPitch}</span>
+                  </div>
+                )}
+
+                {/* Ramo "criar": a tela `world` de sempre, sem alteração de comportamento. */}
+                {worldMode === 'custom' && (
+                  <div className="mt-6">
+                    <p className="text-sm text-muted-foreground">{t('setup.world.subtitulo')}</p>
+                    <div className="mt-6 space-y-6">
+                      <WorldOptionGroup name="setting" legend={t('setup.world.setting')} randomLabel={t('setup.world.random')}
+                        catalog={settingCatalog} value={setting} onChange={setSetting} />
+                      <WorldOptionGroup name="tone" legend={t('setup.world.tone')} randomLabel={t('setup.world.random')}
+                        catalog={toneCatalog} value={tone} onChange={setTone} />
+                      <WorldOptionGroup name="areaType" legend={t('setup.world.areaType')} randomLabel={t('setup.world.random')}
+                        catalog={areaTypeCatalog} value={areaType} onChange={setAreaType} />
+                      <ChallengeOptionGroup name="challenge" legend={t('setup.world.challenge')} value={challenge}
+                        onChange={key => setChallenge(key as 'adventure' | 'challenge')}
+                        options={[
+                          { key: 'adventure', label: t('setup.world.challenge.adventure.label'), hint: t('setup.world.challenge.adventure.hint') },
+                          { key: 'challenge', label: t('setup.world.challenge.challenge.label'), hint: t('setup.world.challenge.challenge.hint') },
+                        ]} />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1466,10 +1524,14 @@ export function SetupWizard() {
                   <ArrowRight className="size-4" aria-hidden />
                 </DmButton>
               ) : step === 'world' ? (
-                <DmButton type="button" onClick={createWorldAdventure} disabled={starting}>
-                  <Check className="size-4" aria-hidden />
-                  {starting ? t('setup.world.starting') : t('setup.world.start')}
-                </DmButton>
+                // US-216: sem ramo escolhido ainda, não há o que confirmar — os cartões de
+                // bifurcação são a própria interação, não o botão do rodapé.
+                worldMode && (
+                  <DmButton type="button" onClick={createWorldAdventure} disabled={starting}>
+                    <Check className="size-4" aria-hidden />
+                    {starting ? t('setup.world.starting') : t('setup.world.start')}
+                  </DmButton>
+                )
               ) : (
                 <DmButton type="button" onClick={next} disabled={!canAdvance(step)}>
                   {t('setup.next')}

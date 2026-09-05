@@ -61,6 +61,13 @@ export const enUS: Record<MessageKey, string> = {
   // US-157: seventh step, after `review` — adventure setting/tone/area type.
   'setup.world.titulo': 'The world of the adventure',
   'setup.world.subtitulo': 'Choose setting, tone and area type — or leave each one on Random.',
+  // US-216: bifurcation at the start of the `world` step — "ready" (class hook, zero
+  // configuration) or "custom" (the usual screen, below).
+  'setup.world.mode.subtitulo': 'How do you want to begin?',
+  'setup.world.mode.ready.title': 'Ready adventure',
+  'setup.world.mode.ready.hint': 'Start right away with the ready-made hook for your class.',
+  'setup.world.mode.custom.title': 'Create my own story',
+  'setup.world.mode.custom.hint': 'Choose setting, tone, area and challenge from scratch.',
   'setup.world.setting': 'Setting',
   'setup.world.tone': 'Tone',
   'setup.world.areaType': 'Area Type',

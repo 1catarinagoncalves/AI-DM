@@ -66,6 +66,13 @@ export const ptBR = {
   // US-157: sétimo passo, depois de `review` — cenário/tom/tipo de área da aventura.
   'setup.world.titulo': 'O mundo da aventura',
   'setup.world.subtitulo': 'Escolha cenário, tom e tipo de área — ou deixe cada um no Aleatório.',
+  // US-216: bifurcação no início do passo `world` — "pronta" (gancho da classe, zero
+  // configuração) ou "criar" (a tela de sempre, abaixo).
+  'setup.world.mode.subtitulo': 'Como você quer começar?',
+  'setup.world.mode.ready.title': 'Aventura pronta',
+  'setup.world.mode.ready.hint': 'Comece direto com o gancho já pronto da sua classe.',
+  'setup.world.mode.custom.title': 'Criar minha história',
+  'setup.world.mode.custom.hint': 'Escolha cenário, tom, área e desafio do zero.',
   'setup.world.setting': 'Cenário',
   'setup.world.tone': 'Tom',
   'setup.world.areaType': 'Tipo de Área',

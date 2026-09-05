@@ -149,6 +149,26 @@ const configWithWorldCatalog = (budget: number) => ({
   areaTypes: [{ key: 'dungeon', label: 'Masmorra' }, { key: 'ruins', label: 'Ruínas' }],
 })
 
+// US-216: catálogo de ganchos de aventura inicial (US-28) — 'wizard' (a classe que
+// `pickSystemAndFillRaceClass` sempre escolhe, "Mago") tem entrada própria, 'default' prova
+// que o ramo "pronta" NUNCA mostra o catálogo inteiro (só a classe do personagem).
+const configWithInitialAdventures = (budget: number) => ({
+  ...configWithWorldCatalog(budget),
+  initialAdventures: {
+    hooks: [
+      {
+        id: 'hook-wizard', classKey: 'wizard', title: 'O chamado de {characterName}',
+        pitch: 'Um pergaminho antigo chama {characterName}, {characterClass}, para a torre.',
+        openingNarration: 'x', tags: [],
+      },
+      {
+        id: 'hook-default', classKey: 'default', title: 'Aventura genérica',
+        pitch: 'Um chamado qualquer para {characterName}.', openingNarration: 'x', tags: [],
+      },
+    ],
+  },
+})
+
 // US-27: config com perícias e orçamento de 2 proficiências.
 const configWithSkills = (budget: number) => ({
   ...configWithBudget(budget),
@@ -584,8 +604,11 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   })
 
   // US-157: depois de Confirmar, o jogador vê o passo "Mundo" (substitui a antiga etapa
-  // "Aventura inicial" da US-28, aposentada junto do gancho fixo por classe).
-  async function confirmAndReachWorld(config: SystemConfig) {
+  // "Aventura inicial" da US-28, aposentada junto do gancho fixo por classe). US-216: o passo
+  // nasce na bifurcação (nenhum grupo visível) — `reachWorldStep` para quem quer testar esse
+  // estado inicial, `confirmAndReachWorld` já escolhe "Criar minha história" por cima, mesmo
+  // atalho que todo teste abaixo (que só mexe nos grupos) já usava antes desta story.
+  async function reachWorldStep(config: SystemConfig) {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(config)
 
@@ -598,6 +621,59 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // confirma personagem → Mundo
     await screen.findByRole('heading', { name: 'O mundo da aventura' })
   }
+
+  async function confirmAndReachWorld(config: SystemConfig) {
+    await reachWorldStep(config)
+    fireEvent.click(screen.getByRole('radio', { name: /Criar minha história/ }))
+  }
+
+  // US-216: bifurcação "Aventura pronta" / "Criar minha história" no início do passo Mundo.
+  describe('bifurcação pronta/criar do passo Mundo (US-216)', () => {
+    it('nasce só com os dois cartões de bifurcação — nenhum grupo, nenhum botão de confirmar', async () => {
+      await reachWorldStep(configWithWorldCatalog(2))
+
+      expect(screen.getByRole('radio', { name: /Aventura pronta/ })).toBeTruthy()
+      expect(screen.getByRole('radio', { name: /Criar minha história/ })).toBeTruthy()
+      expect(screen.queryByText('Cenário')).toBeNull()
+      expect(screen.queryByText('Desafio')).toBeNull()
+      expect(screen.queryByRole('button', { name: /Criar aventura/ })).toBeNull()
+    })
+
+    it('selecionar "Aventura pronta" mostra o gancho da classe do personagem, não o catálogo inteiro', async () => {
+      await reachWorldStep(configWithInitialAdventures(2))
+      fireEvent.click(screen.getByRole('radio', { name: /Aventura pronta/ }))
+
+      // Lyra é Mago (wizard) — o gancho mostrado é o de 'wizard', com placeholders resolvidos.
+      expect(screen.getByText('O chamado de Lyra')).toBeTruthy()
+      expect(screen.getByText('Um pergaminho antigo chama Lyra, Mago, para a torre.')).toBeTruthy()
+      // Não é o catálogo inteiro: o gancho 'default' não aparece.
+      expect(screen.queryByText('Aventura genérica')).toBeNull()
+      // Nenhum grupo de Cenário/Tom/Área/Desafio neste ramo.
+      expect(screen.queryByText('Cenário')).toBeNull()
+      expect(screen.queryByText('Desafio')).toBeNull()
+      expect(screen.getByRole('button', { name: /Criar aventura/ })).toBeTruthy()
+    })
+
+    it('selecionar "Criar minha história" mostra os três grupos + Desafio, sem regressão', async () => {
+      await reachWorldStep(configWithWorldCatalog(2))
+      fireEvent.click(screen.getByRole('radio', { name: /Criar minha história/ }))
+
+      expect(screen.getByText('Cenário')).toBeTruthy()
+      expect(screen.getByText('Tom')).toBeTruthy()
+      expect(screen.getByText('Tipo de Área')).toBeTruthy()
+      expect(screen.getByText('Desafio')).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Criar aventura/ })).toBeTruthy()
+    })
+
+    it('confirmar no ramo "pronta" envia o mesmo DTO vazio que o ramo "criar" envia sem tocar em nenhum grupo', async () => {
+      createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
+      await reachWorldStep(configWithInitialAdventures(2))
+      fireEvent.click(screen.getByRole('radio', { name: /Aventura pronta/ }))
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+
+      expect(createAdventure).toHaveBeenCalledWith('char-1', {})
+    })
+  })
 
   it('passo Mundo nasce com os três grupos em Aleatório; avançar sem tocar envia o DTO vazio', async () => {
     createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura' })
