@@ -1,4 +1,4 @@
-# US-217 — "Aventura pronta" pula o motor de geração (revert pontual da US-153/US-155)
+# US-217 — "Aventura pronta" pula o motor de MUNDO, abertura continua gerada por IA (revert pontual da US-153/US-155)
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
@@ -11,17 +11,20 @@
 
 > ⚠️ **Esta story reabre, de forma estreita, duas decisões já fechadas.** A US-153 e a
 > US-155 continuam corretas para o ramo "Criar minha história" (US-216) — nada muda lá. O
-> que muda é só o ramo "Aventura pronta": ele deixa de passar pelo motor de geração e volta
-> a funcionar como a US-28 funcionava, antes de a US-153 existir.
+> que muda é só o ramo "Aventura pronta": ele deixa de rodar o motor de MUNDO (premissa,
+> locais, NPCs, segredos, antagonista, fecho) e volta ao gancho fixo por classe que a US-28
+> usava antes de a US-153 existir. A abertura (US-34) continua sendo escrita pela IA, como
+> sempre foi — correção de percurso pedida ao testar (ver *Contexto*).
 
 ---
 
 ## História
 
 > **Como** jogador que clicou "Aventura pronta",
-> **quero** que a aventura comece na hora, sem nenhuma chamada de IA rodando por baixo,
-> **para que** "pronta" signifique realmente pronta — não "zero configuração, mas ainda
-> esperando o motor gerar tudo".
+> **quero** que a aventura comece sem esperar o mundo inteiro ser gerado (locais, NPCs,
+> segredos, antagonista) — só a primeira cena, escrita na hora como sempre foi,
+> **para que** "pronta" signifique realmente pronta, sem o motor pesado do "Criar minha
+> história" rodando por baixo sem eu ter escolhido nada.
 
 ---
 
@@ -35,19 +38,23 @@ ramos — só a *escolha* de Cenário/Tom/Área/Desafio era pulada em "pronta". 
 mantenedora clicou "Aventura pronta" e viu os logs do `apps/api dev` disparando
 `[AiService][generatePremissa]`/`[AiService][generateLocationsAndNpcs]` normalmente — o
 motor inteiro (premissa, locais, NPCs, segredos, antagonista, fecho) continuava rodando.
-Pedido explícito: reverter para como a criação funcionava **antes da US-153 existir**
-(US-28) — zero chamada de IA, gancho fixo por classe.
+Pedido inicial: reverter para como a criação funcionava **antes da US-153 existir** (US-28).
 
 ### Investigação: o que "como era antes" significa de verdade
 
 `git log`/`git show` confirmam que a US-28 (`25a9127`) foi o **único commit da história do
 repo** com criação de aventura 100% síncrona. No dia seguinte, a US-34 (`d3ef9f2`) já
-introduziu a primeira chamada de IA (abertura gerada, com fallback estático no gancho). A
-US-28 persistia, sem nenhuma IA: `Adventure` (title = `hook.title`), `Quest`
-(title/description = `hook.primaryQuestTitle`/`primaryQuestDescription`, `isPrimary: true`)
-e um `EventLog` de abertura com `hook.openingNarration` — todos com `{characterName}`/
-`{characterClass}` resolvidos por template, sem locations/npcs/encounters/antagonista (esse
-conceito não existia ainda). É exatamente essa foto que esta story recria.
+introduziu a primeira chamada de IA — a abertura passou a ser escrita pelo Mestre na hora,
+com fallback pro texto estático do gancho se a IA falhar/vier vazia. Ou seja: desde o 2º dia
+de vida do projeto, a abertura NUNCA foi 100% estática em produção — só a quest
+(`primaryQuestTitle`/`primaryQuestDescription`) e o resto do que a US-28 persistia eram.
+
+**Correção de percurso (mesmo dia):** ao ver a implementação inicial (zero chamada de IA,
+inclusive na abertura), a mantenedora pediu que a abertura continuasse "como a
+[narração] se manteve" — ou seja, gerada pela IA, igual ao comportamento estável desde a
+US-34, e não regredida para a foto exata (e mais curta) da US-28. O que esta story
+efetivamente recria da US-28 é só a AUSÊNCIA do motor de mundo (US-153) — não a ausência
+de IA na abertura, que nunca foi assim depois do 2º dia do projeto.
 
 ### Por que isso é seguro de reintroduzir hoje
 
@@ -63,14 +70,20 @@ para sistemas sem `initialAdventures`/`generatedAdventure`.
 ### A proposta
 
 `dto.preset: true` (novo campo em `CreateAdventureDto`) faz `createForCharacter`
-(`adventure.service.ts`) bifurcar ANTES de chamar o motor: resolve o gancho da classe
+(`adventure.service.ts`) bifurcar ANTES do motor de mundo: resolve o gancho da classe
 (`resolveInitialHook`, já existente) e seus `title`/`primaryQuestTitle`/
-`primaryQuestDescription`/`openingNarration` (`resolveHookTemplate`, já existente) e
-persiste `Adventure`/`AdventureParticipant`/`CharacterState`/`Quest`/`EventLog`
-diretamente, numa única transação, **sem nenhuma chamada a `this.ai.*`**.
-`generatedAdventure`/`entities`/`sceneState`/`Quest.objective`/`conclusionHint` ficam
-ausentes (mesmo formato "Free/legado" citado acima). O ramo "Criar minha história" não
-manda `preset` e continua idêntico ao motor de hoje.
+`primaryQuestDescription`/`openingNarration` (`resolveHookTemplate`, já existente),
+chama `this.ai.generateOpeningNarration`/`extractOpeningScene` (a MESMA dupla de chamadas
+que o ramo gerado já faz para a abertura, US-34/US-35 — sem `mainQuest`/`tone`/`setting`/
+`areaType`/`entities`, porque não há motor gerado nesse ramo) e persiste
+`Adventure`/`AdventureParticipant`/`CharacterState`/`Quest`/`EventLog` numa única
+transação, **sem nenhuma chamada às 6 funções do motor de mundo** (`generatePremissa`,
+`generateLocationsAndNpcs`, `generateSecrets`, `generateAntagonist`, `generateClosing`,
+`generateAntagonistLocationProse`) nem ao `rollAdventure`/gate (US-150).
+`generatedAdventure`/`entities`/`Quest.objective`/`conclusionHint` ficam ausentes (mesmo
+formato "Free/legado" citado acima); `CharacterState.sceneState` fica presente ou ausente
+dependendo só de a extração de cena ter respondido, exatamente como no ramo gerado. O ramo
+"Criar minha história" não manda `preset` e continua idêntico ao motor de hoje.
 
 ---
 
@@ -87,9 +100,11 @@ manda `preset` e continua idêntico ao motor de hoje.
 - **`dto.preset?: boolean`** em `CreateAdventureDto`/`CreateAdventureSchema` — `true` pula o
   motor inteiro; ausente/`false` mantém o comportamento de hoje. `tone`/`setting`/`areaType`/
   `challenge` são ignorados quando `preset` é `true` (o ramo "pronta" nunca os envia).
-- **Novo ramo síncrono em `createForCharacter`** — zero chamada a `this.ai.*`; persiste
-  `Adventure` sem `generatedAdventure`/`entities`, `CharacterState` sem `sceneState`, `Quest`
-  sem `objective`/`conclusionHint`.
+- **Novo ramo em `createForCharacter`** — zero chamada às 6 funções do motor de MUNDO
+  (locais/NPCs/segredos/antagonista/premissa/fecho) e ao gate (US-150); a abertura continua
+  chamando `generateOpeningNarration`/`extractOpeningScene` (US-34/US-35), como sempre.
+  Persiste `Adventure` sem `generatedAdventure`/`entities`, `Quest` sem `objective`/
+  `conclusionHint`.
 - **`SetupWizard.tsx`** — `createWorldAdventure` manda `{ preset: true }` quando
   `worldMode === 'ready'`, em vez do dto vazio de antes.
 
@@ -99,8 +114,11 @@ manda `preset` e continua idêntico ao motor de hoje.
   (US-153), sem nenhuma alteração de comportamento — `dto.preset` ausente é o mesmo
   `createForCharacter` de sempre.
 - **Locations/NPCs/encounters/antagonista fixos.** Esse conceito não existia na US-28 e não
-  volta agora — "pronta" é gancho + quest + abertura, do jeito que sempre foi antes da
-  US-153. Não é uma versão reduzida do `GeneratedAdventureSchema`, é a ausência dele.
+  volta agora — "pronta" é gancho + quest + abertura (gerada por IA), do jeito que sempre
+  foi. Não é uma versão reduzida do `GeneratedAdventureSchema`, é a ausência dele.
+- **Abertura estática (zero IA).** Tentativa inicial desta story, corrigida no mesmo dia
+  (ver *Contexto*) — a abertura sempre foi gerada pela IA desde a US-34, e continua sendo
+  neste ramo. Só o motor de MUNDO (US-153) fica ausente.
 - **Endpoint novo.** `POST /characters/:id/adventures` continua sendo o único caminho —
   `preset` é só mais um campo do mesmo DTO.
 - **Mudar a UI da bifurcação em si** (cartões, cartão de prévia) — isso já é US-216; esta
@@ -135,7 +153,7 @@ export interface CreateAdventureDto {
 }
 ```
 
-Sem migração de banco — `Adventure.generatedAdventure`/`entities` e
+Sem migração de banco — `Adventure.generatedAdventure`/`entities`,
 `CharacterState.sceneState` e `Quest.objective`/`conclusionHint` já eram todos opcionais no
 schema Prisma (o caminho "Free/legado" já existia).
 
@@ -143,14 +161,19 @@ schema Prisma (o caminho "Free/legado" já existia).
 
 ## Critérios de aceite
 
-- [x] `dto.preset: true` não dispara nenhuma chamada a `AiService` (`generatePremissa`,
-      `generateLocationsAndNpcs`, `generateSecrets`, `generateAntagonist`, `generateClosing`,
-      `generateOpeningNarration`, `extractOpeningScene`, `generateAntagonistLocationProse`).
-- [x] `Adventure.title`, `Quest.title`/`description` e o `EventLog` de abertura vêm do gancho
-      da classe do personagem (`resolveInitialHook`), com `{characterName}`/`{characterClass}`
-      resolvidos — mesma regra de fallback `default` de sempre.
-- [x] `Adventure.generatedAdventure`/`entities` ficam ausentes; `CharacterState.sceneState`
-      fica ausente; `Quest.objective`/`conclusionHint` ficam ausentes.
+- [x] `dto.preset: true` não dispara nenhuma chamada às 6 funções do motor de MUNDO
+      (`generatePremissa`, `generateLocationsAndNpcs`, `generateSecrets`,
+      `generateAntagonist`, `generateClosing`, `generateAntagonistLocationProse`) nem ao
+      gate (US-150)/`rollAdventure`.
+- [x] `dto.preset: true` CONTINUA chamando `generateOpeningNarration`/`extractOpeningScene`
+      (US-34/US-35) para a abertura — mesma dupla de chamadas do ramo gerado, com fallback
+      pro texto estático do gancho se a IA falhar/vier vazia.
+- [x] `Adventure.title` e `Quest.title`/`description` vêm do gancho da classe do personagem
+      (`resolveInitialHook`), com `{characterName}`/`{characterClass}` resolvidos — mesma
+      regra de fallback `default` de sempre.
+- [x] `Adventure.generatedAdventure`/`entities` ficam ausentes; `Quest.objective`/
+      `conclusionHint` ficam ausentes; `CharacterState.sceneState` fica presente quando a
+      extração de cena responde, ausente quando não — mesmo comportamento do ramo gerado.
 - [x] `dto.preset` ausente/`false` mantém o comportamento gerado de hoje, sem regressão —
       `git diff` sem nenhuma mudança de lógica no ramo `!dto.preset`.
 - [x] `SetupWizard.tsx`: selecionar "Aventura pronta" e confirmar chama
@@ -159,11 +182,13 @@ schema Prisma (o caminho "Free/legado" já existia).
       `primaryQuestDescription`; os 13 ganchos (12 classes + `default`) têm os dois campos
       preenchidos nos dois locales.
 - [x] `pnpm typecheck` e `pnpm test` passam (repo inteiro).
-- [x] **Eval / teste de regressão:** teste que confirma zero chamada de IA quando
-      `preset: true` (spy em todos os métodos de `AiService`); teste que confirma
-      `generatedAdventure`/`entities`/`sceneState`/`objective`/`conclusionHint` ausentes;
-      teste que confirma fallback para o hook `default` quando a classe não tem gancho
-      próprio; teste de regressão do ramo gerado (sem `preset`) inalterado.
+- [x] **Eval / teste de regressão:** teste que confirma zero chamada às 6 funções do motor
+      de mundo quando `preset: true`; teste que confirma a abertura usa o texto da IA quando
+      ela responde; teste que confirma o fallback pro texto estático quando a IA falha/vem
+      vazia; teste que confirma `sceneState` populado quando a extração de cena responde;
+      teste que confirma `generatedAdventure`/`entities`/`objective`/`conclusionHint`
+      ausentes; teste que confirma fallback para o hook `default` quando a classe não tem
+      gancho próprio; teste de regressão do ramo gerado (sem `preset`) inalterado.
 
 ---
 
@@ -172,9 +197,13 @@ schema Prisma (o caminho "Free/legado" já existia).
 - `resolveInitialHook`/`resolveHookTemplate` ([starting-inventory.ts](../../../apps/api/src/character/starting-inventory.ts))
   já existiam e já eram usados pelo ramo gerado (só para o `hookSeed`) — o ramo preset
   reusa as MESMAS duas funções, sem duplicar regra.
-- O fork em `createForCharacter` acontece logo depois do `order` ser calculado (prefixo
-  comum: carregar character/system/config, `resolveInitialHook`, inventário) — ambos os
-  ramos compartilham essa parte; só a transação final diverge.
+- O fork em `createForCharacter` acontece logo depois do `order` ser calculado E do bloco
+  que monta `labelPairs`/`skills`/`features`/`knownSpells` (hoisted pra antes do `if
+  (dto.preset)` — os dois ramos precisam dele pra `generateOpeningNarration`). Só a partir
+  daí um ramo chama o motor de mundo e o outro não; a chamada de abertura em si é
+  praticamente idêntica nos dois (o ramo preset só não tem `mainQuest`/`tone`/`setting`/
+  `areaType`/`entities` vindos de um artefato gerado — usa a quest estática no lugar de
+  `mainQuest` e omite os outros 4).
 - `initial-adventures.ts` só alimenta `System.config` (JSON) no momento do `pnpm db:seed` —
   mudar o arquivo exige re-seed pra chegar ao banco (Neon, branch `dev`).
 

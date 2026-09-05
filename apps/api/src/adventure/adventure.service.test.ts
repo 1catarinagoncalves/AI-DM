@@ -848,13 +848,15 @@ describe('AdventureService.createForCharacter', () => {
     expect(recorded.characterStateCreate).toMatchObject({ inventory: [{ name: 'Adaga', qty: 1 }] })
   })
 
-  // US-217: ramo "Aventura pronta" (US-216) — `dto.preset: true` pula o motor de geração
-  // inteiro, de volta ao gancho fixo por classe que a US-28 usava antes da US-153 existir.
+  // US-217: ramo "Aventura pronta" (US-216) — `dto.preset: true` pula o motor de MUNDO
+  // (premissa/locais/NPCs/segredos/antagonista/fecho), de volta ao gancho fixo por classe
+  // que a US-28 usava antes da US-153 existir. Correção pontual: a ABERTURA continua
+  // gerada pela IA (US-34) igual sempre foi — só o resto do motor some.
   describe('ramo "Aventura pronta" (dto.preset, US-217)', () => {
-    function fakeAiSpy(): AiService {
+    function fakeAiSpy(opening: string | null = null, scene: Record<string, unknown> | null = null): AiService {
       return {
-        generateOpeningNarration: vi.fn(),
-        extractOpeningScene: vi.fn(),
+        generateOpeningNarration: vi.fn().mockResolvedValue(opening),
+        extractOpeningScene: vi.fn().mockResolvedValue(scene),
         extractOpeningEntities: vi.fn(),
         generatePremissa: vi.fn(),
         generateLocationsAndNpcs: vi.fn(),
@@ -865,7 +867,7 @@ describe('AdventureService.createForCharacter', () => {
       } as unknown as AiService
     }
 
-    it('persiste Adventure/Quest/EventLog do gancho fixo da classe, sem nenhuma chamada de IA', async () => {
+    it('persiste Adventure/Quest do gancho fixo da classe, sem chamar o motor de mundo', async () => {
       const character = {
         id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
         baseAttributes: { constitution: 14 }, system: { config },
@@ -882,14 +884,63 @@ describe('AdventureService.createForCharacter', () => {
         description: 'Descubra o que o grimório sussurra a Elara.',
         isPrimary: true,
       })
-      expect(recorded.eventLogCreate).toMatchObject({ type: 'NARRATION', payload: { text: 'A vela curva-se, Elara.' } })
-      for (const method of Object.values(ai)) expect(method).not.toHaveBeenCalled()
+      expect(ai.generatePremissa).not.toHaveBeenCalled()
+      expect(ai.generateLocationsAndNpcs).not.toHaveBeenCalled()
+      expect(ai.generateSecrets).not.toHaveBeenCalled()
+      expect(ai.generateAntagonist).not.toHaveBeenCalled()
+      expect(ai.generateClosing).not.toHaveBeenCalled()
+      expect(ai.generateAntagonistLocationProse).not.toHaveBeenCalled()
     })
 
-    // US-199: Adventure sem `generatedAdventure`/`entities`, CharacterState sem `sceneState`
-    // e Quest sem `objective`/`conclusionHint` são o mesmo caminho "Free/legado" que
-    // ai.service.ts já trata de graça — não um estado novo e não testado em produção.
-    it('Adventure sem generatedAdventure/entities; CharacterState sem sceneState; Quest sem objective/conclusionHint', async () => {
+    it('abertura continua gerada pela IA — usa o texto do modelo quando ele responde', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config },
+      }
+      const { prisma, recorded } = fakePrisma(character)
+      const ai = fakeAiSpy('A vela responde ao seu chamado de um jeito novo desta vez.')
+      const service = new AdventureService(prisma, ai)
+
+      await service.createForCharacter('char-1', { preset: true })
+
+      expect(recorded.eventLogCreate).toMatchObject({ type: 'NARRATION', payload: { text: 'A vela responde ao seu chamado de um jeito novo desta vez.' } })
+      expect(ai.generateOpeningNarration).toHaveBeenCalledTimes(1)
+    })
+
+    // US-101: mesmo fallback do ramo gerado (linha ~600) — falha/vazio da IA cai no texto
+    // estático do gancho, nunca derruba a criação.
+    it('IA falha/vazia: cai no texto estático do gancho', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config },
+      }
+      const { prisma, recorded } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAiSpy(null))
+
+      await service.createForCharacter('char-1', { preset: true })
+
+      expect(recorded.eventLogCreate).toMatchObject({ payload: { text: 'A vela curva-se, Elara.' } })
+    })
+
+    // US-35: mesma extração de cena do ramo gerado — o turno 1 do ramo "pronta" ganha a
+    // mesma âncora de continuidade quando a IA responde.
+    it('sceneState populado quando a extração de cena responde — mesma âncora do ramo gerado', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config },
+      }
+      const { prisma, recorded } = fakePrisma(character)
+      const service = new AdventureService(prisma, fakeAiSpy('Abertura gerada.', { local: 'Torre do Arquivo' }))
+
+      await service.createForCharacter('char-1', { preset: true })
+
+      expect(recorded.characterStateCreate).toHaveProperty('sceneState')
+    })
+
+    // US-199: Adventure sem `generatedAdventure`/`entities` e Quest sem `objective`/
+    // `conclusionHint` são o mesmo caminho "Free/legado" que ai.service.ts já trata de
+    // graça — não um estado novo e não testado em produção.
+    it('Adventure sem generatedAdventure/entities; Quest sem objective/conclusionHint', async () => {
       const character = {
         id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
         baseAttributes: { constitution: 14 }, system: { config },
@@ -901,9 +952,11 @@ describe('AdventureService.createForCharacter', () => {
 
       expect(recorded.adventureCreate).not.toHaveProperty('generatedAdventure')
       expect(recorded.adventureCreate).not.toHaveProperty('entities')
-      expect(recorded.characterStateCreate).not.toHaveProperty('sceneState')
       expect(recorded.questCreate).not.toHaveProperty('objective')
       expect(recorded.questCreate).not.toHaveProperty('conclusionHint')
+      // Sem resposta da extração de cena (fakeAiSpy default), sceneState fica ausente —
+      // mesmo fallback do ramo gerado, não uma lacuna deste ramo.
+      expect(recorded.characterStateCreate).not.toHaveProperty('sceneState')
     })
 
     it('classe sem gancho próprio cai no hook default, placeholder {characterClass} resolvido', async () => {

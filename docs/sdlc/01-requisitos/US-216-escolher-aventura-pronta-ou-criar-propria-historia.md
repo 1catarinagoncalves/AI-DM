@@ -9,12 +9,13 @@
 ---
 
 > ⚠️ **Correção (2026-09-05):** ao testar esta story implementada, a mantenedora pediu que
-> "Aventura pronta" voltasse a ser **zero geração** (como a US-28, antes da US-153 existir) —
-> não só "zero configuração" com o motor rodando por baixo, como o escopo abaixo (e o
-> `git diff` intacto de `apps/api/src/adventure/`) originalmente previa. A
-> [US-217](./US-217-aventura-pronta-sem-motor-de-geracao.md) reabre esse ponto específico:
-> ver *Fora do escopo* e os critérios de aceite marcados abaixo — o resto desta story
-> (a bifurcação em si, o cartão de prévia, a UI) continua válido e sem mudança.
+> "Aventura pronta" parasse de rodar o motor de MUNDO (premissa/locais/NPCs/segredos/
+> antagonista/fecho, US-153) — não só "zero configuração" com esse motor pesado rodando por
+> baixo, como o escopo abaixo (e o `git diff` intacto de `apps/api/src/adventure/`)
+> originalmente previa. A abertura em si continua gerada por IA (US-34), como sempre foi —
+> a [US-217](./US-217-aventura-pronta-sem-motor-de-geracao.md) reabre só o motor de mundo,
+> não a abertura. Ver *Fora do escopo* e os critérios de aceite marcados abaixo — o resto
+> desta story (a bifurcação em si, o cartão de prévia, a UI) continua válido e sem mudança.
 
 > ⚠️ **Esta story reabre uma decisão de produto fechada duas vezes.**
 > [backlog-aventuras-autorais-lazygm.md §Uma campanha só para todas as classes](./backlog-aventuras-autorais-lazygm.md)

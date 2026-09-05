@@ -488,9 +488,23 @@ export class AdventureService {
     // do valor pronto; a transação recebe este MESMO `order`, não recalcula.
     const order = (await this.prisma.adventureParticipant.count({ where: { characterId } })) + 1
 
-    // US-217: ramo "Aventura pronta" (US-216) — pula o motor de geração inteiro, de volta
-    // ao gancho fixo por classe que a US-28 usava antes de a US-153 existir. Zero chamada a
-    // `this.ai.*`; `generatedAdventure`/`entities`/`sceneState`/`Quest.objective`/
+    // Abertura gerada pelo MESMO DM (US-34), FORA da transação (LLM é lento e não deve
+    // segurar locks) — usado pelos DOIS ramos (US-217): a abertura continua escrita na
+    // hora pela IA mesmo no ramo "pronta", só o motor de MUNDO (premissa/locais/NPCs/
+    // segredos/antagonista/fecho) some. Falha/vazio → cai no texto estático do gancho.
+    const labelPairs = (config.attributes ?? []).map((a) => [a.key, a.label] as const)
+    // Perícias com modificador para a abertura (US-27): o DM já conhece as competências desde a 1ª cena.
+    const skills = config.skills
+      ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
+        .map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
+      : undefined
+    const features = resolveSheetEntries(config.classFeatures, config.retiredFeatures, character.class, (character.features ?? []) as string[])
+    const knownSpells = resolveSheetEntries(config.classSpells, config.retiredSpells, character.class, (character.spells ?? []) as string[])
+
+    // US-217: ramo "Aventura pronta" (US-216) — pula o motor de MUNDO inteiro, de volta ao
+    // gancho fixo por classe que a US-28 usava antes de a US-153 existir. A ABERTURA
+    // continua gerada pelo mesmo DM (US-34) logo abaixo — só premissa/locais/NPCs/
+    // segredos/antagonista/fecho somem. `generatedAdventure`/`entities`/`Quest.objective`/
     // `conclusionHint` ficam ausentes — o mesmo caminho "Free/legado" que `ai.service.ts`
     // já trata de graça (US-199, ver `ai.service.ts` §isAntagonistRevealed/tone-setting-areaType),
     // não um caso novo. `tone`/`setting`/`areaType`/`challenge` do dto são ignorados aqui —
@@ -500,7 +514,35 @@ export class AdventureService {
       const title = resolveHookTemplate(rawHook.title, vars)
       const questTitle = resolveHookTemplate(rawHook.primaryQuestTitle, vars)
       const questDescription = resolveHookTemplate(rawHook.primaryQuestDescription, vars)
-      const openingText = resolveHookTemplate(rawHook.openingNarration, vars)
+      const hookOpening = resolveHookTemplate(rawHook.openingNarration, vars)
+
+      const generatedOpening = await this.ai.generateOpeningNarration({
+        systemName: system.name,
+        characterName: character.name,
+        characterGender: character.gender,
+        characterClass: className,
+        characterRace: raceName,
+        mainQuest: `${questTitle}\n${questDescription}`,
+        inventory: fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
+        sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
+        hookSeed: hookOpening,
+        attributeLabels: Object.fromEntries(labelPairs),
+        background: (character.background ?? {}) as unknown as CharacterBackground,
+        features,
+        spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
+        locale,
+        // Sem `tone`/`setting`/`areaType`/`entities`: não há registry nem ledger semeado
+        // nesse ramo (não há motor gerado) — mesmas 4 ausências do caminho "Free/legado".
+      })
+      const openingText = generatedOpening ?? hookOpening
+
+      // US-35: mesma extração de cena do ramo gerado — o turno 1 do ramo "pronta" merece
+      // a mesma âncora de continuidade. Falha/vazio → nulo, nunca derruba a criação.
+      const scenePatch = await this.ai.extractOpeningScene(
+        openingText,
+        fullInventory.map((i) => i.name),
+      )
+      const sceneState = scenePatch ? mergeSceneState(null, scenePatch) : null
 
       return this.prisma.$transaction(async (tx) => {
         // Fecha a aventura ativa anterior do personagem (continuidade sequencial, ver ADR 002)
@@ -523,6 +565,7 @@ export class AdventureService {
             maxHp,
             attributes: character.baseAttributes as object,
             inventory: fullInventory as unknown as object,
+            ...(sceneState ? { sceneState: sceneState as unknown as object } : {}),
           },
         })
 
@@ -557,16 +600,6 @@ export class AdventureService {
     // (US-153). Síncrono: não entra no Promise.all abaixo, que é só para chamadas de LLM.
     const seededEntities = seedLedgerFromGeneratedAdventure(generated)
 
-    // Abertura gerada pelo MESMO DM (US-34), FORA da transação (LLM é lento e não
-    // deve segurar locks). Falha/vazio → cai no hookSeed estático do perfil.
-    const labelPairs = (config.attributes ?? []).map((a) => [a.key, a.label] as const)
-    // Perícias com modificador para a abertura (US-27): o DM já conhece as competências desde a 1ª cena.
-    const skills = config.skills
-      ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
-        .map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
-      : undefined
-    const features = resolveSheetEntries(config.classFeatures, config.retiredFeatures, character.class, (character.features ?? []) as string[])
-    const knownSpells = resolveSheetEntries(config.classSpells, config.retiredSpells, character.class, (character.spells ?? []) as string[])
     const generatedOpening = await this.ai.generateOpeningNarration({
       systemName: system.name,
       characterName: character.name,
