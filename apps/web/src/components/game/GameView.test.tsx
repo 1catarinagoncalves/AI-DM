@@ -79,7 +79,7 @@ describe('GameView — abas na ficha (US-45)', () => {
   // na aba Ficha, some sem itens), nunca dentro do BackgroundPanel.
   it('mostra o bloco de ferramentas na aba Ficha quando presente', async () => {
     render(<GameView {...baseProps} tools={['Ferramentas de Ladrão', 'Jogo de Dados']} />)
-    expect(await screen.findByText('Proficiências')).toBeTruthy()
+    expect(await screen.findByText('Proficiências de itens')).toBeTruthy()
     expect(screen.getByText('Ferramentas de Ladrão')).toBeTruthy()
     expect(screen.getByText('Jogo de Dados')).toBeTruthy()
   })

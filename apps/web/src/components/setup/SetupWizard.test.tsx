@@ -2055,7 +2055,7 @@ describe('SetupWizard — US-215 proficiência de arma e ferramenta fixa de raç
 
   it('revisão mostra ferramenta de funileiro na linha "Proficiências" para rock-gnome, mesmo sem ferramenta de origem', async () => {
     await pickRaceWeaponConfig(configWithRaceWeapons(2), 'Gnomo')
-    expect(screen.getByText('Proficiências')).toBeTruthy()
+    expect(screen.getByText('Proficiências de itens')).toBeTruthy()
     expect(screen.getByText('Ferramentas de Funileiro')).toBeTruthy()
     // Gnomo das Rochas não tem traço de ARMA — a linha "Proficiências de arma" não aparece.
     expect(screen.queryByText('Proficiências de arma')).toBeNull()
