@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (07/09/2026)
 **Depende de:** [US-42](./US-42-magias-conhecidas.md) (`Character.spells`, `config.classSpells`, `getClassSpells` — a mecânica de magia por classe que esta story estende com uma fonte extra) · [US-142](./US-142-tracos-mecanicos-subespecie-srd-5-1.md) (traço `cantrip` do Alto-elfo, hoje só texto em `raceFeatures['high-elf']`, sem mecânica) · [US-212](./US-212-bonus-de-atributo-de-raca-na-etapa-de-atributos.md) (nomeou explicitamente este truque como *fora do escopo* — "Escolha dentro de traço de subclasse/raça além do ASI (ex. truque de mago do Alto-elfo — US-142 Questão em aberto #3, já adiada)" — esta story é esse reabrir)
 **Relacionado:**
 - [US-207](./US-207-atributos-e-pericias-com-orcamento-visivel.md) — etapa `skills` atual, logo antes de onde `spells` entra.
@@ -32,7 +32,7 @@ A [US-212](./US-212-bonus-de-atributo-de-raca-na-etapa-de-atributos.md), ao meca
 
 ### Por que não é só mais um campo dentro da etapa `race`
 
-A etapa `race` (US-205) já acumula campo condicional por raça — ancestralidade dracônica do Dragonborn (US-211), ferramenta racial do Anão da Colina (US-142/US-212) — cada um resolvido **ali mesmo**, porque são escolhas sobre a própria identidade racial (que dragão, que ferramenta), fechadas antes de saber a classe. O truque do Alto-elfo é diferente: a lista de onde escolher é a do **Mago** (`config.classSpells['mago']`), um catálogo de **classe**, não de raça. Colocar o `<select>` na etapa `race` obrigaria a etapa a conhecer o catálogo de magia de uma classe que o jogador pode nem ter escolhido ainda (a etapa `race` vem **antes** de `background`/`attributes`/`skills`, mas a classe já foi escolhida na etapa anterior, `class` — então o dado existe, só que semanticamente pertence à seção de magia, não à de raça).
+A etapa `race` (US-205) já acumula campo condicional por raça — ancestralidade dracônica do Dragonborn (US-211), ferramenta racial do Anão da Colina (US-142/US-212) — cada um resolvido **ali mesmo**, porque são escolhas sobre a própria identidade racial (que dragão, que ferramenta), fechadas antes de saber a classe. O truque do Alto-elfo é diferente: a lista de onde escolher é a do **Mago** (`config.classSpells['wizard']`), um catálogo de **classe**, não de raça. Colocar o `<select>` na etapa `race` obrigaria a etapa a conhecer o catálogo de magia de uma classe que o jogador pode nem ter escolhido ainda (a etapa `race` vem **antes** de `background`/`attributes`/`skills`, mas a classe já foi escolhida na etapa anterior, `class` — então o dado existe, só que semanticamente pertence à seção de magia, não à de raça).
 
 Além disso, o personagem já tem magias de classe — 0 a 20 truques, mais as 2 magias fixas de Paladino/Patrulheiro (US-42) — que hoje só aparecem na **Revisão** (US-50), depois de todas as escolhas fechadas. Uma etapa própria de "Magias", entre Perícias e Revisão, dá ao jogador uma prévia do que ele vai ter **antes** da tela final, e é o lugar natural para hospedar a única escolha real que o sistema de magia tem hoje: o truque bônus do Alto-elfo.
 
@@ -49,11 +49,11 @@ O modelo de magia da US-42 continua **awareness apenas**: toda classe conjurador
 - **Nova etapa `spells`**, entre `skills` e `review`. `Step`/`steps` (`SetupWizard.tsx:34-35`) ganham a chave nova nessa posição; só `review` e `world` deslocam uma posição, mesma disciplina das inserções anteriores (US-205, US-211).
 - **Lista somente-leitura das magias da classe**, reaproveitando `previewSpells`/`getClassSpells`/`resolveSheetEntries` já calculados (`SetupWizard.tsx:439-442`) — mesmo formato nome + rótulo de nível + descrição que a Revisão (US-50) já usa. Não recalcula, não duplica lógica.
 - **Estado vazio** quando a classe não concede magia nenhuma (`spells.length === 0`) e a raça não é `high-elf` (ou é `high-elf` mas o catálogo de truque do Mago está vazio): mensagem explicativa ("Este personagem não tem magias."), sem bloquear avanço — mesmo espírito do empty state da US-50, adaptado de aba de ficha para etapa de wizard.
-- **Escolha do truque do Alto-elfo**, visível só quando `charData.race === 'high-elf'` **e** `config.classSpells['mago']` tem pelo menos um truque (nível 0): um `<select>` "Escolha um truque de mago" com as opções de `config.classSpells['mago'].filter(s => s.level === 0)`, mesmo `fieldClass`/`SELECT_ARROW` dos demais `<select>` do wizard (padrão de `draconicAncestry`/`raceToolChoice`).
+- **Escolha do truque do Alto-elfo**, visível só quando `charData.race === 'high-elf'` **e** `config.classSpells['wizard']` tem pelo menos um truque (nível 0): um `<select>` "Escolha um truque de mago" com as opções de `config.classSpells['wizard'].filter(s => s.level === 0)`, mesmo `fieldClass`/`SELECT_ARROW` dos demais `<select>` do wizard (padrão de `draconicAncestry`/`raceToolChoice`).
 - **`canAdvance('spells')`** exige a escolha preenchida quando o `<select>` é exigível (high-elf + catálogo não vazio); nos demais casos, a etapa nunca bloqueia avanço.
 - **Reset da escolha ao trocar de raça**: `selectRootCard`/`handleSelectSystem` ganham `setRaceCantripChoice(undefined)` ao lado dos resets já existentes de `draconicAncestry`/`raceToolChoice`/`raceAbilityChoice` — trocar de Alto-elfo para outra raça (ou vice-versa) não deixa escolha órfã.
 - **`raceCantripChoice`** novo no DTO (`character.schema.ts`), sibling de `race`/`raceToolChoice`: `z.string().max(80).optional()`.
-- **`character.service.ts`**: quando `race === 'high-elf'` e `config.classSpells?.['mago']` tem truque(s), valida `dto.raceCantripChoice` contra essa lista (`validateCatalogKey`, mesma função já usada por `draconicAncestry`/`raceToolChoice`/`class`/`race`) e **soma** a magia escolhida a `Character.spells` — sem duplicar se a classe do personagem já concede o mesmo truque (ex.: um Mago Alto-elfo escolhendo um truque que já teria de qualquer forma).
+- **`character.service.ts`**: quando `race === 'high-elf'` e `config.classSpells?.['wizard']` tem truque(s), valida `dto.raceCantripChoice` contra essa lista (`validateCatalogKey`, mesma função já usada por `draconicAncestry`/`raceToolChoice`/`class`/`race`) e **soma** a magia escolhida a `Character.spells` — sem duplicar se a classe do personagem já concede o mesmo truque (ex.: um Mago Alto-elfo escolhendo um truque que já teria de qualquer forma).
 - **Trilha de progresso**: chip "Magias" (`setup.step.spells`) entre "Perícias" e "Revisão", navegável de volta como as demais.
 - **i18n**: `setup.step.spells`, rótulo da etapa, mensagem de estado vazio e rótulo do `<select>` nos dois locales (US-98).
 - **Mobile**: etapa em coluna única (US-66) — é lista + um `<select>`, sem grade, layout de formulário simples já cobre.
@@ -78,20 +78,21 @@ raceCantripChoice: z.string().max(80).optional(),
 
 ```ts
 // apps/api/src/character/character.service.ts — logo após `const spells = getClassSpells(config, charClass)`
-const wizardCantrips = (config.classSpells?.['mago'] ?? []).filter((s) => s.level === 0)
+// `spells` já é `string[]` (chaves) — getClassSpells só devolve `.map((s) => s.key)` (US-100),
+// não os objetos `SystemSpell` completos. Dedupe e merge são diretos sobre chave, sem `.find`.
+const wizardCantrips = (config.classSpells?.['wizard'] ?? []).filter((s) => s.level === 0)
 const raceCantripKey = race === 'high-elf' && wizardCantrips.length > 0
   ? this.validateCatalogKey(wizardCantrips, dto.raceCantripChoice ?? '', 'Truque do Alto-elfo')
   : undefined
-const raceCantrip = raceCantripKey ? wizardCantrips.find((s) => s.key === raceCantripKey) : undefined
-const spellsWithRaceCantrip = raceCantrip && !spells.some((s) => s.key === raceCantrip.key)
-  ? [...spells, raceCantrip]
+const spellsWithRaceCantrip = raceCantripKey && !spells.includes(raceCantripKey)
+  ? [...spells, raceCantripKey]
   : spells
 ```
 
 | Campo | Antes | Depois |
 |---|---|---|
-| `CreateCharacterDto.raceCantripChoice` | não existe | novo, opcional — chave de `config.classSpells['mago']` (nível 0). Exigido pelo `canAdvance` do wizard só quando `race === 'high-elf'` e há truque de mago no catálogo; validado no service com a mesma regra. |
-| `Character.spells` (persistido) | truques/magias da classe (US-42) | idem + o truque do Alto-elfo, quando aplicável — mesma entrada `SystemSpell` (`{key,name,level,description,source}`) do catálogo do Mago, sem campo novo de proveniência. |
+| `CreateCharacterDto.raceCantripChoice` | não existe | novo, opcional — chave de `config.classSpells['wizard']` (nível 0). Exigido pelo `canAdvance` do wizard só quando `race === 'high-elf'` e há truque de mago no catálogo; validado no service com a mesma regra. |
+| `Character.spells` (persistido) | chaves de truques/magias da classe (US-42, US-100) | idem + a chave do truque do Alto-elfo, quando aplicável — mesmo array de `string`, sem campo novo de proveniência. |
 
 **Persistência:** sem migração Prisma — `Character.spells` já é `Json`; o truque extra só é mais um elemento do array existente, mesmo padrão de `applyRaceGrant`/`applyAbilityGrant` somando sobre um campo já persistido.
 
@@ -99,21 +100,21 @@ const spellsWithRaceCantrip = raceCantrip && !spells.some((s) => s.key === raceC
 
 ## Critérios de aceite
 
-- [ ] `Step`/`steps` ganham `'spells'` entre `'skills'` e `'review'`; só `'review'` e `'world'` deslocam uma posição.
-- [ ] A etapa `spells` mostra a lista somente-leitura das magias que a classe escolhida concede (nome, rótulo de nível, descrição), idêntica ao que a Revisão já mostra hoje.
-- [ ] Classe sem magia (`spells.length === 0`) e raça diferente de `high-elf` (ou `high-elf` sem truque de mago no catálogo): a etapa mostra um estado vazio explicativo, sem bloquear o avanço.
-- [ ] `charData.race === 'high-elf'` e `config.classSpells['mago']` tem ao menos um truque (nível 0): a etapa mostra um `<select>` "Escolha um truque de mago" com essas opções.
-- [ ] `canAdvance('spells')` bloqueia o avanço enquanto o `<select>` do Alto-elfo, quando exigível, estiver vazio; nos demais casos (não é Alto-elfo, ou catálogo de truque do Mago vazio), a etapa nunca bloqueia.
-- [ ] Trocar de raça para fora de `high-elf` (ou de volta) limpa a escolha do truque — mesmo padrão de reset de `draconicAncestry`/`raceToolChoice`.
-- [ ] Trilha de progresso mostra um chip "Magias" entre "Perícias" e "Revisão", navegável de volta como as demais.
-- [ ] Criar personagem Alto-elfo com `raceCantripChoice` válido: o truque escolhido aparece em `Character.spells`, somado aos truques normais da classe (não substitui nenhum).
-- [ ] Criar personagem Alto-elfo **Mago** escolhendo um truque que a classe já concede automaticamente: `Character.spells` não tem entrada duplicada para esse truque.
-- [ ] Criar personagem Alto-elfo **sem** `raceCantripChoice` (quando o catálogo do Mago não é vazio), ou com uma chave que não existe em `config.classSpells['mago']`, ou com uma magia de nível ≥ 1: rejeitado (`BadRequestException`, valor ofensor + formato esperado).
-- [ ] Criar personagem de raça diferente de `high-elf` com `raceCantripChoice` preenchido (campo indevido): o valor é ignorado, sem erro e sem persistir.
-- [ ] Sistema sem `config.classSpells['mago']` (ou vazio): Alto-elfo é criado normalmente sem exigir nem validar o campo.
-- [ ] Em 360 px de largura, a etapa `spells` é coluna única, sem rolagem horizontal (US-66).
-- [ ] **Eval / teste de regressão (wizard):** `SetupWizard.test.tsx` cobre — Alto-elfo com Próximo bloqueado sem truque escolhido, liberado ao escolher; classe conjuradora não-Alto-elfo mostra a lista sem `<select>` nem bloqueio; classe não-conjuradora e raça não-Alto-elfo mostra o estado vazio.
-- [ ] **Eval / teste de regressão (service):** `character.service.test.ts` cobre — Alto-elfo com truque válido (soma a `spells`), truque inválido/nível≥1/ausente quando exigido (rejeitado nos três casos), truque duplicado com o da própria classe (sem duplicar), e raça não-Alto-elfo com o campo ignorado.
+- [x] `Step`/`steps` ganham `'spells'` entre `'skills'` e `'review'`; só `'review'` e `'world'` deslocam uma posição.
+- [x] A etapa `spells` mostra a lista somente-leitura das magias que a classe escolhida concede (nome, rótulo de nível, descrição), idêntica ao que a Revisão já mostra hoje.
+- [x] Classe sem magia (`spells.length === 0`) e raça diferente de `high-elf` (ou `high-elf` sem truque de mago no catálogo): a etapa mostra um estado vazio explicativo, sem bloquear o avanço.
+- [x] `charData.race === 'high-elf'` e `config.classSpells['wizard']` tem ao menos um truque (nível 0): a etapa mostra um `<select>` "Escolha um truque de mago" com essas opções.
+- [x] `canAdvance('spells')` bloqueia o avanço enquanto o `<select>` do Alto-elfo, quando exigível, estiver vazio; nos demais casos (não é Alto-elfo, ou catálogo de truque do Mago vazio), a etapa nunca bloqueia.
+- [x] Trocar de raça para fora de `high-elf` (ou de volta) limpa a escolha do truque — mesmo padrão de reset de `draconicAncestry`/`raceToolChoice`.
+- [x] Trilha de progresso mostra um chip "Magias" entre "Perícias" e "Revisão", navegável de volta como as demais.
+- [x] Criar personagem Alto-elfo com `raceCantripChoice` válido: o truque escolhido aparece em `Character.spells`, somado aos truques normais da classe (não substitui nenhum).
+- [x] Criar personagem Alto-elfo **Mago** escolhendo um truque que a classe já concede automaticamente: `Character.spells` não tem entrada duplicada para esse truque.
+- [x] Criar personagem Alto-elfo **sem** `raceCantripChoice` (quando o catálogo do Mago não é vazio), ou com uma chave que não existe em `config.classSpells['wizard']`, ou com uma magia de nível ≥ 1: rejeitado (`BadRequestException`, valor ofensor + formato esperado).
+- [x] Criar personagem de raça diferente de `high-elf` com `raceCantripChoice` preenchido (campo indevido): o valor é ignorado, sem erro e sem persistir.
+- [x] Sistema sem `config.classSpells['wizard']` (ou vazio): Alto-elfo é criado normalmente sem exigir nem validar o campo.
+- [x] Em 360 px de largura, a etapa `spells` é coluna única, sem rolagem horizontal (US-66).
+- [x] **Eval / teste de regressão (wizard):** `SetupWizard.test.tsx` cobre — Alto-elfo com Próximo bloqueado sem truque escolhido, liberado ao escolher; classe conjuradora não-Alto-elfo mostra a lista sem `<select>` nem bloqueio; classe não-conjuradora e raça não-Alto-elfo mostra o estado vazio.
+- [x] **Eval / teste de regressão (service):** `character.service.test.ts` cobre — Alto-elfo com truque válido (soma a `spells`), truque inválido/nível≥1/ausente quando exigido (rejeitado nos três casos), truque duplicado com o da própria classe (sem duplicar), e raça não-Alto-elfo com o campo ignorado.
 
 ---
 
@@ -123,9 +124,9 @@ const spellsWithRaceCantrip = raceCantrip && !spells.some((s) => s.key === raceC
 
 - **Reusar `previewSpells` tal como está** (`SetupWizard.tsx:439-442`) para a lista somente-leitura da nova etapa — é a mesma leitura que a Revisão (US-50) já faz; não recalcular nem reimplementar.
 - **Novo estado `raceCantripChoice: string | undefined`**, mesma forma de `draconicAncestry`/`raceToolChoice` (`useState`, não dentro de `charData`) — resetado em `selectRootCard` (`SetupWizard.tsx:536-548`) e em `handleSelectSystem` (`SetupWizard.tsx:496-523`), ao lado dos resets já existentes desses dois campos.
-- **`config.classSpells?.['mago']?.filter(s => s.level === 0) ?? []`** é a fonte do `<select>` — `'mago'` é a chave de classe já fixada pela US-42 (tabela "Mapa de classes" daquela story); não inventar chave nova.
+- **`config.classSpells?.['wizard']?.filter(s => s.level === 0) ?? []`** é a fonte do `<select>` — **divergência da spec original**: a tabela "Mapa de classes" da US-42 (anterior à US-54) registrava `'mago'`, mas a US-54 (16/07/2026) renomeou as chaves de classe do catálogo para o canônico EN (`config.classes[].key`, `getClassSpells`) — `'mago'` é hoje só o `label` pt-BR, não uma chave válida. Confirmado em `scripts/srd/ingest.mjs:100` (`'srd_wizard': 'wizard'`) antes de implementar.
 - **`validateCatalogKey` (`character.service.ts:179`) já serve sem alteração** — aceita `Array<{key: string}>`, rejeita com `BadRequestException` (valor ofensor + lista esperada) e trata catálogo vazio/ausente como passe-livre (não bloqueia). O `wizardCantrips` filtrado por nível 0 encaixa direto.
-- **Dedupe por `key`, não por nome** — `spells.some(s => s.key === raceCantrip.key)` evita duplicar quando o Alto-elfo escolhido também é Mago (a classe já concede os 20 truques; escolher um deles de novo como "bônus" não deve duplicar a entrada na ficha).
+- **Dedupe por CHAVE, direto no array de strings** — `Character.spells` (como `Character.features`, US-100) é `string[]` de chaves, não array de objetos: `getClassSpells` já devolve só as chaves (`packages/shared/src/starting-kit.ts:145`). Dedupe é `!spells.includes(raceCantripKey)`, sem precisar resolver o objeto completo do truque — evita duplicar quando o Alto-elfo escolhido também é Mago (a classe já concede os 20 truques; escolher um deles de novo como "bônus" não duplica a entrada na ficha).
 - **`api.ts` (`createCharacter`)** ganha `raceCantripChoice?: string` no tipo do payload, sibling de `raceToolChoice` (`apps/web/src/lib/api.ts:68`) — sem isso o campo nunca sai do cliente, mesmo aviso que `character.schema.ts` já registra para os campos irmãos.
 - **Prisma:** nenhuma migração — `spells` já existe e já é `Json`.
 - **Posição da etapa relativa a `identity` (US-210):** decisão de 2026-09-04 — `spells` fica ANTES de `identity`. Se `identity` já existir no array `steps` quando esta story rodar, `spells` entra entre `skills` e `identity` (não entre `identity` e `review`). Se `spells` for implementada primeiro (caso comum, já que esta story está pronta primeiro), `identity` entra depois dela quando a US-210 rodar — ver *Questões em aberto* #1.
@@ -157,7 +158,7 @@ const spellsWithRaceCantrip = raceCantrip && !spells.some((s) => s.key === raceC
 - [apps/web/src/lib/api.ts:65-71](../../../apps/web/src/lib/api.ts:65) — `createCharacter`: onde `raceCantripChoice` entra ao lado de `raceToolChoice`/`draconicAncestry`.
 - [apps/api/src/character/character.schema.ts:30-39](../../../apps/api/src/character/character.schema.ts:30) — `CreateCharacterSchema`: onde `raceCantripChoice` entra como irmão opcional.
 - [apps/api/src/character/character.service.ts:65-90,179-187](../../../apps/api/src/character/character.service.ts:65) — `spells = getClassSpells(...)`, `validateCatalogKey`: onde a validação e o merge do truque do Alto-elfo entram.
-- [packages/shared/src/types/system.ts:132-138,259](../../../packages/shared/src/types/system.ts:132) — `SystemSpellSchema`, `classSpells`: a forma da entrada de magia e onde `classSpells['mago']` vive.
+- [packages/shared/src/types/system.ts:132-138,259](../../../packages/shared/src/types/system.ts:132) — `SystemSpellSchema`, `classSpells`: a forma da entrada de magia e onde `classSpells['wizard']` vive.
 - [US-42](./US-42-magias-conhecidas.md) — origem de `Character.spells`/`classSpells`/`getClassSpells`, o sistema que esta story estende.
 - [US-142 §Modelo de dados](./US-142-tracos-mecanicos-subespecie-srd-5-1.md) — o traço `cantrip` do Alto-elfo, ainda texto puro.
 - [US-212 §Fora do escopo](./US-212-bonus-de-atributo-de-raca-na-etapa-de-atributos.md) — nomeou esta lacuna e a adiou; esta story é o reabrir.

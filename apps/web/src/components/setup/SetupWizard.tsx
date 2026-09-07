@@ -32,8 +32,10 @@ import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 // na primeira (`class`), junto da grade de classe (e a subgrade de subclasse aninhada, quando
 // a classe escolhida tem mais de uma); `race` só tem a grade de raça. Etapas seguintes só
 // deslocam uma posição, sem mudar de conteúdo.
-type Step = 'system' | 'class' | 'race' | 'background' | 'attributes' | 'skills' | 'review' | 'world'
-const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 'skills', 'review', 'world']
+// US-213: `spells` entra entre `skills` e `review` — prévia das magias da classe + escolha do
+// truque bônus do Alto-elfo (a única escolha real que o sistema de magia awareness-only tem).
+type Step = 'system' | 'class' | 'race' | 'background' | 'attributes' | 'skills' | 'spells' | 'review' | 'world'
+const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 'skills', 'spells', 'review', 'world']
 
 // US-98: os rótulos de gênero saíram desta lista para o dicionário, mas a lista FICA em
 // pt-BR — ela é o `value` que viaja para a API, não o texto da tela.
@@ -274,6 +276,10 @@ export function SetupWizard() {
   // `high-elf` (mesmo padrão condicional de raceToolChoice acima). Resetada ao trocar de
   // raça/raiz (selectRootCard) e de sistema, mesmo motivo de raceToolChoice.
   const [raceLanguageChoice, setRaceLanguageChoice] = useState<string | undefined>(undefined)
+  // US-213: truque de mago bônus do traço "cantrip" do Alto-elfo — só existe estado pra
+  // `high-elf` (mesmo padrão condicional de raceLanguageChoice acima). Resetada ao trocar de
+  // raça/raiz (selectRootCard) e de sistema, mesmo motivo dos campos irmãos.
+  const [raceCantripChoice, setRaceCantripChoice] = useState<string | undefined>(undefined)
   // US-212: atributo(s) escolhido(s) para o `choice` do `grant` de RAÇA — array (não string
   // única, como `abilityChoice` de origem) porque `choice.count` pode ser 2 (Meio-Elfo hoje).
   // Resetado ao trocar de raça/variante e de sistema, mesmo motivo de draconicAncestry acima.
@@ -483,6 +489,10 @@ export function SetupWizard() {
   const previewSpells = system?.config
     ? resolveSheetEntries(system.config.classSpells, system.config.retiredSpells, charData.class, previewSpellKeys)
     : []
+  // US-213: truques de nível 0 da lista do MAGO — fonte do <select> do bônus racial do
+  // Alto-elfo, mesma validação que o service faz (`wizard` é a chave CANÔNICA de classe,
+  // US-54; 'mago' é só o rótulo pt-BR). Vazio para sistema sem essa entrada em classSpells.
+  const wizardCantrips = (system?.config?.classSpells?.['wizard'] ?? []).filter(s => s.level === 0)
   // US-205: painel de detalhe da etapa `class` — só as features DA CLASSE (US-41), sem origem
   // (ainda não escolhida nesta etapa do wizard). `resolveCharacterFeatures` com `originKey`
   // undefined devolve só o que `getClassFeatures` já resolve, mas com o campo `origin: 'class'`
@@ -569,6 +579,8 @@ export function SetupWizard() {
     setRaceToolChoice(undefined)
     // US-214: escolha de idioma extra depende da raça — mesmo motivo do reset acima.
     setRaceLanguageChoice(undefined)
+    // US-213: truque bônus do Alto-elfo depende da raça — mesmo motivo do reset acima.
+    setRaceCantripChoice(undefined)
     // US-212: bônus de atributo de raça depende do catálogo de raça — mesmo motivo do reset acima.
     setRaceAbilityChoice([])
     // US-122: origem também depende do catálogo do sistema — mesmo motivo do reset acima.
@@ -607,6 +619,8 @@ export function SetupWizard() {
     setRaceToolChoice(undefined)
     // US-214: escolha de idioma extra é escolha da raça — mesmo motivo do reset acima.
     setRaceLanguageChoice(undefined)
+    // US-213: truque bônus do Alto-elfo é escolha da raça — mesmo motivo do reset acima.
+    setRaceCantripChoice(undefined)
     // US-212: o `grant` muda de raça pra raça (e de variante pra variante) — uma escolha feita
     // pra uma raça pode colidir com o `fixed` de outra, mesmo motivo do reset acima.
     setRaceAbilityChoice([])
@@ -648,6 +662,10 @@ export function SetupWizard() {
       case 'skills':
         return (skillChoices === 0 || skills.length === skillChoices)
           && (!skillGrant || skillGrant.chooseCount === 0 || skillChoice.length === skillGrant.chooseCount)
+      // US-213: só bloqueia quando o Alto-elfo TEM truque de mago pra escolher — nos demais
+      // casos (não é Alto-elfo, ou catálogo do Mago vazio) a etapa nunca bloqueia o avanço.
+      case 'spells':
+        return charData.race !== 'high-elf' || wizardCantrips.length === 0 || !!raceCantripChoice
       // Origem, conexão e memento são opcionais — etapa `background` não bloqueia o avanço por
       // causa deles (mesmo espírito de US-39: texto livre também é opcional). A escolha do
       // grant de PERÍCIA acontece na etapa `skills` (ver acima), não aqui — mesmo padrão do
@@ -705,6 +723,8 @@ export function SetupWizard() {
       // US-214: só viaja quando a raça está em RACE_EXTRA_LANGUAGE_CHOICE — mesmo espírito de
       // raceToolChoicePayload acima.
       const raceLanguageChoicePayload = RACE_EXTRA_LANGUAGE_CHOICE.includes(charData.race) ? raceLanguageChoice : undefined
+      // US-213: só viaja quando a raça é high-elf — mesmo espírito de raceToolChoicePayload acima.
+      const raceCantripChoicePayload = charData.race === 'high-elf' ? raceCantripChoice : undefined
       // US-212: só viaja quando o grant da raça exige escolha — [] vira undefined (nada a validar).
       const raceAbilityChoicePayload = raceAbilityChoice.length > 0 ? raceAbilityChoice : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
@@ -712,6 +732,7 @@ export function SetupWizard() {
         systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload,
         raceToolChoice: raceToolChoicePayload,
         raceLanguageChoice: raceLanguageChoicePayload,
+        raceCantripChoice: raceCantripChoicePayload,
         raceAbilityChoice: raceAbilityChoicePayload, attributes: attrs, skills, background, origin: originPayload,
       })
       // Personagem já está salvo: guardamos o id e avançamos ao passo `world` (US-157).
@@ -1343,6 +1364,35 @@ export function SetupWizard() {
                       value={bg.deity} onChange={e => setBg(p => ({ ...p, deity: e.target.value }))} className={fieldClass()} />
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* US-213: prévia somente-leitura das magias da classe (mesma leitura que a
+                Revisão já faz, US-50) + escolha do truque bônus do Alto-elfo, quando aplicável. */}
+            {step === 'spells' && system && (
+              <div>
+                <SectionTitle>{t('setup.spells.titulo')}</SectionTitle>
+                {previewSpells.length > 0 && (
+                  <div className="mt-6">
+                    <FeaturesPanel spells={previewSpells} />
+                  </div>
+                )}
+                {charData.race === 'high-elf' && wizardCantrips.length > 0 && (
+                  <div className="mt-6">
+                    <label htmlFor="char-race-cantrip" className="mb-2 block text-sm font-medium text-parchment">
+                      {t('setup.spells.cantripChoice.legend')}
+                    </label>
+                    <select id="char-race-cantrip" value={raceCantripChoice ?? ''}
+                      onChange={e => setRaceCantripChoice(e.target.value || undefined)}
+                      className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                      <option value="">{t('setup.raceClass.select')}</option>
+                      {wizardCantrips.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {previewSpells.length === 0 && !(charData.race === 'high-elf' && wizardCantrips.length > 0) && (
+                  <p className="mt-6 text-sm text-muted-foreground">{t('setup.spells.empty')}</p>
+                )}
               </div>
             )}
 

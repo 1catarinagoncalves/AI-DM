@@ -1189,6 +1189,88 @@ describe('CharacterService.create', () => {
   })
 })
 
+// US-213: truque de mago bônus do traço `cantrip` do Alto-elfo (raceFeatures['high-elf'],
+// US-142) — exceção RACIAL: a raça concede um truque à escolha da lista do MAGO (`wizard`,
+// chave CANÔNICA desde US-54), mesmo se o personagem não for mago. Mesmo par de testes de
+// draconicAncestry/raceToolChoice acima, mas somando por CHAVE sobre `Character.spells`
+// (US-100: array de chaves, não de objetos) em vez de gravar coluna solitária.
+describe('CharacterService.create (US-213 — truque de mago bônus do Alto-elfo)', () => {
+  const configWithWizardCantrip: SystemConfig = {
+    ...config,
+    races: [{ key: 'high-elf', label: 'High Elf' }, { key: 'elf', label: 'Elf' }],
+    classSpells: {
+      wizard: [
+        { key: 'fire-bolt', name: 'Fire Bolt', level: 0, description: 'x', source: 'srd' },
+        { key: 'mage-hand', name: 'Mage Hand', level: 0, description: 'x', source: 'srd' },
+        { key: 'shield', name: 'Shield', level: 1, description: 'x', source: 'srd' },
+      ],
+      default: [],
+    },
+  }
+
+  it('high-elf sem raceCantripChoice é rejeitado, com o valor ofensor na mensagem', async () => {
+    const service = new CharacterService(fakePrisma(configWithWizardCantrip))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })).rejects.toThrow('Truque do Alto-elfo inválida: ""')
+  })
+
+  it('high-elf com raceCantripChoice de nível 1 (não é truque) é rejeitado', async () => {
+    const service = new CharacterService(fakePrisma(configWithWizardCantrip))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceCantripChoice: 'shield',
+    })).rejects.toThrow('Truque do Alto-elfo inválida: "shield"')
+  })
+
+  it('high-elf com raceCantripChoice fora do catálogo do Mago é rejeitado', async () => {
+    const service = new CharacterService(fakePrisma(configWithWizardCantrip))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceCantripChoice: 'produce-flame',
+    })).rejects.toThrow('Truque do Alto-elfo inválida: "produce-flame"')
+  })
+
+  it('high-elf com raceCantripChoice válido: soma a chave a Character.spells', async () => {
+    const service = new CharacterService(fakePrisma(configWithWizardCantrip))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceCantripChoice: 'fire-bolt',
+    })
+    expect(char.spells).toEqual(['fire-bolt'])
+  })
+
+  it('Mago Alto-elfo escolhendo um truque que a própria classe já concede: sem chave duplicada', async () => {
+    const service = new CharacterService(fakePrisma(configWithWizardCantrip))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'wizard',
+      attributes: { cool: 5, hard: 5 }, raceCantripChoice: 'mage-hand',
+    })
+    // getClassSpells(wizard) já devolve os 3 truques/magias da classe — 'mage-hand' não repete.
+    expect(char.spells).toEqual(['fire-bolt', 'mage-hand', 'shield'])
+  })
+
+  it('raça não-Alto-elfo ignora raceCantripChoice mandado por engano, sem erro nem gravação', async () => {
+    const service = new CharacterService(fakePrisma(configWithWizardCantrip))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceCantripChoice: 'fire-bolt',
+    })
+    expect(char.spells).toEqual([])
+  })
+
+  it('sistema sem config.classSpells.wizard (ou vazio): Alto-elfo é criado normalmente, sem exigir nem validar o campo', async () => {
+    const configWithoutWizardSpells: SystemConfig = { ...config, races: [{ key: 'high-elf', label: 'High Elf' }] }
+    const service = new CharacterService(fakePrisma(configWithoutWizardSpells))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.spells).toEqual([])
+  })
+})
+
 // US-215: proficiência de arma/ferramenta FIXA de raça (RACE_WEAPON_PROFICIENCIES/
 // RACE_TOOL_PROFICIENCIES, @ai-dm/shared) — soma incondicional, sem DTO novo (ao contrário de
 // raceToolChoice/draconicAncestry, que exigem campo do jogador).

@@ -305,6 +305,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc) // fecha orçamento
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // sem perícias no config → livre → revisão
 
     const review = screen.getByRole('heading', { name: 'Revisão' })
@@ -334,7 +335,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' }))
     expect(nextBtn().disabled).toBe(false) // 2 marcadas → libera
 
-    fireEvent.click(nextBtn()) // → revisão (perícias é a última etapa antes da revisão)
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → revisão (magias é a última etapa antes da revisão)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ skills: ['athletics', 'perception'] }))
   })
@@ -352,6 +354,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -404,6 +407,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -422,6 +426,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     const originRow = screen.getByText('Origem').closest('div')
@@ -442,6 +447,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -461,6 +467,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -478,6 +485,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -497,6 +505,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     expect(screen.getByRole('heading', { name: 'Revisão' })).toBeTruthy()
     expect(screen.getByText('Solariel — Deus da justiça e da cura')).toBeTruthy()
@@ -518,6 +527,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     // Na revisão o jogador lê o RÓTULO, nunca a chave.
@@ -620,6 +630,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // confirma personagem → Mundo
     await screen.findByRole('heading', { name: 'O mundo da aventura' })
@@ -816,6 +827,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' }))
     fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     // Força 10 → modificador 0 (floor((10-10)/2)); perícia proficiente com bônus +2 → +2.
@@ -836,6 +848,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     // Sem atributo `constitution` no config de teste → cai no fallback (10) → PV = 10 + 0.
@@ -861,6 +874,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.getByText('Adaga')).toBeTruthy() // kit default
@@ -878,10 +892,13 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.queryByText('Features')).toBeNull()
-    expect(screen.queryByText('Magias')).toBeNull()
+    // US-213: "Magias" também é o rótulo da etapa na trilha (sempre presente) — a asserção
+    // precisa contar ocorrências, não checar ausência total do texto.
+    expect(screen.getAllByText('Magias')).toHaveLength(1)
   })
 
   // US-135: a feature nomeada da origem some ao preview assim que `origin.key` é escolhido,
@@ -904,18 +921,21 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.getByText('Recuperação Arcana')).toBeTruthy() // feature de classe (wizard)
     expect(screen.getByText("Thieves' Cant")).toBeTruthy() // feature da origem (Criminoso)
 
     // Troca a origem antes de confirmar — o preview atualiza, sem misturar a feature anterior.
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
     fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.getByText('Recuperação Arcana')).toBeTruthy()
@@ -934,6 +954,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     expect(screen.getByText('Nobre caída')).toBeTruthy()
     expect(screen.getByText('Justiça acima de tudo')).toBeTruthy()
@@ -1003,6 +1024,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -1019,6 +1041,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão sem escolher nada
 
     const connectionRow = screen.getByText('Conexão').closest('div')
@@ -1032,6 +1055,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão de novo
     expect(within(screen.getByText('Conexão').closest('div')!).getByText('A childhood friend who left the priesthood.')).toBeTruthy()
   })
@@ -1046,6 +1070,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão, sem memento escolhido
 
     const kitRowSemMemento = screen.getByText('Kit inicial').closest('div')
@@ -1055,6 +1080,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Memento'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão, memento escolhido
     const kitRowComMemento = screen.getByText('Kit inicial').closest('div')
     expect(within(kitRowComMemento!).getByText('Símbolo sagrado · Memento')).toBeTruthy()
@@ -1109,6 +1135,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(nextBtn().disabled).toBe(false)
 
     fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → magias
     fireEvent.click(nextBtn()) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -1264,6 +1291,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(within(dexRow).getByRole('button', { name: '+1 raça' })) // escolhe de novo
     fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → magias
     fireEvent.click(nextBtn()) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ raceAbilityChoice: ['dexterity'] }))
@@ -1341,6 +1369,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' }))
     expect(nextBtn().disabled).toBe(false) // grant + proficiency.choices: 1, ambos satisfeitos
 
+    fireEvent.click(nextBtn()) // → magias
     fireEvent.click(nextBtn()) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -1395,6 +1424,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(nextBtn()) // → atributos
     fireEvent.click(nextBtn()) // → perícias (config sem catálogo — etapa livre)
+    fireEvent.click(nextBtn()) // → magias
     fireEvent.click(nextBtn()) // → revisão
     expect(screen.getByText('Ferramentas de Ladrão · Jogo de Dados')).toBeTruthy()
 
@@ -1459,6 +1489,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(nextBtn()) // → atributos
     fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → magias
     fireEvent.click(nextBtn()) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
@@ -1528,6 +1559,7 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
 
@@ -1557,6 +1589,7 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
 
@@ -1586,6 +1619,7 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → magias
     fireEvent.click(nextBtn()) // → revisão
     fireEvent.click(nextBtn())
 
@@ -1699,6 +1733,7 @@ describe('SetupWizard — ancestralidade dracônica do dragonborn (US-211)', () 
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
 
@@ -1778,6 +1813,7 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
 
@@ -1794,6 +1830,7 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     // Aparece duas vezes na revisão: na linha "Proficiências" (mesma ferramenta some com o
@@ -1926,6 +1963,7 @@ describe('SetupWizard — US-214 traço "Extra Language" (Alto-elfo/Humano/Meio-
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
 
@@ -1942,6 +1980,7 @@ describe('SetupWizard — US-214 traço "Extra Language" (Alto-elfo/Humano/Meio-
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.getByText('Idiomas')).toBeTruthy()
@@ -1957,10 +1996,149 @@ describe('SetupWizard — US-214 traço "Extra Language" (Alto-elfo/Humano/Meio-
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.getByText('Idiomas')).toBeTruthy()
     expect(screen.getByText('Comum · Infernal')).toBeTruthy()
+  })
+})
+
+// --- US-213: etapa "Magias" (prévia + truque bônus do Alto-elfo) ---
+
+// `wizard` é a chave CANÔNICA de classe (US-54) — fonte do <select> do truque do Alto-elfo,
+// INDEPENDENTE da classe escolhida pela jogadora (um Guerreiro Alto-elfo também escolhe da
+// lista do Mago). `shield` (nível 1) prova que o <select> filtra só nível 0 (truque).
+const configWithWizardCantrips = (budget: number) => ({
+  ...configWithBudget(budget),
+  races: [
+    { key: 'elf', label: 'Elfo' },
+    { key: 'high-elf', label: 'Alto-elfo', parentKey: 'elf' },
+    { key: 'dwarf', label: 'Anão' },
+  ],
+  // US-214: Alto-elfo também exige idioma extra escolhido — sem relação com o truque bônus
+  // que este describe testa, só destrava o avanço da etapa `race` até `spells`.
+  languages: [
+    { key: 'common', label: 'Comum', secret: false },
+    { key: 'draconic', label: 'Dracônico', secret: false },
+  ],
+  classSpells: {
+    wizard: [
+      { key: 'fire-bolt', name: 'Raio de Fogo', level: 0, description: 'x', source: 'srd' },
+      { key: 'mage-hand', name: 'Mão Mágica', level: 0, description: 'x', source: 'srd' },
+      { key: 'shield', name: 'Escudo', level: 1, description: 'x', source: 'srd' },
+    ],
+    default: [],
+  },
+})
+
+describe('SetupWizard — etapa "Magias" e truque do Alto-elfo (US-213)', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickSpellsConfig(config: SystemConfig, className: string) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Vex' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.click(screen.getByRole('radio', { name: className }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+  }
+
+  async function reachSpellsStep(config: SystemConfig, className: string, raceName: string) {
+    await pickSpellsConfig(config, className)
+    // `high-elf` é a ÚNICA variante de `elf` no catálogo deste teste — clicar a raiz "Elfo"
+    // já auto-seleciona a variante (selectRootCard, US-142), sem precisar de um segundo clique.
+    fireEvent.click(screen.getByRole('radio', { name: raceName }))
+    // US-214: Alto-elfo exige idioma extra escolhido — sem relação com o truque bônus que
+    // este describe testa, só destrava o avanço da etapa `race`.
+    if (raceName === 'Elfo') {
+      fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'draconic' } })
+    }
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
+  }
+
+  // Guerreiro não tem entrada em classSpells (cai no `default: []`) — isola o teste do
+  // truque bônus, sem ruído de magia de classe.
+  it('Alto-elfo (classe sem magia própria): bloqueia Próximo sem truque escolhido; libera ao escolher', async () => {
+    await reachSpellsStep(configWithWizardCantrips(2), 'Guerreiro', 'Elfo')
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true)
+
+    const select = screen.getByLabelText('Escolha um truque de mago') as HTMLSelectElement
+    // Só nível 0 — "Escudo" (nível 1) não é opção.
+    expect(within(select).getByRole('option', { name: 'Raio de Fogo' })).toBeTruthy()
+    expect(within(select).getByRole('option', { name: 'Mão Mágica' })).toBeTruthy()
+    expect(within(select).queryByRole('option', { name: 'Escudo' })).toBeNull()
+
+    fireEvent.change(select, { target: { value: 'fire-bolt' } })
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it('classe conjuradora não-Alto-elfo: mostra a lista de magias, sem <select> nem bloqueio', async () => {
+    await reachSpellsStep(configWithWizardCantrips(2), 'Mago', 'Anão')
+    expect(screen.getByText(/Raio de Fogo/)).toBeTruthy()
+    expect(screen.getByText(/Mão Mágica/)).toBeTruthy()
+    expect(screen.queryByLabelText('Escolha um truque de mago')).toBeNull()
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('classe sem magia e raça não-Alto-elfo: mostra o estado vazio, sem bloquear avanço', async () => {
+    await reachSpellsStep(configWithWizardCantrips(2), 'Guerreiro', 'Anão')
+    expect(screen.getByText('Este personagem não tem magias.')).toBeTruthy()
+    expect(screen.queryByLabelText('Escolha um truque de mago')).toBeNull()
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('DTO manda raceCantripChoice quando Alto-elfo escolhe um truque', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Vex' })
+    await reachSpellsStep(configWithWizardCantrips(2), 'Guerreiro', 'Elfo')
+    fireEvent.change(screen.getByLabelText('Escolha um truque de mago'), { target: { value: 'mage-hand' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'high-elf', raceCantripChoice: 'mage-hand' }))
+  })
+
+  it('raça não-Alto-elfo nunca manda raceCantripChoice, mesmo com config.classSpells.wizard preenchido', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Vex' })
+    await reachSpellsStep(configWithWizardCantrips(2), 'Guerreiro', 'Anão')
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+
+    const payload = createCharacter.mock.calls[0]![0] as Record<string, unknown>
+    expect(payload['raceCantripChoice']).toBeUndefined()
+  })
+
+  it('trocar de Alto-elfo para outra raça limpa a escolha do truque', async () => {
+    await reachSpellsStep(configWithWizardCantrips(2), 'Guerreiro', 'Elfo')
+    fireEvent.change(screen.getByLabelText('Escolha um truque de mago'), { target: { value: 'fire-bolt' } })
+
+    // US-123: usa a trilha (goTo) para voltar direto à etapa raça, mesmo padrão das demais
+    // idas-e-voltas já testadas neste arquivo.
+    fireEvent.click(screen.getByRole('button', { name: /^Espécie$/ }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Anão' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' })) // volta a auto-selecionar high-elf
+    fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'draconic' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
+
+    expect((screen.getByLabelText('Escolha um truque de mago') as HTMLSelectElement).value).toBe('')
   })
 })
 
@@ -2033,6 +2211,7 @@ describe('SetupWizard — US-215 proficiência de arma e ferramenta fixa de raç
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
   }
 

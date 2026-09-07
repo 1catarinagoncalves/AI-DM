@@ -54,6 +54,9 @@ export const ptBR = {
   'setup.step.race': 'Espécie',
   'setup.step.attributes': 'Atributos',
   'setup.step.skills': 'Perícias',
+  // US-213: nova etapa entre Perícias e Revisão — prévia das magias da classe + truque
+  // bônus do Alto-elfo.
+  'setup.step.spells': 'Magias',
   'setup.step.background': 'Background',
   'setup.step.review': 'Revisão',
   'setup.step.world': 'Mundo',
@@ -202,6 +205,15 @@ export const ptBR = {
   'setup.skills.originGrant': 'Perícias de {origin}',
   'setup.skills.instructions': 'Escolha {n} perícias proficientes (+{bonus} cada).',
   'setup.skills.selected': 'Selecionadas:',
+
+  // ---- wizard: magias (US-213) ----
+  'setup.spells.titulo': 'Magias',
+  // Só aparece quando a classe não concede magia nenhuma E o Alto-elfo não tem truque de
+  // mago pra escolher (senão o <select> abaixo já preenche a etapa).
+  'setup.spells.empty': 'Este personagem não tem magias.',
+  // Legenda do <select> do truque bônus do Alto-elfo — só aparece pra essa raça, quando
+  // config.classSpells['wizard'] (nível 0) não está vazio.
+  'setup.spells.cantripChoice.legend': 'Escolha um truque de mago',
 
   // ---- wizard: background ----
   'setup.background.titulo': 'Background',

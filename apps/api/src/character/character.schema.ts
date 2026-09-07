@@ -42,6 +42,11 @@ export const CreateCharacterSchema = z.object({
   // está em RACE_EXTRA_LANGUAGE_CHOICE (@ai-dm/shared: high-elf, human, half-elf), ignorada
   // para qualquer outra raça mesmo se vier no DTO.
   raceLanguageChoice: z.string().max(60).optional(),
+  // US-213: truque de mago bônus do traço `cantrip` do Alto-elfo (raceFeatures['high-elf'],
+  // US-142) — chave de config.classSpells['wizard'] (nível 0), exigida no service quando
+  // race === 'high-elf' e esse catálogo não está vazio. Ignorada para qualquer outra raça
+  // mesmo se vier no DTO, mesmo raciocínio de raceToolChoice/raceLanguageChoice acima.
+  raceCantripChoice: z.string().max(80).optional(),
   class: z.string().min(1).max(40),
   // US-205: chave de config.subclasses[class] — opcional no DTO. Classe com 1 subclasse só
   // nunca precisa mandar (o service preenche sozinho); classe com mais de uma (marshal) manda

@@ -69,6 +69,9 @@ export const api = {
     // US-214: idioma extra escolhido para o traço "Extra Language" — só manda quando a raça
     // está em RACE_EXTRA_LANGUAGE_CHOICE (@ai-dm/shared: high-elf, human, half-elf).
     raceLanguageChoice?: string
+    // US-213: truque de mago bônus do traço "cantrip" do Alto-elfo — só manda quando
+    // `race === 'high-elf'` (mesma raça que tem o <select> na etapa `spells` do wizard).
+    raceCantripChoice?: string
     // US-212: atributo(s) escolhido(s) para o `choice` do grant de RAÇA — só manda quando o
     // grant da raça exige escolha (a maioria não exige, ver config.races[].grant).
     raceAbilityChoice?: string[]

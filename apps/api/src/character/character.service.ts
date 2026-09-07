@@ -79,6 +79,20 @@ export class CharacterService {
     // US-42: magias conhecidas (truques + exceção nível 1 de paladino/patrulheiro),
     // do mesmo kit da classe. Não-conjurador → [] (sem seção, sem crash).
     const spells = getClassSpells(config, charClass)
+    // US-213: truque de mago bônus do traço `cantrip` do Alto-elfo (raceFeatures['high-elf'],
+    // US-142) — exceção RACIAL fora da lista automática de truques da própria classe (US-42):
+    // a raça concede um truque à escolha da lista do MAGO, mesmo se o personagem não for mago.
+    // `wizard` é a chave CANÔNICA de classe (US-54) — 'mago' é só o rótulo pt-BR.
+    const wizardCantrips = (config.classSpells?.['wizard'] ?? []).filter((s) => s.level === 0)
+    const raceCantripKey = race === 'high-elf' && wizardCantrips.length > 0
+      ? this.validateCatalogKey(wizardCantrips, dto.raceCantripChoice ?? '', 'Truque do Alto-elfo')
+      : undefined
+    // US-100: `spells` (como `features`) é array de CHAVES, não de objetos — dedupe por
+    // inclusão direta. Um Mago Alto-elfo escolhendo um truque que a própria classe já concede
+    // automaticamente não duplica a entrada na ficha.
+    const spellsWithRaceCantrip = raceCantripKey && !spells.includes(raceCantripKey)
+      ? [...spells, raceCantripKey]
+      : spells
     // US-122: origem do catálogo de backgrounds (US-121) — campo IRMÃO de `background`,
     // validado com o mesmo `validateCatalogKey` de raça/classe. Opcional: chave ausente
     // não dispara validação nenhuma (sistema sem catálogo, ou jogador que não escolheu).
@@ -143,7 +157,7 @@ export class CharacterService {
         languages,
         weapons: raceWeapons,
         features,
-        spells,
+        spells: spellsWithRaceCantrip,
         background: this.normalizeBackground(dto.background),
         origin: this.normalizeOrigin(originKey, dto.origin),
       },

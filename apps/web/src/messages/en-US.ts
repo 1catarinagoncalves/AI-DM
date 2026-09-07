@@ -49,6 +49,8 @@ export const enUS: Record<MessageKey, string> = {
   'setup.step.race': 'Species',
   'setup.step.attributes': 'Attributes',
   'setup.step.skills': 'Skills',
+  // US-213: new step between Skills and Review — class spell preview + High Elf bonus cantrip.
+  'setup.step.spells': 'Spells',
   'setup.step.background': 'Background',
   'setup.step.review': 'Review',
   'setup.step.world': 'World',
@@ -178,6 +180,15 @@ export const enUS: Record<MessageKey, string> = {
   'setup.skills.originGrant': 'Skills from {origin}',
   'setup.skills.instructions': 'Choose {n} proficient skills (+{bonus} each).',
   'setup.skills.selected': 'Selected:',
+
+  // ---- wizard: spells (US-213) ----
+  'setup.spells.titulo': 'Spells',
+  // Only shown when the class grants no spells AND the High Elf has no wizard cantrip to
+  // pick (otherwise the <select> below already fills the step).
+  'setup.spells.empty': "This character doesn't have any spells.",
+  // Legend for the High Elf bonus cantrip <select> — only shown for that race, when
+  // config.classSpells['wizard'] (level 0) isn't empty.
+  'setup.spells.cantripChoice.legend': 'Choose a wizard cantrip',
 
   // ---- wizard: background ----
   'setup.background.titulo': 'Background',

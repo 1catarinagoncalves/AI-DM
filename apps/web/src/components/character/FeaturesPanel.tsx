@@ -78,6 +78,8 @@ export function FeaturesPanel({ features, spells, tone = 'accent' }: { features?
       {spellList.length > 0 && (
         <section>
           <SheetHeading tone={tone}>{t('game.spells.title')}</SheetHeading>
+          {/* Cartão de traço (mesma classe `rounded-md border...` do painel de "Traços
+              raciais" da etapa `race`, SetupWizard.tsx) — uma coluna, bloco por magia. */}
           <ul className="flex flex-col gap-2">
             {spellList.map((s, i) => {
               // Rótulo vindo de @ai-dm/shared — a MESMA regra que o prompt do mestre usa
