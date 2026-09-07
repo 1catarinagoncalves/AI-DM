@@ -118,6 +118,15 @@ jobs:
 
       - run: pnpm eval
 
+      # scripts/srd/_data/ é gitignored (só os artefatos derivados entram no repo).
+      # Precisa vir ANTES do Gate de docs logo abaixo: US-203/US-207/US-211/US-215
+      # linkam direto pros JSON de lá, e num checkout limpo esses links quebram
+      # (ENOENT) se o gate rodar primeiro — pego em 07/09/2026 (docs:links caindo
+      # sempre, mesmo sem link novo quebrado). `srd:sync` baixa o dataset pinado
+      # na TAG (sync.mjs), sem chave nenhuma (raw.githubusercontent.com).
+      - name: Sync do dataset SRD
+        run: pnpm srd:sync
+
       # Gate completo de links (US-78 + US-79) e de nome de arquivo (US-82), mesmo
       # script. Era `--only-md` enquanto os 85 quebrados da US-79 existiam; ela
       # fechou em 27/07/2026 e o gate apertou. Sem `--fix` de propósito: um passo
@@ -146,13 +155,6 @@ jobs:
       # da seção Arquitetura do README. Também mora na raiz, fora do `pnpm test`.
       - name: Guard de drift do README
         run: pnpm docs:shape
-
-      # scripts/srd/_data/ é gitignored (só os artefatos derivados entram no repo) e os
-      # testes de US-128/US-132/US-139 leem os JSON pinados de lá direto (contagem real de
-      # entradas). Sem este passo, checkout limpo = ENOENT nesses testes — `srd:sync` baixa
-      # o dataset pinado na TAG (sync.mjs), sem chave nenhuma (raw.githubusercontent.com).
-      - name: Sync do dataset SRD
-        run: pnpm srd:sync
 
       # Idem: teste do ingest do SRD (US-52), na raiz. NÃO roda o `srd:ingest` em si
       # — ele chamaria o Gemini, e o CI não tem (nem quer) GEMINI_API_KEY. O que este
