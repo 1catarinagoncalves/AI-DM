@@ -1,4 +1,42 @@
 {
+  "alignments": [
+    {
+      "key": "lawful-good",
+      "label": "Lawful Good"
+    },
+    {
+      "key": "neutral-good",
+      "label": "Neutral Good"
+    },
+    {
+      "key": "chaotic-good",
+      "label": "Chaotic Good"
+    },
+    {
+      "key": "lawful-neutral",
+      "label": "Lawful Neutral"
+    },
+    {
+      "key": "neutral",
+      "label": "Neutral"
+    },
+    {
+      "key": "chaotic-neutral",
+      "label": "Chaotic Neutral"
+    },
+    {
+      "key": "lawful-evil",
+      "label": "Lawful Evil"
+    },
+    {
+      "key": "neutral-evil",
+      "label": "Neutral Evil"
+    },
+    {
+      "key": "chaotic-evil",
+      "label": "Chaotic Evil"
+    }
+  ],
   "attributes": [
     {
       "default": 10,

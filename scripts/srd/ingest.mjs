@@ -32,7 +32,9 @@ import { translateSrdToPtBr } from '../../packages/ai-engine/dist/index.js'
 // US-108: a tabela de modificadores do SRD 2024 vira artefato próprio (oráculo de teste, não
 // campo do config). `TAG` vem do sync porque a procedência do artefato tem que ser a MESMA
 // tag que baixou o dado — duas constantes divergiriam no primeiro bump.
-import { parseAbilityModifiers } from './ability-modifiers.mjs'
+// US-210: `requireRule` é o mesmo leitor de registro de `Rule.json` que a tabela de
+// modificadores já usa — o alinhamento vem do MESMO artefato (US-108), registro diferente.
+import { parseAbilityModifiers, requireRule } from './ability-modifiers.mjs'
 // US-110: as tabelas de exemplo do d20 test — estas SIM têm consumidor de runtime (o system
 // prompt do Mestre), por isso o artefato é gravado dentro do pacote que o importa.
 import { parseD20Tests } from './d20-tests.mjs'
@@ -187,7 +189,7 @@ async function load(name) {
 export function makeResolver() {
   const fallbacks = [] // { domain, key, enName, enDesc }
   const orphans = [] // { domain, key }
-  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), raceFeatures: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set(), languages: new Set(), weapons: new Set() }
+  const usedOverlay = { attributes: new Set(), skills: new Set(), races: new Set(), classes: new Set(), subclasses: new Set(), features: new Set(), raceFeatures: new Set(), spells: new Set(), kitItems: new Set(), backgrounds: new Set(), tools: new Set(), languages: new Set(), weapons: new Set(), alignments: new Set() }
   // US-52: vocabulário EN→PT dos termos CURADOS, para o prompt de tradução e para a
   // checagem mecânica. Montado aqui porque este é o único ponto onde o nome EN do dataset
   // e o nome PT do overlay se encontram — o overlay sozinho só guarda o PT.
@@ -235,6 +237,31 @@ function buildAttributes(overlay, abilities, resolve) {
     label: resolve('attributes', canon, { name: overlay.attributes?.[canon] }, capitalize(canon)).name,
     ...ATTR_RANGE,
   }))
+}
+
+// US-210: pk do registro de alinhamento em `Rule.json` (mesmo artefato de US-108, ruleset
+// `srd-2024_create-your-character`, registro diferente do de modificadores).
+const ALIGNMENT_PK = 'srd-2024_create-your-character_alignment'
+
+// --- alignments (9): "The Nine Alignments" do `desc` de ALIGNMENT_PK — 9 ocorrências do
+// padrão markdown "_Rótulo (SIGLA)._ frase…" (mesmo parser textual de parseAbilityGrant/
+// parseSrdEquipmentBullets, regex sobre prosa medida, não parser genérico de markdown).
+// O parágrafo final ("Unaligned Creatures") não casa o padrão (sem sigla entre parênteses) —
+// exclusão automática, não filtro explícito. Chave = kebab-case do rótulo EN ('lawful-good'),
+// não a sigla — mesmo estilo legível de CLASS_MAP/buildRaces (US-54); a sigla não sobrevive
+// ao artefato (só ajudou a achar o limite de cada frase).
+const ALIGNMENT_PATTERN = /_([A-Za-z ]+) \(([A-Z]{1,2})\)\._/g
+
+export function buildAlignments(overlay, ruleDesc, resolve) {
+  const matches = [...ruleDesc.matchAll(ALIGNMENT_PATTERN)]
+  if (matches.length !== 9) {
+    throw new Error(`Alinhamento: esperado 9 combinações em ${ALIGNMENT_PK}, achei ${matches.length} (bump mudou o texto?)`)
+  }
+  return matches.map(([, enLabel]) => {
+    const key = enLabel.toLowerCase().replace(/\s+/g, '-')
+    const label = resolve('alignments', key, { name: overlay.alignments?.[key] }, enLabel).name
+    return { key, label }
+  })
 }
 
 // --- skills (20): 18 do doc `core` (traz `ability`) + 2 literais A5E (US-130, ability fora
@@ -929,6 +956,9 @@ function buildConfig(overlay, data, locale) {
   const { resolve, fallbacks, orphans, usedOverlay, glossary } = makeResolver()
   const attributes = buildAttributes(overlay, data.abilities, resolve)
   const skills = buildSkills(overlay, data.skillsRaw, resolve)
+  // US-210: alinhamento — mesmo artefato Rule.json que a tabela de modificadores (US-108) já
+  // sincroniza, registro diferente (ALIGNMENT_PK).
+  const alignments = buildAlignments(overlay, requireRule(data.rules, ALIGNMENT_PK).fields.desc, resolve)
   const languages = buildLanguages(overlay, data.languagesRaw, resolve)
   const races = buildRaces(overlay, data.species2014, resolve)
   const raceFeatures = buildRaceFeatures(overlay, races, data.speciesTraits, resolve)
@@ -966,14 +996,14 @@ function buildConfig(overlay, data, locale) {
   // US-138: `races` entra na lista pela primeira vez — antes da união reverter (ADR 009 §8),
   // as 11 chaves do overlay sempre casavam com as 11 do catálogo, então não fazia diferença.
   // Agora goliath/orc ficam no overlay sem chave no catálogo (9 raízes) e precisam aparecer aqui.
-  for (const domain of ['races', 'features', 'raceFeatures', 'spells', 'kitItems', 'backgrounds', 'tools', 'languages', 'weapons']) {
+  for (const domain of ['races', 'features', 'raceFeatures', 'spells', 'kitItems', 'backgrounds', 'tools', 'languages', 'weapons', 'alignments']) {
     for (const key of Object.keys(overlay[domain] || {})) {
       if (!usedOverlay[domain].has(key)) orphans.push({ domain, key })
     }
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  const artifact = { attributes, skills, languages, races, raceFeatures, classes, subclasses, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools, weapons }
+  const artifact = { attributes, skills, languages, races, raceFeatures, classes, subclasses, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools, weapons, alignments }
   SystemConfigSchema.parse({ ...artifact, ...STUB })
   return { artifact, fallbacks, orphans, glossary }
 }
@@ -1011,7 +1041,9 @@ async function main() {
   const classes = [...classes2014, ...marshalClasses]
   const features = [...features2014, ...marshalFeatures]
   const featureItems = [...featureItems2014, ...marshalFeatureItems]
-  const data = { abilities, skillsRaw, languagesRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items }
+  // US-210: `rules` (Rule.json) soma ao `data` — antes só era lido depois de `buildConfig`
+  // (parseAbilityModifiers/parseD20Tests); `buildAlignments` precisa dele DENTRO de buildConfig.
+  const data = { abilities, skillsRaw, languagesRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items, rules }
 
   const base = buildConfig(overlayEn, data, 'en-US')
   let localized = buildConfig(overlay, data, 'pt-BR')

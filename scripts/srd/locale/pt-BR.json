@@ -8,6 +8,17 @@
     "wisdom": "Sabedoria",
     "charisma": "Carisma"
   },
+  "alignments": {
+    "lawful-good": "Leal e Bom",
+    "neutral-good": "Neutro e Bom",
+    "chaotic-good": "Caótico e Bom",
+    "lawful-neutral": "Leal e Neutro",
+    "neutral": "Neutro",
+    "chaotic-neutral": "Caótico e Neutro",
+    "lawful-evil": "Leal e Mau",
+    "neutral-evil": "Neutro e Mau",
+    "chaotic-evil": "Caótico e Mau"
+  },
   "skills": {
     "athletics": "Atletismo",
     "acrobatics": "Acrobacia",

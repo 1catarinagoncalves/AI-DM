@@ -98,6 +98,16 @@ export const CreateCharacterSchema = z.object({
     // Folk Hero exige 2 escolhas (chooseCount: 2). Validado contra o grant no service.
     toolChoice: z.array(z.string().max(60)).max(6).optional(),
   }).optional(),
+  // US-210: alinhamento é dado de catálogo (config.alignments, SRD via ingest) — mesmo
+  // contrato de `race`/`class`, validado contra o catálogo no service (validateCatalogKey),
+  // não aqui. Opcional no DTO por trust boundary; o wizard sempre manda (canAdvance bloqueia
+  // antes), mas o campo sozinho não pode travar um config legado sem o catálogo ainda.
+  alignment: z.string().max(40).optional(),
+  // US-210: texto livre, sem catálogo — mesmo raciocínio de background.ideals/bonds/flaws.
+  // Normalizado (trim, descartado se vazio) no service. Opcional: nada na etapa `identity`
+  // é obrigatório além do nome.
+  appearance: z.string().max(500).optional(),
+  personality: z.string().max(500).optional(),
 })
 
 /** Tipo do DTO do service, derivado do schema — nunca declarado à mão. */

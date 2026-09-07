@@ -296,6 +296,12 @@ export const SystemConfigSchema = z.object({
   tones: z.array(SystemCatalogEntrySchema).optional(),
   settings: z.array(SystemCatalogEntrySchema).optional(),
   areaTypes: z.array(SystemCatalogEntrySchema).optional(),
+  // US-210: alinhamento (9 combinações LG/NG/CG/LN/N/CN/LE/NE/CE), derivado pelo ingest de
+  // `Rule.json` (srd-2024_create-your-character_alignment, US-108). Mesmo contrato de
+  // races/classes (chave canônica EN + rótulo por locale) — opcional como eles, para não
+  // invalidar config legado (banco ainda não re-semeado). `.length(9)` só quando presente:
+  // as 9 combinações do 5e são fixas, catálogo com contagem diferente é sinal de bug de parser.
+  alignments: z.array(SystemCatalogEntrySchema).length(9).optional(),
 })
 
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>

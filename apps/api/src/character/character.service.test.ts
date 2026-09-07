@@ -48,6 +48,21 @@ const catalogPt: SystemConfig = {
 }
 const systemRow = { config: catalogEn, configLocales: { 'pt-BR': catalogPt } }
 
+// US-210: catálogo de alinhamento — mesmo contrato de race/class (SystemCatalogEntrySchema).
+// SystemConfigSchema exige exatamente 9 entradas quando o campo está presente (as 9
+// combinações fixas do 5e) — `SystemConfigSchema.parse` roda no service, então o double
+// precisa das 9, não só das chaves que o teste usa.
+const configWithAlignments: SystemConfig = {
+  ...config,
+  alignments: [
+    { key: 'lawful-good', label: 'Lawful Good' }, { key: 'neutral-good', label: 'Neutral Good' },
+    { key: 'chaotic-good', label: 'Chaotic Good' }, { key: 'lawful-neutral', label: 'Lawful Neutral' },
+    { key: 'neutral', label: 'Neutral' }, { key: 'chaotic-neutral', label: 'Chaotic Neutral' },
+    { key: 'lawful-evil', label: 'Lawful Evil' }, { key: 'neutral-evil', label: 'Neutral Evil' },
+    { key: 'chaotic-evil', label: 'Chaotic Evil' },
+  ],
+}
+
 describe('CharacterService.findAllByUser (US-25)', () => {
   it('embute currentAdventure da participação ACTIVE e ordena por último jogado', async () => {
     const service = new CharacterService(fakePrismaList([
@@ -366,6 +381,47 @@ describe('CharacterService.create', () => {
       attributes: { cool: 5, hard: 5 },
     })
     expect([char.race, char.class]).toEqual(['Anão', 'Mago'])
+  })
+
+  // --- US-210 — alignment/appearance/personality ---
+
+  it('persiste a CHAVE de alinhamento quando presente e válida', async () => {
+    const service = new CharacterService(fakePrisma(configWithAlignments))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Lyra', gender: 'x', race: 'dwarf', class: 'wizard',
+      alignment: 'lawful-good', attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.alignment).toBe('lawful-good')
+  })
+
+  it('cria personagem sem alignment no DTO (campo opcional, sem erro)', async () => {
+    const service = new CharacterService(fakePrisma(configWithAlignments))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Lyra', gender: 'x', race: 'dwarf', class: 'wizard',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.alignment).toBeUndefined()
+  })
+
+  // Mesma disciplina de `validateCatalogKey` para race/class: chave fora do catálogo é
+  // rejeitada, não gravada como veio.
+  it('rejeita alignment fora do catálogo', async () => {
+    const service = new CharacterService(fakePrisma(configWithAlignments))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Lyra', gender: 'x', race: 'dwarf', class: 'wizard',
+      alignment: 'super-evil', attributes: { cool: 5, hard: 5 },
+    })).rejects.toThrow('Alinhamento inválida')
+  })
+
+  it('appearance/personality: trima e descarta vazio, mesmo padrão de background.story', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Lyra', gender: 'x', race: 'dwarf', class: 'wizard',
+      appearance: '  Alta, cabelo prateado.  ', personality: '   ',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.appearance).toBe('Alta, cabelo prateado.')
+    expect(char.personality).toBeUndefined()
   })
 
   it('sistema sem classFeatures no config → features [] (sem crash)', async () => {

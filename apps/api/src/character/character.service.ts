@@ -155,6 +155,12 @@ export class CharacterService {
     // US-215: arma(s) fixa(s) da raça (combate do anão / armas do elfo) — RACE_WEAPON_PROFICIENCIES
     // é regra fixa do PHB 2014, mesmo raciocínio de raceLanguages/raceTools acima.
     const raceWeapons = RACE_WEAPON_PROFICIENCIES[race] ?? []
+    // US-210: alinhamento é dado de catálogo (config.alignments, SRD via ingest) — mesmo
+    // validateCatalogKey de race/class/origin. Opcional: o wizard sempre manda (canAdvance
+    // bloqueia antes), mas config legado sem o catálogo ainda não pode travar a criação.
+    const alignment = dto.alignment
+      ? this.validateCatalogKey(config.alignments, dto.alignment, 'Alinhamento')
+      : undefined
 
     return this.prisma.character.create({
       data: {
@@ -162,6 +168,9 @@ export class CharacterService {
         systemId: dto.systemId,
         name: dto.name,
         gender: dto.gender,
+        alignment,
+        appearance: dto.appearance?.trim() || undefined,
+        personality: dto.personality?.trim() || undefined,
         race,
         draconicAncestry,
         raceToolChoice,

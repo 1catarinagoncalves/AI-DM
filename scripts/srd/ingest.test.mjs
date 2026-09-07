@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -1189,6 +1189,68 @@ test('buildSkills: culture/engineering pegam o label pt-BR do overlay igual às 
   const ptResolve = (_domain, _key, entry, enName) => ({ name: entry?.name?.trim() || enName })
   const result = buildSkills(overlay, [SKILL_ROW('history', 'History', 'int')], ptResolve)
   assert.deepEqual(result.map((s) => s.label), ['Cultura', 'Engenharia', 'História'])
+})
+
+// --- US-210 — buildAlignments: Rule.json (srd-2024_create-your-character_alignment) → config.alignments ---
+
+// Texto real do registro (Open5e, https://open5e.com/rules/srd_alignment) — as 9 combinações
+// LG/NG/CG/LN/N/CN/LE/NE/CE por extenso, mais o parágrafo "Unaligned Creatures" que NÃO é um
+// dos 9 (sem sigla entre parênteses, exclusão automática do regex).
+const ALIGNMENT_DESC = `Choose your character's alignment from the options below, and note it on your character sheet.
+
+The game assumes that player characters aren't of an evil alignment. Check with your GM before making an evil character.
+
+### The Nine Alignments
+
+A creature's alignment broadly describes its ethical attitudes and ideals.
+
+_Lawful Good (LG)._ Lawful Good creatures endeavor to do the right thing as expected by society.
+
+_Neutral Good (NG)._ Neutral Good creatures do the best they can, working within rules but not feeling bound by them.
+
+_Chaotic Good (CG)._ Chaotic Good creatures act as their conscience directs with little regard for what others expect.
+
+_Lawful Neutral (LN)._ Lawful Neutral individuals act in accordance with law, tradition, or personal codes.
+
+_Neutral (N)._ Neutral is the alignment of those who prefer to avoid moral questions and don't take sides.
+
+_Chaotic Neutral (CN)._ Chaotic Neutral creatures follow their whims, valuing their personal freedom above all else.
+
+_Lawful Evil (LE)._ Lawful Evil creatures methodically take what they want within the limits of a code.
+
+_Neutral Evil (NE)._ Neutral Evil is the alignment of those who are untroubled by the harm they cause.
+
+_Chaotic Evil (CE)._ Chaotic Evil creatures act with arbitrary violence, spurred by their hatred or bloodlust.
+
+_Unaligned Creatures._ Most creatures that lack the capacity for rational thought don't have alignments; they are unaligned.`
+
+test('buildAlignments: as 9 combinações, na ordem do dataset, chave kebab-case do rótulo EN', () => {
+  const result = buildAlignments({}, ALIGNMENT_DESC, identityResolve)
+  assert.deepEqual(result.map((a) => a.key), [
+    'lawful-good', 'neutral-good', 'chaotic-good',
+    'lawful-neutral', 'neutral', 'chaotic-neutral',
+    'lawful-evil', 'neutral-evil', 'chaotic-evil',
+  ])
+  assert.deepEqual(result.find((a) => a.key === 'lawful-good'), { key: 'lawful-good', label: 'Lawful Good' })
+})
+
+test('buildAlignments: "Unaligned Creatures" não entra — sem sigla entre parênteses, fora do padrão', () => {
+  const result = buildAlignments({}, ALIGNMENT_DESC, identityResolve)
+  assert.equal(result.some((a) => a.key.includes('unaligned')), false)
+})
+
+test('buildAlignments: aplica overlay pt-BR igual aos demais builders (buildSkills/buildRaces)', () => {
+  const overlay = { alignments: { 'lawful-good': 'Leal e Bom', neutral: 'Neutro' } }
+  const ptResolve = (_domain, _key, entry, enName) => ({ name: entry?.name?.trim() || enName })
+  const result = buildAlignments(overlay, ALIGNMENT_DESC, ptResolve)
+  assert.equal(result.find((a) => a.key === 'lawful-good').label, 'Leal e Bom')
+  assert.equal(result.find((a) => a.key === 'neutral').label, 'Neutro')
+  // Sem entrada no overlay pt-BR: cai no fallback EN, mesmo comportamento de attributes/skills.
+  assert.equal(result.find((a) => a.key === 'chaotic-evil').label, 'Chaotic Evil')
+})
+
+test('buildAlignments: texto fora do padrão (bump mudou o formato) falha alto, não silencioso', () => {
+  assert.throws(() => buildAlignments({}, 'Nada de alinhamento aqui.', identityResolve), /esperado 9 combinações/)
 })
 
 // --- US-134 — buildTools: Item.json (category tools/land-vehicle/waterborne-vehicle) → config.tools ---

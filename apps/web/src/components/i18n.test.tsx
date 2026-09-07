@@ -22,6 +22,8 @@ const config = {
   // jogador em inglês, e o teste abaixo separa o que é dicionário da UI do que é dado.
   races: [{ key: 'elf', label: 'Elf' }, { key: 'dwarf', label: 'Dwarf' }],
   classes: [{ key: 'wizard', label: 'Wizard' }, { key: 'fighter', label: 'Fighter' }],
+  // US-210: catálogo de alinhamento — a etapa `identity` (onde nome/gênero moram agora) exige.
+  alignments: [{ key: 'lawful-good', label: 'Lawful Good' }],
 }
 
 beforeEach(() => {
@@ -63,26 +65,42 @@ describe('i18n da interface — dicionário ligado ao locale ativo (US-98)', () 
     renderWithLocale(<SetupWizard />)
 
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
-    expect(screen.getByLabelText('Character name')).toBeTruthy()
     // US-205: classe deixou de ser um <select> — "Class" agora é a legenda da grade de cartão
     // (o <fieldset> tem role "group", nomeado pelo <legend>).
     expect(screen.getByRole('group', { name: 'Class' })).toBeTruthy()
   })
 
+  // US-210: nome/gênero saíram da etapa `class` (US-205) e moram na etapa `identity`, a
+  // última antes da revisão — o wizard inteiro precisa ser percorrido para chegar lá.
+  async function reachIdentityStep() {
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Wizard' }))
+    fireEvent.click(screen.getByRole('button', { name: /Next/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elf' }))
+    fireEvent.click(screen.getByRole('button', { name: /Next/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Next/ })) // → attributes
+    const inc = screen.getByLabelText('Increase Força') // rótulo do atributo vem do config (fixo 'Força' neste fixture), não do dicionário
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Next/ })) // → skills (sem catálogo → livre)
+    fireEvent.click(screen.getByRole('button', { name: /Next/ })) // → spells
+    fireEvent.click(screen.getByRole('button', { name: /Next/ })) // → identity
+  }
+
   it('trocar de idioma re-renderiza sem perder a etapa nem o texto já digitado', async () => {
-    localStorage.setItem(LOCALE_STORAGE_KEY, 'pt-BR')
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'en-US')
     // O wizard já não traz seletor (o idioma vem do hub de personagens), então o
     // teste monta um ao lado para provocar a troca — é o LocaleProvider partilhado
     // que a propaga, que é o que este caso verifica.
     renderWithLocale(<><LocaleToggle /><SetupWizard /></>)
 
-    fireEvent.click(await screen.findByText('D&D 5e SRD'))
-    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    await reachIdentityStep()
+    expect(screen.getByLabelText('Character name')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Character name'), { target: { value: 'Lyra' } })
 
-    fireEvent.click(screen.getByRole('button', { name: 'English' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Português' }))
 
     // Mesma etapa (não voltou ao início) e o campo manteve o que estava digitado.
-    const name = screen.getByLabelText('Character name') as HTMLInputElement
+    const name = screen.getByLabelText('Nome do personagem') as HTMLInputElement
     expect(name.value).toBe('Lyra')
   })
 

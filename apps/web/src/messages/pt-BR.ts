@@ -58,6 +58,9 @@ export const ptBR = {
   // bônus do Alto-elfo.
   'setup.step.spells': 'Magias',
   'setup.step.background': 'Background',
+  // US-210: última etapa antes da Revisão — nome, gênero e alinhamento saem da etapa `class`
+  // (US-205) e voltam a uma etapa própria, agora no FIM da trilha.
+  'setup.step.identity': 'Identidade',
   'setup.step.review': 'Revisão',
   'setup.step.world': 'Mundo',
   'setup.back': 'Voltar',
@@ -218,6 +221,17 @@ export const ptBR = {
   // config.classSpells['wizard'] (nível 0) não está vazio.
   'setup.spells.cantripChoice.legend': 'Escolha um truque de mago',
 
+  // ---- wizard: identidade (US-210) ----
+  'setup.identity.titulo': 'Identidade',
+  'setup.identity.subtitulo': 'Nada aqui é obrigatório além do nome — o resto é textura para o seu personagem.',
+  // US-210: alinhamento é dado de catálogo (config.alignments, SRD) — o rótulo do <select>
+  // vem daqui; o de cada opção vem do catálogo, não deste dicionário (mesmo padrão de raça/classe).
+  'setup.identity.alignment': 'Alinhamento',
+  'setup.identity.appearance': 'Aparência',
+  'setup.identity.appearancePlaceholder': 'Como seu personagem se parece?',
+  'setup.identity.personality': 'Personalidade',
+  'setup.identity.personalityPlaceholder': 'Como ele age e reage?',
+
   // ---- wizard: background ----
   'setup.background.titulo': 'Background',
   'setup.background.subtitulo': 'Quem é {name}? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.',
@@ -258,6 +272,7 @@ export const ptBR = {
   'setup.review.subtitulo': 'Confira a sua ficha antes de embarcar na aventura.',
   'setup.review.name': 'Nome',
   'setup.review.gender': 'Gênero',
+  'setup.review.alignment': 'Alinhamento',
   'setup.review.race': 'Raça',
   'setup.review.class': 'Classe',
   'setup.review.subclass': 'Subclasse',

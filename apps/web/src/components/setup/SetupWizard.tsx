@@ -28,14 +28,18 @@ import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 // trilha e a navegação sem tocar nessas funções.
 // US-157: `world` entra ao FINAL, depois de `review` — o registro da aventura (tom, US-173)
 // tem ciclo de decisão distinto do personagem, que `review` já fecha.
-// US-205 (decisão de 2026-09-02): `race-class` virou `class` + `race` — nome e gênero ficam
+// US-205 (decisão de 2026-09-02): `race-class` virou `class` + `race` — nome e gênero ficavam
 // na primeira (`class`), junto da grade de classe (e a subgrade de subclasse aninhada, quando
 // a classe escolhida tem mais de uma); `race` só tem a grade de raça. Etapas seguintes só
-// deslocam uma posição, sem mudar de conteúdo.
+// deslocam uma posição, sem mudar de conteúdo. SUPERADO pela US-210 logo abaixo: nome/gênero
+// saíram de `class` e moram em `identity` desde então — `class` ficou só com a grade.
 // US-213: `spells` entra entre `skills` e `review` — prévia das magias da classe + escolha do
 // truque bônus do Alto-elfo (a única escolha real que o sistema de magia awareness-only tem).
-type Step = 'system' | 'class' | 'race' | 'background' | 'attributes' | 'skills' | 'spells' | 'review' | 'world'
-const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 'skills', 'spells', 'review', 'world']
+// US-210: `identity` entra entre `spells` e `review` — última etapa antes da revisão da ficha,
+// com nome, gênero (que saem de `class`, ver parágrafo do US-205 acima) e alinhamento (novo,
+// dado de catálogo); ver bloco JSX do `step === 'identity'` mais abaixo.
+type Step = 'system' | 'class' | 'race' | 'background' | 'attributes' | 'skills' | 'spells' | 'identity' | 'review' | 'world'
+const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 'skills', 'spells', 'identity', 'review', 'world']
 
 // US-98: os rótulos de gênero saíram desta lista para o dicionário, mas a lista FICA em
 // pt-BR — ela é o `value` que viaja para a API, não o texto da tela.
@@ -258,7 +262,9 @@ export function SetupWizard() {
   const [systemsError, setSystemsError] = useState(false)
   const [system, setSystem] = useState<SystemOption | null>(null)
 
-  const [charData, setCharData] = useState({ name: '', gender: '', race: '', class: '' })
+  // US-210: `alignment`/`appearance`/`personality` somam a `charData` (não estado próprio) —
+  // o mesmo spread `...charData` de handleConfirm já os leva ao DTO, sem campo novo lá.
+  const [charData, setCharData] = useState({ name: '', gender: '', race: '', class: '', alignment: '', appearance: '', personality: '' })
   // US-205: subclasse escolhida no cartão — só existe estado pra classe com MAIS de uma
   // subclasse (marshal); as outras 12 preenchem sozinhas no service, sem passar por aqui
   // (ver `resolvedSubclass` abaixo). Resetada junto de `class` (subclasse velha não sobrevive
@@ -365,6 +371,9 @@ export function SetupWizard() {
     blurb: t(DRACONIC_ANCESTRY_COPY[d.key]!.blurb),
   }))
   const classCatalog = system?.config?.classes ?? []
+  // US-210: catálogo de alinhamento (config.alignments, SRD via ingest) — mesmo padrão de
+  // raceCatalog/classCatalog acima, consumido só na etapa `identity`.
+  const alignmentCatalog = system?.config?.alignments ?? []
   // US-205: subclasses da classe ESCOLHIDA (config.subclasses é por chave de classe, US-141).
   // 0 ou 1 entrada → sem grade (a única, se houver, preenche sozinha); 2+ → grade obrigatória.
   const subclassCatalog = system?.config?.subclasses?.[charData.class]
@@ -385,6 +394,9 @@ export function SetupWizard() {
   // aparece na tela.
   const raceLabel = raceCatalog.find(r => r.key === charData.race)?.label ?? ''
   const classLabel = classCatalog.find(c => c.key === charData.class)?.label ?? ''
+  // US-210: rótulo do alinhamento escolhido, mesma disciplina de raceLabel/classLabel acima —
+  // a chave (`lawful-good`) nunca aparece na tela, só na revisão como texto no locale ativo.
+  const alignmentLabel = alignmentCatalog.find(a => a.key === charData.alignment)?.label ?? ''
   // US-216: gancho da classe do personagem para o cartão de prévia do ramo "pronta" — mesma
   // regra que `resolveInitialHook(config, character.class)` resolveria no backend
   // (buildAdventureProfile, adventure.service.ts), placeholders já resolvidos com o nome e a
@@ -589,7 +601,8 @@ export function SetupWizard() {
     // US-105: raça e classe passaram a depender do sistema (o catálogo vem do config dele).
     // Voltar e trocar de sistema tem de limpá-las, senão fica selecionada uma chave que o
     // catálogo novo não tem — e o `canAdvance` deixaria passar o que a API vai rejeitar.
-    setCharData(p => ({ ...p, race: '', class: '' }))
+    // US-210: alinhamento é o mesmo caso — catálogo de config.alignments, mesmo motivo do reset.
+    setCharData(p => ({ ...p, race: '', class: '', alignment: '' }))
     // US-205: subclasse depende da classe — mesmo motivo do reset acima.
     setSubclass(undefined)
     // US-211: ancestralidade dracônica depende da raça — mesmo motivo do reset acima.
@@ -652,13 +665,13 @@ export function SetupWizard() {
   function canAdvance(s: Step): boolean {
     switch (s) {
       case 'system': return !!system
-      // US-205: nome, gênero e classe — mais subclasse quando a classe escolhida tem mais de
-      // uma opção (marshal, hoje). Classe com 0 ou 1 subclasse não exige nada aqui: sem
-      // catálogo não há o que escolher, com 1 entrada só ela preenche sozinha no service.
+      // US-210: nome e gênero saíram daqui — moraram na etapa `class` até a US-205, agora
+      // vivem na etapa `identity` (ver caso abaixo). Sobra só a classe — mais subclasse quando
+      // a classe escolhida tem mais de uma opção (marshal, hoje). Classe com 0 ou 1 subclasse
+      // não exige nada aqui: sem catálogo não há o que escolher, com 1 entrada só ela preenche
+      // sozinha no service.
       case 'class':
-        return charData.name.trim() !== ''
-          && (GENDERS as readonly string[]).includes(charData.gender)
-          && classCatalog.some(c => c.key === charData.class)
+        return classCatalog.some(c => c.key === charData.class)
           && (!subclassCatalog || subclassCatalog.length <= 1 || !!subclass)
       // US-211: dragonborn exige a ancestralidade dracônica escolhida — mesmo espírito da
       // checagem de subclass em canAdvance('class').
@@ -693,6 +706,13 @@ export function SetupWizard() {
       // casos (não é Alto-elfo, ou catálogo do Mago vazio) a etapa nunca bloqueia o avanço.
       case 'spells':
         return charData.race !== 'high-elf' || wizardCantrips.length === 0 || !!raceCantripChoice
+      // US-210: nome, gênero e alinhamento — a condição composta que morava em
+      // canAdvance('class') antes da US-205 reabrir a posição (ver Contexto da US-210).
+      // `appearance`/`personality` são opcionais, não entram aqui.
+      case 'identity':
+        return charData.name.trim() !== ''
+          && (GENDERS as readonly string[]).includes(charData.gender)
+          && alignmentCatalog.some(a => a.key === charData.alignment)
       // Origem, conexão e memento são opcionais — etapa `background` não bloqueia o avanço por
       // causa deles (mesmo espírito de US-39: texto livre também é opcional). A escolha do
       // grant de PERÍCIA acontece na etapa `skills` (ver acima), não aqui — mesmo padrão do
@@ -947,9 +967,12 @@ export function SetupWizard() {
               </div>
             )}
 
-            {/* US-205: `race-class` virou `class` + `race`. Nome e gênero ficam aqui (a primeira
-                das duas), acima da grade de classe — não migram pra uma etapa "Identidade" no
-                fim (decisão do backlog). */}
+            {/* US-205: `race-class` virou `class` + `race`. Nome e gênero moravam aqui (a
+                primeira das duas), acima da grade de classe — a US-210 reabre essa decisão e
+                os move de volta para uma etapa "Identidade" própria, mas no FIM da trilha
+                (depois de `spells`), por um motivo diferente do protótipo local que a US-205
+                recusou: campos estruturados (nome/gênero/alinhamento), não texto livre de
+                aparência/personalidade/história (ver US-210 §Contexto). */}
             {step === 'class' && system && (
               <div>
                 {/* Cabeçalho de 3 partes (eyebrow/heading/subtítulo) — mesmo padrão da etapa
@@ -959,24 +982,6 @@ export function SetupWizard() {
                 <SectionTitle>{t('setup.class.titulo')}</SectionTitle>
                 <p className="mt-1 text-sm text-muted-foreground">{t('setup.raceClass.system', { name: system.name })}</p>
                 <div className="mt-6 space-y-4">
-                  {/* US-46: rótulo visível persistente acima de cada campo — placeholder deixa de ser o único rótulo. */}
-                  <div>
-                    <FieldLabel htmlFor="char-name">{t('setup.raceClass.name')}</FieldLabel>
-                    <input id="char-name" required placeholder={t('setup.raceClass.namePlaceholder')}
-                      value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
-                      className={fieldClass()} />
-                  </div>
-                  {/* US-98: `value` em pt-BR (é o que a API entende), rótulo traduzido. US-205
-                      §Fora do escopo: gênero são 3 valores sem prosa, o <select> continua adequado. */}
-                  <div>
-                    <FieldLabel htmlFor="char-gender">{t('setup.raceClass.gender')}</FieldLabel>
-                    <select id="char-gender" value={charData.gender}
-                      onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))}
-                      className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
-                      <option value="">{t('setup.raceClass.select')}</option>
-                      {GENDERS.map(g => <option key={g} value={g}>{t(`setup.gender.${g}`)}</option>)}
-                    </select>
-                  </div>
                   <CatalogCardGroup name="char-class" legend={t('setup.raceClass.class')}
                     items={classCatalog} value={charData.class} onChange={selectClassCard} />
                   {/* US-205: subgrade de subclasse aninhada no cartão de classe — só existe
@@ -1471,6 +1476,63 @@ export function SetupWizard() {
               </div>
             )}
 
+            {/* US-210: última etapa antes da revisão — nome, gênero e alinhamento (todos
+                obrigatórios, ver canAdvance) + aparência/personalidade (texto livre, opcional). */}
+            {step === 'identity' && system && (
+              <div>
+                <SectionTitle>{t('setup.identity.titulo')}</SectionTitle>
+                <p className="mt-2 text-sm text-muted-foreground">{t('setup.identity.subtitulo')}</p>
+                <div className="mt-6 space-y-4">
+                  {/* US-46: rótulo visível persistente acima de cada campo — mesmo par que
+                      morava na etapa `class` antes da US-210, campos e ids idênticos. */}
+                  <div>
+                    <FieldLabel htmlFor="char-name">{t('setup.raceClass.name')}</FieldLabel>
+                    <input id="char-name" required placeholder={t('setup.raceClass.namePlaceholder')}
+                      value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
+                      className={fieldClass()} />
+                  </div>
+                  {/* US-98: `value` em pt-BR (é o que a API entende), rótulo traduzido. US-205
+                      §Fora do escopo: gênero são 3 valores sem prosa, o <select> continua adequado. */}
+                  <div>
+                    <FieldLabel htmlFor="char-gender">{t('setup.raceClass.gender')}</FieldLabel>
+                    <select id="char-gender" value={charData.gender}
+                      onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))}
+                      className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                      <option value="">{t('setup.raceClass.select')}</option>
+                      {GENDERS.map(g => <option key={g} value={g}>{t(`setup.gender.${g}`)}</option>)}
+                    </select>
+                  </div>
+                  {/* US-210: alinhamento é dado de catálogo (config.alignments, SRD via
+                      ingest) — mesmo padrão de raça/classe, não uma lista literal do componente. */}
+                  <div>
+                    <FieldLabel htmlFor="char-alignment">{t('setup.identity.alignment')}</FieldLabel>
+                    <select id="char-alignment" value={charData.alignment}
+                      onChange={e => setCharData(p => ({ ...p, alignment: e.target.value }))}
+                      className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                      <option value="">{t('setup.raceClass.select')}</option>
+                      {alignmentCatalog.map(a => <option key={a.key} value={a.key}>{a.label}</option>)}
+                    </select>
+                  </div>
+                  {/* US-210: aparência/personalidade — texto livre, OPCIONAL (canAdvance não
+                      exige nenhum dos dois). Grade 2 colunas, mesma textarea de background.story. */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <FieldLabel htmlFor="char-appearance">{t('setup.identity.appearance')}</FieldLabel>
+                      <textarea id="char-appearance" rows={3} placeholder={t('setup.identity.appearancePlaceholder')}
+                        value={charData.appearance} onChange={e => setCharData(p => ({ ...p, appearance: e.target.value }))}
+                        className={fieldClass('resize-y')} />
+                    </div>
+                    <div>
+                      <FieldLabel htmlFor="char-personality">{t('setup.identity.personality')}</FieldLabel>
+                      <textarea id="char-personality" rows={3} placeholder={t('setup.identity.personalityPlaceholder')}
+                        value={charData.personality} onChange={e => setCharData(p => ({ ...p, personality: e.target.value }))}
+                        className={fieldClass('resize-y')} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {step === 'review' && system && (
               <div>
                 <SectionTitle>{t('setup.review.titulo')}</SectionTitle>
@@ -1482,6 +1544,9 @@ export function SetupWizard() {
                   {[
                     [t('setup.review.name'), charData.name],
                     [t('setup.review.gender'), charData.gender && t(`setup.gender.${charData.gender as typeof GENDERS[number]}`)],
+                    // US-210: alinhamento já vem rotulado do catálogo (config.alignments), mesma
+                    // disciplina de raça/classe — a chave nunca aparece na tela.
+                    [t('setup.review.alignment'), alignmentLabel],
                     [t('setup.review.race'), raceLabel],
                     [t('setup.review.class'), classLabel],
                     [t('setup.review.level'), '1'],

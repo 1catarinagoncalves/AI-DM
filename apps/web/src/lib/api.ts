@@ -94,6 +94,11 @@ export const api = {
     // US-132: `toolChoice` é o mesmo formato, para grant.kind === 'tools' (Folk Hero real
     // exige 2 — chooseCount pode ser > 1 aqui também).
     origin?: { key?: string; connection?: string; memento?: string; abilityChoice?: string; skillChoice?: string[]; toolChoice?: string[] }
+    // US-210: chave de config.alignments — sempre manda (canAdvance('identity') bloqueia
+    // antes sem ela). `appearance`/`personality` são texto livre opcional (etapa `identity`).
+    alignment?: string
+    appearance?: string
+    personality?: string
   }) => post<{ id: string; name: string }>('/characters', data),
 
   listSystems: () =>

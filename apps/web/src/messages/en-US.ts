@@ -52,6 +52,9 @@ export const enUS: Record<MessageKey, string> = {
   // US-213: new step between Skills and Review — class spell preview + High Elf bonus cantrip.
   'setup.step.spells': 'Spells',
   'setup.step.background': 'Background',
+  // US-210: last step before Review — name, gender and alignment leave the `class` step
+  // (US-205) and come back to their own step, now at the END of the trail.
+  'setup.step.identity': 'Identity',
   'setup.step.review': 'Review',
   'setup.step.world': 'World',
   'setup.back': 'Back',
@@ -193,6 +196,17 @@ export const enUS: Record<MessageKey, string> = {
   // config.classSpells['wizard'] (level 0) isn't empty.
   'setup.spells.cantripChoice.legend': 'Choose a wizard cantrip',
 
+  // ---- wizard: identity (US-210) ----
+  'setup.identity.titulo': 'Identity',
+  'setup.identity.subtitulo': "Nothing here is required beyond the name — the rest is texture for your character.",
+  // US-210: alignment is catalog data (config.alignments, SRD) — this label is for the
+  // <select> itself; each option's label comes from the catalog, same pattern as race/class.
+  'setup.identity.alignment': 'Alignment',
+  'setup.identity.appearance': 'Appearance',
+  'setup.identity.appearancePlaceholder': 'What does your character look like?',
+  'setup.identity.personality': 'Personality',
+  'setup.identity.personalityPlaceholder': 'How do they act and react?',
+
   // ---- wizard: background ----
   'setup.background.titulo': 'Background',
   'setup.background.subtitulo': 'Who is {name}? The Dungeon Master uses this to give weight to your choices. All optional — one item per line in ideals, bonds and flaws.',
@@ -233,6 +247,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.subtitulo': 'Check your character sheet before setting out.',
   'setup.review.name': 'Name',
   'setup.review.gender': 'Gender',
+  'setup.review.alignment': 'Alignment',
   'setup.review.race': 'Race',
   'setup.review.class': 'Class',
   'setup.review.subclass': 'Subclass',

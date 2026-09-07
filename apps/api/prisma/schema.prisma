@@ -64,6 +64,13 @@ model Character {
   origin         Json                   @default("{}") // US-122: {key?} — origem escolhida do catálogo (US-121).
                                                          // Distinto de `background` (US-39, prosa livre): os dois não se
                                                          // alimentam um do outro, ver US-122 §Nomenclatura.
+  alignment      String?                // US-210: chave canônica de config.alignments (ex. 'lawful-good'),
+                                          // não o rótulo pt-BR — mesmo contrato de `race`/`class`. Opcional
+                                          // (nullable): fichas existentes não têm, sem backfill.
+  appearance     String?                // US-210: texto livre, sem catálogo — mesmo raciocínio de
+                                          // background.ideals/bonds/flaws. Opcional (nada na etapa `identity`
+                                          // é obrigatório além do nome).
+  personality    String?                // US-210: texto livre, mesmo padrão de `appearance`.
   states         CharacterState[]
   participations AdventureParticipant[]
   eventLogs      EventLog[]
