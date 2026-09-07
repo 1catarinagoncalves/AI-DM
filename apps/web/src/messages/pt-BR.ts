@@ -203,6 +203,9 @@ export const ptBR = {
   // US-131: seção das perícias do background, no TOPO desta etapa (a origem já avisou na
   // etapa `background`; aqui é onde a escolha de fato acontece).
   'setup.skills.originGrant': 'Perícias de {origin}',
+  // US-220: seção de perícia de raça — mesmo lugar/padrão de originGrant acima (Keen
+  // Senses/Menacing aparecem pré-marcadas, Skill Versatility como escolha clicável abaixo).
+  'setup.skills.raceGrant': 'Perícias da sua raça',
   'setup.skills.instructions': 'Escolha {n} perícias proficientes (+{bonus} cada).',
   'setup.skills.selected': 'Selecionadas:',
 

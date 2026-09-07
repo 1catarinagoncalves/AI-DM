@@ -75,6 +75,9 @@ export const api = {
     // US-212: atributo(s) escolhido(s) para o `choice` do grant de RAÇA — só manda quando o
     // grant da raça exige escolha (a maioria não exige, ver config.races[].grant).
     raceAbilityChoice?: string[]
+    // US-220: perícia(s) escolhida(s) do traço "Skill Versatility" — só manda quando a raça
+    // está em RACE_SKILL_PROFICIENCY_CHOICES (@ai-dm/shared: half-elf hoje).
+    raceSkillChoices?: string[]
     // US-205: chave de config.subclasses[class] — omitido quando a classe tem 1 subclasse só
     // (o service preenche sozinho); a etapa `class` do wizard só manda quando `marshal` (3 opções).
     subclass?: string

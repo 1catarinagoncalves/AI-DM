@@ -2240,3 +2240,119 @@ describe('SetupWizard — US-215 proficiência de arma e ferramenta fixa de raç
     expect(screen.queryByText('Proficiências de arma')).toBeNull()
   })
 })
+
+// US-220: perícia proficiente concedida por raça — Alto-elfo/Meio-orc fixa
+// (RACE_SKILL_PROFICIENCIES), Meio-elfo à escolha (RACE_SKILL_PROFICIENCY_CHOICES).
+// `stealth`/`arcana` sobram no catálogo pra provar que só as concedidas somem da etapa
+// `skills`, mesmo espírito de configWithSkillGrant (US-131) acima.
+const configWithRaceSkills = (budget: number) => ({
+  ...configWithBudget(budget),
+  races: [
+    { key: 'elf', label: 'Elfo' },
+    { key: 'high-elf', label: 'Alto-elfo', parentKey: 'elf' },
+    { key: 'half-orc', label: 'Meio-orc' },
+    { key: 'half-elf', label: 'Meio-elfo' },
+    { key: 'human', label: 'Humano' },
+  ],
+  skills: [
+    { key: 'perception', label: 'Percepção', ability: 'strength' },
+    { key: 'intimidation', label: 'Intimidação', ability: 'strength' },
+    { key: 'stealth', label: 'Furtividade', ability: 'strength' },
+    { key: 'arcana', label: 'Arcanismo', ability: 'strength' },
+    { key: 'athletics', label: 'Atletismo', ability: 'strength' },
+  ],
+  proficiency: { choices: 1, bonus: 2 },
+  // US-214: Alto-elfo/Humano/Meio-elfo também exigem raceLanguageChoice pra avançar da etapa
+  // `race` (RACE_EXTRA_LANGUAGE_CHOICE) — 'orc' é a única opção não excluída pelo pool de
+  // nenhum dos três (RACE_LANGUAGES cobre common/elvish). Sem relação com este teste (US-220),
+  // só destrava a navegação — mesmo tratamento de configWithRaceGrant acima.
+  languages: [
+    { key: 'common', label: 'Comum', secret: false },
+    { key: 'elvish', label: 'Élfico', secret: false },
+    { key: 'orc', label: 'Orc', secret: false },
+  ],
+})
+
+describe('SetupWizard — US-220 perícias proficientes por raça', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickRaceSkillConfig(config: SystemConfig, radioName: string) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: radioName }))
+    // US-214: Alto-elfo/Humano/Meio-elfo exigem o idioma extra escolhido pra avançar — de
+    // outra US, preenchido aqui só pra destravar a navegação (ver comentário em configWithRaceSkills).
+    if (radioName === 'Elfo' || radioName === 'Humano' || radioName === 'Meio-elfo') {
+      fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'orc' } })
+    }
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+  }
+
+  it('Alto-elfo: Percepção pré-marcada e não-clicável, sem exigir escolha adicional; revisão mostra o bônus', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickRaceSkillConfig(configWithRaceSkills(0), 'Elfo')
+
+    expect(screen.getByText('Perícias da sua raça')).toBeTruthy()
+    expect(screen.getByText('Percepção')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Percepção/ })).toBeNull() // fixa, não-clicável
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true) // só a fixa de raça; a classe ainda não escolheu a sua
+    fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' }))
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → revisão
+    // Força 8 (default, budget 0) → modificador -1; perícia proficiente soma +2 → +1 líquido.
+    expect(screen.getByText(/Percepção \(\+1\)/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ skills: ['athletics'] }))
+  })
+
+  it('Meio-orc: Intimidação pré-marcada e não-clicável', async () => {
+    await pickRaceSkillConfig(configWithRaceSkills(0), 'Meio-orc')
+    expect(screen.getByText('Perícias da sua raça')).toBeTruthy()
+    expect(screen.getByText('Intimidação')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Intimidação/ })).toBeNull()
+  })
+
+  it('raça sem traço de perícia (Humano) não mostra a seção "Perícias da sua raça"', async () => {
+    await pickRaceSkillConfig(configWithRaceSkills(0), 'Humano')
+    expect(screen.queryByText('Perícias da sua raça')).toBeNull()
+  })
+
+  it('Meio-elfo: exige 2 escolhas próprias (orçamento separado da classe); DTO manda raceSkillChoices', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickRaceSkillConfig(configWithRaceSkills(0), 'Meio-elfo')
+
+    expect(screen.getByText('Perícias da sua raça')).toBeTruthy()
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' })) // escolha da classe
+    expect(nextBtn().disabled).toBe(true) // escolha de raça ainda falta
+
+    fireEvent.click(screen.getByRole('button', { name: 'Percepção' })) // escolha de raça 1/2
+    expect(nextBtn().disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Intimidação' })) // escolha de raça 2/2
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      skills: ['athletics'], raceSkillChoices: ['perception', 'intimidation'],
+    }))
+  })
+})

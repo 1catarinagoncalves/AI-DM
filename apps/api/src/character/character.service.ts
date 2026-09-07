@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -121,7 +121,24 @@ export class CharacterService {
     // valida, para o mesmo par não poder ser escolhido duas vezes nem sobrar de fora.
     const skillGrant = this.findSkillGrant(config.backgrounds, originKey)
     const originSkills = this.applySkillGrant(skillGrant, dto.origin?.skillChoice)
-    const skills = [...originSkills, ...this.validateSkills(config, dto.skills ?? [], originSkills)]
+    // US-220: perícia FIXA de raça (Keen Senses do Alto-elfo, Menacing do Meio-orc) —
+    // RACE_SKILL_PROFICIENCIES é regra fixa do PHB 2014 (@ai-dm/shared), soma incondicional,
+    // mesmo raciocínio de raceTools/raceLanguages.
+    const raceSkills = RACE_SKILL_PROFICIENCIES[race] ?? []
+    // US-220: perícia(s) À ESCOLHA de raça (Skill Versatility do Meio-elfo) — generalização de
+    // applyRaceGrant a N escolhas sobre o catálogo INTEIRO de perícias, não uma tabela fixa.
+    const raceChosenSkills = this.applyRaceSkillChoice(
+      config.skills, [...raceSkills, ...originSkills, ...(dto.skills ?? [])], RACE_SKILL_PROFICIENCY_CHOICES[race], dto.raceSkillChoices,
+    )
+    // US-220 §Colisão: fixa de raça que também é fixa do background (Meio-orc + Guard, único
+    // par medido no dataset em 2026-09-07) ganha +1 perícia substituta à escolha na etapa
+    // `skills` da classe — a RAW manda substituir, sem o subsistema de troca generalizado que
+    // a US-131 já recusou como YAGNI para o caso de duas fontes só.
+    const collisionSubstitutes = raceSkills.filter((s) => (skillGrant?.fixed ?? []).includes(s)).length
+    const skills = [...new Set([
+      ...raceSkills, ...raceChosenSkills, ...originSkills,
+      ...this.validateSkills(config, dto.skills ?? [], [...raceSkills, ...raceChosenSkills, ...originSkills], collisionSubstitutes),
+    ])]
     // US-132: ferramenta/veículo do background (`grant.kind === 'tools'`) — mesmo par find/apply
     // de perícia (US-131), mas sem etapa própria pra mesclar: a origem é a ÚNICA fonte.
     const toolGrant = this.findToolGrant(config.backgrounds, originKey)
@@ -386,10 +403,13 @@ export class CharacterService {
    *
    * US-131: `excluded` tira do catálogo as perícias já concedidas pelo background — evita
    * duplicar a mesma perícia entre a origem e a escolha da etapa `skills`.
+   *
+   * US-220: `extraChoices` soma ao orçamento (`config.proficiency.choices`) quando a colisão
+   * fixa×fixa de raça/background (Meio-orc + Guard, ver §Colisão) concede uma substituta.
    */
-  private validateSkills(config: SystemConfig, chosen: string[], excluded: string[] = []): string[] {
+  private validateSkills(config: SystemConfig, chosen: string[], excluded: string[] = [], extraChoices = 0): string[] {
     const catalog = (config.skills ?? []).filter((s) => !excluded.includes(s.key))
-    const choices = config.proficiency?.choices ?? 0
+    const choices = (config.proficiency?.choices ?? 0) + extraChoices
 
     if (catalog.length === 0 || choices === 0) {
       if (chosen.length > 0) {
@@ -408,6 +428,36 @@ export class CharacterService {
       throw new BadRequestException(`Perícia(s) inválida(s): ${invalid.join(', ')}`)
     }
     return unique
+  }
+
+  /**
+   * US-220: traço "Skill Versatility" do Meio-elfo — generalização de `applyRaceGrant` (US-212)
+   * a N escolhas sobre o catálogo INTEIRO de perícias, em vez de uma tabela fixa como
+   * `DWARF_TOOL_PROFICIENCY_CHOICES`. `count` vem de `RACE_SKILL_PROFICIENCY_CHOICES[race]`;
+   * raça fora do mapa (as 8 restantes) devolve `[]` e IGNORA `raceSkillChoices` mesmo se vier
+   * no DTO, mesmo tratamento de `raceToolChoice`/`draconicAncestry` fora de contexto.
+   *
+   * `excluded` já traz raça fixa + origem + a escolha da etapa `skills` da classe — rejeita
+   * contagem errada, chave fora do catálogo e qualquer uma das três colisões na mesma exceção.
+   */
+  private applyRaceSkillChoice(
+    catalog: SystemConfig['skills'],
+    excluded: string[],
+    count: number | undefined,
+    raceSkillChoices?: string[],
+  ): string[] {
+    // Config legado sem config.skills (ver validateSkills acima, "sistema sem perícias no
+    // config") não tem de onde a raça escolher — mesmo corte, não erro.
+    if (!count || !catalog || catalog.length === 0) return []
+    const pool = new Set(catalog.filter((s) => !excluded.includes(s.key)).map((s) => s.key))
+    const chosen = [...new Set(raceSkillChoices ?? [])]
+    if (chosen.length !== count || chosen.some((k) => !pool.has(k))) {
+      throw new BadRequestException(
+        `raceSkillChoices inválido: [${(raceSkillChoices ?? []).join(', ')}]. Esperado ${count} chave(s) de config.skills, `
+        + `distintas entre si e não concedidas por raça/origem/classe.`,
+      )
+    }
+    return chosen
   }
 
   /**

@@ -9,7 +9,7 @@ import {
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
   DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE,
-  RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES,
+  RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES,
   type SystemConfig, type SystemTool, type DraconicDamageType, type InitialAdventureHook,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
@@ -284,6 +284,11 @@ export function SetupWizard() {
   // única, como `abilityChoice` de origem) porque `choice.count` pode ser 2 (Meio-Elfo hoje).
   // Resetado ao trocar de raça/variante e de sistema, mesmo motivo de draconicAncestry acima.
   const [raceAbilityChoice, setRaceAbilityChoice] = useState<string[]>([])
+  // US-220: perícia(s) escolhida(s) do traço "Skill Versatility" do Meio-elfo — só existe
+  // estado pra raça em RACE_SKILL_PROFICIENCY_CHOICES (mesmo padrão condicional de
+  // raceToolChoice/raceLanguageChoice acima, mas array: a contagem hoje é 2). Resetada ao
+  // trocar de raça/raiz (selectRootCard) e de sistema, mesmo motivo dos campos irmãos.
+  const [raceSkillChoice, setRaceSkillChoice] = useState<string[]>([])
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
@@ -421,6 +426,18 @@ export function SetupWizard() {
   // `skills` (evita duplicar) e somadas às `choices` da classe na revisão.
   const originSkillKeys = skillGrant ? [...skillGrant.fixed, ...skillChoice] : []
   const skillLabel = Object.fromEntries(skillCatalog.map(sk => [sk.key, sk.label]))
+  // US-220: perícia FIXA de raça (Alto-elfo/Meio-orc) — RACE_SKILL_PROFICIENCIES é regra fixa
+  // do PHB 2014 (@ai-dm/shared), mesmo raciocínio de raceLanguages/raceTools. `raceSkillChoiceCount`
+  // é `undefined` pra qualquer raça fora de RACE_SKILL_PROFICIENCY_CHOICES (as 8 outras).
+  const raceSkillsFixed = RACE_SKILL_PROFICIENCIES[charData.race] ?? []
+  // Sistema sem config.skills (catálogo vazio) não tem de onde a raça escolher — mesmo corte
+  // do service (character.service.ts, "sistema sem perícias no config"), não erro/bloqueio.
+  const raceSkillChoiceCount = skillCatalog.length > 0 ? RACE_SKILL_PROFICIENCY_CHOICES[charData.race] : undefined
+  // US-220 §Colisão: fixa de raça que também é fixa do background (Meio-orc + Guard, único
+  // par medido no dataset) concede +1 perícia substituta no orçamento da etapa `skills` da
+  // classe — mesmo cálculo do service (character.service.ts), aqui só pra dimensionar a UI.
+  const raceSkillCollisions = raceSkillsFixed.filter(k => (skillGrant?.fixed ?? []).includes(k)).length
+  const effectiveSkillChoices = skillChoices + raceSkillCollisions
   // US-132: ferramenta/veículo do background, se o ingest reconheceu o padrão de
   // `tool_proficiency` (US-132 §Modelo de dados). Mesmo par benefit/grant de skillBenefit
   // acima, mas a escolha acontece NESTA etapa (background) — não existe etapa `tools` própria.
@@ -527,7 +544,9 @@ export function SetupWizard() {
   // ficha, filtrado ao que o jogador marcou (a revisão não lista o catálogo inteiro).
   // US-131: soma as da origem (`originSkillKeys`) às da etapa `skills` — a revisão espelha a
   // ficha completa que a API vai persistir (US-127), não só a parte escolhida na última etapa.
-  const reviewSkills = buildSkillSheet(skillCatalog, attrs, [...originSkillKeys, ...skills], system?.config?.proficiency?.bonus ?? 2)
+  // US-220: perícias de raça (fixas + escolhidas) entram na revisão junto das de origem/classe
+  // — a revisão espelha a ficha (US-127), sem código de exibição novo.
+  const reviewSkills = buildSkillSheet(skillCatalog, attrs, [...raceSkillsFixed, ...raceSkillChoice, ...originSkillKeys, ...skills], system?.config?.proficiency?.bonus ?? 2)
     .filter(sk => sk.proficient)
   // US-132: ferramenta(s) fixa(s) + escolhida(s) da origem, já resolvidas pro rótulo — mesma
   // forma que a API vai persistir (Character.tools), pro preview não divergir do salvo.
@@ -583,6 +602,8 @@ export function SetupWizard() {
     setRaceCantripChoice(undefined)
     // US-212: bônus de atributo de raça depende do catálogo de raça — mesmo motivo do reset acima.
     setRaceAbilityChoice([])
+    // US-220: perícia(s) à escolha de raça depende do catálogo de raça — mesmo motivo do reset acima.
+    setRaceSkillChoice([])
     // US-122: origem também depende do catálogo do sistema — mesmo motivo do reset acima.
     setOrigin(undefined)
     // US-124: conexão/memento dependem da origem — mesmo motivo.
@@ -624,6 +645,8 @@ export function SetupWizard() {
     // US-212: o `grant` muda de raça pra raça (e de variante pra variante) — uma escolha feita
     // pra uma raça pode colidir com o `fixed` de outra, mesmo motivo do reset acima.
     setRaceAbilityChoice([])
+    // US-220: Skill Versatility é escolha da raça — mesmo motivo do reset acima.
+    setRaceSkillChoice([])
   }
 
   function canAdvance(s: Step): boolean {
@@ -659,9 +682,13 @@ export function SetupWizard() {
       // além disso, background com grant.kind === 'skills' exige as `chooseCount` chaves da
       // origem (mesmo espírito do bônus de atributo, mas aqui a escolha acontece nesta etapa,
       // não na `background` — perícia de origem e perícia de classe ficam na mesma tela).
+      // US-220: Meio-elfo (Skill Versatility) exige as `raceSkillChoiceCount` escolhas próprias,
+      // além das da classe/origem já checadas acima — `effectiveSkillChoices` já soma a
+      // substituta da colisão fixa×fixa (ver §Colisão) ao orçamento da classe.
       case 'skills':
-        return (skillChoices === 0 || skills.length === skillChoices)
+        return (effectiveSkillChoices === 0 || skills.length === effectiveSkillChoices)
           && (!skillGrant || skillGrant.chooseCount === 0 || skillChoice.length === skillGrant.chooseCount)
+          && (raceSkillChoiceCount === undefined || raceSkillChoice.length === raceSkillChoiceCount)
       // US-213: só bloqueia quando o Alto-elfo TEM truque de mago pra escolher — nos demais
       // casos (não é Alto-elfo, ou catálogo do Mago vazio) a etapa nunca bloqueia o avanço.
       case 'spells':
@@ -727,13 +754,17 @@ export function SetupWizard() {
       const raceCantripChoicePayload = charData.race === 'high-elf' ? raceCantripChoice : undefined
       // US-212: só viaja quando o grant da raça exige escolha — [] vira undefined (nada a validar).
       const raceAbilityChoicePayload = raceAbilityChoice.length > 0 ? raceAbilityChoice : undefined
+      // US-220: só viaja quando a raça está em RACE_SKILL_PROFICIENCY_CHOICES (hoje só
+      // half-elf) — mesmo espírito condicional de raceToolChoicePayload acima.
+      const raceSkillChoicesPayload = raceSkillChoiceCount !== undefined ? raceSkillChoice : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({
         systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload,
         raceToolChoice: raceToolChoicePayload,
         raceLanguageChoice: raceLanguageChoicePayload,
         raceCantripChoice: raceCantripChoicePayload,
-        raceAbilityChoice: raceAbilityChoicePayload, attributes: attrs, skills, background, origin: originPayload,
+        raceAbilityChoice: raceAbilityChoicePayload, raceSkillChoices: raceSkillChoicesPayload,
+        attributes: attrs, skills, background, origin: originPayload,
       })
       // Personagem já está salvo: guardamos o id e avançamos ao passo `world` (US-157).
       setCharId(char.id)
@@ -764,10 +795,23 @@ export function SetupWizard() {
   }
 
   // US-27: marca/desmarca proficiência; bloqueia marcar além do orçamento.
+  // US-220: o orçamento é `effectiveSkillChoices` (choices da classe + substituta de colisão
+  // fixa×fixa de raça/background, ver §Colisão), não mais `skillChoices` cru.
   function toggleSkill(key: string) {
     setSkills(p => {
       if (p.includes(key)) return p.filter(k => k !== key)
-      if (p.length >= skillChoices) return p
+      if (p.length >= effectiveSkillChoices) return p
+      return [...p, key]
+    })
+  }
+
+  // US-220: marca/desmarca perícia do traço "Skill Versatility" do Meio-elfo — mesmo padrão de
+  // toggleSkillChoice (US-131), mas limitado a `raceSkillChoiceCount`, orçamento PRÓPRIO,
+  // separado do da classe.
+  function toggleRaceSkillChoice(key: string) {
+    setRaceSkillChoice(p => {
+      if (p.includes(key)) return p.filter(k => k !== key)
+      if (raceSkillChoiceCount === undefined || p.length >= raceSkillChoiceCount) return p
       return [...p, key]
     })
   }
@@ -1169,18 +1213,49 @@ export function SetupWizard() {
                     </div>
                   </div>
                 )}
+                {/* US-220: perícia de raça (Keen Senses do Alto-elfo, Menacing do Meio-orc,
+                    Skill Versatility do Meio-elfo) — mesmo padrão do bloco de origem acima:
+                    `fixed` pré-marcado e não-clicável, escolha clicável até `raceSkillChoiceCount`.
+                    O pool da escolha exclui o que raça FIXA e origem já concederam. */}
+                {(raceSkillsFixed.length > 0 || raceSkillChoiceCount !== undefined) && (
+                  <div className="mt-4">
+                    <SheetHeading>{t('setup.skills.raceGrant')}</SheetHeading>
+                    <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                      {raceSkillsFixed.map(key => (
+                        <div key={key} className={optionCardClass(true)}>
+                          <span className="block text-sm font-medium text-foreground">{skillLabel[key] ?? key}</span>
+                        </div>
+                      ))}
+                      {raceSkillChoiceCount !== undefined && skillCatalog
+                        .filter(sk => !raceSkillsFixed.includes(sk.key) && !originSkillKeys.includes(sk.key))
+                        .map(sk => {
+                          const on = raceSkillChoice.includes(sk.key)
+                          const full = !on && raceSkillChoice.length >= raceSkillChoiceCount
+                          return (
+                            <button key={sk.key} type="button" onClick={() => toggleRaceSkillChoice(sk.key)}
+                              disabled={full}
+                              aria-pressed={on}
+                              className={optionCardClass(on)}>
+                              <span className="block text-sm font-medium text-foreground">{sk.label}</span>
+                            </button>
+                          )
+                        })}
+                    </div>
+                  </div>
+                )}
                 {/* US-98: o número deixou de ser um <span> no meio da frase (concatenação
                     que quebra noutra ordem de palavras); o destaque fica na contagem. */}
                 <p className="mt-6 text-sm text-muted-foreground">
-                  {t('setup.skills.instructions', { n: skillChoices, bonus: system.config?.proficiency?.bonus ?? 2 })}{' '}
-                  {t('setup.skills.selected')} <span className={`font-semibold ${skills.length === skillChoices ? 'text-success' : 'text-primary'}`}>{skills.length}</span>/{skillChoices}
+                  {t('setup.skills.instructions', { n: effectiveSkillChoices, bonus: system.config?.proficiency?.bonus ?? 2 })}{' '}
+                  {t('setup.skills.selected')} <span className={`font-semibold ${skills.length === effectiveSkillChoices ? 'text-success' : 'text-primary'}`}>{skills.length}</span>/{effectiveSkillChoices}
                 </p>
                 <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                  {/* US-131: exclui as perícias já concedidas pela origem (fixas + escolhida) —
-                      evita duplicar; `skillChoices` (contagem) segue sendo só a parte da classe. */}
-                  {skillCatalog.filter(sk => !originSkillKeys.includes(sk.key)).map(sk => {
+                  {/* US-131/US-220: exclui as perícias já concedidas pela origem (fixas +
+                      escolhida) e pela raça (fixas + escolhida) — evita duplicar; `effectiveSkillChoices`
+                      (contagem) segue sendo só a parte da classe (+ substituta de colisão). */}
+                  {skillCatalog.filter(sk => !originSkillKeys.includes(sk.key) && !raceSkillsFixed.includes(sk.key) && !raceSkillChoice.includes(sk.key)).map(sk => {
                     const on = skills.includes(sk.key)
-                    const full = !on && skills.length >= skillChoices
+                    const full = !on && skills.length >= effectiveSkillChoices
                     return (
                       <button key={sk.key} type="button" onClick={() => toggleSkill(sk.key)}
                         disabled={full}

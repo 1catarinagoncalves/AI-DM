@@ -178,6 +178,9 @@ export const enUS: Record<MessageKey, string> = {
   // US-131: background skills section, at the TOP of this step (the origin already gave the
   // heads-up in the `background` step; this is where the actual choice happens).
   'setup.skills.originGrant': 'Skills from {origin}',
+  // US-220: race skill proficiency section — same spot/pattern as originGrant above (Keen
+  // Senses/Menacing show as pre-checked, Skill Versatility as a clickable choice underneath).
+  'setup.skills.raceGrant': 'Skills from your race',
   'setup.skills.instructions': 'Choose {n} proficient skills (+{bonus} each).',
   'setup.skills.selected': 'Selected:',
 

@@ -47,6 +47,11 @@ export const CreateCharacterSchema = z.object({
   // race === 'high-elf' e esse catálogo não está vazio. Ignorada para qualquer outra raça
   // mesmo se vier no DTO, mesmo raciocínio de raceToolChoice/raceLanguageChoice acima.
   raceCantripChoice: z.string().max(80).optional(),
+  // US-220: perícia(s) escolhida(s) do traço "Skill Versatility" do Meio-elfo — chave de
+  // config.skills (US-27), exigida no service quando RACE_SKILL_PROFICIENCY_CHOICES[race]
+  // existe (@ai-dm/shared: half-elf). Array, não par fixo+escolhido: a contagem vem do mapa
+  // (2 hoje), mesmo raciocínio de `raceAbilityChoice` acima.
+  raceSkillChoices: z.array(z.string().max(60)).max(6).optional(),
   class: z.string().min(1).max(40),
   // US-205: chave de config.subclasses[class] — opcional no DTO. Classe com 1 subclasse só
   // nunca precisa mandar (o service preenche sozinho); classe com mais de uma (marshal) manda

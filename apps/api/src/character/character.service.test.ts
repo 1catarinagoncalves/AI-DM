@@ -1325,3 +1325,156 @@ describe('CharacterService.create (US-215 — proficiência de arma e ferramenta
     expect(char.tools).toEqual([])
   })
 })
+
+// US-220: perícia proficiente concedida por raça — terceira fonte de perícia (depois de
+// classe, US-27, e origem, US-131). Alto-elfo/Meio-orc concedem FIXA (RACE_SKILL_PROFICIENCIES,
+// overlay igual à US-215); Meio-elfo concede 2 À ESCOLHA (RACE_SKILL_PROFICIENCY_CHOICES).
+describe('CharacterService.create (US-220 — perícias proficientes por raça)', () => {
+  const configWithRaceSkills: SystemConfig = {
+    ...config,
+    races: [
+      { key: 'high-elf', label: 'High Elf' },
+      { key: 'half-orc', label: 'Half-Orc' },
+      { key: 'half-elf', label: 'Half-Elf' },
+      { key: 'human', label: 'Human' },
+    ],
+    skills: [
+      { key: 'perception', label: 'Perception', ability: 'cool' },
+      { key: 'intimidation', label: 'Intimidation', ability: 'hard' },
+      { key: 'stealth', label: 'Stealth', ability: 'cool' },
+      { key: 'arcana', label: 'Arcana', ability: 'hard' },
+      { key: 'athletics', label: 'Athletics', ability: 'cool' },
+    ],
+    proficiency: { choices: 0, bonus: 2 },
+  }
+
+  it('high-elf sem raceSkillChoices: Character.skills ganha perception, sem exigir escolha', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.skills).toEqual(['perception'])
+  })
+
+  it('half-orc: Character.skills ganha intimidation', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-orc', class: 'x',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.skills).toEqual(['intimidation'])
+  })
+
+  it('raça sem traço de perícia (human) não ganha skills; raceSkillChoices enviado por engano é ignorado', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceSkillChoices: ['stealth', 'arcana'],
+    })
+    expect(char.skills).toEqual([])
+  })
+
+  it('half-elf: exige exatamente 2 raceSkillChoices, mescladas em Character.skills', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceSkillChoices: ['stealth', 'arcana'],
+    })
+    expect(char.skills).toEqual(['stealth', 'arcana'])
+  })
+
+  it('half-elf rejeita contagem errada de raceSkillChoices', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceSkills))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceSkillChoices: ['stealth'],
+    })).rejects.toThrow('raceSkillChoices inválido')
+  })
+
+  it('half-elf rejeita chave de raceSkillChoices fora de config.skills', async () => {
+    const service = new CharacterService(fakePrisma(configWithRaceSkills))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, raceSkillChoices: ['stealth', 'invalida'],
+    })).rejects.toThrow('raceSkillChoices inválido')
+  })
+
+  it('half-elf rejeita raceSkillChoices que colide com perícia já escolhida pela classe', async () => {
+    const service = new CharacterService(fakePrisma({ ...configWithRaceSkills, proficiency: { choices: 1, bonus: 2 } }))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics'], raceSkillChoices: ['athletics', 'stealth'],
+    })).rejects.toThrow('raceSkillChoices inválido')
+  })
+
+  it('perícia FIXA de raça sai do catálogo da etapa skills da classe — reescolhê-la é rejeitado', async () => {
+    const service = new CharacterService(fakePrisma({ ...configWithRaceSkills, proficiency: { choices: 1, bonus: 2 } }))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'high-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['perception'],
+    })).rejects.toThrow('inválida')
+  })
+
+  // US-220 §Colisão: Meio-orc (fixa `intimidation`) + origem com `intimidation` FIXA (Guard,
+  // único par medido no dataset em 2026-09-07) — a RAW manda substituir por outra perícia à
+  // escolha; o service concede +1 no orçamento da etapa `skills` da classe em vez do
+  // subsistema de troca generalizado que a US-131 já recusou como YAGNI.
+  const configWithCollision: SystemConfig = {
+    ...configWithRaceSkills,
+    proficiency: { choices: 0, bonus: 2 },
+    backgrounds: [
+      { key: 'a5e-ag_guard', name: 'Guard', source: 'a5e-ag', benefits: [
+        { type: 'skill_proficiency', name: 'Skill Proficiencies', description: 'Intimidation, and either Athletics or Investigation.', grant: { kind: 'skills', fixed: ['intimidation'], chooseFrom: ['athletics'], chooseCount: 1 } },
+      ] },
+    ],
+  }
+
+  it('colisão fixa×fixa (half-orc + Guard): +1 perícia substituta exigida na etapa skills', async () => {
+    const service = new CharacterService(fakePrisma(configWithCollision))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-orc', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_guard', skillChoice: ['athletics'] },
+    })).rejects.toThrow('Escolha exatamente 1 perícia')
+  })
+
+  it('colisão fixa×fixa (half-orc + Guard): substituta escolhida entra em Character.skills', async () => {
+    const service = new CharacterService(fakePrisma(configWithCollision))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-orc', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_guard', skillChoice: ['athletics'] },
+      skills: ['stealth'],
+    })
+    expect(char.skills).toEqual(['intimidation', 'athletics', 'stealth'])
+  })
+
+  it('sem colisão (half-orc + origem cuja fixa não é intimidation): nenhum orçamento extra', async () => {
+    const configNoCollision: SystemConfig = {
+      ...configWithRaceSkills,
+      proficiency: { choices: 1, bonus: 2 },
+      backgrounds: [
+        { key: 'a5e-ag_acolyte', name: 'Acolyte', source: 'a5e-ag', benefits: [
+          { type: 'skill_proficiency', name: 'Skill Proficiencies', description: 'Athletics.', grant: { kind: 'skills', fixed: ['athletics'], chooseFrom: [], chooseCount: 0 } },
+        ] },
+      ],
+    }
+    const service = new CharacterService(fakePrisma(configNoCollision))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-orc', class: 'x',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_acolyte' }, skills: ['stealth'],
+    })
+    expect(char.skills).toEqual(['intimidation', 'athletics', 'stealth'])
+  })
+
+  // US-220 §Critérios de aceite — eval/regressão: Meio-elfo com raceSkillChoices não concedidas
+  // pela classe/background soma as duas às `choices` da classe, sem exigir mais perícias na
+  // etapa `skills` além da 1 já configurada (nenhuma perícia extra pedida por conta da raça).
+  it('regressão: raceSkillChoices do Meio-elfo mescla com as `choices` da classe, sem duplicata', async () => {
+    const service = new CharacterService(fakePrisma({ ...configWithRaceSkills, proficiency: { choices: 1, bonus: 2 } }))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'half-elf', class: 'x',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics'], raceSkillChoices: ['stealth', 'arcana'],
+    })
+    expect(char.skills).toEqual(['stealth', 'arcana', 'athletics'])
+  })
+})
