@@ -17,6 +17,16 @@
   // é uma linha. Único tipo de achado parcado; os outros reprovam (US-89 → Decisões #1).
   "exclude": ["duplicates"],
 
+  // Scaffolding do design-sync (US-89 não cobre): previews/overrides na raiz e
+  // shims do Next em apps/web só são lidos por um bundler externo (esbuild via
+  // design-sync), nunca importados pelo código do app — ver .design-sync/NOTES.md.
+  // Durável de propósito (não é dist/ nem cache; ambos ficam fora do .gitignore).
+  "ignore": [
+    ".design-sync/previews/**",
+    ".design-sync/overrides/**",
+    "apps/web/.design-sync-shims/**"
+  ],
+
   "workspaces": {
     ".": {
       // A pasta evals/ mora na raiz mas é rodada pelo workspace do ai-engine
