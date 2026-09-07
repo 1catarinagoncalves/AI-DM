@@ -58,6 +58,12 @@ jobs:
           node-version: 22.23.0 # casa com NODE_VERSION do render.yaml
           cache: pnpm
 
+      # Guard de ordem de steps deste próprio arquivo (regressão do bug de
+      # 07/09/2026, ver scripts/check-ci-order.mjs). Sem dependência nenhuma —
+      # só lê o .yml — por isso roda aqui, antes do install, e falha rápido.
+      - name: Guard de ordem do CI
+        run: node scripts/check-ci-order.mjs
+
       - run: pnpm install --frozen-lockfile
 
       # O client é gerado em apps/api/src/generated/ e é gitignored: sem isto o

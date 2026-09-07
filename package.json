@@ -16,6 +16,7 @@
     "db:migrate:feature-spell": "dotenv -e .env -- pnpm --fail-if-no-match --filter api db:migrate:feature-spell",
     "db:migrate:race-languages": "dotenv -e .env -- pnpm --fail-if-no-match --filter api db:migrate:race-languages",
     "dead": "knip",
+    "ci:order": "node scripts/check-ci-order.mjs",
     "docs:links": "node scripts/check-doc-links.mjs",
     "docs:links:test": "node --test scripts/check-doc-links.test.mjs",
     "docs:shape": "node --test scripts/readme-shape.test.mjs",
