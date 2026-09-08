@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Pronta (falta apenas `pnpm db:seed` manual em produção)
+**Status:** ✅ Implementada
 **Depende de:** [US-139](./US-139-catalogo-classes-marshal-a5e-adventurers-guide.md) (`CLASS_MAP` aponta as 13 classes para `srd-2014` + Marshal — `buildClasses` já itera exatamente essas 13 entradas) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (`buildClasses` original, formato `{key,label}` que esta story estende)
 **Relacionado:** [US-203 §Fora do escopo](./US-203-prosa-de-catalogo-classe-e-raca.md) (nomeou esta story: "mecânica, não copy de escolha — story própria") · [US-207 §Fora do escopo](./US-207-atributos-e-pericias-com-orcamento-visivel.md) (seção "Salvaguardas" do wizard depende de `saving_throws` existir no config) · [US-127 §Fora do escopo](./US-127-revisao-espelha-ficha-completa.md) (PV fixo `10 + mod CON` em `adventure.service.ts` — consumidor futuro do `hitDice`, **não mudado aqui**) · [US-141](./US-141-catalogo-subclasses-srd-5-1-e-marshal.md) (`RaceCatalogEntrySchema` — precedente direto de estender `SystemCatalogEntrySchema` por catálogo)
 

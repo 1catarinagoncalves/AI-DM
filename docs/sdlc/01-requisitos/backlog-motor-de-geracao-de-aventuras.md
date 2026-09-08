@@ -24,6 +24,8 @@ Ver *O adiamento do arco para a fase 4*.
 confirmado que US-145/146/147/149/152/158/159 (✅ implementadas) produzem peças soltas: nenhuma
 função as junta num `GeneratedAdventure`, e o passo 6 (fecho ramificado + `followUps`) não tem
 código nenhum. Nova story no caminho crítico: **US-164**, o orquestrador.
+**Atualizado em:** 2026-09-06 — oitava referência triada, `4161726f6e/RPG-World-Builder`, descartada
+(plot copiado de material TSR proprietário, 2E, sem seed). Ver *Triagem das sete referências*.
 **Status:** 📋 Proposta — nenhuma tarefa iniciada
 
 Este documento **não é uma user story**. É a sequência de tarefas até a meta acima. Cada item
@@ -181,6 +183,7 @@ Levantadas em 07/08/2026. Quatro não acrescentam nada ao que o repo já tem.
 | `github.com/jwilferd10/Adventure-Alchemist`                     | Randomizador de masmorra client-side, sem tabelas documentadas                                                                    | Descartada                                                                                                                                 |
 | `github.com/Hayawi/OneShotGenerator`                            | Flask, `Plots.txt` e monstros por CR, só nível 1                                                                                  | Descartada. O Monster Builder do LGMRD cobre melhor e no mesmo artefato (US-152)                                                            |
 | `github.com/samkitkat/dnd-oneshot-generator`                    | React/Express/Supabase puxando 5e API e Open5e                                                                                    | Descartada. O repo ingere Open5e desde a [US-47](./US-47-ingestao-srd-como-dado.md)                                                        |
+| `github.com/4161726f6e/RPG-World-Builder` (06/09/2026)          | Python/numpy/PIL, GPL-3.0, sem LLM nem seed. Três projetos colados: ficha **AD&D 2E**, plot por sorteio em 20 CSVs, mapa PNG (Beaglemage) | Descartada. Os CSVs de plot são transcrição do *Dungeon Master's Design Kit* (TSR 1988, proprietário — não copiar); 2E é a edição errada; mapa é runtime Python e depende do [backlog de mapa](./backlog-mapa-em-tempo-real.md) (D1). Única ideia nova: eixos de **tipo de clímax** e **fraqueza secreta do vilão**, ausentes das subsections que a US-147 rola — se a US-190 quiser, com conteúdo próprio, não o dele |
 
 **O que a combinação é:** o LGMRD dá a **forma**, o gist dá a **ordem e o gate**, o OneShotsmith
 dá o **determinismo**, o DnDGenerate dá a **integridade referencial e o registro**. As outras três

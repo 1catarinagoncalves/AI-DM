@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída
+**Status:** ✅ Implementada
 **Depende de:** [US-131](./US-131-integracao-mecanica-background-proficiency.md) (par `findSkillGrant`/`applySkillGrant` + exclusão de perícia já concedida do pool de `skills`; esta story adiciona a raça como TERCEIRA fonte de perícia, o gatilho que a US-131 deixou explícito para revisitar a colisão — ver §Colisão) · [US-215](./US-215-proficiencias-de-arma-e-ferramenta-fixa-de-raca.md) (precedente direto: `RACE_TOOL_PROFICIENCIES` — grant FIXO de raça por mapa overlay em `@ai-dm/shared` + o padrão de ESCOLHA racial `raceToolChoice`/`DWARF_TOOL_PROFICIENCY_CHOICES`) · [US-142](./US-142-tracos-mecanicos-subespecie-srd-5-1.md) (`config.raceFeatures` — onde `keen-senses`/`menacing`/`skill-versatility` já vivem como texto awareness-only) · [US-27](./US-27-pericias-do-personagem.md) (`config.proficiency`/`validateSkills`/`buildSkillSheet`) · [US-205](./US-205-escolha-por-cartao-classe-e-raca.md) (etapa `race`, escolhida ANTES de `skills`) · [US-127](./US-127-revisao-espelha-ficha-completa.md) (revisão espelha a ficha — a perícia aparece nas duas de graça se entrar em `Character.skills`)
 **Relacionado:** [US-100](./US-100-ficha-do-personagem-no-locale-ativo.md) (a ficha lê CHAVES resolvidas no locale ativo — perícia de raça segue o mesmo caminho, sem texto novo por idioma) · [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) (origem do dado de sistema)
 **Criada em:** 2026-09-07
