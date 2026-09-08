@@ -72,3 +72,36 @@ export function buildSkillSheet(
     }
   })
 }
+
+/** Uma salvaguarda com o modificador já resolvido — o que a ficha e o wizard consomem (US-222). */
+export interface ResolvedSavingThrow {
+  key: string
+  label: string
+  modifier: number
+  proficient: boolean
+}
+
+/**
+ * Resolve as 6 salvaguardas fixas (US-222): irmã de `buildSkillSheet`, mas sem catálogo de
+ * escolha — a classe 5e sempre torna proficientes as MESMAS 2 habilidades, sem opção do
+ * jogador em nível 1 (ao contrário de perícia). `proficientKeys` ausente (classe sem
+ * `savingThrows` no config, ou sistema `Free`) devolve as 6 linhas com `proficient: false`,
+ * nunca omite a seção.
+ */
+export function buildSavingThrowSheet(
+  attributes: { key: string; label: string }[],
+  scores: Record<string, number>,
+  proficientKeys: string[] | undefined,
+  proficiencyBonus: number,
+): ResolvedSavingThrow[] {
+  const proficient = new Set(proficientKeys ?? [])
+  return attributes.map((a) => {
+    const isProficient = proficient.has(a.key)
+    return {
+      key: a.key,
+      label: a.label,
+      proficient: isProficient,
+      modifier: skillModifier(scores[a.key] ?? 10, isProficient, proficiencyBonus),
+    }
+  })
+}

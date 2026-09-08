@@ -258,6 +258,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.level': 'Level',
   'setup.review.hp': 'Starting HP',
   'setup.review.attributes': 'Attributes',
+  'setup.review.savingThrows': 'Saving Throws',
   'setup.review.skills': 'Skills',
   'setup.review.tools': 'Tool Proficiencies',
   'setup.review.weapons': 'Weapon Proficiencies',
@@ -297,6 +298,8 @@ export const enUS: Record<MessageKey, string> = {
   'game.attr.intelligence': 'INT',
   'game.attr.wisdom': 'WIS',
   'game.attr.charisma': 'CHA',
+  // US-222: new section — between Attributes and Skills.
+  'game.savingThrows': 'Saving Throws',
   'game.skills': 'Skills',
   'game.proficient': 'Proficient',
   // US-221: new section — class armor proficiency categories.

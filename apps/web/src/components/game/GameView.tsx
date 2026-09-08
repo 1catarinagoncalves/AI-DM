@@ -58,6 +58,9 @@ interface Props {
   conditions?: string[]
   // US-27: todas as perícias com modificador já computado.
   skills?: { key: string; label: string; modifier: number; proficient: boolean }[]
+  // US-222: as 6 salvaguardas fixas (sem escolha do jogador — a classe define as 2
+  // proficientes), mesmo shape de `skills` acima. Entra entre "Atributos" e "Perícias".
+  savingThrows?: { key: string; label: string; modifier: number; proficient: boolean }[]
   // US-132: ferramentas/veículos proficientes da origem, já resolvidos pro rótulo do locale
   // ativo (mesmo padrão de skills, mas sem modificador — proficiência de ferramenta não rola
   // por atributo fixo no 5e). Bloco próprio, ao lado do de perícias, nunca dentro do
@@ -129,7 +132,7 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(persistable))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, tools, weapons, weaponCategories, armor, languages, background, characterOrigin, characterConnection, characterMemento, characterAdventures, features, spells }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, savingThrows, tools, weapons, weaponCategories, armor, languages, background, characterOrigin, characterConnection, characterMemento, characterAdventures, features, spells }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
   // então trocar de aba não remonta nada nem perde estado de jogo.
@@ -540,6 +543,26 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                   </div>
                 ))}
               </div>
+              </div>
+            )}
+
+            {/* US-222: entre Atributos e Perícias — ordem canônica de ficha 5e (atributo →
+                salvaguarda → perícia). Sempre 6 linhas (nunca `max-h`/scroll, ao contrário de
+                Perícias), mesmo componente visual (bolinha de proficiência + modificador). */}
+            {savingThrows && savingThrows.length > 0 && (
+              <div className="md:w-full">
+                <SheetHeading>{t('game.savingThrows')}</SheetHeading>
+                <ul className="space-y-0.5 pr-1">
+                  {savingThrows.map(st => (
+                    <li key={st.key} className="flex items-center justify-between gap-2 px-1.5 py-1 text-[13px]">
+                      <span className={`flex items-center gap-1.5 ${st.proficient ? 'text-primary' : 'text-foreground'}`}>
+                        {st.proficient && <span role="img" aria-label={t('game.proficient')} title={t('game.proficient')} className="size-1.5 rounded-full bg-primary" />}
+                        {st.label}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">{formatModifier(st.modifier)}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 

@@ -284,6 +284,7 @@ export const ptBR = {
   'setup.review.level': 'Nível',
   'setup.review.hp': 'PV inicial',
   'setup.review.attributes': 'Atributos',
+  'setup.review.savingThrows': 'Salvaguardas',
   'setup.review.skills': 'Perícias',
   'setup.review.tools': 'Proficiências de itens',
   'setup.review.weapons': 'Proficiências de arma',
@@ -328,6 +329,8 @@ export const ptBR = {
   'game.attr.intelligence': 'INT',
   'game.attr.wisdom': 'SAB',
   'game.attr.charisma': 'CAR',
+  // US-222: seção nova — entre Atributos e Perícias.
+  'game.savingThrows': 'Salvaguardas',
   'game.skills': 'Perícias',
   'game.proficient': 'Proficiente',
   // US-221: seção nova — categoria(s) de armadura de classe (Leve/Média/Pesada/Escudos/Todas).

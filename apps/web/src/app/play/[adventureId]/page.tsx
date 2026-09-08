@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { GameView } from '@/components/game/GameView'
-import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, type SystemConfig } from '@ai-dm/shared'
+import { buildSkillSheet, buildSavingThrowSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, type SystemConfig } from '@ai-dm/shared'
 import { apiAuthHeader } from '@/lib/server-auth'
 import { LOCALE_COOKIE, localeFromCookie } from '@/lib/locale-cookie'
 import { messagesFor } from '@/messages'
@@ -42,6 +42,11 @@ export default async function PlayPage({ params, searchParams }: Props) {
   const attrs = (state?.attributes ?? character.baseAttributes ?? {}) as Record<string, number>
   const skills = config?.skills
     ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
+    : []
+  // US-222: as 6 salvaguardas fixas, proficiência vem do config.classes[].savingThrows (US-209)
+  // — sem escolha do jogador, ao contrário de skills acima.
+  const savingThrows = config?.attributes
+    ? buildSavingThrowSheet(config.attributes, attrs, config?.classes?.find((c) => c.key === character.class)?.savingThrows, config.proficiency?.bonus ?? 2)
     : []
   // US-132: ferramentas/veículos proficientes — chaves resolvidas pro rótulo do locale ativo,
   // mesmo padrão de raça/classe (catalogLabel). Chave sem entrada mostra a própria chave
@@ -107,6 +112,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       inventory={state?.inventory ?? []}
       conditions={state?.conditions ?? []}
       skills={skills}
+      savingThrows={savingThrows}
       tools={tools}
       weapons={weapons}
       weaponCategories={weaponCategories}

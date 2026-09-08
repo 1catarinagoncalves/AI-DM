@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-209](./US-209-hit-dice-e-salvaguardas-de-classe-no-config.md) (`config.classes[].savingThrows` — 2 chaves canônicas de atributo por classe, já ingeridas nos dois locales; esta story é o primeiro CONSUMIDOR do campo) · [US-27](./US-27-pericias-do-personagem.md) (`buildSkillSheet`/`skillModifier` em `packages/shared/src/ability.ts` — fórmula de modificador + proficiência que esta story espelha para salvaguarda) · [US-100](./US-100-ficha-do-personagem-no-locale-ativo.md) (a ficha lê chave e resolve rótulo no locale ativo — salvaguarda segue o mesmo caminho, sem texto novo por idioma) · [US-127](./US-127-revisao-espelha-ficha-completa.md) (revisão do wizard espelha a ficha — a seção aparece nas duas de graça)
 **Relacionado:** [US-204](./US-204-wizard-em-duas-colunas-com-ficha-viva.md) (`GameView.tsx` — onde a seção "Perícias" já vive, precedente direto de layout) · [US-110](./US-110-tabela-de-testes-de-habilidade-do-srd-2024.md) e [US-111](./US-111-classe-de-dificuldade-do-srd-2024.md) (tool de TESTE de salvaguarda contra DC — **fora do escopo**, `rollDice` ainda não tem `kind` de teste, mesma lacuna que a US-209 já registrou)
 **Criada em:** 2026-09-08

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, it, expect } from 'vitest'
-import { abilityModifier, formatModifier, skillModifier } from './ability'
+import { abilityModifier, formatModifier, skillModifier, buildSavingThrowSheet } from './ability'
 
 // US-108 — o oráculo é a TABELA DO SRD 2024, não número escrito à mão aqui: o artefato é
 // gerado do texto normativo (`Rule.json` do Open5e) pelo ingest, e o diff dele é a revisão de
@@ -69,5 +69,41 @@ describe('skillModifier', () => {
     expect(skillModifier(16, true, 2)).toBe(5) // +3 +2
     expect(skillModifier(13, true, 2)).toBe(3) // +1 +2
     expect(skillModifier(8, true, 2)).toBe(1)  // -1 +2
+  })
+})
+
+// US-222: mesma classe de teste de buildSkillSheet (US-27), mas sem catálogo de escolha —
+// sempre as 6 habilidades, proficiência fixada pela classe.
+describe('buildSavingThrowSheet', () => {
+  const ATTRS = [
+    { key: 'strength', label: 'Força' },
+    { key: 'dexterity', label: 'Destreza' },
+    { key: 'constitution', label: 'Constituição' },
+    { key: 'intelligence', label: 'Inteligência' },
+    { key: 'wisdom', label: 'Sabedoria' },
+    { key: 'charisma', label: 'Carisma' },
+  ]
+  const SCORES = { strength: 16, dexterity: 13, constitution: 14, intelligence: 8, wisdom: 12, charisma: 10 }
+
+  it('marca proficiente as 2 chaves da classe, com bônus somado só nelas', () => {
+    const sheet = buildSavingThrowSheet(ATTRS, SCORES, ['constitution', 'strength'], 2)
+    expect(sheet).toHaveLength(6)
+    const bySave = Object.fromEntries(sheet.map((s) => [s.key, s]))
+    expect(bySave.strength).toEqual({ key: 'strength', label: 'Força', proficient: true, modifier: 5 }) // +3 +2
+    expect(bySave.constitution).toEqual({ key: 'constitution', label: 'Constituição', proficient: true, modifier: 4 }) // +2 +2
+    expect(bySave.dexterity).toEqual({ key: 'dexterity', label: 'Destreza', proficient: false, modifier: 1 })
+    expect(bySave.intelligence?.proficient).toBe(false)
+  })
+
+  it('classe sem savingThrows no config (ou sistema Free) devolve as 6 linhas, nenhuma proficiente', () => {
+    const sheet = buildSavingThrowSheet(ATTRS, SCORES, undefined, 2)
+    expect(sheet).toHaveLength(6)
+    expect(sheet.every((s) => s.proficient === false)).toBe(true)
+  })
+
+  it('atributo ausente do mapa de scores cai em 10, nunca lança', () => {
+    const sheet = buildSavingThrowSheet(ATTRS, {}, ['wisdom'], 2)
+    expect(sheet.find((s) => s.key === 'wisdom')).toEqual({ key: 'wisdom', label: 'Sabedoria', proficient: true, modifier: 2 }) // 10 → +0, +2
+    expect(sheet.find((s) => s.key === 'charisma')?.modifier).toBe(0)
   })
 })

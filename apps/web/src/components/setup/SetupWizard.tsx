@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
 import {
-  abilityModifier, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
+  abilityModifier, buildSavingThrowSheet, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
   DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE,
@@ -581,6 +581,11 @@ export function SetupWizard() {
   // — a revisão espelha a ficha (US-127), sem código de exibição novo.
   const reviewSkills = buildSkillSheet(skillCatalog, attrs, [...raceSkillsFixed, ...raceSkillChoice, ...originSkillKeys, ...skills], system?.config?.proficiency?.bonus ?? 2)
     .filter(sk => sk.proficient)
+  // US-222: as 2 salvaguardas que a classe torna proficientes, mesmo recorte "só proficiente"
+  // de reviewSkills acima — sem escolha do jogador, `classProficiencyEntry.savingThrows` já
+  // fixa quais 2 das 6 aparecem aqui.
+  const reviewSavingThrows = buildSavingThrowSheet(attributes, attrs, classProficiencyEntry?.savingThrows, system?.config?.proficiency?.bonus ?? 2)
+    .filter(st => st.proficient)
   // US-132: ferramenta(s) fixa(s) + escolhida(s) da origem, já resolvidas pro rótulo — mesma
   // forma que a API vai persistir (Character.tools), pro preview não divergir do salvo.
   // Traço "Tool Proficiency" do anão soma à mesma lista — outra fonte independente de
@@ -1664,6 +1669,17 @@ export function SetupWizard() {
                     <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.attributes')}</dt>
                     <dd className="text-right text-sm font-medium text-parchment">
                       {attributes.map(a => `${a.label} ${attrs[a.key] ?? a.default} (${formatModifier(abilityModifier(attrs[a.key] ?? a.default))})`).join(' · ')}
+                    </dd>
+                  </div>
+                  {/* US-222: entre Atributos e Perícias, ordem canônica de ficha 5e — mesmo
+                      recorte "só proficiente" de setup.review.skills logo abaixo (a classe já
+                      fixa as 2, sem escolha do jogador). */}
+                  <div className="flex items-start justify-between gap-6 py-2.5">
+                    <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.savingThrows')}</dt>
+                    <dd className="text-right text-sm font-medium text-parchment">
+                      {reviewSavingThrows.length > 0
+                        ? reviewSavingThrows.map(st => `${st.label} (${formatModifier(st.modifier)})`).join(' · ')
+                        : '—'}
                     </dd>
                   </div>
                   <div className="flex items-start justify-between gap-6 py-2.5">
