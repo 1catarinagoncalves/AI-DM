@@ -69,6 +69,13 @@ export class CharacterService {
     // musical-instrument) — dado de CATÁLOGO (config.classes[].toolProficiencies), não regra
     // fixa do PHB como RACE_TOOL_PROFICIENCIES. Resolvido aqui, perto da validação de charClass.
     const classToolProficiencies = config.classes?.find((c) => c.key === charClass)?.toolProficiencies
+    // US-224: pool e contagem de perícia à escolha da CLASSE (Ladino 4 de 11; Bárbaro 2 de 6;
+    // Bardo 3 de qualquer uma) — mesmo dado de catálogo de `classToolProficiencies` acima.
+    // Fallback (classe sem `skillProficiencies` — artefato pré-US-224): pool = `config.skills`
+    // inteiro, contagem = `config.proficiency.choices`, o comportamento global da US-27.
+    const classSkillProficiencies = config.classes?.find((c) => c.key === charClass)?.skillProficiencies
+    const skillChooseFrom = classSkillProficiencies?.chooseFrom ?? (config.skills ?? []).map((s) => s.key)
+    const skillChooseCount = classSkillProficiencies?.chooseCount ?? (config.proficiency?.choices ?? 0)
     // US-205: subclasse pressupõe a classe já validada acima. `dto.subclass` presente →
     // valida contra o catálogo da classe (BadRequestException se pertencer a outra classe,
     // mesmo padrão de validateCatalogKey). Ausente + catálogo com 1 entrada só → preenche
@@ -142,7 +149,9 @@ export class CharacterService {
     const collisionSubstitutes = raceSkills.filter((s) => (skillGrant?.fixed ?? []).includes(s)).length
     const skills = [...new Set([
       ...raceSkills, ...raceChosenSkills, ...originSkills,
-      ...this.validateSkills(config, dto.skills ?? [], [...raceSkills, ...raceChosenSkills, ...originSkills], collisionSubstitutes),
+      ...this.validateSkills(
+        dto.skills ?? [], skillChooseFrom, skillChooseCount, [...raceSkills, ...raceChosenSkills, ...originSkills], collisionSubstitutes,
+      ),
     ])]
     // US-132: ferramenta/veículo do background (`grant.kind === 'tools'`) — mesmo par find/apply
     // de perícia (US-131), mas sem etapa própria pra mesclar: a origem é a ÚNICA fonte.
@@ -419,21 +428,26 @@ export class CharacterService {
   }
 
   /**
-   * Valida as perícias proficientes contra o config (US-27): cada key precisa
-   * existir em config.skills e a quantidade precisa bater com proficiency.choices.
-   * Sistema sem perícias no config → nenhuma proficiência aceita.
+   * Valida as perícias proficientes escolhidas na etapa `skills` contra `chooseFrom`/
+   * `chooseCount`: cada key precisa estar em `chooseFrom` e a quantidade precisa bater com
+   * `chooseCount`. Pool/contagem vazios → nenhuma proficiência aceita.
+   *
+   * US-224: `chooseFrom`/`chooseCount` chegam JÁ resolvidos pelo CHAMADOR (`create()`) a partir
+   * de `config.classes[].skillProficiencies` da classe escolhida (com fallback para
+   * `config.skills`/`config.proficiency.choices` globais, US-27) — esta função não lê `config`
+   * nem sabe de classe, só valida o par contra o que recebeu.
    *
    * US-131: `excluded` tira do catálogo as perícias já concedidas pelo background — evita
    * duplicar a mesma perícia entre a origem e a escolha da etapa `skills`.
    *
-   * US-220: `extraChoices` soma ao orçamento (`config.proficiency.choices`) quando a colisão
-   * fixa×fixa de raça/background (Meio-orc + Guard, ver §Colisão) concede uma substituta.
+   * US-220: `extraChoices` soma ao orçamento (`chooseCount`) quando a colisão fixa×fixa de
+   * raça/background (Meio-orc + Guard, ver §Colisão) concede uma substituta.
    */
-  private validateSkills(config: SystemConfig, chosen: string[], excluded: string[] = [], extraChoices = 0): string[] {
-    const catalog = (config.skills ?? []).filter((s) => !excluded.includes(s.key))
-    const choices = (config.proficiency?.choices ?? 0) + extraChoices
+  private validateSkills(chosen: string[], chooseFrom: string[], chooseCount: number, excluded: string[] = [], extraChoices = 0): string[] {
+    const catalog = new Set(chooseFrom.filter((key) => !excluded.includes(key)))
+    const choices = chooseCount + extraChoices
 
-    if (catalog.length === 0 || choices === 0) {
+    if (catalog.size === 0 || choices === 0) {
       if (chosen.length > 0) {
         throw new BadRequestException('Este sistema não tem perícias proficientes a escolher.')
       }
@@ -444,8 +458,7 @@ export class CharacterService {
     if (unique.length !== choices) {
       throw new BadRequestException(`Escolha exatamente ${choices} perícia(s) proficiente(s).`)
     }
-    const valid = new Set(catalog.map((s) => s.key))
-    const invalid = unique.filter((k) => !valid.has(k))
+    const invalid = unique.filter((key) => !catalog.has(key))
     if (invalid.length > 0) {
       throw new BadRequestException(`Perícia(s) inválida(s): ${invalid.join(', ')}`)
     }

@@ -253,6 +253,107 @@ describe('CharacterService.create', () => {
     })).rejects.toThrow('inválida')
   })
 
+  // US-224: pool e contagem de `skills` passam a variar por CLASSE — Ladino 4 de um pool de
+  // 11, Bardo 3 de QUALQUER perícia (chooseFrom = catálogo inteiro), Bárbaro 2 restritas a um
+  // pool de 6 (arcana é perícia VÁLIDA no catálogo geral, mas fora do pool do Bárbaro).
+  // `class: 'x'` (sem entrada em config.classes) dos testes acima continua caindo no fallback
+  // global (config.skills inteiro/config.proficiency.choices) — comportamento da US-27 intocado.
+  const configWithClassSkills: SystemConfig = {
+    ...config,
+    skills: [
+      { key: 'acrobatics', label: 'Acrobacia', ability: 'cool' },
+      { key: 'animal_handling', label: 'Adestrar Animais', ability: 'hard' },
+      { key: 'arcana', label: 'Arcanismo', ability: 'cool' },
+      { key: 'athletics', label: 'Atletismo', ability: 'hard' },
+      { key: 'deception', label: 'Enganação', ability: 'cool' },
+      { key: 'insight', label: 'Intuição', ability: 'hard' },
+      { key: 'intimidation', label: 'Intimidação', ability: 'cool' },
+      { key: 'investigation', label: 'Investigação', ability: 'cool' },
+      { key: 'nature', label: 'Natureza', ability: 'cool' },
+      { key: 'perception', label: 'Percepção', ability: 'hard' },
+      { key: 'performance', label: 'Atuação', ability: 'cool' },
+      { key: 'persuasion', label: 'Persuasão', ability: 'cool' },
+      { key: 'sleight_of_hand', label: 'Prestidigitação', ability: 'hard' },
+      { key: 'stealth', label: 'Furtividade', ability: 'hard' },
+      { key: 'survival', label: 'Sobrevivência', ability: 'hard' },
+    ],
+    proficiency: { choices: 2, bonus: 2 },
+    classes: [
+      {
+        key: 'rogue', label: 'Ladino',
+        skillProficiencies: {
+          chooseFrom: ['acrobatics', 'athletics', 'deception', 'insight', 'intimidation', 'investigation', 'perception', 'performance', 'persuasion', 'sleight_of_hand', 'stealth'],
+          chooseCount: 4,
+        },
+      },
+      {
+        key: 'bard', label: 'Bardo',
+        skillProficiencies: {
+          chooseFrom: ['acrobatics', 'animal_handling', 'arcana', 'athletics', 'deception', 'insight', 'intimidation', 'investigation', 'nature', 'perception', 'performance', 'persuasion', 'sleight_of_hand', 'stealth', 'survival'],
+          chooseCount: 3,
+        },
+      },
+      {
+        key: 'barbarian', label: 'Bárbaro',
+        skillProficiencies: {
+          chooseFrom: ['animal_handling', 'athletics', 'intimidation', 'nature', 'perception', 'survival'],
+          chooseCount: 2,
+        },
+      },
+    ],
+  }
+
+  it('Ladino: exige exatamente 4 perícias do pool de 11 e as persiste', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'rogue',
+      attributes: { cool: 5, hard: 5 }, skills: ['acrobatics', 'stealth', 'perception', 'deception'],
+    })
+    expect(char.skills).toEqual(['acrobatics', 'stealth', 'perception', 'deception'])
+  })
+
+  it('Ladino: rejeita contagem errada (2 em vez das 4 que a classe exige)', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassSkills))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'rogue',
+      attributes: { cool: 5, hard: 5 }, skills: ['acrobatics', 'stealth'],
+    })).rejects.toThrow('exatamente 4')
+  })
+
+  it('Ladino: rejeita perícia fora do pool da classe (arcana não está entre as 11 do Ladino)', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassSkills))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'rogue',
+      attributes: { cool: 5, hard: 5 }, skills: ['acrobatics', 'stealth', 'perception', 'arcana'],
+    })).rejects.toThrow('inválida')
+  })
+
+  it('Bardo: exige exatamente 3, de QUALQUER perícia do catálogo (sem filtro de pool)', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'bard',
+      attributes: { cool: 5, hard: 5 }, skills: ['arcana', 'survival', 'nature'],
+    })
+    expect(char.skills).toEqual(['arcana', 'survival', 'nature'])
+  })
+
+  it('Bárbaro: exige exatamente 2 restritas ao pool de 6', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassSkills))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'barbarian',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics', 'survival'],
+    })
+    expect(char.skills).toEqual(['athletics', 'survival'])
+  })
+
+  it('Bárbaro: rejeita perícia válida no catálogo geral mas fora do pool da classe (arcana)', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassSkills))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'barbarian',
+      attributes: { cool: 5, hard: 5 }, skills: ['athletics', 'arcana'],
+    })).rejects.toThrow('inválida')
+  })
+
   // US-39: background normalizado — trima a prosa, filtra strings vazias, descarta campos vazios.
   it('normaliza e persiste o background', async () => {
     const service = new CharacterService(fakePrisma(config))

@@ -3500,6 +3500,17 @@
         "constitution",
         "strength"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "animal_handling",
+          "athletics",
+          "intimidation",
+          "nature",
+          "perception",
+          "survival"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3527,6 +3538,31 @@
         "charisma",
         "dexterity"
       ],
+      "skillProficiencies": {
+        "chooseCount": 3,
+        "chooseFrom": [
+          "acrobatics",
+          "animal_handling",
+          "arcana",
+          "athletics",
+          "culture",
+          "deception",
+          "engineering",
+          "history",
+          "insight",
+          "intimidation",
+          "investigation",
+          "medicine",
+          "nature",
+          "perception",
+          "performance",
+          "persuasion",
+          "religion",
+          "sleight_of_hand",
+          "stealth",
+          "survival"
+        ]
+      },
       "toolProficiencies": {
         "choice": {
           "categories": [
@@ -3566,6 +3602,16 @@
         "charisma",
         "wisdom"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "history",
+          "insight",
+          "medicine",
+          "persuasion",
+          "religion"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3594,6 +3640,19 @@
         "intelligence",
         "wisdom"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "animal_handling",
+          "arcana",
+          "insight",
+          "medicine",
+          "nature",
+          "perception",
+          "religion",
+          "survival"
+        ]
+      },
       "toolProficiencies": {
         "fixed": [
           "herbalism_kit"
@@ -3633,6 +3692,19 @@
         "constitution",
         "strength"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "acrobatics",
+          "animal_handling",
+          "athletics",
+          "history",
+          "insight",
+          "intimidation",
+          "perception",
+          "survival"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3664,6 +3736,18 @@
         "wisdom",
         "constitution"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "athletics",
+          "history",
+          "insight",
+          "intimidation",
+          "medicine",
+          "perception",
+          "persuasion"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3690,6 +3774,17 @@
         "dexterity",
         "strength"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "acrobatics",
+          "athletics",
+          "history",
+          "insight",
+          "religion",
+          "stealth"
+        ]
+      },
       "toolProficiencies": {
         "choice": {
           "categories": [
@@ -3727,6 +3822,17 @@
         "charisma",
         "wisdom"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "athletics",
+          "insight",
+          "intimidation",
+          "medicine",
+          "persuasion",
+          "religion"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3757,6 +3863,19 @@
         "dexterity",
         "strength"
       ],
+      "skillProficiencies": {
+        "chooseCount": 3,
+        "chooseFrom": [
+          "animal_handling",
+          "athletics",
+          "insight",
+          "investigation",
+          "nature",
+          "perception",
+          "stealth",
+          "survival"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3784,6 +3903,22 @@
         "dexterity",
         "intelligence"
       ],
+      "skillProficiencies": {
+        "chooseCount": 4,
+        "chooseFrom": [
+          "acrobatics",
+          "athletics",
+          "deception",
+          "insight",
+          "intimidation",
+          "investigation",
+          "perception",
+          "performance",
+          "persuasion",
+          "sleight_of_hand",
+          "stealth"
+        ]
+      },
       "toolProficiencies": {
         "fixed": [
           "thieves_tools"
@@ -3815,6 +3950,17 @@
         "charisma",
         "constitution"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "arcana",
+          "deception",
+          "insight",
+          "intimidation",
+          "persuasion",
+          "religion"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3845,6 +3991,18 @@
         "charisma",
         "wisdom"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "arcana",
+          "deception",
+          "history",
+          "intimidation",
+          "investigation",
+          "nature",
+          "religion"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3869,6 +4027,17 @@
         "intelligence",
         "wisdom"
       ],
+      "skillProficiencies": {
+        "chooseCount": 2,
+        "chooseFrom": [
+          "arcana",
+          "history",
+          "insight",
+          "investigation",
+          "medicine",
+          "religion"
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },

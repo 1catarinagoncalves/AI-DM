@@ -125,6 +125,14 @@ export const ClassCatalogEntrySchema = SystemCatalogEntrySchema.extend({
       categories: z.array(z.string()),
     }).optional(),
   }).optional(),
+  // US-224: `Skills:` da MESMA feature "Proficiencies" — pool e contagem de escolha por
+  // classe. Sem `fixed` (ao contrário de `toolProficiencies`): nenhuma classe concede perícia
+  // fixa, as 13 sempre "Choose N from..."/"Choose any N" (ver US-224 §Contexto). `chooseFrom` é
+  // o catálogo INTEIRO de `config.skills` no caso "choose any N" (só o Bardo hoje).
+  skillProficiencies: z.object({
+    chooseFrom: z.array(z.string()),
+    chooseCount: z.number().int().positive(),
+  }).optional(),
 })
 
 // Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,

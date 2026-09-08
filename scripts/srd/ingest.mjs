@@ -1059,18 +1059,52 @@ function parseClassTools(classKey, text, toolsByKey) {
   return { fixed }
 }
 
+// US-224 — `Skills:` da feature de proficiências → { chooseFrom, chooseCount }. Duas formas
+// medidas nas 13 classes (US-224 §Contexto): "Choose N from A, B, and C" / "Choose N skills from
+// A, B, and C" (fighter/warlock inserem a palavra "skills" — `(?:\s+skills)?` opcional cobre as
+// duas sem dois `match` separados) — cada fragmento resolvido contra config.skills por
+// `normalizeSkillKey` (mesma função de US-131); e "Choose any N" (só o Bardo hoje) — `chooseFrom`
+// vira o catálogo INTEIRO, mesmo ramo `free` que `parseSkillGrant` já usa para origem. `count`
+// vem do MESMO mapa palavra→número que `parseClassTools` já usa (SKILL_FREE_CHOICE_WORDS).
+function parseClassSkills(classKey, text, skillsByKey) {
+  const clean = text.trim()
+  const any = clean.match(/^Choose any (\w+)$/i)
+  if (any) {
+    const chooseCount = SKILL_FREE_CHOICE_WORDS[any[1].toLowerCase()]
+    if (!chooseCount) throw new Error(`Classe ${classKey}: contagem "${any[1]}" fora de SKILL_FREE_CHOICE_WORDS (Skills: "${text}")`)
+    return { chooseFrom: [...skillsByKey].sort(), chooseCount }
+  }
+  const named = clean.match(/^Choose (\w+)(?:\s+skills)? from (.+)$/i)
+  if (!named) throw new Error(`Classe ${classKey}: campo Skills fora dos padrões "Choose N from..."/"Choose any N" (Skills: "${text}")`)
+  const chooseCount = SKILL_FREE_CHOICE_WORDS[named[1].toLowerCase()]
+  if (!chooseCount) throw new Error(`Classe ${classKey}: contagem "${named[1]}" fora de SKILL_FREE_CHOICE_WORDS (Skills: "${text}")`)
+  const chooseFrom = named[2]
+    .replace(/,?\s+and\s+/i, ',')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((name) => {
+      const key = normalizeSkillKey(name)
+      if (!skillsByKey.has(key)) throw new Error(`Classe ${classKey}: perícia "${name}" sem entrada em config.skills (chave tentada "${key}")`)
+      return key
+    })
+    .sort()
+  return { chooseFrom, chooseCount }
+}
+
 // Extrai o valor de um campo `**Label:** valor` da feature de proficiências — os 5 campos
-// (Armor/Weapons/Tools/Saving Throws/Skills, os 2 últimos fora do escopo desta story) ficam um
-// por linha, separados por \r\n (srd) ou \n (a5e-ag, ver Marshal) — `[^\r\n]*` cobre as duas.
+// (Armor/Weapons/Tools/Saving Throws/Skills) ficam um por linha, separados por \r\n (srd) ou \n
+// (a5e-ag, ver Marshal) — `[^\r\n]*` cobre as duas.
 function extractProficiencySection(classKey, desc, label) {
   const match = new RegExp(`\\*\\*${label}:\\*\\*\\s*([^\\r\\n]*)`, 'i').exec(desc)
   if (!match) throw new Error(`Classe ${classKey}: campo "${label}" não encontrado na feature de proficiências (desc: "${desc}")`)
   return match[1].trim()
 }
 
-export function buildClassProficiencies(classesRaw, features, weapons, tools) {
+export function buildClassProficiencies(classesRaw, features, weapons, tools, skills) {
   const weaponKeys = new Set(weapons.map((w) => w.key))
   const toolsByKey = new Set(tools.map((t) => t.key))
+  const skillsByKey = new Set(skills.map((s) => s.key))
   const baseClasses = classesRaw.filter((c) => c.fields.subclass_of === null)
   const out = {}
   for (const c of baseClasses) {
@@ -1085,6 +1119,8 @@ export function buildClassProficiencies(classesRaw, features, weapons, tools) {
       armorProficiencies: parseArmorProficiencies(canon, extractProficiencySection(canon, desc, 'Armor')),
       weaponProficiencies: parseWeaponProficiencies(canon, extractProficiencySection(canon, desc, 'Weapons'), weaponKeys),
       toolProficiencies: parseClassTools(canon, extractProficiencySection(canon, desc, 'Tools'), toolsByKey),
+      // US-224: skillProficiencies entra como quarto campo, mesma feature PROFICIENCIES.
+      skillProficiencies: parseClassSkills(canon, extractProficiencySection(canon, desc, 'Skills'), skillsByKey),
     }
   }
   return out
@@ -1134,13 +1170,14 @@ function buildConfig(overlay, data, locale) {
   // US-221: precisa de weapons/tools já resolvidos (arma/ferramenta NOMEADA da classe resolve
   // contra os dois catálogos) — por isso roda DEPOIS dos dois, mesma ordem que buildBackgrounds
   // já respeita (comentário do US-132 acima de buildTools).
-  const classProficiencies = buildClassProficiencies(data.classes, data.features, weapons, tools)
+  const classProficiencies = buildClassProficiencies(data.classes, data.features, weapons, tools, skills)
   for (const cls of classes) {
     const p = classProficiencies[cls.key]
     if (!p) throw new Error(`Classe ${cls.key}: proficiências de armadura/arma/ferramenta não encontradas`)
     cls.armorProficiencies = p.armorProficiencies
     cls.weaponProficiencies = p.weaponProficiencies
     cls.toolProficiencies = p.toolProficiencies
+    cls.skillProficiencies = p.skillProficiencies
   }
   const { backgrounds, backgroundEquipment, backgroundFeatures } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, tools, data.items, orphans)
 

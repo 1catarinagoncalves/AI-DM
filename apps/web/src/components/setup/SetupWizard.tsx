@@ -362,9 +362,15 @@ export function SetupWizard() {
 
   const attributes = system?.config?.attributes ?? []
   const budget = system?.config?.pointBuy?.budget
-  // US-27: catálogo de perícias e nº de proficiências a escolher, vindos do config.
+  // US-27: catálogo de perícias, vindo do config.
   const skillCatalog = system?.config?.skills ?? []
-  const skillChoices = system?.config?.proficiency?.choices ?? 0
+  // US-224: pool e contagem de perícia à escolha são da CLASSE selecionada (Ladino 4 de 11,
+  // Bárbaro 2 de 6, Bardo 3 de qualquer uma) — fallback pro par global da US-27 (`config.skills`
+  // inteiro/`config.proficiency.choices`) quando a classe não tem `skillProficiencies` (artefato
+  // pré-US-224), mesmo fallback do backend (character.service.ts `validateSkills`).
+  const classSkillProficiencies = system?.config?.classes?.find(c => c.key === charData.class)?.skillProficiencies
+  const skillChoices = classSkillProficiencies?.chooseCount ?? system?.config?.proficiency?.choices ?? 0
+  const skillChooseFrom = classSkillProficiencies?.chooseFrom
   // US-105: catálogos de raça e classe do sistema escolhido, no locale ativo. O `value` do
   // select é `key`; o texto é `label`. Catálogo fechado: sem opção "outra" e sem campo livre.
   const raceCatalog = system?.config?.races ?? []
@@ -666,6 +672,8 @@ export function SetupWizard() {
     setSkillChoice([])
     // US-132: ferramenta(s) da origem dependem da origem — mesmo motivo.
     setToolChoice([])
+    // US-224: pool e contagem da etapa `skills` dependem da CLASSE — mesmo motivo do reset acima.
+    setSkills([])
     setStep('class')
   }
 
@@ -677,6 +685,9 @@ export function SetupWizard() {
     // US-221: ferramenta à escolha é da CLASSE (Bardo/Monge) — trocar de classe invalida a
     // escolha, mesmo espírito do reset de subclass acima.
     setClassToolChoice([])
+    // US-224: pool e contagem da etapa `skills` são da CLASSE (Ladino 4 de 11, Bárbaro 2 de 6)
+    // — trocar de classe no meio da criação não pode deixar a etapa em "2 marcadas, 4 exigidas".
+    setSkills([])
   }
 
   // US-142 (correção de 2026-09-02): clicar a raiz não é a escolha final quando ela tem
@@ -1347,8 +1358,13 @@ export function SetupWizard() {
                 <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                   {/* US-131/US-220: exclui as perícias já concedidas pela origem (fixas +
                       escolhida) e pela raça (fixas + escolhida) — evita duplicar; `effectiveSkillChoices`
-                      (contagem) segue sendo só a parte da classe (+ substituta de colisão). */}
-                  {skillCatalog.filter(sk => !originSkillKeys.includes(sk.key) && !raceSkillsFixed.includes(sk.key) && !raceSkillChoice.includes(sk.key)).map(sk => {
+                      (contagem) segue sendo só a parte da classe (+ substituta de colisão).
+                      US-224: `skillChooseFrom` restringe ao pool da CLASSE (Bárbaro só vê 6, não
+                      as ~20 do catálogo inteiro) — `undefined` (classe sem `skillProficiencies`,
+                      fallback pré-US-224) mostra o catálogo inteiro, como sempre foi. */}
+                  {skillCatalog
+                    .filter(sk => !skillChooseFrom || skillChooseFrom.includes(sk.key))
+                    .filter(sk => !originSkillKeys.includes(sk.key) && !raceSkillsFixed.includes(sk.key) && !raceSkillChoice.includes(sk.key)).map(sk => {
                     const on = skills.includes(sk.key)
                     const full = !on && skills.length >= effectiveSkillChoices
                     return (
