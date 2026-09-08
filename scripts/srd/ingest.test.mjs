@@ -429,7 +429,8 @@ test('buildSubclasses: subclass_of sem entrada no CLASS_MAP falha alto (não des
 // --- US-203 — kicker/blurb de catálogo (races/classes/subclasses): overlay aceita string OU
 // objeto no MESMO arquivo, kicker/blurb chegam ao artefato, `primary` inexistente falha alto ---
 
-const classRowFull = (pk, name, subclassOf = null) => ({ pk, fields: { name, subclass_of: subclassOf } })
+const classRowFull = (pk, name, subclassOf = null, hitDice = 'D8', savingThrows = ['con', 'wis']) =>
+  ({ pk, fields: { name, subclass_of: subclassOf, hit_dice: hitDice, saving_throws: savingThrows } })
 const attr = (key) => ({ key, label: key, min: 10, max: 18, default: 10 })
 
 // (a) regressão do diff pequeno: é o que quebra quando alguém "simplifica" o overlay pra só
@@ -474,6 +475,39 @@ test('buildClasses: primary com chave de atributo inexistente em config.attribut
   const classes = [classRowFull('srd_barbarian', 'Barbarian')]
   const attributes = [attr('strength')] // falta 'constitution' — CLASS_PRIMARY_ABILITIES.barbarian exige as duas
   assert.throws(() => buildClasses({}, classes, resolve, attributes), /Classe barbarian.*"constitution"/)
+})
+
+// --- US-209 — hitDice/savingThrows: normalização de dado, mapeamento de ability (ordem
+// preservada) e as duas falhas altas ---
+
+test('buildClasses: hitDice normaliza "D12" para "1d12"; savingThrows resolve abreviação preservando a ordem do dataset', () => {
+  const { resolve } = makeResolver()
+  // Marshal chega ["wis","con"] no dataset real (quebra o padrão alfabético das outras 12) —
+  // é exatamente essa ordem "fora do padrão" que prova que não há sort escondido.
+  const classes = [classRowFull('a5e_marshal', 'Marshal', null, 'D10', ['wis', 'con'])]
+  const attributes = [attr('strength'), attr('charisma')] // CLASS_PRIMARY_ABILITIES.marshal
+  const result = buildClasses({}, classes, resolve, attributes)
+
+  assert.equal(result[0].hitDice, '1d10')
+  assert.deepEqual(result[0].savingThrows, ['wisdom', 'constitution'])
+})
+
+test('buildClasses: hit_dice fora do formato "D<n>" falha alto, citando a classe e o valor', () => {
+  const { resolve } = makeResolver()
+  const classes = [classRowFull('srd_barbarian', 'Barbarian', null, 'd12plus', ['con', 'str'])]
+  const attributes = [attr('strength'), attr('constitution')]
+  assert.throws(() => buildClasses({}, classes, resolve, attributes), /Classe barbarian.*hit_dice.*"d12plus"/)
+})
+
+test('buildClasses: saving_throws vazio ou com abreviação fora do ABILITY_MAP falha alto', () => {
+  const { resolve } = makeResolver()
+  const attributes = [attr('strength'), attr('constitution')]
+
+  const empty = [classRowFull('srd_barbarian', 'Barbarian', null, 'D12', [])]
+  assert.throws(() => buildClasses({}, empty, resolve, attributes), /Classe barbarian.*saving_throws vazio/)
+
+  const unknown = [classRowFull('srd_barbarian', 'Barbarian', null, 'D12', ['con', 'xyz'])]
+  assert.throws(() => buildClasses({}, unknown, resolve, attributes), /Classe barbarian.*"xyz"/)
 })
 
 test('buildSubclasses: kicker/blurb do overlay (forma objeto) chegam ao artefato; forma string continua só rótulo', () => {

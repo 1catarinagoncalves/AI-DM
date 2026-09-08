@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Pronta (falta apenas `pnpm db:seed` manual em produção)
 **Depende de:** [US-139](./US-139-catalogo-classes-marshal-a5e-adventurers-guide.md) (`CLASS_MAP` aponta as 13 classes para `srd-2014` + Marshal — `buildClasses` já itera exatamente essas 13 entradas) · [US-105](./US-105-raca-e-classe-por-chave-do-srd.md) (`buildClasses` original, formato `{key,label}` que esta story estende)
 **Relacionado:** [US-203 §Fora do escopo](./US-203-prosa-de-catalogo-classe-e-raca.md) (nomeou esta story: "mecânica, não copy de escolha — story própria") · [US-207 §Fora do escopo](./US-207-atributos-e-pericias-com-orcamento-visivel.md) (seção "Salvaguardas" do wizard depende de `saving_throws` existir no config) · [US-127 §Fora do escopo](./US-127-revisao-espelha-ficha-completa.md) (PV fixo `10 + mod CON` em `adventure.service.ts` — consumidor futuro do `hitDice`, **não mudado aqui**) · [US-141](./US-141-catalogo-subclasses-srd-5-1-e-marshal.md) (`RaceCatalogEntrySchema` — precedente direto de estender `SystemCatalogEntrySchema` por catálogo)
 
@@ -113,12 +113,14 @@ Exemplo (`barbarian` e `marshal`, ilustrando a ordem preservada):
 
 ## Critérios de aceite
 
-- [ ] `buildClasses` emite `hitDice` (notação `NdM` minúscula) e `savingThrows` (2 chaves canônicas de atributo, ordem do dataset preservada) para as 13 classes.
-- [ ] `SystemConfigSchema` valida com `ClassCatalogEntrySchema`; config sem os campos (artefato pré-US-209) continua válido.
-- [ ] `hit_dice` fora do formato `/^D\d+$/i`, ou `saving_throws` vazio/com abreviação fora do `ABILITY_MAP`, falha o ingest (erro alto, não descarte silencioso).
-- [ ] `config.subclasses` (US-141) não ganha os campos — sem mudança.
-- [ ] Ambos os artefatos (`en-US`, `pt-BR`) trazem os mesmos 13 `hitDice`/`savingThrows` — dado idêntico nos dois locales, sem overlay.
-- [ ] **Eval/teste de regressão:** `ingest.test.mjs` cobre normalização de dado, mapeamento de ability (ordem preservada) e as duas falhas altas.
+- [x] `buildClasses` emite `hitDice` (notação `NdM` minúscula) e `savingThrows` (2 chaves canônicas de atributo, ordem do dataset preservada) para as 13 classes.
+- [x] `SystemConfigSchema` valida com `ClassCatalogEntrySchema`; config sem os campos (artefato pré-US-209) continua válido.
+- [x] `hit_dice` fora do formato `/^D\d+$/i`, ou `saving_throws` vazio/com abreviação fora do `ABILITY_MAP`, falha o ingest (erro alto, não descarte silencioso).
+- [x] `config.subclasses` (US-141) não ganha os campos — sem mudança.
+- [x] Ambos os artefatos (`en-US`, `pt-BR`) trazem os mesmos 13 `hitDice`/`savingThrows` — dado idêntico nos dois locales, sem overlay.
+- [x] **Eval/teste de regressão:** `ingest.test.mjs` cobre normalização de dado, mapeamento de ability (ordem preservada) e as duas falhas altas.
+
+**Pendente:** `pnpm db:seed` contra o banco de produção — não rodado nesta sessão (escreve no banco compartilhado, gate manual, mesma disciplina de ingests anteriores).
 
 ---
 

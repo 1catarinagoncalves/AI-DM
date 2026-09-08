@@ -92,6 +92,16 @@ export const RaceCatalogEntrySchema = SystemCatalogEntrySchema.extend({
   grant: SystemRaceGrantSchema.optional(),
 })
 
+// Entrada de catálogo de CLASSE (US-209): estende SystemCatalogEntrySchema com `hitDice`
+// (notação "NdM" minúscula, ex. "1d12") e `savingThrows` (2 chaves canônicas de atributo, na
+// ordem do dataset — não ordenadas, ver ingest.mjs `normalizeSavingThrows`). Derivados do SRD
+// pelo `buildClasses`. Só `config.classes` — subclasse não tem os dois campos próprios (regra
+// 5e: são da classe-mãe), por isso `subclasses` continua no SystemCatalogEntrySchema genérico.
+export const ClassCatalogEntrySchema = SystemCatalogEntrySchema.extend({
+  hitDice: z.string().min(1).optional(),
+  savingThrows: z.array(z.string().min(1)).optional(),
+})
+
 // Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,
 // `land-vehicle`, `waterborne-vehicle`). Mesmo contrato de `SystemCatalogEntrySchema`
 // (key/label) mais `category`: a categoria de PROFICIÊNCIA do 5e (`artisan`,
@@ -237,7 +247,7 @@ export const SystemConfigSchema = z.object({
   // logo abaixo — sem tipo novo. Subespécie concatena os traços da raiz + os próprios, sem
   // dedupe por `key` (Ability Score Increase da raiz e da subespécie somam como dois traços).
   raceFeatures: z.record(z.string(), z.array(SystemClassFeatureSchema)).optional(),
-  classes: z.array(SystemCatalogEntrySchema).optional(),
+  classes: z.array(ClassCatalogEntrySchema).optional(),
   // Catálogo de subclasses (US-141), agrupado por classe-mãe — reusa SystemCatalogEntrySchema
   // (mesma forma {key,label} de races/classes) dentro de um Record por chave de classe. Uma
   // subclasse pressupõe a classe já escolhida (Character.class), não é entidade jogável sozinha

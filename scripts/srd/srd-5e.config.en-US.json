@@ -3483,125 +3483,190 @@
   "classes": [
     {
       "blurb": "Charges into the front line and hits harder the worse things get. Short on words, long on raw physical presence.",
+      "hitDice": "1d12",
       "key": "barbarian",
       "kicker": "Rage and hide",
       "label": "Barbarian",
       "primary": [
         "strength",
         "constitution"
+      ],
+      "savingThrows": [
+        "constitution",
+        "strength"
       ]
     },
     {
       "blurb": "A double-edged blade of music, lore, and easy confidence: inspires allies, talks enemies in circles, and knows a little about almost everything.",
+      "hitDice": "1d8",
       "key": "bard",
       "kicker": "A word that cuts and heals",
       "label": "Bard",
       "primary": [
         "charisma"
+      ],
+      "savingThrows": [
+        "charisma",
+        "dexterity"
       ]
     },
     {
       "blurb": "Carries their god's healing and wrath onto the battlefield — prays little, acts constantly, and the party survives because of it.",
+      "hitDice": "1d8",
       "key": "cleric",
       "kicker": "Faith with a blade in hand",
       "label": "Cleric",
       "primary": [
         "wisdom"
+      ],
+      "savingThrows": [
+        "charisma",
+        "wisdom"
       ]
     },
     {
       "blurb": "Becomes a bear, a wolf, or a bird when a human shape isn't enough, and calls the wind and the earth to fight alongside them.",
+      "hitDice": "1d8",
       "key": "druid",
       "kicker": "Nature as a weapon",
       "label": "Druid",
       "primary": [
         "wisdom"
+      ],
+      "savingThrows": [
+        "intelligence",
+        "wisdom"
       ]
     },
     {
       "blurb": "No magic, no tricks — just discipline, steel, and reflex. Survives and dominates any melee through sheer mastery of the craft.",
+      "hitDice": "1d10",
       "key": "fighter",
       "kicker": "Pure trained combat",
       "label": "Fighter",
       "primary": [
         "strength",
         "dexterity"
+      ],
+      "savingThrows": [
+        "constitution",
+        "strength"
       ]
     },
     {
       "blurb": "Leads from inside the brawl: every shouted order buys an ally an extra strike or one more breath to keep standing.",
+      "hitDice": "1d10",
       "key": "marshal",
       "kicker": "Command that turns a fight",
       "label": "Marshal",
       "primary": [
         "strength",
         "charisma"
+      ],
+      "savingThrows": [
+        "wisdom",
+        "constitution"
       ]
     },
     {
       "blurb": "Strikes too fast for the eye to follow, walks on water, and slips out of restraints — all trained, none of it borrowed from magic.",
+      "hitDice": "1d8",
       "key": "monk",
       "kicker": "The body as the only weapon",
       "label": "Monk",
       "primary": [
         "dexterity",
         "wisdom"
+      ],
+      "savingThrows": [
+        "dexterity",
+        "strength"
       ]
     },
     {
       "blurb": "A sacred vow becomes light in their hands: heals whoever falls beside them, and burns whoever dares stand in the way.",
+      "hitDice": "1d10",
       "key": "paladin",
       "kicker": "An oath that burns",
       "label": "Paladin",
       "primary": [
         "strength",
         "charisma"
+      ],
+      "savingThrows": [
+        "charisma",
+        "wisdom"
       ]
     },
     {
       "blurb": "Tracks any prey through any wilderness, fights alongside an animal companion, and never gets lost where others would.",
+      "hitDice": "1d10",
       "key": "ranger",
       "kicker": "The hunt on home ground",
       "label": "Ranger",
       "primary": [
         "dexterity",
         "wisdom"
+      ],
+      "savingThrows": [
+        "dexterity",
+        "strength"
       ]
     },
     {
       "blurb": "Shows up where no one expects, hits the weak point before anyone notices, and vanishes before the response comes.",
+      "hitDice": "1d8",
       "key": "rogue",
       "kicker": "A clean strike, a cleaner exit",
       "label": "Rogue",
       "primary": [
         "dexterity"
+      ],
+      "savingThrows": [
+        "dexterity",
+        "intelligence"
       ]
     },
     {
       "blurb": "Never studied a single spell — born with the power in their veins, and bends every spell to their will when the normal rules don't apply.",
+      "hitDice": "1d6",
       "key": "sorcerer",
       "kicker": "Magic in the blood",
       "label": "Sorcerer",
       "primary": [
         "charisma"
+      ],
+      "savingThrows": [
+        "charisma",
+        "constitution"
       ]
     },
     {
       "blurb": "Struck a pact with something greater than themselves, and now casts borrowed spells whose true price only they understand.",
+      "hitDice": "1d8",
       "key": "warlock",
       "kicker": "Borrowed power, a price owed",
       "label": "Warlock",
       "primary": [
         "charisma"
+      ],
+      "savingThrows": [
+        "charisma",
+        "wisdom"
       ]
     },
     {
       "blurb": "Studied every arcane formula into a spellbook, and has a magical answer ready for nearly any problem the party runs into.",
+      "hitDice": "1d6",
       "key": "wizard",
       "kicker": "Knowledge as power",
       "label": "Wizard",
       "primary": [
         "intelligence"
+      ],
+      "savingThrows": [
+        "intelligence",
+        "wisdom"
       ]
     }
   ],

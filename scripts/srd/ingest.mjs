@@ -379,6 +379,30 @@ export function buildRaceFeatures(overlay, races, speciesTraits, resolve) {
   return raceFeatures
 }
 
+// US-209: `hit_dice` chega "D12" — normaliza pra "1d12" (convenção NdM minúscula, mesma de
+// packages/shared/src/roll.ts:57). Falha alto: dataset com valor fora do padrão é bug de
+// parser, não caso pra silenciar.
+function normalizeHitDice(classKey, hitDice) {
+  const match = /^D(\d+)$/i.exec(String(hitDice ?? ''))
+  if (!match) throw new Error(`Classe ${classKey}: hit_dice "${hitDice}" fora do formato esperado ("D12")`)
+  return `1d${match[1]}`
+}
+
+// US-209: `saving_throws` chega abreviado ("con") — resolve pelo MESMO ABILITY_MAP que
+// `skills[].ability` já usa, sem duplicar. Ordem PRESERVADA (dataset não é alfabético de
+// forma confiável — ver US-209 §Notas de implementação). Falha alto: vazio/ausente ou
+// abreviação fora do ABILITY_MAP.
+function normalizeSavingThrows(classKey, savingThrows) {
+  if (!Array.isArray(savingThrows) || savingThrows.length === 0) {
+    throw new Error(`Classe ${classKey}: saving_throws vazio ou ausente`)
+  }
+  return savingThrows.map((abbr) => {
+    const canon = ABILITY_MAP[abbr]
+    if (!canon) throw new Error(`Classe ${classKey}: abreviação de saving_throws "${abbr}" fora do ABILITY_MAP`)
+    return canon
+  })
+}
+
 // --- classes (12): o CLASS_MAP já ERA o catálogo; aqui ele passa a ser emitido ---
 // Sem par 2014: as 12 classes base são idênticas nas duas edições (ADR 009 §4).
 //
@@ -404,6 +428,8 @@ export function buildClasses(overlay, classes, resolve, attributes) {
       if (resolved.kicker) entry.kicker = resolved.kicker
       if (resolved.blurb) entry.blurb = resolved.blurb
       entry.primary = primary
+      entry.hitDice = normalizeHitDice(key, c.fields.hit_dice)
+      entry.savingThrows = normalizeSavingThrows(key, c.fields.saving_throws)
       return entry
     })
     .sort((a, b) => a.key.localeCompare(b.key))

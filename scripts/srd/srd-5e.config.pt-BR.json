@@ -3483,125 +3483,190 @@
   "classes": [
     {
       "blurb": "Entra na frente, aguenta o que vier e bate mais forte quanto pior a situação fica. Pouca conversa, muita presença física.",
+      "hitDice": "1d12",
       "key": "barbarian",
       "kicker": "Fúria e couro",
       "label": "Bárbaro",
       "primary": [
         "strength",
         "constitution"
+      ],
+      "savingThrows": [
+        "constitution",
+        "strength"
       ]
     },
     {
       "blurb": "Vira faca de dois gumes com música, história e um sorriso confiante: inspira aliados, engana inimigos e sabe um pouco de quase tudo.",
+      "hitDice": "1d8",
       "key": "bard",
       "kicker": "Palavra que corta e cura",
       "label": "Bardo",
       "primary": [
         "charisma"
+      ],
+      "savingThrows": [
+        "charisma",
+        "dexterity"
       ]
     },
     {
       "blurb": "Carrega a cura e a punição do seu deus para o campo de batalha — reza pouco, age muito, e o grupo sobrevive graças a isso.",
+      "hitDice": "1d8",
       "key": "cleric",
       "kicker": "Fé com espada na mão",
       "label": "Clérigo",
       "primary": [
         "wisdom"
+      ],
+      "savingThrows": [
+        "charisma",
+        "wisdom"
       ]
     },
     {
       "blurb": "Vira urso, lobo ou ave quando a forma humana não basta, e chama o vento e a terra para lutar ao seu lado.",
+      "hitDice": "1d8",
       "key": "druid",
       "kicker": "A natureza como arma",
       "label": "Druida",
       "primary": [
         "wisdom"
+      ],
+      "savingThrows": [
+        "intelligence",
+        "wisdom"
       ]
     },
     {
       "blurb": "Sem magia, sem truque — só disciplina, aço e reflexo. Sobrevive e domina qualquer luta corpo a corpo pela pura repetição do ofício.",
+      "hitDice": "1d10",
       "key": "fighter",
       "kicker": "Puro treino de combate",
       "label": "Guerreiro",
       "primary": [
         "strength",
         "dexterity"
+      ],
+      "savingThrows": [
+        "constitution",
+        "strength"
       ]
     },
     {
       "blurb": "Lidera de dentro da briga: cada ordem gritada rende um ataque extra ou um fôlego a mais para quem está ao seu lado.",
+      "hitDice": "1d10",
       "key": "marshal",
       "kicker": "Comando que muda o combate",
       "label": "Marechal",
       "primary": [
         "strength",
         "charisma"
+      ],
+      "savingThrows": [
+        "wisdom",
+        "constitution"
       ]
     },
     {
       "blurb": "Golpeia rápido demais para o olho acompanhar, anda sobre água e foge de correntes — tudo isso treinado, nada emprestado de magia.",
+      "hitDice": "1d8",
       "key": "monk",
       "kicker": "Corpo como única arma",
       "label": "Monge",
       "primary": [
         "dexterity",
         "wisdom"
+      ],
+      "savingThrows": [
+        "dexterity",
+        "strength"
       ]
     },
     {
       "blurb": "Um voto sagrado vira luz nas mãos: cura quem cai ao seu lado e queima quem se atreve a ficar no caminho.",
+      "hitDice": "1d10",
       "key": "paladin",
       "kicker": "Juramento que arde",
       "label": "Paladino",
       "primary": [
         "strength",
         "charisma"
+      ],
+      "savingThrows": [
+        "charisma",
+        "wisdom"
       ]
     },
     {
       "blurb": "Rastreia qualquer presa através de qualquer mata, luta lado a lado com um companheiro animal e nunca se perde onde outros se perderiam.",
+      "hitDice": "1d10",
       "key": "ranger",
       "kicker": "Caça no próprio terreno",
       "label": "Patrulheiro",
       "primary": [
         "dexterity",
         "wisdom"
+      ],
+      "savingThrows": [
+        "dexterity",
+        "strength"
       ]
     },
     {
       "blurb": "Aparece de onde ninguém espera, acerta o ponto fraco antes que alguém perceba, e some antes da resposta.",
+      "hitDice": "1d8",
       "key": "rogue",
       "kicker": "Golpe certeiro, saída limpa",
       "label": "Ladino",
       "primary": [
         "dexterity"
+      ],
+      "savingThrows": [
+        "dexterity",
+        "intelligence"
       ]
     },
     {
       "blurb": "Não estuda feitiço nenhum — nasceu com o poder na veia, e dobra cada magia à própria vontade quando as regras normais não bastam.",
+      "hitDice": "1d6",
       "key": "sorcerer",
       "kicker": "Magia no sangue",
       "label": "Feiticeiro",
       "primary": [
         "charisma"
+      ],
+      "savingThrows": [
+        "charisma",
+        "constitution"
       ]
     },
     {
       "blurb": "Fechou um pacto com algo maior que ele, e agora conjura magias emprestadas cujo preço só ele conhece de verdade.",
+      "hitDice": "1d8",
       "key": "warlock",
       "kicker": "Poder emprestado, preço cobrado",
       "label": "Bruxo",
       "primary": [
         "charisma"
+      ],
+      "savingThrows": [
+        "charisma",
+        "wisdom"
       ]
     },
     {
       "blurb": "Estudou cada fórmula arcana num grimório, e tem uma resposta mágica preparada para quase qualquer problema que o grupo encontrar.",
+      "hitDice": "1d6",
       "key": "wizard",
       "kicker": "Conhecimento como poder",
       "label": "Mago",
       "primary": [
         "intelligence"
+      ],
+      "savingThrows": [
+        "intelligence",
+        "wisdom"
       ]
     }
   ],
