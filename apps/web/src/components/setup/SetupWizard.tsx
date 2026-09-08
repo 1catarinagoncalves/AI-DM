@@ -1051,15 +1051,24 @@ export function SetupWizard() {
                 <SectionTitle>{t('setup.class.titulo')}</SectionTitle>
                 <p className="mt-1 text-sm text-muted-foreground">{t('setup.raceClass.system', { name: system.name })}</p>
                 <div className="mt-6 space-y-4">
-                  <CatalogCardGroup name="char-class" legend={t('setup.raceClass.class')}
+                  {/* Legend escondida (a11y só) — "Classe" já repetia o heading da etapa
+                      ("CLASSE" + eyebrow "Escolha uma classe") logo acima, sem info nova. */}
+                  <CatalogCardGroup name="char-class" legend={t('setup.raceClass.class')} hideLegend
                     items={classCatalog} value={charData.class} onChange={selectClassCard} />
                   {/* US-205: subgrade de subclasse aninhada no cartão de classe — só existe
                       fisicamente quando a classe escolhida tem MAIS de uma opção (marshal, hoje).
                       Classe com 0 ou 1 subclasse não renderiza nada aqui: sem catálogo, sem
                       escolha; com 1 entrada, ela preenche sozinha (ver resolvedSubclass acima). */}
                   {subclassCatalog && subclassCatalog.length > 1 && (
-                    <CatalogCardGroup name="char-subclass" legend={t('setup.subclass.legend')}
-                      items={subclassCatalog} value={subclass ?? ''} onChange={setSubclass} />
+                    <div>
+                      {/* US-225: "Subclasse" no mesmo padrão tipográfico dos outros subtítulos
+                          do painel de detalhe (SheetHeading uppercase/primary, ex. "Equipamento
+                          Inicial") — a legend do fieldset por si só tem o estilo de rótulo de
+                          seção principal (Classe/Raça), não de subtítulo dentro do painel. */}
+                      <SheetHeading tone="primary">{t('setup.subclass.legend')}</SheetHeading>
+                      <CatalogCardGroup name="char-subclass" legend={t('setup.subclass.legend')} hideLegend
+                        items={subclassCatalog} value={subclass ?? ''} onChange={setSubclass} />
+                    </div>
                   )}
                   {/* US-205: painel de detalhe — o que a classe escolhida concede, sem dado
                       novo (getClassFeatures/getStartingInventory já existem no arquivo). */}
@@ -1073,15 +1082,20 @@ export function SetupWizard() {
                           </p>
                         </div>
                       )}
-                      {/* Subclasse resolvida — mostrada mesmo quando preenchida automaticamente
-                          (12 das 13 classes): a jogadora vê o que ganhou sem ter escolhido. */}
-                      {resolvedSubclassEntry && (
+                      {/* US-225: subclasse ÚNICA (12 das 13 classes) — cartão selecionado, mesma
+                          anatomia visual da subgrade de marshal, no lugar do parágrafo solto de
+                          antes (ver US-142, precedente de raça-raiz sem subespécie). Sem
+                          `onChange`/`role="radio"`: não há segunda opção pra escolher. */}
+                      {subclassCatalog?.length === 1 && resolvedSubclassEntry && (
                         <div>
                           <SheetHeading tone="primary">{t('setup.class.detail.subclass')}</SheetHeading>
-                          <p className="text-sm font-medium text-parchment">{resolvedSubclassEntry.label}</p>
-                          {resolvedSubclassEntry.blurb && <p className="mt-1 text-xs text-muted-foreground">{resolvedSubclassEntry.blurb}</p>}
+                          <CatalogCardGroup name="char-subclass-resolved" legend={t('setup.subclass.legend')} hideLegend
+                            items={subclassCatalog} value={resolvedSubclass ?? ''} readOnly />
                         </div>
                       )}
+                      {/* US-225: marshal (>1) NÃO repete a escolha em texto aqui — a subgrade
+                          acima já é o cartão selecionado (borda de acento + kicker/blurb),
+                          duplicar como parágrafo só repetia a mesma informação embaixo. */}
                       {classStepFeatures.length > 0 && <FeaturesPanel features={classStepFeatures} tone="primary" />}
                       {/* US-221: ferramenta À ESCOLHA da classe (Bardo: 3 de musical-instrument;
                           Monge: 1 entre artisan e musical-instrument) — mesmo design de 1

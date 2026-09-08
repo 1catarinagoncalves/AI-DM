@@ -18,28 +18,45 @@ export type CatalogCardEntry = { key: string; label: string; kicker?: string; bl
 // acessibilidade do `WorldOptionGroup` (SetupWizard.tsx, US-157): um `<fieldset>`/`<legend>`
 // por grade inteira, `<label>` envolve `<input type="radio" class="sr-only">` — o cartão
 // inteiro é o alvo de clique/foco, nunca um `div` clicável (US-46).
-export function CatalogCardGroup({ name, legend, hideLegend, items, value, onChange }: {
+// US-225: campos do cartão isolados de label/input — reusados pela variante somente-leitura
+// (grade de 1 item, ex. subclasse sem escolha) sem duplicar kicker/blurb/bonus em dois lugares.
+function CardBody({ entry }: { entry: CatalogCardEntry }) {
+  return (
+    <>
+      <span className="block font-serif text-base font-semibold text-parchment">{entry.label}</span>
+      {entry.kicker && (
+        <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{entry.kicker}</span>
+      )}
+      {entry.blurb && <span className="mt-1 block text-xs text-muted-foreground">{entry.blurb}</span>}
+      {entry.bonus && <span className="mt-2 block text-[11px] font-medium text-primary">{entry.bonus}</span>}
+    </>
+  )
+}
+
+export function CatalogCardGroup({ name, legend, hideLegend, items, value, onChange, readOnly }: {
   name: string
   legend: string
   hideLegend?: boolean
   items: CatalogCardEntry[]
   value: string
-  onChange: (key: string) => void
+  onChange?: (key: string) => void
+  // US-225: grade sem segunda opção pra escolher (ex. subclasse única) — cartão mostra o
+  // estado selecionado sem `role="radio"`/`<input>`, pra não convidar interação que não existe.
+  readOnly?: boolean
 }) {
   return (
     <fieldset>
       <legend className={hideLegend ? 'sr-only' : 'mb-2 text-sm font-medium text-parchment'}>{legend}</legend>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
-        {items.map(entry => (
+        {items.map(entry => readOnly ? (
+          <div key={entry.key} className={optionCardClass(true)}>
+            <CardBody entry={entry} />
+          </div>
+        ) : (
           <label key={entry.key} className={optionCardClass(value === entry.key)}>
             <input type="radio" name={name} value={entry.key} checked={value === entry.key}
-              onChange={() => onChange(entry.key)} className="sr-only" />
-            <span className="block font-serif text-base font-semibold text-parchment">{entry.label}</span>
-            {entry.kicker && (
-              <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{entry.kicker}</span>
-            )}
-            {entry.blurb && <span className="mt-1 block text-xs text-muted-foreground">{entry.blurb}</span>}
-            {entry.bonus && <span className="mt-2 block text-[11px] font-medium text-primary">{entry.bonus}</span>}
+              onChange={() => onChange!(entry.key)} className="sr-only" />
+            <CardBody entry={entry} />
           </label>
         ))}
       </div>

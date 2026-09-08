@@ -1687,8 +1687,10 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     // Sem grade de subclasse (1 entrada só) — e o Próximo já libera sem escolha nenhuma.
     expect(screen.queryByRole('radio', { name: 'Escola de Evocação' })).toBeNull()
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
-    // Painel de detalhe mostra o que a jogadora ganhou, mesmo sem ter escolhido.
-    expect(screen.getByText('Escola de Evocação')).toBeTruthy()
+    // US-225: painel de detalhe mostra o cartão da subclasse resolvida (mesma anatomia da
+    // subgrade — CatalogCardGroup, nome dentro de <span>), não mais o <p> solto de antes.
+    const subclassName = screen.getByText('Escola de Evocação')
+    expect(subclassName.tagName).toBe('SPAN')
     expect(screen.getByText('Magia destrutiva pura.')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
@@ -1759,6 +1761,61 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     expect(screen.getByRole('radio', { name: 'Insano' })).toBeTruthy()
     // Subclasse limpa — precisa escolher de novo antes de avançar.
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  // US-225: marshal é a ÚNICA classe com subclassCatalog.length === 3 — a subgrade da US-205
+  // continua interativa e obrigatória (nada muda aqui), verificado explicitamente por chave,
+  // não presumido por "nada mudou" (ver Critérios de aceite da US-225).
+  const configWithMarshal = (budget: number) => ({
+    ...configWithBudget(budget),
+    classes: [{ key: 'marshal', label: 'Marechal' }],
+    subclasses: {
+      marshal: [
+        { key: 'gambling-general', label: 'General Apostador' },
+        { key: 'swift-strategist', label: 'Estrategista Veloz' },
+        { key: 'talented-tactician', label: 'Tático Talentoso' },
+      ],
+    },
+  })
+
+  it.each([
+    ['General Apostador', 'gambling-general'],
+    ['Estrategista Veloz', 'swift-strategist'],
+    ['Tático Talentoso', 'talented-tactician'],
+  ])('marshal: escolher %s pelo cartão libera o avanço e manda a chave %s no DTO', async (cardName, key) => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Bram' })
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithMarshal(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Marechal' }))
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    // As 3 opções aparecem como cartões clicáveis; nenhuma pré-marcada até a escolha.
+    expect(screen.getByRole('radio', { name: 'General Apostador' })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: 'Estrategista Veloz' })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: 'Tático Talentoso' })).toBeTruthy()
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.click(screen.getByRole('radio', { name: cardName }))
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(nextBtn()) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.click(nextBtn()) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Bram' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Masculino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(nextBtn())
+
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ class: 'marshal', subclass: key }))
   })
 })
 
