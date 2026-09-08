@@ -3482,6 +3482,11 @@
   },
   "classes": [
     {
+      "armorProficiencies": [
+        "light",
+        "medium",
+        "shields"
+      ],
       "blurb": "Entra na frente, aguenta o que vier e bate mais forte quanto pior a situação fica. Pouca conversa, muita presença física.",
       "hitDice": "1d12",
       "key": "barbarian",
@@ -3494,9 +3499,22 @@
       "savingThrows": [
         "constitution",
         "strength"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple",
+          "martial"
+        ],
+        "weapons": []
+      }
     },
     {
+      "armorProficiencies": [
+        "light"
+      ],
       "blurb": "Vira faca de dois gumes com música, história e um sorriso confiante: inspira aliados, engana inimigos e sabe um pouco de quase tudo.",
       "hitDice": "1d8",
       "key": "bard",
@@ -3508,9 +3526,34 @@
       "savingThrows": [
         "charisma",
         "dexterity"
-      ]
+      ],
+      "toolProficiencies": {
+        "choice": {
+          "categories": [
+            "musical-instrument"
+          ],
+          "count": 3
+        },
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple"
+        ],
+        "weapons": [
+          "hand_crossbow",
+          "longsword",
+          "rapier",
+          "shortsword"
+        ]
+      }
     },
     {
+      "armorProficiencies": [
+        "light",
+        "medium",
+        "shields"
+      ],
       "blurb": "Carrega a cura e a punição do seu deus para o campo de batalha — reza pouco, age muito, e o grupo sobrevive graças a isso.",
       "hitDice": "1d8",
       "key": "cleric",
@@ -3522,9 +3565,23 @@
       "savingThrows": [
         "charisma",
         "wisdom"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple"
+        ],
+        "weapons": []
+      }
     },
     {
+      "armorProficiencies": [
+        "light",
+        "medium",
+        "shields"
+      ],
       "blurb": "Vira urso, lobo ou ave quando a forma humana não basta, e chama o vento e a terra para lutar ao seu lado.",
       "hitDice": "1d8",
       "key": "druid",
@@ -3536,9 +3593,33 @@
       "savingThrows": [
         "intelligence",
         "wisdom"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": [
+          "herbalism_kit"
+        ]
+      },
+      "weaponProficiencies": {
+        "categories": [],
+        "weapons": [
+          "club",
+          "dagger",
+          "dart",
+          "javelin",
+          "mace",
+          "quarterstaff",
+          "scimitar",
+          "sickle",
+          "sling",
+          "spear"
+        ]
+      }
     },
     {
+      "armorProficiencies": [
+        "all",
+        "shields"
+      ],
       "blurb": "Sem magia, sem truque — só disciplina, aço e reflexo. Sobrevive e domina qualquer luta corpo a corpo pela pura repetição do ofício.",
       "hitDice": "1d10",
       "key": "fighter",
@@ -3551,9 +3632,25 @@
       "savingThrows": [
         "constitution",
         "strength"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple",
+          "martial"
+        ],
+        "weapons": []
+      }
     },
     {
+      "armorProficiencies": [
+        "light",
+        "medium",
+        "heavy",
+        "shields"
+      ],
       "blurb": "Lidera de dentro da briga: cada ordem gritada rende um ataque extra ou um fôlego a mais para quem está ao seu lado.",
       "hitDice": "1d10",
       "key": "marshal",
@@ -3566,9 +3663,20 @@
       "savingThrows": [
         "wisdom",
         "constitution"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple",
+          "martial"
+        ],
+        "weapons": []
+      }
     },
     {
+      "armorProficiencies": [],
       "blurb": "Golpeia rápido demais para o olho acompanhar, anda sobre água e foge de correntes — tudo isso treinado, nada emprestado de magia.",
       "hitDice": "1d8",
       "key": "monk",
@@ -3581,9 +3689,31 @@
       "savingThrows": [
         "dexterity",
         "strength"
-      ]
+      ],
+      "toolProficiencies": {
+        "choice": {
+          "categories": [
+            "artisan",
+            "musical-instrument"
+          ],
+          "count": 1
+        },
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple"
+        ],
+        "weapons": [
+          "shortsword"
+        ]
+      }
     },
     {
+      "armorProficiencies": [
+        "all",
+        "shields"
+      ],
       "blurb": "Um voto sagrado vira luz nas mãos: cura quem cai ao seu lado e queima quem se atreve a ficar no caminho.",
       "hitDice": "1d10",
       "key": "paladin",
@@ -3596,9 +3726,24 @@
       "savingThrows": [
         "charisma",
         "wisdom"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple",
+          "martial"
+        ],
+        "weapons": []
+      }
     },
     {
+      "armorProficiencies": [
+        "light",
+        "medium",
+        "shields"
+      ],
       "blurb": "Rastreia qualquer presa através de qualquer mata, luta lado a lado com um companheiro animal e nunca se perde onde outros se perderiam.",
       "hitDice": "1d10",
       "key": "ranger",
@@ -3611,9 +3756,22 @@
       "savingThrows": [
         "dexterity",
         "strength"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple",
+          "martial"
+        ],
+        "weapons": []
+      }
     },
     {
+      "armorProficiencies": [
+        "light"
+      ],
       "blurb": "Aparece de onde ninguém espera, acerta o ponto fraco antes que alguém perceba, e some antes da resposta.",
       "hitDice": "1d8",
       "key": "rogue",
@@ -3625,9 +3783,26 @@
       "savingThrows": [
         "dexterity",
         "intelligence"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": [
+          "thieves_tools"
+        ]
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple"
+        ],
+        "weapons": [
+          "hand_crossbow",
+          "longsword",
+          "rapier",
+          "shortsword"
+        ]
+      }
     },
     {
+      "armorProficiencies": [],
       "blurb": "Não estuda feitiço nenhum — nasceu com o poder na veia, e dobra cada magia à própria vontade quando as regras normais não bastam.",
       "hitDice": "1d6",
       "key": "sorcerer",
@@ -3639,9 +3814,25 @@
       "savingThrows": [
         "charisma",
         "constitution"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [],
+        "weapons": [
+          "dagger",
+          "dart",
+          "sling",
+          "quarterstaff",
+          "light_crossbow"
+        ]
+      }
     },
     {
+      "armorProficiencies": [
+        "light"
+      ],
       "blurb": "Fechou um pacto com algo maior que ele, e agora conjura magias emprestadas cujo preço só ele conhece de verdade.",
       "hitDice": "1d8",
       "key": "warlock",
@@ -3653,9 +3844,19 @@
       "savingThrows": [
         "charisma",
         "wisdom"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [
+          "simple"
+        ],
+        "weapons": []
+      }
     },
     {
+      "armorProficiencies": [],
       "blurb": "Estudou cada fórmula arcana num grimório, e tem uma resposta mágica preparada para quase qualquer problema que o grupo encontrar.",
       "hitDice": "1d6",
       "key": "wizard",
@@ -3667,7 +3868,20 @@
       "savingThrows": [
         "intelligence",
         "wisdom"
-      ]
+      ],
+      "toolProficiencies": {
+        "fixed": []
+      },
+      "weaponProficiencies": {
+        "categories": [],
+        "weapons": [
+          "dagger",
+          "dart",
+          "sling",
+          "quarterstaff",
+          "light_crossbow"
+        ]
+      }
     }
   ],
   "languages": [

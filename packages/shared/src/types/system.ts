@@ -92,14 +92,39 @@ export const RaceCatalogEntrySchema = SystemCatalogEntrySchema.extend({
   grant: SystemRaceGrantSchema.optional(),
 })
 
+// US-221: categoria de armadura/arma reconhecida no texto da feature "Proficiencies" — enum
+// fechado porque não existe catálogo de item de armadura/arma por trás da categoria (ver
+// US-221 §Contexto): fragmento fora dos 5/2 valores é bug de parser, falha alto no ingest.
+const ArmorCategorySchema = z.enum(['light', 'medium', 'heavy', 'shields', 'all'])
+const WeaponCategorySchema = z.enum(['simple', 'martial'])
+
 // Entrada de catálogo de CLASSE (US-209): estende SystemCatalogEntrySchema com `hitDice`
 // (notação "NdM" minúscula, ex. "1d12") e `savingThrows` (2 chaves canônicas de atributo, na
 // ordem do dataset — não ordenadas, ver ingest.mjs `normalizeSavingThrows`). Derivados do SRD
 // pelo `buildClasses`. Só `config.classes` — subclasse não tem os dois campos próprios (regra
 // 5e: são da classe-mãe), por isso `subclasses` continua no SystemCatalogEntrySchema genérico.
+//
+// US-221: `armorProficiencies`/`weaponProficiencies`/`toolProficiencies` — mesma feature
+// "Proficiencies" do dataset, agora parseada em `buildClassProficiencies` (ingest.mjs) em vez
+// de entrar como texto cru em `classFeatures`. Categoria de arma/armadura NUNCA vira chave de
+// item (não existe catálogo por trás dela, ver US-221 §Contexto) — só as listas NOMEADAS
+// (`weaponProficiencies.weapons`) resolvem contra `config.weapons`. `toolProficiencies.fixed`/
+// `choice.categories` resolvem contra `config.tools`/`config.tools[].category` (US-134).
 export const ClassCatalogEntrySchema = SystemCatalogEntrySchema.extend({
   hitDice: z.string().min(1).optional(),
   savingThrows: z.array(z.string().min(1)).optional(),
+  armorProficiencies: z.array(ArmorCategorySchema).optional(),
+  weaponProficiencies: z.object({
+    categories: z.array(WeaponCategorySchema),
+    weapons: z.array(z.string()),
+  }).optional(),
+  toolProficiencies: z.object({
+    fixed: z.array(z.string()),
+    choice: z.object({
+      count: z.number().int().positive(),
+      categories: z.array(z.string()),
+    }).optional(),
+  }).optional(),
 })
 
 // Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,

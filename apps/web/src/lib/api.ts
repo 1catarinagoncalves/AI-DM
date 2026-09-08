@@ -81,6 +81,10 @@ export const api = {
     // US-205: chave de config.subclasses[class] — omitido quando a classe tem 1 subclasse só
     // (o service preenche sozinho); a etapa `class` do wizard só manda quando `marshal` (3 opções).
     subclass?: string
+    // US-221: ferramenta(s) escolhida(s) do `toolProficiencies.choice` da CLASSE (Bardo 3 de
+    // musical-instrument, Monge 1 entre artisan/musical-instrument) — só manda quando a classe
+    // escolhida tem `choice` (11 das 13 não têm, o wizard nem mostra o <select>).
+    classToolChoice?: string[]
     attributes: Record<string, number>
     skills?: string[]
     background?: { story?: string; ideals?: string[]; bonds?: string[]; flaws?: string[]; deity?: { name: string; portfolio?: string } }

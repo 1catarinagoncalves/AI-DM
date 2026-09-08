@@ -53,6 +53,12 @@ export const CreateCharacterSchema = z.object({
   // (2 hoje), mesmo raciocínio de `raceAbilityChoice` acima.
   raceSkillChoices: z.array(z.string().max(60)).max(6).optional(),
   class: z.string().min(1).max(40),
+  // US-221: ferramenta(s) escolhida(s) do `toolProficiencies.choice` da CLASSE (Bardo escolhe
+  // 3 instrumentos musicais, Monge escolhe 1 entre artesão/instrumento) — chave de config.tools,
+  // exigida no service quando `config.classes[class].toolProficiencies.choice` existe. Array,
+  // não par fixo+escolhido, mesmo raciocínio de `raceSkillChoices` acima (a contagem vem do
+  // catálogo, não é sempre 1). Ignorado para classe sem `choice` mesmo se vier no DTO.
+  classToolChoice: z.array(z.string().max(60)).max(6).optional(),
   // US-205: chave de config.subclasses[class] — opcional no DTO. Classe com 1 subclasse só
   // nunca precisa mandar (o service preenche sozinho); classe com mais de uma (marshal) manda
   // a escolhida. Validada contra o catálogo da classe no service, mesmo padrão de origin.key.

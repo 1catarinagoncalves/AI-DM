@@ -1534,3 +1534,108 @@ describe('CharacterService.create (US-220 — perícias proficientes por raça)'
     expect(char.skills).toEqual(['stealth', 'arcana', 'athletics'])
   })
 })
+
+// US-221: proficiência de arma/armadura/ferramenta por CLASSE — este bloco cobre só a metade
+// mecânica (ferramenta, que soma em Character.tools); armadura/arma de classe é dado de
+// catálogo lido na ficha (GameView), sem campo novo no Character (ver US-221 §Fora do escopo).
+describe('CharacterService.create (US-221 — proficiência de ferramenta por classe)', () => {
+  const configWithClassTools: SystemConfig = {
+    ...config,
+    races: [{ key: 'human', label: 'Human' }],
+    tools: [
+      { key: 'thieves_tools', label: 'Thieves’ Tools', category: 'thieves_tools' },
+      { key: 'herbalism_kit', label: 'Herbalism Kit', category: 'kit' },
+      { key: 'lute', label: 'Lute', category: 'musical-instrument' },
+      { key: 'lyre', label: 'Lyre', category: 'musical-instrument' },
+      { key: 'flute', label: 'Flute', category: 'musical-instrument' },
+      { key: 'smiths_tools', label: "Smith's Tools", category: 'artisan' },
+    ],
+    classes: [
+      { key: 'rogue', label: 'Rogue', toolProficiencies: { fixed: ['thieves_tools'] } },
+      { key: 'druid', label: 'Druid', toolProficiencies: { fixed: ['herbalism_kit'] } },
+      { key: 'bard', label: 'Bard', toolProficiencies: { fixed: [], choice: { count: 3, categories: ['musical-instrument'] } } },
+      { key: 'monk', label: 'Monk', toolProficiencies: { fixed: [], choice: { count: 1, categories: ['artisan', 'musical-instrument'] } } },
+      { key: 'fighter', label: 'Fighter', toolProficiencies: { fixed: [] } },
+    ],
+  }
+
+  it('Ladra (rogue): Character.tools contém thieves_tools sem exigir escolha', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassTools))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'rogue',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.tools).toEqual(['thieves_tools'])
+  })
+
+  it('Druida: Character.tools contém herbalism_kit sem exigir escolha', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassTools))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'druid',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.tools).toEqual(['herbalism_kit'])
+  })
+
+  it('Bardo: classToolChoice com exatamente 3 chaves de musical-instrument soma em Character.tools', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassTools))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'bard',
+      attributes: { cool: 5, hard: 5 }, classToolChoice: ['lute', 'lyre', 'flute'],
+    })
+    expect(char.tools).toEqual(['lute', 'lyre', 'flute'])
+  })
+
+  it('Bardo rejeita contagem errada de classToolChoice', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassTools))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'bard',
+      attributes: { cool: 5, hard: 5 }, classToolChoice: ['lute', 'lyre'],
+    })).rejects.toThrow('classToolChoice inválido')
+  })
+
+  it('Bardo rejeita classToolChoice fora da categoria musical-instrument (smiths_tools é artisan)', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassTools))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'bard',
+      attributes: { cool: 5, hard: 5 }, classToolChoice: ['lute', 'lyre', 'smiths_tools'],
+    })).rejects.toThrow('classToolChoice inválido')
+  })
+
+  it('Monge: classToolChoice com 1 chave entre artisan e musical-instrument soma em Character.tools', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassTools))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'monk',
+      attributes: { cool: 5, hard: 5 }, classToolChoice: ['smiths_tools'],
+    })
+    expect(char.tools).toEqual(['smiths_tools'])
+  })
+
+  it('Monge rejeita classToolChoice que colide com ferramenta já concedida por origem', async () => {
+    const configWithOriginTool: SystemConfig = {
+      ...configWithClassTools,
+      backgrounds: [
+        { key: 'a5e-ag_artisan', name: 'Artisan', source: 'a5e-ag', benefits: [
+          { type: 'tool_proficiency', name: 'Tool Proficiencies', description: "Smith's tools.", grant: { kind: 'tools', fixed: ['smiths_tools'], chooseFrom: [], chooseCount: 0 } },
+        ] },
+      ],
+    }
+    const service = new CharacterService(fakePrisma(configWithOriginTool))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'monk',
+      attributes: { cool: 5, hard: 5 }, origin: { key: 'a5e-ag_artisan' }, classToolChoice: ['smiths_tools'],
+    })).rejects.toThrow('classToolChoice inválido')
+  })
+
+  // US-221 §Critérios de aceite: classe sem `toolProficiencies.choice` (Guerreiro, 11 das 13)
+  // ignora classToolChoice enviado por engano, sem erro — mesmo tratamento de raceToolChoice/
+  // raceSkillChoices fora de contexto.
+  it('classe sem toolProficiencies.choice (Guerreiro): classToolChoice enviado por engano é ignorado, sem erro', async () => {
+    const service = new CharacterService(fakePrisma(configWithClassTools))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'fighter',
+      attributes: { cool: 5, hard: 5 }, classToolChoice: ['lute'],
+    })
+    expect(char.tools).toEqual([])
+  })
+})

@@ -473,11 +473,14 @@ export function buildClassFeatures(overlay, { classes, features, featureItems },
   // cobre as duas fontes; não precisou de checagem por `feature_type`.
   const isNoise = (f) => { const d = norm(f.fields.desc); return d === '' || d === '[Column data]' }
   const isSpellEngine = (f) => /_(spellcasting|pact-magic)$/.test(f.pk) // conjuração é a US-42 (classSpells)
+  // US-221: "Proficiencies" deixa de entrar como texto cru — buildClassProficiencies parseia a
+  // MESMA feature em campos estruturados (config.classes[].{armor,weapon,tool}Proficiencies).
+  const isProficiencies = (f) => f.fields.feature_type === 'PROFICIENCIES'
 
   const classFeatures = { default: [] }
   for (const f of features) {
     const canon = CLASS_MAP[f.fields.parent]
-    if (!canon || !lvl1.has(f.pk) || isNoise(f) || isSpellEngine(f)) continue
+    if (!canon || !lvl1.has(f.pk) || isNoise(f) || isSpellEngine(f) || isProficiencies(f)) continue
     const slug = String(f.pk).slice(String(f.fields.parent).length + 1) // srd_paladin_lay-on-hands → lay-on-hands
     const featKey = `${canon}_${slug}`
     const entry = resolve('features', featKey, overlay.features?.[featKey], f.fields.name, norm(f.fields.desc))
@@ -975,6 +978,118 @@ export function buildWeapons(overlay, itemsRaw, resolve) {
     .sort((a, b) => a.key.localeCompare(b.key))
 }
 
+// --- classProficiencies (US-221): armadura/arma/ferramenta por classe, extensão de
+// config.classes[] — a MESMA feature "Proficiencies" que buildClassFeatures agora EXCLUI de
+// classFeatures (ver isProficiencies ali) entra aqui, estruturada. Achada por `parent` +
+// `feature_type === 'PROFICIENCIES'`, nunca por prefixo de pk (mesmo cuidado que
+// buildClassFeatures já tem com `srd_sorceror_proficiencies`, ver notas de implementação da
+// US-221). SEM overlay/resolve: os 3 campos são chave/enum canônicos, não prosa — idênticos
+// nos dois artefatos (EN/pt-BR); o rótulo é resolvido na tela por i18n (US-221 §Ficha).
+
+// Fragmento de armadura → categoria: tabela fechada, mesmo espírito de CLASS_MAP (fragmento
+// fora dela é o dataset mudando de forma, não caso pra engolir em silêncio).
+const ARMOR_CATEGORY_MAP = { 'light armor': 'light', 'medium armor': 'medium', 'heavy armor': 'heavy', shields: 'shields', 'all armor': 'all' }
+
+function parseArmorProficiencies(classKey, text) {
+  // Ressalva de material da druida ("...made of metal") é sabor, não modelado em nenhum outro
+  // traço da ficha — descartada aqui (US-221 §Questões em aberto #1).
+  const clean = text.replace(/\s*\([^)]*\)/g, '').trim()
+  if (/^none$/i.test(clean)) return []
+  return clean.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean).map((frag) => {
+    const category = ARMOR_CATEGORY_MAP[frag]
+    if (!category) throw new Error(`Classe ${classKey}: fragmento de armadura "${frag}" fora da tabela esperada (Armor: "${text}")`)
+    return category
+  })
+}
+
+// Fragmento de arma → categoria ('simple'/'martial') OU chave nomeada resolvida contra
+// config.weapons (US-215). Singularização mecânica (só remove "s" final): os 15 fragmentos
+// nomeados medidos (US-221 §Contexto) não têm plural irregular — chave fora do catálogo falha
+// alto, não regex genérica de plural inglês.
+function parseWeaponProficiencies(classKey, text, weaponKeys) {
+  const categories = []
+  const weapons = []
+  for (const raw of text.split(',')) {
+    const frag = raw.trim()
+    if (!frag) continue
+    if (/^simple weapons?$/i.test(frag)) { categories.push('simple'); continue }
+    if (/^martial weapons?$/i.test(frag)) { categories.push('martial'); continue }
+    const key = frag.toLowerCase().replace(/s$/, '').replace(/\s+/g, '_')
+    if (!weaponKeys.has(key)) throw new Error(`Classe ${classKey}: arma "${frag}" sem entrada em config.weapons (chave tentada "${key}")`)
+    weapons.push(key)
+  }
+  return { categories, weapons }
+}
+
+// Fragmento de categoria de ferramenta ("artisan's tools", "one musical instrument") → valor
+// de config.tools[].category — tabela explícita, mesmo espírito de resolveToolUnit (US-132):
+// só as 2 categorias que bard/monk citam existem hoje.
+function resolveToolCategoryPhrase(classKey, phrase) {
+  if (/artisan/i.test(phrase)) return 'artisan'
+  if (/musical instrument/i.test(phrase)) return 'musical-instrument'
+  throw new Error(`Classe ${classKey}: categoria de ferramenta "${phrase}" fora da tabela esperada`)
+}
+
+// `Tools:` da feature de proficiências → { fixed, choice? }. Três formas medidas nas 13
+// classes: "None" (11), item nomeado fixo (Herbalism kit/Thieves' tools, resolvido contra
+// config.tools por `normalizeToolName`, mesma função de US-132), e escolha ("N <categoria> of
+// your choice" ou "Choose N type of X or Y") — `count` vem do MESMO mapa palavra→número que
+// `parseSkillGrant` já usa (SKILL_FREE_CHOICE_WORDS).
+function parseClassTools(classKey, text, toolsByKey) {
+  const clean = text.trim()
+  if (/^none$/i.test(clean)) return { fixed: [] }
+  const freeChoice = clean.match(/^(\w+) musical instruments? of your choice$/i)
+  if (freeChoice) {
+    const count = SKILL_FREE_CHOICE_WORDS[freeChoice[1].toLowerCase()]
+    if (!count) throw new Error(`Classe ${classKey}: contagem "${freeChoice[1]}" fora de SKILL_FREE_CHOICE_WORDS (Tools: "${text}")`)
+    return { fixed: [], choice: { count, categories: ['musical-instrument'] } }
+  }
+  const chooseOneOf = clean.match(/^Choose (\w+) type of (.+)$/i)
+  if (chooseOneOf) {
+    const count = SKILL_FREE_CHOICE_WORDS[chooseOneOf[1].toLowerCase()]
+    if (!count) throw new Error(`Classe ${classKey}: contagem "${chooseOneOf[1]}" fora de SKILL_FREE_CHOICE_WORDS (Tools: "${text}")`)
+    const categories = chooseOneOf[2].split(/\s+or\s+/i).map((part) => resolveToolCategoryPhrase(classKey, part.trim()))
+    return { fixed: [], choice: { count, categories } }
+  }
+  const fixed = clean.split(',').map((s) => s.trim()).filter(Boolean).map((name) => {
+    const key = normalizeToolName(name)
+    if (!toolsByKey.has(key)) throw new Error(`Classe ${classKey}: ferramenta "${name}" sem entrada em config.tools (chave tentada "${key}")`)
+    return key
+  })
+  return { fixed }
+}
+
+// Extrai o valor de um campo `**Label:** valor` da feature de proficiências — os 5 campos
+// (Armor/Weapons/Tools/Saving Throws/Skills, os 2 últimos fora do escopo desta story) ficam um
+// por linha, separados por \r\n (srd) ou \n (a5e-ag, ver Marshal) — `[^\r\n]*` cobre as duas.
+function extractProficiencySection(classKey, desc, label) {
+  const match = new RegExp(`\\*\\*${label}:\\*\\*\\s*([^\\r\\n]*)`, 'i').exec(desc)
+  if (!match) throw new Error(`Classe ${classKey}: campo "${label}" não encontrado na feature de proficiências (desc: "${desc}")`)
+  return match[1].trim()
+}
+
+export function buildClassProficiencies(classesRaw, features, weapons, tools) {
+  const weaponKeys = new Set(weapons.map((w) => w.key))
+  const toolsByKey = new Set(tools.map((t) => t.key))
+  const baseClasses = classesRaw.filter((c) => c.fields.subclass_of === null)
+  const out = {}
+  for (const c of baseClasses) {
+    const canon = CLASS_MAP[c.pk]
+    if (!canon) throw new Error(`Classe base sem entrada no CLASS_MAP: ${c.pk}`)
+    // Mesmo cuidado de buildClassFeatures com srd_sorceror_proficiencies: acha pela combinação
+    // `parent` + `feature_type`, nunca por `pk.startsWith(canon)`.
+    const feature = features.find((f) => f.fields.parent === c.pk && f.fields.feature_type === 'PROFICIENCIES')
+    if (!feature) throw new Error(`Classe ${canon}: feature PROFICIENCIES não encontrada (parent ${c.pk})`)
+    const desc = feature.fields.desc
+    out[canon] = {
+      armorProficiencies: parseArmorProficiencies(canon, extractProficiencySection(canon, desc, 'Armor')),
+      weaponProficiencies: parseWeaponProficiencies(canon, extractProficiencySection(canon, desc, 'Weapons'), weaponKeys),
+      toolProficiencies: parseClassTools(canon, extractProficiencySection(canon, desc, 'Tools'), toolsByKey),
+    }
+  }
+  return out
+}
+
 // Monta um artefato completo a partir do dataset + um overlay. Overlay `{}` = base EN crua.
 // `locale` só serve ao bônus de atributo: a frase de escolha livre do Half-Elf e o "+1 em
 // todos" do Human não têm de onde vir do dataset, viram literal por idioma abaixo.
@@ -1016,6 +1131,17 @@ function buildConfig(overlay, data, locale) {
   // US-215: catálogo de arma, mesma fonte crua (data.items) de buildTools — filtro de
   // categoria disjunto ('weapon' vs 'tools'/'land-vehicle'/'waterborne-vehicle'), sem overlap.
   const weapons = buildWeapons(overlay, data.items, resolve)
+  // US-221: precisa de weapons/tools já resolvidos (arma/ferramenta NOMEADA da classe resolve
+  // contra os dois catálogos) — por isso roda DEPOIS dos dois, mesma ordem que buildBackgrounds
+  // já respeita (comentário do US-132 acima de buildTools).
+  const classProficiencies = buildClassProficiencies(data.classes, data.features, weapons, tools)
+  for (const cls of classes) {
+    const p = classProficiencies[cls.key]
+    if (!p) throw new Error(`Classe ${cls.key}: proficiências de armadura/arma/ferramenta não encontradas`)
+    cls.armorProficiencies = p.armorProficiencies
+    cls.weaponProficiencies = p.weaponProficiencies
+    cls.toolProficiencies = p.toolProficiencies
+  }
   const { backgrounds, backgroundEquipment, backgroundFeatures } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, tools, data.items, orphans)
 
   // --- órfãos: chave do overlay que nenhum registro do dataset consumiu ---

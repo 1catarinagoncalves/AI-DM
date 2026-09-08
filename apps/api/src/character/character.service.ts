@@ -64,6 +64,11 @@ export class CharacterService {
       )
       : undefined
     const charClass = this.validateCatalogKey(config.classes, dto.class, 'Classe')
+    // US-221: proficiência de ferramenta da CLASSE (fixa: Ladra `thieves_tools`/Druida
+    // `herbalism_kit`; à escolha: Bardo 3 de musical-instrument/Monge 1 entre artisan e
+    // musical-instrument) — dado de CATÁLOGO (config.classes[].toolProficiencies), não regra
+    // fixa do PHB como RACE_TOOL_PROFICIENCIES. Resolvido aqui, perto da validação de charClass.
+    const classToolProficiencies = config.classes?.find((c) => c.key === charClass)?.toolProficiencies
     // US-205: subclasse pressupõe a classe já validada acima. `dto.subclass` presente →
     // valida contra o catálogo da classe (BadRequestException se pertencer a outra classe,
     // mesmo padrão de validateCatalogKey). Ausente + catálogo com 1 entrada só → preenche
@@ -148,7 +153,15 @@ export class CharacterService {
     const raceTools = RACE_TOOL_PROFICIENCIES[race] ?? []
     // Ferramenta racial soma à de origem — as duas são proficiências independentes, mesmo
     // raciocínio cumulativo de applyRaceGrant/applyAbilityGrant acima.
-    const tools = [...this.applyToolGrant(toolGrant, dto.origin?.toolChoice), ...(raceToolChoice ? [raceToolChoice] : []), ...raceTools]
+    const originAndRaceTools = [...this.applyToolGrant(toolGrant, dto.origin?.toolChoice), ...(raceToolChoice ? [raceToolChoice] : []), ...raceTools]
+    // US-221: ferramenta FIXA de classe (Ladra/Druida) soma incondicional, mesmo raciocínio de
+    // raceTools acima; ferramenta À ESCOLHA (Bardo/Monge) exclui o que raça/origem já concedem
+    // (evita duplicar a mesma chave), mesmo padrão de `applyRaceSkillChoice` (US-220).
+    const classToolFixed = classToolProficiencies?.fixed ?? []
+    const classToolChosen = this.applyClassToolChoice(
+      config.tools, classToolProficiencies?.choice, [...originAndRaceTools, ...classToolFixed], dto.classToolChoice,
+    )
+    const tools = [...originAndRaceTools, ...classToolFixed, ...classToolChosen]
     // US-214: união do(s) idioma(s) fixo(s) de raça com a escolha extra (quando exigida) — sem
     // coluna própria de raça (ver schema.prisma), tudo entra direto no mesmo array.
     const languages = [...raceLanguages, ...(raceLanguageChoice ? [raceLanguageChoice] : [])]
@@ -464,6 +477,34 @@ export class CharacterService {
       throw new BadRequestException(
         `raceSkillChoices inválido: [${(raceSkillChoices ?? []).join(', ')}]. Esperado ${count} chave(s) de config.skills, `
         + `distintas entre si e não concedidas por raça/origem/classe.`,
+      )
+    }
+    return chosen
+  }
+
+  /**
+   * US-221: ferramenta(s) à escolha da CLASSE (Bardo: 3 de musical-instrument; Monge: 1 entre
+   * artisan e musical-instrument) — generalização de `applyRaceSkillChoice` (US-220) a um pool
+   * filtrado por CATEGORIA de config.tools (não o catálogo inteiro). `excluded` já traz
+   * ferramenta de raça/origem/classe fixa — rejeita contagem errada, chave fora das categorias
+   * da classe, e colisão com ferramenta já concedida por outra fonte na mesma exceção.
+   *
+   * Classe sem `toolProficiencies.choice` (11 das 13) devolve `[]` e IGNORA `classToolChoice`
+   * mesmo se vier no DTO, mesmo tratamento de `raceToolChoice`/`draconicAncestry` fora de contexto.
+   */
+  private applyClassToolChoice(
+    catalog: SystemConfig['tools'],
+    choice: { count: number; categories: string[] } | undefined,
+    excluded: string[],
+    classToolChoice?: string[],
+  ): string[] {
+    if (!choice) return []
+    const pool = new Set((catalog ?? []).filter((t) => choice.categories.includes(t.category) && !excluded.includes(t.key)).map((t) => t.key))
+    const chosen = [...new Set(classToolChoice ?? [])]
+    if (chosen.length !== choice.count || chosen.some((k) => !pool.has(k))) {
+      throw new BadRequestException(
+        `classToolChoice inválido: [${(classToolChoice ?? []).join(', ')}]. Esperado ${choice.count} chave(s) de config.tools `
+        + `dentro de [${choice.categories.join(', ')}], distintas entre si e não concedidas por raça/origem/classe.`,
       )
     }
     return chosen

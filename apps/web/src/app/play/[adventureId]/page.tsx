@@ -47,9 +47,22 @@ export default async function PlayPage({ params, searchParams }: Props) {
   // mesmo padrão de raça/classe (catalogLabel). Chave sem entrada mostra a própria chave
   // (mesma rede de segurança de catalogLabel), nunca some da lista.
   const tools = ((character.tools ?? []) as string[]).map((key) => catalogLabel(config?.tools, key))
+  // US-221: proficiência de arma/armadura de CLASSE — dado de catálogo (config.classes),
+  // nunca mesclado em Character.weapons (esse continua reservado à concessão de raça, US-215).
+  const classProficiencyEntry = config?.classes?.find((c) => c.key === character.class)
   // US-215: arma(s) fixa(s) de raça — chaves resolvidas pro rótulo do locale ativo, mesmo
   // padrão de `tools` acima, contra config.weapons em vez de config.tools.
-  const weapons = ((character.weapons ?? []) as string[]).map((key) => catalogLabel(config?.weapons, key))
+  // US-221: soma as armas NOMEADAS da classe (druid/sorcerer/wizard, extra de bard/monk/rogue)
+  // na MESMA lista — a `<ul>` da ficha não distingue a fonte, só a categoria pura (heading) sai
+  // à parte (ver `weaponCategories` abaixo).
+  const classNamedWeapons = (classProficiencyEntry?.weaponProficiencies?.weapons ?? []).map((key) => catalogLabel(config?.weapons, key))
+  const weapons = [...((character.weapons ?? []) as string[]).map((key) => catalogLabel(config?.weapons, key)), ...classNamedWeapons]
+  // US-221: categoria PURA de arma ('simple'/'martial') — nunca entra na `<ul>` acima, só no
+  // sufixo do heading (GameView resolve o rótulo por i18n, não por catálogo).
+  const weaponCategories = classProficiencyEntry?.weaponProficiencies?.categories ?? []
+  // US-221: categoria de armadura de classe — seção própria "Armadura", mesma disciplina de
+  // weaponCategories (rótulo por i18n no GameView, sem catálogo de item de armadura por trás).
+  const armor = classProficiencyEntry?.armorProficiencies ?? []
   // Traço "Extra Language" do alto-elfo: mesma resolução de chave→rótulo de `tools` acima,
   // contra config.languages (US-133) em vez de config.tools.
   const languages = ((character.languages ?? []) as string[]).map((key) => catalogLabel(config?.languages, key))
@@ -96,6 +109,8 @@ export default async function PlayPage({ params, searchParams }: Props) {
       skills={skills}
       tools={tools}
       weapons={weapons}
+      weaponCategories={weaponCategories}
+      armor={armor}
       languages={languages}
       background={character.background}
       characterOrigin={originName}

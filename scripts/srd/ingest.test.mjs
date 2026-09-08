@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -403,6 +403,19 @@ test('buildClassFeatures: Marshal soma no mesmo CLASS_MAP; source por documento;
   assert.equal(result.marshal[0].source, 'a5e-ag')
 })
 
+// US-221: a feature "Proficiencies" (feature_type PROFICIENCIES) some de classFeatures — vira
+// campo estruturado via buildClassProficiencies em vez de card de texto cru na aba de Traços.
+test('buildClassFeatures: feature_type "PROFICIENCIES" é filtrada, mesmo com featureItem de nível 1 registrado', () => {
+  const classes = [classRow('srd_barbarian')]
+  const features = [
+    featureRow('srd_barbarian_rage', 'srd_barbarian', 'Rage', 'You can enter a rage.'),
+    { pk: 'srd_barbarian_proficiencies', fields: { parent: 'srd_barbarian', name: 'Proficiencies', desc: '**Armor:** Light armor', feature_type: 'PROFICIENCIES' } },
+  ]
+  const featureItems = [featureItemRow('srd_barbarian_rage', 1), featureItemRow('srd_barbarian_proficiencies', 1)]
+  const result = buildClassFeatures({}, { classes, features, featureItems }, identityResolve)
+  assert.deepEqual(result.barbarian.map((f) => f.key), ['barbarian_rage'])
+})
+
 // --- US-141 — buildSubclasses: filtro invertido de buildClasses; chave sempre presente ---
 // (array vazio pra classe sem subclasse na fixture, decidido US-141 §Notas de implementação)
 
@@ -508,6 +521,84 @@ test('buildClasses: saving_throws vazio ou com abreviação fora do ABILITY_MAP 
 
   const unknown = [classRowFull('srd_barbarian', 'Barbarian', null, 'D12', ['con', 'xyz'])]
   assert.throws(() => buildClasses({}, unknown, resolve, attributes), /Classe barbarian.*"xyz"/)
+})
+
+// --- US-221 — buildClassProficiencies: parse da feature "Proficiencies" (Armor/Weapons/Tools)
+// em campos estruturados. `pk` default espelha o padrão real (`<parent>_proficiencies`); o
+// terceiro parâmetro só existe pro teste do typo srd_sorceror_proficiencies abaixo. ---
+
+const proficiencyFeatureRow = (parent, desc, pk = `${parent}_proficiencies`) => ({ pk, fields: { parent, feature_type: 'PROFICIENCIES', desc } })
+
+test('buildClassProficiencies: categoria pura (Guerreiro) — sem arma/ferramenta nomeada, "All armor" e "None" resolvem', () => {
+  const classes = [classRow('srd_fighter')]
+  const features = [proficiencyFeatureRow('srd_fighter',
+    '**Armor:** All armor, shields\r\n**Weapons:** Simple weapons, martial weapons\r\n**Tools:** None\r\n**Saving Throws:** Strength, Constitution')]
+  const result = buildClassProficiencies(classes, features, [], [])
+  assert.deepEqual(result.fighter.armorProficiencies, ['all', 'shields'])
+  assert.deepEqual(result.fighter.weaponProficiencies, { categories: ['simple', 'martial'], weapons: [] })
+  assert.deepEqual(result.fighter.toolProficiencies, { fixed: [] })
+})
+
+test('buildClassProficiencies: lista nomeada (Mago) — sem categoria de arma, armadura "None", resolve contra config.weapons', () => {
+  const classes = [classRow('srd_wizard')]
+  const features = [proficiencyFeatureRow('srd_wizard',
+    '**Armor:** None\r\n**Weapons:** Daggers, darts, slings, quarterstaffs, light crossbows\r\n**Tools:** None\r\n**Saving Throws:** Intelligence, Wisdom')]
+  const weapons = ['dagger', 'dart', 'sling', 'quarterstaff', 'light_crossbow'].map((key) => ({ key, label: key }))
+  const result = buildClassProficiencies(classes, features, weapons, [])
+  assert.deepEqual(result.wizard.armorProficiencies, [])
+  assert.deepEqual(result.wizard.weaponProficiencies, { categories: [], weapons: ['dagger', 'dart', 'sling', 'quarterstaff', 'light_crossbow'] })
+})
+
+test('buildClassProficiencies: mista (Bardo) — categoria de arma E armas nomeadas na mesma lista; ferramenta à escolha (3 de musical-instrument)', () => {
+  const classes = [classRow('srd_bard')]
+  const features = [proficiencyFeatureRow('srd_bard',
+    '**Armor:** Light armor\r\n**Weapons:** Simple weapons, hand crossbows, longswords, rapiers, shortswords\r\n**Tools:** Three musical instruments of your choice\r\n**Saving Throws:** Dexterity, Charisma')]
+  const weapons = ['hand_crossbow', 'longsword', 'rapier', 'shortsword'].map((key) => ({ key, label: key }))
+  const result = buildClassProficiencies(classes, features, weapons, [])
+  assert.deepEqual(result.bard.armorProficiencies, ['light'])
+  assert.deepEqual(result.bard.weaponProficiencies, { categories: ['simple'], weapons: ['hand_crossbow', 'longsword', 'rapier', 'shortsword'] })
+  assert.deepEqual(result.bard.toolProficiencies, { fixed: [], choice: { count: 3, categories: ['musical-instrument'] } })
+})
+
+test('buildClassProficiencies: ferramenta FIXA nomeada (Ladra) — "Thieves’ tools" resolve por normalizeToolName (apóstrofo curvo)', () => {
+  const classes = [classRow('srd_rogue')]
+  const features = [proficiencyFeatureRow('srd_rogue',
+    '**Armor:** Light armor\r\n**Weapons:** Simple weapons\r\n**Tools:** Thieves’ tools\r\n**Saving Throws:** Dexterity, Intelligence')]
+  const tools = [{ key: 'thieves_tools', label: 'Thieves’ Tools', category: 'thieves_tools' }]
+  const result = buildClassProficiencies(classes, features, [], tools)
+  assert.deepEqual(result.rogue.toolProficiencies, { fixed: ['thieves_tools'] })
+})
+
+test('buildClassProficiencies: ferramenta à ESCOLHA entre 2 categorias (Monge) — "Choose one type of X or Y" vira choice.categories', () => {
+  const classes = [classRow('srd_monk')]
+  const features = [proficiencyFeatureRow('srd_monk',
+    '**Armor:** None\r\n**Weapons:** Simple weapons, shortswords\r\n**Tools:** Choose one type of artisan’s tools or one musical instrument\r\n**Saving Throws:** Strength, Dexterity')]
+  const weapons = [{ key: 'shortsword', label: 'Shortsword' }]
+  const result = buildClassProficiencies(classes, features, weapons, [])
+  assert.deepEqual(result.monk.toolProficiencies, { fixed: [], choice: { count: 1, categories: ['artisan', 'musical-instrument'] } })
+})
+
+test('buildClassProficiencies: acha a feature pelo par parent+feature_type, não por prefixo do pk — cobre o typo real "srd_sorceror_proficiencies"', () => {
+  const classes = [classRow('srd_sorcerer')]
+  const features = [proficiencyFeatureRow('srd_sorcerer',
+    '**Armor:** None\r\n**Weapons:** Daggers\r\n**Tools:** None\r\n**Saving Throws:** Constitution, Charisma', 'srd_sorceror_proficiencies')]
+  const weapons = [{ key: 'dagger', label: 'Dagger' }]
+  const result = buildClassProficiencies(classes, features, weapons, [])
+  assert.deepEqual(result.sorcerer.weaponProficiencies, { categories: [], weapons: ['dagger'] })
+})
+
+test('buildClassProficiencies: fragmento de armadura fora da tabela esperada falha alto, citando a classe e o fragmento', () => {
+  const classes = [classRow('srd_fighter')]
+  const features = [proficiencyFeatureRow('srd_fighter',
+    '**Armor:** Exotic armor\r\n**Weapons:** Simple weapons\r\n**Tools:** None\r\n**Saving Throws:** Strength, Constitution')]
+  assert.throws(() => buildClassProficiencies(classes, features, [], []), /Classe fighter.*armadura.*"exotic armor"/)
+})
+
+test('buildClassProficiencies: nome de ferramenta sem entrada em config.tools falha alto, citando a classe e a chave tentada', () => {
+  const classes = [classRow('srd_rogue')]
+  const features = [proficiencyFeatureRow('srd_rogue',
+    '**Armor:** Light armor\r\n**Weapons:** Simple weapons\r\n**Tools:** Bagpipes of Doom\r\n**Saving Throws:** Dexterity, Intelligence')]
+  assert.throws(() => buildClassProficiencies(classes, features, [], []), /Classe rogue.*ferramenta.*"bagpipes_of_doom"/)
 })
 
 test('buildSubclasses: kicker/blurb do overlay (forma objeto) chegam ao artefato; forma string continua só rótulo', () => {
