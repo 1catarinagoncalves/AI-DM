@@ -235,6 +235,17 @@ const TOOL_CATEGORY_LABEL: Record<string, MessageKey> = {
   vehicle: 'setup.tools.category.vehicle',
 }
 
+// US-221: rótulo de categoria pura de armadura/arma de classe — mesma disciplina de
+// TOOL_CATEGORY_LABEL acima, mas texto FIXO da UI (não vem de config.tools): não existe
+// catálogo de item de armadura/arma por trás da categoria (US-221 §Contexto).
+const ARMOR_CATEGORY_LABEL: Record<string, MessageKey> = {
+  light: 'sheet.proficiency.armor.light', medium: 'sheet.proficiency.armor.medium', heavy: 'sheet.proficiency.armor.heavy',
+  shields: 'sheet.proficiency.armor.shields', all: 'sheet.proficiency.armor.all',
+}
+const WEAPON_CATEGORY_LABEL: Record<string, MessageKey> = {
+  simple: 'sheet.proficiency.weapon.simple', martial: 'sheet.proficiency.weapon.martial',
+}
+
 function groupToolsByCategory(keys: string[], catalog: SystemTool[]): [string, SystemTool[]][] {
   const byKey = new Map(catalog.map(tl => [tl.key, tl]))
   const groups = new Map<string, SystemTool[]>()
@@ -295,6 +306,11 @@ export function SetupWizard() {
   // raceToolChoice/raceLanguageChoice acima, mas array: a contagem hoje é 2). Resetada ao
   // trocar de raça/raiz (selectRootCard) e de sistema, mesmo motivo dos campos irmãos.
   const [raceSkillChoice, setRaceSkillChoice] = useState<string[]>([])
+  // US-221: ferramenta(s) escolhida(s) do `toolProficiencies.choice` da CLASSE (Bardo 3 de
+  // musical-instrument, Monge 1 entre artisan/musical-instrument) — só existe estado real pra
+  // classe com `choice` (mesmo padrão condicional de raceSkillChoice acima). Resetada ao trocar
+  // de classe (selectClassCard) e de sistema, mesmo motivo dos campos irmãos.
+  const [classToolChoice, setClassToolChoice] = useState<string[]>([])
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
@@ -371,6 +387,11 @@ export function SetupWizard() {
     blurb: t(DRACONIC_ANCESTRY_COPY[d.key]!.blurb),
   }))
   const classCatalog = system?.config?.classes ?? []
+  // US-221: proficiência de ferramenta da classe escolhida (fixa: Ladra/Druida; à escolha:
+  // Bardo/Monge) — dado de catálogo, mesmo padrão de acesso de subclassCatalog abaixo.
+  const classProficiencyEntry = classCatalog.find(c => c.key === charData.class)
+  const classToolGrant = classProficiencyEntry?.toolProficiencies?.choice
+  const classToolFixed = classProficiencyEntry?.toolProficiencies?.fixed ?? []
   // US-210: catálogo de alinhamento (config.alignments, SRD via ingest) — mesmo padrão de
   // raceCatalog/classCatalog acima, consumido só na etapa `identity`.
   const alignmentCatalog = system?.config?.alignments ?? []
@@ -566,16 +587,26 @@ export function SetupWizard() {
   // proficiência de ferramenta, mesmo raciocínio cumulativo do service (character.service.ts).
   // US-215: Tinker do gnomo das rochas soma à mesma lista — ferramenta FIXA de raça, mesma
   // fonte independente cumulativa de raceToolChoice (traço de ESCOLHA do anão) acima.
+  // US-221: ferramenta FIXA/escolhida de CLASSE soma na MESMA lista — outra fonte independente
+  // cumulativa, mesmo raciocínio de raceToolChoice/RACE_TOOL_PROFICIENCIES acima.
   const reviewToolKeys = [
     ...(toolGrant ? [...toolGrant.fixed, ...toolChoice] : []),
     ...(charData.race === 'hill-dwarf' && raceToolChoice ? [raceToolChoice] : []),
     ...(RACE_TOOL_PROFICIENCIES[charData.race] ?? []),
+    ...classToolFixed, ...classToolChoice,
   ]
   const reviewTools = reviewToolKeys.map(k => toolLabel[k] ?? k)
   // US-215: arma(s) fixa(s) de raça (combate do anão / armas do elfo) — mesma verdade completa
   // que a API vai persistir (Character.weapons), pro preview não divergir do salvo.
-  const reviewWeaponKeys = RACE_WEAPON_PROFICIENCIES[charData.race] ?? []
+  // US-221: soma as armas NOMEADAS de CLASSE (druid/sorcerer/wizard, extra bard/monk/rogue) na
+  // MESMA lista — a ficha (GameView) não distingue a fonte, só a categoria pura sai à parte.
+  const reviewWeaponKeys = [...(RACE_WEAPON_PROFICIENCIES[charData.race] ?? []), ...(classProficiencyEntry?.weaponProficiencies?.weapons ?? [])]
   const reviewWeapons = reviewWeaponKeys.map(k => weaponLabel[k] ?? k)
+  // US-223: categoria PURA de arma de classe — soma no `<dd>` junto de reviewWeapons (categoria
+  // primeiro), não mais no sufixo do `<dt>`: rótulo cru virou frase inteira (WEAPON_CATEGORY_LABEL)
+  // e por isso já não precisa de coluna própria pra não ser confundida com item nomeado.
+  const reviewWeaponCategories = classProficiencyEntry?.weaponProficiencies?.categories ?? []
+  const reviewArmorCategories = classProficiencyEntry?.armorProficiencies ?? []
   // US-214: idioma(s) fixo(s) de RACE_LANGUAGES + escolha extra (quando a raça exige) — mesma
   // verdade completa que a ficha (GameView) mostra depois de criado, pra revisão nunca divergir
   // do que vai ser salvo.
@@ -605,6 +636,8 @@ export function SetupWizard() {
     setCharData(p => ({ ...p, race: '', class: '', alignment: '' }))
     // US-205: subclasse depende da classe — mesmo motivo do reset acima.
     setSubclass(undefined)
+    // US-221: ferramenta à escolha da classe depende da classe — mesmo motivo do reset acima.
+    setClassToolChoice([])
     // US-211: ancestralidade dracônica depende da raça — mesmo motivo do reset acima.
     setDraconicAncestry(undefined)
     // Traço "Tool Proficiency" do anão depende da raça — mesmo motivo do reset acima.
@@ -636,6 +669,9 @@ export function SetupWizard() {
   function selectClassCard(key: string) {
     setCharData(p => ({ ...p, class: key }))
     setSubclass(undefined)
+    // US-221: ferramenta à escolha é da CLASSE (Bardo/Monge) — trocar de classe invalida a
+    // escolha, mesmo espírito do reset de subclass acima.
+    setClassToolChoice([])
   }
 
   // US-142 (correção de 2026-09-02): clicar a raiz não é a escolha final quando ela tem
@@ -673,6 +709,9 @@ export function SetupWizard() {
       case 'class':
         return classCatalog.some(c => c.key === charData.class)
           && (!subclassCatalog || subclassCatalog.length <= 1 || !!subclass)
+          // US-221: classe com `toolProficiencies.choice` (Bardo/Monge) exige exatamente
+          // `choice.count` escolhas — mesmo espírito da checagem de subclass acima.
+          && (!classToolGrant || classToolChoice.length === classToolGrant.count)
       // US-211: dragonborn exige a ancestralidade dracônica escolhida — mesmo espírito da
       // checagem de subclass em canAdvance('class').
       case 'race':
@@ -777,9 +816,13 @@ export function SetupWizard() {
       // US-220: só viaja quando a raça está em RACE_SKILL_PROFICIENCY_CHOICES (hoje só
       // half-elf) — mesmo espírito condicional de raceToolChoicePayload acima.
       const raceSkillChoicesPayload = raceSkillChoiceCount !== undefined ? raceSkillChoice : undefined
+      // US-221: só viaja quando a classe tem `toolProficiencies.choice` (Bardo/Monge) — mesmo
+      // espírito condicional de raceToolChoicePayload acima.
+      const classToolChoicePayload = classToolGrant ? classToolChoice : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({
         systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload,
+        classToolChoice: classToolChoicePayload,
         raceToolChoice: raceToolChoicePayload,
         raceLanguageChoice: raceLanguageChoicePayload,
         raceCantripChoice: raceCantripChoicePayload,
@@ -853,6 +896,16 @@ export function SetupWizard() {
   // chooseCount máximo observado (2). Revisitar se algum background pedir 3+.
   function setToolChoiceAt(index: number, key: string) {
     setToolChoice(p => {
+      const next = [...p]
+      next[index] = key
+      return next.filter(Boolean)
+    })
+  }
+
+  // US-221: mesmo padrão de setToolChoiceAt (US-132), pro `toolProficiencies.choice` da CLASSE
+  // (Bardo 3 slots, Monge 1) em vez do `chooseCount` da origem.
+  function setClassToolChoiceAt(index: number, key: string) {
+    setClassToolChoice(p => {
       const next = [...p]
       next[index] = key
       return next.filter(Boolean)
@@ -1014,6 +1067,38 @@ export function SetupWizard() {
                         </div>
                       )}
                       {classStepFeatures.length > 0 && <FeaturesPanel features={classStepFeatures} tone="primary" />}
+                      {/* US-221: ferramenta À ESCOLHA da classe (Bardo: 3 de musical-instrument;
+                          Monge: 1 entre artisan e musical-instrument) — mesmo design de 1
+                          <select> por slot que o toolGrant de origem já usa (US-132, design
+                          critique 2026-08-14), pool filtrado pelas categorias DA CLASSE em vez
+                          do `chooseFrom` do background. */}
+                      {classToolGrant && (
+                        <div>
+                          <SheetHeading tone="primary">{t('setup.class.toolChoice', { class: classLabel })}</SheetHeading>
+                          {Array.from({ length: classToolGrant.count }, (_, slotIndex) => {
+                            const chosenElsewhere = classToolChoice.filter((_, j) => j !== slotIndex)
+                            const pool = toolCatalog
+                              .filter(tl => classToolGrant.categories.includes(tl.category) && !chosenElsewhere.includes(tl.key))
+                              .map(tl => tl.key)
+                            const groups = groupToolsByCategory(pool, toolCatalog)
+                            const selectLabel = classToolGrant.count > 1
+                              ? `${t('setup.class.toolChoice', { class: classLabel })} (${slotIndex + 1}/${classToolGrant.count})`
+                              : t('setup.class.toolChoice', { class: classLabel })
+                            return (
+                              <select key={slotIndex} aria-label={selectLabel} value={classToolChoice[slotIndex] ?? ''}
+                                onChange={e => setClassToolChoiceAt(slotIndex, e.target.value)}
+                                className={cn(selectClass, 'mt-3')} style={{ backgroundImage: SELECT_ARROW }}>
+                                <option value="">{t('setup.raceClass.select')}</option>
+                                {groups.map(([category, entries]) => (
+                                  <optgroup key={category} label={TOOL_CATEGORY_LABEL[category] ? t(TOOL_CATEGORY_LABEL[category]) : category}>
+                                    {entries.map(entry => <option key={entry.key} value={entry.key}>{entry.label}</option>)}
+                                  </optgroup>
+                                ))}
+                              </select>
+                            )
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1596,8 +1681,11 @@ export function SetupWizard() {
                       fontes) — sem linha própria, mesmo espírito de "Proficiências" genérico.
                       US-215: Tinker do gnomo das rochas soma na mesma linha (reviewToolKeys já
                       inclui a fonte) — condição estendida pra a linha aparecer mesmo sem
-                      toolGrant/raceToolChoice de origem. */}
-                  {(toolGrant || (charData.race === 'hill-dwarf' && raceToolChoice) || charData.race === 'rock-gnome') && (
+                      toolGrant/raceToolChoice de origem. US-221: ferramenta fixa/à escolha de
+                      CLASSE (Ladra/Druida/Bardo/Monge) soma na mesma linha — condição estendida
+                      de novo, pra aparecer mesmo sem NENHUMA das fontes anteriores. */}
+                  {(toolGrant || (charData.race === 'hill-dwarf' && raceToolChoice) || charData.race === 'rock-gnome'
+                    || classToolFixed.length > 0 || !!classToolGrant) && (
                     <div className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.tools')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">
@@ -1606,12 +1694,29 @@ export function SetupWizard() {
                     </div>
                   )}
                   {/* US-215: linha própria — arma(s) fixa(s) de raça (combate do anão / armas do
-                      elfo), só para hill-dwarf/high-elf (as únicas com traço de arma no PHB 2014). */}
-                  {reviewWeapons.length > 0 && (
+                      elfo), só para hill-dwarf/high-elf (as únicas com traço de arma no PHB 2014).
+                      US-221: soma armas NOMEADAS de classe (reviewWeapons já inclui as duas
+                      fontes). US-223: categoria pura NÃO vai mais no sufixo do `<dt>` — ia pro
+                      rótulo errado (coluna que a jogadora não escaneia) e deixava `<dd>` = "—"
+                      pra 7 classes com proficiência real. Categoria agora entra no `<dd>` junto
+                      das nomeadas, mesmo shape da linha de armadura logo abaixo; o rótulo cru
+                      ("Simples"/"Marcial") virou frase inteira (WEAPON_CATEGORY_LABEL) pra não
+                      ser confundido com item nomeado. */}
+                  {(reviewWeapons.length > 0 || reviewWeaponCategories.length > 0) && (
                     <div className="flex items-start justify-between gap-6 py-2.5">
                       <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.weapons')}</dt>
                       <dd className="text-right text-sm font-medium text-parchment">
-                        {reviewWeapons.join(' · ')}
+                        {[...reviewWeaponCategories.map(cat => WEAPON_CATEGORY_LABEL[cat] ? t(WEAPON_CATEGORY_LABEL[cat]) : cat), ...reviewWeapons].join(' · ')}
+                      </dd>
+                    </div>
+                  )}
+                  {/* US-221: linha própria — categoria(s) de armadura de classe, rótulo
+                      localizado por i18n (não há catálogo de item de armadura por trás). */}
+                  {reviewArmorCategories.length > 0 && (
+                    <div className="flex items-start justify-between gap-6 py-2.5">
+                      <dt className="shrink-0 text-sm text-muted-foreground">{t('setup.review.armor')}</dt>
+                      <dd className="text-right text-sm font-medium text-parchment">
+                        {reviewArmorCategories.map(cat => ARMOR_CATEGORY_LABEL[cat] ? t(ARMOR_CATEGORY_LABEL[cat]) : cat).join(' · ')}
                       </dd>
                     </div>
                   )}

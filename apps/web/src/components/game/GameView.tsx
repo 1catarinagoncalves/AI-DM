@@ -33,6 +33,18 @@ const ATTR_LABELS: Record<string, MessageKey> = {
   intelligence: 'game.attr.intelligence', wisdom: 'game.attr.wisdom', charisma: 'game.attr.charisma',
 }
 
+// US-221: categoria de armadura/arma de classe — rótulo vem de i18n (não do catálogo do
+// sistema, ao contrário de tools/weapons nomeados): não existe catálogo de item de armadura/
+// arma por trás da categoria (ver US-221 §Contexto), então "Leve"/"Simples" são texto FIXO da
+// UI, resolvido aqui (cliente) em vez de em page.tsx (servidor, sem acesso a `t`).
+const ARMOR_CATEGORY_LABEL: Record<string, MessageKey> = {
+  light: 'sheet.proficiency.armor.light', medium: 'sheet.proficiency.armor.medium', heavy: 'sheet.proficiency.armor.heavy',
+  shields: 'sheet.proficiency.armor.shields', all: 'sheet.proficiency.armor.all',
+}
+const WEAPON_CATEGORY_LABEL: Record<string, MessageKey> = {
+  simple: 'sheet.proficiency.weapon.simple', martial: 'sheet.proficiency.weapon.martial',
+}
+
 interface Props {
   adventureId: string
   characterId: string
@@ -55,6 +67,15 @@ interface Props {
   // rótulo do locale ativo (mesmo padrão de tools acima). Bloco próprio, entre "Proficiências"
   // e "Idiomas".
   weapons?: string[]
+  // US-221: categoria(s) pura(s) de arma de classe ('simple'/'martial') — vira só o SUFIXO do
+  // heading da seção "Armas" (t('game.weapons') + " — " + rótulos), nunca item da `<ul>` acima
+  // (misturar categoria genérica com arma nomeada confunde: não dá pra saber se é item ou grupo).
+  weaponCategories?: string[]
+  // US-221: categoria(s) de armadura de classe ('light'/'medium'/'heavy'/'shields'/'all') —
+  // seção própria "Armadura", mesmo molde SheetHeading+<ul> de tools/weapons/languages. Rótulo
+  // vem de i18n (ARMOR_CATEGORY_LABEL), não do catálogo do sistema — não existe item de
+  // armadura por trás da categoria (US-221 §Contexto).
+  armor?: string[]
   // Traço "Extra Language" do alto-elfo: idiomas extras conhecidos, já resolvidos pro rótulo
   // do locale ativo (mesmo padrão de tools acima). Bloco próprio, ao lado do de proficiências.
   languages?: string[]
@@ -108,7 +129,7 @@ function saveHistory(adventureId: string, messages: Message[]) {
   localStorage.setItem(historyKey(adventureId), JSON.stringify(persistable))
 }
 
-export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, tools, weapons, languages, background, characterOrigin, characterConnection, characterMemento, characterAdventures, features, spells }: Props) {
+export function GameView({ adventureId, characterId, characterName, characterClass, characterRace, hp, maxHp, attributes, inventory: initialInventory, conditions, skills, tools, weapons, weaponCategories, armor, languages, background, characterOrigin, characterConnection, characterMemento, characterAdventures, features, spells }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   // US-45: aba ativa da ficha. Estado só de VISTA — não toca em messages/HP/inventário,
   // então trocar de aba não remonta nada nem perde estado de jogo.
@@ -542,6 +563,19 @@ export function GameView({ adventureId, characterId, characterName, characterCla
               </div>
             )}
 
+            {armor && armor.length > 0 && (
+              <div className="md:w-full">
+                <SheetHeading>{t('game.armor')}</SheetHeading>
+                <ul className="scrollbar-thin max-h-40 space-y-0.5 overflow-y-auto pr-1">
+                  {armor.map((cat, i) => (
+                    <li key={i} className="px-1.5 py-1 text-[13px] text-foreground">
+                      {ARMOR_CATEGORY_LABEL[cat] ? t(ARMOR_CATEGORY_LABEL[cat]!) : cat}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {tools && tools.length > 0 && (
               <div className="md:w-full">
                 <SheetHeading>{t('game.tools')}</SheetHeading>
@@ -553,11 +587,22 @@ export function GameView({ adventureId, characterId, characterName, characterCla
               </div>
             )}
 
-            {weapons && weapons.length > 0 && (
+            {/* US-221: a seção passa a renderizar também quando só há categoria pura (Guerreiro/
+                Paladino/Bárbaro/etc., sem arma nomeada nem arma de raça) — antes só existia
+                `weapons.length > 0`. US-223: categoria não vai mais no sufixo do heading — ia pro
+                texto que só muda de leitura, não de lista, e divergia da seção "Armadura" acima.
+                Categoria agora é `<li>` no topo da `<ul>`, mesmo molde da armadura; o rótulo cru
+                virou frase inteira (WEAPON_CATEGORY_LABEL) pra não ser lida como item nomeado. */}
+            {((weapons && weapons.length > 0) || (weaponCategories && weaponCategories.length > 0)) && (
               <div className="md:w-full">
                 <SheetHeading>{t('game.weapons')}</SheetHeading>
                 <ul className="scrollbar-thin max-h-40 space-y-0.5 overflow-y-auto pr-1">
-                  {weapons.map((label, i) => (
+                  {(weaponCategories ?? []).map((cat, i) => (
+                    <li key={`cat-${i}`} className="px-1.5 py-1 text-[13px] text-foreground">
+                      {WEAPON_CATEGORY_LABEL[cat] ? t(WEAPON_CATEGORY_LABEL[cat]!) : cat}
+                    </li>
+                  ))}
+                  {(weapons ?? []).map((label, i) => (
                     <li key={i} className="px-1.5 py-1 text-[13px] text-foreground">{label}</li>
                   ))}
                 </ul>

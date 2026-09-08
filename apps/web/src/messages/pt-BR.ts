@@ -259,6 +259,9 @@ export const ptBR = {
   'setup.tools.category.musical-instrument': 'Instrumentos musicais',
   'setup.tools.category.gaming-set': 'Jogos',
   'setup.tools.category.vehicle': 'Veículos',
+  // US-221: mesmo heading de `setup.origin.toolGrant`, mas pra ferramenta À ESCOLHA da CLASSE
+  // (Bardo/Monge) — etapa `class`, não `background` (a classe já foi escolhida ali).
+  'setup.class.toolChoice': 'Proficiências de {class}',
 
   // ---- wizard: conexão e memento (US-124) — título/subtítulo são FIXOS, não vêm do
   // heading/preâmbulo do dataset (frágil a tradução automática, ver US-124 Questão 1/2).
@@ -284,6 +287,9 @@ export const ptBR = {
   'setup.review.skills': 'Perícias',
   'setup.review.tools': 'Proficiências de itens',
   'setup.review.weapons': 'Proficiências de arma',
+  // US-221: seção nova — categoria(s) de armadura de classe, rótulo localizado por i18n
+  // (ARMOR_CATEGORY_LABEL), mesmo padrão do sufixo de setup.review.weapons.
+  'setup.review.armor': 'Proficiências de armadura',
   'setup.review.languages': 'Idiomas',
   'setup.review.kit': 'Kit inicial',
   'setup.review.background': 'Background',
@@ -324,9 +330,21 @@ export const ptBR = {
   'game.attr.charisma': 'CAR',
   'game.skills': 'Perícias',
   'game.proficient': 'Proficiente',
+  // US-221: seção nova — categoria(s) de armadura de classe (Leve/Média/Pesada/Escudos/Todas).
+  'game.armor': 'Armadura',
   'game.tools': 'Proficiências de itens',
   'game.weapons': 'Armas',
   'game.languages': 'Idiomas',
+  // US-221: rótulo de categoria de armadura/arma de classe — texto FIXO da UI (não vem do
+  // catálogo do sistema: não existe item de armadura/arma por trás da categoria, ver US-221
+  // §Contexto). Armadura vira item da seção "Armadura"; arma vira sufixo do heading "Armas".
+  'sheet.proficiency.armor.light': 'Leve',
+  'sheet.proficiency.armor.medium': 'Média',
+  'sheet.proficiency.armor.heavy': 'Pesada',
+  'sheet.proficiency.armor.shields': 'Escudos',
+  'sheet.proficiency.armor.all': 'Todas',
+  'sheet.proficiency.weapon.simple': 'Armas simples',
+  'sheet.proficiency.weapon.martial': 'Armas marciais',
   'game.inventory': 'Inventário ({n})',
   'game.inventoryEmpty': 'Nenhum item',
   'game.background.empty': 'Este personagem ainda não tem história.',

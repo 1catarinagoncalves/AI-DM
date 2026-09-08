@@ -2387,6 +2387,164 @@ describe('SetupWizard — US-215 proficiência de arma e ferramenta fixa de raç
   })
 })
 
+// --- US-223: proficiência de arma legível na revisão — categoria (WEAPON_CATEGORY_LABEL) vai
+// no VALOR (`<dd>`), junto das nomeadas, não mais no sufixo do `<dt>` (US-221 escondia a
+// categoria pura no rótulo e deixava `<dd>` = "—" pra quem só tinha categoria). ---
+const configWithClassWeapons = (budget: number) => ({
+  ...configWithBudget(budget),
+  classes: [
+    { key: 'wizard', label: 'Mago' },
+    { key: 'fighter', label: 'Guerreiro', weaponProficiencies: { categories: ['simple', 'martial'] as ('simple' | 'martial')[], weapons: [] } },
+    { key: 'bard', label: 'Bardo', weaponProficiencies: { categories: ['simple'] as ('simple' | 'martial')[], weapons: ['hand-crossbow', 'longsword', 'rapier', 'shortsword'] } },
+  ],
+  weapons: [
+    { key: 'hand-crossbow', label: 'Besta de mão' },
+    { key: 'longsword', label: 'Espada longa' },
+    { key: 'rapier', label: 'Rapieira' },
+    { key: 'shortsword', label: 'Espada curta' },
+  ],
+})
+
+describe('SetupWizard — US-223 proficiência de arma legível na revisão', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function reachReviewStep(config: SystemConfig, className: string) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.click(screen.getByRole('radio', { name: className }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+  }
+
+  it('Guerreiro (só categoria): `<dt>` fixo sem sufixo, `<dd>` = "Armas simples · Armas marciais", nunca "—"', async () => {
+    await reachReviewStep(configWithClassWeapons(2), 'Guerreiro')
+    expect(screen.getByText('Proficiências de arma')).toBeTruthy()
+    const value = screen.getByText('Armas simples · Armas marciais')
+    expect(value).toBeTruthy()
+    expect(value.textContent).not.toContain('—')
+    // rótulo não carrega mais o sufixo de categoria (dt mutante que US-223 elimina)
+    expect(screen.queryByText(/Proficiências de arma —/)).toBeNull()
+  })
+
+  it('Bardo (categoria + nomeadas): categoria vem antes, mesma lista unida por " · "', async () => {
+    await reachReviewStep(configWithClassWeapons(2), 'Bardo')
+    expect(screen.getByText('Proficiências de arma')).toBeTruthy()
+    expect(screen.getByText('Armas simples · Besta de mão · Espada longa · Rapieira · Espada curta')).toBeTruthy()
+  })
+})
+
+// US-221: proficiência de ferramenta À ESCOLHA da CLASSE (Bardo 3 de musical-instrument, Monge
+// 1 entre artisan/musical-instrument) — mesmo design de 1 <select> por slot que o grant.kind
+// 'tools' de origem já usa (US-132), pool filtrado pelas categorias DA CLASSE.
+const configWithClassToolChoice = (budget: number) => ({
+  ...configWithBudget(budget),
+  classes: [
+    { key: 'bard', label: 'Bardo', toolProficiencies: { fixed: [], choice: { count: 3, categories: ['musical-instrument'] } } },
+    { key: 'monk', label: 'Monge', toolProficiencies: { fixed: [], choice: { count: 1, categories: ['artisan', 'musical-instrument'] } } },
+    { key: 'fighter', label: 'Guerreiro', toolProficiencies: { fixed: [] } },
+  ],
+  tools: [
+    { key: 'lute', label: 'Alaúde', category: 'musical-instrument' },
+    { key: 'lyre', label: 'Lira', category: 'musical-instrument' },
+    { key: 'flute', label: 'Flauta', category: 'musical-instrument' },
+    { key: 'smiths_tools', label: 'Ferramentas de Ferreiro', category: 'artisan' },
+  ],
+})
+
+describe('SetupWizard — US-221 ferramenta à escolha da classe', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickClass(config: SystemConfig, className: string) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.click(screen.getByRole('radio', { name: className }))
+  }
+
+  it('Bardo: canAdvance bloqueia até escolher exatamente 3 de musical-instrument; libera ao completar', async () => {
+    await pickClass(configWithClassToolChoice(0), 'Bardo')
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true)
+
+    const first = screen.getByLabelText('Proficiências de Bardo (1/3)') as HTMLSelectElement
+    const second = screen.getByLabelText('Proficiências de Bardo (2/3)') as HTMLSelectElement
+    const third = screen.getByLabelText('Proficiências de Bardo (3/3)') as HTMLSelectElement
+    expect(within(first).getByRole('group', { name: 'Instrumentos musicais' })).toBeTruthy()
+
+    fireEvent.change(first, { target: { value: 'lute' } })
+    expect(nextBtn().disabled).toBe(true)
+    // a opção já escolhida no primeiro seletor some das opções do segundo — mesmo padrão do
+    // grant.kind 'tools' de origem (Folk Hero, US-132).
+    expect(within(second).queryByRole('option', { name: 'Alaúde' })).toBeNull()
+    fireEvent.change(second, { target: { value: 'lyre' } })
+    expect(nextBtn().disabled).toBe(true)
+    fireEvent.change(third, { target: { value: 'flute' } })
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it('Monge: 1 seletor só, pool une os dois optgroups (artisan e musical-instrument)', async () => {
+    await pickClass(configWithClassToolChoice(0), 'Monge')
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true)
+
+    const only = screen.getByLabelText('Proficiências de Monge') as HTMLSelectElement
+    expect(within(only).getByRole('group', { name: 'Ferramentas de artesão' })).toBeTruthy()
+    expect(within(only).getByRole('group', { name: 'Instrumentos musicais' })).toBeTruthy()
+
+    fireEvent.change(only, { target: { value: 'smiths_tools' } })
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it('Guerreiro (sem toolProficiencies.choice): nenhum seletor novo, avanço nunca bloqueado por isso', async () => {
+    await pickClass(configWithClassToolChoice(0), 'Guerreiro')
+    expect(screen.queryByLabelText(/Proficiências de Guerreiro/)).toBeNull()
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('Bardo: as 3 escolhas entram em classToolChoice no DTO de criação', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickClass(configWithClassToolChoice(0), 'Bardo')
+    fireEvent.change(screen.getByLabelText('Proficiências de Bardo (1/3)'), { target: { value: 'lute' } })
+    fireEvent.change(screen.getByLabelText('Proficiências de Bardo (2/3)'), { target: { value: 'lyre' } })
+    fireEvent.change(screen.getByLabelText('Proficiências de Bardo (3/3)'), { target: { value: 'flute' } })
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    fireEvent.click(nextBtn()) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.click(nextBtn()) // → atributos (budget 0, sem escolha pendente)
+    fireEvent.click(nextBtn()) // → perícias (sem catálogo → livre)
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ classToolChoice: ['lute', 'lyre', 'flute'] }))
+  })
+})
+
 // US-220: perícia proficiente concedida por raça — Alto-elfo/Meio-orc fixa
 // (RACE_SKILL_PROFICIENCIES), Meio-elfo à escolha (RACE_SKILL_PROFICIENCY_CHOICES).
 // `stealth`/`arcana` sobram no catálogo pra provar que só as concedidas somem da etapa

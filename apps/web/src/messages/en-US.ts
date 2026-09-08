@@ -234,6 +234,9 @@ export const enUS: Record<MessageKey, string> = {
   'setup.tools.category.musical-instrument': 'Musical instruments',
   'setup.tools.category.gaming-set': 'Gaming sets',
   'setup.tools.category.vehicle': 'Vehicles',
+  // US-221: same heading as `setup.origin.toolGrant`, but for the CLASS's tool CHOICE
+  // (Bard/Monk) — `class` step, not `background` (class is already chosen there).
+  'setup.class.toolChoice': 'Proficiencies from {class}',
 
   // ---- wizard: connection & memento (US-124) — title/subtitle are FIXED, not parsed from
   // the dataset's own heading/preamble (translation-fragile, see US-124 Questão 1/2).
@@ -258,6 +261,9 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.skills': 'Skills',
   'setup.review.tools': 'Tool Proficiencies',
   'setup.review.weapons': 'Weapon Proficiencies',
+  // US-221: new section — class armor proficiency categories, same suffix pattern as
+  // setup.review.weapons.
+  'setup.review.armor': 'Armor Proficiencies',
   'setup.review.languages': 'Languages',
   'setup.review.kit': 'Starting kit',
   'setup.review.background': 'Background',
@@ -293,9 +299,21 @@ export const enUS: Record<MessageKey, string> = {
   'game.attr.charisma': 'CHA',
   'game.skills': 'Skills',
   'game.proficient': 'Proficient',
+  // US-221: new section — class armor proficiency categories.
+  'game.armor': 'Armor',
   'game.tools': 'Tool Proficiencies',
   'game.weapons': 'Weapons',
   'game.languages': 'Languages',
+  // US-221: armor/weapon category label — fixed UI text (not from the system catalog: there's
+  // no armor/weapon item behind the category, see US-221 §Contexto). Armor is a list item in
+  // the "Armor" section; weapon is a suffix on the "Weapons" heading.
+  'sheet.proficiency.armor.light': 'Light',
+  'sheet.proficiency.armor.medium': 'Medium',
+  'sheet.proficiency.armor.heavy': 'Heavy',
+  'sheet.proficiency.armor.shields': 'Shields',
+  'sheet.proficiency.armor.all': 'All',
+  'sheet.proficiency.weapon.simple': 'Simple weapons',
+  'sheet.proficiency.weapon.martial': 'Martial weapons',
   'game.inventory': 'Inventory ({n})',
   'game.inventoryEmpty': 'No items',
   'game.background.empty': "This character doesn't have a story yet.",
