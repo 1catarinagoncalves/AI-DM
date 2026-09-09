@@ -52,6 +52,12 @@ model Character {
                                           // RACE_WEAPON_PROFICIENCIES (@ai-dm/shared) — string[]. Sem coluna
                                           // própria de proveniência (mesmo corte de `languages`): nenhum
                                           // consumidor downstream precisa saber que veio da raça.
+  equipmentChoices Json                 @default("[]") // US-226: number[] — um índice por slot de
+                                          // config.classes[class].startingEquipmentChoices.choices, na
+                                          // mesma ordem. Índice fora do intervalo rejeitado na criação
+                                          // (CharacterService.create); slot sem índice assume 0 (opção A).
+                                          // Resolvido em item físico só no início da aventura
+                                          // (getStartingInventory), mesmo momento de `raceToolChoice`.
   languages      Json                   @default("[]") // US-214: idioma(s) fixo(s) de RACE_LANGUAGES
                                           // (@ai-dm/shared) + escolha extra (Alto-elfo/Humano/Meio-elfo,
                                           // chave de config.languages). Sem coluna própria de raça (ao

@@ -542,12 +542,25 @@ function toKitItem(part) {
   return { name: counted[2].replace(/s$/, ''), qty: Number(counted[1]) }
 }
 
+// Cauda comum de uma alternativa já isolada: sobra de "or"/vírgula da alternativa seguinte
+// (ou anterior, no meio de uma lista de 3), nunca do próprio conteúdo.
+function trimAlternativeTail(text) {
+  return norm(text).replace(/,?\s*\bor\b\s*$/i, '').replace(/,\s*$/, '')
+}
+
 // "(*a*) X or (*b*) Y, or (*c*) Z" → texto da opção A, sem o marcador nem o "or"/vírgula que
 // sobra da alternativa seguinte. Linha sem marcador (item obrigatório, sem escolha) sai intacta.
 export function firstAlternative(line) {
   const segments = line.split(/\(\*[a-z]\*\)/i)
   const text = segments.length > 1 ? segments[1] : segments[0]
-  return norm(text).replace(/,?\s*\bor\b\s*$/i, '').replace(/,\s*$/, '')
+  return trimAlternativeTail(text)
+}
+
+// Texto de UMA alternativa (ou de uma linha sem escolha) → itens de inventário, split por
+// vírgula ("X, Y, and Z" → 3 itens). Extraído para ser reusado por `parseClassEquipmentChoices`
+// (US-226) sem duplicar a regra.
+function splitKitItems(text) {
+  return text.split(',').map((part) => norm(part).replace(/^and\s+/i, '')).filter(Boolean).map(toKitItem)
 }
 
 // srd-2014 (`document: 'srd-2014'`): um bullet (`* …`) por linha, ADITIVOS — todos entram no
@@ -558,8 +571,32 @@ export function parseSrdEquipmentBullets(desc) {
     .map((l) => l.trim())
     .filter((l) => l.startsWith('*'))
     .map((l) => firstAlternative(l.slice(1).trim()))
-    .flatMap((optionA) => optionA.split(',').map((part) => norm(part).replace(/^and\s+/i, '')).filter(Boolean))
-    .map(toKitItem)
+    .flatMap(splitKitItems)
+}
+
+// US-226: irmão de `parseSrdEquipmentBullets` — em vez de descartar toda alternativa que não
+// seja a opção A, devolve TODAS. Contagem de marcadores `(*x*)` na linha decide fixed-vs-slot,
+// não a presença: o bullet do ladino ("(*a*) Leather armor, two daggers, and thieves' tools")
+// tem UM marcador sem par, resíduo de formatação do dataset, não uma escolha — cai no mesmo
+// tratamento fixo de uma linha sem marcador nenhum (mesma regra que `parseSrdEquipmentBullets`
+// já aplica via `firstAlternative`). Qualificador "(if proficient)" sobrevive no nome da
+// alternativa a que pertence, sem parsing especial (ver US-226 §Escopo).
+export function parseClassEquipmentChoices(desc) {
+  const fixed = []
+  const choices = []
+  for (const raw of String(desc).split('\n')) {
+    const line = raw.trim()
+    if (!line.startsWith('*')) continue
+    const body = line.slice(1).trim()
+    const markerCount = (body.match(/\(\*[a-z]\*\)/gi) ?? []).length
+    if (markerCount < 2) {
+      fixed.push(...splitKitItems(firstAlternative(body)))
+      continue
+    }
+    const options = body.split(/\(\*[a-z]\*\)/i).slice(1).map((segment) => splitKitItems(trimAlternativeTail(segment)))
+    choices.push({ options })
+  }
+  return { fixed, choices }
 }
 
 // a5e-ag (`document: 'a5e-ag'`): bullets (`- **Nome (Cost N gp):** itens`) são PACOTES
@@ -635,17 +672,31 @@ function localizeKitItems(overlay, resolve, items) {
 
 export function buildStartingKits(overlay, features, resolve) {
   const startingKits = { default: localizeKitItems(overlay, resolve, DEFAULT_KIT) }
+  // US-226: `startingKits[canon]` é sempre a opção A (comportamento de sempre, ver
+  // `parseSrdEquipmentBullets`/`parseA5ePackageEquipment` acima) — `startingEquipmentChoices`
+  // é a estrutura IRMÃ com todas as alternativas, calculada à parte, sem mudar `startingKits`.
+  const startingEquipmentChoices = {}
   for (const f of features) {
     if (f.fields.feature_type !== 'STARTING_EQUIPMENT') continue
     const canon = CLASS_MAP[f.fields.parent]
     if (!canon) continue // subclasse/documento fora do mapa: o loop abaixo é quem cobra a base
     const items = f.fields.document === 'a5e-ag' ? parseA5ePackageEquipment(f.fields.desc) : parseSrdEquipmentBullets(f.fields.desc)
     startingKits[canon] = localizeKitItems(overlay, resolve, items)
+    // a5e-ag (marshal) usa pacotes inteiros, formato que `parseClassEquipmentChoices` não lê
+    // (marcadores (*a*)/(*b*) são só do srd-2014) — fora de escopo (US-226 §Fora do escopo),
+    // a classe fica sem `startingEquipmentChoices`, mesmo tratamento de config legado.
+    if (f.fields.document === 'srd-2014') {
+      const parsed = parseClassEquipmentChoices(f.fields.desc)
+      startingEquipmentChoices[canon] = {
+        fixed: localizeKitItems(overlay, resolve, parsed.fixed),
+        choices: parsed.choices.map((slot) => ({ options: slot.options.map((opt) => localizeKitItems(overlay, resolve, opt)) })),
+      }
+    }
   }
   for (const canon of Object.values(CLASS_MAP)) {
     if (!startingKits[canon]) throw new Error(`Classe sem kit inicial: ${canon} (nenhuma feature STARTING_EQUIPMENT em ClassFeature.json)`)
   }
-  return startingKits
+  return { startingKits, startingEquipmentChoices }
 }
 
 // --- backgroundEquipment (US-128): benefício type === 'equipment' → itens de inventário ---
@@ -1159,7 +1210,7 @@ function buildConfig(overlay, data, locale) {
   const subclasses = buildSubclasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
-  const startingKits = buildStartingKits(overlay, data.features, resolve)
+  const { startingKits, startingEquipmentChoices } = buildStartingKits(overlay, data.features, resolve)
   // US-132: buildTools roda ANTES de buildBackgrounds — o grant `kind: 'tools'` do benefício
   // `tool_proficiency` precisa de `config.tools` já resolvido (chaves) mais o `data.items` bruto
   // (distinção terrestre/aquático que `config.tools` colapsa, ver buildToolCategories).
@@ -1178,6 +1229,9 @@ function buildConfig(overlay, data, locale) {
     cls.weaponProficiencies = p.weaponProficiencies
     cls.toolProficiencies = p.toolProficiencies
     cls.skillProficiencies = p.skillProficiencies
+    // US-226: irmão de toolProficiencies/skillProficiencies acima, mas de startingKits — só
+    // presente pra classe do srd-2014 (ver buildStartingKits), ausente pra marshal (a5e-ag).
+    if (startingEquipmentChoices[cls.key]) cls.startingEquipmentChoices = startingEquipmentChoices[cls.key]
   }
   const { backgrounds, backgroundEquipment, backgroundFeatures } = buildBackgrounds(overlay, data.backgrounds, data.backgroundBenefits, resolve, skills, tools, data.items, orphans)
 

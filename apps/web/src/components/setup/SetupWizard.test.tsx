@@ -2602,6 +2602,143 @@ describe('SetupWizard — US-221 ferramenta à escolha da classe', () => {
   })
 })
 
+// US-226: equipamento inicial à escolha da CLASSE (arma/armadura/pacote de aventura) — mesmo
+// design de 1 <select> por slot que classToolGrant (US-221) já usa, rótulo = as alternativas
+// do slot unidas por "ou". Guerreiro (4 slots, sem item fixo) e Bardo (slot de 3 alternativas
+// + 2 itens fixos) cobrem os dois formatos medidos no dataset real (US-226 §Contexto).
+const configWithEquipmentChoices = (budget: number) => ({
+  ...configWithBudget(budget),
+  classes: [
+    {
+      key: 'fighter', label: 'Guerreiro',
+      startingEquipmentChoices: {
+        fixed: [],
+        choices: [
+          {
+            options: [
+              [{ name: 'Cota de Malha', qty: 1 }],
+              [{ name: 'Armadura de Couro', qty: 1 }, { name: 'Arco Longo', qty: 1 }, { name: 'Flecha', qty: 20 }],
+            ],
+          },
+          {
+            options: [
+              [{ name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 }],
+              [{ name: 'Arma Marcial', qty: 2 }],
+            ],
+          },
+        ],
+      },
+    },
+    {
+      key: 'bard', label: 'Bardo',
+      startingEquipmentChoices: {
+        fixed: [{ name: 'Armadura de Couro', qty: 1 }, { name: 'Adaga', qty: 1 }],
+        choices: [
+          { options: [[{ name: 'Rapieira', qty: 1 }], [{ name: 'Espada Longa', qty: 1 }], [{ name: 'Arma Simples', qty: 1 }]] },
+        ],
+      },
+    },
+    { key: 'monk', label: 'Monge' },
+  ],
+})
+
+describe('SetupWizard — US-226 equipamento inicial à escolha da classe', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickClass(config: SystemConfig, className: string) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.click(screen.getByRole('radio', { name: className }))
+  }
+
+  it('Guerreiro: 2 seletores (4 na verdade), canAdvance bloqueia até TODOS preenchidos', async () => {
+    await pickClass(configWithEquipmentChoices(0), 'Guerreiro')
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true)
+
+    const slot0 = screen.getByLabelText('Cota de Malha ou Armadura de Couro, Arco Longo, Flecha (20)') as HTMLSelectElement
+    const slot1 = screen.getByLabelText('Arma Marcial, Escudo ou Arma Marcial (2)') as HTMLSelectElement
+
+    fireEvent.change(slot0, { target: { value: '1' } })
+    expect(nextBtn().disabled).toBe(true) // slot1 ainda vazio
+    fireEvent.change(slot1, { target: { value: '0' } })
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it('Guerreiro: os índices escolhidos entram em equipmentChoices no DTO de criação', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickClass(configWithEquipmentChoices(0), 'Guerreiro')
+    fireEvent.change(screen.getByLabelText('Cota de Malha ou Armadura de Couro, Arco Longo, Flecha (20)'), { target: { value: '1' } })
+    fireEvent.change(screen.getByLabelText('Arma Marcial, Escudo ou Arma Marcial (2)'), { target: { value: '0' } })
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    fireEvent.click(nextBtn()) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.click(nextBtn()) // → atributos (budget 0, sem escolha pendente)
+    fireEvent.click(nextBtn()) // → perícias (sem catálogo → livre)
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ equipmentChoices: [1, 0] }))
+  })
+
+  it('Bardo: slot de TRÊS alternativas — a terceira opção também é um índice válido', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickClass(configWithEquipmentChoices(0), 'Bardo')
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true)
+    const slot = screen.getByLabelText('Rapieira ou Espada Longa ou Arma Simples') as HTMLSelectElement
+    expect(within(slot).getAllByRole('option')).toHaveLength(4) // placeholder + 3 alternativas
+    fireEvent.change(slot, { target: { value: '2' } })
+    expect(nextBtn().disabled).toBe(false)
+
+    fireEvent.click(nextBtn()) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.click(nextBtn()) // → atributos
+    fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ equipmentChoices: [2] }))
+  })
+
+  // US-226 §Critérios de aceite: classe sem `startingEquipmentChoices` no config (artefato
+  // pré-ingest desta story, ou a5e-ag/marshal) não pede seleção nenhuma, e nunca bloqueia.
+  it('Monge (sem startingEquipmentChoices): nenhum seletor novo, avanço nunca bloqueado por isso', async () => {
+    await pickClass(configWithEquipmentChoices(0), 'Monge')
+    expect(screen.queryByLabelText(/ou/)).toBeNull()
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  // US-226 §Critérios de aceite: trocar de classe no meio da criação limpa equipmentChoices —
+  // nunca deixa a etapa em "2 slots preenchidos, 3 exigidos" com índice da classe anterior.
+  it('trocar de classe reseta equipmentChoices (Guerreiro → Bardo não herda os 2 slots preenchidos)', async () => {
+    await pickClass(configWithEquipmentChoices(0), 'Guerreiro')
+    fireEvent.change(screen.getByLabelText('Cota de Malha ou Armadura de Couro, Arco Longo, Flecha (20)'), { target: { value: '1' } })
+    fireEvent.change(screen.getByLabelText('Arma Marcial, Escudo ou Arma Marcial (2)'), { target: { value: '0' } })
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Bardo' }))
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByLabelText('Rapieira ou Espada Longa ou Arma Simples') as HTMLSelectElement).value).toBe('')
+  })
+})
+
 // US-220: perícia proficiente concedida por raça — Alto-elfo/Meio-orc fixa
 // (RACE_SKILL_PROFICIENCIES), Meio-elfo à escolha (RACE_SKILL_PROFICIENCY_CHOICES).
 // `stealth`/`arcana` sobram no catálogo pra provar que só as concedidas somem da etapa

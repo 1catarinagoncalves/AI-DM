@@ -59,6 +59,12 @@ export const CreateCharacterSchema = z.object({
   // não par fixo+escolhido, mesmo raciocínio de `raceSkillChoices` acima (a contagem vem do
   // catálogo, não é sempre 1). Ignorado para classe sem `choice` mesmo se vier no DTO.
   classToolChoice: z.array(z.string().max(60)).max(6).optional(),
+  // US-226: um índice por slot de `config.classes[class].startingEquipmentChoices.choices`, na
+  // mesma ordem — chave da alternativa escolhida (arma/armadura/pacote) do equipamento inicial
+  // da CLASSE. Validado contra o catálogo no service (índice fora do intervalo → 400 citando
+  // classe/slot/valor); slot sem índice no array assume 0 (opção A), nunca bloqueia. Ausente ou
+  // classe sem `startingEquipmentChoices` → sem validação, mesmo raciocínio de `classToolChoice`.
+  equipmentChoices: z.array(z.number().int().min(0)).max(10).optional(),
   // US-205: chave de config.subclasses[class] — opcional no DTO. Classe com 1 subclasse só
   // nunca precisa mandar (o service preenche sozinho); classe com mais de uma (marshal) manda
   // a escolhida. Validada contra o catálogo da classe no service, mesmo padrão de origin.key.

@@ -19,9 +19,26 @@ import { DWARF_TOOL_PROFICIENCY_CHOICES } from './dwarf-tool-proficiency'
 // (apps/web) precisa do MESMO kit que a criação vai persistir depois — reusar a função em vez
 // de reimplementar o lookup é o que garante que o preview nunca diverge do que a API salva.
 
-export function getStartingInventory(config: SystemConfig, classKey: string): InventoryItem[] {
-  // SystemConfigSchema garante a chave `default`; ver types/system.ts.
-  return config.startingKits[classKey] ?? (config.startingKits.default as InventoryItem[])
+/**
+ * US-226: `equipmentChoices` é `Character.equipmentChoices` — um índice por slot de
+ * `config.classes[classKey].startingEquipmentChoices.choices`, na mesma ordem. Classe sem
+ * `startingEquipmentChoices` no config (artefato pré-ingest desta story, ou a5e-ag/marshal) OU
+ * `equipmentChoices` ausente → cai no `startingKits[classKey]` de sempre, byte a byte (nenhuma
+ * regressão do comportamento anterior a esta story). Índice ausente ou fora do intervalo de um
+ * slot → opção 0 (a mesma que `startingKits` já grava para esse slot), nunca lança — mesma
+ * disciplina "nunca quebra" de `getRaceToolEquipment`/`getBackgroundEquipment`.
+ */
+export function getStartingInventory(config: SystemConfig, classKey: string, equipmentChoices?: number[]): InventoryItem[] {
+  const classEntry = config.classes?.find((c) => c.key === classKey)
+  const equipment = classEntry?.startingEquipmentChoices
+  if (!equipment) {
+    // SystemConfigSchema garante a chave `default`; ver types/system.ts.
+    return config.startingKits[classKey] ?? (config.startingKits.default as InventoryItem[])
+  }
+  return [
+    ...equipment.fixed,
+    ...equipment.choices.map((slot, i) => slot.options[equipmentChoices?.[i] ?? 0] ?? slot.options[0]!).flat(),
+  ]
 }
 
 /**

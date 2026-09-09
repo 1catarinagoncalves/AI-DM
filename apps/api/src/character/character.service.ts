@@ -76,6 +76,11 @@ export class CharacterService {
     const classSkillProficiencies = config.classes?.find((c) => c.key === charClass)?.skillProficiencies
     const skillChooseFrom = classSkillProficiencies?.chooseFrom ?? (config.skills ?? []).map((s) => s.key)
     const skillChooseCount = classSkillProficiencies?.chooseCount ?? (config.proficiency?.choices ?? 0)
+    // US-226: slots de escolha do equipamento inicial da CLASSE (Guerreiro: cota de malha OU
+    // couro+arco longo, 4 slots; Bardo/Clérigo/Ladino com um slot de 3 alternativas) — mesmo
+    // dado de catálogo de classToolProficiencies/classSkillProficiencies acima.
+    const classEquipmentChoices = config.classes?.find((c) => c.key === charClass)?.startingEquipmentChoices
+    const equipmentChoices = this.validateEquipmentChoices(charClass, classEquipmentChoices?.choices, dto.equipmentChoices)
     // US-205: subclasse pressupõe a classe já validada acima. `dto.subclass` presente →
     // valida contra o catálogo da classe (BadRequestException se pertencer a outra classe,
     // mesmo padrão de validateCatalogKey). Ausente + catálogo com 1 entrada só → preenche
@@ -204,6 +209,7 @@ export class CharacterService {
         tools,
         languages,
         weapons: raceWeapons,
+        equipmentChoices,
         features,
         spells: spellsWithRaceCantrip,
         background: this.normalizeBackground(dto.background),
@@ -521,6 +527,31 @@ export class CharacterService {
       )
     }
     return chosen
+  }
+
+  /**
+   * US-226: valida `Character.equipmentChoices` contra os slots de
+   * `startingEquipmentChoices.choices` da CLASSE — um índice por slot, dentro de
+   * `[0, options.length)`. Classe sem `startingEquipmentChoices` (artefato pré-ingest desta
+   * story, ou a5e-ag/marshal) → [] sem checar nada, mesmo corte "nunca quebra" de
+   * `classToolProficiencies` ausente. Slot sem índice no DTO assume 0 (opção A) — só um índice
+   * PRESENTE e fora do intervalo rejeita, citando classe/slot/valor na mensagem (US-226 §Critérios).
+   */
+  private validateEquipmentChoices(
+    classKey: string,
+    choices: { options: unknown[][] }[] | undefined,
+    equipmentChoices?: number[],
+  ): number[] {
+    if (!choices) return []
+    return choices.map((slot, i) => {
+      const chosen = equipmentChoices?.[i] ?? 0
+      if (chosen >= slot.options.length) {
+        throw new BadRequestException(
+          `equipmentChoices inválido para a classe ${classKey}: slot ${i} recebeu ${chosen}, esperado índice entre 0 e ${slot.options.length - 1}.`,
+        )
+      }
+      return chosen
+    })
   }
 
   /**

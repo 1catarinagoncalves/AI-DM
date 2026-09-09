@@ -237,6 +237,9 @@ export const enUS: Record<MessageKey, string> = {
   // US-221: same heading as `setup.origin.toolGrant`, but for the CLASS's tool CHOICE
   // (Bard/Monk) — `class` step, not `background` (class is already chosen there).
   'setup.class.toolChoice': 'Proficiencies from {class}',
+  // US-226: conjunction joining a starting-equipment slot's alternatives in the <select>
+  // label (e.g. "Chain Mail or Leather Armor, Longbow, Arrow (20)").
+  'setup.class.equipmentChoice.or': 'or',
 
   // ---- wizard: connection & memento (US-124) — title/subtitle are FIXED, not parsed from
   // the dataset's own heading/preamble (translation-fragile, see US-124 Questão 1/2).

@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseClassEquipmentChoices, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -731,6 +731,91 @@ test('parseSrdEquipmentBullets: clérigo — linha de 3 opções para na primeir
   ])
 })
 
+// --- US-226 — parseClassEquipmentChoices: mesmos bullets, mas devolve TODAS as alternativas ---
+// Texto CRU do dataset real (Open5e v2.1.0, srd-2014, medido em 08/09/2026), sem correção.
+
+test('parseClassEquipmentChoices: guerreiro — bundle multi-item numa alternativa, 4 slots, sem item fixo', () => {
+  const desc =
+    'You start with the following equipment, in addition to the equipment granted by your background:\n' +
+    '* (*a*) chain mail or (*b*) leather armor, longbow, and 20 arrows\n' +
+    '* (*a*) a martial weapon and a shield or (*b*) two martial weapons\n' +
+    '* (*a*) a light crossbow and 20 bolts or (*b*) two handaxes\n' +
+    "* (*a*) a dungeoneer’s pack or (*b*) an explorer’s pack"
+  const result = parseClassEquipmentChoices(desc)
+  assert.deepEqual(result.fixed, [])
+  assert.equal(result.choices.length, 4)
+  // Slot 1: opção B tem TRÊS itens (armadura + arma + munição) — o bundle multi-item da AC.
+  assert.deepEqual(result.choices[0].options, [
+    [{ name: 'chain mail', qty: 1 }],
+    [{ name: 'leather armor', qty: 1 }, { name: 'longbow', qty: 1 }, { name: 'arrow', qty: 20 }],
+  ])
+  // Sem vírgula ("a martial weapon and a shield"), a alternativa fica UM item só — mesma regra
+  // de item fixo sem vírgula (ex. "A shield and a holy symbol" do clérigo), não split por "and".
+  assert.deepEqual(result.choices[1].options, [
+    [{ name: 'a martial weapon and a shield', qty: 1 }],
+    [{ name: 'two martial weapons', qty: 1 }],
+  ])
+})
+
+test('parseClassEquipmentChoices: bardo — slot de TRÊS alternativas, item fixo com "e" preservado', () => {
+  const desc =
+    'You start with the following equipment, in addition to the equipment granted by your background:\n' +
+    '* (*a*) a rapier, (*b*) a longsword, or (*c*) any simple weapon\n' +
+    '* (*a*) a diplomat’s pack or (*b*) an entertainer’s pack\n' +
+    '* (*a*) a lute or (*b*) any other musical instrument\n' +
+    '* Leather armor and a dagger'
+  const result = parseClassEquipmentChoices(desc)
+  assert.deepEqual(result.fixed, [{ name: 'Leather armor and a dagger', qty: 1 }])
+  assert.equal(result.choices.length, 3)
+  assert.deepEqual(result.choices[0].options, [
+    [{ name: 'a rapier', qty: 1 }],
+    [{ name: 'a longsword', qty: 1 }],
+    [{ name: 'any simple weapon', qty: 1 }],
+  ])
+})
+
+test('parseClassEquipmentChoices: clérigo — qualificador "(if proficient)" sobrevive no nome da alternativa', () => {
+  const desc =
+    'You start with the following equipment, in addition to the equipment granted by your background:\n' +
+    '* (*a*) a mace or (*b*) a warhammer (if proficient)\n' +
+    '* (*a*) scale mail, (*b*) leather armor, or (*c*) chain mail (if proficient)\n' +
+    '* (*a*) a light crossbow and 20 bolts or (*b*) any simple weapon\n' +
+    "* (*a*) a priest’s pack or (*b*) an explorer’s pack\n" +
+    '* A shield and a holy symbol'
+  const result = parseClassEquipmentChoices(desc)
+  assert.deepEqual(result.fixed, [{ name: 'A shield and a holy symbol', qty: 1 }])
+  assert.equal(result.choices.length, 4)
+  assert.deepEqual(result.choices[0].options, [
+    [{ name: 'a mace', qty: 1 }],
+    [{ name: 'a warhammer (if proficient)', qty: 1 }],
+  ])
+  // Slot de 3 alternativas: a terceira também carrega o qualificador.
+  assert.deepEqual(result.choices[1].options, [
+    [{ name: 'scale mail', qty: 1 }],
+    [{ name: 'leather armor', qty: 1 }],
+    [{ name: 'chain mail (if proficient)', qty: 1 }],
+  ])
+})
+
+test('parseClassEquipmentChoices: ladino — marcador único sem par é item FIXO, não escolha (contagem, não presença)', () => {
+  const desc =
+    'You start with the following equipment, in addition to the equipment granted by your background:\n' +
+    '* (*a*) a rapier or (*b*) a shortsword\n' +
+    '* (*a*) a shortbow and quiver of 20 arrows or (*b*) a shortsword\n' +
+    "* (*a*) a burglar’s pack, (*b*) a dungeoneer’s pack, or (*c*) an explorer’s pack\n" +
+    "* (*a*) Leather armor, two daggers, and thieves’ tools"
+  const result = parseClassEquipmentChoices(desc)
+  assert.equal(result.choices.length, 3)
+  // A quarta linha tem só "(*a*)", sem "(*b*)" par — vira fixed, igual a uma linha sem marcador.
+  assert.deepEqual(result.fixed, [
+    { name: 'Leather armor', qty: 1 },
+    { name: 'two daggers', qty: 1 },
+    { name: 'thieves’ tools', qty: 1 },
+  ])
+  // Slot de 3 alternativas do pacote de aventura (burglar's/dungeoneer's/explorer's).
+  assert.equal(result.choices[2].options.length, 3)
+})
+
 test('parseA5ePackageEquipment: Marshal — escolhe o primeiro pacote, descarta rótulo e custo', () => {
   const desc =
     'You begin the game with 200 gp. You can select your own gear or choose one of the following equipment packages.\n\n' +
@@ -811,6 +896,28 @@ test('artefato: nenhuma entrada de classSpells carrega o prefixo srd-2024_', () 
   for (const entries of Object.values(artifact.classSpells)) {
     for (const entry of entries) assert.ok(!entry.key.startsWith('srd-2024_'), `${entry.key}: ainda carrega o prefixo do 5.2`)
   }
+})
+
+// US-226 (critério de aceite): 35 slots de escolha nas 12 classes base — medido contra o
+// dataset real em 08/09/2026 (US-226 §Contexto). Marshal (a5e-ag) fica de fora: pacote inteiro,
+// não bullets com marcador. `startingKits` continua idêntico (nenhuma chave a mais/a menos,
+// mesmo conteúdo) — a asserção do teste de US-51 logo acima já cobre isso.
+test('artefato: startingEquipmentChoices tem 35 slots nas 12 classes base, marshal de fora', () => {
+  const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'srd-5e.config.en-US.json'), 'utf8'))
+  const withChoices = artifact.classes.filter((c) => c.startingEquipmentChoices)
+  assert.deepEqual(withChoices.map((c) => c.key).sort(), [
+    'barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk',
+    'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard',
+  ])
+  assert.ok(!artifact.classes.find((c) => c.key === 'marshal').startingEquipmentChoices, 'marshal (a5e-ag) não usa marcador (*a*)/(*b*)')
+  const totalSlots = withChoices.reduce((sum, c) => sum + c.startingEquipmentChoices.choices.length, 0)
+  assert.equal(totalSlots, 35)
+  // Bardo/Clérigo/Ladino têm o único slot de 3 alternativas cada — o resto é binário.
+  const slotSizes = withChoices.flatMap((c) => c.startingEquipmentChoices.choices.map((slot) => slot.options.length))
+  assert.equal(slotSizes.filter((n) => n === 3).length, 3)
+  assert.equal(slotSizes.filter((n) => n === 2).length, 32)
+  // Guerreiro é a única classe sem NENHUM item fixo (as outras 11 têm 1+).
+  assert.deepEqual(artifact.classes.find((c) => c.key === 'fighter').startingEquipmentChoices.fixed, [])
 })
 
 // --- US-100: carry-over do conteúdo aposentado -------------------------------------------------

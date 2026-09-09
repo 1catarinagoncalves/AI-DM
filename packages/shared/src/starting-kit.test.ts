@@ -46,6 +46,73 @@ describe('getStartingInventory', () => {
   })
 })
 
+// US-226: a classe escolhe entre alternativas de arma/armadura/pacote (Guerreiro: cota de
+// malha OU couro+arco longo) em vez de sempre a opção A que `startingKits` grava.
+describe('getStartingInventory — US-226 (equipamento à escolha)', () => {
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: {
+      fighter: [{ name: 'Cota de Malha', qty: 1 }, { name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 }],
+      default: [{ name: 'Adaga', qty: 1 }],
+    },
+    classes: [
+      {
+        key: 'fighter',
+        label: 'Guerreiro',
+        startingEquipmentChoices: {
+          fixed: [],
+          choices: [
+            {
+              options: [
+                [{ name: 'Cota de Malha', qty: 1 }],
+                [{ name: 'Armadura de Couro', qty: 1 }, { name: 'Arco Longo', qty: 1 }, { name: 'Flecha', qty: 20 }],
+              ],
+            },
+            {
+              options: [
+                [{ name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 }],
+                [{ name: 'Arma Marcial', qty: 2 }],
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  }
+
+  it('sem equipmentChoices, resolve fixed + opção 0 (A) de cada slot', () => {
+    expect(getStartingInventory(config, 'fighter')).toEqual([
+      { name: 'Cota de Malha', qty: 1 },
+      { name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 },
+    ])
+  })
+
+  it('com equipmentChoices, resolve a alternativa escolhida em cada slot', () => {
+    expect(getStartingInventory(config, 'fighter', [1, 0])).toEqual([
+      { name: 'Armadura de Couro', qty: 1 }, { name: 'Arco Longo', qty: 1 }, { name: 'Flecha', qty: 20 },
+      { name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 },
+    ])
+  })
+
+  it('índice fora do intervalo cai na opção 0 daquele slot, nunca lança', () => {
+    expect(getStartingInventory(config, 'fighter', [5, 5])).toEqual([
+      { name: 'Cota de Malha', qty: 1 },
+      { name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 },
+    ])
+  })
+
+  it('índice ausente num slot cai na opção 0 só daquele slot (os outros mantêm a escolha)', () => {
+    expect(getStartingInventory(config, 'fighter', [1])).toEqual([
+      { name: 'Armadura de Couro', qty: 1 }, { name: 'Arco Longo', qty: 1 }, { name: 'Flecha', qty: 20 },
+      { name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 },
+    ])
+  })
+
+  it('classe sem startingEquipmentChoices no config cai no startingKits de sempre (fallback pré-US-226)', () => {
+    expect(getStartingInventory(dnd5eConfig, 'wizard', [0])).toEqual([{ name: 'Grimório', qty: 1 }])
+  })
+})
+
 // US-128: paralelo a getStartingInventory, mas por ORIGEM e sem fallback `default` —
 // origem sem catálogo (ou personagem sem origem escolhida) devolve lista vazia, nunca lança.
 describe('getBackgroundEquipment (US-128)', () => {

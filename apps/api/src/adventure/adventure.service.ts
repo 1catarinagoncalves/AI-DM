@@ -466,7 +466,10 @@ export class AdventureService {
 
     // Inventário inicial calculado uma vez: alimenta o CharacterState e o system
     // prompt da geração de abertura (o DM precisa saber o que a personagem carrega).
-    const startingInventory = getStartingInventory(config, character.class)
+    // US-226: `equipmentChoices` é a escolha gravada na criação (índice por slot de
+    // `startingEquipmentChoices.choices`) — mesmo momento de materialização de sempre, agora
+    // resolvendo a alternativa ESCOLHIDA em vez de sempre a opção A.
+    const startingInventory = getStartingInventory(config, character.class, (character.equipmentChoices ?? []) as number[])
 
     // US-128: equipamento da origem escolhida + memento, somados ao kit da classe — mesmo
     // momento de materialização, mesma lista que vai para `CharacterState.inventory`. Nome do

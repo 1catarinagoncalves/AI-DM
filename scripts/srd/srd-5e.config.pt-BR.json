@@ -3511,6 +3511,48 @@
           "survival"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Machado Grande",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Marcial Corpo a Corpo",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Duas Machadinhas",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Mochila de Explorador e Quatro Azagaias",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3563,6 +3605,70 @@
           "survival"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Rapieira",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Espada Longa",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Diplomata",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Artista",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Alaúde",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Outro Instrumento Musical",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Armadura de Couro e Uma Adaga",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "choice": {
           "categories": [
@@ -3612,6 +3718,86 @@
           "religion"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Maça",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Martelo de Guerra (Se Proficiente)",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Cota de Escamas",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Armadura de Couro",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Cota de Malha (Se Proficiente)",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Besta Leve e 20 Virotes",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Sacerdote",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Explorador",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Escudo e Um Símbolo Sagrado",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3651,6 +3837,56 @@
           "perception",
           "religion",
           "survival"
+        ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Escudo de Madeira",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Cimitarra",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples Corpo a Corpo",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Armadura de Couro",
+            "qty": 1
+          },
+          {
+            "name": "Mochila de Explorador",
+            "qty": 1
+          },
+          {
+            "name": "Foco Druídico",
+            "qty": 1
+          }
         ]
       },
       "toolProficiencies": {
@@ -3704,6 +3940,83 @@
           "perception",
           "survival"
         ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Cota de Malha",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Armadura de Couro",
+                  "qty": 1
+                },
+                {
+                  "name": "Arco Longo",
+                  "qty": 1
+                },
+                {
+                  "name": "Flecha",
+                  "qty": 20
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Arma Marcial e Um Escudo",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Duas Armas Marciais",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Besta Leve e 20 Virotes",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Duas Machadinhas",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Masmorra",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Explorador",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": []
       },
       "toolProficiencies": {
         "fixed": []
@@ -3785,6 +4098,48 @@
           "stealth"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Espada Curta",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Masmorra",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Explorador",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Dardo",
+            "qty": 10
+          }
+        ]
+      },
       "toolProficiencies": {
         "choice": {
           "categories": [
@@ -3833,6 +4188,64 @@
           "religion"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Arma Marcial e Um Escudo",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Duas Armas Marciais",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Cinco Azagaias",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples Corpo a Corpo",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Sacerdote",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Explorador",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Cota de Malha e Um Símbolo Sagrado",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3874,6 +4287,64 @@
           "perception",
           "stealth",
           "survival"
+        ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Cota de Escamas",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Armadura de Couro",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Duas Espadas Curtas",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Duas Armas Simples Corpo a Corpo",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Masmorra",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Explorador",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Arco Longo e Uma Aljava com 20 Flechas",
+            "qty": 1
+          }
         ]
       },
       "toolProficiencies": {
@@ -3919,6 +4390,78 @@
           "stealth"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Rapieira",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Espada Curta",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Arco Curto e Uma Aljava com 20 Flechas",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Espada Curta",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Ladrão",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Masmorra",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Explorador",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Armadura de Couro",
+            "qty": 1
+          },
+          {
+            "name": "Duas Adagas",
+            "qty": 1
+          },
+          {
+            "name": "Ferramentas de Ladrão",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": [
           "thieves_tools"
@@ -3959,6 +4502,64 @@
           "intimidation",
           "persuasion",
           "religion"
+        ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Besta Leve e 20 Virotes",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Bolsa de Componentes",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Foco Arcano",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Masmorra",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Explorador",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Duas Adagas",
+            "qty": 1
+          }
         ]
       },
       "toolProficiencies": {
@@ -4003,6 +4604,72 @@
           "religion"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Besta Leve e 20 Virotes",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Qualquer Arma Simples",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Bolsa de Componentes",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Foco Arcano",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Erudito",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Masmorra",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Armadura de Couro",
+            "qty": 1
+          },
+          {
+            "name": "Qualquer Arma Simples",
+            "qty": 1
+          },
+          {
+            "name": "Duas Adagas",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -4036,6 +4703,64 @@
           "investigation",
           "medicine",
           "religion"
+        ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Bordão",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Adaga",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Bolsa de Componentes",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Foco Arcano",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Mochila de Erudito",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Mochila de Explorador",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Grimório",
+            "qty": 1
+          }
         ]
       },
       "toolProficiencies": {

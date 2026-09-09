@@ -296,7 +296,21 @@
     "longsword": "espada longa",
     "hauberk": "cota de malha longa",
     "light shield": "escudo leve",
-    "explorer's pack": "uma mochila de explorador"
+    "explorer's pack": "uma mochila de explorador",
+    "a dagger": "uma adaga",
+    "a longsword": "uma espada longa",
+    "a warhammer (if proficient)": "um martelo de guerra (se proficiente)",
+    "an arcane focus": "um foco arcano",
+    "an entertainer’s pack": "uma mochila de artista",
+    "any martial melee weapon": "qualquer arma marcial corpo a corpo",
+    "any other musical instrument": "qualquer outro instrumento musical",
+    "any simple melee weapon": "qualquer arma simples corpo a corpo",
+    "arrow": "flecha",
+    "chain mail (if proficient)": "cota de malha (se proficiente)",
+    "leather armor": "armadura de couro",
+    "longbow": "arco longo",
+    "two martial weapons": "duas armas marciais",
+    "two simple melee weapons": "duas armas simples corpo a corpo"
   },
   "backgrounds": {
     "a5e-ag_acolyte": { "name": "Acólito" },

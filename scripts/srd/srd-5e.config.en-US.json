@@ -3511,6 +3511,48 @@
           "survival"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Greataxe",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Martial Melee Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Two Handaxes",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Explorer’s Pack and Four Javelins",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3563,6 +3605,70 @@
           "survival"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Rapier",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Longsword",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Diplomat’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Entertainer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Lute",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Other Musical Instrument",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Leather Armor and a Dagger",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "choice": {
           "categories": [
@@ -3612,6 +3718,86 @@
           "religion"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Mace",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Warhammer (If Proficient)",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Scale Mail",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Leather Armor",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Chain Mail (If Proficient)",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Light Crossbow and 20 Bolts",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Priest’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Explorer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Shield and a Holy Symbol",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3651,6 +3837,56 @@
           "perception",
           "religion",
           "survival"
+        ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Wooden Shield",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Scimitar",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Melee Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Leather Armor",
+            "qty": 1
+          },
+          {
+            "name": "Explorer’s Pack",
+            "qty": 1
+          },
+          {
+            "name": "Druidic Focus",
+            "qty": 1
+          }
         ]
       },
       "toolProficiencies": {
@@ -3704,6 +3940,83 @@
           "perception",
           "survival"
         ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Chain Mail",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Leather Armor",
+                  "qty": 1
+                },
+                {
+                  "name": "Longbow",
+                  "qty": 1
+                },
+                {
+                  "name": "Arrow",
+                  "qty": 20
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Martial Weapon and a Shield",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Two Martial Weapons",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Light Crossbow and 20 Bolts",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Two Handaxes",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Dungeoneer’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Explorer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": []
       },
       "toolProficiencies": {
         "fixed": []
@@ -3785,6 +4098,48 @@
           "stealth"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Shortsword",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Dungeoneer’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Explorer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Dart",
+            "qty": 10
+          }
+        ]
+      },
       "toolProficiencies": {
         "choice": {
           "categories": [
@@ -3833,6 +4188,64 @@
           "religion"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Martial Weapon and a Shield",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Two Martial Weapons",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Five Javelins",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Melee Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Priest’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Explorer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Chain Mail and a Holy Symbol",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -3874,6 +4287,64 @@
           "perception",
           "stealth",
           "survival"
+        ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Scale Mail",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Leather Armor",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Two Shortswords",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Two Simple Melee Weapons",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Dungeoneer’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Explorer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Longbow and a Quiver of 20 Arrows",
+            "qty": 1
+          }
         ]
       },
       "toolProficiencies": {
@@ -3919,6 +4390,78 @@
           "stealth"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Rapier",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Shortsword",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Shortbow and Quiver of 20 Arrows",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Shortsword",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Burglar’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Dungeoneer’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Explorer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Leather Armor",
+            "qty": 1
+          },
+          {
+            "name": "Two Daggers",
+            "qty": 1
+          },
+          {
+            "name": "Thieves’ Tools",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": [
           "thieves_tools"
@@ -3959,6 +4502,64 @@
           "intimidation",
           "persuasion",
           "religion"
+        ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Light Crossbow and 20 Bolts",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Component Pouch",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Arcane Focus",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Dungeoneer’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Explorer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Two Daggers",
+            "qty": 1
+          }
         ]
       },
       "toolProficiencies": {
@@ -4003,6 +4604,72 @@
           "religion"
         ]
       },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Light Crossbow and 20 Bolts",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Any Simple Weapon",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Component Pouch",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Arcane Focus",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Scholar’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Dungeoneer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Leather Armor",
+            "qty": 1
+          },
+          {
+            "name": "Any Simple Weapon",
+            "qty": 1
+          },
+          {
+            "name": "Two Daggers",
+            "qty": 1
+          }
+        ]
+      },
       "toolProficiencies": {
         "fixed": []
       },
@@ -4036,6 +4703,64 @@
           "investigation",
           "medicine",
           "religion"
+        ]
+      },
+      "startingEquipmentChoices": {
+        "choices": [
+          {
+            "options": [
+              [
+                {
+                  "name": "Quarterstaff",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Dagger",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Component Pouch",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Arcane Focus",
+                  "qty": 1
+                }
+              ]
+            ]
+          },
+          {
+            "options": [
+              [
+                {
+                  "name": "Scholar’s Pack",
+                  "qty": 1
+                }
+              ],
+              [
+                {
+                  "name": "Explorer’s Pack",
+                  "qty": 1
+                }
+              ]
+            ]
+          }
+        ],
+        "fixed": [
+          {
+            "name": "Spellbook",
+            "qty": 1
+          }
         ]
       },
       "toolProficiencies": {

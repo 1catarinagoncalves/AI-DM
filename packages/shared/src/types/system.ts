@@ -133,6 +133,19 @@ export const ClassCatalogEntrySchema = SystemCatalogEntrySchema.extend({
     chooseFrom: z.array(z.string()),
     chooseCount: z.number().int().positive(),
   }).optional(),
+  // US-226: equipamento inicial da MESMA feature STARTING_EQUIPMENT que `startingKits`
+  // (SystemConfigSchema, abaixo) já lê — lá cada bullet "(*a*) X or (*b*) Y" já vira só a
+  // opção A; aqui `choices[]` guarda TODAS as alternativas de cada bullet com marcador (2 ou
+  // 3), na ordem do dataset, para a etapa `class` do wizard oferecer a escolha real. `fixed` são
+  // os bullets sem escolha (sem marcador, ou com só 1 — resíduo de formatação, não par). Ausente
+  // = artefato pré-ingest desta story, ou classe do a5e-ag (marshal, pacote inteiro em vez de
+  // bullets com marcador) — `getStartingInventory` cai no `startingKits[classKey]` de sempre.
+  startingEquipmentChoices: z.object({
+    fixed: z.array(StartingKitItemSchema),
+    choices: z.array(z.object({
+      options: z.array(z.array(StartingKitItemSchema)).min(2),
+    })),
+  }).optional(),
 })
 
 // Ferramenta/veículo do sistema (US-134), derivado de `Item.json` (categorias `tools`,

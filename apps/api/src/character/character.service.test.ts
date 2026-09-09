@@ -1740,3 +1740,72 @@ describe('CharacterService.create (US-221 — proficiência de ferramenta por cl
     expect(char.tools).toEqual([])
   })
 })
+
+// US-226: escolha de equipamento inicial da CLASSE (arma/armadura/pacote) — `equipmentChoices`
+// é um índice por slot de `startingEquipmentChoices.choices`, validado contra o catálogo.
+describe('CharacterService.create (US-226 — equipamento inicial à escolha por classe)', () => {
+  const configWithEquipmentChoices: SystemConfig = {
+    ...config,
+    races: [{ key: 'human', label: 'Human' }],
+    classes: [
+      {
+        key: 'fighter', label: 'Fighter',
+        startingEquipmentChoices: {
+          fixed: [],
+          choices: [
+            { options: [[{ name: 'Chain Mail', qty: 1 }], [{ name: 'Leather Armor', qty: 1 }, { name: 'Longbow', qty: 1 }, { name: 'Arrow', qty: 20 }]] },
+            { options: [[{ name: 'Martial Weapon', qty: 1 }, { name: 'Shield', qty: 1 }], [{ name: 'Martial Weapon', qty: 2 }]] },
+          ],
+        },
+      },
+      { key: 'monk', label: 'Monk' },
+    ],
+  }
+
+  it('índice válido em cada slot grava Character.equipmentChoices', async () => {
+    const service = new CharacterService(fakePrisma(configWithEquipmentChoices))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'fighter',
+      attributes: { cool: 5, hard: 5 }, equipmentChoices: [1, 0],
+    })
+    expect(char.equipmentChoices).toEqual([1, 0])
+  })
+
+  it('índice fora do intervalo de um slot rejeita citando classe/slot/valor', async () => {
+    const service = new CharacterService(fakePrisma(configWithEquipmentChoices))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'fighter',
+      attributes: { cool: 5, hard: 5 }, equipmentChoices: [2, 0],
+    })).rejects.toThrow('equipmentChoices inválido para a classe fighter: slot 0 recebeu 2')
+  })
+
+  // US-226 §Critérios de aceite: slot sem índice no DTO assume 0 (opção A), nunca bloqueia.
+  it('slot ausente no array assume 0 (opção A), nunca bloqueia a criação', async () => {
+    const service = new CharacterService(fakePrisma(configWithEquipmentChoices))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'fighter',
+      attributes: { cool: 5, hard: 5 }, equipmentChoices: [1],
+    })
+    expect(char.equipmentChoices).toEqual([1, 0])
+  })
+
+  it('sem equipmentChoices no DTO, todos os slots assumem 0', async () => {
+    const service = new CharacterService(fakePrisma(configWithEquipmentChoices))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'fighter',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.equipmentChoices).toEqual([0, 0])
+  })
+
+  // Classe sem `startingEquipmentChoices` (artefato pré-ingest, ou a5e-ag/marshal) → [] sem
+  // checar nada, mesmo tratamento "nunca quebra" de classToolChoice fora de contexto.
+  it('classe sem startingEquipmentChoices no config: equipmentChoices enviado por engano é ignorado, sem erro', async () => {
+    const service = new CharacterService(fakePrisma(configWithEquipmentChoices))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'monk',
+      attributes: { cool: 5, hard: 5 }, equipmentChoices: [9],
+    })
+    expect(char.equipmentChoices).toEqual([])
+  })
+})

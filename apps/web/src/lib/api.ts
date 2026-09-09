@@ -85,6 +85,10 @@ export const api = {
     // musical-instrument, Monge 1 entre artisan/musical-instrument) — só manda quando a classe
     // escolhida tem `choice` (11 das 13 não têm, o wizard nem mostra o <select>).
     classToolChoice?: string[]
+    // US-226: um índice por slot de `config.classes[class].startingEquipmentChoices.choices`
+    // (arma/armadura/pacote de aventura da CLASSE) — só manda quando a classe escolhida tem
+    // `startingEquipmentChoices` (artefato pré-ingest desta story, ou a5e-ag/marshal, não têm).
+    equipmentChoices?: number[]
     attributes: Record<string, number>
     skills?: string[]
     background?: { story?: string; ideals?: string[]; bonds?: string[]; flaws?: string[]; deity?: { name: string; portfolio?: string } }

@@ -262,6 +262,9 @@ export const ptBR = {
   // US-221: mesmo heading de `setup.origin.toolGrant`, mas pra ferramenta À ESCOLHA da CLASSE
   // (Bardo/Monge) — etapa `class`, não `background` (a classe já foi escolhida ali).
   'setup.class.toolChoice': 'Proficiências de {class}',
+  // US-226: conjunção que une as alternativas de um slot de equipamento inicial no rótulo do
+  // <select> (ex. "Cota de Malha ou Armadura de Couro, Arco Longo, Flecha (20)").
+  'setup.class.equipmentChoice.or': 'ou',
 
   // ---- wizard: conexão e memento (US-124) — título/subtítulo são FIXOS, não vêm do
   // heading/preâmbulo do dataset (frágil a tradução automática, ver US-124 Questão 1/2).

@@ -311,6 +311,14 @@ export function SetupWizard() {
   // classe com `choice` (mesmo padrão condicional de raceSkillChoice acima). Resetada ao trocar
   // de classe (selectClassCard) e de sistema, mesmo motivo dos campos irmãos.
   const [classToolChoice, setClassToolChoice] = useState<string[]>([])
+  // US-226: um índice (como STRING do <select>, convertido a número só no payload) por slot de
+  // `startingEquipmentChoices.choices` da CLASSE (Guerreiro: cota de malha OU couro+arco longo,
+  // 4 slots; Bardo/Clérigo/Ladino com um slot de 3) — só existe estado real pra classe com o
+  // campo (mesmo padrão condicional de classToolChoice acima). String, não number: '' marca
+  // "ainda não escolhido" — 0 (opção A) é um índice válido e não pode se confundir com vazio,
+  // ao contrário de classToolChoice (chave nunca é ''). Resetado ao trocar de classe, mesmo
+  // motivo do reset de classToolChoice.
+  const [equipmentChoices, setEquipmentChoices] = useState<string[]>([])
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
@@ -398,6 +406,11 @@ export function SetupWizard() {
   const classProficiencyEntry = classCatalog.find(c => c.key === charData.class)
   const classToolGrant = classProficiencyEntry?.toolProficiencies?.choice
   const classToolFixed = classProficiencyEntry?.toolProficiencies?.fixed ?? []
+  // US-226: equipamento inicial à escolha da classe (arma/armadura/pacote de aventura) — mesmo
+  // padrão de acesso de classToolGrant acima. Ausente (artefato pré-ingest desta story, ou
+  // a5e-ag/marshal) → o painel de detalhe segue mostrando `previewKit` como texto corrido, sem
+  // seleção pedida (ver bloco JSX da etapa `class`).
+  const classEquipmentChoices = classProficiencyEntry?.startingEquipmentChoices
   // US-210: catálogo de alinhamento (config.alignments, SRD via ingest) — mesmo padrão de
   // raceCatalog/classCatalog acima, consumido só na etapa `identity`.
   const alignmentCatalog = system?.config?.alignments ?? []
@@ -516,7 +529,11 @@ export function SetupWizard() {
   // @ai-dm/shared que a criação usa para persistir (`getStartingInventory`/`getClassFeatures`/
   // `getClassSpells`) e que a leitura usa para resolver (`resolveSheetEntries`), para o preview
   // nunca divergir do que a API salva e do que a GameView mostra depois (US-45/US-41).
-  const previewKit = system?.config ? getStartingInventory(system.config, charData.class) : []
+  // US-226: `equipmentChoices` entra como 3º argumento — mesma função que a criação vai
+  // persistir (AdventureService.create), pro preview nunca divergir do que a API grava. `''`
+  // (slot ainda não escolhido) vira `Number('')` = 0, a mesma opção A que o backend assume pra
+  // índice ausente — o preview durante a escolha nunca quebra, só reflete o estado parcial.
+  const previewKit = system?.config ? getStartingInventory(system.config, charData.class, equipmentChoices.map(Number)) : []
   // US-128: equipamento da origem + memento somados ao kit da classe, mesma regra de
   // AdventureService.createForCharacter — o preview não pode divergir do que a API grava.
   // Memento aqui é o RÓTULO FIXO (MEMENTO_ITEM_LABEL), não o mementoText (texto completo,
@@ -685,6 +702,10 @@ export function SetupWizard() {
     // US-221: ferramenta à escolha é da CLASSE (Bardo/Monge) — trocar de classe invalida a
     // escolha, mesmo espírito do reset de subclass acima.
     setClassToolChoice([])
+    // US-226: slots de equipamento são da CLASSE (Guerreiro 4, Bardo 3…) — mesmo motivo do
+    // reset de classToolChoice acima, senão um índice válido pra classe anterior sobrevive
+    // apontando pra uma alternativa que pode nem existir na classe nova.
+    setEquipmentChoices([])
     // US-224: pool e contagem da etapa `skills` são da CLASSE (Ladino 4 de 11, Bárbaro 2 de 6)
     // — trocar de classe no meio da criação não pode deixar a etapa em "2 marcadas, 4 exigidas".
     setSkills([])
@@ -728,6 +749,10 @@ export function SetupWizard() {
           // US-221: classe com `toolProficiencies.choice` (Bardo/Monge) exige exatamente
           // `choice.count` escolhas — mesmo espírito da checagem de subclass acima.
           && (!classToolGrant || classToolChoice.length === classToolGrant.count)
+          // US-226: classe com `startingEquipmentChoices` exige um valor não-vazio em CADA
+          // slot — checa por índice (não por `.length`) porque um slot preenchido fora de
+          // ordem deixaria buracos no array que `.length` sozinho não pegaria.
+          && (!classEquipmentChoices || classEquipmentChoices.choices.every((_, i) => equipmentChoices[i] !== undefined && equipmentChoices[i] !== ''))
       // US-211: dragonborn exige a ancestralidade dracônica escolhida — mesmo espírito da
       // checagem de subclass em canAdvance('class').
       case 'race':
@@ -835,10 +860,18 @@ export function SetupWizard() {
       // US-221: só viaja quando a classe tem `toolProficiencies.choice` (Bardo/Monge) — mesmo
       // espírito condicional de raceToolChoicePayload acima.
       const classToolChoicePayload = classToolGrant ? classToolChoice : undefined
+      // US-226: só viaja quando a classe tem `startingEquipmentChoices` — mesmo espírito
+      // condicional de classToolChoicePayload acima. `canAdvance('class')` já garante todo
+      // slot preenchido antes de chegar aqui, mas `?? '0'` é defensivo (mesma opção A que o
+      // service assume pra índice ausente, nunca quebra o envio).
+      const equipmentChoicesPayload = classEquipmentChoices
+        ? classEquipmentChoices.choices.map((_, i) => Number(equipmentChoices[i] ?? '0'))
+        : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({
         systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload,
         classToolChoice: classToolChoicePayload,
+        equipmentChoices: equipmentChoicesPayload,
         raceToolChoice: raceToolChoicePayload,
         raceLanguageChoice: raceLanguageChoicePayload,
         raceCantripChoice: raceCantripChoicePayload,
@@ -925,6 +958,17 @@ export function SetupWizard() {
       const next = [...p]
       next[index] = key
       return next.filter(Boolean)
+    })
+  }
+
+  // US-226: ao contrário de setClassToolChoiceAt, NÃO filtra falsy — '' é um estado válido
+  // ("ainda não escolhido") que precisa sobreviver no array pra canAdvance('class') distinguir
+  // slot vazio de slot com a opção 0 (que também é falsy como número, mas aqui é string).
+  function setEquipmentChoiceAt(index: number, value: string) {
+    setEquipmentChoices(p => {
+      const next = [...p]
+      next[index] = value
+      return next
     })
   }
 
@@ -1074,7 +1118,36 @@ export function SetupWizard() {
                       novo (getClassFeatures/getStartingInventory já existem no arquivo). */}
                   {charData.class && (
                     <div className="space-y-4 border-t border-border pt-4">
-                      {previewKit.length > 0 && (
+                      {/* US-226: classe com `startingEquipmentChoices` (12 das 13 — marshal
+                          fica no texto corrido de sempre, ver ramo `else`) troca o parágrafo
+                          fixo por itens fixos + um <select> por slot, mesma anatomia visual do
+                          <select> de classToolGrant logo abaixo. Rótulo do slot = as
+                          alternativas unidas por "ou" (US-226 §Notas de implementação). */}
+                      {classEquipmentChoices ? (
+                        <div>
+                          <SheetHeading tone="primary">{t('setup.class.detail.kit')}</SheetHeading>
+                          {classEquipmentChoices.fixed.length > 0 && (
+                            <p className="text-sm text-foreground">
+                              {classEquipmentChoices.fixed.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
+                            </p>
+                          )}
+                          {classEquipmentChoices.choices.map((slot, slotIndex) => {
+                            const optionLabel = (opt: typeof slot.options[number]) =>
+                              opt.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(', ')
+                            const slotLabel = slot.options.map(optionLabel).join(` ${t('setup.class.equipmentChoice.or')} `)
+                            return (
+                              <select key={slotIndex} aria-label={slotLabel} value={equipmentChoices[slotIndex] ?? ''}
+                                onChange={e => setEquipmentChoiceAt(slotIndex, e.target.value)}
+                                className={cn(selectClass, 'mt-3')} style={{ backgroundImage: SELECT_ARROW }}>
+                                <option value="">{t('setup.raceClass.select')}</option>
+                                {slot.options.map((opt, optIndex) => (
+                                  <option key={optIndex} value={optIndex}>{optionLabel(opt)}</option>
+                                ))}
+                              </select>
+                            )
+                          })}
+                        </div>
+                      ) : previewKit.length > 0 && (
                         <div>
                           <SheetHeading tone="primary">{t('setup.class.detail.kit')}</SheetHeading>
                           <p className="text-sm text-foreground">
