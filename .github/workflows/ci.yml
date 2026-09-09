@@ -51,7 +51,7 @@ jobs:
       # Sem `version:` de propósito — o action lê `packageManager` do package.json
       # (pnpm@11.9.0). Declarar os dois faz o action falhar com "Multiple versions
       # of pnpm specified", e duplicar o pin convida à divergência.
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v7
         with:
