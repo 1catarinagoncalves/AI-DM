@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseClassEquipmentChoices, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseClassEquipmentChoices, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildWeaponMeta, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -1545,7 +1545,7 @@ test('buildAlignments: texto fora do padrão (bump mudou o formato) falha alto, 
 
 // --- US-134 — buildTools: Item.json (category tools/land-vehicle/waterborne-vehicle) → config.tools ---
 
-const item = (pk, name, category, desc = 'Rule text.') => ({ pk, fields: { name, category, desc } })
+const item = (pk, name, category, desc = 'Rule text.', weapon) => ({ pk, fields: { name, category, desc, weapon } })
 
 test('buildTools: um item de cada um dos 5 padrões de nome, category correta, key sem "srd-2024_"', () => {
   const items = [
@@ -1617,49 +1617,103 @@ for (const locale of ['en-US', 'pt-BR']) {
   })
 }
 
-// --- US-215 — buildWeapons: Item.json (category weapon) → config.weapons ---
+// --- US-215/US-228 — buildWeapons: Item.json (category weapon) → config.weapons ---
 
-test('buildWeapons: filtra só category "weapon", key sem "srd-2024_", sem campo category no retorno', () => {
+// Fixture de Weapon.json/WeaponPropertyAssignment.json — mesmo espírito de background/benefit acima.
+const weaponRow = (pk, isSimple) => ({ pk, fields: { name: pk, is_simple: isSimple } })
+const propAssignment = (weaponPk, propertyPk) => ({ fields: { weapon: weaponPk, property: propertyPk } })
+
+test('buildWeaponMeta: is_simple vira category; ammunition-wp vira ranged; thrown-wp sozinho continua melee', () => {
+  const weaponsRaw = [
+    weaponRow('srd-2024_dagger', true), // simple, arremessável (thrown), sem ammunition → melee
+    weaponRow('srd-2024_longbow', false), // martial, ammunition → ranged
+    weaponRow('srd-2024_club', true), // simple, sem propriedade nenhuma → melee
+  ]
+  const propertyAssignmentsRaw = [
+    propAssignment('srd-2024_dagger', 'srd-2024_thrown-wp'),
+    propAssignment('srd-2024_dagger', 'srd-2024_finesse-wp'),
+    propAssignment('srd-2024_longbow', 'srd-2024_ammunition-wp'),
+  ]
+  const meta = buildWeaponMeta(weaponsRaw, propertyAssignmentsRaw)
+  assert.deepEqual(meta.get('srd-2024_dagger'), { category: 'simple', weaponType: 'melee' })
+  assert.deepEqual(meta.get('srd-2024_longbow'), { category: 'martial', weaponType: 'ranged' })
+  assert.deepEqual(meta.get('srd-2024_club'), { category: 'simple', weaponType: 'melee' })
+})
+
+test('buildWeapons: filtra só category "weapon", key sem "srd-2024_", category/weaponType via weaponMeta', () => {
   const items = [
-    item('srd-2024_battleaxe', 'Battleaxe', 'weapon'),
-    item('srd-2024_light-hammer', 'Light Hammer', 'weapon'),
+    item('srd-2024_battleaxe', 'Battleaxe', 'weapon', 'Rule text.', 'srd-2024_battleaxe'),
+    item('srd-2024_light-hammer', 'Light Hammer', 'weapon', 'Rule text.', 'srd-2024_light-hammer'),
+    item('srd-2024_torch', 'Torch', 'weapon', 'Rule text.', null), // sem fk (item de aventura, ver US-228 §Fora do escopo)
     item('srd-2024_smiths-tools', "Smith's Tools (20 GP)", 'tools'),
     item('srd-2024_cart', 'Cart', 'land-vehicle'),
   ]
-  const result = buildWeapons({}, items, identityResolve)
+  const weaponMeta = new Map([
+    ['srd-2024_battleaxe', { category: 'martial', weaponType: 'melee' }],
+    ['srd-2024_light-hammer', { category: 'simple', weaponType: 'melee' }],
+  ])
+  const result = buildWeapons({}, items, weaponMeta, identityResolve)
   assert.deepEqual(result, [
-    { key: 'battleaxe', label: 'Battleaxe' },
-    { key: 'light_hammer', label: 'Light Hammer' },
+    { key: 'battleaxe', label: 'Battleaxe', category: 'martial', weaponType: 'melee' },
+    { key: 'light_hammer', label: 'Light Hammer', category: 'simple', weaponType: 'melee' },
+    { key: 'torch', label: 'Torch' },
   ])
 })
 
 test('buildWeapons: label pt-BR vem do overlay igual a buildTools', () => {
   const overlay = { weapons: { battleaxe: { name: 'Machado de Batalha', description: 'Regra.' } } }
   const ptResolve = (_domain, _key, entry, enName) => ({ name: entry?.name?.trim() || enName })
-  const result = buildWeapons(overlay, [item('srd-2024_battleaxe', 'Battleaxe', 'weapon')], ptResolve)
+  const items = [item('srd-2024_battleaxe', 'Battleaxe', 'weapon', 'Rule text.', 'srd-2024_battleaxe')]
+  const weaponMeta = new Map([['srd-2024_battleaxe', { category: 'martial', weaponType: 'melee' }]])
+  const result = buildWeapons(overlay, items, weaponMeta, ptResolve)
   assert.equal(result[0].label, 'Machado de Batalha')
 })
 
 // Contra o dataset PINADO real (não fixture): as 44 entradas medidas em US-215 §Contexto batem,
-// e as 8 chaves de RACE_WEAPON_PROFICIENCIES (anão + elfo) existem no catálogo gerado.
-test('buildWeapons: as 44 entradas reais do Item.json pinado batem, com as 8 chaves de arma de raça', () => {
+// as 8 chaves de RACE_WEAPON_PROFICIENCIES (anão + elfo) existem no catálogo gerado, e as
+// contagens de category/weaponType medidas em US-228 §Contexto (2026-09-09) batem.
+test('buildWeapons: as 44 entradas reais do Item.json pinado batem, com category/weaponType das US-228', () => {
   const itemsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Item.json'), 'utf8'))
-  const result = buildWeapons({}, itemsRaw, identityResolve)
+  const weaponsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Weapon.json'), 'utf8'))
+  const propertyAssignmentsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'WeaponPropertyAssignment.json'), 'utf8'))
+  const weaponMeta = buildWeaponMeta(weaponsRaw, propertyAssignmentsRaw)
+  const result = buildWeapons({}, itemsRaw, weaponMeta, identityResolve)
   assert.equal(result.length, 44)
   const keys = new Set(result.map((w) => w.key))
   for (const key of ['battleaxe', 'handaxe', 'light_hammer', 'warhammer', 'longsword', 'shortsword', 'shortbow', 'longbow']) {
     assert.ok(keys.has(key), `chave de arma de raça ausente do catálogo: ${key}`)
   }
+
+  const withMeta = result.filter((w) => w.category)
+  assert.equal(withMeta.length, 38, 'as 6 armas sem ficha de combate não devem ganhar category/weaponType')
+  assert.equal(withMeta.filter((w) => w.category === 'simple').length, 14)
+  assert.equal(withMeta.filter((w) => w.category === 'martial').length, 24)
+  assert.equal(withMeta.filter((w) => w.weaponType === 'ranged').length, 9)
+  assert.equal(withMeta.filter((w) => w.weaponType === 'melee').length, 29)
+
+  // As 6 armas de aventura sem ficha de combate (Item.json sem `weapon` fk) ficam sem os dois campos.
+  const withoutMeta = result.filter((w) => !w.category)
+  assert.deepEqual(withoutMeta.map((w) => w.key).sort(), ['acid', 'alchemists_fire', 'holy_water', 'net', 'oil', 'torch'])
+  for (const w of withoutMeta) assert.ok(!('weaponType' in w), `${w.key} não deveria ter weaponType`)
+
+  // As 7 armas corpo a corpo também arremessáveis (thrown-wp sem ammunition-wp) continuam melee.
+  const stillMelee = ['dagger', 'dart', 'handaxe', 'javelin', 'light_hammer', 'spear', 'trident']
+  for (const key of stillMelee) {
+    const w = result.find((r) => r.key === key)
+    assert.equal(w.weaponType, 'melee', `${key} é arremessável mas continua corpo a corpo`)
+  }
 })
 
 // --- artefato: config.weapons sai gravado nos dois locales, mesma contagem que o dataset real ---
 for (const locale of ['en-US', 'pt-BR']) {
-  test(`artefato ${locale}: config.weapons tem 44 entradas com key/label`, () => {
+  test(`artefato ${locale}: config.weapons tem 44 entradas com key/label, 38 com category/weaponType`, () => {
     const artifact = JSON.parse(readFileSync(join(import.meta.dirname, `srd-5e.config.${locale}.json`), 'utf8'))
     assert.equal(artifact.weapons.length, 44)
     for (const w of artifact.weapons) {
       assert.ok(w.key && w.label, `entrada incompleta: ${JSON.stringify(w)}`)
     }
+    assert.equal(artifact.weapons.filter((w) => w.category).length, 38)
+    assert.equal(artifact.weapons.filter((w) => w.weaponType).length, 38)
   })
 }
 

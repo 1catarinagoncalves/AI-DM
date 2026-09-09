@@ -633,6 +633,10 @@ export function SetupWizard() {
   // US-223: categoria PURA de arma de classe — soma no `<dd>` junto de reviewWeapons (categoria
   // primeiro), não mais no sufixo do `<dt>`: rótulo cru virou frase inteira (WEAPON_CATEGORY_LABEL)
   // e por isso já não precisa de coluna própria pra não ser confundida com item nomeado.
+  // US-228 (decisão de 2026-09-09): a expansão pra lista de armas do catálogo (38 nomes) foi
+  // tentada e revertida — grande demais pra caber legível na revisão. `config.weapons[].category`/
+  // `weaponType` continuam no catálogo (US-229 os usa no painel de classe); só a exibição aqui
+  // volta a mostrar a palavra crua da categoria.
   const reviewWeaponCategories = classProficiencyEntry?.weaponProficiencies?.categories ?? []
   const reviewArmorCategories = classProficiencyEntry?.armorProficiencies ?? []
   // US-214: idioma(s) fixo(s) de RACE_LANGUAGES + escolha extra (quando a raça exige) — mesma

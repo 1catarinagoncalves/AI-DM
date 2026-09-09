@@ -161,12 +161,21 @@ export const SystemToolSchema = z.object({
   category: z.string().min(1),
 })
 
+// US-228: corpo a corpo ou à distância — sinal é a propriedade `ammunition-wp` (precisa de
+// munição pra atirar), NUNCA `range > 0` (arma arremessável tem alcance sem deixar de ser
+// corpo a corpo, ver US-228 §Contexto "o sinal certo não é range > 0").
+const WeaponTypeSchema = z.enum(['melee', 'ranged'])
+
 // Arma do sistema (US-215), derivado de `Item.json` (categoria `weapon`, 44 itens). Mesmo
-// contrato mínimo de SystemToolSchema menos `category`: arma não tem subcategoria de
-// proficiência do 5e como ferramenta (artisan/musical-instrument/gaming-set/kit/vehicle).
+// contrato mínimo de SystemToolSchema, mais `category`/`weaponType` (US-228, reaproveita
+// WeaponCategorySchema da US-221): ausentes juntos só nas 6 armas de aventura arremessáveis
+// sem ficha de combate em `Weapon.json` (Acid, Alchemist's Fire, Holy Water, Net, Oil, Torch —
+// ver US-228 §Fora do escopo).
 export const SystemWeaponSchema = z.object({
   key: z.string().min(1),
   label: z.string().min(1),
+  category: WeaponCategorySchema.optional(),
+  weaponType: WeaponTypeSchema.optional(),
 })
 
 // Feature de classe (US-41): o que o personagem SABE FAZER de especial (Sentido

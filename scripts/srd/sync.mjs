@@ -49,6 +49,12 @@ const FILES = [
   // US-134: mesmo documento srd-2024 de AbilityDescription/CharacterClass — sem tag nova,
   // sem entrada nova em NOTICE-open5e.md. Catálogo de ferramentas/veículos (config.tools).
   [`${SRD}/Item.json`, 'Item.json'],
+  // US-228: mesmo documento srd-2024 de Item.json acima — sem tag nova, sem entrada nova em
+  // NOTICE-open5e.md. Weapon.json traz `is_simple` (categoria simple/martial) por arma;
+  // WeaponPropertyAssignment.json traz a junção arma↔propriedade, usada só pra extrair o sinal
+  // `ammunition-wp` (corpo a corpo/à distância — ver ingest.mjs `buildWeaponMeta`).
+  [`${SRD}/Weapon.json`, 'Weapon.json'],
+  [`${SRD}/WeaponPropertyAssignment.json`, 'WeaponPropertyAssignment.json'],
   [`${CORE}/Skill.json`, 'Skill.json'],
   // US-133: mesmo diretório de Skill.json — sem tag nova, sem entrada nova em NOTICE-open5e.md.
   // Catálogo de idiomas (config.languages).

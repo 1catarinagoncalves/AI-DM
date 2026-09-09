@@ -6427,104 +6427,152 @@
       "label": "Alchemist's Fire"
     },
     {
+      "category": "martial",
       "key": "battleaxe",
-      "label": "Battleaxe"
+      "label": "Battleaxe",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "blowgun",
-      "label": "Blowgun"
+      "label": "Blowgun",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "club",
-      "label": "Club"
+      "label": "Club",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "dagger",
-      "label": "Dagger"
+      "label": "Dagger",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "dart",
-      "label": "Dart"
+      "label": "Dart",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "flail",
-      "label": "Flail"
+      "label": "Flail",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "glaive",
-      "label": "Glaive"
+      "label": "Glaive",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "greataxe",
-      "label": "Greataxe"
+      "label": "Greataxe",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "greatclub",
-      "label": "Greatclub"
+      "label": "Greatclub",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "greatsword",
-      "label": "Greatsword"
+      "label": "Greatsword",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "halberd",
-      "label": "Halberd"
+      "label": "Halberd",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "hand_crossbow",
-      "label": "Hand Crossbow"
+      "label": "Hand Crossbow",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "handaxe",
-      "label": "Handaxe"
+      "label": "Handaxe",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "heavy_crossbow",
-      "label": "Heavy Crossbow"
+      "label": "Heavy Crossbow",
+      "weaponType": "ranged"
     },
     {
       "key": "holy_water",
       "label": "Holy Water"
     },
     {
+      "category": "simple",
       "key": "javelin",
-      "label": "Javelin"
+      "label": "Javelin",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "lance",
-      "label": "Lance"
+      "label": "Lance",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "light_crossbow",
-      "label": "Light Crossbow"
+      "label": "Light Crossbow",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "light_hammer",
-      "label": "Light Hammer"
+      "label": "Light Hammer",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "longbow",
-      "label": "Longbow"
+      "label": "Longbow",
+      "weaponType": "ranged"
     },
     {
+      "category": "martial",
       "key": "longsword",
-      "label": "Longsword"
+      "label": "Longsword",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "mace",
-      "label": "Mace"
+      "label": "Mace",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "maul",
-      "label": "Maul"
+      "label": "Maul",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "morningstar",
-      "label": "Morningstar"
+      "label": "Morningstar",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "musket",
-      "label": "Musket"
+      "label": "Musket",
+      "weaponType": "ranged"
     },
     {
       "key": "net",
@@ -6535,64 +6583,92 @@
       "label": "Oil"
     },
     {
+      "category": "martial",
       "key": "pike",
-      "label": "Pike"
+      "label": "Pike",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "pistol",
-      "label": "Pistol"
+      "label": "Pistol",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "quarterstaff",
-      "label": "Quarterstaff"
+      "label": "Quarterstaff",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "rapier",
-      "label": "Rapier"
+      "label": "Rapier",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "scimitar",
-      "label": "Scimitar"
+      "label": "Scimitar",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "shortbow",
-      "label": "Shortbow"
+      "label": "Shortbow",
+      "weaponType": "ranged"
     },
     {
+      "category": "martial",
       "key": "shortsword",
-      "label": "Shortsword"
+      "label": "Shortsword",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "sickle",
-      "label": "Sickle"
+      "label": "Sickle",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "sling",
-      "label": "Sling"
+      "label": "Sling",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "spear",
-      "label": "Spear"
+      "label": "Spear",
+      "weaponType": "melee"
     },
     {
       "key": "torch",
       "label": "Torch"
     },
     {
+      "category": "martial",
       "key": "trident",
-      "label": "Trident"
+      "label": "Trident",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "war_pick",
-      "label": "War Pick"
+      "label": "War Pick",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "warhammer",
-      "label": "Warhammer"
+      "label": "Warhammer",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "whip",
-      "label": "Whip"
+      "label": "Whip",
+      "weaponType": "melee"
     }
   ]
 }

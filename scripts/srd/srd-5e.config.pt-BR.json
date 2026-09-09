@@ -6427,104 +6427,152 @@
       "label": "Fogo do Alquimista"
     },
     {
+      "category": "martial",
       "key": "battleaxe",
-      "label": "Machado de Batalha"
+      "label": "Machado de Batalha",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "blowgun",
-      "label": "Zarabatana"
+      "label": "Zarabatana",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "club",
-      "label": "Clava"
+      "label": "Clava",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "dagger",
-      "label": "Adaga"
+      "label": "Adaga",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "dart",
-      "label": "Dardo"
+      "label": "Dardo",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "flail",
-      "label": "Mangual"
+      "label": "Mangual",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "glaive",
-      "label": "Glaive"
+      "label": "Glaive",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "greataxe",
-      "label": "Machado Grande"
+      "label": "Machado Grande",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "greatclub",
-      "label": "Clava Grande"
+      "label": "Clava Grande",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "greatsword",
-      "label": "Espada Grande"
+      "label": "Espada Grande",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "halberd",
-      "label": "Alabarda"
+      "label": "Alabarda",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "hand_crossbow",
-      "label": "Besta de Mão"
+      "label": "Besta de Mão",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "handaxe",
-      "label": "Machadinha"
+      "label": "Machadinha",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "heavy_crossbow",
-      "label": "Besta Pesada"
+      "label": "Besta Pesada",
+      "weaponType": "ranged"
     },
     {
       "key": "holy_water",
       "label": "Água Benta"
     },
     {
+      "category": "simple",
       "key": "javelin",
-      "label": "Azagaia"
+      "label": "Azagaia",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "lance",
-      "label": "Lança de Montaria"
+      "label": "Lança de Montaria",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "light_crossbow",
-      "label": "Besta Leve"
+      "label": "Besta Leve",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "light_hammer",
-      "label": "Martelo Leve"
+      "label": "Martelo Leve",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "longbow",
-      "label": "Arco Longo"
+      "label": "Arco Longo",
+      "weaponType": "ranged"
     },
     {
+      "category": "martial",
       "key": "longsword",
-      "label": "Espada Longa"
+      "label": "Espada Longa",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "mace",
-      "label": "Maça"
+      "label": "Maça",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "maul",
-      "label": "Maul"
+      "label": "Maul",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "morningstar",
-      "label": "Estrela da Manhã"
+      "label": "Estrela da Manhã",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "musket",
-      "label": "Mosquete"
+      "label": "Mosquete",
+      "weaponType": "ranged"
     },
     {
       "key": "net",
@@ -6535,64 +6583,92 @@
       "label": "Óleo"
     },
     {
+      "category": "martial",
       "key": "pike",
-      "label": "Pique"
+      "label": "Pique",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "pistol",
-      "label": "Pistola"
+      "label": "Pistola",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "quarterstaff",
-      "label": "Bordão"
+      "label": "Bordão",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "rapier",
-      "label": "Rapieira"
+      "label": "Rapieira",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "scimitar",
-      "label": "Cimitarra"
+      "label": "Cimitarra",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "shortbow",
-      "label": "Arco Curto"
+      "label": "Arco Curto",
+      "weaponType": "ranged"
     },
     {
+      "category": "martial",
       "key": "shortsword",
-      "label": "Espada Curta"
+      "label": "Espada Curta",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "sickle",
-      "label": "Foice"
+      "label": "Foice",
+      "weaponType": "melee"
     },
     {
+      "category": "simple",
       "key": "sling",
-      "label": "Funda"
+      "label": "Funda",
+      "weaponType": "ranged"
     },
     {
+      "category": "simple",
       "key": "spear",
-      "label": "Lança"
+      "label": "Lança",
+      "weaponType": "melee"
     },
     {
       "key": "torch",
       "label": "Tocha"
     },
     {
+      "category": "martial",
       "key": "trident",
-      "label": "Tridente"
+      "label": "Tridente",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "war_pick",
-      "label": "Picareta de Guerra"
+      "label": "Picareta de Guerra",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "warhammer",
-      "label": "Martelo de Guerra"
+      "label": "Martelo de Guerra",
+      "weaponType": "melee"
     },
     {
+      "category": "martial",
       "key": "whip",
-      "label": "Chicote"
+      "label": "Chicote",
+      "weaponType": "melee"
     }
   ]
 }

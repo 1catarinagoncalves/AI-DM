@@ -1013,18 +1013,42 @@ export function buildTools(overlay, itemsRaw, resolve) {
     .sort((a, b) => a.key.localeCompare(b.key))
 }
 
+// US-228: literal fixo, mesmo espírito de ALIGNMENT_PK — a única propriedade que separa arma
+// corpo-a-corpo de à distância (ver buildWeaponMeta). Não carrega WeaponProperty.json (catálogo
+// com o NOME das 17 propriedades) só pra resolver isso: o pk já é auto-descritivo e estável.
+const AMMUNITION_PK = 'srd-2024_ammunition-wp'
+
+// US-228: pk (Weapon.json) → { category, weaponType } — join pela chave estrangeira
+// `Item.fields.weapon`, não pelo nome (mesmo pk em Weapon.json e WeaponPropertyAssignment.json).
+// `is_simple` vira o enum simple/martial direto; presença de uma linha de
+// WeaponPropertyAssignment com property === AMMUNITION_PK vira 'ranged' — ausência (inclusive
+// arma só arremessável, property thrown-wp) vira 'melee' (arremesso não é alcance de verdade,
+// ver US-228 §Contexto "o sinal certo não é range > 0").
+export function buildWeaponMeta(weaponsRaw, propertyAssignmentsRaw) {
+  const rangedPks = new Set(
+    propertyAssignmentsRaw.filter((a) => a.fields.property === AMMUNITION_PK).map((a) => a.fields.weapon),
+  )
+  const meta = new Map()
+  for (const w of weaponsRaw) {
+    meta.set(w.pk, { category: w.fields.is_simple ? 'simple' : 'martial', weaponType: rangedPks.has(w.pk) ? 'ranged' : 'melee' })
+  }
+  return meta
+}
+
 // US-215: catálogo de arma (44 itens `category: 'weapon'` de Item.json), pro traço de arma
 // fixa de raça (RACE_WEAPON_PROFICIENCIES, @ai-dm/shared) resolver chave→rótulo. Espelha
-// buildTools acima — mesmo filtro/normalização de key — mas sem `category`: arma não tem
-// subcategoria de proficiência como ferramenta tem (artisan/musical-instrument/etc.).
-export function buildWeapons(overlay, itemsRaw, resolve) {
+// buildTools acima — mesmo filtro/normalização de key. US-228: `weaponMeta` (buildWeaponMeta)
+// resolve `category`/`weaponType` via `item.fields.weapon` (fk pra Weapon.json) — item sem fk
+// ou sem correspondência (as 6 armas de aventura sem ficha de combate) não ganha os dois campos.
+export function buildWeapons(overlay, itemsRaw, weaponMeta, resolve) {
   const relevant = itemsRaw.filter((i) => i.fields.category === 'weapon')
   return relevant
     .map((item) => {
       const key = stripDocument(item.pk).replace(/-/g, '_')
       const enLabel = item.fields.name.replace(PRICE_SUFFIX, '')
       const label = resolve('weapons', key, overlay.weapons?.[key], enLabel, norm(item.fields.desc)).name
-      return { key, label }
+      const meta = item.fields.weapon && weaponMeta.get(item.fields.weapon)
+      return { key, label, ...(meta ? { category: meta.category, weaponType: meta.weaponType } : {}) }
     })
     .sort((a, b) => a.key.localeCompare(b.key))
 }
@@ -1215,9 +1239,12 @@ function buildConfig(overlay, data, locale) {
   // `tool_proficiency` precisa de `config.tools` já resolvido (chaves) mais o `data.items` bruto
   // (distinção terrestre/aquático que `config.tools` colapsa, ver buildToolCategories).
   const tools = buildTools(overlay, data.items, resolve)
+  // US-228: metadado de combate (category/weaponType) por arma — monta ANTES de buildWeapons,
+  // mesma ordem que weaponKeys/toolsByKey já são montados antes de buildClassProficiencies.
+  const weaponMeta = buildWeaponMeta(data.weaponsRaw, data.weaponPropertyAssignments)
   // US-215: catálogo de arma, mesma fonte crua (data.items) de buildTools — filtro de
   // categoria disjunto ('weapon' vs 'tools'/'land-vehicle'/'waterborne-vehicle'), sem overlap.
-  const weapons = buildWeapons(overlay, data.items, resolve)
+  const weapons = buildWeapons(overlay, data.items, weaponMeta, resolve)
   // US-221: precisa de weapons/tools já resolvidos (arma/ferramenta NOMEADA da classe resolve
   // contra os dois catálogos) — por isso roda DEPOIS dos dois, mesma ordem que buildBackgrounds
   // já respeita (comentário do US-132 acima de buildTools).
@@ -1260,6 +1287,7 @@ async function main() {
   const [
     abilities, rules, skillsRaw, languagesRaw, classes2014, features2014, featureItems2014, spells, species2014,
     speciesTraits, backgrounds, backgroundBenefits, items, marshalClasses, marshalFeatures, marshalFeatureItems,
+    weaponsRaw, weaponPropertyAssignments,
   ] = await Promise.all([
     load('AbilityDescription.json'),
     load('Rule.json'),
@@ -1280,13 +1308,16 @@ async function main() {
     load('CharacterClass.a5e-ag.json'),
     load('ClassFeature.a5e-ag.json'),
     load('ClassFeatureItem.a5e-ag.json'),
+    // US-228: mesmo doc srd-2024 de Item.json — metadado de combate (category/weaponType) por arma.
+    load('Weapon.json'),
+    load('WeaponPropertyAssignment.json'),
   ])
   const classes = [...classes2014, ...marshalClasses]
   const features = [...features2014, ...marshalFeatures]
   const featureItems = [...featureItems2014, ...marshalFeatureItems]
   // US-210: `rules` (Rule.json) soma ao `data` — antes só era lido depois de `buildConfig`
   // (parseAbilityModifiers/parseD20Tests); `buildAlignments` precisa dele DENTRO de buildConfig.
-  const data = { abilities, skillsRaw, languagesRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items, rules }
+  const data = { abilities, skillsRaw, languagesRaw, classes, features, featureItems, spells, species2014, speciesTraits, backgrounds, backgroundBenefits, items, rules, weaponsRaw, weaponPropertyAssignments }
 
   const base = buildConfig(overlayEn, data, 'en-US')
   let localized = buildConfig(overlay, data, 'pt-BR')

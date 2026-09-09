@@ -344,6 +344,9 @@ export const ptBR = {
   // US-221: rótulo de categoria de armadura/arma de classe — texto FIXO da UI (não vem do
   // catálogo do sistema: não existe item de armadura/arma por trás da categoria, ver US-221
   // §Contexto). Armadura vira item da seção "Armadura"; arma vira sufixo do heading "Armas".
+  // US-228 (decisão de 2026-09-09): a junção Weapon.json/WeaponPropertyAssignment.json já dá
+  // config.weapons[].category/weaponType, mas expandir o rótulo abaixo nessa lista do catálogo
+  // foi tentado e revertido (38 nomes, ilegível) — a palavra crua da categoria continua.
   'sheet.proficiency.armor.light': 'Leve',
   'sheet.proficiency.armor.medium': 'Média',
   'sheet.proficiency.armor.heavy': 'Pesada',

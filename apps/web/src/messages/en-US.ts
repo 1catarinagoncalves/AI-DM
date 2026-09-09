@@ -313,6 +313,9 @@ export const enUS: Record<MessageKey, string> = {
   // US-221: armor/weapon category label — fixed UI text (not from the system catalog: there's
   // no armor/weapon item behind the category, see US-221 §Contexto). Armor is a list item in
   // the "Armor" section; weapon is a suffix on the "Weapons" heading.
+  // US-228 (decision 2026-09-09): a Weapon.json/WeaponPropertyAssignment.json join gives
+  // config.weapons[].category/weaponType now, but expanding the label below into that catalog
+  // list was tried and reverted (38 names, too long to read) — the raw category word stays.
   'sheet.proficiency.armor.light': 'Light',
   'sheet.proficiency.armor.medium': 'Medium',
   'sheet.proficiency.armor.heavy': 'Heavy',

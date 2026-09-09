@@ -64,6 +64,9 @@ export default async function PlayPage({ params, searchParams }: Props) {
   const weapons = [...((character.weapons ?? []) as string[]).map((key) => catalogLabel(config?.weapons, key)), ...classNamedWeapons]
   // US-221: categoria PURA de arma ('simple'/'martial') — nunca entra na `<ul>` acima, só no
   // sufixo do heading (GameView resolve o rótulo por i18n, não por catálogo).
+  // US-228 (decisão de 2026-09-09): a expansão pra lista de armas do catálogo foi tentada e
+  // revertida (grande demais, 38 nomes). `config.weapons[].category`/`weaponType` continuam no
+  // catálogo (US-229 os usa no painel de classe) — só a exibição aqui volta a ser a categoria crua.
   const weaponCategories = classProficiencyEntry?.weaponProficiencies?.categories ?? []
   // US-221: categoria de armadura de classe — seção própria "Armadura", mesma disciplina de
   // weaponCategories (rótulo por i18n no GameView, sem catálogo de item de armadura por trás).

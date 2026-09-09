@@ -2446,7 +2446,11 @@ describe('SetupWizard — US-215 proficiência de arma e ferramenta fixa de raç
 
 // --- US-223: proficiência de arma legível na revisão — categoria (WEAPON_CATEGORY_LABEL) vai
 // no VALOR (`<dd>`), junto das nomeadas, não mais no sufixo do `<dt>` (US-221 escondia a
-// categoria pura no rótulo e deixava `<dd>` = "—" pra quem só tinha categoria). ---
+// categoria pura no rótulo e deixava `<dd>` = "—" pra quem só tinha categoria).
+// US-228 (decisão de 2026-09-09): expandir a categoria pra lista de armas do catálogo foi
+// tentado e revertido — 38 nomes é grande demais pra caber legível na revisão. `<dd>` volta a
+// mostrar só a palavra da categoria; `config.weapons[].category`/`weaponType` continuam
+// existindo (US-229 os usa no painel de classe), só não entram mais nesta tela. ---
 const configWithClassWeapons = (budget: number) => ({
   ...configWithBudget(budget),
   classes: [

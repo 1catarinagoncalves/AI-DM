@@ -615,7 +615,9 @@ export function GameView({ adventureId, characterId, characterName, characterCla
                 `weapons.length > 0`. US-223: categoria não vai mais no sufixo do heading — ia pro
                 texto que só muda de leitura, não de lista, e divergia da seção "Armadura" acima.
                 Categoria agora é `<li>` no topo da `<ul>`, mesmo molde da armadura; o rótulo cru
-                virou frase inteira (WEAPON_CATEGORY_LABEL) pra não ser lida como item nomeado. */}
+                virou frase inteira (WEAPON_CATEGORY_LABEL) pra não ser lida como item nomeado.
+                US-228 (decisão de 2026-09-09): expandir a categoria pra lista de armas do
+                catálogo foi tentado e revertido (38 nomes, grande demais). */}
             {((weapons && weapons.length > 0) || (weaponCategories && weaponCategories.length > 0)) && (
               <div className="md:w-full">
                 <SheetHeading>{t('game.weapons')}</SheetHeading>
