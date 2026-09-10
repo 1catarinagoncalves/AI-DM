@@ -7,9 +7,11 @@ import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
 import {
   abilityModifier, buildSavingThrowSheet, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, resolveEquipmentSlots,
+  type WeaponModeSlot,
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
   DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE,
   RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES,
+  maxHpForLevel, parseHitDice,
   type SystemConfig, type SystemTool, type DraconicDamageType, type InitialAdventureHook,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
@@ -281,6 +283,11 @@ export function SetupWizard() {
   // (ver `resolvedSubclass` abaixo). Resetada junto de `class` (subclasse velha não sobrevive
   // à troca de classe) e no reset de sistema (mesmo motivo de race/class).
   const [subclass, setSubclass] = useState<string | undefined>(undefined)
+  // US-227: nível inicial à escolha (1–20, default 1) — string (não number), mesmo motivo de
+  // equipmentChoices (:322): o campo precisa aceitar vazio temporário enquanto a jogadora apaga
+  // pra redigitar, sem forçar o mínimo a cada tecla — clamp só no blur (ver clampLevel abaixo).
+  // Independente de classe/raça/sistema, ao contrário de subclass: não reseta em nenhum handler.
+  const [level, setLevel] = useState('1')
   // US-211: ancestralidade dracônica escolhida — só existe estado pra `dragonborn` (mesmo
   // padrão condicional de `subclass`). Resetada ao trocar de raça/raiz (selectRootCard) e de
   // sistema (mesmo motivo de subclass/race).
@@ -319,6 +326,14 @@ export function SetupWizard() {
   // ao contrário de classToolChoice (chave nunca é ''). Resetado ao trocar de classe, mesmo
   // motivo do reset de classToolChoice.
   const [equipmentChoices, setEquipmentChoices] = useState<string[]>([])
+  // US-230: modo (radio) do slot "arma + escudo" OU "em dobro" (Guerreiro/Paladino) — só existe
+  // pro slot cujo `weaponMode` (resolveEquipmentSlots, @ai-dm/shared) vem preenchido.
+  // `equipmentChoices[i]` continua guardando o índice ACHATADO de sempre (contrato inalterado
+  // com getStartingInventory); este estado só existe pra UI saber qual radio marcar e, ao
+  // trocar de modo, recalcular esse índice preservando a arma já escolhida no <select>
+  // compartilhado (ver setWeaponMode/setWeaponIndexAt abaixo). Resetado junto com
+  // equipmentChoices, mesmo motivo.
+  const [weaponModeChoices, setWeaponModeChoices] = useState<Record<number, 'companion' | 'double'>>({})
   const [attrs, setAttrs] = useState<Record<string, number>>({})
   // US-27: keys de perícia marcadas como proficientes (lista fechada do config).
   const [skills, setSkills] = useState<string[]>([])
@@ -416,6 +431,14 @@ export function SetupWizard() {
   // catálogo que casa a proficiência da própria classe. `.fixed` aqui já vem SEM o item
   // genérico (ele virou slot) — só o que continua literalmente fixo.
   const classEquipmentSlots = system?.config ? resolveEquipmentSlots(system.config, charData.class) : undefined
+  // US-227: dado de vida da classe escolhida (config.classes[].hitDice, US-209) — `parseHitDice`
+  // (@ai-dm/shared) é o MESMO parser que `maxHpForLevel` usa pro cálculo de PV abaixo, não regex
+  // duplicado. `sides` alimenta só o badge decorativo "D{sides} DE VIDA" do painel de detalhe.
+  const classHitDice = classCatalog.find(c => c.key === charData.class)?.hitDice
+  const hitDieSides = parseHitDice(classHitDice)?.sides
+  // US-227: valor NUMÉRICO clampado de `level` (string, ver estado acima) — usado pro cálculo de
+  // PV/payload; o `<input>` continua mostrando a string crua (não clampada a cada tecla).
+  const levelValue = Math.min(20, Math.max(1, Math.round(Number(level)) || 1))
   // US-210: catálogo de alinhamento (config.alignments, SRD via ingest) — mesmo padrão de
   // raceCatalog/classCatalog acima, consumido só na etapa `identity`.
   const alignmentCatalog = system?.config?.alignments ?? []
@@ -597,10 +620,12 @@ export function SetupWizard() {
   // Bloco "Features e magias" só existe se o config modela esse eixo — mesmo padrão
   // condicional de `backgroundCatalog.length > 0` para a linha "Origem".
   const hasClassAwareness = Boolean(system?.config?.classFeatures || system?.config?.classSpells)
-  // PV inicial: mesma conta de adventure.service.ts (10 + mod de Constituição) — a Fase 1 não
-  // tem dado de vida por classe, então a fórmula é igual para qualquer classe.
+  // US-227: PV inicial via classe+nível — mesma função (`maxHpForLevel`, @ai-dm/shared) que
+  // adventure.service.ts usa pra gravar `CharacterState.maxHp` de verdade, então o preview
+  // nunca diverge do que a API grava. `classHitDice` ausente (classe ainda não escolhida, ou
+  // config legado sem hitDice) cai no fallback de nível 1 já embutido em maxHpForLevel.
   const conMod = abilityModifier(attrs['constitution'] ?? 10)
-  const previewHp = 10 + conMod
+  const previewHp = maxHpForLevel(classHitDice, levelValue, conMod)
   // Só as perícias ESCOLHIDAS, com modificador já resolvido — mesmo `buildSkillSheet` da
   // ficha, filtrado ao que o jogador marcou (a revisão não lista o catálogo inteiro).
   // US-131: soma as da origem (`originSkillKeys`) às da etapa `skills` — a revisão espelha a
@@ -715,6 +740,9 @@ export function SetupWizard() {
     // reset de classToolChoice acima, senão um índice válido pra classe anterior sobrevive
     // apontando pra uma alternativa que pode nem existir na classe nova.
     setEquipmentChoices([])
+    // US-230: modo do slot "arma + escudo"/"em dobro" — mesmo motivo do reset de
+    // equipmentChoices acima (a classe nova pode nem ter esse slot).
+    setWeaponModeChoices({})
     // US-224: pool e contagem da etapa `skills` são da CLASSE (Ladino 4 de 11, Bárbaro 2 de 6)
     // — trocar de classe no meio da criação não pode deixar a etapa em "2 marcadas, 4 exigidas".
     setSkills([])
@@ -883,6 +911,9 @@ export function SetupWizard() {
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({
         systemId: system.id, ...charData, draconicAncestry: draconicAncestryPayload, subclass: subclassPayload,
+        // US-227: sempre manda (não é campo condicional como subclassPayload) — já clampado
+        // 1–20 (levelValue), independente de classe/catálogo.
+        level: levelValue,
         classToolChoice: classToolChoicePayload,
         equipmentChoices: equipmentChoicesPayload,
         raceToolChoice: raceToolChoicePayload,
@@ -983,6 +1014,48 @@ export function SetupWizard() {
       next[index] = value
       return next
     })
+  }
+
+  // US-230: índice da arma (posição dentro de `modeSlot.weapons`, não o índice achatado do
+  // slot) já escolhida em `equipmentChoices[slotIndex]`, pro modo ATUAL — '' quando nenhuma
+  // arma foi escolhida ainda. Espelha o valor do <select> compartilhado.
+  function weaponIndexAt(slotIndex: number, modeSlot: WeaponModeSlot): string {
+    const chosen = equipmentChoices[slotIndex]
+    if (chosen === undefined || chosen === '') return ''
+    const mode = weaponModeChoices[slotIndex] ?? 'companion'
+    const offset = mode === 'companion' ? modeSlot.companionOffset : modeSlot.doubleOffset
+    return String(Number(chosen) - offset)
+  }
+
+  // US-230: trocar de modo (radio) preserva a arma já escolhida — recalcula o índice achatado
+  // pro NOVO offset em vez de limpar a escolha (critério de aceite: "Trocar de modo preserva a
+  // arma já escolhida no select").
+  function setWeaponMode(slotIndex: number, mode: 'companion' | 'double', modeSlot: WeaponModeSlot) {
+    const weaponIndex = weaponIndexAt(slotIndex, modeSlot)
+    setWeaponModeChoices(p => ({ ...p, [slotIndex]: mode }))
+    if (weaponIndex === '') return
+    const offset = mode === 'companion' ? modeSlot.companionOffset : modeSlot.doubleOffset
+    setEquipmentChoiceAt(slotIndex, String(offset + Number(weaponIndex)))
+  }
+
+  function setWeaponIndexAt(slotIndex: number, weaponIndexValue: string, modeSlot: WeaponModeSlot) {
+    if (weaponIndexValue === '') { setEquipmentChoiceAt(slotIndex, ''); return }
+    const mode = weaponModeChoices[slotIndex] ?? 'companion'
+    const offset = mode === 'companion' ? modeSlot.companionOffset : modeSlot.doubleOffset
+    setEquipmentChoiceAt(slotIndex, String(offset + Number(weaponIndexValue)))
+  }
+
+  // US-227: clamp 1–20 só no BLUR (valor completo) — clampar a cada tecla trava a jogadora no
+  // mínimo ao apagar o campo pra redigitar (ex.: apagar "9" pra digitar "12" passaria por "1",
+  // que o clamp por tecla prenderia em 1).
+  function clampLevel() {
+    setLevel(String(levelValue))
+  }
+
+  // Botões +/− SEMPRE operam sobre o valor já clampado (levelValue), nunca sobre o texto cru —
+  // clicar num campo temporariamente vazio ou fora de faixa ainda avança de um valor válido.
+  function stepLevel(delta: number) {
+    setLevel(String(Math.min(20, Math.max(1, levelValue + delta))))
   }
 
   function setAttr(key: string, delta: number, min: number, max: number) {
@@ -1150,6 +1223,43 @@ export function SetupWizard() {
                           {classEquipmentSlots.slots.map((slot, slotIndex) => {
                             const optionLabel = (opt: typeof slot.options[number]) =>
                               opt.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(', ')
+                            // US-230: Guerreiro/Paladino — as DUAS alternativas do slot original
+                            // eram genéricas ("arma + escudo" e "em dobro"); achatadas juntas
+                            // dariam ~46 <option> no mesmo <select> (mesclado, rejeitado no
+                            // mockup, §Questões em aberto #2). `slot.weaponMode` (calculado em
+                            // resolveEquipmentSlots, @ai-dm/shared) marca esse formato e a UI
+                            // vira radio (modo) + 1 <select> de arma compartilhado — Patrulheiro
+                            // e as demais classes (undefined aqui) continuam com o <select>
+                            // único de sempre.
+                            const modeSlot = slot.weaponMode
+                            if (modeSlot) {
+                              const mode = weaponModeChoices[slotIndex] ?? 'companion'
+                              const weaponSelectLabel = modeSlot.weapons.join(` ${t('setup.class.equipmentChoice.or')} `)
+                              return (
+                                <div key={slotIndex} className="mt-3 space-y-2">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <label className={optionCardClass(mode === 'companion')}>
+                                      <input type="radio" name={`equip-mode-${slotIndex}`} checked={mode === 'companion'}
+                                        onChange={() => setWeaponMode(slotIndex, 'companion', modeSlot)} className="sr-only" />
+                                      <span className="text-sm">{t('setup.class.equipmentChoice.modeCompanion', { companion: modeSlot.companion })}</span>
+                                    </label>
+                                    <label className={optionCardClass(mode === 'double')}>
+                                      <input type="radio" name={`equip-mode-${slotIndex}`} checked={mode === 'double'}
+                                        onChange={() => setWeaponMode(slotIndex, 'double', modeSlot)} className="sr-only" />
+                                      <span className="text-sm">{t('setup.class.equipmentChoice.modeDouble')}</span>
+                                    </label>
+                                  </div>
+                                  <select aria-label={weaponSelectLabel} value={weaponIndexAt(slotIndex, modeSlot)}
+                                    onChange={e => setWeaponIndexAt(slotIndex, e.target.value, modeSlot)}
+                                    className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
+                                    <option value="">{t('setup.raceClass.select')}</option>
+                                    {modeSlot.weapons.map((name, weaponIndex) => (
+                                      <option key={weaponIndex} value={weaponIndex}>{name}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )
+                            }
                             const slotLabel = slot.options.map(optionLabel).join(` ${t('setup.class.equipmentChoice.or')} `)
                             return (
                               <select key={slotIndex} aria-label={slotLabel} value={equipmentChoices[slotIndex] ?? ''}
@@ -1758,7 +1868,7 @@ export function SetupWizard() {
                     [t('setup.review.alignment'), alignmentLabel],
                     [t('setup.review.race'), raceLabel],
                     [t('setup.review.class'), classLabel],
-                    [t('setup.review.level'), '1'],
+                    [t('setup.review.level'), String(levelValue)],
                     [t('setup.review.hp'), String(previewHp)],
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-start justify-between gap-6 py-2.5">

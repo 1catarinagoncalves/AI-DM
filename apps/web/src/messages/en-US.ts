@@ -240,6 +240,11 @@ export const enUS: Record<MessageKey, string> = {
   // US-226: conjunction joining a starting-equipment slot's alternatives in the <select>
   // label (e.g. "Chain Mail or Leather Armor, Longbow, Arrow (20)").
   'setup.class.equipmentChoice.or': 'or',
+  // US-230: mode radio for the "weapon + shield"/"double" slot (Fighter/Paladin,
+  // detectWeaponModeSlot in @ai-dm/shared) — `{companion}` is the fixed companion text
+  // ("Shield"), never resolved against a catalog (there isn't one for armor/shields).
+  'setup.class.equipmentChoice.modeCompanion': 'Weapon and {companion}',
+  'setup.class.equipmentChoice.modeDouble': 'Two weapons (double)',
 
   // ---- wizard: connection & memento (US-124) — title/subtitle are FIXED, not parsed from
   // the dataset's own heading/preamble (translation-fragile, see US-124 Questão 1/2).

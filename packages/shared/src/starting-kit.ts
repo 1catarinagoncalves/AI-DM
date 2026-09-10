@@ -40,12 +40,15 @@ export function getStartingInventory(config: SystemConfig, classKey: string, equ
   ]
 }
 
-// US-229: as 3 formas de texto que a `startingEquipmentChoices` do ingest produz pra uma
-// alternativa de arma GENÉRICA ("escolha qualquer arma desta categoria"), nos dois locales —
-// varredura ad-hoc confirmou que são só estas 3, nunca "ranged" sozinho, nunca "martial" sem
-// qualificador de tipo (US-229 §Contexto). Mapa em vez de regex: só 6 strings concretas existem
-// hoje, e um lookup exaustivo não corre risco de casar acento errado (ex. "À Distância").
-type GenericWeaponItem = { category: 'simple' | 'martial'; weaponType?: 'melee' | 'ranged' }
+// US-229: 3 formas de texto que a `startingEquipmentChoices` do ingest produz pra uma
+// alternativa de arma GENÉRICA ("escolha qualquer arma desta categoria"), nos dois locales.
+// US-230 adiciona mais 6: "martial"/"simple melee" SEM qualificador de tipo (a correção à
+// afirmação da US-229 §Contexto — "nunca martial sem tipo" só valia pro formato que ela
+// cobria), com `companion` (padrão composto, "arma + escudo") ou `qty` (padrão em dobro,
+// "duas armas" — o "duas" mora no NOME, não no `qty` do item cru) quando a alternativa não é
+// só "escolha uma arma", ver US-230 §Notas de implementação. Mapa em vez de regex: 12 strings
+// concretas ao todo, lookup exaustivo não corre risco de casar acento errado.
+type GenericWeaponItem = { category: 'simple' | 'martial'; weaponType?: 'melee' | 'ranged'; qty?: number; companion?: string }
 const GENERIC_WEAPON_ITEMS: Record<string, GenericWeaponItem> = {
   'Any Simple Weapon': { category: 'simple' },
   'Qualquer Arma Simples': { category: 'simple' },
@@ -53,10 +56,39 @@ const GENERIC_WEAPON_ITEMS: Record<string, GenericWeaponItem> = {
   'Qualquer Arma Simples Corpo a Corpo': { category: 'simple', weaponType: 'melee' },
   'Any Martial Melee Weapon': { category: 'martial', weaponType: 'melee' },
   'Qualquer Arma Marcial Corpo a Corpo': { category: 'martial', weaponType: 'melee' },
+  // US-230: Guerreiro (choices[1]) e Paladino (choices[0]) — mesmo texto-fonte nos dois.
+  'Martial Weapon and a Shield': { category: 'martial', companion: 'Shield' },
+  'Arma Marcial e Um Escudo': { category: 'martial', companion: 'Escudo' },
+  'Two Martial Weapons': { category: 'martial', qty: 2 },
+  'Duas Armas Marciais': { category: 'martial', qty: 2 },
+  // US-230: Patrulheiro (choices[1]).
+  'Two Simple Melee Weapons': { category: 'simple', weaponType: 'melee', qty: 2 },
+  'Duas Armas Simples Corpo a Corpo': { category: 'simple', weaponType: 'melee', qty: 2 },
 }
 
 function parseGenericWeaponItem(name: string): GenericWeaponItem | undefined {
   return GENERIC_WEAPON_ITEMS[name]
+}
+
+// US-230: alternativa NOMEADA que já resolvia certo antes desta story (não é texto genérico,
+// a arma já é conhecida — "Two Shortswords"/"Two Handaxes") mas cujo RÓTULO era o texto SRD
+// cru ("Duas Espadas Curtas" em vez de "Espada Curta (2)"). Mapa separado de
+// GENERIC_WEAPON_ITEMS porque aqui não tem categoria/tipo pra casar contra `config.weapons` —
+// é troca de rótulo de uma option já concreta (1 arma certa), nunca expansão em N options
+// (ver US-230 §Notas de implementação).
+const NAMED_WEAPON_DOUBLE_ITEMS: Record<string, string> = {
+  'Two Shortswords': 'shortsword',
+  'Duas Espadas Curtas': 'shortsword',
+  'Two Handaxes': 'handaxe',
+  'Duas Machadinhas': 'handaxe',
+}
+
+function resolveNamedWeaponDouble(option: InventoryItem[], weapons: SystemWeapon[]): InventoryItem[] | undefined {
+  if (option.length !== 1) return undefined
+  const key = NAMED_WEAPON_DOUBLE_ITEMS[option[0]!.name]
+  if (!key) return undefined
+  const weapon = weapons.find((w) => w.key === key)
+  return weapon ? [{ name: weapon.label, qty: 2 }] : undefined
 }
 
 /**
@@ -96,13 +128,59 @@ function flattenWeaponOptions(
   weaponProficiencies?: { categories: string[]; weapons: string[] },
 ): InventoryItem[][] {
   return options.flatMap((option) => {
+    const namedDouble = resolveNamedWeaponDouble(option, weapons)
+    if (namedDouble) return [namedDouble]
     const generic = option.length === 1 ? parseGenericWeaponItem(option[0]!.name) : undefined
     if (!generic) return [option]
-    return matchingWeapons(generic, weapons, weaponProficiencies).map((w) => [{ name: w.label, qty: option[0]!.qty }])
+    // US-230: `generic.qty` (padrão em dobro) sobrepõe o qty do balde; ausente, mesmo qty de
+    // sempre (US-229). `generic.companion` (padrão composto) entra como 2º item FIXO — nunca
+    // resolvido contra catálogo, ver §Notas de implementação da US-230.
+    return matchingWeapons(generic, weapons, weaponProficiencies).map((w) => [
+      { name: w.label, qty: generic.qty ?? option[0]!.qty },
+      ...(generic.companion ? [{ name: generic.companion, qty: 1 }] : []),
+    ])
   })
 }
 
-export type EquipmentChoiceSlot = { options: InventoryItem[][] }
+export type WeaponModeSlot = { weapons: string[]; companion: string; companionOffset: number; doubleOffset: number }
+
+export type EquipmentChoiceSlot = { options: InventoryItem[][]; weaponMode?: WeaponModeSlot }
+
+/**
+ * US-230: Guerreiro (`choices[1]`) e Paladino (`choices[0]`) têm as DUAS alternativas do MESMO
+ * slot genéricas ("arma + escudo" e "em dobro", mesmo texto-fonte nos dois) — depois de
+ * `flattenWeaponOptions`, o slot vira 1 lista só com a MESMA arma repetida (1x com companheiro
+ * fixo, 1x em dobro). Um `<select>` mesclado com as ~46 opções foi rejeitado no mockup (US-230
+ * §Questões em aberto #2) — a UI precisa separar em radio (modo) + 1 `<select>` de arma
+ * compartilhado, daí `EquipmentChoiceSlot.weaponMode`.
+ *
+ * Reconhece o padrão pelos 2 itens CRUS (`rawOptions`, antes de `flattenWeaponOptions`) — as
+ * DUAS alternativas precisam ser reconhecidas por `parseGenericWeaponItem`, mesma
+ * category/weaponType, uma com `companion` e a outra com `qty: 2` — NUNCA pela FORMA do
+ * resultado achatado (`flatOptions`): um slot com item LITERAL que coincidentemente tem a
+ * mesma forma (ex. "Arma Marcial"+"Escudo" vs. "Arma Marcial" ×2, texto de fixture simplificado
+ * de US-226 anterior à US-229) não pode disparar o radio — `parseGenericWeaponItem('Arma
+ * Marcial')` é `undefined`, então o par nunca bate.
+ */
+function detectWeaponModePair(rawOptions: InventoryItem[][], flatOptions: InventoryItem[][]): WeaponModeSlot | undefined {
+  if (rawOptions.length !== 2) return undefined
+  const generics = rawOptions.map((opt) => (opt.length === 1 ? parseGenericWeaponItem(opt[0]!.name) : undefined))
+  const [a, b] = generics
+  if (!a || !b || a.category !== b.category || a.weaponType !== b.weaponType) return undefined
+  const companionGeneric = a.companion ? a : b.companion ? b : undefined
+  const doubleGeneric = companionGeneric === a ? b : a
+  if (!companionGeneric || doubleGeneric.qty !== 2 || doubleGeneric.companion) return undefined
+  const half = flatOptions.length / 2
+  if (!Number.isInteger(half) || half < 1) return undefined
+  const companionIsFirst = generics[0] === companionGeneric
+  const companionBlock = companionIsFirst ? flatOptions.slice(0, half) : flatOptions.slice(half)
+  return {
+    weapons: companionBlock.map((opt) => opt[0]!.name),
+    companion: companionGeneric.companion!,
+    companionOffset: companionIsFirst ? 0 : half,
+    doubleOffset: companionIsFirst ? half : 0,
+  }
+}
 
 /**
  * US-229: junta os slots de `choices` (US-226) com um slot SINTÉTICO por item genérico solto
@@ -122,9 +200,11 @@ export function resolveEquipmentSlots(config: SystemConfig, classKey: string): {
   const syntheticSlots = equipment.fixed
     .filter((item) => parseGenericWeaponItem(item.name))
     .map((item) => ({ options: [[item]] }))
-  const slots = [...equipment.choices, ...syntheticSlots].map((slot) => ({
-    options: flattenWeaponOptions(slot.options, weapons, weaponProficiencies),
-  }))
+  const slots = [...equipment.choices, ...syntheticSlots].map((rawSlot) => {
+    const options = flattenWeaponOptions(rawSlot.options, weapons, weaponProficiencies)
+    const weaponMode = detectWeaponModePair(rawSlot.options, options)
+    return weaponMode ? { options, weaponMode } : { options }
+  })
   return { fixed, slots }
 }
 

@@ -306,6 +306,211 @@ describe('resolveEquipmentSlots / getStartingInventory — US-229 (arma genéric
   })
 })
 
+// US-230: 2 formas que a US-229 não modelou — "Martial Weapon and a Shield" (composto, item de
+// texto único descrevendo arma+escudo) e "Two Martial Weapons"/"Two Simple Melee Weapons" (em
+// dobro, "duas" mora no NOME, não no `qty`). Fixtures espelham a FORMA real do dataset (texto
+// exato, mesma estrutura de choices[]) — não o texto simplificado que deixou o Guerreiro escapar
+// da US-229 (ver US-230 §Contexto).
+describe('resolveEquipmentSlots / getStartingInventory — US-230 (composto e em dobro)', () => {
+  const martialWeapons: NonNullable<SystemConfig['weapons']> = [
+    { key: 'battleaxe', label: 'Machado de Batalha', category: 'martial', weaponType: 'melee' },
+    { key: 'longsword', label: 'Espada Longa', category: 'martial', weaponType: 'melee' },
+    { key: 'scimitar', label: 'Cimitarra', category: 'martial', weaponType: 'melee' },
+    { key: 'blowgun', label: 'Zarabatana', category: 'martial', weaponType: 'ranged' },
+  ]
+
+  // Guerreiro real: choices[1] tem as DUAS alternativas genéricas (composto + em dobro), mesmo
+  // texto-fonte do Paladino (choices[0]) — US-230 §Contexto tabela.
+  const fighterConfig: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    weapons: martialWeapons,
+    classes: [
+      {
+        key: 'fighter', label: 'Guerreiro',
+        weaponProficiencies: { categories: ['simple', 'martial'], weapons: [] },
+        startingEquipmentChoices: {
+          fixed: [{ name: 'Cota de Malha', qty: 1 }],
+          choices: [
+            {
+              options: [
+                [{ name: 'Martial Weapon and a Shield', qty: 1 }],
+                [{ name: 'Two Martial Weapons', qty: 1 }],
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  }
+
+  it('"Martial Weapon and a Shield" expande em 1 option por arma marcial + escudo fixo', () => {
+    const resolved = resolveEquipmentSlots(fighterConfig, 'fighter')
+    expect(resolved?.slots[0]?.options.slice(0, 4)).toEqual([
+      [{ name: 'Machado de Batalha', qty: 1 }, { name: 'Shield', qty: 1 }],
+      [{ name: 'Espada Longa', qty: 1 }, { name: 'Shield', qty: 1 }],
+      [{ name: 'Cimitarra', qty: 1 }, { name: 'Shield', qty: 1 }],
+      [{ name: 'Zarabatana', qty: 1 }, { name: 'Shield', qty: 1 }],
+    ])
+  })
+
+  it('"Two Martial Weapons" expande em 1 option por arma marcial, qty: 2 da MESMA arma', () => {
+    const resolved = resolveEquipmentSlots(fighterConfig, 'fighter')
+    expect(resolved?.slots[0]?.options.slice(4, 8)).toEqual([
+      [{ name: 'Machado de Batalha', qty: 2 }],
+      [{ name: 'Espada Longa', qty: 2 }],
+      [{ name: 'Cimitarra', qty: 2 }],
+      [{ name: 'Zarabatana', qty: 2 }],
+    ])
+  })
+
+  it('escolher a option "arma + escudo" resolve os DOIS itens no inventário final', () => {
+    const inventory = getStartingInventory(fighterConfig, 'fighter', [0])
+    expect(inventory).toEqual([
+      { name: 'Cota de Malha', qty: 1 },
+      { name: 'Machado de Batalha', qty: 1 }, { name: 'Shield', qty: 1 },
+    ])
+  })
+
+  it('escolher a option "em dobro" resolve com qty: 2, nunca 2 itens de qty: 1', () => {
+    const inventory = getStartingInventory(fighterConfig, 'fighter', [4])
+    expect(inventory).toEqual([
+      { name: 'Cota de Malha', qty: 1 },
+      { name: 'Machado de Batalha', qty: 2 },
+    ])
+  })
+
+  it('slots[0].weaponMode reconhece o slot composto+dobro e separa os 2 blocos', () => {
+    const resolved = resolveEquipmentSlots(fighterConfig, 'fighter')
+    const modeSlot = resolved!.slots[0]!.weaponMode
+    expect(modeSlot).toEqual({
+      weapons: ['Machado de Batalha', 'Espada Longa', 'Cimitarra', 'Zarabatana'],
+      companion: 'Shield',
+      companionOffset: 0,
+      doubleOffset: 4,
+    })
+  })
+
+  // Patrulheiro real: choices[1] só tem 1 alternativa genérica ("Two Simple Melee Weapons") ao
+  // lado de uma NOMEADA ("Two Shortswords") — não é o par composto+dobro do Guerreiro acima,
+  // detectWeaponModeSlot não deve confundir os dois formatos.
+  const simpleMeleeWeapons: NonNullable<SystemConfig['weapons']> = [
+    { key: 'club', label: 'Clava', category: 'simple', weaponType: 'melee' },
+    { key: 'dagger', label: 'Adaga', category: 'simple', weaponType: 'melee' },
+    { key: 'shortsword', label: 'Espada Curta', category: 'martial', weaponType: 'melee' },
+  ]
+  const rangerConfig: SystemConfig = {
+    attributes: [{ key: 'dexterity', label: 'Destreza', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    weapons: simpleMeleeWeapons,
+    classes: [
+      {
+        key: 'ranger', label: 'Patrulheiro',
+        weaponProficiencies: { categories: ['simple', 'martial'], weapons: [] },
+        startingEquipmentChoices: {
+          fixed: [],
+          choices: [
+            {
+              options: [
+                [{ name: 'Two Shortswords', qty: 1 }],
+                [{ name: 'Two Simple Melee Weapons', qty: 1 }],
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  }
+
+  it('alternativa NOMEADA "Two Shortswords" resolve pro rótulo do catálogo, qty: 2 (nunca o texto SRD)', () => {
+    const resolved = resolveEquipmentSlots(rangerConfig, 'ranger')
+    expect(resolved?.slots[0]?.options[0]).toEqual([{ name: 'Espada Curta', qty: 2 }])
+  })
+
+  it('"Two Simple Melee Weapons" expande em 1 option por arma simples corpo a corpo, qty: 2', () => {
+    const resolved = resolveEquipmentSlots(rangerConfig, 'ranger')
+    expect(resolved?.slots[0]?.options.slice(1)).toEqual([
+      [{ name: 'Clava', qty: 2 }],
+      [{ name: 'Adaga', qty: 2 }],
+    ])
+  })
+
+  it('slots[0].weaponMode NÃO confunde o slot do Patrulheiro (nomeada+genérica) com o par composto+dobro', () => {
+    const resolved = resolveEquipmentSlots(rangerConfig, 'ranger')
+    expect(resolved!.slots[0]!.weaponMode).toBeUndefined()
+  })
+
+  // US-230 (correção): um slot LITERAL cuja forma achatada coincide com o par composto+dobro
+  // (ex. fixture simplificado de US-226, "Arma Marcial"+"Escudo" vs. "Arma Marcial" ×2) NÃO
+  // pode disparar o radio — a detecção lê os 2 itens CRUS via parseGenericWeaponItem, nunca a
+  // forma do resultado achatado. `weapons` vazio de propósito: se a detecção fosse por forma,
+  // um catálogo vazio não mudaria nada; sendo por metadado genérico, cai fora antes de chegar
+  // no catálogo.
+  it('slot literal com a MESMA forma de um par composto+dobro não vira weaponMode (falso positivo por forma)', () => {
+    const literalConfig: SystemConfig = {
+      attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+      startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+      classes: [{
+        key: 'fighter', label: 'Guerreiro',
+        startingEquipmentChoices: {
+          fixed: [],
+          choices: [{ options: [[{ name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 }], [{ name: 'Arma Marcial', qty: 2 }]] }],
+        },
+      }],
+    }
+    const resolved = resolveEquipmentSlots(literalConfig, 'fighter')
+    expect(resolved?.slots[0]?.weaponMode).toBeUndefined()
+    expect(resolved?.slots[0]?.options).toEqual([
+      [{ name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 }],
+      [{ name: 'Arma Marcial', qty: 2 }],
+    ])
+  })
+
+  // Bárbaro real: choices[1] tem a alternativa NOMEADA "Two Handaxes" ao lado da genérica "Any
+  // Simple Weapon" (já expandida pela US-229) — só o RÓTULO da nomeada muda (US-230 §Escopo).
+  const handaxeWeapons: NonNullable<SystemConfig['weapons']> = [
+    { key: 'handaxe', label: 'Machadinha', category: 'simple', weaponType: 'melee' },
+    { key: 'club', label: 'Clava', category: 'simple', weaponType: 'melee' },
+  ]
+  const barbarianDoubleConfig: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    weapons: handaxeWeapons,
+    classes: [
+      {
+        key: 'barbarian', label: 'Bárbaro',
+        weaponProficiencies: { categories: ['simple', 'martial'], weapons: [] },
+        startingEquipmentChoices: {
+          fixed: [],
+          choices: [
+            {
+              options: [
+                [{ name: 'Two Handaxes', qty: 1 }],
+                [{ name: 'Any Simple Weapon', qty: 1 }],
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  }
+
+  it('"Two Handaxes" (nomeada) resolve pro rótulo do catálogo + qty: 2, ao lado da genérica intacta', () => {
+    const resolved = resolveEquipmentSlots(barbarianDoubleConfig, 'barbarian')
+    expect(resolved?.slots[0]?.options).toEqual([
+      [{ name: 'Machadinha', qty: 2 }],
+      [{ name: 'Machadinha', qty: 1 }],
+      [{ name: 'Clava', qty: 1 }],
+    ])
+  })
+
+  it('alternativa nomeada em dobro sem a arma no catálogo passa intacta (nunca lança)', () => {
+    const noHandaxeConfig: SystemConfig = { ...barbarianDoubleConfig, weapons: [] }
+    const resolved = resolveEquipmentSlots(noHandaxeConfig, 'barbarian')
+    expect(resolved?.slots[0]?.options[0]).toEqual([{ name: 'Two Handaxes', qty: 1 }])
+  })
+})
+
 // US-128: paralelo a getStartingInventory, mas por ORIGEM e sem fallback `default` —
 // origem sem catálogo (ou personagem sem origem escolhida) devolve lista vazia, nunca lança.
 describe('getBackgroundEquipment (US-128)', () => {

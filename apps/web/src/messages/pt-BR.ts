@@ -265,6 +265,11 @@ export const ptBR = {
   // US-226: conjunção que une as alternativas de um slot de equipamento inicial no rótulo do
   // <select> (ex. "Cota de Malha ou Armadura de Couro, Arco Longo, Flecha (20)").
   'setup.class.equipmentChoice.or': 'ou',
+  // US-230: radio de modo do slot "arma + escudo"/"em dobro" (Guerreiro/Paladino,
+  // detectWeaponModeSlot em @ai-dm/shared) — `{companion}` é o texto fixo do companheiro
+  // ("Escudo"), nunca resolvido contra catálogo (não existe um pra armadura/escudo).
+  'setup.class.equipmentChoice.modeCompanion': 'Arma e {companion}',
+  'setup.class.equipmentChoice.modeDouble': 'Duas armas (em dobro)',
 
   // ---- wizard: conexão e memento (US-124) — título/subtítulo são FIXOS, não vêm do
   // heading/preâmbulo do dataset (frágil a tradução automática, ver US-124 Questão 1/2).
