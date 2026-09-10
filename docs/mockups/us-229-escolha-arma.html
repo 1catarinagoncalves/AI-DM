@@ -1,0 +1,408 @@
+<title>Escolha de Arma</title>
+<style>
+  /* ---- design tokens: espelham 1:1 apps/web/src/app/globals.css ---- */
+  :root {
+    --background: oklch(0.95 0.018 85);
+    --foreground: oklch(0.28 0.03 50);
+    --card: oklch(0.98 0.012 85);
+    --primary: oklch(0.44 0.15 42);
+    --primary-foreground: oklch(0.98 0.01 85);
+    --muted-foreground: oklch(0.44 0.03 55);
+    --accent: oklch(0.45 0.11 60);
+    --border: oklch(0.55 0.04 60 / 45%);
+    --input: oklch(0.62 0.04 65);
+    --ember: oklch(0.48 0.18 35);
+    --panel-top: oklch(0.99 0.012 85 / 0.94);
+    --panel-bottom: oklch(0.94 0.02 82 / 0.96);
+    --panel-edge: oklch(0.6 0.06 65 / 0.55);
+    --panel-ring: oklch(0.75 0.04 70 / 0.5);
+    --panel-sheen: oklch(1 0 0 / 0.6);
+    --panel-drop: oklch(0.4 0.05 55 / 0.22);
+    --diff-add: oklch(0.5 0.13 150);
+    --diff-add-bg: oklch(0.5 0.13 150 / 0.1);
+    --diff-warn: oklch(0.5 0.03 50 / 0.75);
+    --diff-warn-bg: oklch(0.5 0.03 50 / 0.08);
+    --font-serif: 'Cinzel', Georgia, serif;
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background: oklch(0.17 0.018 55);
+      --foreground: oklch(0.9 0.02 75);
+      --card: oklch(0.22 0.022 55);
+      --primary: oklch(0.68 0.16 55);
+      --primary-foreground: oklch(0.17 0.02 55);
+      --muted-foreground: oklch(0.72 0.03 70);
+      --accent: oklch(0.72 0.15 70);
+      --border: oklch(0.4 0.05 60 / 45%);
+      --input: oklch(0.3 0.03 55);
+      --ember: oklch(0.62 0.19 45);
+      --panel-top: oklch(0.2 0.02 55 / 0.92);
+      --panel-bottom: oklch(0.16 0.018 55 / 0.96);
+      --panel-edge: oklch(0.5 0.08 65 / 0.5);
+      --panel-ring: oklch(0.1 0.01 55 / 0.6);
+      --panel-sheen: oklch(0.7 0.1 70 / 0.15);
+      --panel-drop: oklch(0 0 0 / 0.7);
+      --diff-add: oklch(0.72 0.15 150);
+      --diff-add-bg: oklch(0.72 0.15 150 / 0.13);
+      --diff-warn: oklch(0.72 0.03 70 / 0.85);
+      --diff-warn-bg: oklch(0.72 0.03 70 / 0.1);
+    }
+  }
+  :root[data-theme="dark"] {
+    --background: oklch(0.17 0.018 55);
+    --foreground: oklch(0.9 0.02 75);
+    --card: oklch(0.22 0.022 55);
+    --primary: oklch(0.68 0.16 55);
+    --primary-foreground: oklch(0.17 0.02 55);
+    --muted-foreground: oklch(0.72 0.03 70);
+    --accent: oklch(0.72 0.15 70);
+    --border: oklch(0.4 0.05 60 / 45%);
+    --input: oklch(0.3 0.03 55);
+    --ember: oklch(0.62 0.19 45);
+    --panel-top: oklch(0.2 0.02 55 / 0.92);
+    --panel-bottom: oklch(0.16 0.018 55 / 0.96);
+    --panel-edge: oklch(0.5 0.08 65 / 0.5);
+    --panel-ring: oklch(0.1 0.01 55 / 0.6);
+    --panel-sheen: oklch(0.7 0.1 70 / 0.15);
+    --panel-drop: oklch(0 0 0 / 0.7);
+    --diff-add: oklch(0.72 0.15 150);
+    --diff-add-bg: oklch(0.72 0.15 150 / 0.13);
+    --diff-warn: oklch(0.72 0.03 70 / 0.85);
+    --diff-warn-bg: oklch(0.72 0.03 70 / 0.1);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+  .wrap { max-width: 62rem; margin: 0 auto; display: flex; flex-direction: column; gap: 2.75rem; }
+
+  /* -------- cabeçalho do mockup (moldura, não parte do app) -------- */
+  .doc-head { display: flex; flex-direction: column; gap: 0.6rem; }
+  .eyebrow {
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: var(--font-serif); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.1rem);
+    letter-spacing: 0.01em; margin: 0; text-wrap: balance; color: var(--foreground);
+  }
+  .doc-sub { max-width: 42rem; color: var(--muted-foreground); font-size: 0.92rem; }
+  .doc-sub code {
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; font-size: 0.85em;
+    background: var(--diff-warn-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0.05em 0.35em;
+  }
+
+  /* -------- seção -------- */
+  section.sample { display: flex; flex-direction: column; gap: 0.9rem; }
+  .sample-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+  .sample-head h2 {
+    font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; margin: 0; color: var(--foreground);
+  }
+  .sample-head .src {
+    font-size: 0.78rem; color: var(--muted-foreground);
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+  }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; align-items: start; }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+
+  .state-tag {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    padding: 0.22rem 0.55rem; border-radius: 999px; width: fit-content;
+  }
+  .state-tag.before { color: var(--diff-warn); background: var(--diff-warn-bg); border: 1px solid var(--border); }
+  .state-tag.after { color: var(--diff-add); background: var(--diff-add-bg); border: 1px solid color-mix(in oklch, var(--diff-add) 35%, transparent); }
+
+  /* -------- dm-panel, réplica exata do componente real -------- */
+  .panel {
+    background: linear-gradient(var(--panel-top), var(--panel-bottom));
+    border: 1px solid var(--panel-edge);
+    box-shadow: 0 0 0 1px var(--panel-ring), inset 0 1px 0 var(--panel-sheen), 0 16px 36px -14px var(--panel-drop);
+    border-radius: 0.5rem;
+    padding: 1.1rem 1.15rem 1.25rem;
+    display: flex; flex-direction: column; gap: 0.65rem;
+  }
+  .sheet-heading {
+    font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--primary); margin: 0;
+  }
+  .fixed-line { font-size: 0.88rem; color: var(--foreground); margin: 0; }
+
+  .field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .field-label { font-size: 0.68rem; color: var(--muted-foreground); }
+
+  select.dm-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 0.375rem;
+    border: 1px solid var(--input);
+    background-color: color-mix(in oklch, var(--background) 60%, transparent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b58a5a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    font-size: 0.88rem;
+    color: var(--foreground);
+    backdrop-filter: blur(4px);
+  }
+  select.dm-select:focus { outline: none; border-color: color-mix(in oklch, var(--primary) 60%, var(--input)); }
+  select.dm-select.is-generic { color: var(--diff-warn); font-style: italic; }
+
+  .result-line {
+    display: flex; align-items: flex-start; gap: 0.45rem;
+    font-size: 0.82rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; margin-top: 0.1rem;
+  }
+  .result-line svg { flex: none; margin-top: 0.15rem; }
+  .result-label { color: var(--muted-foreground); }
+  .result-value { font-weight: 600; }
+  .result-value.ok { color: var(--diff-add); }
+  .result-value.broken { color: var(--diff-warn); font-style: italic; }
+
+  /* -------- rodapé de notas -------- */
+  .notes {
+    display: flex; flex-direction: column; gap: 0.55rem;
+    border-top: 1px solid var(--border); padding-top: 1.4rem;
+  }
+  .notes h2 { font-family: var(--font-serif); font-size: 1rem; margin: 0 0 0.2rem; }
+  .notes ol { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.88rem; color: var(--foreground); }
+  .notes li::marker { color: var(--accent); font-weight: 700; }
+  .notes code {
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; font-size: 0.85em;
+    background: var(--diff-warn-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0.05em 0.35em;
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+
+<div class="wrap">
+
+  <div class="doc-head">
+    <span class="eyebrow">US-229 · mockup de implementação</span>
+    <h1>A opção genérica vira arma, no mesmo select</h1>
+    <p class="doc-sub">
+      Réplica dos tokens e componentes reais do wizard (<code>dm-panel</code>, <code>SheetHeading</code>, <code>fieldClass</code>) —
+      os dois exemplos abaixo são os dois lugares onde "Qualquer Arma…" aparece hoje: uma alternativa dentro de
+      <code>choices</code> (Bárbaro) e um item de <code>fixed</code> sem alternativa nenhuma (Bruxo). Os selects abaixo são funcionais.
+    </p>
+  </div>
+
+  <!-- ============ EXEMPLO 1 — BÁRBARO, choices[] ============ -->
+  <section class="sample">
+    <div class="sample-head">
+      <h2>Bárbaro — equipamento inicial</h2>
+      <span class="src">startingEquipmentChoices.choices</span>
+    </div>
+
+    <div class="compare">
+      <!-- ANTES -->
+      <div>
+        <span class="state-tag before">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          antes
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Equipamento inicial</p>
+          <p class="fixed-line">Mochila de Explorador e Quatro Azagaias</p>
+
+          <div class="field">
+            <select class="dm-select" id="b-antes-0" onchange="syncAntes('b-antes-0','b-res-antes-0')">
+              <option value="Machado Grande">Machado Grande</option>
+              <option value="Qualquer Arma Marcial Corpo a Corpo" selected>Qualquer Arma Marcial Corpo a Corpo</option>
+            </select>
+          </div>
+          <div class="field">
+            <select class="dm-select" id="b-antes-1" onchange="syncAntes('b-antes-1','b-res-antes-1')">
+              <option value="Duas Machadinhas">Duas Machadinhas</option>
+              <option value="Qualquer Arma Simples" selected>Qualquer Arma Simples</option>
+            </select>
+          </div>
+
+          <div class="result-line">
+            <svg id="b-res-icon-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+            <span><span class="result-label">inventário grava —</span> <span id="b-res-antes-0" class="result-value broken">Qualquer Arma Marcial Corpo a Corpo</span></span>
+          </div>
+          <div class="result-line">
+            <svg id="b-res-icon-1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+            <span><span class="result-label">inventário grava —</span> <span id="b-res-antes-1" class="result-value broken">Qualquer Arma Simples</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPOIS -->
+      <div>
+        <span class="state-tag after">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+          depois
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Equipamento inicial</p>
+          <p class="fixed-line">Mochila de Explorador e Quatro Azagaias</p>
+
+          <div class="field">
+            <select class="dm-select" id="b-depois-0" onchange="syncDepois('b-depois-0','b-res-depois-0')">
+              <option value="Machado Grande">Machado Grande</option>
+              <optgroup label="Arma Marcial Corpo a Corpo">
+                <option value="Machado de Batalha" selected>Machado de Batalha</option>
+                <option value="Mangual">Mangual</option>
+                <option value="Glaive">Glaive</option>
+                <option value="Espada Grande">Espada Grande</option>
+                <option value="Alabarda">Alabarda</option>
+                <option value="Lança de Montaria">Lança de Montaria</option>
+                <option value="Espada Longa">Espada Longa</option>
+                <option value="Maul">Maul</option>
+                <option value="Estrela da Manhã">Estrela da Manhã</option>
+                <option value="Pique">Pique</option>
+                <option value="Rapieira">Rapieira</option>
+                <option value="Cimitarra">Cimitarra</option>
+                <option value="Espada Curta">Espada Curta</option>
+                <option value="Tridente">Tridente</option>
+                <option value="Picareta de Guerra">Picareta de Guerra</option>
+                <option value="Martelo de Guerra">Martelo de Guerra</option>
+                <option value="Chicote">Chicote</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <select class="dm-select" id="b-depois-1" onchange="syncDepois('b-depois-1','b-res-depois-1')">
+              <option value="Duas Machadinhas">Duas Machadinhas</option>
+              <optgroup label="Arma Simples">
+                <option value="Clava">Clava</option>
+                <option value="Adaga" selected>Adaga</option>
+                <option value="Dardo">Dardo</option>
+                <option value="Clava Grande">Clava Grande</option>
+                <option value="Machadinha">Machadinha</option>
+                <option value="Azagaia">Azagaia</option>
+                <option value="Besta Leve">Besta Leve</option>
+                <option value="Martelo Leve">Martelo Leve</option>
+                <option value="Maça">Maça</option>
+                <option value="Bordão">Bordão</option>
+                <option value="Arco Curto">Arco Curto</option>
+                <option value="Foice">Foice</option>
+                <option value="Funda">Funda</option>
+                <option value="Lança">Lança</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="result-line">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-add)"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><span class="result-label">inventário grava —</span> <span id="b-res-depois-0" class="result-value ok">Machado de Batalha</span></span>
+          </div>
+          <div class="result-line">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-add)"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><span class="result-label">inventário grava —</span> <span id="b-res-depois-1" class="result-value ok">Adaga</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EXEMPLO 2 — BRUXO, fixed[] ============ -->
+  <section class="sample">
+    <div class="sample-head">
+      <h2>Bruxo — item garantido sem alternativa</h2>
+      <span class="src">startingEquipmentChoices.fixed</span>
+    </div>
+
+    <div class="compare">
+      <!-- ANTES -->
+      <div>
+        <span class="state-tag before">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          antes
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Equipamento inicial</p>
+          <p class="fixed-line">Armadura de Couro · <span style="color:var(--diff-warn); font-style:italic;">Qualquer Arma Simples</span> · Duas Adagas</p>
+          <div class="result-line">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+            <span><span class="result-label">sem select — texto cru, nunca resolve.</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPOIS -->
+      <div>
+        <span class="state-tag after">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+          depois
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Equipamento inicial</p>
+          <p class="fixed-line">Armadura de Couro · Duas Adagas</p>
+
+          <div class="field">
+            <span class="field-label">item fixo, sem alternativa nomeada — mesmo select mesmo assim</span>
+            <select class="dm-select" id="w-depois" onchange="syncDepois('w-depois','w-res-depois')">
+              <option value="Clava">Clava</option>
+              <option value="Adaga">Adaga</option>
+              <option value="Dardo">Dardo</option>
+              <option value="Clava Grande">Clava Grande</option>
+              <option value="Machadinha">Machadinha</option>
+              <option value="Azagaia">Azagaia</option>
+              <option value="Besta Leve" selected>Besta Leve</option>
+              <option value="Martelo Leve">Martelo Leve</option>
+              <option value="Maça">Maça</option>
+              <option value="Bordão">Bordão</option>
+              <option value="Arco Curto">Arco Curto</option>
+              <option value="Foice">Foice</option>
+              <option value="Funda">Funda</option>
+              <option value="Lança">Lança</option>
+            </select>
+          </div>
+
+          <div class="result-line">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-add)"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><span class="result-label">inventário grava —</span> Armadura de Couro · <span id="w-res-depois" class="result-value ok">Besta Leve</span> · Duas Adagas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="notes">
+    <h2>O que muda na implementação</h2>
+    <ol>
+      <li>Nenhum controle novo. A <code>&lt;option&gt;</code> genérica é substituída, dentro do mesmo <code>&lt;select&gt;</code> do slot, por uma <code>&lt;option&gt;</code> por arma do catálogo (<code>config.weapons</code>) que casa <code>category</code>/<code>weaponType</code>.</li>
+      <li><code>equipmentChoices[slotIndex]</code> continua sendo só um índice — agora um índice na lista já achatada, calculada pela mesma função nos dois lados (wizard e <code>getStartingInventory</code>), nunca duas listas que podem divergir.</li>
+      <li>Item genérico dentro de <code>fixed</code> (Bruxo) não tem alternativa pra escolher — vira um slot sintético de 1 alternativa só, passando pelo mesmo mecanismo acima. Sem view nova.</li>
+      <li>O pool não é só <code>category</code>/<code>weaponType</code> do catálogo — precisa cruzar com <code>weaponProficiencies</code> da própria classe. Bárbaro e Bruxo (os dois exemplos acima) têm proficiência por CATEGORIA, então o catálogo inteiro já é seguro. Druida e Feiticeiro têm proficiência só numa lista NOMEADA de armas — filtrar só por categoria ofereceria arma que a classe não sabe usar.</li>
+    </ol>
+  </div>
+
+</div>
+
+<script>
+  const okIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-add)"><path d="M20 6 9 17l-5-5"/></svg>';
+  const warnIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-warn)"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
+  const GENERIC = new Set(['Qualquer Arma Marcial Corpo a Corpo', 'Qualquer Arma Simples']);
+
+  function syncAntes(selectId, resultId) {
+    const select = document.getElementById(selectId);
+    const result = document.getElementById(resultId);
+    const line = result.closest('.result-line');
+    const icon = line.querySelector('svg');
+    const generic = GENERIC.has(select.value);
+    result.textContent = select.value;
+    result.className = 'result-value ' + (generic ? 'broken' : 'ok');
+    icon.outerHTML = generic ? warnIcon : okIcon;
+    select.classList.toggle('is-generic', generic);
+  }
+
+  function syncDepois(selectId, resultId) {
+    const select = document.getElementById(selectId);
+    document.getElementById(resultId).textContent = select.value;
+  }
+
+  // estado inicial dos "antes" (opção genérica já selecionada, espelha o print real)
+  syncAntes('b-antes-0', 'b-res-antes-0');
+  syncAntes('b-antes-1', 'b-res-antes-1');
+</script>
