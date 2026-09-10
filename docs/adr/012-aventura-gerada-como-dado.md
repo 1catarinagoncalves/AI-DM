@@ -1,52 +1,90 @@
-# ADR 012 — Aventura gerada: artefato congelado, seed recomputável, coluna própria
+# ADR 012 — Aventura gerada: artefato autoral congelado, mundo-primeiro, coluna própria
 
 **Status:** Aceito
-**Data:** 2026-08-16
+**Data:** 2026-08-16 · **Revista:** 2026-09-09 (inversão para geração mundo-primeiro)
 **Decisores:** Mantenedora
-**Relacionado:** [US-143](../sdlc/01-requisitos/US-143-adr-aventura-como-dado-gerado.md) (story de origem) · [ADR 003](./003-sistemas-como-dado.md) (molde e precedente — "X é dado gerado, não código") · [US-144](../sdlc/01-requisitos/US-144-schema-aventura-shared.md) (GEN-1, schema Zod que consome esta decisão) · [US-146](../sdlc/01-requisitos/US-146-seed-deterministico-motor-aventura.md) (GEN-3, `deriveAdventureSeed`) · [Backlog — motor de geração de aventuras](../sdlc/01-requisitos/backlog-motor-de-geracao-de-aventuras.md) (GEN-0/GEN-7/GEN-8) · [Backlog — aventuras autorais LazyGM](../sdlc/01-requisitos/backlog-aventuras-autorais-lazygm.md) (decisão aberta 1, herdada)
+**Relacionado:** [US-143](../sdlc/01-requisitos/US-143-adr-aventura-como-dado-gerado.md) (story de origem) · [ADR 003](./003-sistemas-como-dado.md) (molde e precedente — "X é dado gerado, não código") · [US-144](../sdlc/01-requisitos/US-144-schema-aventura-shared.md) (schema Zod que consome esta decisão) · [Backlog — motor de geração de aventuras](../sdlc/01-requisitos/backlog-motor-de-geracao-de-aventuras.md) · [Arquitetura — motor de aventuras autorais](../arquitetura-motor-aventuras-autorais.md) (decisão de abordagem que motivou a revisão de 09/09 e o Spike 1)
+
+> **Revisão de 2026-09-09.** A versão de 16/08/2026 desenhava a aventura como **montada de tabelas** (rolagem LGMRD com `seed` determinístico recomputável). O resultado saiu genérico, de estrutura plana e prosa fraca — longe do alvo autoral (o artefato *O Olho de Iremet*). O [doc de arquitetura](../arquitetura-motor-aventuras-autorais.md) e o Spike 1 (2026-09-09) confirmaram a inversão: **o modelo autora o mundo primeiro, tabelas viram tempero**. Esta revisão **mantém** as decisões de persistência (congela, coluna própria, `id`) e **aposenta o `seed`** — a única peça que a inversão derruba. As decisões novas (D5–D7) registram a autoria mundo-primeiro, o crescimento do schema e a âncora de eval que substitui o determinismo.
 
 ---
 
 ## 1. Contexto
 
-O [backlog do motor de geração](../sdlc/01-requisitos/backlog-motor-de-geracao-de-aventuras.md) inverteu a ordem: o motor roda **antes** de existir aventura autoral de referência, e o [GEN-1](../sdlc/01-requisitos/US-144-schema-aventura-shared.md) (schema Zod em `@ai-dm/shared`) precisa de resposta antes de desenhar `id`/envelope. Sem esta ADR, GEN-1 desenha um campo no escuro.
+Aventura é **dado gerado** ([ADR 003](./003-sistemas-como-dado.md), mesmo molde de sistemas de regras): o conteúdo é decidido na geração, sem hardcode. A questão desta ADR é o que acontece **depois** de gerada — como persiste, onde mora, e o que ancora a qualidade.
 
-`Adventure.entities` ([schema.prisma](../../apps/api/prisma/schema.prisma)) já existe como `Json?`, mas guarda **só** o ledger `WorldEntity[]` (`nome`, `tipo?`, `local?`, `sabido?`, `revelado?`, `relacoes?`) semeado pela US-75 e produzido hoje por `extractOpeningEntities` ([ai.service.ts:1112](../../apps/api/src/ai/ai.service.ts)). O artefato completo que o motor emite — `npcs[]`, `secrets[]`, `locations[]`, `encounters[]`, `followUps[]` — é maior e tem forma diferente. Não há coluna, tabela nem contrato pra "a aventura como o motor gerou", só o resultado já materializado em `Adventure.title`, `Quest`, e o ledger.
+`Adventure.entities` ([schema.prisma](../../apps/api/prisma/schema.prisma)) guarda o ledger `WorldEntity[]` (US-75), forma diferente do artefato do motor. O artefato completo — mundo autoral, facções, locais, NPCs, segredos, encontros, atos, fecho ramificado — é maior e tem ciclo de vida próprio (nasce imutável na criação da aventura; o ledger muta turno a turno via `recordEntity`).
 
-O [backlog irmão de aventuras autorais](../sdlc/01-requisitos/backlog-aventuras-autorais-lazygm.md) tem uma *decisão aberta 1* herdada: "a aventura autoral é dado de um sistema ou entidade reusável entre sistemas?" — pergunta sobre **portabilidade** (Pegāna, mundo de Dunsany sem nada de 5e, não deveria pendurar num `System` chamado "D&D 5e"). Essa pergunta é distinta da que GEN-0 precisa responder agora — **persistência** (congelar ou regenerar) — mas as duas se sobrepõem parcialmente e o backlog do motor pede que esta ADR feche a que bloqueia GEN-1.
+**A inversão (revisão de 09/09).** "Dado gerado" passou a significar **autorado pelo modelo**, não **montado de tabela**. O Spike 1 mostrou que uma chamada de autoria produz mundo bespoke (Ur-Veth, cidade nas vértebras de um leviatã de sal), 3 facções concorrentes, arco de 3 beats e fecho ramificado — no nível do exemplar, a centavos. A rolagem determinística das 135 tabelas do LGMRD deixa de ser espinha; vira inspiração injetada no prompt, quando entra.
 
-**O que isso significa pro jogador:** o artefato congelado é a parte que ele sente — a aventura gerada fica fixa no banco assim que criada, não muda de forma entre sessões nem se o motor/modelo for atualizado depois. O `seed` é bastidor (QA/eval), não visível.
+**O que isso significa pro jogador:** o artefato congelado é a parte que ele sente — a aventura fica fixa no banco assim que criada, não muda de forma entre sessões nem se o motor/modelo for atualizado depois.
 
 ---
 
 ## 2. Decisão
 
-### D1 — Artefato grava congelado; `seed` não ganha coluna, é sempre recomputável
+### D1 — Artefato grava congelado. `seed` não existe mais
 
-Aventura é **dado gerado** só durante a geração — o motor decide o conteúdo sem hardcode, mesmo raciocínio da [ADR 003](./003-sistemas-como-dado.md) pra sistemas de regras. Uma vez gerada, comporta-se como **entidade persistida**: grava congelada, não é recalculada a cada leitura.
+Uma vez gerada, a aventura comporta-se como **entidade persistida**: grava congelada em coluna própria, não é recalculada a cada leitura, nem regenerada em runtime pra servir uma segunda versão ao jogador. Atualizar motor/modelo depois **não** reescreve história já jogada.
 
-"Regenerável" vira propriedade de **proveniência**, não modo de fetch em produção: o `seed` prova de onde a aventura veio (QA, eval, bug report reproduzível — US-146), nunca é recomputado em runtime pra servir o jogador uma segunda versão.
-
-`seed` não ganha coluna própria. `deriveAdventureSeed(characterId, order)` ([US-146](../sdlc/01-requisitos/US-146-seed-deterministico-motor-aventura.md), `@ai-dm/shared`) é função pura sobre `Character.id` + `Adventure.order` — **ambos já colunas existentes** ([schema.prisma](../../apps/api/prisma/schema.prisma)). Persistir o `seed` seria redundante enquanto a fórmula de derivação não mudar; eval/QA recomputa a partir dos dois campos que já existem, sem custo de coluna extra.
+**O `seed` é aposentado** (mudança de 09/09). Com a geração mundo-primeiro (D5), o modelo autora com temperatura — não há mais rolagem determinística sobre tabelas, então `deriveAdventureSeed(characterId, order)` não tem o que semear de forma reproduzível byte a byte. A promessa "a mesma ficha regenera a mesma aventura" **cai**, e é aceitável: reprodutibilidade agora é propriedade do **artefato congelado** (ver D7), não de recomputar a geração. Onde a eval precisar de quase-determinismo, usa `temperature: 0` + versão de modelo pinada sobre perfis fixos — separado da variedade de produção.
 
 ### D2 — Artefato mora em coluna própria: `Adventure.generatedAdventure Json?`
 
-Não reusa `Adventure.entities`. A coluna hoje é `WorldEntity[]` — forma diferente do artefato do motor (`npcs[]`, `secrets[]`, `locations[]`, `encounters[]`, `followUps[]`, do [GEN-1/US-144](../sdlc/01-requisitos/US-144-schema-aventura-shared.md)). Forçar as duas na mesma coluna exigiria um envelope `{ ledger, adventure }` misturando dois ciclos de vida diferentes (ledger muta turno a turno via `recordEntity`; artefato nasce imutável na criação).
+Não reusa `Adventure.entities` (ledger `WorldEntity[]`, forma diferente, ciclo de vida mutável). Forçar as duas na mesma coluna exigiria um envelope `{ ledger, adventure }` misturando um ciclo imutável (artefato) com um mutável (ledger).
 
-Nova coluna: `Adventure.generatedAdventure Json?`, validada por `GeneratedAdventureSchema` ([US-144](../sdlc/01-requisitos/US-144-schema-aventura-shared.md)) — mesmo padrão `Json?` + Zod já usado em `entities` e em `System.config` ([ADR 003 D1](./003-sistemas-como-dado.md)).
-
-O ledger continua `WorldEntity[]` em `Adventure.entities`, **sem mudar forma**. O [GEN-8](../sdlc/01-requisitos/backlog-motor-de-geracao-de-aventuras.md) passa a **derivar** o ledger a partir do artefato persistido (segredos entram com `revelado: false`, NPCs com `revelado: true`) — a fonte muda de extração por LLM (`extractOpeningEntities`) pra leitura estruturada do artefato já congelado; a coluna do ledger e seu consumidor (`recordEntity`, `mergeEntities`) não mudam.
+Coluna `Adventure.generatedAdventure Json?`, validada por `GeneratedAdventureSchema` ([US-144](../sdlc/01-requisitos/US-144-schema-aventura-shared.md)) — mesmo padrão `Json?` + Zod de `entities` e `System.config` ([ADR 003 D1](./003-sistemas-como-dado.md)). O ledger segue `WorldEntity[]` em `Adventure.entities`, sem mudar forma; o motor **deriva** o ledger do artefato persistido (segredos com `revelado: false`, NPCs com `revelado: true`).
 
 ### D3 — `GeneratedAdventureSchema.id` fica como está, sem renomear
 
-O rascunho de [US-144](../sdlc/01-requisitos/US-144-schema-aventura-shared.md) já tem `id` na raiz do schema. A preocupação de colisão com `Adventure.id` (levantada na US-143 original) é infundada: `Adventure.id` é chave primária no nível SQL da linha; `generatedAdventure.id` é campo dentro de uma coluna `Json?` — nível de documento aninhado. Não há ambiguidade real pro Prisma/Postgres nem pro código que lê a coluna. Renomear pra `generationId` sem necessidade técnica adiciona uma divergência de nome entre o schema já desenhado (US-144) e o que a ADR pede, sem ganho — mantém `id`.
+`Adventure.id` é chave primária da linha (nível SQL); `generatedAdventure.id` é campo dentro da coluna `Json?` (documento aninhado). Namespaces diferentes, sem colisão real pro Prisma/Postgres. Renomear pra `generationId` só criaria divergência com o schema já escrito na US-144.
 
-### D4 — Decisão aberta 1 do backlog irmão: resolvida na dimensão persistência, adiada na dimensão portabilidade
+### D4 — Portabilidade cross-`System` não decidida aqui
 
-A pergunta "aventura é dado de um sistema ou entidade reusável?" tem duas leituras que o backlog autoral funde numa só frase:
+A **estrutura** do schema nasce agnóstica de sistema (chave, nunca rótulo — contrato de `catalogLabel`, [US-105](../sdlc/01-requisitos/US-105-raca-e-classe-por-chave-do-srd.md)). O **conteúdo** gerado (CD, orçamento de encontro por CR) é amarrado ao `System` de origem. Reusar um artefato entre `System`s diferentes é decisão do backlog autoral, adiada pra fase 4 — não bloqueia nada aqui.
 
-1. **Persistência/regeneração** — o que esta ADR decide (D1 acima): dado durante a geração, entidade depois de gerada.
-2. **Portabilidade entre `System`s** (o exemplo do backlog é Pegāna, mundo sem nada de 5e, preso a um `System` chamado "D&D 5e") — esta ADR **não decide**. O schema GEN-1 já guarda chave, nunca rótulo (`setting`/`tone`/`areaType`, mesmo contrato de `catalogLabel` da [US-105](../sdlc/01-requisitos/US-105-raca-e-classe-por-chave-do-srd.md)), então a **estrutura** nasce agnóstica de sistema. Mas o **conteúdo** gerado (CD, orçamento de encontro por CR — [GEN-9](../sdlc/01-requisitos/US-152-statblocks-papel-orcamento.md)) é amarrado ao `System` de origem, porque é o motor daquele `System` que gerou. Reusar um artefato entre `System`s diferentes é decisão do backlog autoral, já **adiado pra fase 4** (nota de 07/08/2026 do próprio backlog) — não bloqueia GEN-1 e não é resolvido aqui.
+### D5 — Geração é mundo-primeiro: o modelo autora, tabelas são tempero *(novo, 09/09)*
+
+A aventura é gerada **autorada**, não montada, num **call único** de autoria + passo determinístico + gate:
+
+```
+CHAMADA 1 — autoria (modelo, UMA chamada, do mundo pro detalhe):
+   · mundo autoral + tom          (o bespoke tipo Khemsar/Ur-Veth)
+   · facções (3) com desejos concorrentes
+   · conflito central + fecho ramificado (escolha sem herói)
+   · locais + NPCs                (amarrados às facções)
+   · segredos / pistas            (referenciam locais/facções por id)
+   · atos / sessões + followUps
+   · encontros — FICÇÃO só         (local + facção + situação, SEM números)
+PASSO 2 — números dos encontros   ← 5e determinístico no código (papel + orçamento pro nível),
+                                     preenchendo a ficção da CHAMADA 1
+PASSO 3 — gate                    ← grafo fecha + orçamento cabe. Falha ⇒ regenera a CHAMADA 1
+```
+
+Call único (não cadeia multi-passo): o Spike 1 provou que uma chamada basta pra qualidade Khemsar-grade, e é mais rápido (passos são sequencialmente dependentes, não paralelizam) e menos código. Trade: gate valida a aventura inteira e regenera o blob, não por-peça — cadeia é o caminho de volta se o controle fino importar.
+
+A mecânica **continua 5e SRD** (Open5e, statblocks por papel, CD 2024) — só a **apresentação e a estrutura** vêm do alvo estético (o artefato é AD&D 2E, não se porta a mecânica dele). O passo 7 é a única matemática determinística que fica. As 135 tabelas do LGMRD deixam de ser roladas como espinha; entram como inspiração no prompt, se entrarem (a decidir no reslice do backlog).
+
+**Modelo de prosa:** escada `deepseek/deepseek-v4-pro` → `deepseek/deepseek-v4-pro-0813` → `deepseek/deepseek-v4.1-flash` (preferência da mantenedora lendo as saídas do Spike 1 — o juiz saturou e não discriminou; ver [doc de arquitetura](../arquitetura-motor-aventuras-autorais.md) §*Escada de prosa*). O pro foi anunciado pra descontinuação (10/09); a escada absorve — o `-0813` é fallback de qualidade (mesma família, pode sair junto), o `v4.1-flash` é o sobrevivente. Roda off-turn (sem streaming, sem o teto de 60s do proxy SSE), então paga o modelo forte sem impacto de latência de turno.
+
+### D6 — O schema cresce pra caber a aventura autoral *(novo, 09/09)*
+
+`GeneratedAdventureSchema` (US-144) ganha, mantendo referência cruzada por `id`:
+
+- **`world`** — objeto autoral: `name` (ex. "Khemsar, o Mar de Areia"), `description`, locais-âncora. **Distinto** da chave coarse `setting`, que sobrevive só como dimensão de filtro/eval — não é mais a fonte do mundo.
+- **`factions[]`** — entidade de 1ª classe: `id`, `name`, `kind`, `want`, vínculos por `id` a `npcs`/`locations`/`secrets`. Hoje só existe `npc.role` (texto solto), o que produz a tensão fraca do resultado antigo.
+- **`acts[]` / sessões** — agrupamento sobre `encounters[]`, cada ato fechando num gancho. Hoje `encounters[]` é plano.
+- **`branchedResolution`** — array `{ choice, consequence }` (o fecho sem herói). **Substitui** `conclusion` (string), que sai pra não virar campo morto. `start` fica (seed de abertura, código, US-194); `followUps[]` fica obrigatório e passa a entrar no prompt de autoria.
+**Fora do schema (decisão 10/09):** `hazardTable`/tabela de perigo — removida da geração a pedido da mantenedora; perigo de viagem fica a cargo do Mestre em jogo.
+
+Cada campo novo é chave/estrutura verificável pelo gate ([US-150](../sdlc/01-requisitos/US-150-gate-antes-de-persistir-aventura-gerada.md)), que passa a **regenerar** on-fail (não re-seed — o seed morreu).
+
+### D7 — Âncora de eval substitui o determinismo *(novo, 09/09)*
+
+"Reprodutibilidade" são duas coisas; a inversão só mata uma:
+
+1. **Repro pra debug** — o artefato congelado (D1) fica gravado em `Adventure.generatedAdventure`. Aventura ruim é linha inspecionável, não se regenera. Morre reproduzir o *processo*; o *resultado* fica de graça.
+2. **Regressão** — mede rubrica ([US-36](../sdlc/01-requisitos/US-36-eval-de-qualidade-da-narracao.md)/[US-154](../sdlc/01-requisitos/US-154-eval-aventura-gerada.md)) sobre amostra, a partir de perfis pinados, contra **O Olho de Iremet** como exemplar (resolve a lacuna do backlog: sem exemplar solo/pt-BR/autoral). Como o juiz LLM **satura** nesta tarefa (medido no Spike 1: quase tudo 5/5), a rubrica de regressão ancora em **asserts sobre o artefato** (este `secretId` continua oculto, este NPC existe, o grafo fecha), não na nota do juiz.
 
 ---
 
@@ -54,12 +92,13 @@ A pergunta "aventura é dado de um sistema ou entidade reusável?" tem duas leit
 
 | # | Decisão | Por quê |
 |---|---------|---------|
-| 1 | Artefato (`GeneratedAdventureSchema`) grava congelado | GEN-8 semeia o ledger a partir dele; GEN-11/eval inspeciona sem rerodar o motor; jogador não vê a aventura mudar de forma entre sessões |
-| 2 | `seed` não ganha coluna — recomputado de `Character.id` + `Adventure.order` | Ambos os campos já existem; coluna extra seria redundante e arriscaria divergir da fórmula |
-| 3 | Coluna nova `Adventure.generatedAdventure Json?`, não reuso de `entities` | Forma diferente de `WorldEntity[]`; reuso exigiria envelope misturando dois ciclos de vida |
-| 4 | Ledger (`Adventure.entities`) não muda de forma | `recordEntity`/`mergeEntities` já consomem `WorldEntity[]`; GEN-8 só troca a fonte (artefato em vez de LLM) |
-| 5 | `GeneratedAdventureSchema.id` mantido, sem renomear | Namespace diferente de `Adventure.id` (JSON aninhado vs PK de linha); sem colisão técnica real |
-| 6 | Portabilidade cross-`System` não decidida aqui | Fora do que GEN-1 precisa pra começar; já adiada pro backlog autoral, fase 4 |
+| 1 | Artefato grava congelado; `seed` aposentado | Jogador não vê a aventura mudar de forma; sem rolagem determinística, o seed não tem o que semear (D5); repro vem do artefato congelado (D7) |
+| 2 | Coluna nova `Adventure.generatedAdventure Json?`, não reuso de `entities` | Forma e ciclo de vida diferentes de `WorldEntity[]` |
+| 3 | `GeneratedAdventureSchema.id` mantido | Namespace diferente de `Adventure.id`, sem colisão técnica |
+| 4 | Portabilidade cross-`System` não decidida aqui | Fora do que bloqueia o schema; adiada pra fase 4 |
+| 5 | Geração mundo-primeiro; mecânica 5e; prosa em deepseek-v4-pro | O Spike 1 mostrou que autoria bate a montagem por tabela no nível do exemplar; 5e é a fundação do projeto; pro foi a escolha a olho |
+| 6 | Schema cresce (`world`/`factions[]`/`acts[]`/`branchedResolution`) | Os campos do resultado antigo (registro por chave, `npc.role` solto, `conclusion` string) são exatamente o que saiu genérico e plano |
+| 7 | Eval = artefato congelado + rubrica ancorada em asserts | Juiz LLM satura na tarefa (medido); determinismo byte-a-byte não existe mais |
 
 ---
 
@@ -67,33 +106,40 @@ A pergunta "aventura é dado de um sistema ou entidade reusável?" tem duas leit
 
 | Alternativa | Motivo da rejeição |
 |-------------|-------------------|
-| Persistir `seed` em coluna própria | Redundante enquanto `Character.id`/`Adventure.order` existirem; risco de a coluna divergir da fórmula se um dos dois mudar sem migração |
-| Nunca persistir o artefato — regenerar sob demanda a partir do `seed` | Quebra "a aventura não muda de forma entre sessões"; atualizar motor/modelo depois reescreveria uma história já jogada |
-| Reusar `Adventure.entities` pro artefato inteiro | Colide de forma com `WorldEntity[]`; envelope `{ledger, adventure}` mistura ciclo de vida mutável (ledger) com imutável (artefato) numa coluna só |
-| Renomear `GeneratedAdventureSchema.id` para `generationId` | Sem necessidade técnica — namespaces já distintos (JSON aninhado × PK de linha); só criaria divergência com o rascunho já escrito na US-144 |
-| Resolver portabilidade cross-`System` nesta ADR | Fora do escopo que bloqueia GEN-1; o backlog autoral já adiou essa pergunta pra fase 4 |
+| **Manter a montagem por tabela (versão original desta ADR)** | Produziu genérico, plano, prosa fraca — a razão da revisão de 09/09 |
+| **Híbrido: esqueleto determinístico + camada autoral** | Guardado como plano B do Spike 1; a inversão pura passou a barra, então o esqueleto de tabela (que puxa pro genérico) não se justifica |
+| Persistir/manter o `seed` | Sem rolagem determinística ele não semeia nada reproduzível; repro vem do artefato congelado |
+| Nunca persistir o artefato — regenerar sob demanda | Quebra "a aventura não muda de forma entre sessões"; atualizar motor/modelo reescreveria história jogada |
+| Reusar `Adventure.entities` pro artefato inteiro | Colide de forma e mistura ciclo mutável (ledger) com imutável (artefato) |
+| Renomear `GeneratedAdventureSchema.id` para `generationId` | Namespaces já distintos; só criaria divergência com a US-144 |
+| Portar a mecânica 2E do artefato (THAC0, CA descendente) | Conflita com a fundação 5e SRD; só apresentação/estrutura se porta |
 
 ---
 
 ## 5. Consequências
 
 **Positivas**
-- GEN-1 desenha `id`/envelope do schema sem reabrir esta decisão.
-- Ledger (`WorldEntity[]`) não muda de forma — GEN-8 só troca a fonte de dado, `recordEntity`/`mergeEntities` seguem intactos.
-- Reprodutibilidade (QA, eval, bug report) sem coluna extra — `characterId + order` já bastam.
-- Artefato congelado: jogador não vê a história mudar de forma entre sessões nem por atualização de motor/modelo.
+- Aventura autoral no nível do exemplar (Spike 1), a partir de mundo bespoke em vez de rótulo de catálogo.
+- Ledger (`WorldEntity[]`) não muda de forma — o motor só troca a fonte de dado; `recordEntity`/`mergeEntities` seguem intactos.
+- Artefato congelado: jogador não vê a história mudar de forma; repro de bug vem de ler a linha, sem regenerar.
+- O exemplar *O Olho de Iremet* vira âncora de eval solo/pt-BR/autoral que faltava.
 
 **Negativas / riscos**
-- Migração Prisma nova (`Adventure.generatedAdventure Json?`) necessária — fica a cargo do GEN-1/US-144 aplicar, esta ADR só nomeia a coluna.
-- Se a fórmula de `deriveAdventureSeed` mudar no futuro, aventuras já geradas perdem a capacidade de provar proveniência com a fórmula nova — mitigação: não alterar a fórmula sem motivo forte, e se alterar, registrar a versão usada.
-- Se GEN-9 (statblocks) exigir campos extras em `encounters[]` (`budget`, `role`), artefatos já congelados de aventuras antigas ficam sem esses campos — versionamento de schema é problema futuro, fora do escopo aqui.
+- **Determinismo byte-a-byte morre.** `deriveAdventureSeed` (US-146, implementada) vira código morto a remover (gate `pnpm dead`, US-89). A eval perde o "mesmo seed, mesma aventura" e passa a medir distribuição de qualidade.
+- **Custo/latência por aventura sobem** — um call único de autoria em deepseek-v4-pro (~$0.012/aventura, ~95s+ no Spike 1) contra a rolagem barata de antes. Off-turn mitiga latência (US-197, tela de espera).
+- **Juiz LLM satura** — a regressão não pode depender da nota; ancora em asserts sobre o artefato.
+- **Ancoragem de motivo no prompt** — no Spike 1 todos os modelos convergiram em "cidade sobre ossos de titã" porque a referência do prompt descrevia Khemsar literalmente. Em produção a referência tem de ensinar **qualidades**, não semear um motivo.
+- Migração Prisma nova pros campos de D6 — a cargo da US-144 revisada.
+- **Artefatos gerados pelo motor velho são descartados, não migrados** (decisão da mantenedora, 09/09) — o schema novo não tolera a forma velha; sem versionamento nem backfill. Seguro só porque a fase 1 é pré-lançamento (sem save real a proteger); a decisão volta à mesa se houver história jogada a preservar. Ver [doc de arquitetura](../arquitetura-motor-aventuras-autorais.md) §*Artefatos do motor velho*.
 
 ---
 
 ## 6. Implementação (referência)
 
-- `apps/api/prisma/schema.prisma` — `Adventure.generatedAdventure Json?` (coluna nova, migração aplicada pelo GEN-1/US-144).
-- `packages/shared/src/types/adventure-generation.ts` — `GeneratedAdventureSchema` (US-144), consumidor direto desta decisão.
-- `packages/shared/src/adventure-seed.ts` — `deriveAdventureSeed`, `createSeededRandom` (US-146).
-- `apps/api/src/adventure/adventure.service.ts` — `createForCharacter`; caminho de semeadura que o GEN-8 reusa.
-- `apps/api/src/ai/ai.service.ts:1112` — `extractOpeningEntities`, forma atual (e inalterada) de `Adventure.entities`.
+- `apps/api/prisma/schema.prisma` — `Adventure.generatedAdventure Json?` (coluna existente; D6 acrescenta campos ao JSON, não à tabela).
+- `packages/shared/src/types/adventure-generation.ts` — `GeneratedAdventureSchema`; cresce com `world`/`factions[]`/`acts[]`/`branchedResolution` (D6).
+- `packages/ai-engine/src/model.ts` — nova escada de prosa da autoria (D5): `deepseek/deepseek-v4-pro` → `-pro-0813` → `deepseek/deepseek-v4.1-flash`, no molde de `narrationModels` (tenta em ordem, cai pro próximo na falha).
+- `apps/api/src/adventure-generation/adventure-gate.ts` — o gate passa a regenerar on-fail (D5, PASSO 3), grafo fecha sobre o schema de D6.
+- `packages/shared/src/adventure-seed.ts` — `deriveAdventureSeed`/`createSeededRandom`: **código morto** após a inversão (D1), remover.
+- `apps/api/src/adventure/adventure.service.ts` — `createForCharacter`: caminho de criação onde a chamada de autoria mundo-primeiro entra.
+- `evals/reports/adventure-authoring-spike-2026-09-09T*.md` — Spike 1, evidência de D5/D7.
