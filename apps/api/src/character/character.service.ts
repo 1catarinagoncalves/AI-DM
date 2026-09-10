@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, resolveEquipmentSlots, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -79,8 +79,13 @@ export class CharacterService {
     // US-226: slots de escolha do equipamento inicial da CLASSE (Guerreiro: cota de malha OU
     // couro+arco longo, 4 slots; Bardo/Clérigo/Ladino com um slot de 3 alternativas) — mesmo
     // dado de catálogo de classToolProficiencies/classSkillProficiencies acima.
-    const classEquipmentChoices = config.classes?.find((c) => c.key === charClass)?.startingEquipmentChoices
-    const equipmentChoices = this.validateEquipmentChoices(charClass, classEquipmentChoices?.choices, dto.equipmentChoices)
+    // US-229: `equipmentChoices[i]` indexa a lista JÁ ACHATADA de `resolveEquipmentSlots`
+    // (@ai-dm/shared), não mais `startingEquipmentChoices.choices` cru — a alternativa genérica
+    // ("Any Martial Melee Weapon") virou N alternativas por arma, e um item genérico solto em
+    // `fixed` (bruxo) virou slot sintético concatenado. Mesma função que o preview do wizard
+    // (SetupWizard) usa, pra validação nunca divergir do que a etapa `class` ofereceu.
+    const equipmentSlots = resolveEquipmentSlots(config, charClass)?.slots
+    const equipmentChoices = this.validateEquipmentChoices(charClass, equipmentSlots, dto.equipmentChoices)
     // US-205: subclasse pressupõe a classe já validada acima. `dto.subclass` presente →
     // valida contra o catálogo da classe (BadRequestException se pertencer a outra classe,
     // mesmo padrão de validateCatalogKey). Ausente + catálogo com 1 entrada só → preenche
@@ -530,12 +535,17 @@ export class CharacterService {
   }
 
   /**
-   * US-226: valida `Character.equipmentChoices` contra os slots de
-   * `startingEquipmentChoices.choices` da CLASSE — um índice por slot, dentro de
+   * US-226: valida `Character.equipmentChoices` contra os slots — um índice por slot, dentro de
    * `[0, options.length)`. Classe sem `startingEquipmentChoices` (artefato pré-ingest desta
    * story, ou a5e-ag/marshal) → [] sem checar nada, mesmo corte "nunca quebra" de
    * `classToolProficiencies` ausente. Slot sem índice no DTO assume 0 (opção A) — só um índice
    * PRESENTE e fora do intervalo rejeita, citando classe/slot/valor na mensagem (US-226 §Critérios).
+   *
+   * US-229: `choices` recebe os slots JÁ ACHATADOS de `resolveEquipmentSlots` (@ai-dm/shared),
+   * não mais `startingEquipmentChoices.choices` cru — inclui os slots sintéticos derivados de
+   * item genérico em `fixed` (bruxo), e cada `options.length` já reflete a expansão da
+   * alternativa genérica em uma por arma. Nome do parâmetro ficou o mesmo por só mudar a FONTE
+   * do dado, não o contrato desta função (ainda só `{options}[]`).
    */
   private validateEquipmentChoices(
     classKey: string,

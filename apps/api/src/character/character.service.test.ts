@@ -1809,3 +1809,71 @@ describe('CharacterService.create (US-226 — equipamento inicial à escolha por
     expect(char.equipmentChoices).toEqual([])
   })
 })
+
+// US-229: `equipmentChoices[i]` passa a indexar a lista JÁ ACHATADA (`resolveEquipmentSlots`,
+// @ai-dm/shared) — a alternativa genérica ("Any Martial Melee Weapon") vira N alternativas por
+// arma do catálogo, e um item genérico dentro de `fixed` (sem `choices` nenhum) também vira slot
+// validável. Antes desta story, `validateEquipmentChoices` validava contra `choices` CRU: um
+// índice dentro da lista achatada mas fora do `options.length` original era rejeitado por
+// engano, e um slot sintético de `fixed` nem entrava na validação (índice era descartado em
+// silêncio, `getStartingInventory` sempre caía na opção 0).
+describe('CharacterService.create (US-229 — arma genérica resolvida no equipamento inicial)', () => {
+  const weapons: NonNullable<SystemConfig['weapons']> = [
+    { key: 'battleaxe', label: 'Battleaxe', category: 'martial', weaponType: 'melee' },
+    { key: 'longsword', label: 'Longsword', category: 'martial', weaponType: 'melee' },
+    { key: 'club', label: 'Club', category: 'simple', weaponType: 'melee' },
+    { key: 'dagger', label: 'Dagger', category: 'simple', weaponType: 'melee' },
+  ]
+  const configWithGenericWeapon: SystemConfig = {
+    ...config,
+    races: [{ key: 'human', label: 'Human' }],
+    weapons,
+    classes: [
+      {
+        key: 'barbarian', label: 'Barbarian',
+        weaponProficiencies: { categories: ['simple', 'martial'], weapons: [] },
+        startingEquipmentChoices: {
+          fixed: [],
+          choices: [{ options: [[{ name: 'Greataxe', qty: 1 }], [{ name: 'Any Martial Melee Weapon', qty: 1 }]] }],
+        },
+      },
+      {
+        key: 'warlock', label: 'Warlock',
+        weaponProficiencies: { categories: ['simple'], weapons: [] },
+        startingEquipmentChoices: {
+          choices: [],
+          fixed: [{ name: 'Leather Armor', qty: 1 }, { name: 'Any Simple Weapon', qty: 1 }],
+        },
+      },
+    ],
+  }
+
+  it('índice além do options.length CRU (mas dentro da lista achatada) é aceito, nunca rejeitado como "fora do intervalo"', async () => {
+    const service = new CharacterService(fakePrisma(configWithGenericWeapon))
+    // Lista achatada do slot 0: [Greataxe, Battleaxe, Longsword] — índice 2 não existia no
+    // `options` cru (só tinha 2 alternativas: Greataxe e o texto genérico).
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'barbarian',
+      attributes: { cool: 5, hard: 5 }, equipmentChoices: [2],
+    })
+    expect(char.equipmentChoices).toEqual([2])
+  })
+
+  it('item genérico dentro de fixed (sem choices nenhum) também vira slot validável por índice', async () => {
+    const service = new CharacterService(fakePrisma(configWithGenericWeapon))
+    // warlock não tem `choices` — o slot 0 aqui é o SINTÉTICO derivado de `fixed[1]`.
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'warlock',
+      attributes: { cool: 5, hard: 5 }, equipmentChoices: [1],
+    })
+    expect(char.equipmentChoices).toEqual([1])
+  })
+
+  it('índice fora da lista ACHATADA ainda rejeita, citando classe/slot/valor', async () => {
+    const service = new CharacterService(fakePrisma(configWithGenericWeapon))
+    await expect(service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'human', class: 'barbarian',
+      attributes: { cool: 5, hard: 5 }, equipmentChoices: [3],
+    })).rejects.toThrow('equipmentChoices inválido para a classe barbarian: slot 0 recebeu 3')
+  })
+})

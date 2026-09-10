@@ -372,6 +372,7 @@ export const SystemConfigSchema = z.object({
 export type SystemAttribute = z.infer<typeof SystemAttributeSchema>
 export type SystemCatalogEntry = z.infer<typeof SystemCatalogEntrySchema>
 export type SystemTool = z.infer<typeof SystemToolSchema>
+export type SystemWeapon = z.infer<typeof SystemWeaponSchema>
 export type SystemClassFeature = z.infer<typeof SystemClassFeatureSchema>
 export type SystemSpell = z.infer<typeof SystemSpellSchema>
 export type SystemBackground = z.infer<typeof SystemBackgroundSchema>

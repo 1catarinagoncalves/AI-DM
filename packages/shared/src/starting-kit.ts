@@ -1,5 +1,5 @@
 import type { InventoryItem } from './types/character'
-import { resolveSheetEntries, type SystemClassFeature, type SystemConfig } from './types/system'
+import { resolveSheetEntries, type SystemClassFeature, type SystemConfig, type SystemWeapon } from './types/system'
 import type { Locale } from './locale'
 import { DWARF_TOOL_PROFICIENCY_CHOICES } from './dwarf-tool-proficiency'
 
@@ -29,16 +29,103 @@ import { DWARF_TOOL_PROFICIENCY_CHOICES } from './dwarf-tool-proficiency'
  * disciplina "nunca quebra" de `getRaceToolEquipment`/`getBackgroundEquipment`.
  */
 export function getStartingInventory(config: SystemConfig, classKey: string, equipmentChoices?: number[]): InventoryItem[] {
-  const classEntry = config.classes?.find((c) => c.key === classKey)
-  const equipment = classEntry?.startingEquipmentChoices
-  if (!equipment) {
+  const resolved = resolveEquipmentSlots(config, classKey)
+  if (!resolved) {
     // SystemConfigSchema garante a chave `default`; ver types/system.ts.
     return config.startingKits[classKey] ?? (config.startingKits.default as InventoryItem[])
   }
   return [
-    ...equipment.fixed,
-    ...equipment.choices.map((slot, i) => slot.options[equipmentChoices?.[i] ?? 0] ?? slot.options[0]!).flat(),
+    ...resolved.fixed,
+    ...resolved.slots.map((slot, i) => slot.options[equipmentChoices?.[i] ?? 0] ?? slot.options[0]!).flat(),
   ]
+}
+
+// US-229: as 3 formas de texto que a `startingEquipmentChoices` do ingest produz pra uma
+// alternativa de arma GENÉRICA ("escolha qualquer arma desta categoria"), nos dois locales —
+// varredura ad-hoc confirmou que são só estas 3, nunca "ranged" sozinho, nunca "martial" sem
+// qualificador de tipo (US-229 §Contexto). Mapa em vez de regex: só 6 strings concretas existem
+// hoje, e um lookup exaustivo não corre risco de casar acento errado (ex. "À Distância").
+type GenericWeaponItem = { category: 'simple' | 'martial'; weaponType?: 'melee' | 'ranged' }
+const GENERIC_WEAPON_ITEMS: Record<string, GenericWeaponItem> = {
+  'Any Simple Weapon': { category: 'simple' },
+  'Qualquer Arma Simples': { category: 'simple' },
+  'Any Simple Melee Weapon': { category: 'simple', weaponType: 'melee' },
+  'Qualquer Arma Simples Corpo a Corpo': { category: 'simple', weaponType: 'melee' },
+  'Any Martial Melee Weapon': { category: 'martial', weaponType: 'melee' },
+  'Qualquer Arma Marcial Corpo a Corpo': { category: 'martial', weaponType: 'melee' },
+}
+
+function parseGenericWeaponItem(name: string): GenericWeaponItem | undefined {
+  return GENERIC_WEAPON_ITEMS[name]
+}
+
+/**
+ * US-229 §Contexto "achado crítico": `category`/`weaponType` sozinhos não garantem que a
+ * classe seja PROFICIENTE na arma — druida e feiticeiro têm `weaponProficiencies.categories`
+ * vazio, proficiência 100% em lista NOMEADA (`.weapons`). Nesse caso o pool vem só da lista
+ * nomeada (filtrada por `weaponType` quando o item genérico pede um), NUNCA cruzado com
+ * `category` — uma arma pode estar na lista nomeada com categoria de catálogo diferente da do
+ * item genérico (ex.: Cimitarra é `martial` no catálogo, mas está na lista nomeada do druida
+ * dentro do balde "Qualquer Arma Simples", porque a SRD concede aquela exceção nomeada). Classe
+ * com `categories` não-vazio (os outros 6 das 8 com item genérico) já resolve por categoria —
+ * a lista nomeada nem entra na conta.
+ */
+function matchingWeapons(
+  generic: GenericWeaponItem,
+  weapons: SystemWeapon[],
+  weaponProficiencies?: { categories: string[]; weapons: string[] },
+): SystemWeapon[] {
+  const matchesType = (w: SystemWeapon) => !generic.weaponType || w.weaponType === generic.weaponType
+  if (weaponProficiencies && weaponProficiencies.categories.length === 0) {
+    return weaponProficiencies.weapons
+      .map((key) => weapons.find((w) => w.key === key))
+      .filter((w): w is SystemWeapon => !!w && matchesType(w))
+  }
+  return weapons.filter((w) => w.category === generic.category && matchesType(w))
+}
+
+/**
+ * Substitui, DENTRO do slot, a alternativa genérica por uma alternativa por arma casada
+ * (US-229 §Decisão de UI — nenhum controle novo, só mais `<option>` no mesmo `<select>`). Só
+ * uma alternativa de item ÚNICO pode ser genérica (é o formato que o ingest sempre produz para
+ * ela, ver GENERIC_WEAPON_ITEMS); alternativas nomeadas (ex. "Machado Grande") passam intactas.
+ */
+function flattenWeaponOptions(
+  options: InventoryItem[][],
+  weapons: SystemWeapon[],
+  weaponProficiencies?: { categories: string[]; weapons: string[] },
+): InventoryItem[][] {
+  return options.flatMap((option) => {
+    const generic = option.length === 1 ? parseGenericWeaponItem(option[0]!.name) : undefined
+    if (!generic) return [option]
+    return matchingWeapons(generic, weapons, weaponProficiencies).map((w) => [{ name: w.label, qty: option[0]!.qty }])
+  })
+}
+
+export type EquipmentChoiceSlot = { options: InventoryItem[][] }
+
+/**
+ * US-229: junta os slots de `choices` (US-226) com um slot SINTÉTICO por item genérico solto
+ * dentro de `fixed` — o caso do bruxo, "Qualquer Arma Simples" GARANTIDO, sem alternativa
+ * nomeada nenhuma (US-229 §Contexto "achado que muda o escopo") — e ACHATA cada slot resultante
+ * com `flattenWeaponOptions`. `equipmentChoices[i]` (US-226) passa a indexar esta lista JÁ
+ * ACHATADA: o componente (SetupWizard) e `getStartingInventory` chamam esta MESMA função pra
+ * nunca divergir, mesma disciplina do preview nunca divergir da criação (US-127).
+ */
+export function resolveEquipmentSlots(config: SystemConfig, classKey: string): { fixed: InventoryItem[]; slots: EquipmentChoiceSlot[] } | undefined {
+  const classEntry = config.classes?.find((c) => c.key === classKey)
+  const equipment = classEntry?.startingEquipmentChoices
+  if (!equipment) return undefined
+  const weapons = config.weapons ?? []
+  const weaponProficiencies = classEntry?.weaponProficiencies
+  const fixed = equipment.fixed.filter((item) => !parseGenericWeaponItem(item.name))
+  const syntheticSlots = equipment.fixed
+    .filter((item) => parseGenericWeaponItem(item.name))
+    .map((item) => ({ options: [[item]] }))
+  const slots = [...equipment.choices, ...syntheticSlots].map((slot) => ({
+    options: flattenWeaponOptions(slot.options, weapons, weaponProficiencies),
+  }))
+  return { fixed, slots }
 }
 
 /**

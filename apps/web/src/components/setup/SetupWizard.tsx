@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
 import {
   abilityModifier, buildSavingThrowSheet, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
-  getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures,
+  getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, resolveEquipmentSlots,
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
   DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE,
   RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES,
@@ -410,7 +410,12 @@ export function SetupWizard() {
   // padrão de acesso de classToolGrant acima. Ausente (artefato pré-ingest desta story, ou
   // a5e-ag/marshal) → o painel de detalhe segue mostrando `previewKit` como texto corrido, sem
   // seleção pedida (ver bloco JSX da etapa `class`).
-  const classEquipmentChoices = classProficiencyEntry?.startingEquipmentChoices
+  // US-229: `resolveEquipmentSlots` (não mais `startingEquipmentChoices` cru) — junta os slots
+  // de `choices` com o slot sintético de item genérico solto em `fixed` (bruxo) e ACHATA a
+  // alternativa genérica ("Qualquer Arma Marcial Corpo a Corpo") numa `<option>` por arma do
+  // catálogo que casa a proficiência da própria classe. `.fixed` aqui já vem SEM o item
+  // genérico (ele virou slot) — só o que continua literalmente fixo.
+  const classEquipmentSlots = system?.config ? resolveEquipmentSlots(system.config, charData.class) : undefined
   // US-210: catálogo de alinhamento (config.alignments, SRD via ingest) — mesmo padrão de
   // raceCatalog/classCatalog acima, consumido só na etapa `identity`.
   const alignmentCatalog = system?.config?.alignments ?? []
@@ -756,7 +761,9 @@ export function SetupWizard() {
           // US-226: classe com `startingEquipmentChoices` exige um valor não-vazio em CADA
           // slot — checa por índice (não por `.length`) porque um slot preenchido fora de
           // ordem deixaria buracos no array que `.length` sozinho não pegaria.
-          && (!classEquipmentChoices || classEquipmentChoices.choices.every((_, i) => equipmentChoices[i] !== undefined && equipmentChoices[i] !== ''))
+          // US-229: `.slots` (achatado, inclui o sintético de `fixed`) no lugar de `.choices`
+          // cru — mesma checagem, mais slots quando a classe tem item genérico em `fixed`.
+          && (!classEquipmentSlots || classEquipmentSlots.slots.every((_, i) => equipmentChoices[i] !== undefined && equipmentChoices[i] !== ''))
       // US-211: dragonborn exige a ancestralidade dracônica escolhida — mesmo espírito da
       // checagem de subclass em canAdvance('class').
       case 'race':
@@ -868,8 +875,10 @@ export function SetupWizard() {
       // condicional de classToolChoicePayload acima. `canAdvance('class')` já garante todo
       // slot preenchido antes de chegar aqui, mas `?? '0'` é defensivo (mesma opção A que o
       // service assume pra índice ausente, nunca quebra o envio).
-      const equipmentChoicesPayload = classEquipmentChoices
-        ? classEquipmentChoices.choices.map((_, i) => Number(equipmentChoices[i] ?? '0'))
+      // US-229: `.slots` (achatado) no lugar de `.choices` cru — o índice enviado já é o da
+      // lista achatada, mesma que `character.service.ts` valida contra (resolveEquipmentSlots).
+      const equipmentChoicesPayload = classEquipmentSlots
+        ? classEquipmentSlots.slots.map((_, i) => Number(equipmentChoices[i] ?? '0'))
         : undefined
       // US-61: `userId` não vai no corpo — a API deriva o dono do token.
       const char = await api.createCharacter({
@@ -1126,16 +1135,19 @@ export function SetupWizard() {
                           fica no texto corrido de sempre, ver ramo `else`) troca o parágrafo
                           fixo por itens fixos + um <select> por slot, mesma anatomia visual do
                           <select> de classToolGrant logo abaixo. Rótulo do slot = as
-                          alternativas unidas por "ou" (US-226 §Notas de implementação). */}
-                      {classEquipmentChoices ? (
+                          alternativas unidas por "ou" (US-226 §Notas de implementação).
+                          US-229: `classEquipmentSlots.slots` já vem ACHATADO — a alternativa
+                          genérica ("Qualquer Arma Marcial Corpo a Corpo") já chega aqui como uma
+                          `<option>` por arma, nenhum controle novo além do <select> de sempre. */}
+                      {classEquipmentSlots ? (
                         <div>
                           <SheetHeading tone="primary">{t('setup.class.detail.kit')}</SheetHeading>
-                          {classEquipmentChoices.fixed.length > 0 && (
+                          {classEquipmentSlots.fixed.length > 0 && (
                             <p className="text-sm text-foreground">
-                              {classEquipmentChoices.fixed.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
+                              {classEquipmentSlots.fixed.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
                             </p>
                           )}
-                          {classEquipmentChoices.choices.map((slot, slotIndex) => {
+                          {classEquipmentSlots.slots.map((slot, slotIndex) => {
                             const optionLabel = (opt: typeof slot.options[number]) =>
                               opt.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(', ')
                             const slotLabel = slot.options.map(optionLabel).join(` ${t('setup.class.equipmentChoice.or')} `)

@@ -2743,6 +2743,124 @@ describe('SetupWizard — US-226 equipamento inicial à escolha da classe', () =
   })
 })
 
+// US-229: a alternativa genérica ("Qualquer Arma Marcial Corpo a Corpo") deixa de ser uma
+// option literal — o MESMO <select> do slot ganha uma option por arma do catálogo que casa
+// category/weaponType e a proficiência da própria classe (US-229 §Contexto "achado crítico").
+// Bárbaro cobre o caso comum (weaponProficiencies.categories não-vazio); Bruxo cobre o item
+// genérico dentro de `fixed` (sem `choices` nenhum — vira slot sintético, mesmo mecanismo).
+const genericWeaponChoiceWeapons: NonNullable<SystemConfig['weapons']> = [
+  { key: 'battleaxe', label: 'Machado de Batalha', category: 'martial', weaponType: 'melee' },
+  { key: 'longsword', label: 'Espada Longa', category: 'martial', weaponType: 'melee' },
+  { key: 'club', label: 'Clava', category: 'simple', weaponType: 'melee' },
+  { key: 'dagger', label: 'Adaga', category: 'simple', weaponType: 'melee' },
+]
+const genericWeaponChoiceClasses: NonNullable<SystemConfig['classes']> = [
+  {
+    key: 'barbarian', label: 'Bárbaro',
+    weaponProficiencies: { categories: ['simple', 'martial'], weapons: [] },
+    startingEquipmentChoices: {
+      fixed: [],
+      choices: [
+        { options: [[{ name: 'Machado Grande', qty: 1 }], [{ name: 'Qualquer Arma Marcial Corpo a Corpo', qty: 1 }]] },
+      ],
+    },
+  },
+  {
+    key: 'warlock', label: 'Bruxo',
+    weaponProficiencies: { categories: ['simple'], weapons: [] },
+    startingEquipmentChoices: {
+      choices: [],
+      fixed: [{ name: 'Armadura de Couro', qty: 1 }, { name: 'Qualquer Arma Simples', qty: 1 }],
+    },
+  },
+]
+const configWithGenericWeaponChoice = (budget: number) => ({
+  ...configWithBudget(budget),
+  weapons: genericWeaponChoiceWeapons,
+  classes: genericWeaponChoiceClasses,
+})
+
+describe('SetupWizard — US-229 escolha específica de arma na alternativa genérica', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function pickClass(config: SystemConfig, className: string) {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.click(screen.getByRole('radio', { name: className }))
+  }
+
+  async function finishToReview() {
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    fireEvent.click(nextBtn()) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(nextBtn()) // → background
+    fireEvent.click(nextBtn()) // → atributos (budget 0, sem escolha pendente)
+    fireEvent.click(nextBtn()) // → perícias (sem catálogo → livre)
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(nextBtn()) // → revisão
+  }
+
+  it('Bárbaro: o select do slot ganha uma option por arma marcial corpo a corpo do catálogo, nunca o texto genérico', async () => {
+    await pickClass(configWithGenericWeaponChoice(0), 'Bárbaro')
+    const slot = screen.getByLabelText('Machado Grande ou Machado de Batalha ou Espada Longa') as HTMLSelectElement
+    const optionTexts = within(slot).getAllByRole('option').map(o => o.textContent)
+    expect(optionTexts).toEqual(['Selecionar…', 'Machado Grande', 'Machado de Batalha', 'Espada Longa'])
+    // Nenhuma arma simples (fora de category+weaponType) aparece misturada no mesmo select.
+    expect(optionTexts).not.toContain('Clava')
+    expect(optionTexts).not.toContain('Adaga')
+  })
+
+  it('Bárbaro: escolher a option expandida resolve de uma vez, sem etapa/controle adicional', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickClass(configWithGenericWeaponChoice(0), 'Bárbaro')
+    fireEvent.change(screen.getByLabelText('Machado Grande ou Machado de Batalha ou Espada Longa'), { target: { value: '2' } })
+    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+
+    await finishToReview()
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ equipmentChoices: [2] }))
+  })
+
+  it('Bruxo: item genérico dentro de fixed também vira select (mesmo mecanismo), itens não-genéricos de fixed continuam texto fixo', async () => {
+    await pickClass(configWithGenericWeaponChoice(0), 'Bruxo')
+    // "Armadura de Couro" (não-genérico) continua parágrafo fixo — nunca virou controle.
+    expect(screen.getByText('Armadura de Couro')).toBeTruthy()
+    const slot = screen.getByLabelText('Clava ou Adaga') as HTMLSelectElement
+    const optionTexts = within(slot).getAllByRole('option').map(o => o.textContent)
+    expect(optionTexts).toEqual(['Selecionar…', 'Clava', 'Adaga'])
+  })
+
+  it('Bruxo: o slot sintético do fixed entra em equipmentChoices no DTO de criação, mesmo índice do <select>', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickClass(configWithGenericWeaponChoice(0), 'Bruxo')
+    fireEvent.change(screen.getByLabelText('Clava ou Adaga'), { target: { value: '1' } })
+    await finishToReview()
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ equipmentChoices: [1] }))
+  })
+
+  // US-229 §Critérios de aceite: a linha "Kit" da revisão mostra a arma específica, nunca o
+  // texto "Qualquer Arma..." — não basta a função mudar, a TELA precisa mostrar o resultado.
+  it('etapa review mostra a arma específica escolhida na linha "Kit inicial", nunca o texto genérico', async () => {
+    await pickClass(configWithGenericWeaponChoice(0), 'Bárbaro')
+    fireEvent.change(screen.getByLabelText('Machado Grande ou Machado de Batalha ou Espada Longa'), { target: { value: '2' } })
+    await finishToReview()
+
+    const kitRow = screen.getByText('Kit inicial').closest('div')
+    expect(within(kitRow!).getByText('Espada Longa')).toBeTruthy()
+    expect(within(kitRow!).queryByText(/Qualquer Arma/)).toBeNull()
+  })
+})
+
 // US-220: perícia proficiente concedida por raça — Alto-elfo/Meio-orc fixa
 // (RACE_SKILL_PROFICIENCIES), Meio-elfo à escolha (RACE_SKILL_PROFICIENCY_CHOICES).
 // `stealth`/`arcana` sobram no catálogo pra provar que só as concedidas somem da etapa

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SystemConfig } from './types/system'
-import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, getRaceToolEquipment, resolveCharacterFeatures, MEMENTO_ITEM_LABEL } from './starting-kit'
+import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, getRaceToolEquipment, resolveCharacterFeatures, resolveEquipmentSlots, MEMENTO_ITEM_LABEL } from './starting-kit'
 
 const dnd5eConfig: SystemConfig = {
   attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
@@ -110,6 +110,199 @@ describe('getStartingInventory — US-226 (equipamento à escolha)', () => {
 
   it('classe sem startingEquipmentChoices no config cai no startingKits de sempre (fallback pré-US-226)', () => {
     expect(getStartingInventory(dnd5eConfig, 'wizard', [0])).toEqual([{ name: 'Grimório', qty: 1 }])
+  })
+})
+
+// US-229: a alternativa genérica ("Qualquer Arma Marcial Corpo a Corpo") deixa de ser texto
+// ad-verbatim no inventário — vira uma arma de verdade do catálogo. `resolveEquipmentSlots`
+// substitui, dentro do MESMO slot, a alternativa genérica por uma alternativa por arma que casa
+// category/weaponType, cruzado com a proficiência da própria classe (US-229 §Contexto "achado
+// crítico"). `equipmentChoices[i]` passa a indexar essa lista já achatada.
+describe('resolveEquipmentSlots / getStartingInventory — US-229 (arma genérica resolvida)', () => {
+  // Subconjunto do catálogo real (US-228) — só o suficiente pra provar o filtro de
+  // categoria/tipo, sem arrastar os 44 itens do dataset pro teste.
+  const weapons: NonNullable<SystemConfig['weapons']> = [
+    { key: 'battleaxe', label: 'Machado de Batalha', category: 'martial', weaponType: 'melee' },
+    { key: 'longsword', label: 'Espada Longa', category: 'martial', weaponType: 'melee' },
+    { key: 'scimitar', label: 'Cimitarra', category: 'martial', weaponType: 'melee' },
+    { key: 'blowgun', label: 'Zarabatana', category: 'martial', weaponType: 'ranged' },
+    { key: 'club', label: 'Clava', category: 'simple', weaponType: 'melee' },
+    { key: 'dagger', label: 'Adaga', category: 'simple', weaponType: 'melee' },
+    { key: 'javelin', label: 'Azagaia', category: 'simple', weaponType: 'melee' },
+    { key: 'sling', label: 'Funda', category: 'simple', weaponType: 'ranged' },
+    { key: 'light_crossbow', label: 'Besta Leve', category: 'simple', weaponType: 'ranged' },
+  ]
+
+  // Barbarian real (US-229 §Contexto): 2 slots, os dois com alternativa genérica; proficiência
+  // por CATEGORIA (`categories` não-vazio) — filtro de categoria/tipo já basta, sem lista nomeada.
+  const barbarianConfig: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    weapons,
+    classes: [
+      {
+        key: 'barbarian', label: 'Bárbaro',
+        weaponProficiencies: { categories: ['simple', 'martial'], weapons: [] },
+        startingEquipmentChoices: {
+          fixed: [{ name: 'Mochila de Explorador e Quatro Azagaias', qty: 1 }],
+          choices: [
+            { options: [[{ name: 'Machado Grande', qty: 1 }], [{ name: 'Qualquer Arma Marcial Corpo a Corpo', qty: 1 }]] },
+            { options: [[{ name: 'Duas Machadinhas', qty: 1 }], [{ name: 'Qualquer Arma Simples', qty: 1 }]] },
+          ],
+        },
+      },
+    ],
+  }
+
+  it('achata a alternativa genérica em uma option por arma do catálogo que casa category+weaponType', () => {
+    const resolved = resolveEquipmentSlots(barbarianConfig, 'barbarian')
+    // Slot 0: "Machado Grande" (literal) + as 4 armas marciais corpo a corpo do catálogo.
+    expect(resolved?.slots[0]?.options).toEqual([
+      [{ name: 'Machado Grande', qty: 1 }],
+      [{ name: 'Machado de Batalha', qty: 1 }],
+      [{ name: 'Espada Longa', qty: 1 }],
+      [{ name: 'Cimitarra', qty: 1 }],
+    ])
+    // Slot 1: "Duas Machadinhas" (literal) + as 5 armas simples do catálogo, sem filtro de tipo
+    // (nenhuma arma marcial/corpo a corpo específica aparece misturada).
+    expect(resolved?.slots[1]?.options).toEqual([
+      [{ name: 'Duas Machadinhas', qty: 1 }],
+      [{ name: 'Clava', qty: 1 }],
+      [{ name: 'Adaga', qty: 1 }],
+      [{ name: 'Azagaia', qty: 1 }],
+      [{ name: 'Funda', qty: 1 }],
+      [{ name: 'Besta Leve', qty: 1 }],
+    ])
+  })
+
+  it('escolher a option expandida resolve a arma específica no inventário final, nunca o texto genérico', () => {
+    const inventory = getStartingInventory(barbarianConfig, 'barbarian', [2, 0])
+    expect(inventory).toEqual([
+      { name: 'Mochila de Explorador e Quatro Azagaias', qty: 1 },
+      { name: 'Espada Longa', qty: 1 },
+      { name: 'Duas Machadinhas', qty: 1 },
+    ])
+    expect(inventory.some(i => i.name.startsWith('Qualquer Arma'))).toBe(false)
+  })
+
+  // Warlock real (US-229 §Contexto "achado que muda o escopo"): item genérico dentro de
+  // `fixed` (garantido, sem alternativa) vira slot SINTÉTICO — mesmo mecanismo de achatamento,
+  // os outros 2 itens de `fixed` (não-genéricos) continuam literalmente fixos.
+  const warlockConfig: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    weapons,
+    classes: [
+      {
+        key: 'warlock', label: 'Bruxo',
+        weaponProficiencies: { categories: ['simple'], weapons: [] },
+        startingEquipmentChoices: {
+          choices: [
+            { options: [[{ name: 'Besta Leve e 20 Virotes', qty: 1 }], [{ name: 'Qualquer Arma Simples', qty: 1 }]] },
+          ],
+          fixed: [
+            { name: 'Armadura de Couro', qty: 1 },
+            { name: 'Qualquer Arma Simples', qty: 1 },
+            { name: 'Duas Adagas', qty: 1 },
+          ],
+        },
+      },
+    ],
+  }
+
+  it('item genérico dentro de fixed vira slot sintético; os outros itens de fixed continuam literais', () => {
+    const resolved = resolveEquipmentSlots(warlockConfig, 'warlock')
+    expect(resolved?.fixed).toEqual([{ name: 'Armadura de Couro', qty: 1 }, { name: 'Duas Adagas', qty: 1 }])
+    expect(resolved?.slots).toHaveLength(2) // 1 slot de choices + 1 sintético de fixed
+    // Slot sintético (índice 1): só as 5 armas simples do catálogo, sem alternativa nomeada.
+    expect(resolved?.slots[1]?.options).toEqual([
+      [{ name: 'Clava', qty: 1 }],
+      [{ name: 'Adaga', qty: 1 }],
+      [{ name: 'Azagaia', qty: 1 }],
+      [{ name: 'Funda', qty: 1 }],
+      [{ name: 'Besta Leve', qty: 1 }],
+    ])
+  })
+
+  it('resolve o slot sintético do fixed pelo mesmo equipmentChoices[i], entra no inventário final', () => {
+    const inventory = getStartingInventory(warlockConfig, 'warlock', [1, 3])
+    expect(inventory).toEqual([
+      { name: 'Armadura de Couro', qty: 1 },
+      { name: 'Duas Adagas', qty: 1 },
+      { name: 'Clava', qty: 1 }, // slot 0 (choices), opção expandida índice 1
+      { name: 'Funda', qty: 1 }, // slot 1 (sintético de fixed), opção expandida índice 3
+    ])
+  })
+
+  // Druida/Feiticeiro real (US-229 §Contexto "achado crítico"): `weaponProficiencies.categories`
+  // vazio — filtrar só por category/weaponType ofereceria arma fora da proficiência da classe.
+  // Cimitarra (categoria MARCIAL no catálogo) prova o caso: entra na lista nomeada do druida
+  // mesmo sem bater a categoria 'simple' do item genérico — a lista nomeada manda, não a categoria.
+  const druidWeapons: NonNullable<SystemConfig['weapons']> = [
+    { key: 'club', label: 'Clava', category: 'simple', weaponType: 'melee' },
+    { key: 'dagger', label: 'Adaga', category: 'simple', weaponType: 'melee' },
+    { key: 'scimitar', label: 'Cimitarra', category: 'martial', weaponType: 'melee' },
+    { key: 'greatclub', label: 'Clava Grande', category: 'simple', weaponType: 'melee' }, // fora da lista nomeada
+    { key: 'shortbow', label: 'Arco Curto', category: 'simple', weaponType: 'ranged' }, // fora da lista nomeada
+  ]
+  const druidConfig: SystemConfig = {
+    attributes: [{ key: 'wisdom', label: 'Sabedoria', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    weapons: druidWeapons,
+    classes: [
+      {
+        key: 'druid', label: 'Druida',
+        weaponProficiencies: { categories: [], weapons: ['club', 'dagger', 'scimitar'] },
+        startingEquipmentChoices: {
+          fixed: [],
+          choices: [
+            { options: [[{ name: 'Escudo de Madeira', qty: 1 }], [{ name: 'Qualquer Arma Simples', qty: 1 }]] },
+          ],
+        },
+      },
+    ],
+  }
+
+  it('categories vazio: pool restrito à lista NOMEADA da classe, mesmo cruzando categoria de catálogo diferente (Cimitarra)', () => {
+    const resolved = resolveEquipmentSlots(druidConfig, 'druid')
+    expect(resolved?.slots[0]?.options).toEqual([
+      [{ name: 'Escudo de Madeira', qty: 1 }],
+      [{ name: 'Clava', qty: 1 }],
+      [{ name: 'Adaga', qty: 1 }],
+      [{ name: 'Cimitarra', qty: 1 }],
+    ])
+    // Clava Grande e Arco Curto são 'simple' no catálogo mas NÃO estão na lista nomeada do
+    // druida — categoria bater não basta, teria que estar em weaponProficiencies.weapons.
+    const labels = resolved?.slots[0]?.options.flat().map(i => i.name)
+    expect(labels).not.toContain('Clava Grande')
+    expect(labels).not.toContain('Arco Curto')
+  })
+
+  it('classe sem item genérico no kit: options do slot passam intactas (nenhuma expansão)', () => {
+    // "Arma Marcial" é texto literal (não um dos 3 padrões reconhecidos) — mesmo com catálogo
+    // de armas presente no config, o slot não deve ganhar nenhuma option nova.
+    const noGenericConfig: SystemConfig = {
+      attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+      startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+      weapons,
+      classes: [{
+        key: 'fighter', label: 'Guerreiro',
+        weaponProficiencies: { categories: ['simple', 'martial'], weapons: [] },
+        startingEquipmentChoices: {
+          fixed: [],
+          choices: [{ options: [[{ name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 }], [{ name: 'Arma Marcial', qty: 2 }]] }],
+        },
+      }],
+    }
+    const resolved = resolveEquipmentSlots(noGenericConfig, 'fighter')
+    expect(resolved?.slots[0]?.options).toEqual([
+      [{ name: 'Arma Marcial', qty: 1 }, { name: 'Escudo', qty: 1 }],
+      [{ name: 'Arma Marcial', qty: 2 }],
+    ])
+  })
+
+  it('classe sem startingEquipmentChoices no config: resolveEquipmentSlots devolve undefined', () => {
+    expect(resolveEquipmentSlots(dnd5eConfig, 'wizard')).toBeUndefined()
   })
 })
 
