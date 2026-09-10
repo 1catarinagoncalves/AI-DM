@@ -177,6 +177,26 @@ describe('CharacterService.create', () => {
     })).rejects.toThrow()
   })
 
+  // US-227: nível inicial à escolha — persiste o valor do DTO, com fallback a 1 quando ausente
+  // (compatibilidade com cliente que ainda não manda o campo).
+  it('persiste o level do DTO', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 8, hard: 3 }, level: 5,
+    })
+    expect(char.level).toBe(5)
+  })
+
+  it('level ausente no DTO cai no fallback 1', async () => {
+    const service = new CharacterService(fakePrisma(config))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'x',
+      attributes: { cool: 8, hard: 3 },
+    })
+    expect(char.level).toBe(1)
+  })
+
   // O systemId vem do DTO do cliente, não de FK — id inexistente é erro DELE, 404,
   // e não pode virar 500 por a busca ter passado a sair da cache da tabela.
   it('systemId inexistente continua 404, com o valor ofensor na mensagem', async () => {

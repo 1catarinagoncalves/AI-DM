@@ -208,7 +208,8 @@ export class CharacterService {
         raceToolChoice,
         class: charClass,
         subclass,
-        level: 1,
+        // US-227: nível inicial à escolha na criação — antes literal fixo `1`.
+        level: dto.level ?? 1,
         baseAttributes: finalAttributes,
         skills,
         tools,

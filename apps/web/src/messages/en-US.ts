@@ -116,6 +116,12 @@ export const enUS: Record<MessageKey, string> = {
   'setup.subclass.legend': 'Subclass',
   'setup.class.detail.kit': 'Starting equipment',
   'setup.class.detail.subclass': 'Subclass',
+  // US-227: "D{sides} HIT DIE" badge (text is lowercase — the CSS `uppercase` class caps it)
+  // and the starting level (1–20) selector in the `class` step detail panel.
+  'setup.class.detail.hitDice': 'd{sides} hit die',
+  'setup.class.detail.level': 'Starting level',
+  'setup.class.level.decrease': 'Decrease level',
+  'setup.class.level.increase': 'Increase level',
   'setup.race.detail.features': 'Racial traits',
   'setup.race.variant.legend': 'Choose a variant',
   // Dwarf "Tool Proficiency" trait — legend for the artisan's tool choice grid, hill-dwarf only.

@@ -60,6 +60,9 @@ async function del(path: string): Promise<void> {
 export const api = {
   createCharacter: (data: {
     systemId: string; name: string; gender: string; race: string; class: string
+    // US-227: nível inicial à escolha na criação (1–20) — opcional, fallback 1 no service
+    // quando ausente (compatibilidade com cliente antigo).
+    level?: number
     // US-211: chave de DRACONIC_ANCESTRY_TABLE — só manda quando `race === 'dragonborn'`
     // (outra raça nem tem a grade no wizard, ver SetupWizard.tsx).
     draconicAncestry?: string

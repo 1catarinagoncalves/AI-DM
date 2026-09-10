@@ -53,6 +53,10 @@ export const CreateCharacterSchema = z.object({
   // (2 hoje), mesmo raciocínio de `raceAbilityChoice` acima.
   raceSkillChoices: z.array(z.string().max(60)).max(6).optional(),
   class: z.string().min(1).max(40),
+  // US-227: nível inicial à escolha na criação — opcional para não quebrar clientes existentes
+  // (fallback 1, o `@default(1)` que `Character.level` já tem no Prisma), mesmo espírito de
+  // `subclass`/`alignment` opcionais no mesmo schema.
+  level: z.number().int().min(1).max(20).optional(),
   // US-221: ferramenta(s) escolhida(s) do `toolProficiencies.choice` da CLASSE (Bardo escolhe
   // 3 instrumentos musicais, Monge escolhe 1 entre artesão/instrumento) — chave de config.tools,
   // exigida no service quando `config.classes[class].toolProficiencies.choice` existe. Array,

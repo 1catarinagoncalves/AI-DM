@@ -33,8 +33,8 @@ export function formatModifier(mod: number): string {
 
 /**
  * Modificador de uma perícia (US-27): modificador do atributo-âncora, mais o
- * bônus de proficiência quando o personagem é proficiente. `proficiencyBonus`
- * vem do config (+2 na Fase 1, nível 1); um dia derivará do nível.
+ * bônus de proficiência quando o personagem é proficiente. `proficiencyBonus` vem de
+ * `proficiencyBonusForLevel(character.level)` (US-227) — antes fixo em config.proficiency.bonus.
  */
 export function skillModifier(abilityScore: number, proficient: boolean, proficiencyBonus: number): number {
   return abilityModifier(abilityScore) + (proficient ? proficiencyBonus : 0)
@@ -57,8 +57,8 @@ export function buildSkillSheet(
   catalog: { key: string; label: string; ability: string }[],
   attributes: Record<string, number>,
   proficientKeys: string[],
-  // ponytail: hoje os callers passam config.proficiency.bonus fixo (+2, nível 1). Com level-up (Fase
-  // futura) o bônus 5e escala com o nível — os callers devem derivá-lo de character.level e passar aqui.
+  // ponytail: era config.proficiency.bonus fixo (+2, nível 1) até a US-227 — o bônus 5e agora
+  // escala com o nível (proficiencyBonusForLevel), e os callers passam esse valor aqui.
   proficiencyBonus: number,
 ): ResolvedSkill[] {
   const proficient = new Set(proficientKeys)
@@ -79,6 +79,59 @@ export interface ResolvedSavingThrow {
   label: string
   modifier: number
   proficient: boolean
+}
+
+/**
+ * Bônus de proficiência por nível (US-227): +2 no nível 1, sobe +1 a cada 4 níveis (5, 9, 13,
+ * 17) — a fórmula que já estava documentada em comentário há duas stories (`buildSkillSheet`
+ * acima, `play/[adventureId]/page.tsx`) sem nunca ter virado código, porque `Character.level`
+ * nunca era outro valor além de 1 até esta story.
+ *
+ * `level` fora de 1–20 lança, mesmo padrão de `abilityModifier` para valor fora de faixa —
+ * defeito de código, a ficha já valida a faixa na criação (etapa `class` do wizard).
+ */
+export function proficiencyBonusForLevel(level: number): number {
+  if (!Number.isInteger(level) || level < 1 || level > 20) {
+    throw new Error(`Nível inválido: ${level} (esperado inteiro de 1 a 20)`)
+  }
+  return 2 + Math.floor((level - 1) / 4)
+}
+
+/**
+ * Parse de `hitDice` (`config.classes[].hitDice`, US-209) no formato "NdM" minúsculo — N sempre
+ * 1 no 5e (nenhuma classe tem hit die múltiplo), mas devolvido mesmo assim por completude.
+ * `undefined` quando ausente ou fora do formato. Não reusa `normalizeDie` de roll.ts: aquela
+ * função tolera texto ruidoso vindo do MODELO, esta lê config já validado pelo ingest — um
+ * parser de 2 grupos é suficiente e mais simples.
+ *
+ * Único ponto que lê a notação: `maxHpForLevel` (abaixo) e o badge "D{sides} DE VIDA" do wizard
+ * (US-227, SetupWizard.tsx) usam esta mesma função, nunca regex duplicado.
+ */
+export function parseHitDice(hitDice: string | undefined): { count: number; sides: number } | undefined {
+  const match = hitDice ? /^(\d+)d(\d+)$/i.exec(hitDice) : null
+  return match ? { count: Number(match[1]), sides: Number(match[2]) } : undefined
+}
+
+/**
+ * PV máximo por nível (US-227), regra 5e "PV médio" — sem RNG, mesma disciplina de "dados
+ * rolados deterministicamente" que o resto do Game Server já segue: nível 1 = o dado de vida no
+ * MÁXIMO + `conMod`; cada nível de 2 em diante soma a média arredondada para cima do dado
+ * (`Math.ceil(sides / 2) + 1`) + `conMod`.
+ *
+ * `hitDice` ausente ou fora do formato (config legado sem a US-209) não dá pra extrapolar PV de
+ * nível 5+ sem saber o dado da classe — cai no fallback de hoje (10 + conMod, só nível 1) e loga
+ * aviso.
+ */
+export function maxHpForLevel(hitDice: string | undefined, level: number, conMod: number): number {
+  const parsed = parseHitDice(hitDice)
+  if (!parsed) {
+    console.warn(`[ability][maxHpForLevel] hitDice ausente ou fora do formato "NdM": "${hitDice ?? ''}" — usando fallback de nível 1 (10 + conMod)`)
+    return 10 + conMod
+  }
+  const { sides } = parsed
+  let hp = sides + conMod
+  for (let lvl = 2; lvl <= level; lvl++) hp += Math.ceil(sides / 2) + 1 + conMod
+  return hp
 }
 
 /**

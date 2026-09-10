@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { GameView } from '@/components/game/GameView'
-import { buildSkillSheet, buildSavingThrowSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, type SystemConfig } from '@ai-dm/shared'
+import { buildSkillSheet, buildSavingThrowSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, proficiencyBonusForLevel, type SystemConfig } from '@ai-dm/shared'
 import { apiAuthHeader } from '@/lib/server-auth'
 import { LOCALE_COOKIE, localeFromCookie } from '@/lib/locale-cookie'
 import { messagesFor } from '@/messages'
@@ -35,18 +35,19 @@ export default async function PlayPage({ params, searchParams }: Props) {
   const state = character.states?.[0]
 
   // US-27: todas as perícias com modificador, derivadas do config do sistema + proficiências da ficha.
-  // ponytail: bônus de proficiência FIXO em config.proficiency.bonus (+2, nível 1). Quando houver
-  // level-up (Fase futura), o bônus 5e escala com o nível (+2→+6) — derivar de character.level aqui
-  // (ex.: 2 + floor((level-1)/4)) em vez do valor fixo do config, senão o modificador defasa a partir do nível 5.
+  // US-227: bônus de proficiência escala com o nível (+2→+6, a cada 4 níveis) — antes fixo em
+  // config.proficiency?.bonus ?? 2 (a fórmula ficou em comentário aqui por duas stories antes
+  // de virar código).
   const config = character.system?.config as SystemConfig | undefined
   const attrs = (state?.attributes ?? character.baseAttributes ?? {}) as Record<string, number>
+  const proficiencyBonus = proficiencyBonusForLevel(character.level ?? 1)
   const skills = config?.skills
-    ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
+    ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], proficiencyBonus)
     : []
   // US-222: as 6 salvaguardas fixas, proficiência vem do config.classes[].savingThrows (US-209)
   // — sem escolha do jogador, ao contrário de skills acima.
   const savingThrows = config?.attributes
-    ? buildSavingThrowSheet(config.attributes, attrs, config?.classes?.find((c) => c.key === character.class)?.savingThrows, config.proficiency?.bonus ?? 2)
+    ? buildSavingThrowSheet(config.attributes, attrs, config?.classes?.find((c) => c.key === character.class)?.savingThrows, proficiencyBonus)
     : []
   // US-132: ferramentas/veículos proficientes — chaves resolvidas pro rótulo do locale ativo,
   // mesmo padrão de raça/classe (catalogLabel). Chave sem entrada mostra a própria chave

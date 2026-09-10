@@ -133,6 +133,12 @@ export const ptBR = {
   'setup.subclass.legend': 'Subclasse',
   'setup.class.detail.kit': 'Equipamento inicial',
   'setup.class.detail.subclass': 'Subclasse',
+  // US-227: badge "D{sides} DE VIDA" (texto normal — o `uppercase` do CSS já capitaliza) e
+  // seletor de nível inicial (1–20) do painel de detalhe da etapa `class`.
+  'setup.class.detail.hitDice': 'D{sides} de vida',
+  'setup.class.detail.level': 'Nível inicial',
+  'setup.class.level.decrease': 'Diminuir nível',
+  'setup.class.level.increase': 'Aumentar nível',
   'setup.race.detail.features': 'Traços raciais',
   // US-142 (correção de 2026-09-02): legenda da segunda grade de cartão da etapa raça — só
   // aparece quando a raiz escolhida tem subespécie.

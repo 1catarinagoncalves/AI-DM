@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type AdventureAntagonist, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
+import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, maxHpForLevel, proficiencyBonusForLevel, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type AdventureAntagonist, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
@@ -462,7 +462,14 @@ export class AdventureService {
 
     const attrs = character.baseAttributes as Record<string, number>
     const conMod = Math.floor(((attrs['constitution'] ?? 10) - 10) / 2)
-    const maxHp = 10 + conMod
+    // US-227: PV e bônus de proficiência derivam de classe+nível — antes fórmula fixa (10 +
+    // conMod, +2) idêntica pra qualquer classe/nível. `hitDice` vem do mesmo lookup que
+    // savingThrows/skillProficiencies já usam (US-222/US-224); `character.level` ausente
+    // (artefato pré-migração, hipótese: nenhum existe já que a coluna sempre teve
+    // `@default(1)`) cai no nível 1, mesmo fallback de sempre.
+    const hitDice = config.classes?.find((c) => c.key === character.class)?.hitDice
+    const maxHp = maxHpForLevel(hitDice, character.level ?? 1, conMod)
+    const proficiencyBonus = proficiencyBonusForLevel(character.level ?? 1)
 
     // Inventário inicial calculado uma vez: alimenta o CharacterState e o system
     // prompt da geração de abertura (o DM precisa saber o que a personagem carrega).
@@ -497,8 +504,9 @@ export class AdventureService {
     // segredos/antagonista/fecho) some. Falha/vazio → cai no texto estático do gancho.
     const labelPairs = (config.attributes ?? []).map((a) => [a.key, a.label] as const)
     // Perícias com modificador para a abertura (US-27): o DM já conhece as competências desde a 1ª cena.
+    // US-227: bônus de proficiência por nível (antes config.proficiency?.bonus ?? 2, fixo).
     const skills = config.skills
-      ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
+      ? buildSkillSheet(config.skills, attrs, (character.skills ?? []) as string[], proficiencyBonus)
         .map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
       : undefined
     const features = resolveSheetEntries(config.classFeatures, config.retiredFeatures, character.class, (character.features ?? []) as string[])

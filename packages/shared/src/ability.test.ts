@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, it, expect } from 'vitest'
-import { abilityModifier, formatModifier, skillModifier, buildSavingThrowSheet } from './ability'
+import { abilityModifier, formatModifier, skillModifier, buildSavingThrowSheet, proficiencyBonusForLevel, maxHpForLevel } from './ability'
 
 // US-108 — o oráculo é a TABELA DO SRD 2024, não número escrito à mão aqui: o artefato é
 // gerado do texto normativo (`Rule.json` do Open5e) pelo ingest, e o diff dele é a revisão de
@@ -105,5 +105,53 @@ describe('buildSavingThrowSheet', () => {
     const sheet = buildSavingThrowSheet(ATTRS, {}, ['wisdom'], 2)
     expect(sheet.find((s) => s.key === 'wisdom')).toEqual({ key: 'wisdom', label: 'Sabedoria', proficient: true, modifier: 2 }) // 10 → +0, +2
     expect(sheet.find((s) => s.key === 'charisma')?.modifier).toBe(0)
+  })
+})
+
+// US-227: fronteiras dos critérios de aceite (1, 4, 5, 8, 9, 12, 13, 16, 17, 20) — o bônus só
+// muda a cada 4 níveis, então testar SÓ o topo/base de cada faixa não pegaria um off-by-one
+// no meio dela.
+describe('proficiencyBonusForLevel', () => {
+  it('cobre as fronteiras 1–20: +2 no nível 1, +1 a cada 4 níveis', () => {
+    expect(proficiencyBonusForLevel(1)).toBe(2)
+    expect(proficiencyBonusForLevel(4)).toBe(2)
+    expect(proficiencyBonusForLevel(5)).toBe(3)
+    expect(proficiencyBonusForLevel(8)).toBe(3)
+    expect(proficiencyBonusForLevel(9)).toBe(4)
+    expect(proficiencyBonusForLevel(12)).toBe(4)
+    expect(proficiencyBonusForLevel(13)).toBe(5)
+    expect(proficiencyBonusForLevel(16)).toBe(5)
+    expect(proficiencyBonusForLevel(17)).toBe(6)
+    expect(proficiencyBonusForLevel(20)).toBe(6)
+  })
+
+  it('nível fora de 1–20 lança com o valor ofensor', () => {
+    expect(() => proficiencyBonusForLevel(0)).toThrow(/0 \(esperado inteiro de 1 a 20/)
+    expect(() => proficiencyBonusForLevel(21)).toThrow(/21/)
+    expect(() => proficiencyBonusForLevel(2.5)).toThrow(/2\.5/)
+  })
+})
+
+describe('maxHpForLevel', () => {
+  it('nível 1 = o dado no MÁXIMO + conMod, pra dados diferentes', () => {
+    expect(maxHpForLevel('1d12', 1, 2)).toBe(14) // Bárbaro
+    expect(maxHpForLevel('1d6', 1, 2)).toBe(8) // Mago
+  })
+
+  it('1d12 nível 5, CON +2: 40 base + 5×conMod = 50 (conferido contra a tabela do PHB)', () => {
+    expect(maxHpForLevel('1d12', 5, 2)).toBe(50)
+  })
+
+  it('mesmo nível, dados diferentes: Bárbaro (1d12) > Mago (1d6)', () => {
+    expect(maxHpForLevel('1d12', 5, 0)).toBeGreaterThan(maxHpForLevel('1d6', 5, 0))
+  })
+
+  it('mesma classe, nível maior dá PV maior', () => {
+    expect(maxHpForLevel('1d12', 5, 2)).toBeGreaterThan(maxHpForLevel('1d12', 1, 2))
+  })
+
+  it('hitDice ausente ou fora do formato NdM cai no fallback de nível 1 (10 + conMod)', () => {
+    expect(maxHpForLevel(undefined, 5, 2)).toBe(12)
+    expect(maxHpForLevel('bogus', 5, 2)).toBe(12)
   })
 })

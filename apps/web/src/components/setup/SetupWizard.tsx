@@ -1185,25 +1185,71 @@ export function SetupWizard() {
                       ("CLASSE" + eyebrow "Escolha uma classe") logo acima, sem info nova. */}
                   <CatalogCardGroup name="char-class" legend={t('setup.raceClass.class')} hideLegend
                     items={classCatalog} value={charData.class} onChange={selectClassCard} />
-                  {/* US-205: subgrade de subclasse aninhada no cartão de classe — só existe
-                      fisicamente quando a classe escolhida tem MAIS de uma opção (marshal, hoje).
-                      Classe com 0 ou 1 subclasse não renderiza nada aqui: sem catálogo, sem
-                      escolha; com 1 entrada, ela preenche sozinha (ver resolvedSubclass acima). */}
-                  {subclassCatalog && subclassCatalog.length > 1 && (
-                    <div>
-                      {/* US-225: "Subclasse" no mesmo padrão tipográfico dos outros subtítulos
-                          do painel de detalhe (SheetHeading uppercase/primary, ex. "Equipamento
-                          Inicial") — a legend do fieldset por si só tem o estilo de rótulo de
-                          seção principal (Classe/Raça), não de subtítulo dentro do painel. */}
-                      <SheetHeading tone="primary">{t('setup.subclass.legend')}</SheetHeading>
-                      <CatalogCardGroup name="char-subclass" legend={t('setup.subclass.legend')} hideLegend
-                        items={subclassCatalog} value={subclass ?? ''} onChange={setSubclass} />
-                    </div>
-                  )}
                   {/* US-205: painel de detalhe — o que a classe escolhida concede, sem dado
                       novo (getClassFeatures/getStartingInventory já existem no arquivo). */}
                   {charData.class && (
                     <div className="space-y-4 border-t border-border pt-4">
+                      {/* US-227: badge "D{sides} DE VIDA" — `sides` do MESMO `parseHitDice`
+                          (@ai-dm/shared) que `previewHp`/`maxHpForLevel` usam, não regex
+                          duplicado. Só decorativo (nenhum estado novo, não entra no payload):
+                          existe pra jogadora relacionar o PV mostrado nos tiles de baixo com o
+                          dado da classe, antes de mexer no nível. Sempre visível quando há
+                          classe escolhida (independe de subclasse existir). Referência visual:
+                          refined-wizard-glow.lovable.app (decisão da mantenedora, 2026-09-10). */}
+                      {hitDieSides !== undefined && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.1em] border-primary/50 text-primary">
+                          {t('setup.class.detail.hitDice', { sides: hitDieSides })}
+                        </span>
+                      )}
+                      {/* US-205: subgrade de subclasse aninhada no cartão de classe — só existe
+                          fisicamente quando a classe escolhida tem MAIS de uma opção (marshal, hoje).
+                          Classe com 0 ou 1 subclasse não renderiza nada aqui: sem catálogo, sem
+                          escolha; com 1 entrada, ela preenche sozinha (ver resolvedSubclass acima).
+                          US-227: movida pra DENTRO do painel de detalhe, logo abaixo do badge de
+                          dado de vida — adjacente ao cartão de subclasse única (abaixo), as duas
+                          variantes juntas no topo do painel (decisão da mantenedora, 2026-09-10). */}
+                      {subclassCatalog && subclassCatalog.length > 1 && (
+                        <div>
+                          {/* US-225: "Subclasse" no mesmo padrão tipográfico dos outros subtítulos
+                              do painel de detalhe (SheetHeading uppercase/primary, ex. "Equipamento
+                              Inicial") — a legend do fieldset por si só tem o estilo de rótulo de
+                              seção principal (Classe/Raça), não de subtítulo dentro do painel. */}
+                          <SheetHeading tone="primary">{t('setup.subclass.legend')}</SheetHeading>
+                          <CatalogCardGroup name="char-subclass" legend={t('setup.subclass.legend')} hideLegend
+                            items={subclassCatalog} value={subclass ?? ''} onChange={setSubclass} />
+                        </div>
+                      )}
+                      {/* US-225: subclasse ÚNICA (12 das 13 classes) — cartão selecionado, mesma
+                          anatomia visual da subgrade de marshal, no lugar do parágrafo solto de
+                          antes (ver US-142, precedente de raça-raiz sem subespécie). Sem
+                          `onChange`/`role="radio"`: não há segunda opção pra escolher.
+                          US-227: movida pra ANTES do nível/kit, adjacente à subgrade de marshal
+                          acima (decisão da mantenedora, 2026-09-10). */}
+                      {subclassCatalog?.length === 1 && resolvedSubclassEntry && (
+                        <div>
+                          <SheetHeading tone="primary">{t('setup.class.detail.subclass')}</SheetHeading>
+                          <CatalogCardGroup name="char-subclass-resolved" legend={t('setup.subclass.legend')} hideLegend
+                            items={subclassCatalog} value={resolvedSubclass ?? ''} readOnly />
+                        </div>
+                      )}
+                      {/* US-227: nível inicial — abaixo da subclasse (qualquer variante), acima
+                          do kit. Botões +/− operam sobre `levelValue` (sempre 1–20, já
+                          clampado); o `<input>` mostra a string crua `level`, clamp só no blur
+                          (`clampLevel`) — apagar o campo pra redigitar não trava no mínimo. */}
+                      <div>
+                        <SheetHeading tone="primary">{t('setup.class.detail.level')}</SheetHeading>
+                        <div className="flex items-center gap-2">
+                          <button type="button" aria-label={t('setup.class.level.decrease')} onClick={() => stepLevel(-1)}
+                            className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
+                            disabled={levelValue <= 1}><Minus className="size-4" aria-hidden /></button>
+                          <input type="number" min={1} max={20} aria-label={t('setup.class.detail.level')}
+                            value={level} onChange={e => setLevel(e.target.value)} onBlur={clampLevel}
+                            className={fieldClass('w-20 text-center')} />
+                          <button type="button" aria-label={t('setup.class.level.increase')} onClick={() => stepLevel(1)}
+                            className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
+                            disabled={levelValue >= 20}><Plus className="size-4" aria-hidden /></button>
+                        </div>
+                      </div>
                       {/* US-226: classe com `startingEquipmentChoices` (12 das 13 — marshal
                           fica no texto corrido de sempre, ver ramo `else`) troca o parágrafo
                           fixo por itens fixos + um <select> por slot, mesma anatomia visual do
@@ -1211,7 +1257,9 @@ export function SetupWizard() {
                           alternativas unidas por "ou" (US-226 §Notas de implementação).
                           US-229: `classEquipmentSlots.slots` já vem ACHATADO — a alternativa
                           genérica ("Qualquer Arma Marcial Corpo a Corpo") já chega aqui como uma
-                          `<option>` por arma, nenhum controle novo além do <select> de sempre. */}
+                          `<option>` por arma, nenhum controle novo além do <select> de sempre.
+                          US-227: bloco deslocado pra DEPOIS de subclasse+nível (ver comentários
+                          acima) — mesmo conteúdo de sempre, só posição. */}
                       {classEquipmentSlots ? (
                         <div>
                           <SheetHeading tone="primary">{t('setup.class.detail.kit')}</SheetHeading>
@@ -1279,17 +1327,6 @@ export function SetupWizard() {
                           <p className="text-sm text-foreground">
                             {previewKit.map(i => i.qty > 1 ? `${i.name} (${i.qty})` : i.name).join(' · ')}
                           </p>
-                        </div>
-                      )}
-                      {/* US-225: subclasse ÚNICA (12 das 13 classes) — cartão selecionado, mesma
-                          anatomia visual da subgrade de marshal, no lugar do parágrafo solto de
-                          antes (ver US-142, precedente de raça-raiz sem subespécie). Sem
-                          `onChange`/`role="radio"`: não há segunda opção pra escolher. */}
-                      {subclassCatalog?.length === 1 && resolvedSubclassEntry && (
-                        <div>
-                          <SheetHeading tone="primary">{t('setup.class.detail.subclass')}</SheetHeading>
-                          <CatalogCardGroup name="char-subclass-resolved" legend={t('setup.subclass.legend')} hideLegend
-                            items={subclassCatalog} value={resolvedSubclass ?? ''} readOnly />
                         </div>
                       )}
                       {/* US-225: marshal (>1) NÃO repete a escolha em texto aqui — a subgrade

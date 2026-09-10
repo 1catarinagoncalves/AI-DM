@@ -204,6 +204,16 @@ const configWithClassKit = (budget: number) => ({
   },
 })
 
+// US-227: catálogo de classe com `hitDice` (US-209) — `wizard` (1d6) e `fighter` (1d10) têm
+// dados diferentes, pra provar que o badge/preview de PV reagem à classe escolhida.
+const configWithHitDice = (budget: number) => ({
+  ...configWithBudget(budget),
+  classes: [
+    { key: 'wizard', label: 'Mago', hitDice: '1d6' },
+    { key: 'fighter', label: 'Guerreiro', hitDice: '1d10' },
+  ],
+})
+
 // US-135: origem com benefício `feature` (ex. Criminoso/Thieves' Cant real) — a chave nova
 // soma às features de classe já materializadas no preview, mesma lista.
 const configWithBackgroundFeature = (budget: number) => ({
@@ -910,6 +920,55 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const hpRow = screen.getByText('PV inicial').closest('div')
     expect(within(hpRow!).getByText('10')).toBeTruthy()
     expect(screen.getByText('Grimório')).toBeTruthy() // kit do wizard, não o default
+  })
+
+  // US-227: badge de dado de vida e campo de nível — etapa `class`, antes de qualquer navegação.
+  it('etapa `class` mostra o dado de vida da classe escolhida e o nível nasce em 1', async () => {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithHitDice(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+
+    expect(screen.getByText('D6 de vida')).toBeTruthy()
+    expect((screen.getByLabelText('Nível inicial') as HTMLInputElement).value).toBe('1')
+
+    // Trocar de classe troca o dado exibido — não fica preso ao 1d6 do Mago.
+    fireEvent.click(screen.getByRole('radio', { name: 'Guerreiro' }))
+    expect(screen.getByText('D10 de vida')).toBeTruthy()
+  })
+
+  // US-227: nível é independente de classe/raça (não reseta como subclass) — subir o nível na
+  // etapa `class` muda o PV da revisão e viaja no payload de criação.
+  it('subir o nível na etapa `class` aumenta o PV da revisão e envia `level` na criação', async () => {
+    createCharacter.mockReset()
+    createCharacter.mockResolvedValue({ id: 'char-1' })
+    await pickSystemAndFillRaceClass(configWithHitDice(0))
+    // Volta pra `class` pra mexer no nível — o helper já avançou até `race`.
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ }))
+
+    const increase = screen.getByLabelText('Aumentar nível')
+    for (let i = 0; i < 4; i++) fireEvent.click(increase) // nível 1 → 5
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race (Elfo já marcado)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    const levelRow = screen.getByText('Nível').closest('div')
+    expect(within(levelRow!).getByText('5')).toBeTruthy()
+    // Mago (1d6), CON ausente → conMod 0: nível 1 seria 6; nível 5 = 6 + 4×(3+1+0) = 22.
+    const hpRow = screen.getByText('PV inicial').closest('div')
+    expect(within(hpRow!).getByText('22')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // Confirmar (revisão)
+    const payload = createCharacter.mock.calls[0]![0] as Record<string, unknown>
+    expect(payload['level']).toBe(5)
   })
 
   // US-127: classe sem entrada própria em startingKits/classFeatures/classSpells cai no

@@ -235,6 +235,75 @@ describe('AdventureService.createForCharacter', () => {
     })
   })
 
+  // US-227: PV e bônus de proficiência derivam de classe+nível — antes fórmula fixa (10 +
+  // conMod, +2) idêntica pra qualquer classe/nível.
+  describe('US-227: PV e bônus de proficiência por nível', () => {
+    const configWithHitDice: SystemConfig = {
+      ...config,
+      classes: [
+        { key: 'barbarian', label: 'Bárbaro', hitDice: '1d12' },
+        { key: 'wizard', label: 'Mago', hitDice: '1d6' },
+      ],
+      skills: [{ key: 'athletics', label: 'Atletismo', ability: 'strength' }],
+    }
+
+    it('mesmo nível (5), classes com hitDice diferente: maxHp maior no Bárbaro (1d12) que no Mago (1d6)', async () => {
+      const barbarian = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Grum', class: 'barbarian', race: 'human', level: 5,
+        baseAttributes: { constitution: 14 }, system: { config: configWithHitDice },
+      }
+      const wizard = {
+        id: 'char-2', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 5,
+        baseAttributes: { constitution: 14 }, system: { config: configWithHitDice },
+      }
+      const runBarbarian = fakePrisma(barbarian)
+      const runWizard = fakePrisma(wizard)
+
+      await new AdventureService(runBarbarian.prisma, fakeAi()).createForCharacter('char-1', {})
+      await new AdventureService(runWizard.prisma, fakeAi()).createForCharacter('char-2', {})
+
+      const barbarianHp = (runBarbarian.recorded.characterStateCreate as { maxHp: number }).maxHp
+      const wizardHp = (runWizard.recorded.characterStateCreate as { maxHp: number }).maxHp
+      expect(barbarianHp).toBeGreaterThan(wizardHp)
+    })
+
+    it('mesma classe (Bárbaro), nível 5 tem maxHp maior que nível 1', async () => {
+      const level1 = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Grum', class: 'barbarian', race: 'human', level: 1,
+        baseAttributes: { constitution: 14 }, system: { config: configWithHitDice },
+      }
+      const level5 = {
+        id: 'char-2', userId: 'user-1', systemId: 'sys-1', name: 'Grum', class: 'barbarian', race: 'human', level: 5,
+        baseAttributes: { constitution: 14 }, system: { config: configWithHitDice },
+      }
+      const run1 = fakePrisma(level1)
+      const run5 = fakePrisma(level5)
+
+      await new AdventureService(run1.prisma, fakeAi()).createForCharacter('char-1', {})
+      await new AdventureService(run5.prisma, fakeAi()).createForCharacter('char-2', {})
+
+      const hp1 = (run1.recorded.characterStateCreate as { maxHp: number }).maxHp
+      const hp5 = (run5.recorded.characterStateCreate as { maxHp: number }).maxHp
+      expect(hp5).toBeGreaterThan(hp1)
+    })
+
+    it('bônus de proficiência no sheet enviado à abertura escala com o nível (nível 5 → +3, não +2)', async () => {
+      const character = {
+        id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Grum', class: 'barbarian', race: 'human', level: 5,
+        baseAttributes: { constitution: 14 }, skills: ['athletics'],
+        system: { config: configWithHitDice },
+      }
+      const { prisma } = fakePrisma(character)
+      const seen: Record<string, unknown> = {}
+
+      await new AdventureService(prisma, fakeAi(null, null, null, seen)).createForCharacter('char-1', {})
+
+      const sheet = seen['sheet'] as { skills: { label: string; modifier: number; proficient: boolean }[] }
+      const athletics = sheet.skills.find((s) => s.label === 'Atletismo')
+      expect(athletics).toMatchObject({ proficient: true, modifier: 3 }) // +0 (Força 10 default) +3 (nível 5)
+    })
+  })
+
   it('caminho IA: quando a geração devolve texto, a abertura persiste esse texto, não o template estático', async () => {
     const character = {
       id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,

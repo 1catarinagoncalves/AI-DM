@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-209](./US-209-hit-dice-e-salvaguardas-de-classe-no-config.md) (`config.classes[].hitDice`, notação `NdM` — hoje sem NENHUM consumidor no código, é o dado que esta story finalmente lê) · [US-27](./US-27-pericias-do-personagem.md) (`config.proficiency.bonus`, hoje fixo — esta story adiciona a fonte alternativa por nível, sem remover o fallback)
 **Relacionado:** [US-127 §Fora do escopo](./US-127-revisao-espelha-ficha-completa.md) (documentou a fórmula `10 + mod CON` como provisória, à espera de um `hitDice` real no config — US-209 entregou o dado, esta story entrega o consumidor) · [US-219](./US-219-xp-por-evento-narrativo.md) (XP por evento narrativo — evolução de nível DURANTE o jogo; esta story é só a escolha MANUAL do nível na criação, as duas não se tocam ainda) · [US-42](./US-42-magias-conhecidas.md) (motor de conjuração/slots de magia declarado fora do escopo desde então — continua fora aqui)
 **Criada em:** 2026-09-08
@@ -58,7 +58,14 @@ A etapa `class` do wizard ganha um seletor de nível inicial (1 a 20); `CreateCh
 - **`CharacterService.create`** ([character.service.ts:201](../../../apps/api/src/character/character.service.ts:201)): `level: dto.level ?? 1` no lugar do literal `1`.
 - **`AdventureService.create`** ([adventure.service.ts:465](../../../apps/api/src/adventure/adventure.service.ts:465)): `maxHp = maxHpForLevel(hitDice, character.level, conMod)`, com `hitDice = config.classes?.find(c => c.key === character.class)?.hitDice`. Mesmo ponto, `498`: `proficiency?.bonus ?? 2` vira `proficiencyBonusForLevel(character.level)` (com fallback ao valor do config quando `character.level` estiver ausente — artefato pré-migração).
 - **`play/[adventureId]/page.tsx:44`**: mesma troca de `config.proficiency?.bonus ?? 2` por `proficiencyBonusForLevel(character.level ?? 1)` — remove o comentário `ponytail:` que já apontava exatamente esta mudança.
-- **Etapa `class` do wizard** ([SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx), próximo ao seletor de subclasse em `:1069`): campo novo de nível inicial — um `<select>`/stepper numérico 1–20, default 1. Estado novo `level` (mesmo padrão de `subclass`, `:283`), incluído no payload de criação (`:840`, ao lado de `subclassPayload`).
+- **Etapa `class` do wizard** ([SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx)): campo novo de nível inicial — caixa numérica digitável (`<input type="number" min="1" max="20">`) com botões +/− ao lado, não `<select>` de 20 `<option>` (decisão da mantenedora, 2026-09-10: digitar "9" é mais rápido que abrir dropdown e rolar; ver mockup [docs/mockups/us-227-nivel-inicial.html](../../mockups/us-227-nivel-inicial.html)). Clamp 1–20 só no `blur`/valor completo, não a cada tecla — senão apagar o campo pra redigitar trava no mínimo. Estado novo `level` (mesmo padrão de `subclass`, `:283`), incluído no payload de criação (`:840`, ao lado de `subclassPayload`).
+  **Tag de dado de vida** (decisão da mantenedora, 2026-09-10, referência visual: [refined-wizard-glow.lovable.app](https://refined-wizard-glow.lovable.app/) — app de referência externo, card de classe expandido, badge "D12 DE VIDA" ao lado do nome): badge pill logo no topo do painel de detalhe, junto ao nome da classe escolhida — `D{sides} DE VIDA` (ex. "D12 DE VIDA" pro Bárbaro), `sides` extraído do MESMO parse de `hitDice` que `maxHpForLevel` já faz (`:106`, não duplicar o regex). Classes de UI capturadas da referência (`getComputedStyle` no elemento real): `inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.1em] border-primary/50 text-primary` — mesmos tokens `--primary`/`--border` do projeto, sem cor nova. Só decorativo (nenhum estado novo, não entra no payload) — existe pra jogadora relacionar visualmente o PV mostrado nos tiles de baixo com o dado da classe, antes de mexer no nível.
+  **Ordem visual no painel de detalhe da classe** (decisão da mantenedora, 2026-09-10) — hoje o painel renderiza subclasse-múltipla (`:1159-1169`) ANTES do painel de detalhe, e dentro dele kit (`:1182-1250`) → subclasse-única (`:1255-1261`) → features (`:1265`). A nova ordem agrupa as duas variantes de subclasse antes do resto:
+  1. **Tag de dado de vida** — badge acima, sempre visível quando há classe escolhida (independe de subclasse existir).
+  2. **Subclasse** — subgrade de escolha quando a classe tem 2+ opções (`:1159-1169`, marshal hoje) OU cartão único somente-leitura quando tem exatamente 1 (`:1255-1261`, as outras 12 classes). Os dois blocos passam a ficar adjacentes, no topo — mesma condição de renderização de hoje, só reordenados.
+  3. **Nível** — campo novo, logo abaixo da subclasse (qualquer variante), acima do kit.
+  4. **Equipamento inicial** — bloco de kit (`:1182-1250`), hoje o primeiro do painel, passa a vir depois do nível.
+  5. **Features** — `FeaturesPanel` (`:1265`), inalterado, continua por último.
 - **Revisão** ([SetupWizard.tsx:1672](../../../apps/web/src/components/setup/SetupWizard.tsx:1672)): `[t('setup.review.level'), String(level)]` no lugar do literal `'1'`. `previewHp` (`:581`) troca `10 + conMod` por `maxHpForLevel(hitDiceDoPersonagem, level, conMod)`, mesma função compartilhada que o backend usa — preview nunca diverge do que a API grava (mesma disciplina que US-127 já exige de todo preview do wizard).
 - **Testes:** `ability.test.ts` cobre `proficiencyBonusForLevel` (fronteiras 1/4/5/8/9/…/20, valor fora de faixa lança) e `maxHpForLevel` (nível 1 = máximo do dado, nível 2+ = incremento fixo, `1d12` vs `1d6` dando resultados diferentes no MESMO nível, `hitDice` ausente cai no fallback nível-1). `character.service.test.ts` cobre `level` persistido do DTO e fallback a 1 quando ausente. `adventure.service.test.ts` cobre `maxHp` variando por classe (Bárbaro nível 5 ≠ Mago nível 5) e por nível (mesma classe, níveis diferentes).
 
@@ -89,14 +96,14 @@ export function maxHpForLevel(hitDice: string | undefined, level: number, conMod
 
 ## Critérios de aceite
 
-- [ ] Etapa `class` do wizard tem um seletor de nível inicial (1–20, default 1) visível para qualquer classe escolhida.
-- [ ] Criar um personagem com nível 5 → `Character.level` persiste `5` (verificável via `GET /characters/:id`).
-- [ ] Criar um Bárbaro (`hitDice: "1d12"`) e um Mago (`hitDice: "1d6"`) no MESMO nível (ex. 5), mesmo CON → `CharacterState.maxHp` dos dois é DIFERENTE, maior no Bárbaro.
-- [ ] Criar o MESMO Bárbaro em nível 1 e em nível 5 → `maxHp` do nível 5 é maior (5× a contribuição por nível do `1d12`, mais `conMod` por nível).
-- [ ] Bônus de proficiência de uma perícia/salvaguarda de um personagem nível 5 mostra +3 (não +2); nível 9, +4; nível 17-20, +6 — em qualquer tela que resolva perícia (ficha em `/play`, prompt do Mestre).
-- [ ] O `previewHp` da etapa de revisão do wizard bate exatamente com o `maxHp` que a API grava ao criar a aventura — não há divergência entre o número mostrado antes de confirmar e o número real da ficha.
-- [ ] Personagem sem `level` no banco (artefato pré-migração, hipótese: nenhum existe hoje já que a coluna sempre teve `@default(1)`) ou classe sem `hitDice` no config (artefato pré-US-209) não crasha — cai no fallback nível 1 / `10 + conMod`.
-- [ ] **Eval/teste de regressão:** `ability.test.ts` cobre as fronteiras de `proficiencyBonusForLevel` (1, 4, 5, 8, 9, 12, 13, 16, 17, 20) e `maxHpForLevel` para pelo menos 2 dados diferentes (`1d6`, `1d12`) em 3 níveis (1, 2, 5); `adventure.service.test.ts` cobre `maxHp` variando por classe+nível na criação real de uma aventura.
+- [x] Etapa `class` do wizard tem um seletor de nível inicial (1–20, default 1) visível para qualquer classe escolhida.
+- [x] Criar um personagem com nível 5 → `Character.level` persiste `5` (verificável via `GET /characters/:id`).
+- [x] Criar um Bárbaro (`hitDice: "1d12"`) e um Mago (`hitDice: "1d6"`) no MESMO nível (ex. 5), mesmo CON → `CharacterState.maxHp` dos dois é DIFERENTE, maior no Bárbaro.
+- [x] Criar o MESMO Bárbaro em nível 1 e em nível 5 → `maxHp` do nível 5 é maior (5× a contribuição por nível do `1d12`, mais `conMod` por nível).
+- [x] Bônus de proficiência de uma perícia/salvaguarda de um personagem nível 5 mostra +3 (não +2); nível 9, +4; nível 17-20, +6 — em qualquer tela que resolva perícia (ficha em `/play`, prompt do Mestre).
+- [x] O `previewHp` da etapa de revisão do wizard bate exatamente com o `maxHp` que a API grava ao criar a aventura — não há divergência entre o número mostrado antes de confirmar e o número real da ficha.
+- [x] Personagem sem `level` no banco (artefato pré-migração, hipótese: nenhum existe hoje já que a coluna sempre teve `@default(1)`) ou classe sem `hitDice` no config (artefato pré-US-209) não crasha — cai no fallback nível 1 / `10 + conMod`.
+- [x] **Eval/teste de regressão:** `ability.test.ts` cobre as fronteiras de `proficiencyBonusForLevel` (1, 4, 5, 8, 9, 12, 13, 16, 17, 20) e `maxHpForLevel` para pelo menos 2 dados diferentes (`1d6`, `1d12`) em 3 níveis (1, 2, 5); `adventure.service.test.ts` cobre `maxHp` variando por classe+nível na criação real de uma aventura.
 
 ---
 
