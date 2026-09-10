@@ -24,27 +24,30 @@ describe('US-202 — registro condicional do AdventureExportController', () => {
     process.env = { ...ORIGINAL_ENV }
   })
 
+  // vi.resetModules() + reimport força o Nest a remontar o grafo de módulos/decorators
+  // do zero a cada `it` — visto passar de 3.6s local e estourar os 5000ms default em
+  // máquina mais carregada (push da US-202). Timeout maior só aqui, não global.
   it('NODE_ENV=production com DEV_EXPORT=1: controller NÃO entra — as duas condições são exigidas, não alternativas', async () => {
     process.env['NODE_ENV'] = 'production'
     process.env['DEV_EXPORT'] = '1'
     expect(await loadControllerNames()).not.toContain('AdventureExportController')
-  })
+  }, 15_000)
 
   it('NODE_ENV!==production e DEV_EXPORT=1: controller entra no array', async () => {
     process.env['NODE_ENV'] = 'development'
     process.env['DEV_EXPORT'] = '1'
     expect(await loadControllerNames()).toContain('AdventureExportController')
-  })
+  }, 15_000)
 
   it('DEV_EXPORT ausente, mesmo fora de produção: controller NÃO entra', async () => {
     process.env['NODE_ENV'] = 'development'
     delete process.env['DEV_EXPORT']
     expect(await loadControllerNames()).not.toContain('AdventureExportController')
-  })
+  }, 15_000)
 
   it('AdventureController (rota de turnos) entra sempre, independente das duas flags', async () => {
     process.env['NODE_ENV'] = 'production'
     delete process.env['DEV_EXPORT']
     expect(await loadControllerNames()).toContain('AdventureController')
-  })
+  }, 15_000)
 })
