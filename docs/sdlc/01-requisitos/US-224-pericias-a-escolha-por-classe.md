@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-27](./US-27-pericias-do-personagem.md) (`config.proficiency.choices`/`config.skills`/`validateSkills` — o mecanismo GLOBAL que esta story substitui por um mecanismo POR CLASSE) · [US-221](./US-221-proficiencias-de-arma-armadura-e-ferramenta-por-classe.md) (`buildClassProficiencies`/`extractProficiencySection`/`SKILL_FREE_CHOICE_WORDS`/`ClassCatalogEntrySchema` — precedente direto de parser e de extensão de schema; esta story lê o MESMO texto da feature `PROFICIENCIES` que a US-221 já isola, só que o campo `Skills:` que ela deixou de fora) · [US-131](./US-131-integracao-mecanica-background-proficiency.md) (exclusão de perícia já concedida por origem do pool — continua valendo, só a base do pool deixa de ser `config.skills` inteiro) · [US-220](./US-220-pericias-proficientes-por-raca.md) (exclusão por raça + colisão fixa×fixa — mesmo raciocínio, mesma base a trocar)
 **Relacionado:** [US-207](./US-207-atributos-e-pericias-com-orcamento-visivel.md) (selo `X / Y escolhidas` na etapa `skills` — `Y` passa a variar por classe, texto já é interpolado dinamicamente) · [US-209](./US-209-hit-dice-e-salvaguardas-de-classe-no-config.md) (mesma extensão paralela de `ClassCatalogEntrySchema`/`buildClasses` — ver §Notas de implementação sobre landing em paralelo) · [US-222](./US-222-salvaguardas-de-classe-na-ficha.md) (consumidor irmão de `config.classes[].savingThrows`, mesmo texto de origem — ver §Contexto)
 **Criada em:** 2026-09-08

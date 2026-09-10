@@ -4,7 +4,7 @@
 **Fase:** 1 — MVP single-player
 **Status:** ✅ Implementada
 **Depende de:** [US-215](./US-215-proficiencias-de-arma-e-ferramenta-fixa-de-raca.md) (`buildWeapons`/`SystemWeaponSchema`/`config.weapons` — o catálogo de 44 armas que esta story estende com a categoria) · [US-221](./US-221-proficiencias-de-arma-armadura-e-ferramenta-por-classe.md) (`WeaponCategorySchema`/`weaponProficiencies.categories` — o enum `'simple'|'martial'` que a classe já concede POR NOME da categoria, sem o catálogo saber quais armas ela cobre)
-**Relacionado:** [US-134](./US-134-catalogo-de-ferramentas-do-sistema.md) (`buildTools`/`toolCategory` — precedente direto de "campo de categoria dentro do catálogo de item", `buildWeapons` é hoje o único dos dois catálogos irmãos sem equivalente) · [US-223](./US-223-proficiencia-de-arma-legivel-na-revisao.md) (última story a mexer no bloco "Armas" da ficha/review — moveu a categoria pra `<li>` própria, mas continua mostrando só a palavra "Simples"/"Marcial") · [US-229](./US-229-proficiencia-de-arma-legivel-no-painel-de-classe.md) (mesmo dado, painel de detalhe da etapa `class` em vez do `review` — nasceu de §Questões em aberto #2 desta story)
+**Relacionado:** [US-134](./US-134-catalogo-de-ferramentas-do-sistema.md) (`buildTools`/`toolCategory` — precedente direto de "campo de categoria dentro do catálogo de item", `buildWeapons` é hoje o único dos dois catálogos irmãos sem equivalente) · [US-223](./US-223-proficiencia-de-arma-legivel-na-revisao.md) (última story a mexer no bloco "Armas" da ficha/review — moveu a categoria pra `<li>` própria, mas continua mostrando só a palavra "Simples"/"Marcial") · [US-229](./US-229-escolha-especifica-de-arma-no-equipamento-inicial.md) (reescrita em 2026-09-09 pra outro escopo — não resolve mais §Questões em aberto #2 abaixo, ver nota lá)
 
 **Criada em:** 2026-09-09
 
@@ -137,7 +137,7 @@ Exemplo de `config.weapons` (três itens reais — uma simples corpo a corpo, um
 ## Questões em aberto
 
 1. ~~Onde exatamente mostrar a lista expandida — texto corrido ou algo mais compacto (tooltip/popover)?~~ — **resolvido em 2026-09-09:** texto corrido foi tentado (recomendação original desta seção) e revertido pela mantenedora — 24 marciais numa linha só ficou ilegível mesmo em texto corrido. A revisão/ficha voltam a mostrar só a palavra da categoria (US-223); `config.weapons[].category`/`weaponType` continuam no catálogo pra US-229 usar num painel com mais espaço, onde um popover/tooltip pode fazer sentido se a lista ainda incomodar.
-2. ~~Vale expor a lista também no painel de detalhe da etapa `class`~~ — **resolvido:** virou [US-229](./US-229-proficiencia-de-arma-legivel-no-painel-de-classe.md), separada porque toca bloco/arquivo diferente (painel de detalhe vs. bloco de review) e depende do dado que esta story entrega primeiro.
+2. Vale expor a lista também no painel de detalhe da etapa `class`? Tinha virado [US-229](./US-229-escolha-especifica-de-arma-no-equipamento-inicial.md) — mas essa story foi **reescrita em 2026-09-09** pra outro escopo (escolha de arma específica no equipamento, não legibilidade de proficiência). Esta pergunta volta a ficar **em aberto, sem story dedicada**.
 
 ---
 
