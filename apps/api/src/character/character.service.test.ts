@@ -1160,6 +1160,57 @@ describe('CharacterService.create', () => {
     expect(char.subclass).toBeUndefined()
   })
 
+  // US-231: features de classe E de subclasse até o nível escolhido na criação — antes só
+  // nível 1 da classe-mãe entrava (US-41), sem consultar `subclass` (já resolvida desde a
+  // US-205) nem `level` (já escolhido desde a US-227).
+  const configWithLeveledFeatures: SystemConfig = {
+    ...configWithSubclasses,
+    classFeatures: {
+      wizard: [
+        { key: 'wizard_arcane-recovery', source: 'srd', name: 'Arcane Recovery', description: 'x', level: 1 },
+        { key: 'wizard_spell-mastery', source: 'srd', name: 'Spell Mastery', description: 'x', level: 18 },
+      ],
+      default: [],
+    },
+    subclassFeatures: {
+      evocation: [
+        { key: 'evocation_evocation-savant', source: 'srd', name: 'Evocation Savant', description: 'x', level: 2 },
+        { key: 'evocation_overchannel', source: 'srd', name: 'Overchannel', description: 'x', level: 14 },
+      ],
+    },
+  }
+
+  it('nível 1 (default): só a feature de nível 1 da classe; subclasse resolvida sozinha (1 opção) sem feature nesse nível', async () => {
+    const service = new CharacterService(fakePrisma(configWithLeveledFeatures))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'wizard',
+      attributes: { cool: 5, hard: 5 },
+    })
+    expect(char.features).toEqual(['wizard_arcane-recovery'])
+  })
+
+  it('nível 14: soma feature de subclasse (evocation_overchannel, nível 14), ainda sem a de classe de nível 18', async () => {
+    const service = new CharacterService(fakePrisma(configWithLeveledFeatures))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'wizard',
+      attributes: { cool: 5, hard: 5 }, level: 14,
+    })
+    expect(char.features).toEqual(['wizard_arcane-recovery', 'evocation_evocation-savant', 'evocation_overchannel'])
+  })
+
+  // US-231 (regressão): classe e subclasse fundidas ANTES de ordenar — wizard_spell-mastery
+  // (classe, nível 18) vem DEPOIS de evocation_overchannel (subclasse, nível 14), não antes só
+  // porque classFeatures foi consultada primeiro (bug medido: Bárbaro com Frenesi da subclasse,
+  // nível 3, aparecendo depois de Ataque Extra da classe, nível 5, na ficha real).
+  it('nível 18: soma a feature de classe de nível 18 (wizard_spell-mastery), ordenada por nível JUNTO da de subclasse', async () => {
+    const service = new CharacterService(fakePrisma(configWithLeveledFeatures))
+    const char = await service.create({
+      userId: 'u1', systemId: 'sys-test', name: 'Test', gender: 'x', race: 'x', class: 'wizard',
+      attributes: { cool: 5, hard: 5 }, level: 18,
+    })
+    expect(char.features).toEqual(['wizard_arcane-recovery', 'evocation_evocation-savant', 'evocation_overchannel', 'wizard_spell-mastery'])
+  })
+
   // US-211: dragonborn exige a ancestralidade dracônica escolhida, validada contra
   // DRACONIC_ANCESTRY_TABLE (regra fixa do PHB 2014, packages/shared) — não config.races.
   const configWithDragonborn: SystemConfig = {

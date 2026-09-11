@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SystemConfig } from './types/system'
-import { getStartingInventory, getClassFeatures, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, getRaceToolEquipment, resolveCharacterFeatures, resolveEquipmentSlots, MEMENTO_ITEM_LABEL } from './starting-kit'
+import { getStartingInventory, getClassFeatures, getSubclassFeatures, getCharacterFeatureKeys, getClassSpells, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, getRaceToolEquipment, resolveCharacterFeatures, resolveEquipmentSlots, MEMENTO_ITEM_LABEL } from './starting-kit'
 
 const dnd5eConfig: SystemConfig = {
   attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
@@ -584,33 +584,143 @@ describe('getRaceToolEquipment', () => {
   })
 })
 
-describe('getClassFeatures (US-41)', () => {
+describe('getClassFeatures (US-41/US-231)', () => {
   const config: SystemConfig = {
     attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
     startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
     classFeatures: {
-      barbarian: [{ key: 'barbarian_rage', source: 'srd', name: 'Fúria', description: 'x' }],
+      barbarian: [
+        { key: 'barbarian_rage', source: 'srd', name: 'Fúria', description: 'x', level: 1 },
+        { key: 'barbarian_unarmored-defense', source: 'srd', name: 'Defesa sem Armadura', description: 'x', level: 1 },
+        { key: 'barbarian_extra-attack', source: 'srd', name: 'Ataque Extra', description: 'x', level: 5 },
+      ],
       paladin: [{ key: 'paladin_lay-on-hands', source: 'srd', name: 'Imposição de Mãos', description: 'x' }],
       default: [],
     },
   }
 
   // US-100: devolve CHAVES, não os objetos do config — é o que a ficha grava.
-  it('devolve as chaves das features de nível 1 da classe (barbarian → barbarian_rage)', () => {
-    expect(getClassFeatures(config, 'barbarian')).toEqual(['barbarian_rage'])
+  it('devolve as chaves das features de nível 1 da classe (barbarian → rage/unarmored-defense)', () => {
+    expect(getClassFeatures(config, 'barbarian', 1)).toEqual(['barbarian_rage', 'barbarian_unarmored-defense'])
+  })
+
+  // US-231: Bárbaro nível 5 ganha Ataque Extra; nível 4 não.
+  it('nível 5 inclui Ataque Extra (level: 5); nível 4 não inclui', () => {
+    expect(getClassFeatures(config, 'barbarian', 5)).toEqual(['barbarian_rage', 'barbarian_unarmored-defense', 'barbarian_extra-attack'])
+    expect(getClassFeatures(config, 'barbarian', 4)).toEqual(['barbarian_rage', 'barbarian_unarmored-defense'])
   })
 
   it('classes distintas têm listas distintas (não colapsam)', () => {
-    expect(getClassFeatures(config, 'paladin')).toEqual(['paladin_lay-on-hands'])
+    expect(getClassFeatures(config, 'paladin', 1)).toEqual(['paladin_lay-on-hands'])
+  })
+
+  // US-231: chave sem `level` (config legado/catálogo sem progressão) trata como nível 1.
+  it('feature sem level explícito conta como nível 1', () => {
+    expect(getClassFeatures(config, 'paladin', 1)).toEqual(['paladin_lay-on-hands'])
   })
 
   it('classe sem entrada própria cai no default', () => {
-    expect(getClassFeatures(config, 'wizard')).toEqual([])
+    expect(getClassFeatures(config, 'wizard', 20)).toEqual([])
   })
 
   it('sem classFeatures no config → lista vazia (sem crash)', () => {
     const noFeatures: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
-    expect(getClassFeatures(noFeatures, 'barbarian')).toEqual([])
+    expect(getClassFeatures(noFeatures, 'barbarian', 5)).toEqual([])
+  })
+})
+
+// US-231: espelha getClassFeatures, mas por chave de SUBCLASSE — `subclassKey` undefined
+// (classe sem subclasse resolvida) devolve [], nunca lança.
+describe('getSubclassFeatures (US-231)', () => {
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    subclassFeatures: {
+      'life-domain': [
+        { key: 'life-domain_bonus-proficiency', source: 'srd', name: 'Proficiência Bônus', description: 'x', level: 1 },
+        { key: 'life-domain_disciple-of-life', source: 'srd', name: 'Discípulo da Vida', description: 'x', level: 1 },
+        { key: 'life-domain_channel-divinity-preserve-life', source: 'srd', name: 'Canalizar Divindade', description: 'x', level: 2 },
+        { key: 'life-domain_blessed-healer', source: 'srd', name: 'Curandeira Abençoada', description: 'x', level: 6 },
+        { key: 'life-domain_divine-strike', source: 'srd', name: 'Ataque Divino', description: 'x', level: 8 },
+      ],
+    },
+  }
+
+  it('nível 1: só as duas features de nível 1', () => {
+    expect(getSubclassFeatures(config, 'life-domain', 1)).toEqual(['life-domain_bonus-proficiency', 'life-domain_disciple-of-life'])
+  })
+
+  it('nível 6: soma channel-divinity (2) e blessed-healer (6), sem divine-strike (8)', () => {
+    expect(getSubclassFeatures(config, 'life-domain', 6)).toEqual([
+      'life-domain_bonus-proficiency', 'life-domain_disciple-of-life',
+      'life-domain_channel-divinity-preserve-life', 'life-domain_blessed-healer',
+    ])
+  })
+
+  it('nível 8: as 5 features', () => {
+    expect(getSubclassFeatures(config, 'life-domain', 8)).toEqual([
+      'life-domain_bonus-proficiency', 'life-domain_disciple-of-life',
+      'life-domain_channel-divinity-preserve-life', 'life-domain_blessed-healer', 'life-domain_divine-strike',
+    ])
+  })
+
+  it('subclassKey undefined devolve [], nunca lança', () => {
+    expect(getSubclassFeatures(config, undefined, 20)).toEqual([])
+  })
+
+  it('subclassKey sem entrada no catálogo devolve []', () => {
+    expect(getSubclassFeatures(config, 'champion', 20)).toEqual([])
+  })
+
+  it('sem subclassFeatures no config → lista vazia (sem crash)', () => {
+    const noFeatures: SystemConfig = { attributes: config.attributes, startingKits: config.startingKits }
+    expect(getSubclassFeatures(noFeatures, 'life-domain', 20)).toEqual([])
+  })
+})
+
+// US-231 (regressão): getClassFeatures/getSubclassFeatures cada uma ordena por nível dentro da
+// PRÓPRIA fonte — concatenar as duas listas prontas (`[...classe, ...subclasse]`) NÃO intercala
+// por nível entre as duas, e uma feature de subclasse de nível baixo aparecia depois de uma de
+// classe de nível alto (medido: Bárbaro nível 5 com Caminho do Berserker mostrava Frenesi,
+// nível 3 da subclasse, DEPOIS de Ataque Extra/Deslocamento Rápido, nível 5 da classe).
+// getCharacterFeatureKeys funde as duas ANTES de ordenar — é o fix.
+describe('getCharacterFeatureKeys (US-231)', () => {
+  const config: SystemConfig = {
+    attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
+    startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
+    classFeatures: {
+      barbarian: [
+        { key: 'barbarian_rage', source: 'srd', name: 'Fúria', description: 'x', level: 1 },
+        { key: 'barbarian_unarmored-defense', source: 'srd', name: 'Defesa sem Armadura', description: 'x', level: 1 },
+        { key: 'barbarian_primal-path', source: 'srd', name: 'Caminho Primal', description: 'x', level: 3 },
+        { key: 'barbarian_extra-attack', source: 'srd', name: 'Ataque Extra', description: 'x', level: 5 },
+        { key: 'barbarian_fast-movement', source: 'srd', name: 'Deslocamento Rápido', description: 'x', level: 5 },
+      ],
+      default: [],
+    },
+    subclassFeatures: {
+      'path-of-the-berserker': [
+        { key: 'path-of-the-berserker_frenzy', source: 'srd', name: 'Frenesi', description: 'x', level: 3 },
+      ],
+    },
+  }
+
+  it('funde classe e subclasse por nível crescente — Frenesi (subclasse, nível 3) vem ANTES de Ataque Extra (classe, nível 5)', () => {
+    expect(getCharacterFeatureKeys(config, 'barbarian', 'path-of-the-berserker', 5)).toEqual([
+      'barbarian_rage', 'barbarian_unarmored-defense',
+      'barbarian_primal-path', 'path-of-the-berserker_frenzy',
+      'barbarian_extra-attack', 'barbarian_fast-movement',
+    ])
+  })
+
+  it('nível abaixo do que a subclasse desbloqueia: só as features de classe', () => {
+    expect(getCharacterFeatureKeys(config, 'barbarian', 'path-of-the-berserker', 2)).toEqual(['barbarian_rage', 'barbarian_unarmored-defense'])
+  })
+
+  it('subclassKey undefined: só as features de classe, sem lançar', () => {
+    expect(getCharacterFeatureKeys(config, 'barbarian', undefined, 5)).toEqual([
+      'barbarian_rage', 'barbarian_unarmored-defense', 'barbarian_primal-path', 'barbarian_extra-attack', 'barbarian_fast-movement',
+    ])
   })
 })
 
@@ -678,16 +788,19 @@ describe('getRaceFeatures (US-142)', () => {
   })
 })
 
-// US-135: resolve Character.features (chaves de classe + origem misturadas) contra a UNIÃO
-// dos dois catálogos — o ponto delicado do §Notas de implementação (resolveSheetEntries sozinho
-// só enxerga um mapa por vez).
-describe('resolveCharacterFeatures (US-135)', () => {
+// US-135/US-231: resolve Character.features (chaves de classe, subclasse, origem e raça
+// misturadas) contra a UNIÃO dos catálogos — o ponto delicado do §Notas de implementação
+// (resolveSheetEntries sozinho só enxerga um mapa por vez).
+describe('resolveCharacterFeatures (US-135/US-231)', () => {
   const config: SystemConfig = {
     attributes: [{ key: 'strength', label: 'Força', min: 3, max: 20, default: 10 }],
     startingKits: { default: [{ name: 'Adaga', qty: 1 }] },
     classFeatures: {
       paladin: [{ key: 'paladin_lay-on-hands', source: 'srd', name: 'Impor as Mãos', description: 'Cura ao toque.' }],
       default: [],
+    },
+    subclassFeatures: {
+      'life-domain': [{ key: 'life-domain_disciple-of-life', source: 'srd', name: 'Discípulo da Vida', description: 'Cura reforçada.', level: 1 }],
     },
     backgroundFeatures: {
       a5e_ag_criminal: [{ key: 'a5e_ag_criminal_thieves-cant', source: 'a5e-ag', name: "Thieves' Cant", description: 'Código secreto.' }],
@@ -699,6 +812,19 @@ describe('resolveCharacterFeatures (US-135)', () => {
       paladin_retired: { key: 'paladin_retired', source: 'srd', name: 'Aposentada', description: 'x' },
     },
   }
+
+  // US-231: chave de subclasse resolve contra config.subclassFeatures quando subclassKey é
+  // passado, com origin: 'subclass' — mesmo par de teste que raceKey ganhou na US-142.
+  it('marca origin: subclass para chave de subclassFeatures quando subclassKey é passado', () => {
+    const out = resolveCharacterFeatures(config, 'paladin', undefined, ['life-domain_disciple-of-life'], undefined, 'life-domain')
+    expect(out.map(f => f.origin)).toEqual(['subclass'])
+    expect(out.map(f => f.name)).toEqual(['Discípulo da Vida'])
+  })
+
+  it('sem subclassKey, chave de subclassFeatures cai no fallback background (compatibilidade)', () => {
+    const out = resolveCharacterFeatures(config, 'paladin', undefined, ['life-domain_disciple-of-life'])
+    expect(out.map(f => f.origin)).toEqual(['background'])
+  })
 
   it('resolve chave de classe e chave de origem na MESMA lista', () => {
     const keys = ['paladin_lay-on-hands', 'a5e_ag_criminal_thieves-cant']

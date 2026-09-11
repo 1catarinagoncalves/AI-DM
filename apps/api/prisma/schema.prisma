@@ -64,7 +64,10 @@ model Character {
                                           // contrário de raceToolChoice) porque não vira item físico de
                                           // kit — nenhum consumidor precisa saber QUAL fonte deu o
                                           // idioma, só quais idiomas o personagem sabe.
-  features       Json                   @default("[]") // US-41: features de classe de nível 1 ({name, description}[])
+  features       Json                   @default("[]") // US-41/US-100/US-231: chaves de feature de
+                                          // classe/subclasse/origem/raça (string[]), até o nível
+                                          // escolhido na criação — não {name, description}[]
+                                          // (US-100 trocou por chave; comentário estava defasado).
   spells         Json                   @default("[]") // US-42: magias conhecidas ({name, level?, description?}[])
   background     Json                   @default("{}") // US-39/US-40: {story?, ideals?, bonds?, flaws?, deity?:{name,portfolio?}}
   origin         Json                   @default("{}") // US-122: {key?} — origem escolhida do catálogo (US-121).

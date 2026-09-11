@@ -59,7 +59,23 @@ export async function translateSrdToPtBr(
   const vocabulary = glossary.map((t) => `${t.en} = ${t.pt}`).join('\n')
   const drafts: Record<string, { name: string; description: string }> = {}
   for (let i = 0; i < entries.length; i += BATCH_SIZE) {
-    const batch = entries.slice(i, i + BATCH_SIZE)
+    await translateBatch(entries.slice(i, i + BATCH_SIZE), vocabulary, drafts)
+  }
+  return drafts
+}
+
+// US-231: um lote falho tenta de novo ITEM POR ITEM — medido contra o dataset real:
+// `monk_ki` sozinho já falha sempre ("the model did not return a response", 3 tentativas
+// internas da SDK, mesmo resultado) e, dentro de um lote de 10, derrubava as outras 9 que
+// teriam traduzido bem sozinhas. Um lote de 1 que falha é o "poison pill" de verdade — cai
+// no fallback EN sem mais retentativa (ver `pickRequested`); um lote maior falho tenta de
+// novo em N chamadas de 1, só no caminho de ERRO (sem custo extra no caminho feliz).
+async function translateBatch(
+  batch: SrdEntry[],
+  vocabulary: string,
+  drafts: Record<string, { name: string; description: string }>,
+): Promise<void> {
+  try {
     const { object } = await generateObject({
       model: translateModel(),
       schema: DraftsSchema,
@@ -67,8 +83,13 @@ export async function translateSrdToPtBr(
       prompt: JSON.stringify({ entries: batch }),
     })
     Object.assign(drafts, pickRequested(batch, object.entries))
+  } catch (e) {
+    if (batch.length === 1) {
+      console.warn(`  AVISO: tradução de "${batch[0]!.key}" falhou (${(e as Error).message}) — segue no fallback EN.`)
+      return
+    }
+    for (const entry of batch) await translateBatch([entry], vocabulary, drafts)
   }
-  return drafts
 }
 
 /** Descarta o que o modelo devolveu fora do lote pedido (chave inventada ou repetida). */

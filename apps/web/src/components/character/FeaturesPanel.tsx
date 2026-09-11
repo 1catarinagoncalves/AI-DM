@@ -3,18 +3,33 @@
 import { spellLevelLabel, type SystemSpell } from '@ai-dm/shared'
 import { SheetHeading } from '@/components/ui/dm'
 import { useLocale, useT } from '@/components/LocaleProvider'
+import type { MessageKey } from '@/messages'
 
 // US-41: feature de classe (awareness read-only). Mesma forma do SystemClassFeature de
 // @ai-dm/shared, mas só os campos que este painel usa — `key`/`source` são dado de
 // persistência (US-100), sem papel na exibição.
 // US-136: `origin` é opcional — só `resolveCharacterFeatures` o preenche; qualquer outro
 // chamador (nenhum conhecido hoje) continua funcionando sem badge.
-// US-142: traço de raça também chega marcado `origin: 'race'`, mas esta aba é só classe/origem
-// (US-41/US-136 nunca cobriram raça) — filtrado antes de renderizar, não vira badge novo.
+// US-142: traço de raça também chega marcado `origin: 'race'`, mas esta aba é só classe/
+// subclasse/origem (US-41/US-136 nunca cobriram raça) — filtrado antes de renderizar, não vira
+// badge novo.
+// US-231: `origin: 'subclass'` é o OPOSTO de `'race'` — precisa aparecer nesta aba (é onde a
+// jogadora vê o que a especialização dá), com badge próprio. `level` é o nível de desbloqueio
+// (US-231), ausente em feature de origem/raça (sem progressão).
 export interface ClassFeature {
   name: string
   description: string
-  origin?: 'class' | 'background' | 'race'
+  origin?: 'class' | 'subclass' | 'background' | 'race'
+  level?: number
+}
+
+// US-231: rótulo de badge por origem — GENÉRICO ("Subclasse", não o nome da subclasse), mesmo
+// padrão de Classe/Origem (categoria, não entidade); troca a ternária binária de antes, que só
+// sabia class/background. `'race'` fica de fora de propósito (nunca chega aqui, filtrado abaixo).
+const ORIGIN_TAG_KEY: Partial<Record<NonNullable<ClassFeature['origin']>, MessageKey>> = {
+  class: 'game.features.tag.class',
+  subclass: 'game.features.tag.subclass',
+  background: 'game.features.tag.background',
 }
 
 // US-41/US-50: painel da aba Features da ficha. Read-only, awareness — nome + descrição curta.
@@ -60,9 +75,17 @@ export function FeaturesPanel({ features, spells, tone = 'accent' }: { features?
               <li key={i} className="rounded-md border border-border bg-background/40 p-3">
                 <p className="flex items-center gap-2 text-sm font-semibold text-parchment">
                   {f.name}
-                  {f.origin && (
+                  {f.origin && ORIGIN_TAG_KEY[f.origin] && (
                     <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
-                      {t(f.origin === 'class' ? 'game.features.tag.class' : 'game.features.tag.background')}
+                      {t(ORIGIN_TAG_KEY[f.origin]!)}
+                    </span>
+                  )}
+                  {/* US-231: nível de desbloqueio — mesmo padrão visual do badge de origem
+                      acima, badge PRÓPRIO (não junto do de origem) porque as duas informações
+                      são independentes (uma feature de origem pode não ter nível nenhum). */}
+                  {typeof f.level === 'number' && (
+                    <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
+                      {t('game.features.tag.level', { level: f.level })}
                     </span>
                   )}
                 </p>

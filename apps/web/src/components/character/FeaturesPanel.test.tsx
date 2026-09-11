@@ -52,3 +52,50 @@ describe('FeaturesPanel — tag de origem (US-136)', () => {
     expect(screen.queryByText('Visão no Escuro')).toBeNull()
   })
 })
+
+// US-231: origin: 'subclass' é o OPOSTO de 'race' — aparece na lista, com badge próprio.
+describe('FeaturesPanel — tag de subclasse e nível de desbloqueio (US-231)', () => {
+  it('item com origin: subclass aparece na lista com badge "Subclasse"', () => {
+    render(
+      <FeaturesPanel
+        features={[
+          { name: 'Discípulo da Vida', description: 'Cura reforçada.', origin: 'subclass', level: 1 },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText('Discípulo da Vida')).toBeTruthy()
+    expect(screen.getByText('Subclasse')).toBeTruthy()
+  })
+
+  it('feature com level mostra o badge "Nível N"; sem level, nenhum badge de nível', () => {
+    render(
+      <FeaturesPanel
+        features={[
+          { name: 'Ataque Extra', description: 'Ataca duas vezes.', origin: 'class', level: 5 },
+          { name: 'Sentido Divino', description: 'Sente o mal por perto.', origin: 'class' },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText('Nível 5')).toBeTruthy()
+    expect(screen.getAllByText('Classe')).toHaveLength(2)
+  })
+
+  it('lista com classe, subclasse e origem mostra os três badges de origem, cada um só onde tem nível', () => {
+    render(
+      <FeaturesPanel
+        features={[
+          { name: 'Fúria', description: 'x', origin: 'class', level: 1 },
+          { name: 'Discípulo da Vida', description: 'x', origin: 'subclass', level: 1 },
+          { name: "Thieves' Cant", description: 'x', origin: 'background' },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText('Classe')).toBeTruthy()
+    expect(screen.getByText('Subclasse')).toBeTruthy()
+    expect(screen.getByText('Origem')).toBeTruthy()
+    expect(screen.getAllByText('Nível 1')).toHaveLength(2) // Fúria e Discípulo da Vida
+  })
+})

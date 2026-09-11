@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
 import {
-  abilityModifier, buildSavingThrowSheet, buildSkillSheet, formatModifier, getClassFeatures, getClassSpells,
+  abilityModifier, buildSavingThrowSheet, buildSkillSheet, formatModifier, getCharacterFeatureKeys, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, resolveEquipmentSlots,
   type WeaponModeSlot,
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
@@ -577,14 +577,20 @@ export function SetupWizard() {
     ...previewRaceEquipment,
     ...(mementoText ? [{ name: MEMENTO_ITEM_LABEL[locale], qty: 1 }] : []),
   ]
-  // US-135: as chaves de origem (getBackgroundFeatures) somam às de classe assim que `origin.key`
-  // está preenchido — resolveCharacterFeatures resolve as duas contra a união dos catálogos,
-  // mesma função que a criação/ficha/prompt usam (ver US-135 §Notas de implementação).
+  // US-135/US-231: as chaves de classe+subclasse (getCharacterFeatureKeys, já fundidas e
+  // ordenadas por nível — ver o comentário na função) e de origem (getBackgroundFeatures) somam
+  // — a de subclasse assim que `resolvedSubclass` existe (automática ou por cartão, US-205), a
+  // de origem assim que `origin.key` está preenchido. resolveCharacterFeatures resolve as três
+  // contra a união dos catálogos, mesma função que a criação/ficha/prompt usam (ver US-135
+  // §Notas de implementação). `levelValue` refaz o preview ao trocar o nível (US-227).
   const previewFeatureKeys = system?.config
-    ? [...getClassFeatures(system.config, charData.class), ...getBackgroundFeatures(system.config, origin)]
+    ? [
+        ...getCharacterFeatureKeys(system.config, charData.class, resolvedSubclass, levelValue),
+        ...getBackgroundFeatures(system.config, origin),
+      ]
     : []
   const previewFeatures = system?.config
-    ? resolveCharacterFeatures(system.config, charData.class, origin, previewFeatureKeys)
+    ? resolveCharacterFeatures(system.config, charData.class, origin, previewFeatureKeys, undefined, resolvedSubclass)
     : []
   const previewSpellKeys = system?.config ? getClassSpells(system.config, charData.class) : []
   const previewSpells = system?.config
@@ -594,12 +600,19 @@ export function SetupWizard() {
   // Alto-elfo, mesma validação que o service faz (`wizard` é a chave CANÔNICA de classe,
   // US-54; 'mago' é só o rótulo pt-BR). Vazio para sistema sem essa entrada em classSpells.
   const wizardCantrips = (system?.config?.classSpells?.['wizard'] ?? []).filter(s => s.level === 0)
-  // US-205: painel de detalhe da etapa `class` — só as features DA CLASSE (US-41), sem origem
-  // (ainda não escolhida nesta etapa do wizard). `resolveCharacterFeatures` com `originKey`
-  // undefined devolve só o que `getClassFeatures` já resolve, mas com o campo `origin: 'class'`
-  // que o FeaturesPanel usa pro selo — reaproveitado em vez de montar `{name,description}` à mão.
+  // US-205/US-231: painel de detalhe da etapa `class` — features DA CLASSE (US-41) e da
+  // SUBCLASSE já resolvida (automática ou por cartão), sem origem (ainda não escolhida nesta
+  // etapa do wizard). `resolveCharacterFeatures` com `originKey` undefined devolve só o que
+  // `getCharacterFeatureKeys` já resolve (fundido e ordenado por nível), mas com o campo
+  // `origin` (`'class'`/`'subclass'`) que o FeaturesPanel usa pro selo — reaproveitado em vez de
+  // montar `{name,description}` à mão. `levelValue`/`resolvedSubclass` refazem o preview ao
+  // trocar nível ou subclasse (CA da US-231), sem reload.
   const classStepFeatures = system?.config
-    ? resolveCharacterFeatures(system.config, charData.class, undefined, getClassFeatures(system.config, charData.class))
+    ? resolveCharacterFeatures(
+        system.config, charData.class, undefined,
+        getCharacterFeatureKeys(system.config, charData.class, resolvedSubclass, levelValue),
+        undefined, resolvedSubclass,
+      )
     : []
   // US-205: painel de detalhe da etapa `race` — traços raciais (US-142), já resolvidos pro
   // locale ativo. Sem FeaturesPanel aqui: aquele componente FILTRA origin 'race' de propósito
@@ -1186,7 +1199,7 @@ export function SetupWizard() {
                   <CatalogCardGroup name="char-class" legend={t('setup.raceClass.class')} hideLegend
                     items={classCatalog} value={charData.class} onChange={selectClassCard} />
                   {/* US-205: painel de detalhe — o que a classe escolhida concede, sem dado
-                      novo (getClassFeatures/getStartingInventory já existem no arquivo). */}
+                      novo (getCharacterFeatureKeys/getStartingInventory já existem no arquivo). */}
                   {charData.class && (
                     <div className="space-y-4 border-t border-border pt-4">
                       {/* US-227: badge "D{sides} DE VIDA" — `sides` do MESMO `parseHitDice`

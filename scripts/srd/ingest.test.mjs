@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseClassEquipmentChoices, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildWeaponMeta, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildSubclassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseClassEquipmentChoices, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildWeaponMeta, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -416,6 +416,61 @@ test('buildClassFeatures: feature_type "PROFICIENCIES" é filtrada, mesmo com fe
   assert.deepEqual(result.barbarian.map((f) => f.key), ['barbarian_rage'])
 })
 
+// --- US-231 — buildClassFeatures deixa de descartar nível > 1: grava `level` por feature ---
+
+test('buildClassFeatures: grava level de cada feature; Bárbaro nível 5 tem Fúria (1) e Ataque Extra (5)', () => {
+  const classes = [classRow('srd_barbarian')]
+  const features = [
+    featureRow('srd_barbarian_rage', 'srd_barbarian', 'Rage', 'You can enter a rage.'),
+    featureRow('srd_barbarian_extra-attack', 'srd_barbarian', 'Extra Attack', 'You can attack twice.'),
+  ]
+  const featureItems = [featureItemRow('srd_barbarian_rage', 1), featureItemRow('srd_barbarian_extra-attack', 5)]
+  const result = buildClassFeatures({}, { classes, features, featureItems }, identityResolve)
+  assert.deepEqual(result.barbarian.map((f) => ({ key: f.key, level: f.level })), [
+    { key: 'barbarian_extra-attack', level: 5 },
+    { key: 'barbarian_rage', level: 1 },
+  ])
+})
+
+// US-231: Melhoria de Atributo é escolha MECÂNICA do jogador (feat ou +2 em atributos), não
+// uma feature narrável — filtrada nos mesmos moldes de PROFICIENCIES, mesmo com featureItem real.
+test('buildClassFeatures: "*_ability-score-improvement" nunca entra no artefato, mesmo com featureItem registrado', () => {
+  const classes = [classRow('srd_barbarian')]
+  const features = [
+    featureRow('srd_barbarian_rage', 'srd_barbarian', 'Rage', 'You can enter a rage.'),
+    featureRow('srd_barbarian_ability-score-improvement', 'srd_barbarian', 'Ability Score Improvement', 'Increase one ability score.'),
+  ]
+  const featureItems = [featureItemRow('srd_barbarian_rage', 1), featureItemRow('srd_barbarian_ability-score-improvement', 4)]
+  const result = buildClassFeatures({}, { classes, features, featureItems }, identityResolve)
+  assert.deepEqual(result.barbarian.map((f) => f.key), ['barbarian_rage'])
+})
+
+test('buildClassFeatures: feature sem NENHUM featureItem (nunca teve nível registrado) continua fora, mesmo com desc real', () => {
+  const classes = [classRow('srd_barbarian')]
+  const features = [
+    featureRow('srd_barbarian_rage', 'srd_barbarian', 'Rage', 'You can enter a rage.'),
+    featureRow('srd_barbarian_equipment', 'srd_barbarian', 'Equipment', 'You start with the following equipment.'),
+  ]
+  const featureItems = [featureItemRow('srd_barbarian_rage', 1)]
+  const result = buildClassFeatures({}, { classes, features, featureItems }, identityResolve)
+  assert.deepEqual(result.barbarian.map((f) => f.key), ['barbarian_rage'])
+})
+
+// US-231 (regressão contra o dataset REAL): "ability-score-improvement" nunca vazou pro artefato,
+// nem agora que buildClassFeatures passou a percorrer todos os níveis (antes só nível 1 já
+// escondia o problema por acidente — ASI do 5e começa no nível 4).
+test('buildClassFeatures: dataset real — "ability-score-improvement" nunca aparece no artefato', () => {
+  const classesRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'CharacterClass.json'), 'utf8'))
+    .concat(JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'CharacterClass.a5e-ag.json'), 'utf8')))
+  const featuresRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeature.json'), 'utf8'))
+    .concat(JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeature.a5e-ag.json'), 'utf8')))
+  const featureItemsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeatureItem.json'), 'utf8'))
+    .concat(JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeatureItem.a5e-ag.json'), 'utf8')))
+  const result = buildClassFeatures({}, { classes: classesRaw, features: featuresRaw, featureItems: featureItemsRaw }, identityResolve)
+  const asiKeys = Object.values(result).flat().map((f) => f.key).filter((k) => k.endsWith('ability-score-improvement'))
+  assert.deepEqual(asiKeys, [])
+})
+
 // --- US-141 — buildSubclasses: filtro invertido de buildClasses; chave sempre presente ---
 // (array vazio pra classe sem subclasse na fixture, decidido US-141 §Notas de implementação)
 
@@ -437,6 +492,71 @@ test('buildSubclasses: agrupa por classe-mãe via CLASS_MAP; classe sem subclass
 test('buildSubclasses: subclass_of sem entrada no CLASS_MAP falha alto (não descarta em silêncio)', () => {
   const classes = [classRow('srd_champion', 'srd_unknown-class')]
   assert.throws(() => buildSubclasses({}, classes, identityResolve), /subclass_of.*CLASS_MAP/)
+})
+
+// --- US-231 — buildSubclassFeatures: espelha buildClassFeatures, mas por pk de SUBCLASSE ---
+
+test('buildSubclassFeatures: agrupa por chave de subclasse (stripDocument), com level; subclasse sem feature na fixture fica com array vazio', () => {
+  const classes = [classRow('srd_barbarian'), classRow('srd_champion', 'srd_fighter'), classRow('srd_life-domain', 'srd_cleric')]
+  const features = [
+    featureRow('srd_life-domain_bonus-proficiency', 'srd_life-domain', 'Bonus Proficiency', 'You gain proficiency with heavy armor.'),
+    featureRow('srd_life-domain_divine-strike', 'srd_life-domain', 'Divine Strike', 'You gain the ability to infuse your weapon strikes.'),
+  ]
+  const featureItems = [featureItemRow('srd_life-domain_bonus-proficiency', 1), featureItemRow('srd_life-domain_divine-strike', 8)]
+  const result = buildSubclassFeatures({}, { classes, features, featureItems }, identityResolve)
+  assert.deepEqual(result['life-domain'].map((f) => ({ key: f.key, level: f.level })), [
+    { key: 'life-domain_bonus-proficiency', level: 1 },
+    { key: 'life-domain_divine-strike', level: 8 },
+  ])
+  assert.deepEqual(result.champion, []) // subclasse presente no dataset (fixture), sem feature nesta fixture
+})
+
+// US-231: a mesma feature de domínio/oath/patron COM prosa real (não sufixo `-spells-table`)
+// continua entrando — só a tabela pura fica de fora (ver Notas de implementação da US-231).
+test('buildSubclassFeatures: "-spells-table" (tabela pura, sem prosa) fica de fora', () => {
+  const classes = [classRow('srd_life-domain', 'srd_cleric')]
+  const features = [
+    featureRow('srd_life-domain_bonus-proficiency', 'srd_life-domain', 'Bonus Proficiency', 'You gain proficiency with heavy armor.'),
+    featureRow('srd_life-domain_life-domain-spells-table', 'srd_life-domain', 'Domain Spells', 'Cleric Level | Spells |'),
+  ]
+  const featureItems = [featureItemRow('srd_life-domain_bonus-proficiency', 1), featureItemRow('srd_life-domain_life-domain-spells-table', 1)]
+  const result = buildSubclassFeatures({}, { classes, features, featureItems }, identityResolve)
+  assert.deepEqual(result['life-domain'].map((f) => f.key), ['life-domain_bonus-proficiency'])
+})
+
+test('buildSubclassFeatures: Marshal (a5e-ag) soma no mesmo mapa; source por documento', () => {
+  const classes = [classRow('a5e_gambling-general', 'a5e_marshal')]
+  const features = [
+    featureRow('a5e_gambling-general_daring-commander', 'a5e_gambling-general', 'Daring Commander', 'You inspire your allies.', 'a5e-ag'),
+  ]
+  const featureItems = [featureItemRow('a5e_gambling-general_daring-commander', 3)]
+  const result = buildSubclassFeatures({}, { classes, features, featureItems }, identityResolve)
+  assert.deepEqual(result['gambling-general'].map((f) => ({ key: f.key, level: f.level, source: f.source })), [
+    { key: 'gambling-general_daring-commander', level: 3, source: 'a5e-ag' },
+  ])
+})
+
+// US-231 (regressão contra o dataset REAL): as 15 subclasses ingeridas (12 SRD + 3 Marshal) têm
+// entrada no mapa, e a progressão de nível do Domínio da Vida bate com o SRD 5.1.
+test('buildSubclassFeatures: dataset real — config.subclassFeatures tem entrada para as 15 subclasses ingeridas', () => {
+  const classesRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'CharacterClass.json'), 'utf8'))
+    .concat(JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'CharacterClass.a5e-ag.json'), 'utf8')))
+  const featuresRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeature.json'), 'utf8'))
+    .concat(JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeature.a5e-ag.json'), 'utf8')))
+  const featureItemsRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeatureItem.json'), 'utf8'))
+    .concat(JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'ClassFeatureItem.a5e-ag.json'), 'utf8')))
+  const result = buildSubclassFeatures({}, { classes: classesRaw, features: featuresRaw, featureItems: featureItemsRaw }, identityResolve)
+  assert.equal(Object.keys(result).length, 15, 'dataset mudou de tamanho — reveja as 15 subclasses (12 SRD + 3 Marshal)')
+  const lifeDomainLevels = Object.fromEntries(result['life-domain'].map((f) => [f.key, f.level]))
+  assert.deepEqual(lifeDomainLevels, {
+    'life-domain_bonus-proficiency': 1,
+    'life-domain_disciple-of-life': 1,
+    'life-domain_channel-divinity-preserve-life': 2,
+    'life-domain_blessed-healer': 6,
+    'life-domain_divine-strike': 8,
+    'life-domain_supreme-healing': 17,
+  })
+  assert.ok(!('life-domain_life-domain-spells-table' in lifeDomainLevels), 'tabela de magias de domínio vazou pro artefato')
 })
 
 // --- US-203 — kicker/blurb de catálogo (races/classes/subclasses): overlay aceita string OU

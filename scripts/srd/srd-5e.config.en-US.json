@@ -2016,146 +2016,880 @@
   "classFeatures": {
     "barbarian": [
       {
+        "description": "Beginning at 9th level, you can roll one additional weapon damage die when determining the extra damage for a critical hit with a melee attack. This increases to two additional dice at 13th level and three additional dice at 17th level.",
+        "key": "barbarian_brutal-critical",
+        "level": 9,
+        "name": "Brutal Critical",
+        "source": "srd"
+      },
+      {
+        "description": "At 2nd level, you gain an uncanny sense of when things nearby aren’t as they should be, giving you an edge when you dodge away from danger. You have advantage on Dexterity saving throws against effects that you can see, such as traps and spells. To gain this benefit, you can’t be blinded, deafened, or incapacitated.",
+        "key": "barbarian_danger-sense",
+        "level": 2,
+        "name": "Danger Sense",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn.",
+        "key": "barbarian_extra-attack",
+        "level": 5,
+        "name": "Extra Attack",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 5th level, your speed increases by 10 feet while you aren’t wearing heavy armor.",
+        "key": "barbarian_fast-movement",
+        "level": 5,
+        "name": "Fast Movement",
+        "source": "srd"
+      },
+      {
+        "description": "By 7th level, your instincts are so honed that you have advantage on initiative rolls. Additionally, if you are surprised at the beginning of combat and aren’t incapacitated, you can act normally on your first turn, but only if you enter your rage before doing anything else on that turn.",
+        "key": "barbarian_feral-instinct",
+        "level": 7,
+        "name": "Feral Instinct",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 18th level, if your total for a Strength check is less than your Strength score, you can use that score in place of the total.",
+        "key": "barbarian_indomitable-might",
+        "level": 18,
+        "name": "Indomitable Might",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 15th level, your rage is so fierce that it ends early only if you fall unconscious or if you choose to end it.",
+        "key": "barbarian_persistent-rage",
+        "level": 15,
+        "name": "Persistent Rage",
+        "source": "srd"
+      },
+      {
+        "description": "At 20th level, you embody the power of the wilds. Your Strength and Constitution scores increase by 4. Your maximum for those scores is now 24.",
+        "key": "barbarian_primal-champion",
+        "level": 20,
+        "name": "Primal Champion",
+        "source": "srd"
+      },
+      {
+        "description": "At 3rd level, you choose a path that shapes the nature of your rage. Choose the Path of the Berserker or the Path of the Totem Warrior, both detailed at the end of the class description. Your choice grants you features at 3rd level and again at 6th, 10th, and 14th levels.",
+        "key": "barbarian_primal-path",
+        "level": 3,
+        "name": "Primal Path",
+        "source": "srd"
+      },
+      {
         "description": "In battle, you fight with primal ferocity. On your turn, you can enter a rage as a bonus action. While raging, you gain the following benefits if you aren't wearing heavy armor: * You have advantage on Strength checks and Strength saving throws. * When you make a melee weapon attack using Strength, you gain a bonus to the damage roll that increases as you gain levels as a barbarian, as shown in the Rage Damage column of the Barbarian table. * You have resistance to bludgeoning, piercing, and slashing damage. If you are able to cast spells, you can't cast them or concentrate on them while raging. Your rage lasts for 1 minute. It ends early if you are knocked unconscious or if your turn ends and you haven't attacked a hostile creature since your last turn or taken damage since then. You can also end your rage on your turn as a bonus action. Once you have raged the number of times shown for your barbarian level in the Rages column of the Barbarian table, you must finish a long rest before you can rage again.",
         "key": "barbarian_rage",
+        "level": 1,
         "name": "Rage",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, you can throw aside all concern for defense to attack with fierce desperation. When you make your first attack on your turn, you can decide to attack recklessly. Doing so gives you advantage on melee weapon attack rolls using Strength during this turn, but attack rolls against you have advantage until your next turn.",
+        "key": "barbarian_reckless-attack",
+        "level": 2,
+        "name": "Reckless Attack",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 11th level, your rage can keep you fighting despite grievous wounds. If you drop to 0 hit points while you’re raging and don’t die outright, you can make a DC 10 Constitution saving throw. If you succeed, you drop to 1 hit point instead. Each time you use this feature after the first, the DC increases by 5. When you finish a short or long rest, the DC resets to 10.",
+        "key": "barbarian_relentless-rage",
+        "level": 11,
+        "name": "Relentless Rage",
         "source": "srd"
       },
       {
         "description": "While you are not wearing any armor, your Armor Class equals 10 + your Dexterity modifier + your Constitution modifier. You can use a shield and still gain this benefit.",
         "key": "barbarian_unarmored-defense",
+        "level": 1,
         "name": "Unarmored Defense",
         "source": "srd"
       }
     ],
     "bard": [
       {
+        "description": "At 3rd level, you delve into the advanced techniques of a bard college of your choice: the College of Lore or the College of Valor, both detailed at the end of the class description. Your choice grants you features at 3rd level and again at 6th and 14th level.",
+        "key": "bard_bard-college",
+        "level": 3,
+        "name": "Bard College",
+        "source": "srd"
+      },
+      {
         "description": "You can inspire others through stirring words or music. To do so, you use a bonus action on your turn to choose one creature other than yourself within 60 feet of you who can hear you. That creature gains one Bardic Inspiration die, a d6. Once within the next 10 minutes, the creature can roll the die and add the number rolled to one ability check, attack roll, or saving throw it makes. The creature can wait until after it rolls the d20 before deciding to use the Bardic Inspiration die, but must decide before the GM says whether the roll succeeds or fails. Once the Bardic Inspiration die is rolled, it is lost. A creature can have only one Bardic Inspiration die at a time. You can use this feature a number of times equal to your Charisma modifier (a minimum of once). You regain any expended uses when you finish a long rest. Your Bardic Inspiration die changes when you reach certain levels in this class. The die becomes a d8 at 5th level, a d10 at 10th level, and a d12 at 15th level.",
         "key": "bard_bardic-inspiration",
+        "level": 1,
         "name": "Bardic Inspiration",
+        "source": "srd"
+      },
+      {
+        "description": "At 6th level, you gain the ability to use musical notes or words of power to disrupt mind-influencing effects. As an action, you can start a performance that lasts until the end of your next turn. During that time, you and any friendly creatures within 30 feet of you have advantage on saving throws against being frightened or charmed. A creature must be able to hear you to gain this benefit. The performance ends early if you are incapacitated or silenced or if you voluntarily end it (no action required).",
+        "key": "bard_countercharm",
+        "level": 6,
+        "name": "Countercharm",
+        "source": "srd"
+      },
+      {
+        "description": "At 3rd level, choose two of your skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies. At 10th level, you can choose another two skill proficiencies to gain this benefit.",
+        "key": "bard_expertise",
+        "level": 3,
+        "name": "Expertise",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning when you reach 5th level, you regain all of your expended uses of Bardic Inspiration when you finish a short or long rest.",
+        "key": "bard_font-of-inspiration",
+        "level": 5,
+        "name": "Font of Inspiration",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, you can add half your proficiency bonus, rounded down, to any ability check you make that doesn't already include your proficiency bonus.",
+        "key": "bard_jack-of-all-trades",
+        "level": 2,
+        "name": "Jack of All Trades",
+        "source": "srd"
+      },
+      {
+        "description": "By 10th level, you have plundered magical knowledge from a wide spectrum of disciplines. Choose two spells from any class, including this one. A spell you choose must be of a level you can cast, as shown on the Bard table, or a cantrip. The chosen spells count as bard spells for you and are included in the number in the Spells Known column of the Bard table. You learn two additional spells from any class at 14th level and again at 18th level.",
+        "key": "bard_magical-secrets",
+        "level": 10,
+        "name": "Magical Secrets",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 2nd level, you can use soothing music or oration to help revitalize your wounded allies during a short rest. If you or any friendly creatures who can hear your performance regain hit points at the end of the short rest by spending one or more Hit Dice, each of those creatures regains an extra 1d6 hit points. The extra hit points increase when you reach certain levels in this class: to 1d8 at 9th level, to 1d10 at 13th level, and to 1d12 at 17th level.",
+        "key": "bard_song-of-rest",
+        "level": 2,
+        "name": "Song of Rest",
+        "source": "srd"
+      },
+      {
+        "description": "At 20th level, when you roll initiative and have no uses of Bardic Inspiration left, you regain one use.",
+        "key": "bard_superior-inspiration",
+        "level": 20,
+        "name": "Superior Inspiration",
         "source": "srd"
       }
     ],
     "cleric": [
       {
+        "description": "At 2nd level, you gain the ability to channel divine energy directly from your deity, using that energy to fuel magical effects. You start with two such effects: Turn Undead and an effect determined by your domain. Some domains grant you additional effects as you advance in levels, as noted in the domain description. When you use your Channel Divinity, you choose which effect to create. You must then finish a short or long rest to use your Channel Divinity again. Some Channel Divinity effects require saving throws. When you use such an effect from this class, the DC equals your cleric spell save DC. Beginning at 6th level, you can use your Channel Divinity twice between rests, and beginning at 18th level, you can use it three times between rests. When you finish a short or long rest, you regain your expended uses. ### Channel Divinity: Turn Undead As an action, you present your holy symbol and speak a prayer censuring the undead. Each undead that can see or hear you within 30 feet of you must make a Wisdom saving throw. If the creature fails its saving throw, it is turned for 1 minute or until it takes any damage. A turned creature must spend its turns trying to move as far away from you as it can, and it can't willingly move to a space within 30 feet of you. It also can't take reactions. For its action, it can use only the Dash action or try to escape from an effect that prevents it from moving. If there's nowhere to move, the creature can use the Dodge action.",
+        "key": "cleric_channel-divinity",
+        "level": 2,
+        "name": "Channel Divinity",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 5th level, when an undead fails its saving throw against your Turn Undead feature, the creature is instantly destroyed if its challenge rating is at or below a certain threshold, as shown in the Destroy Undead table. ### Destroy Undead (table) | Cleric Level | Destroys Undead of CR... | |---|---| | 5th | 1/2 or lower | | 8th | 1 or lower | | 11th | 2 or lower | | 14th | 3 or lower | | 17th | 4 or lower |",
+        "key": "cleric_destroy-undead",
+        "level": 5,
+        "name": "Destroy Undead",
+        "source": "srd"
+      },
+      {
         "description": "Choose one domain related to your deity, such as Life. Each domain is detailed at the end of the class description, and each one provides examples of gods associated with it. Your choice grants you domain spells and other features when you choose it at 1st level. It also grants you additional ways to use Channel Divinity when you gain that feature at 2nd level, and additional benefits at 6th, 8th, and 17th levels. ### Domain Spells Each domain has a list of spells—its domain spells—that you gain at the cleric levels noted in the domain description. Once you gain a domain spell, you always have it prepared, and it doesn’t count against the number of spells you can prepare each day. If you have a domain spell that doesn’t appear on the cleric spell list, the spell is nonetheless a cleric spell for you.",
         "key": "cleric_divine-domain",
+        "level": 1,
         "name": "Divine Domain",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 10th level, you can call on your deity to intervene on your behalf when your need is great. Imploring your deity's aid requires you to use your action. Describe the assistance you seek, and roll percentile dice. If you roll a number equal to or lower than your cleric level, your deity intervenes. The GM chooses the nature of the intervention; the effect of any cleric spell or cleric domain spell would be appropriate. If your deity intervenes, you can't use this feature again for 7 days. Otherwise, you can use it again after you finish a long rest. At 20th level, your call for intervention succeeds automatically, no roll required.",
+        "key": "cleric_divine-intervention",
+        "level": 10,
+        "name": "Divine Intervention",
         "source": "srd"
       }
     ],
     "default": [],
     "druid": [
       {
+        "description": "At 20th level, you can use your Wild Shape an unlimited number of times. Additionally, you can ignore the verbal and somatic components of your druid spells, as well as any material components that lack a cost and aren't consumed by a spell. You gain this benefit in both your normal shape and your beast shape from Wild Shape.",
+        "key": "druid_archdruid",
+        "level": 20,
+        "name": "Archdruid",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 18th level, you can cast many of your druid spells in any shape you assume using Wild Shape. You can perform the somatic and verbal components of a druid spell while in a beast shape, but you aren't able to provide material components.",
+        "key": "druid_beast-spells",
+        "level": 18,
+        "name": "Beast Spells",
+        "source": "srd"
+      },
+      {
+        "description": "At 2nd level, you choose to identify with a circle of druids such as the Circle of the Land. Your choice grants you features at 2nd level and again at 6th, 10th, and 14th level.",
+        "key": "druid_druid-circle",
+        "level": 2,
+        "name": "Druid Circle",
+        "source": "srd"
+      },
+      {
         "description": "You know Druidic, the secret language of druids. You can speak the language and use it to leave hidden messages. You and others who know this language automatically spot such a message. Others spot the message's presence with a successful DC 15 Wisdom (Perception) check but can't decipher it without magic.",
         "key": "druid_druidic",
+        "level": 1,
         "name": "Druidic",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, you can use your action to magically assume the shape of a beast that you have seen before. You can use this feature twice. You regain expended uses when you finish a short or long rest. Your druid level determines the beasts you can transform into, as shown in the Beast Shapes table. At 2nd level, for example, you can transform into any beast that has a challenge rating of 1/4 or lower that doesn't have a flying or swimming speed. | Level | Max. CR | Limitations | Example | | --- | --- | --- | --- | | 2nd | 1/4 | No flying or swimming speed | Wolf | | 4th | 1/2 | No flying speed | Crocodile | | 8th | 1 | - | Giant Eagle | You can stay in a beast shape for a number of hours equal to half your druid level (rounded down). You then revert to your normal form unless you expend another use of this feature. You can revert to your normal form earlier by using a bonus action on your turn. You automatically revert if you fall unconscious, drop to 0 hit points, or die. While you are transformed, the following rules apply: Your game statistics are replaced by the statistics of the beast, but you retain your alignment, personality, and Intelligence, Wisdom, and Charisma scores. You also retain all of your skill and saving throw proficiencies, in addition to gaining those of the creature. If the creature has the same proficiency as you and the bonus in its stat block is higher than yours, use the creature's bonus instead of yours. If the creature has any legendary or lair actions, you can't use them. When you transform, you assume the beast's hit points and Hit Dice. When you revert to your normal form, you return to the number of hit points you had before you transformed. However, if you revert as a result of dropping to 0 hit points, any excess damage carries over to your normal form. For example, if you take 10 damage in animal form and have only 1 hit point left, you revert and take 9 damage. As long as the excess damage doesn't reduce your normal form to 0 hit points, you aren't knocked unconscious. You can't cast spells, and your ability to speak or take any action that requires hands is limited to the capabilities of your beast form. Transforming doesn't break your concentration on a spell you've already cast, however, or prevent you from taking actions that are part of a spell, such as call lightning, that you've already cast. You retain the benefit of any features from your class, race, or other source and can use them if the new form is physically capable of doing so. However, you can't use any of your special senses, such as darkvision, unless your new form also has that sense. You choose whether your equipment falls to the ground in your space, merges into your new form, or is worn by it. Worn equipment functions as normal, but the GM decides whether it is practical for the new form to wear a piece of equipment, based on the creature's shape and size. Your equipment doesn't change size or shape to match the new form, and any equipment that the new form can't wear must either fall to the ground or merge with it. Equipment that merges with the form has no effect until you leave the form.",
+        "key": "druid_wild-shape",
+        "level": 2,
+        "name": "Wild Shape",
         "source": "srd"
       }
     ],
     "fighter": [
       {
+        "description": "Starting at 2nd level, you can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action on top of your regular action and a possible bonus action. Once you use this feature, you must finish a short or long rest before you can use it again. Starting at 17th level, you can use it twice before a rest, but only once on the same turn.",
+        "key": "fighter_action-surge",
+        "level": 2,
+        "name": "Action Surge",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn. The number of attacks increases to three when you reach 11th level in this class and to four when you reach 20th level in this class.",
+        "key": "fighter_extra-attack",
+        "level": 5,
+        "name": "Extra Attack",
+        "source": "srd"
+      },
+      {
         "description": "You adopt a particular style of fighting as your specialty. Choose one of the following options. You can't take a Fighting Style option more than once, even if you later get to choose again. ###Archery You gain a +2 bonus to attack rolls you make with ranged weapons. ###Defense While you are wearing armor, you gain a +1 bonus to AC. ###Dueling When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon. ###Great Weapon Fighting When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll, even if the new roll is a 1 or a 2. The weapon must have the two-handed or versatile property for you to gain this benefit. ###Protection When a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield. ###Two-Weapon Fighting When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.",
         "key": "fighter_fighting-style",
+        "level": 1,
         "name": "Fighting Style",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 9th level, you can reroll a saving throw that you fail. If you do so, you must use the new roll, and you can't use this feature again until you finish a long rest. You can use this feature twice between long rests starting at 13th level and three times between long rests starting at 17th level.",
+        "key": "fighter_indomitable",
+        "level": 9,
+        "name": "Indomitable",
+        "source": "srd"
+      },
+      {
+        "description": "At 3rd level, you choose an archetype that you strive to emulate in your combat styles and techniques, such as Champion. The archetype you choose grants you features at 3rd level and again at 7th, 10th, 15th, and 18th level.",
+        "key": "fighter_martial-archetype",
+        "level": 3,
+        "name": "Martial Archetype",
         "source": "srd"
       },
       {
         "description": "You have a limited well of stamina that you can draw on to protect yourself from harm. On your turn, you can use a bonus action to regain hit points equal to 1d10 + your fighter level. Once you use this feature, you must finish a short or long rest before you can use it again.",
         "key": "fighter_second-wind",
+        "level": 1,
         "name": "Second Wind",
         "source": "srd"
       }
     ],
     "marshal": [
       {
+        "description": "Starting at 14th level, you can use the Help action as a bonus action. In addition, when you take the Help action, choose one of the following effects: - One frightened creature within 30 feet that can hear or see you is no longer frightened. - One creature within 5 feet gains temporary hit points equal to your Charisma modifier (minimum 1). - You touch a living creature that has 0 hit points. The creature regains 1 hit point.",
+        "key": "marshal_advantageous-action",
+        "level": 14,
+        "name": "Advantageous Action",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Beginning at 6th level, when you roll initiative, you and each creature you choose within your Commanding Presence gains anexpertise die to their initiative roll. Additionally, when you roll for initiative, you can switch your result with that of any ally you can see.",
+        "key": "marshal_call-to-arms",
+        "level": 6,
+        "name": "Call to Arms",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Starting at 5th level, you learn one combat maneuver from the Sanguine Knot tradition. The degree of this maneuver can't be higher than the highest-degree maneuver you can learn. This combat maneuver does not count against the number of combat maneuvers that you know. In addition, when a creature makes an attack granted by your Commanding Presence, it can simultaneously use one Sanguine Knot combat maneuver that you know. If the creature does not have any exertion points to spend on combat maneuvers, it does not require exertion points for that use but it can't benefit from Combat Directives again until it finishes a rest.",
+        "key": "marshal_combat-directives",
+        "level": 5,
+        "name": "Combat Directives",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 2nd level, you gain the ability to use combat maneuvers. You gain proficiency in two combat traditions from the following list: Biting Zephyr, Mirror's Glint, Mist and Shade, Rapid Current, Razor's Edge, Sanguine Knot, Spirited Steed, Unending Wheel. You learn two maneuvers of your choice from traditions you are proficient with. You gain an exertion pool equal to twice your proficiency bonus, and you regain any spent exertion when you finish a rest. You use your maneuvers by spending points from your exertion pool. The Maneuvers Known column of the Marshal table shows when you learn more maneuvers from a tradition you are proficient with, while the Maneuver Degree column shows the highest-degree maneuver you can select at a given level. Additionally, whenever you learn a new maneuver, you can choose one of the maneuvers you know and replace it with another maneuver of the same degree from a tradition you are proficient with.",
+        "key": "marshal_combat-maneuvers",
+        "level": 2,
+        "name": "Combat Maneuvers",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Starting at 12th level, the lessons you've learned on the battlefield become useful tools beyond the realm of combat. Choose one of the following: ## Calm When you first meet an NPC, you can choose to remain silent and communicate through nonverbal cues. So long as the NPC has a CR lower than your level, you remain silent for 1 minute, and the NPC stays within sight of you for the duration, they act as if you succeeded on an Intimidation check. In addition, you gain an expertise die on Insight checks. ## Resolute Whenever you make an Intelligence, Wisdom, or Charisma check against a creature and fail, you gain an expertise die on your next Intelligence, Wisdom, or Charisma check made against that creature. ## Responsive When you overhear an interesting conversation between NPCs, you can interject so seamlessly and casually that the speakers think they already know you, answering one question you ask before realizing that they don't. In addition, you gain an expertise die on Persuasion checks.",
+        "key": "marshal_commanding-demeanor",
+        "level": 12,
+        "name": "Commanding Demeanor",
+        "source": "a5e-ag"
+      },
+      {
         "description": "Starting at 1st level, you have a Commanding Presence that extends from you in a 10-foot radius. When you take the Attack action, you can forgo making one attack to allow a creature within range of your Commanding Presence to make an attack instead. If the target can hear or see you, it can use its reaction to either cast a cantrip or make one weapon attack. The radius of your Commanding Presence increases to 20 feet at 5th level, 30 feet at 10th level, 45 feet at 15th level, and 60 feet at 20th level.",
         "key": "marshal_commanding-presence",
+        "level": 1,
         "name": "Commanding Presence",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Beginning at 17th level, you can focus your mind to identify any enemy's weaknesses. Once per rest, you can use a bonus action to choose one creature you can see within 60 feet and expose a flaw in its defenses. Until the end of your next turn, any creature that can hear or see you has advantage on attack rolls made against that creature, and their attacks and spells deal an extra 6 damage to it.",
+        "key": "marshal_critical-weakness",
+        "level": 17,
+        "name": "Critical Weakness",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Starting at 13th level, you and creatures you choose have advantage on saving throws against the charmed or frightened conditions while within your Commanding Presence.",
+        "key": "marshal_dauntless",
+        "level": 13,
+        "name": "Dauntless",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Starting at 10th level, your capacity to direct your companions broadens. Choose one tradition that you know combat maneuvers from. You are able to use Combat Directives to grant uses of combat maneuvers from the chosen tradition. At 15th level, choose a second tradition that you know combat maneuvers from.",
+        "key": "marshal_expanded-directives",
+        "level": 10,
+        "name": "Expanded Directives",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Starting at 5th level, when you take the Attack action on your turn, you can attack twice instead of once. At 11th level, you can attack three times instead of once.",
+        "key": "marshal_extra-attack",
+        "level": 5,
+        "name": "Extra Attack",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 5th level, you gain one inexperienced follower. At 10th, 15th, and 20th level, you gain an additional follower, or one of your followers becomes more experienced. If one of your followers dies, after 1 month you receive word that their replacement is ready to join you.",
+        "key": "marshal_followers",
+        "level": 5,
+        "name": "Followers",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 16th level, your stronghold is upgraded to grade 5.",
+        "key": "marshal_greater-stronghold",
+        "level": 16,
+        "name": "Greater Stronghold",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Starting at 18th level, you choose one of the following: ## Hero Nobles and royalty treat you as an equal, granting you free food, lodging, and a place in their court for a number of days up to your marshal level. ## Iconoclast Whenever you arrive in a settlement, you are visited by 1d4+1 bards, scholars, and sages who ask you to recount your recent exploits. In exchange, they each either share a piece of information they think might be relevant to your current quest or make an Intelligence, Wisdom, or Charisma check (with a +5 bonus) to answer a specific question on your behalf. ## Slaughterer Bandit and pirate captains, crimelords, intelligent monsters of ill intent, and even fiends know who you are and that you are a valuable ally, doing their best to persuade you to take up the sword against their enemies. Whenever you encounter such a creature, it spends its first action (even in combat) declaring that it knows of your prowess and offering an alliance.",
+        "key": "marshal_impresive-reputation",
+        "level": 18,
+        "name": "Impressive Reputation",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 20th level, creatures within your Commanding Presence add your Charisma modifier (minimum 1) to saving throws. Additionally, choose one of the following: ## Commander's Expertise Whenever a creature uses your Commanding Presence to make an attack or use a combat maneuver, it gains an expertise die. If the combat maneuver has a save DC, it increases by an amount equal to the result of the expertise die. This expertise die can be increased to a maximum of a d12. ## Feedback Loop Whenever a creature uses your Commanding Presence and successfully hits a target, you gain a reaction. You must use this reaction before the start of your next turn or it is lost. ## Rapid Deployment After initiative is rolled and until combat ends, your Speed increases by 20 feet, and creatures you choose that can see or hear you increase their Speed by 20 feet.",
+        "key": "marshal_legendary-commander",
+        "level": 20,
+        "name": "Legendary Commander",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Also at 2nd level, you learn a lesson of war of your choice. Your lessons are detailed at the end of the class description. The Lessons Known column of the Marshal table shows when you learn more lessons of war.",
+        "key": "marshal_lessons-of-war",
+        "level": 2,
+        "name": "Lessons of War",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Also at 3rd level, you can use a bonus action to choose a creature you can see within 30 feet. Until the start of your next turn, creatures able to hear or see you gain an expertise die on attacks made against that creature.",
+        "key": "marshal_mark-foe",
+        "level": 3,
+        "name": "Mark Foe",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 3rd level, you choose an archetype that focuses on the military stratagems you devise. Your choice grants you features at 3rd level and again at 7th, 11th, 15th, and 18th level.",
+        "key": "marshal_marshal-archetype",
+        "level": 3,
+        "name": "Marshal Archetype",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 6th level, you add half your proficiency bonus to your Prestige rating. In addition, your reputation strongly affects how you are perceived, and when it becomes known that you are in a settlement, people treat you accordingly. At the Narrator's discretion, there may be settlements (such as an enemy's war camp) where you can't utilize this feature. Choose one of the following: ## Famous When you arrive in a settlement, after you reveal who you are, local authority figures seek you out to make ## Infamous When you arrive in a settlement, after you reveal who you are, common folk hurry to get out of your way, and when you corner a commoner to ask about something local, they rapidly tell you whatever details they think you might want to know. In addition, you gain an expertise die on Intimidation checks. ## Maverick When you arrive in a settlement, after you reveal who you are, the local watch starts keeping an eye on you. Heads of illegal organizations might introduce themselves to you if they have goals well suited to your talents. Additionally, guards expect you're up to no good and are quick to leave their posts to follow you.",
+        "key": "marshal_marshal-renown",
+        "level": 6,
+        "name": "Marshal Renown",
         "source": "a5e-ag"
       },
       {
         "description": "Also starting at 1st level, you can use a bonus action to choose a creature within 30 feet of you. If the target can hear or see you, it regains hit points equal to 1d8 + your marshal level. Once you use this feature, you must finish a long rest before you can use it again You can target two creatures simultaneously with this feature at 3rd level, and starting at 7th level you regain use of this feature after finishing a short or long rest",
         "key": "marshal_rallying-surge",
+        "level": 1,
         "name": "Rallying Surge",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Also starting at 10th level, you can spend 1 minute speaking words of encouragement and support to reinvigorate your companions. Each creature of your choice that can hear or understand you can spend any number of Hit Dice to regain hit points without having to finish a short rest. In addition, each creature spends at least one Hit Die in this way can remove one level of fatigue or strife it is currently suffering. Once a creature has removed a level of fatigue or strife in this way, it can't do so again until it finishes a long rest.",
+        "key": "marshal_rouse-the-troops",
+        "level": 10,
+        "name": "Rouse the Troops",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Beginning at 9th level, once per long rest, when a creature you can see that can hear or see you fails an ability check or saving throw, you can use your reaction to allow them to reroll the triggering ability check or saving throw. Starting at 13th level, you regain use of this feature after finishing a short or long rest.",
+        "key": "marshal_spur-ally",
+        "level": 9,
+        "name": "Spur Ally",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Also at 13th level, you gain an average, grade 4 stronghold (castle, house, or training hall). Unlike normal strongholds, you can't sell this stronghold",
+        "key": "marshal_stronghold",
+        "level": 13,
+        "name": "Stronghold",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Also at 20th level, your stronghold is upgraded to grade 6.",
+        "key": "marshal_supreme-stronghold",
+        "level": 20,
+        "name": "Supreme Stronghold",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Also at 6th level, whenever you learn a new lesson of war or replace an existing one, you can instead choose from fighter soldiering knacks.",
+        "key": "marshal_versatile-exploration",
+        "level": 6,
+        "name": "Versatile Exploration",
         "source": "a5e-ag"
       }
     ],
     "monk": [
       {
+        "description": "Starting at 3rd level, you can use your reaction to deflect or catch the missile when you are hit by a ranged weapon attack. When you do so, the damage you take from the attack is reduced by 1d10 + your Dexterity modifier + your monk level. If you reduce the damage to 0, you can catch the missile if it is small enough for you to hold in one hand and you have at least one hand free. If you catch a missile in this way, you can spend 1 ki point to make a ranged attack with the weapon or piece of ammunition you just caught, as part of the same reaction. You make this attack with proficiency, regardless of your weapon proficiencies, and the missile counts as a monk weapon for the attack, which has a normal range of 20 feet and a long range of 60 feet.",
+        "key": "monk_deflect-missiles",
+        "level": 3,
+        "name": "Deflect Missiles",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 14th level, your mastery of ki grants you proficiency in all saving throws. Additionally, whenever you make a saving throw and fail, you can spend 1 ki point to reroll it and take the second result.",
+        "key": "monk_diamond-soul",
+        "level": 14,
+        "name": "Diamond Soul",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 18th level, you can use your action to spend 4 ki points to become invisible for 1 minute. During that time, you also have resistance to all damage but force damage. Additionally, you can spend 8 ki points to cast the astral projection spell, without needing material components. When you do so, you can't take any other creatures with you.",
+        "key": "monk_empty-body",
+        "level": 18,
+        "name": "Empty Body",
+        "source": "srd"
+      },
+      {
+        "description": "At 7th level, your instinctive agility lets you dodge out of the way of certain area effects, such as a blue dragon's lightning breath or a fireball spell. When you are subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw, and only half damage if you fail.",
+        "key": "monk_evasion",
+        "level": 7,
+        "name": "Evasion",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn.",
+        "key": "monk_extra-attack",
+        "level": 5,
+        "name": "Extra Attack",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, your training allows you to harness the mystic energy of ki. Your access to this energy is represented by a number of ki points. Your monk level determines the number of points you have, as shown in the Ki Points column of the Monk table. You can spend these points to fuel various ki features. You start knowing three such features: Flurry of Blows, Patient Defense, and Step of the Wind. You learn more ki features as you gain levels in this class. When you spend a ki point, it is unavailable until you finish a short or long rest, at the end of which you draw all of your expended ki back into yourself. You must spend at least 30 minutes of the rest meditating to regain your ki points. Some of your ki features require your target to make a saving throw to resist the feature's effects. The saving throw DC is calculated as follows: *Ki save DC* = 8 + your proficiency bonus + your Wisdom modifier ### Flurry of Blows Immediately after you take the Attack action on your turn, you can spend 1 ki point to make two unarmed strikes as a bonus action. ### Patient Defense You can spend 1 ki point to take the Dodge action as a bonus action on your turn. ### Step of the Wind You can spend 1 ki point to take the Disengage or Dash action as a bonus action on your turn, and your jump distance is doubled for the turn.",
+        "key": "monk_ki",
+        "level": 2,
+        "name": "Ki",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 6th level, your unarmed strikes count as magical for the purpose of overcoming resistance and immunity to nonmagical attacks and damage.",
+        "key": "monk_ki-empowered-strikes",
+        "level": 6,
+        "name": "Ki-Empowered Strikes",
+        "source": "srd"
+      },
+      {
         "description": "At 1st level, your practice of martial arts gives you mastery of combat styles that use unarmed strikes and monk weapons, which are shortswords and any simple melee weapons that don't have the two- handed or heavy property. You gain the following benefits while you are unarmed or wielding only monk weapons and you aren't wearing armor or wielding a shield: * You can use Dexterity instead of Strength for the attack and damage rolls of your unarmed strikes and monk weapons. * You can roll a d4 in place of the normal damage of your unarmed strike or monk weapon. This die changes as you gain monk levels, as shown in the Martial Arts column of the Monk table. * When you use the Attack action with an unarmed strike or a monk weapon on your turn, you can make one unarmed strike as a bonus action. For example, if you take the Attack action and attack with a quarterstaff, you can also make an unarmed strike as a bonus action, assuming you haven't already taken a bonus action this turn. Certain monasteries use specialized forms of the monk weapons. For example, you might use a club that is two lengths of wood connected by a short chain (called a nunchaku) or a sickle with a shorter, straighter blade (called a kama). Whatever name you use for a monk weapon, you can use the game statistics provided for the weapon.",
         "key": "monk_martial-arts",
+        "level": 1,
         "name": "Martial Arts",
+        "source": "srd"
+      },
+      {
+        "description": "When you reach 3rd level, you commit yourself to a monastic tradition such as the Way of the Open Hand. Your tradition grants you features at 3rd level and again at 6th, 11th, and 17th level.",
+        "key": "monk_monastic-tradition",
+        "level": 3,
+        "name": "Monastic Tradition",
+        "source": "srd"
+      },
+      {
+        "description": "At 20th level, when you roll for initiative and have no ki points remaining, you regain 4 ki points.",
+        "key": "monk_perfect-self",
+        "level": 20,
+        "name": "Perfect Self",
+        "source": "srd"
+      },
+      {
+        "description": "At 10th level, your mastery of the ki flowing through you makes you immune to disease and poison.",
+        "key": "monk_purity-of-body",
+        "level": 10,
+        "name": "Purity of Body",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 4th level, you can use your reaction when you fall to reduce any falling damage you take by an amount equal to five times your monk level.",
+        "key": "monk_slow-fall",
+        "level": 4,
+        "name": "Slow Fall",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 7th level, you can use your action to end one effect on yourself that is causing you to be charmed or frightened.",
+        "key": "monk_stillness-of-mind",
+        "level": 7,
+        "name": "Stillness of Mind",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 5th level, you can interfere with the flow of ki in an opponent's body. When you hit another creature with a melee weapon attack, you can spend 1 ki point to attempt a stunning strike. The target must succeed on a Constitution saving throw or be stunned until the end of your next turn.",
+        "key": "monk_stunning-strike",
+        "level": 5,
+        "name": "Stunning Strike",
+        "source": "srd"
+      },
+      {
+        "description": "At 15th level, your ki sustains you so that you suffer none of the frailty of old age, and you can't be aged magically. You can still die of old age, however. In addition, you no longer need food or water.",
+        "key": "monk_timeless-body",
+        "level": 15,
+        "name": "Timeless Body",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 13th level, you learn to touch the ki of other minds so that you understand all spoken languages. Moreover, any creature that can understand a language can understand what you say.",
+        "key": "monk_tongue-of-the-sun-and-moon",
+        "level": 13,
+        "name": "Tongue of the Sun and Moon",
         "source": "srd"
       },
       {
         "description": "Beginning at 1st level, while you are wearing no armor and not wielding a shield, your AC equals 10 + your Dexterity modifier + your Wisdom modifier.",
         "key": "monk_unarmored-defense",
+        "level": 1,
         "name": "Unarmored Defense",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, your speed increases by 10 feet while you are not wearing armor or wielding a shield. This bonus increases when you reach certain monk levels, as shown in the Monk table. At 9th level, you gain the ability to move along vertical surfaces and across liquids on your turn without falling during the move.",
+        "key": "monk_unarmored-movement",
+        "level": 2,
+        "name": "Unarmored Movement",
         "source": "srd"
       }
     ],
     "paladin": [
       {
+        "description": "Starting at 10th level, you and friendly creatures within 10 feet of you can't be frightened while you are conscious. At 18th level, the range of this aura increases to 30 feet.",
+        "key": "paladin_aura-of-courage",
+        "level": 10,
+        "name": "Aura of Courage",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 6th level, whenever you or a friendly creature within 10 feet of you must make a saving throw, the creature gains a bonus to the saving throw equal to your Charisma modifier (with a minimum bonus of +1). You must be conscious to grant this bonus. At 18th level, the range of this aura increases to 30 feet.",
+        "key": "paladin_aura-of-protection",
+        "level": 6,
+        "name": "Aura of Protection",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 14th level, you can use your action to end one spell on yourself or on one willing creature that you touch. You can use this feature a number of times equal to your Charisma modifier (a minimum of once). You regain expended uses when you finish a long rest.",
+        "key": "paladin_cleansing-touch",
+        "level": 14,
+        "name": "Cleansing Touch",
+        "source": "srd"
+      },
+      {
+        "description": "By 3rd level, the divine magic flowing through you makes you immune to disease.",
+        "key": "paladin_divine-health",
+        "level": 3,
+        "name": "Divine Health",
+        "source": "srd"
+      },
+      {
         "description": "The presence of strong evil registers on your senses like a noxious odor, and powerful good rings like heavenly music in your ears. As an action, you can open your awareness to detect such forces. Until the end of your next turn, you know the location of any celestial, fiend, or undead within 60 feet of you that is not behind total cover. You know the type (celestial, fiend, or undead) of any being whose presence you sense, but not its identity (the vampire Count Strahd von Zarovich, for instance). Within the same radius, you also detect the presence of any place or object that has been consecrated or desecrated, as with the hallow spell. You can use this feature a number of times equal to 1 + your Charisma modifier. When you finish a long rest, you regain all expended uses.",
         "key": "paladin_divine-sense",
+        "level": 1,
         "name": "Divine Sense",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, when you hit a creature with a melee weapon attack, you can expend one spell slot to deal radiant damage to the target, in addition to the weapon's damage. The extra damage is 2d8 for a 1st-level spell slot, plus 1d8 for each spell level higher than 1st, to a maximum of 5d8. The damage increases by 1d8 if the target is an undead or a fiend.",
+        "key": "paladin_divine-smite",
+        "level": 2,
+        "name": "Divine Smite",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn.",
+        "key": "paladin_extra-attack",
+        "level": 5,
+        "name": "Extra Attack",
+        "source": "srd"
+      },
+      {
+        "description": "At 2nd level, you adopt a style of fighting as your specialty. Choose one of the following options. You can't take a Fighting Style option more than once, even if you later get to choose again. ### Defense While you are wearing armor, you gain a +1 bonus to AC. ### Dueling When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon. ### Great Weapon Fighting When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll. The weapon must have the two-handed or versatile property for you to gain this benefit. ### Protection When a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield.",
+        "key": "paladin_fighting-style",
+        "level": 2,
+        "name": "Fighting Style",
+        "source": "srd"
+      },
+      {
+        "description": "By 11th level, you are so suffused with righteous might that all your melee weapon strikes carry divine power with them. Whenever you hit a creature with a melee weapon, the creature takes an extra 1d8 radiant damage. If you also use your Divine Smite with an attack, you add this damage to the extra damage of your Divine Smite.",
+        "key": "paladin_improved-divine-smite",
+        "level": 11,
+        "name": "Improved Divine Smite",
         "source": "srd"
       },
       {
         "description": "Your blessed touch can heal wounds. You have a pool of healing power that replenishes when you take a long rest. With that pool, you can restore a total number of hit points equal to your paladin level × 5. As an action, you can touch a creature and draw power from the pool to restore a number of hit points to that creature, up to the maximum amount remaining in your pool. Alternatively, you can expend 5 hit points from your pool of healing to cure the target of one disease or neutralize one poison affecting it. You can cure multiple diseases and neutralize multiple poisons with a single use of Lay on Hands, expending hit points separately for each one. This feature has no effect on undead and constructs.",
         "key": "paladin_lay-on-hands",
+        "level": 1,
         "name": "Lay on Hands",
+        "source": "srd"
+      },
+      {
+        "description": "When you reach 3rd level, you swear the oath that binds you as a paladin forever. Up to this time you have been in a preparatory stage, committed to the path but not yet sworn to it. Now you choose the Oath of Devotion, the Oath of the Ancients, or the Oath of Vengeance, all detailed at the end of the class description. Your choice grants you features at 3rd level and again at 7th, 15th, and 20th level. Those features include oath spells and the Channel Divinity feature. ### Oath Spells Each oath has a list of associated spells. You gain access to these spells at the levels specified in the oath description. Once you gain access to an oath spell, you always have it prepared. Oath spells don't count against the number of spells you can prepare each day. If you gain an oath spell that doesn't appear on the paladin spell list, the spell is nonetheless a paladin spell for you. ### Channel Divinity Your oath allows you to channel divine energy to fuel magical effects. Each Channel Divinity option provided by your oath explains how to use it. When you use your Channel Divinity, you choose which option to use. You must then finish a short or long rest to use your Channel Divinity again. Some Channel Divinity effects require saving throws. When you use such an effect from this class, the DC equals your paladin spell save DC.",
+        "key": "paladin_sacred-oath",
+        "level": 3,
+        "name": "Sacred Oath",
         "source": "srd"
       }
     ],
     "ranger": [
       {
+        "description": "Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn.",
+        "key": "ranger_extra-attack",
+        "level": 5,
+        "name": "Extra Attack",
+        "source": "srd"
+      },
+      {
         "description": "Beginning at 1st level, you have significant experience studying, tracking, hunting, and even talking to a certain type of enemy. Choose a type of favored enemy: aberrations, beasts, celestials, constructs, dragons, elementals, fey, fiends, giants, monstrosities, oozes, plants, or undead. Alternatively, you can select two races of humanoid (such as gnolls and orcs) as favored enemies. You have advantage on Wisdom (Survival) checks to track your favored enemies, as well as on Intelligence checks to recall information about them. When you gain this feature, you also learn one language of your choice that is spoken by your favored enemies, if they speak one at all. You choose one additional favored enemy, as well as an associated language, at 6th and 14th level. As you gain levels, your choices should reflect the types of monsters you have encountered on your adventures.",
         "key": "ranger_favored-enemy",
+        "level": 1,
         "name": "Favored Enemy",
+        "source": "srd"
+      },
+      {
+        "description": "At 18th level, you gain preternatural senses that help you fight creatures you can't see. When you attack a creature you can't see, your inability to see it doesn't impose disadvantage on your attack rolls against it. You are also aware of the location of any invisible creature within 30 feet of you, provided that the creature isn't hidden from you and you aren't blinded or deafened.",
+        "key": "ranger_feral-senses",
+        "level": 18,
+        "name": "Feral Senses",
+        "source": "srd"
+      },
+      {
+        "description": "At 2nd level, you adopt a particular style of fighting as your specialty. Choose one of the following options. You can't take a Fighting Style option more than once, even if you later get to choose again. ### Archery You gain a +2 bonus to attack rolls you make with ranged weapons. ### Defense While you are wearing armor, you gain a +1 bonus to AC. ### Dueling When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon. ### Two-Weapon Fighting When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.",
+        "key": "ranger_fighting-style",
+        "level": 2,
+        "name": "Fighting Style",
+        "source": "srd"
+      },
+      {
+        "description": "At 20th level, you become an unparalleled hunter of your enemies. Once on each of your turns, you can add your Wisdom modifier to the attack roll or the damage roll of an attack you make against one of your favored enemies. You can choose to use this feature before or after the roll, but before any effects of the roll are applied.",
+        "key": "ranger_foe-slayer",
+        "level": 20,
+        "name": "Foe Slayer",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 10th level, you can spend 1 minute creating camouflage for yourself. You must have access to fresh mud, dirt, plants, soot, and other naturally occurring materials with which to create your camouflage. Once you are camouflaged in this way, you can try to hide by pressing yourself up against a solid surface, such as a tree or wall, that is at least as tall and wide as you are. You gain a +10 bonus to Dexterity (Stealth) checks as long as you remain there without moving or taking actions. Once you move or take an action or a reaction, you must camouflage yourself again to gain this benefit.",
+        "key": "ranger_hide-in-plain-sight",
+        "level": 10,
+        "name": "Hide in Plain Sight",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 8th level, moving through nonmagical difficult terrain costs you no extra movement. You can also pass through nonmagical plants without being slowed by them and without taking damage from them if they have thorns, spines, or a similar hazard. In addition, you have advantage on saving throws against plants that are magically created or manipulated to impede movement, such those created by the entangle spell.",
+        "key": "ranger_lands-stride",
+        "level": 8,
+        "name": "Land's Stride",
         "source": "srd"
       },
       {
         "description": "You are particularly familiar with one type of natural environment and are adept at traveling and surviving in such regions. Choose one type of favored terrain: arctic, coast, desert, forest, grassland, mountain, or swamp. When you make an Intelligence or Wisdom check related to your favored terrain, your proficiency bonus is doubled if you are using a skill that you're proficient in. While traveling for an hour or more in your favored terrain, you gain the following benefits: * Difficult terrain doesn't slow your group's travel. * Your group can't become lost except by magical means. * Even when you are engaged in another activity while traveling (such as foraging, navigating, or tracking), you remain alert to danger. * If you are traveling alone, you can move stealthily at a normal pace. * When you forage, you find twice as much food as you normally would. * While tracking other creatures, you also learn their exact number, their sizes, and how long ago they passed through the area. You choose additional favored terrain types at 6th and 10th level.",
         "key": "ranger_natural-explorer",
+        "level": 1,
         "name": "Natural Explorer",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 3rd level, you can use your action and expend one ranger spell slot to focus your awareness on the region around you. For 1 minute per level of the spell slot you expend, you can sense whether the following types of creatures are present within 1 mile of you (or within up to 6 miles if you are in your favored terrain): aberrations, celestials, dragons, elementals, fey, fiends, and undead. This feature doesn't reveal the creatures' location or number.",
+        "key": "ranger_primeval-awareness",
+        "level": 3,
+        "name": "Primeval Awareness",
+        "source": "srd"
+      },
+      {
+        "description": "At 3rd level, you choose an archetype that you strive to emulate: Hunter or Beast Master, both detailed at the end of the class description. Your choice grants you features at 3rd level and again at 7th, 11th, and 15th level.",
+        "key": "ranger_ranger-archetype",
+        "level": 3,
+        "name": "Ranger Archetype",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 14th level, you can use the Hide action as a bonus action on your turn. Also, you can't be tracked by nonmagical means, unless you choose to leave a trail.",
+        "key": "ranger_vanish",
+        "level": 14,
+        "name": "Vanish",
         "source": "srd"
       }
     ],
     "rogue": [
       {
+        "description": "Starting at 14th level, if you are able to hear, you are aware of the location of any hidden or invisible creature within 10 feet of you.",
+        "key": "rogue_blindsense",
+        "level": 14,
+        "name": "Blindsense",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, your quick thinking and agility allow you to move and act quickly. You can take a bonus action on each of your turns in combat. This action can be used only to take the Dash, Disengage, or Hide action.",
+        "key": "rogue_cunning-action",
+        "level": 2,
+        "name": "Cunning Action",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 18th level, you are so evasive that attackers rarely gain the upper hand against you. No attack roll has advantage against you while you aren't incapacitated.",
+        "key": "rogue_elusive",
+        "level": 18,
+        "name": "Elusive",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 7th level, you can nimbly dodge out of the way of certain area effects, such as a red dragon's fiery breath or an ice storm spell. When you are subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw, and only half damage if you fail.",
+        "key": "rogue_evasion",
+        "level": 7,
+        "name": "Evasion",
+        "source": "srd"
+      },
+      {
         "description": "At 1st level, choose two of your skill proficiencies, or one of your skill proficiencies and your proficiency with thieves' tools. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies. At 6th level, you can choose two more of your proficiencies (in skills or with thieves' tools) to gain this benefit.",
         "key": "rogue_expertise",
+        "level": 1,
         "name": "Expertise",
+        "source": "srd"
+      },
+      {
+        "description": "By 11th level, you have refined your chosen skills until they approach perfection. Whenever you make an ability check that lets you add your proficiency bonus, you can treat a d20 roll of 9 or lower as a 10.",
+        "key": "rogue_reliable-talent",
+        "level": 11,
+        "name": "Reliable Talent",
+        "source": "srd"
+      },
+      {
+        "description": "At 3rd level, you choose an archetype that you emulate in the exercise of your rogue abilities: Thief, Assassin, or Arcane Trickster, all detailed at the end of the class description. Your archetype choice grants you features at 3rd level and then again at 9th, 13th, and 17th level.",
+        "key": "rogue_roguish-archetype",
+        "level": 3,
+        "name": "Roguish Archetype",
+        "source": "srd"
+      },
+      {
+        "description": "By 15th level, you have acquired greater mental strength. You gain proficiency in Wisdom saving throws.",
+        "key": "rogue_slippery-mind",
+        "level": 15,
+        "name": "Slippery Mind",
         "source": "srd"
       },
       {
         "description": "Beginning at 1st level, you know how to strike subtly and exploit a foe's distraction. Once per turn, you can deal an extra 1d6 damage to one creature you hit with an attack if you have advantage on the attack roll. The attack must use a finesse or a ranged weapon. You don't need advantage on the attack roll if another enemy of the target is within 5 feet of it, that enemy isn't incapacitated, and you don't have disadvantage on the attack roll. The amount of the extra damage increases as you gain levels in this class, as shown in the Sneak Attack column of the Rogue table.",
         "key": "rogue_sneak-attack",
+        "level": 1,
         "name": "Sneak Attack",
+        "source": "srd"
+      },
+      {
+        "description": "At 20th level, you have an uncanny knack for succeeding when you need to. If your attack misses a target within range, you can turn the miss into a hit. Alternatively, if you fail an ability check, you can treat the d20 roll as a 20. Once you use this feature, you can't use it again until you finish a short or long rest.",
+        "key": "rogue_stroke-of-luck",
+        "level": 20,
+        "name": "Stroke of Luck",
         "source": "srd"
       },
       {
         "description": "During your rogue training you learned thieves' cant, a secret mix of dialect, jargon, and code that allows you to hide messages in seemingly normal conversation. Only another creature that knows thieves' cant understands such messages. It takes four times longer to convey such a message than it does to speak the same idea plainly. In addition, you understand a set of secret signs and symbols used to convey short, simple messages, such as whether an area is dangerous or the territory of a thieves' guild, whether loot is nearby, or whether the people in an area are easy marks or will provide a safe house for thieves on the run.",
         "key": "rogue_thieves-cant",
+        "level": 1,
         "name": "Thieves' Cant",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 5th level, when an attacker that you can see hits you with an attack, you can use your reaction to halve the attack's damage against you.",
+        "key": "rogue_uncanny-dodge",
+        "level": 5,
+        "name": "Uncanny Dodge",
         "source": "srd"
       }
     ],
     "sorcerer": [
       {
+        "description": "At 2nd level, you tap into a deep wellspring of magic within yourself. This wellspring is represented by sorcery points, which allow you to create a variety of magical effects. ### Sorcery Points You have 2 sorcery points, and you gain more as you reach higher levels, as shown in the Sorcery Points column of the Sorcerer table. You can never have more sorcery points than shown on the table for your level. You regain all spent sorcery points when you finish a long rest. ### Flexible Casting You can use your sorcery points to gain additional spell slots, or sacrifice spell slots to gain additional sorcery points. You learn other ways to use your sorcery points as you reach higher levels. ***Creating Spell Slots.*** You can transform unexpended sorcery points into one spell slot as a bonus action on your turn. The Creating Spell Slots table shows the cost of creating a spell slot of a given level. You can create spell slots no higher in level than 5th. Any spell slot you create with this feature vanishes when you finish a long rest. ### Creating Spell Slots (table) | Spell Slot Level | Sorcery Point Cost | | --- | --- | | 1st | 2 | | 2nd | 3 | | 3rd | 5 | | 4th | 6 | | 5th | 7| ***Converting a Spell Slot to Sorcery Points.*** As a bonus action on your turn, you can expend one spell slot and gain a number of sorcery points equal to the slot's level.",
+        "key": "sorcerer_font-of-magic",
+        "level": 2,
+        "name": "Font of Magic",
+        "source": "srd"
+      },
+      {
+        "description": "At 3rd level, you gain the ability to twist your spells to suit your needs. You gain two of the following Metamagic options of your choice. You gain another one at 10th and 17th level. You can use only one Metamagic option on a spell when you cast it, unless otherwise noted. ### Careful Spell When you cast a spell that forces other creatures to make a saving throw, you can protect some of those creatures from the spell's full force. To do so, you spend 1 sorcery point and choose a number of those creatures up to your Charisma modifier (minimum of one creature). A chosen creature automatically succeeds on its saving throw against the spell. ### Distant Spell When you cast a spell that has a range of 5 feet or greater, you can spend 1 sorcery point to double the range of the spell. When you cast a spell that has a range of touch, you can spend 1 sorcery point to make the range of the spell 30 feet. ### Empowered Spell When you roll damage for a spell, you can spend 1 sorcery point to reroll a number of the damage dice up to your Charisma modifier (minimum of one). You must use the new rolls. You can use Empowered Spell even if you have already used a different Metamagic option during the casting of the spell. ### Extended Spell When you cast a spell that has a duration of 1 minute or longer, you can spend 1 sorcery point to double its duration, to a maximum duration of 24 hours. ### Heightened Spell When you cast a spell that forces a creature to make a saving throw to resist its effects, you can spend 3 sorcery points to give one target of the spell disadvantage on its first saving throw made against the spell. ### Quickened Spell When you cast a spell that has a casting time of 1 action, you can spend 2 sorcery points to change the casting time to 1 bonus action for this casting. ### Subtle Spell When you cast a spell, you can spend 1 sorcery point to cast it without any somatic or verbal components. ### Twinned Spell When you cast a spell that targets only one creature and doesn't have a range of self, you can spend a number of sorcery points equal to the spell's level to target a second creature in range with the same spell (1 sorcery point if the spell is a cantrip). To be eligible, a spell must be incapable of targeting more than one creature at the spell's current level. For example, magic missile and scorching ray aren't eligible, but ray of frost and chromatic orb are.",
+        "key": "sorcerer_metamagic",
+        "level": 3,
+        "name": "Metamagic",
+        "source": "srd"
+      },
+      {
         "description": "Choose a sorcerous origin, which describes the source of your innate magical power: Draconic Bloodline or Wild Magic, both detailed at the end of the class description. Your choice grants you features when you choose it at 1st level and again at 6th, 14th, and 18th level.",
         "key": "sorcerer_sorcerous-origin",
+        "level": 1,
         "name": "Sorcerous Origin",
+        "source": "srd"
+      },
+      {
+        "description": "At 20th level, you regain 4 expended sorcery points whenever you finish a short rest.",
+        "key": "sorcerer_sorcerous-restoration",
+        "level": 20,
+        "name": "Sorcerous Restoration",
         "source": "srd"
       }
     ],
     "warlock": [
       {
+        "description": "In your study of occult lore, you have unearthed eldritch invocations, fragments of forbidden knowledge that imbue you with an abiding magical ability. At 2nd level, you gain two eldritch invocations of your choice. Your invocation options are detailed at the end of the class description. When you gain certain warlock levels, you gain additional invocations of your choice, as shown in the Invocations Known column of the Warlock table. Additionally, when you gain a level in this class, you can choose one of the invocations you know and replace it with another invocation that you could learn at that level.",
+        "key": "warlock_eldritch-invocations",
+        "level": 2,
+        "name": "Eldritch Invocations",
+        "source": "srd"
+      },
+      {
+        "description": "At 20th level, you can draw on your inner reserve of mystical power while entreating your patron to regain expended spell slots. You can spend 1 minute entreating your patron for aid to regain all your expended spell slots from your Pact Magic feature. Once you regain spell slots with this feature, you must finish a long rest before you can do so again.",
+        "key": "warlock_eldritch-master",
+        "level": 20,
+        "name": "Eldritch Master",
+        "source": "srd"
+      },
+      {
+        "description": "At 11th level, your patron bestows upon you a magical secret called an arcanum. Choose one 6th- level spell from the warlock spell list as this arcanum. You can cast your arcanum spell once without expending a spell slot. You must finish a long rest before you can do so again. At higher levels, you gain more warlock spells of your choice that can be cast in this way: one 7th- level spell at 13th level, one 8th-level spell at 15th level, and one 9th-level spell at 17th level. You regain all uses of your Mystic Arcanum when you finish a long rest.",
+        "key": "warlock_mystic-arcanum",
+        "level": 11,
+        "name": "Mystic Arcanum",
+        "source": "srd"
+      },
+      {
         "description": "At 1st level, you have struck a bargain with an otherworldly being of your choice: the Archfey, the Fiend, or the Great Old One, each of which is detailed at the end of the class description. Your choice grants you features at 1st level and again at 6th, 10th, and 14th level.",
         "key": "warlock_otherworldly-patron",
+        "level": 1,
         "name": "Otherworldly Patron",
+        "source": "srd"
+      },
+      {
+        "description": "At 3rd level, your otherworldly patron bestows a gift upon you for your loyal service. You gain one of the following features of your choice. ### Pact of the Chain You learn the find familiar spell and can cast it as a ritual. The spell doesn't count against your number of spells known. When you cast the spell, you can choose one of the normal forms for your familiar or one of the following special forms: imp, pseudodragon, quasit, or sprite. Additionally, when you take the Attack action, you can forgo one of your own attacks to allow your familiar to make one attack of its own with its reaction. ### Pact of the Blade You can use your action to create a pact weapon in your empty hand. You can choose the form that this melee weapon takes each time you create it. You are proficient with it while you wield it. This weapon counts as magical for the purpose of overcoming resistance and immunity to nonmagical attacks and damage. Your pact weapon disappears if it is more than 5 feet away from you for 1 minute or more. It also disappears if you use this feature again, if you dismiss the weapon (no action required), or if you die. You can transform one magic weapon into your pact weapon by performing a special ritual while you hold the weapon. You perform the ritual over the course of 1 hour, which can be done during a short rest. You can then dismiss the weapon, shunting it into an extradimensional space, and it appears whenever you create your pact weapon thereafter. You can't affect an artifact or a sentient weapon in this way. The weapon ceases being your pact weapon if you die, if you perform the 1-hour ritual on a different weapon, or if you use a 1-hour ritual to break your bond to it. The weapon appears at your feet if it is in the extradimensional space when the bond breaks. ### Pact of the Tome Your patron gives you a grimoire called a Book of Shadows. When you gain this feature, choose three cantrips from any class's spell list (the three needn't be from the same list). While the book is on your person, you can cast those cantrips at will. They don't count against your number of cantrips known. If they don't appear on the warlock spell list, they are nonetheless warlock spells for you. If you lose your Book of Shadows, you can perform a 1-hour ceremony to receive a replacement from your patron. This ceremony can be performed during a short or long rest, and it destroys the previous book. The book turns to ash when you die.",
+        "key": "warlock_pact-boon",
+        "level": 3,
+        "name": "Pact Boon",
         "source": "srd"
       }
     ],
@@ -2163,7 +2897,29 @@
       {
         "description": "You have learned to regain some of your magical energy by studying your spellbook. Once per day when you finish a short rest, you can choose expended spell slots to recover. The spell slots can have a combined level that is equal to or less than half your wizard level (rounded up), and none of the slots can be 6th level or higher. For example, if you're a 4th-level wizard, you can recover up to two levels worth of spell slots. You can recover either a 2nd-level spell slot or two 1st-level spell slots.",
         "key": "wizard_arcane-recovery",
+        "level": 1,
         "name": "Arcane Recovery",
+        "source": "srd"
+      },
+      {
+        "description": "When you reach 2nd level, you choose an arcane tradition, shaping your practice of magic through one of eight schools: Abjuration, Conjuration, Divination, Enchantment, Evocation, Illusion, Necromancy, or Transmutation, all detailed at the end of the class description. Your choice grants you features at 2nd level and again at 6th, 10th, and 14th level.",
+        "key": "wizard_arcane-tradition",
+        "level": 2,
+        "name": "Arcane Tradition",
+        "source": "srd"
+      },
+      {
+        "description": "When you reach 20th level, you gain mastery over two powerful spells and can cast them with little effort. Choose two 3rd-level wizard spells in your spellbook as your signature spells. You always have these spells prepared, they don't count against the number of spells you have prepared, and you can cast each of them once at 3rd level without expending a spell slot. When you do so, you can't do so again until you finish a short or long rest. If you want to cast either spell at a higher level, you must expend a spell slot as normal.",
+        "key": "wizard_signature-spells",
+        "level": 20,
+        "name": "Signature Spells",
+        "source": "srd"
+      },
+      {
+        "description": "At 18th level, you have achieved such mastery over certain spells that you can cast them at will. Choose a 1st-level wizard spell and a 2nd-level wizard spell that are in your spellbook. You can cast those spells at their lowest level without expending a spell slot when you have them prepared. If you want to cast either spell at a higher level, you must expend a spell slot as normal. By spending 8 hours in study, you can exchange one or both of the spells you chose for different spells of the same levels.",
+        "key": "wizard_spell-mastery",
+        "level": 18,
+        "name": "Spell Mastery",
         "source": "srd"
       }
     ]
@@ -5590,12 +6346,6 @@
       "name": "Innate Sorcery",
       "source": "srd"
     },
-    "warlock_eldritch-invocations": {
-      "description": "You have unearthed Eldritch Invocations, pieces of forbidden knowledge that imbue you with an abiding magical ability or other lessons. You gain one invocation of your choice, such as Pact of the Tome. Invocations are described in the \"Eldritch Invocation Options\" section later in this class's description. **Prerequisites.** If an invocation has a prerequisite, you must meet it to learn that invocation. For example, if an invocation requires you to be a level 5+ Warlock, you can select the invocation once you reach Warlock level 5. **Replacing and Gaining Invocations.** Whenever you gain a Warlock level, you can replace one of your invocations with another one for which you qualify. You can't replace an invocation if it's a prerequisite for another invocation that you have. When you gain certain Warlock levels, you gain more invocations of your choice, as shown in the Invocations column of the Warlock Features table. You can't pick the same invocation more than once unless its description says otherwise.",
-      "key": "warlock_eldritch-invocations",
-      "name": "Eldritch Invocations",
-      "source": "srd"
-    },
     "wizard_ritual-adept": {
       "description": "You can cast any spell as a Ritual if that spell has the Ritual tag and the spell is in your spellbook. You needn't have the spell prepared, but you must read from the book to cast a spell in this way.",
       "key": "wizard_ritual-adept",
@@ -6055,6 +6805,563 @@
       {
         "name": "Spellbook",
         "qty": 1
+      }
+    ]
+  },
+  "subclassFeatures": {
+    "champion": [
+      {
+        "description": "At 10th level, you can choose a second option from the Fighting Style class feature.",
+        "key": "champion_additional-fighting-style",
+        "level": 10,
+        "name": "Additional Fighting Style",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning when you choose this archetype at 3rd level, your weapon attacks score a critical hit on a roll of 19 or 20.",
+        "key": "champion_improved-critical",
+        "level": 3,
+        "name": "Improved Critical",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 7th level, you can add half your proficiency bonus (round up) to any Strength, Dexterity, or Constitution check you make that doesn't already use your proficiency bonus. In addition, when you make a running long jump, the distance you can cover increases by a number of feet equal to your Strength modifier.",
+        "key": "champion_remarkable-athlete",
+        "level": 7,
+        "name": "Remarkable Athlete",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 15th level, your weapon attacks score a critical hit on a roll of 18-20.",
+        "key": "champion_superior-critical",
+        "level": 15,
+        "name": "Superior Critical",
+        "source": "srd"
+      },
+      {
+        "description": "At 18th level, you attain the pinnacle of resilience in battle. At the start of each of your turns, you regain hit points equal to 5 + your Constitution modifier if you have no more than half of your hit points left. You don't gain this benefit if you have 0 hit points.",
+        "key": "champion_survivor",
+        "level": 18,
+        "name": "Survivor",
+        "source": "srd"
+      }
+    ],
+    "circle-of-the-land": [
+      {
+        "description": "When you choose this circle at 2nd level, you learn one additional druid cantrip of your choice.",
+        "key": "circle-of-the-land_bonus-cantrip",
+        "level": 2,
+        "name": "Bonus Cantrip",
+        "source": "srd"
+      },
+      {
+        "description": "Your mystical connection to the land infuses you with the ability to cast certain spells. At 3rd, 5th, 7th, and 9th level you gain access to circle spells connected to the land where you became a druid. Choose that land-arctic, coast, desert, forest, grassland, mountain, or swamp-and consult the associated list of spells. Once you gain access to a circle spell, you always have it prepared, and it doesn't count against the number of spells you can prepare each day. If you gain access to a spell that doesn't appear on the druid spell list, the spell is nonetheless a druid spell for you. **Arctic (table)** | Druid Level | Circle Spells | |---|---| | 3rd | hold person, spike growth | | 5th | sleet storm, slow | | 7th | freedom of movement, ice storm | | 9th | commune with nature, cone of cold | **Coast (table)** | Druid Level | Circle Spells | |---|---| | 3rd | mirror image, misty step | | 5th | water breathing, water walk | | 7th | control water, freedom of movement | | 9th | conjure elemental, scrying | **Desert (table)** | Druid Level | Circle Spells | |---|---| | 3rd | blur, silence | | 5th | create food and water, protection from energy | | 7th | blight, hallucinatory terrain | | 9th | insect plague, wall of stone | **Forest (table)** | Druid Level | Circle Spells | |---|---| | 3rd | barkskin, spider climb | | 5th | call lightning, plant growth | | 7th | divination, freedom of movement | | 9th | commune with nature, tree stride | **Grassland (table)** | Druid Level | Circle Spells | |---|---| | 3rd | invisibility, pass without trace | | 5th | daylight, haste | | 7th | divination, freedom of movement | | 9th | dream, insect plague | **Mountain (table)** | Druid Level | Circle Spells | |---|---| | 3rd | spider climb, spike growth | | 5th | lightning bolt, meld into stone | | 7th | stone shape, stoneskin | | 9th | passwall, wall of stone | **Swamp (table)** | Druid Level | Circle Spells | |---|---| | 3rd | acid arrow, darkness | | 5th | water walk, stinking cloud | | 7th | freedom of movement, locate creature | | 9th | insect plague, scrying |",
+        "key": "circle-of-the-land_circle-spells",
+        "level": 3,
+        "name": "Circle Spells",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 6th level, moving through nonmagical difficult terrain costs you no extra movement. You can also pass through nonmagical plants without being slowed by them and without taking damage from them if they have thorns, spines, or a similar hazard. In addition, you have advantage on saving throws against plants that are magically created or manipulated to impede movement, such those created by the entangle spell.",
+        "key": "circle-of-the-land_lands-stride",
+        "level": 6,
+        "name": "Land's Stride",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, you can regain some of your magical energy by sitting in meditation and communing with nature. During a short rest, you choose expended spell slots to recover. The spell slots can have a combined level that is equal to or less than half your druid level (rounded up), and none of the slots can be 6th level or higher. You can't use this feature again until you finish a long rest. For example, when you are a 4th-level druid, you can recover up to two levels worth of spell slots. You can recover either a 2nd-level slot or two 1st-level slots.",
+        "key": "circle-of-the-land_natural-recovery",
+        "level": 2,
+        "name": "Natural Recovery",
+        "source": "srd"
+      },
+      {
+        "description": "When you reach 14th level, creatures of the natural world sense your connection to nature and become hesitant to attack you. When a beast or plant creature attacks you, that creature must make a Wisdom saving throw against your druid spell save DC. On a failed save, the creature must choose a different target, or the attack automatically misses. On a successful save, the creature is immune to this effect for 24 hours. The creature is aware of this effect before it makes its attack against you.",
+        "key": "circle-of-the-land_natures-sanctuary",
+        "level": 14,
+        "name": "Nature's Sanctuary",
+        "source": "srd"
+      },
+      {
+        "description": "When you reach 10th level, you can't be charmed or frightened by elementals or fey, and you are immune to poison and disease.",
+        "key": "circle-of-the-land_natures-ward",
+        "level": 10,
+        "name": "Nature's Ward",
+        "source": "srd"
+      }
+    ],
+    "college-of-lore": [
+      {
+        "description": "At 6th level, you learn two spells of your choice from any class. A spell you choose must be of a level you can cast, as shown on the Bard table, or a cantrip. The chosen spells count as bard spells for you but don't count against the number of bard spells you know.",
+        "key": "college-of-lore_additional-magical-secrets",
+        "level": 6,
+        "name": "Additional Magical Secrets",
+        "source": "srd"
+      },
+      {
+        "description": "When you join the College of Lore at 3rd level, you gain proficiency with three skills of your choice.",
+        "key": "college-of-lore_bonus-proficiencies",
+        "level": 3,
+        "name": "Bonus Proficiencies",
+        "source": "srd"
+      },
+      {
+        "description": "Also at 3rd level, you learn how to use your wit to distract, confuse, and otherwise sap the confidence and competence of others. When a creature that you can see within 60 feet of you makes an attack roll, an ability check, or a damage roll, you can use your reaction to expend one of your uses of Bardic Inspiration, rolling a Bardic Inspiration die and subtracting the number rolled from the creature's roll. You can choose to use this feature after the creature makes its roll, but before the GM determines whether the attack roll or ability check succeeds or fails, or before the creature deals its damage. The creature is immune if it can't hear you or if it's immune to being charmed.",
+        "key": "college-of-lore_cutting-words",
+        "level": 3,
+        "name": "Cutting Words",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 14th level, when you make an ability check, you can expend one use of Bardic Inspiration. Roll a Bardic Inspiration die and add the number rolled to your ability check. You can choose to do so after you roll the die for the ability check, but before the GM tells you whether you succeed or fail.",
+        "key": "college-of-lore_peerless-skill",
+        "level": 14,
+        "name": "Peerless Skill",
+        "source": "srd"
+      }
+    ],
+    "draconic-bloodline": [
+      {
+        "description": "Beginning at 18th level, you can channel the dread presence of your dragon ancestor, causing those around you to become awestruck or frightened. As an action, you can spend 5 sorcery points to draw on this power and exude an aura of awe or fear (your choice) to a distance of 60 feet. For 1 minute or until you lose your concentration (as if you were casting a concentration spell), each hostile creature that starts its turn in this aura must succeed on a Wisdom saving throw or be charmed (if you chose awe) or frightened (if you chose fear) until the aura ends. A creature that succeeds on this saving throw is immune to your aura for 24 hours.",
+        "key": "draconic-bloodline_draconic-presence",
+        "level": 18,
+        "name": "Draconic Presence",
+        "source": "srd"
+      },
+      {
+        "description": "As magic flows through your body, it causes physical traits of your dragon ancestors to emerge. At 1st level, your hit point maximum increases by 1 and increases by 1 again whenever you gain a level in this class. Additionally, parts of your skin are covered by a thin sheen of dragon-like scales. When you aren't wearing armor, your AC equals 13 + your Dexterity modifier.",
+        "key": "draconic-bloodline_draconic-resilience",
+        "level": 1,
+        "name": "Draconic Resilience",
+        "source": "srd"
+      },
+      {
+        "description": "At 1st level, you choose one type of dragon as your ancestor. The damage type associated with each dragon is used by features you gain later. ### Draconic Ancestry (table) | Dragon | Damage Type | | --- | --- | | Black | Acid | | Blue | Lightning | | Brass | Fire | | Bronze | Lightning | | Copper | Acid | | Gold | Fire | | Green | Poison | | Red | Fire | | Silver | Cold | | White | Cold | You can speak, read, and write Draconic. Additionally, whenever you make a Charisma check when interacting with dragons, your proficiency bonus is doubled if it applies to the check.",
+        "key": "draconic-bloodline_dragon-ancestor",
+        "level": 1,
+        "name": "Dragon Ancestor",
+        "source": "srd"
+      },
+      {
+        "description": "At 14th level, you gain the ability to sprout a pair of dragon wings from your back, gaining a flying speed equal to your current speed. You can create these wings as a bonus action on your turn. They last until you dismiss them as a bonus action on your turn. You can't manifest your wings while wearing armor unless the armor is made to accommodate them, and clothing not made to accommodate your wings might be destroyed when you manifest them.",
+        "key": "draconic-bloodline_dragon-wings",
+        "level": 14,
+        "name": "Dragon Wings",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 6th level, when you cast a spell that deals damage of the type associated with your draconic ancestry, you can add your Charisma modifier to one damage roll of that spell. At the same time, you can spend 1 sorcery point to gain resistance to that damage type for 1 hour.",
+        "key": "draconic-bloodline_elemental-affinity",
+        "level": 6,
+        "name": "Elemental Affinity",
+        "source": "srd"
+      }
+    ],
+    "gambling-general": [
+      {
+        "description": "At 18th level, choose one of the following. ## Feinting Retreat When you take the Disengage action, until the start of your next turn, whenever a creature you choose ends its movement within your Commanding Presence, it provokes an opportunity attack. ## Lay the Trap While you are conscious, whenever a creature makes an attack roll against you and misses, you and one creature you choose have advantage on the next attack roll they make against the triggering creature before the end of your next turn.",
+        "key": "gambling-general_canny-adversary",
+        "level": 18,
+        "name": "Canny Adversary",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 3rd level when you select this archetype, choose one of the following: ## Daring Assault While you are conscious, any ally within your Commanding Presence that makes an attack roll can choose to roll with a -5 penalty. If the attack hits, the attack deals an extra 2d6 damage. At 15th level, the amount of extra damage increases to 3d6. ## Daring Charge While you are conscious, an ally that starts its turn within your Commanding Presence can use an action to move up to twice its Speed in a straight line and take the Attack action. Until the end of that ally's next turn, creatures they did not attack on their turn have advantage on attack rolls against them",
+        "key": "gambling-general_daring-commander",
+        "level": 3,
+        "name": "Daring Commander",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 7th level, choose one of the following. ## Desperate Avoidance When you make a saving throw, you can choose to make the saving throw with advantage. If you do, you make attack rolls with disadvantage until the end of your next turn. Once you use this feature, you can't do so again until you finish a rest. ## Frantic Avoidance When you would make a saving throw against an area effect, you can use your reaction to move up to half your Speed. If you end your movement outside the area, it has no effect on you. Once you use this feature, you can't do so again until you finish a long rest.",
+        "key": "gambling-general_defensive-measures",
+        "level": 7,
+        "name": "Defensive Measures",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 11th level, choose one of the following. ## Stand Firm While you are conscious, when an ally within your Commanding Presence would make a saving throw against an effect that deals half damage on a success, that ally can choose to make the saving throw with disadvantage. If they do and the saving throw succeeds, the ally takes no damage instead. ## Stand Strong While you are conscious, when an ally within your Commanding Presence is hit by a melee weapon attack, they can use their reaction to make a melee weapon attack against the creature that attacked them.",
+        "key": "gambling-general_hold-the-line",
+        "level": 11,
+        "name": "Hold the Line",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 15th level, choose one of the following. ## Risky Gambit You can use a bonus action to choose one willing creature within your Commanding Presence. The target immediately provokes an opportunity attack from one creature that can reach it. If the creature makes the opportunity attack,attack rolls against that creature are made with advantage until the start of your next turn. ## Risky Foray When a creature starts its turn within your Commanding Presence, you can use your reaction to spur them into violent action. Until the start of its next turn, your ally gains an expertise die on melee weapon attacks, and creatures gain an expertise die on melee weapon attack rolls against it.",
+        "key": "gambling-general_risky-tactics",
+        "level": 15,
+        "name": "Risky Tactics",
+        "source": "a5e-ag"
+      }
+    ],
+    "hunter": [
+      {
+        "description": "At 7th level, you gain one of the following features of your choice. ***Escape the Horde.*** Opportunity attacks against you are made with disadvantage. ***Multiattack Defense.*** When a creature hits you with an attack, you gain a +4 bonus to AC against all subsequent attacks made by that creature for the rest of the turn. ***Steel Will.*** You have advantage on saving throws against being frightened.",
+        "key": "hunter_defensive-tactics",
+        "level": 7,
+        "name": "Defensive Tactics",
+        "source": "srd"
+      },
+      {
+        "description": "At 3rd level, you gain one of the following features of your choice. ***Colossus Slayer.*** Your tenacity can wear down the most potent foes. When you hit a creature with a weapon attack, the creature takes an extra 1d8 damage if it's below its hit point maximum. You can deal this extra damage only once per turn. ***Giant Killer.*** When a Large or larger creature within 5 feet of you hits or misses you with an attack, you can use your reaction to attack that creature immediately after its attack, provided that you can see the creature. ***Horde Breaker.*** Once on each of your turns when you make a weapon attack, you can make another attack with the same weapon against a different creature that is within 5 feet of the original target and within range of your weapon.",
+        "key": "hunter_hunters-prey",
+        "level": 3,
+        "name": "Hunter's Prey",
+        "source": "srd"
+      },
+      {
+        "description": "At 11th level, you gain one of the following features of your choice. ***Volley.*** You can use your action to make a ranged attack against any number of creatures within 10 feet of a point you can see within your weapon's range. You must have ammunition for each target, as normal, and you make a separate attack roll for each target. ***Whirlwind Attack.*** You can use your action to make a melee attack against any number of creatures within 5 feet of you, with a separate attack roll for each target.",
+        "key": "hunter_multiattack",
+        "level": 11,
+        "name": "Multiattack",
+        "source": "srd"
+      },
+      {
+        "description": "At 15th level, you gain one of the following features of your choice. ***Evasion.*** When you are subjected to an effect, such as a red dragon's fiery breath or a lightning bolt spell, that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw, and only half damage if you fail. ***Stand Against the Tide.*** When a hostile creature misses you with a melee attack, you can use your reaction to force that creature to repeat the same attack against another creature (other than itself) of your choice. ***Uncanny Dodge.*** When an attacker that you can see hits you with an attack, you can use your reaction to halve the attack's damage against you.",
+        "key": "hunter_superior-hunters-defense",
+        "level": 15,
+        "name": "Superior Hunter's Defense",
+        "source": "srd"
+      }
+    ],
+    "life-domain": [
+      {
+        "description": "Beginning at 6th level, the healing spells you cast on others heal you as well. When you cast a spell of 1st level or higher that restores hit points to a creature other than you, you regain hit points equal to 2 + the spell's level.",
+        "key": "life-domain_blessed-healer",
+        "level": 6,
+        "name": "Blessed Healer",
+        "source": "srd"
+      },
+      {
+        "description": "When you choose this domain at 1st level, you gain proficiency with heavy armor.",
+        "key": "life-domain_bonus-proficiency",
+        "level": 1,
+        "name": "Bonus Proficiency",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 2nd level, you can use your Channel Divinity to heal the badly injured. As an action, you present your holy symbol and evoke healing energy that can restore a number of hit points equal to five times your cleric level. Choose any creatures within 30 feet of you, and divide those hit points among them. This feature can restore a creature to no more than half of its hit point maximum. You can't use this feature on an undead or a construct.",
+        "key": "life-domain_channel-divinity-preserve-life",
+        "level": 2,
+        "name": "Channel Divinity: Preserve Life",
+        "source": "srd"
+      },
+      {
+        "description": "Also starting at 1st level, your healing spells are more effective. Whenever you use a spell of 1st level or higher to restore hit points to a creature, the creature regains additional hit points equal to 2 + the spell's level.",
+        "key": "life-domain_disciple-of-life",
+        "level": 1,
+        "name": "Disciple of Life",
+        "source": "srd"
+      },
+      {
+        "description": "At 8th level, you gain the ability to infuse your weapon strikes with divine energy. Once on each of your turns when you hit a creature with a weapon attack, you can cause the attack to deal an extra 1d8 radiant damage to the target. When you reach 14th level, the extra damage increases to 2d8.",
+        "key": "life-domain_divine-strike",
+        "level": 8,
+        "name": "Divine Strike",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 17th level, when you would normally roll one or more dice to restore hit points with a spell, you instead use the highest number possible for each die. For example, instead of restoring 2d6 hit points to a creature, you restore 12.",
+        "key": "life-domain_supreme-healing",
+        "level": 17,
+        "name": "Supreme Healing",
+        "source": "srd"
+      }
+    ],
+    "oath-of-devotion": [
+      {
+        "description": "Starting at 7th level, you and friendly creatures within 10 feet of you can't be charmed while you are conscious. At 18th level, the range of this aura increases to 30 feet.",
+        "key": "oath-of-devotion_aura-of-devotion",
+        "level": 7,
+        "name": "Aura of Devotion",
+        "source": "srd"
+      },
+      {
+        "description": "When you take this oath at 3rd level, you gain the following two Channel Divinity options. **Sacred Weapon.** As an action, you can imbue one weapon that you are holding with positive energy, using your Channel Divinity. For 1 minute, you add your Charisma modifier to attack rolls made with that weapon (with a minimum bonus of +1). The weapon also emits bright light in a 20-foot radius and dim light 20 feet beyond that. If the weapon is not already magical, it becomes magical for the duration. You can end this effect on your turn as part of any other action. If you are no longer holding or carrying this weapon, or if you fall unconscious, this effect ends. **Turn the Unholy.** As an action, you present your holy symbol and speak a prayer censuring fiends and undead, using your Channel Divinity. Each fiend or undead that can see or hear you within 30 feet of you must make a Wisdom saving throw. If the creature fails its saving throw, it is turned for 1 minute or until it takes damage. A turned creature must spend its turns trying to move as far away from you as it can, and it can't willingly move to a space within 30 feet of you. It also can't take reactions. For its action, it can use only the Dash action or try to escape from an effect that prevents it from moving. If there's nowhere to move, the creature can use the Dodge action.",
+        "key": "oath-of-devotion_channel-divinity",
+        "level": 3,
+        "name": "Channel Divinity",
+        "source": "srd"
+      },
+      {
+        "description": "At 20th level, as an action, you can emanate an aura of sunlight. For 1 minute, bright light shines from you in a 30-foot radius, and dim light shines 30 feet beyond that. Whenever an enemy creature starts its turn in the bright light, the creature takes 10 radiant damage. In addition, for the duration, you have advantage on saving throws against spells cast by fiends or undead. Once you use this feature, you can't use it again until you finish a long rest.",
+        "key": "oath-of-devotion_holy-nimbus",
+        "level": 20,
+        "name": "Holy Nimbus",
+        "source": "srd"
+      },
+      {
+        "description": "You gain oath spells at the paladin levels listed. ### Oath of Devotion Spells | Paladin Level | Spells | | --- | --- | | 3rd | protection from evil and good, sanctuary | | 5th | lesser restoration, zone of truth | | 9th | beacon of hope, dispel magic | | 13th | freedom of movement, guardian of faith | | 17th | commune, flame strike |",
+        "key": "oath-of-devotion_oath-spells",
+        "level": 3,
+        "name": "Oath Spells",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 15th level, you are always under the effects of a *protection from evil and good* spell.",
+        "key": "oath-of-devotion_purity-of-spirit",
+        "level": 15,
+        "name": "Purity of Spirit",
+        "source": "srd"
+      },
+      {
+        "description": "Though the exact words and strictures of the Oath of Devotion vary, paladins of this oath share these tenets. *Honesty.* Don't lie or cheat. Let your word be your promise. *Courage.* Never fear to act, though caution is wise. *Compassion.* Aid others, protect the weak, and punish those who threaten them. Show mercy to your foes, but temper it with wisdom. *Honor.* Treat others with fairness, and let your honorable deeds be an example to them. Do as much good as possible while causing the least amount of harm. *Duty.* Be responsible for your actions and their consequences, protect those entrusted to your care, and obey those who have just authority over you.",
+        "key": "oath-of-devotion_tenets-of-devotion",
+        "level": 3,
+        "name": "Tenets of Devotion",
+        "source": "srd"
+      }
+    ],
+    "path-of-the-berserker": [
+      {
+        "description": "Starting when you choose this path at 3rd level, you can go into a frenzy when you rage. If you do so, for the duration of your rage you can make a single melee weapon attack as a bonus action on each of your turns after this one. When your rage ends, you suffer one level of exhaustion (as described in appendix A).",
+        "key": "path-of-the-berserker_frenzy",
+        "level": 3,
+        "name": "Frenzy",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 10th level, you can use your action to frighten someone with your menacing presence. When you do so, choose one creature that you can see within 30 feet of you. If the creature can see or hear you, it must succeed on a Wisdom saving throw (DC equal to 8 + your proficiency bonus + your Charisma modifier) or be frightened of you until the end of your next turn. On subsequent turns, you can use your action to extend the duration of this effect on the frightened creature until the end of your next turn. This effect ends if the creature ends its turn out of line of sight or more than 60 feet away from you. If the creature succeeds on its saving throw, you can't use this feature on that creature again for 24 hours.",
+        "key": "path-of-the-berserker_intimidating-presence",
+        "level": 10,
+        "name": "Intimidating Presence",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 6th level, you can't be charmed or frightened while raging. If you are charmed or frightened when you enter your rage, the effect is suspended for the duration of the rage.",
+        "key": "path-of-the-berserker_mindless-rage",
+        "level": 6,
+        "name": "Mindless Rage",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 14th level, when you take damage from a creature that is within 5 feet of you, you can use your reaction to make a melee weapon attack against that creature.",
+        "key": "path-of-the-berserker_retaliation",
+        "level": 14,
+        "name": "Retaliation",
+        "source": "srd"
+      }
+    ],
+    "school-of-evocation": [
+      {
+        "description": "Beginning at 10th level, you can add your Intelligence modifier to one damage roll of any wizard evocation spell you cast.",
+        "key": "school-of-evocation_empowered-evocation",
+        "level": 10,
+        "name": "Empowered Evocation",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning when you select this school at 2nd level, the gold and time you must spend to copy an evocation spell into your spellbook is halved.",
+        "key": "school-of-evocation_evocation-savant",
+        "level": 2,
+        "name": "Evocation Savant",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 14th level, you can increase the power of your simpler spells. When you cast a wizard spell of 1st through 5th level that deals damage, you can deal maximum damage with that spell. The first time you do so, you suffer no adverse effect. If you use this feature again before you finish a long rest, you take 2d12 necrotic damage for each level of the spell, immediately after you cast it. Each time you use this feature again before finishing a long rest, the necrotic damage per spell level increases by 1d12. This damage ignores resistance and immunity.",
+        "key": "school-of-evocation_overchannel",
+        "level": 14,
+        "name": "Overchannel",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 6th level, your damaging cantrips affect even creatures that avoid the brunt of the effect. When a creature succeeds on a saving throw against your cantrip, the creature takes half the cantrip's damage (if any) but suffers no additional effect from the cantrip.",
+        "key": "school-of-evocation_potent-cantrip",
+        "level": 6,
+        "name": "Potent Cantrip",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 2nd level, you can create pockets of relative safety within the effects of your evocation spells. When you cast an evocation spell that affects other creatures that you can see, you can choose a number of them equal to 1 + the spell's level. The chosen creatures automatically succeed on their saving throws against the spell, and they take no damage if they would normally take half damage on a successful save.",
+        "key": "school-of-evocation_sculpt-spells",
+        "level": 2,
+        "name": "Sculpt Spells",
+        "source": "srd"
+      }
+    ],
+    "swift-strategist": [
+      {
+        "description": "At 11th level, choose one of the following: ## Miraculous Protector When a creature within your Commanding Presence is critically hit, you can use your reaction to become the target of the attack instead. Once you have used this feature, you cannot do so again until you finish a rest. ## Take Cover When you and at least one other creature within your Commanding Presence would make a saving throw, you can choose to make your saving throw with disadvantage. If you do, creatures you choose within your Commanding Presence make that saving throw with advantage.",
+        "key": "swift-strategist_glorious-sacrifice",
+        "level": 11,
+        "name": "Glorious Sacrifice",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 3rd level when you select this archetype, choose one of the following. ## Fast Feet Whenever a creature starts its turn within your Commanding Presence, you can choose to increase that creature's Speed by 5 feet until the end of its turn. ## Fast Retreat Once per round when you take the Attack action, you can forgo making one attack to allow a creature within your Commanding Presence to move up to half its Speed without provoking opportunity attacks.",
+        "key": "swift-strategist_make-haste",
+        "level": 3,
+        "name": "Make Haste",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 7th level, choose either Acrobatics or Athletics. Creatures you choose within your Commanding Presence add your Charisma modifier (minimum +1) to checks using the chosen skill.",
+        "key": "swift-strategist_nimble-troops",
+        "level": 7,
+        "name": "Nimble Troops",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 15th level, choose one of the following: ## Fortifying Encouragement Whenever you succeed on a saving throw, you can choose one friendly creature within 60 feet of you. If the target can see or hear you, it the target gains temporary hit points equal to 5 + your Charisma modifier. ## Get Them Out When a creature within your Commanding Presence would make a saving throw against an area effect, you can use your reaction to shout at them, and that creature can use its reaction to move up to half its Speed. If the creature ends its movement outside the area, the area effect has no effect on them. Once you use this feature, you can't do so again until you finish a long rest.",
+        "key": "swift-strategist_portentous-escape",
+        "level": 15,
+        "name": "Portentous Escape",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Also at 3rd level, you increase your speed by 10 feet whenever you're wearing light or no armor and not wielding a shield. In addition, when your movement would provoke an opportunity attack, you impose disadvantage on the attack roll made against you. At 15th level, the increase to your speed becomes 20 feet.",
+        "key": "swift-strategist_skirmisher",
+        "level": 3,
+        "name": "Skirmisher",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 18th level, choose one of the following. ## Among the Ranks Creatures you choose have disadvantage on opportunity attacks made against creatures within your Commanding Presence ## March Together The first time you move on your turn, each creature you choose that is within your Commanding Presence can use its reaction to move up to 10 feet, provided the creature's Speed is at least 10 feet.",
+        "key": "swift-strategist_unbound-horde",
+        "level": 18,
+        "name": "Unbound Horde",
+        "source": "a5e-ag"
+      }
+    ],
+    "talented-tactician": [
+      {
+        "description": "At 18th level, choose one of the following. ## Dig Deeper You can use a bonus action on your turn to allow a creature to regain the use of an origin trait or class feature that would normally be regained by finishing a short rest. You can use this feature twice, and you regain all expended uses when you finish a long rest. ## Reach Further While you are conscious, when a creature you choose within the radius of your Commanding Presence would drop to 0 hit points, that creature can use its reaction to roll your tactics die and gain temporary hit points equal to the result plus your Charisma modifier (minimum 1). Once a creature has benefited from your tactics die in this way, it can't do so again until it finishes a long rest.",
+        "key": "talented-tactician_hidden-resources",
+        "level": 18,
+        "name": "Hidden Resources",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Starting at 11th level, you devise a set of communication cues. Any creature with whom you've shared these cues—usually taking 10 minutes of discussion and practice—does not need to share a language with you to benefit from this feature. Additionally, you can use a bonus action on your turn to spend 5 exertion points and make it easier for you and your allies to help each other with certain skills. For the next 10 minutes, your chosen allies can take theHelp action as a bonus action to help each other. This coordination requires you to maintain concentration (as if concentrating on a spell), and both chosen creatures—the one helping and the one making the ability check—must be within 30 feet of you at the time the ability check is made. Each turn, you can use your bonus action to change which creatures benefit from the coordination each turn. The skills that can benefit from this feature are Acrobatics, Animal Handling, Athletics, Deception, Insight, Intimidation, Investigation, Stealth, and Survival. If you have proficiency in Stealth, this coordination can happen silently via surreptitious signals. If you have proficiency in Deception, this coordination can happen as a series of code words interspersed with other conversation. An onlooker needs to succeed on an Insight check contested by your ability check—whether Stealth or Deception—to realize the coordination is taking place.",
+        "key": "talented-tactician_operations-leader",
+        "level": 11,
+        "name": "Operations Leader",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 7th level, choose either Culture, History, or Nature. You gain proficiency in the chosen skill and an expertise die on checks made using that skill.",
+        "key": "talented-tactician_student-of-war",
+        "level": 7,
+        "name": "Student of War",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "At 15th level, choose one of the following. ## More Tactical Whenever you gain a tactics die, you gain an additional tactics die, to a maximum of two dice. The second tactics die can be used like the first and increases size in the manner described under the Tactical Edge class feature. ## Tactical Efficacy Your tactics die begins at d6. When you reach 20th level, your tactics die begins at d8. After the tactics die is rolled, when regained it reverts to a d4.",
+        "key": "talented-tactician_superior-tactics",
+        "level": 15,
+        "name": "Superior Tactics",
+        "source": "a5e-ag"
+      },
+      {
+        "description": "Starting at 3rd level when you choose this archetype, whenever you roll initiative, you gain a tactics die, which is a d4. While you have this die, when a creature within 60 feet that can hear or see you would make an attack, you can roll the tactics die and add the result to that creature's attack roll. Once rolled, the tactics die is lost until you regain it at the start of your next turn. The tactics die disappears when the combat ends. If you start your turn and no one has rolled the tactics die, you can trade out the die for a die of the next larger size, such that a d4 becomes a d6, a d6 becomes a d8, and so on, up to a maximum of d12.",
+        "key": "talented-tactician_tactical-edge",
+        "level": 3,
+        "name": "Tactical Edge",
+        "source": "a5e-ag"
+      }
+    ],
+    "the-fiend": [
+      {
+        "description": "Starting at 1st level, when you reduce a hostile creature to 0 hit points, you gain temporary hit points equal to your Charisma modifier + your warlock level (minimum of 1).",
+        "key": "the-fiend_dark-ones-blessing",
+        "level": 1,
+        "name": "Dark One's Blessing",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 6th level, you can call on your patron to alter fate in your favor. When you make an ability check or a saving throw, you can use this feature to add a d10 to your roll. You can do so after seeing the initial roll but before any of the roll's effects occur. Once you use this feature, you can't use it again until you finish a short or long rest.",
+        "key": "the-fiend_dark-ones-own-luck",
+        "level": 6,
+        "name": "Dark One's Own Luck",
+        "source": "srd"
+      },
+      {
+        "description": "The Fiend lets you choose from an expanded list of spells when you learn a warlock spell. The following spells are added to the warlock spell list for you. ### Fiend Expanded Spells (table) | Spell Level | Spells | | --- | --- | | 1st | burning hands, command | | 2nd | blindness/deafness, scorching ray | | 3rd | fireball, stinking cloud | | 4th | fire shield, wall of fire | | 5th | flame strike, hallow |",
+        "key": "the-fiend_expanded-spell-list",
+        "level": 1,
+        "name": "Expanded Spell List",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 10th level, you can choose one damage type when you finish a short or long rest. You gain resistance to that damage type until you choose a different one with this feature. Damage from magical weapons or silver weapons ignores this resistance.",
+        "key": "the-fiend_fiendish-resilience",
+        "level": 10,
+        "name": "Fiendish Resilience",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 14th level, when you hit a creature with an attack, you can use this feature to instantly transport the target through the lower planes. The creature disappears and hurtles through a nightmare landscape. At the end of your next turn, the target returns to the space it previously occupied, or the nearest unoccupied space. If the target is not a fiend, it takes 10d10 psychic damage as it reels from its horrific experience. Once you use this feature, you can't use it again until you finish a long rest.",
+        "key": "the-fiend_hurl-through-hell",
+        "level": 14,
+        "name": "Hurl Through Hell",
+        "source": "srd"
+      }
+    ],
+    "thief": [
+      {
+        "description": "Starting at 3rd level, you can use the bonus action granted by your Cunning Action to make a Dexterity (Sleight of Hand) check, use your thieves' tools to disarm a trap or open a lock, or take the Use an Object action.",
+        "key": "thief_fast-hands",
+        "level": 3,
+        "name": "Fast Hands",
+        "source": "srd"
+      },
+      {
+        "description": "When you choose this archetype at 3rd level, you gain the ability to climb faster than normal; climbing no longer costs you extra movement. In addition, when you make a running jump, the distance you cover increases by a number of feet equal to your Dexterity modifier.",
+        "key": "thief_second-story-work",
+        "level": 3,
+        "name": "Second-Story Work",
+        "source": "srd"
+      },
+      {
+        "description": "Starting at 9th level, you have advantage on a Dexterity (Stealth) check if you move no more than half your speed on the same turn.",
+        "key": "thief_supreme-sneak",
+        "level": 9,
+        "name": "Supreme Sneak",
+        "source": "srd"
+      },
+      {
+        "description": "When you reach 17th level, you have become adept at laying ambushes and quickly escaping danger. You can take two turns during the first round of any combat. You take your first turn at your normal initiative and your second turn at your initiative minus 10. You can't use this feature when you are surprised.",
+        "key": "thief_thiefs-reflexes",
+        "level": 17,
+        "name": "Thief's Reflexes",
+        "source": "srd"
+      },
+      {
+        "description": "By 13th level, you have learned enough about the workings of magic that you can improvise the use of items even when they are not intended for you. You ignore all class, race, and level requirements on the use of magic items.",
+        "key": "thief_use-magic-device",
+        "level": 13,
+        "name": "Use Magic Device",
+        "source": "srd"
+      }
+    ],
+    "way-of-the-open-hand": [
+      {
+        "description": "Starting when you choose this tradition at 3rd level, you can manipulate your enemy's ki when you harness your own. Whenever you hit a creature with one of the attacks granted by your Flurry of Blows, you can impose one of the following effects on that target: * It must succeed on a Dexterity saving throw or be knocked prone. * It must make a Strength saving throw. If it fails, you can push it up to 15 feet away from you. * It can't take reactions until the end of your next turn.",
+        "key": "way-of-the-open-hand_open-hand-technique",
+        "level": 3,
+        "name": "Open Hand Technique",
+        "source": "srd"
+      },
+      {
+        "description": "At 17th level, you gain the ability to set up lethal vibrations in someone's body. When you hit a creature with an unarmed strike, you can spend 3 ki points to start these imperceptible vibrations, which last for a number of days equal to your monk level. The vibrations are harmless unless you use your action to end them. To do so, you and the target must be on the same plane of existence. When you use this action, the creature must make a Constitution saving throw. If it fails, it is reduced to 0 hit points. If it succeeds, it takes 10d10 necrotic damage. You can have only one creature under the effect of this feature at a time. You can choose to end the vibrations harmlessly without using an action.",
+        "key": "way-of-the-open-hand_quivering-palm",
+        "level": 17,
+        "name": "Quivering Palm",
+        "source": "srd"
+      },
+      {
+        "description": "Beginning at 11th level, you can enter a special meditation that surrounds you with an aura of peace. At the end of a long rest, you gain the effect of a sanctuary spell that lasts until the start of your next long rest (the spell can end early as normal). The saving throw DC for the spell equals 8 + your Wisdom modifier + your proficiency bonus.",
+        "key": "way-of-the-open-hand_tranquility",
+        "level": 11,
+        "name": "Tranquility",
+        "source": "srd"
+      },
+      {
+        "description": "At 6th level, you gain the ability to heal yourself. As an action, you can regain hit points equal to three times your monk level. You must finish a long rest before you can use this feature again.",
+        "key": "way-of-the-open-hand_wholeness-of-body",
+        "level": 6,
+        "name": "Wholeness of Body",
+        "source": "srd"
       }
     ]
   },

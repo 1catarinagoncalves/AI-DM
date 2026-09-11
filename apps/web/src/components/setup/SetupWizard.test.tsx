@@ -1878,6 +1878,76 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
   })
 })
 
+// US-231: features de classe E de subclasse aparecem no painel de detalhe da etapa `class`,
+// filtradas pelo nível escolhido — mudar o nível ou a subclasse (cartão) reflete no preview
+// sem reload, mesma disciplina de US-227 (nível)/US-205 (subclasse).
+describe('SetupWizard — features de classe/subclasse por nível no painel de detalhe (US-231)', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  const configWithLeveledFeatures = (budget: number) => ({
+    ...configWithBudget(budget),
+    classes: [{ key: 'wizard', label: 'Mago' }],
+    classFeatures: {
+      wizard: [
+        { key: 'wizard_arcane-recovery', name: 'Recuperação Arcana', description: 'x', source: 'srd', level: 1 },
+        { key: 'wizard_spell-mastery', name: 'Domínio de Magias', description: 'x', source: 'srd', level: 2 },
+      ],
+      default: [],
+    },
+    subclasses: { wizard: [{ key: 'evocation', label: 'Escola de Evocação' }] },
+    subclassFeatures: {
+      evocation: [{ key: 'evocation_evocation-savant', name: 'Sábio da Evocação', description: 'x', source: 'srd', level: 1 }],
+    },
+  })
+
+  it('painel de detalhe mostra a feature de nível 1 (classe e subclasse resolvida); subir o nível revela a de nível 2', async () => {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithLeveledFeatures(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+
+    expect(screen.getByText('Recuperação Arcana')).toBeTruthy() // classe, nível 1
+    expect(screen.getByText('Sábio da Evocação')).toBeTruthy() // subclasse resolvida sozinha (1 opção), nível 1
+    expect(screen.queryByText('Domínio de Magias')).toBeNull() // classe, nível 2 — ainda não
+
+    fireEvent.click(screen.getByLabelText('Aumentar nível')) // nível 1 → 2
+
+    expect(screen.getByText('Domínio de Magias')).toBeTruthy()
+  })
+
+  const configWithLeveledSubclasses = (budget: number) => ({
+    ...configWithMultiSubclass(budget),
+    classFeatures: { default: [] },
+    subclassFeatures: {
+      champion: [{ key: 'champion_improved-critical', name: 'Crítico Aprimorado', description: 'x', source: 'srd', level: 1 }],
+      'battle-master': [{ key: 'battle-master_combat-superiority', name: 'Superioridade em Combate', description: 'x', source: 'srd', level: 1 }],
+      'eldritch-knight': [],
+      berserker: [],
+      'totem-warrior': [],
+    },
+  })
+
+  it('trocar a subclasse pelo cartão troca a feature de subclasse mostrada no painel — sem reload', async () => {
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithLeveledSubclasses(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Guerreiro' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Campeão' }))
+    expect(screen.getByText('Crítico Aprimorado')).toBeTruthy()
+    expect(screen.queryByText('Superioridade em Combate')).toBeNull()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Mestre de Batalha' }))
+    expect(screen.getByText('Superioridade em Combate')).toBeTruthy()
+    expect(screen.queryByText('Crítico Aprimorado')).toBeNull()
+  })
+})
+
 // --- US-211: grade de ancestralidade dracônica, só para dragonborn ---
 
 const configWithDragonborn = (budget: number) => ({

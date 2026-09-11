@@ -460,13 +460,31 @@ export function buildSubclasses(overlay, classes, resolve) {
   return subclasses
 }
 
-// --- classFeatures: nível 1, só classe base, sem ruído de tabela nem motor de conjuração ---
+// US-231: `parent` → menor `level` em que o pk aparece em featureItems. Antes só existia como
+// Set de "tem entrada de nível 1" (buildClassFeatures descartava o resto); agora vira mapa
+// completo, reusado por buildClassFeatures E buildSubclassFeatures (mesmo artefato ClassFeatureItem,
+// só muda se o `parent` da feature é classe-mãe ou subclasse). Feature com múltiplos featureItems
+// (escalada tipo Rage Damage/Brutal Critical, `detail` variável num único pk) materializa só a
+// entrada BASE — o menor nível — nos moldes da US-231 §Notas de implementação.
+function buildFeatureLevelMap(featureItems) {
+  const levelOf = new Map()
+  for (const item of featureItems) {
+    const pk = item.fields.parent
+    const level = item.fields.level
+    const current = levelOf.get(pk)
+    if (current === undefined || level < current) levelOf.set(pk, level)
+  }
+  return levelOf
+}
+
+// --- classFeatures: todos os níveis, só classe base, sem ruído de tabela nem motor de conjuração ---
 export function buildClassFeatures(overlay, { classes, features, featureItems }, resolve) {
   const baseClasses = classes.filter((c) => c.fields.subclass_of === null)
   for (const c of baseClasses) {
     if (!CLASS_MAP[c.pk]) throw new Error(`Classe base sem entrada no CLASS_MAP: ${c.pk}`)
   }
-  const lvl1 = new Set(featureItems.filter((i) => i.fields.level === 1).map((i) => i.fields.parent))
+  // US-231: nível de desbloqueio de CADA feature, não só a de nível 1 (ver buildFeatureLevelMap).
+  const levelOf = buildFeatureLevelMap(featureItems)
   // US-139: `[Column data]` é o ruído do 5.1 (mesmo texto do 5.2); o a5e-ag marca a MESMA coisa
   // (PROFICIENCY_BONUS, CLASS_TABLE_DATA) com `desc` VAZIO — medido em 15/08/2026 contra o
   // dataset real (`a5e_marshal_proficiency-bonus` etc.). Um só filtro por "sem descrição real"
@@ -476,11 +494,15 @@ export function buildClassFeatures(overlay, { classes, features, featureItems },
   // US-221: "Proficiencies" deixa de entrar como texto cru — buildClassProficiencies parseia a
   // MESMA feature em campos estruturados (config.classes[].{armor,weapon,tool}Proficiencies).
   const isProficiencies = (f) => f.fields.feature_type === 'PROFICIENCIES'
+  // US-231: Melhoria de Atributo é escolha MECÂNICA do jogador (feat ou +2 em atributos), não
+  // uma feature narrável — mesmo tratamento de ruído que isProficiencies/isSpellEngine já dão.
+  const isAbilityScoreImprovement = (f) => /_ability-score-improvement$/.test(f.pk)
 
   const classFeatures = { default: [] }
   for (const f of features) {
     const canon = CLASS_MAP[f.fields.parent]
-    if (!canon || !lvl1.has(f.pk) || isNoise(f) || isSpellEngine(f) || isProficiencies(f)) continue
+    const level = levelOf.get(f.pk)
+    if (!canon || level === undefined || isNoise(f) || isSpellEngine(f) || isProficiencies(f) || isAbilityScoreImprovement(f)) continue
     const slug = String(f.pk).slice(String(f.fields.parent).length + 1) // srd_paladin_lay-on-hands → lay-on-hands
     const featKey = `${canon}_${slug}`
     const entry = resolve('features', featKey, overlay.features?.[featKey], f.fields.name, norm(f.fields.desc))
@@ -489,7 +511,7 @@ export function buildClassFeatures(overlay, { classes, features, featureItems },
     // US-106: a chave DEIXA de ser campo temporário e vira campo do artefato. Ela já era
     // calculada aqui (para casar overlay, detectar órfão e ordenar) e era jogada fora na
     // gravação — é o que impedia a ficha de acompanhar o locale (US-100).
-    ;(classFeatures[canon] ??= []).push({ key: featKey, ...entry, source })
+    ;(classFeatures[canon] ??= []).push({ key: featKey, ...entry, source, level })
   }
   for (const k of Object.keys(classFeatures)) {
     // Ordenar por `key` em vez de pelo slug nu dá a MESMA ordem (dentro de uma classe o prefixo
@@ -497,6 +519,43 @@ export function buildClassFeatures(overlay, { classes, features, featureItems },
     classFeatures[k] = classFeatures[k].sort((a, b) => a.key.localeCompare(b.key))
   }
   return classFeatures
+}
+
+// --- subclassFeatures: espelha buildClassFeatures, mas para features cujo `parent` é pk de
+// SUBCLASSE (subclass_of !== null) — função nova e separada (não um branch dentro de
+// buildClassFeatures), fonte de pks disjunta da classe-mãe, mesmo espírito de buildSubclasses
+// sendo separada de buildClasses. Chave derivada com o MESMO stripDocument de buildSubclasses
+// (`srd_life-domain` → `life-domain`); a chave da feature vira `${subclassKey}_${slug}`
+// (`life-domain_bonus-proficiency`), espelhando `${canon}_${slug}` da classe-mãe. Mapa PLANO por
+// chave de subclasse (não aninhado por classe-mãe) — mesmo padrão de raceFeatures/backgroundFeatures,
+// a chave de subclasse já é única no catálogo (US-141). Toda subclasse ingerida nasce com array
+// vazio (nunca ausente do Record), mesma decisão de buildSubclasses.
+export function buildSubclassFeatures(overlay, { classes, features, featureItems }, resolve) {
+  const subclassKeyOf = new Map(classes.filter((c) => c.fields.subclass_of !== null).map((c) => [c.pk, stripDocument(c.pk)]))
+  const levelOf = buildFeatureLevelMap(featureItems)
+  const isNoise = (f) => { const d = norm(f.fields.desc); return d === '' || d === '[Column data]' }
+  const isSpellEngine = (f) => /_(spellcasting|pact-magic)$/.test(f.pk)
+  // US-231: "tabela de magias de domínio" (life-domain-spells-table) — a mesma feature de
+  // Oath/Circle/Patron QUE TEM prosa real (oath-spells, circle-spells, expanded-spell-list)
+  // continua entrando; só o pk que É a tabela pura (sem frase nenhuma antes dela, medido contra
+  // o dataset em 2026-09-11) fica de fora, mesmo espírito de isNoise (sem conteúdo narrável).
+  const isSpellTable = (f) => /-spells-table$/.test(f.pk)
+
+  const subclassFeatures = Object.fromEntries([...subclassKeyOf.values()].map((key) => [key, []]))
+  for (const f of features) {
+    const subclassKey = subclassKeyOf.get(f.fields.parent)
+    const level = levelOf.get(f.pk)
+    if (!subclassKey || level === undefined || isNoise(f) || isSpellEngine(f) || isSpellTable(f)) continue
+    const slug = String(f.pk).slice(String(f.fields.parent).length + 1)
+    const featKey = `${subclassKey}_${slug}`
+    const entry = resolve('features', featKey, overlay.features?.[featKey], f.fields.name, norm(f.fields.desc))
+    const source = f.fields.document === 'a5e-ag' ? 'a5e-ag' : 'srd'
+    subclassFeatures[subclassKey].push({ key: featKey, ...entry, source, level })
+  }
+  for (const k of Object.keys(subclassFeatures)) {
+    subclassFeatures[k] = subclassFeatures[k].sort((a, b) => a.key.localeCompare(b.key))
+  }
+  return subclassFeatures
 }
 
 // --- classSpells: nível <= 1 (truques + todas as de 1º), ligadas por classes[] ---
@@ -1233,6 +1292,9 @@ function buildConfig(overlay, data, locale) {
   const classes = buildClasses(overlay, data.classes, resolve, attributes)
   const subclasses = buildSubclasses(overlay, data.classes, resolve)
   const classFeatures = buildClassFeatures(overlay, data, resolve)
+  // US-231: espelha classFeatures, mas por chave de SUBCLASSE — precisa rodar depois de
+  // buildSubclasses ter validado (falha alto) que todo `subclass_of` tem classe-mãe conhecida.
+  const subclassFeatures = buildSubclassFeatures(overlay, data, resolve)
   const classSpells = buildClassSpells(overlay, data.spells, resolve)
   const { startingKits, startingEquipmentChoices } = buildStartingKits(overlay, data.features, resolve)
   // US-132: buildTools roda ANTES de buildBackgrounds — o grant `kind: 'tools'` do benefício
@@ -1273,7 +1335,7 @@ function buildConfig(overlay, data, locale) {
   }
 
   // --- valida: SystemConfigSchema.parse falha cedo se a forma do dataset regrediu ---
-  const artifact = { attributes, skills, languages, races, raceFeatures, classes, subclasses, classFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools, weapons, alignments }
+  const artifact = { attributes, skills, languages, races, raceFeatures, classes, subclasses, classFeatures, subclassFeatures, classSpells, startingKits, backgrounds, backgroundEquipment, backgroundFeatures, tools, weapons, alignments }
   SystemConfigSchema.parse({ ...artifact, ...STUB })
   return { artifact, fallbacks, orphans, glossary }
 }

@@ -188,11 +188,15 @@ export const SystemWeaponSchema = z.object({
 // escrito por nós. É por entrada, não por sistema: o Free mistura as duas (7 truques + 2 features
 // não existem em SRD nenhum). `z.string()` e não enum de propósito — dois valores bastam hoje, e
 // o dia em que houver UPLOAD o valor novo é uma linha, não uma taxonomia inventada antes da hora.
+// US-231: `level` = nível mínimo de personagem em que a feature é desbloqueada. Presente em
+// `classFeatures`/`subclassFeatures` (progressão por nível); ausente em `backgroundFeatures`/
+// `raceFeatures` (sem progressão — origem e raça não escalam com o nível do personagem).
 export const SystemClassFeatureSchema = z.object({
   key: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
   source: z.string().min(1),
+  level: z.number().int().min(1).optional(),
 })
 
 // Magia conhecida (US-42): truque/magia que o personagem SABE conjurar — awareness
@@ -308,6 +312,12 @@ export const SystemConfigSchema = z.object({
   // subclasse pressupõe a classe já escolhida (Character.class), não é entidade jogável sozinha
   // — por isso separado de `classes`, nunca achatado nele (ver US-141 §Contexto).
   subclasses: z.record(z.string(), z.array(SystemCatalogEntrySchema)).optional(),
+  // US-231: features de SUBCLASSE (Disciple of Life do Domínio da Vida, Remarkable Athlete do
+  // Champion…), mapa PLANO por chave de subclasse (`life-domain`, `champion`…), mesmo padrão de
+  // `raceFeatures`/`backgroundFeatures` — não aninhado por classe-mãe porque a chave de subclasse
+  // já é única no catálogo (US-141). Reusa `SystemClassFeatureSchema` (ganhou `level` nesta
+  // story), sem tipo novo.
+  subclassFeatures: z.record(z.string(), z.array(SystemClassFeatureSchema)).optional(),
   // Catálogo de backgrounds do a5e-ag (US-121), derivado pelo ingest. Opcional como races/classes:
   // config legado sem ele não fica inválido. Mecânico apenas — escolha na criação é story separada.
   backgrounds: z.array(SystemBackgroundSchema).optional(),

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getClassFeatures, getClassSpells, getBackgroundFeatures, getRaceFeatures, resolveEquipmentSlots, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
+import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getCharacterFeatureKeys, getClassSpells, getBackgroundFeatures, getRaceFeatures, resolveEquipmentSlots, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
@@ -121,15 +121,28 @@ export class CharacterService {
     const originKey = dto.origin?.key
       ? this.validateCatalogKey(config.backgrounds, dto.origin.key, 'Origem')
       : undefined
-    // US-41: features de classe de nível 1, derivadas do kit da classe (mesmo caminho
-    // do inventário inicial). Classe sem kit de features → [] (sem crash, sem seção).
+    // US-227: nível inicial à escolha na criação — mesmo valor que grava em `data.level` abaixo,
+    // extraído aqui porque a materialização de features (US-231) também precisa dele.
+    const level = dto.level ?? 1
+    // US-41: features de classe até o nível escolhido (US-231: antes hardcoded nível 1),
+    // derivadas do kit da classe (mesmo caminho do inventário inicial). Classe sem kit de
+    // features → [] (sem crash, sem seção).
+    // US-231: `getCharacterFeatureKeys` funde classe e SUBCLASSE (Disciple of Life, Ataque
+    // Extra…) ANTES de ordenar por nível — concatenar `getClassFeatures`+`getSubclassFeatures`
+    // já prontas intercalaria errado (subclasse nível 3 depois de classe nível 5, se a lista
+    // de classe inteira viesse primeiro). `subclass` já resolvida acima (US-205), só não era
+    // consultada por features ainda.
     // US-135: união com as features de nível 1 da ORIGEM escolhida (US-121 benefício
     // `type: 'feature'`, ex. Thieves' Cant) — mesmo campo, sem coluna nova no Prisma.
     // US-100: são CHAVES (`barbarian_rage`/`a5e-ag_criminal_thieves-cant`), resolvidas
     // para nome/descrição na leitura.
     // US-142: features de raça (raiz sem subespécie, ou subespécie já combinada com a raiz)
     // somadas ao mesmo array — mesmo pipeline de classe/origem, sem coluna nova no Prisma.
-    const features = [...getClassFeatures(config, charClass), ...getBackgroundFeatures(config, originKey), ...getRaceFeatures(config, race)]
+    const features = [
+      ...getCharacterFeatureKeys(config, charClass, subclass, level),
+      ...getBackgroundFeatures(config, originKey),
+      ...getRaceFeatures(config, race),
+    ]
     // US-123: bônus de atributo do background soma POR CIMA do point-buy já validado acima —
     // por isso aplicado depois do parse de min/max, que segue valendo só para o point-buy puro.
     const abilityGrant = this.findAbilityGrant(config.backgrounds, originKey)
@@ -208,8 +221,7 @@ export class CharacterService {
         raceToolChoice,
         class: charClass,
         subclass,
-        // US-227: nível inicial à escolha na criação — antes literal fixo `1`.
-        level: dto.level ?? 1,
+        level,
         baseAttributes: finalAttributes,
         skills,
         tools,

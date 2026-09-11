@@ -269,21 +269,23 @@ export function getRaceFeatures(config: SystemConfig, raceKey: string): string[]
   return (map[raceKey] ?? []).map((f) => f.key)
 }
 
-/** US-136/US-142: `SystemClassFeature` + de qual catálogo a chave veio, calculado ANTES do merge. */
-export type CharacterFeature = SystemClassFeature & { origin: 'class' | 'background' | 'race' }
+/** US-136/US-142/US-231: `SystemClassFeature` + de qual catálogo a chave veio, calculado ANTES do merge. */
+export type CharacterFeature = SystemClassFeature & { origin: 'class' | 'background' | 'race' | 'subclass' }
 
 /**
- * Resolve `Character.features` (chaves de classe, de origem e de raça misturadas, US-135/US-142)
- * contra a UNIÃO dos três catálogos — `resolveSheetEntries` sozinho só enxerga um mapa por vez, e
- * uma chave de origem/raça passada contra `classFeatures` cairia no fallback `{key, name: key}`.
- * Mapa sintético de uma entrada por trás, mesmo `retiredFeatures` servindo as três fontes (US-100).
+ * Resolve `Character.features` (chaves de classe, subclasse, origem e raça misturadas,
+ * US-135/US-142/US-231) contra a UNIÃO dos catálogos — `resolveSheetEntries` sozinho só enxerga
+ * um mapa por vez, e uma chave de subclasse/origem/raça passada contra `classFeatures` cairia no
+ * fallback `{key, name: key}`. Mapa sintético de uma entrada por trás, mesmo `retiredFeatures`
+ * servindo as quatro fontes (US-100).
  *
- * US-136: `origin` marca cada item como `'class'`, `'background'` ou `'race'` por pertencimento
- * aos `Set`s de chave de `classList`/`originList`/`raceList` — NUNCA por parsing de prefixo
- * (`a5e-ag_*` vs `<classe>_*`), que é detalhe de formato do dataset, não contrato. Calculado sobre
- * as chaves de entrada (que cobrem também `retiredFeatures` indiretamente, US-100), não sobre o
- * resultado já resolvido. `raceKey` é opcional (US-142 chegou depois): sem ele, traço de raça cai
- * no fallback `'background'` de antes — chamador que não passa raça continua como estava.
+ * US-136: `origin` marca cada item como `'class'`, `'subclass'`, `'background'` ou `'race'` por
+ * pertencimento aos `Set`s de chave de `classList`/`subclassList`/`originList`/`raceList` — NUNCA
+ * por parsing de prefixo (`a5e-ag_*` vs `<classe>_*`), que é detalhe de formato do dataset, não
+ * contrato. Calculado sobre as chaves de entrada (que cobrem também `retiredFeatures`
+ * indiretamente, US-100), não sobre o resultado já resolvido. `raceKey`/`subclassKey` são
+ * opcionais (chegaram depois, US-142/US-231): sem eles, a chave correspondente cai no fallback
+ * `'background'` de antes — chamador que não os passa continua como estava.
  */
 export function resolveCharacterFeatures(
   config: SystemConfig,
@@ -291,33 +293,89 @@ export function resolveCharacterFeatures(
   originKey: string | undefined,
   featureKeys: string[],
   raceKey?: string,
+  subclassKey?: string,
 ): CharacterFeature[] {
   const classList = config.classFeatures?.[classKey] ?? config.classFeatures?.default ?? []
+  const subclassList = subclassKey ? (config.subclassFeatures?.[subclassKey] ?? []) : []
   const originList = originKey ? (config.backgroundFeatures?.[originKey] ?? []) : []
   const raceList = raceKey ? (config.raceFeatures?.[raceKey] ?? []) : []
   const classKeys = new Set(classList.map((f) => f.key))
+  const subclassKeys = new Set(subclassList.map((f) => f.key))
   const raceKeys = new Set(raceList.map((f) => f.key))
-  const resolved = resolveSheetEntries({ combined: [...classList, ...originList, ...raceList] }, config.retiredFeatures, 'combined', featureKeys)
+  const resolved = resolveSheetEntries(
+    { combined: [...classList, ...subclassList, ...originList, ...raceList] },
+    config.retiredFeatures, 'combined', featureKeys,
+  )
   return resolved.map((f) => ({
     ...f,
-    origin: classKeys.has(f.key) ? 'class' : raceKeys.has(f.key) ? 'race' : 'background',
+    origin: classKeys.has(f.key) ? 'class' : subclassKeys.has(f.key) ? 'subclass' : raceKeys.has(f.key) ? 'race' : 'background',
   }))
 }
 
+// US-231: filtro por nível cru (sem ordenar nem mapear a chave) — reusado por getClassFeatures/
+// getSubclassFeatures (cada uma ordena sozinha) E por getCharacterFeatureKeys logo abaixo (que
+// funde as duas listas ANTES de ordenar, pra não intercalar errado — ver o comentário lá).
+function classFeatureList(config: SystemConfig, classKey: string, level: number): SystemClassFeature[] {
+  const map = config.classFeatures
+  if (!map) return []
+  return (map[classKey] ?? map.default ?? []).filter((f) => (f.level ?? 1) <= level)
+}
+
+function subclassFeatureList(config: SystemConfig, subclassKey: string | undefined, level: number): SystemClassFeature[] {
+  if (!subclassKey) return []
+  const map = config.subclassFeatures
+  if (!map) return []
+  return (map[subclassKey] ?? []).filter((f) => (f.level ?? 1) <= level)
+}
+
+// US-231: nível crescente, empate por `key` — mesma disciplina de idempotência da US-47.
+const byLevelThenKey = (a: SystemClassFeature, b: SystemClassFeature) => (a.level ?? 1) - (b.level ?? 1) || a.key.localeCompare(b.key)
+
 /**
- * Features de classe de nível 1 do kit (US-41), pela chave canônica da classe. Classe sem
- * entrada cai no `default` do config; sem `classFeatures` no config → []. Nunca inventa
- * feature: personagem sem kit fica com lista vazia (sem crash, sem seção).
+ * Features de classe do kit, pela chave canônica da classe, filtradas por `level <= level`
+ * informado (US-231: antes só nível 1) e ordenadas por nível crescente (empate por `key`, mesma
+ * disciplina de idempotência da US-47). Classe sem entrada cai no `default` do config; sem
+ * `classFeatures` no config → []. Nunca inventa feature: personagem sem kit fica com lista vazia
+ * (sem crash, sem seção). Chave sem `level` (config legado/catálogo sem progressão) trata como
+ * nível 1 — mesmo nível que TODA feature de classe tinha antes desta story.
  *
  * US-100: devolve as CHAVES, não os objetos. A ficha guarda a pergunta ("qual feature?"), não a
  * resposta no idioma de quem criou — quem devolve nome e descrição é o `resolveSheetEntries`, na
  * LEITURA, com o config do locale ativo. Lê só `classFeatures`: conteúdo aposentado
  * (`retiredFeatures`) resolve ficha antiga e nunca entra em personagem novo.
+ *
+ * US-231: `level` sem default de propósito — todo call site (criação, sheet, testes) precisa
+ * decidir explicitamente qual nível está pedindo, um default de `1` esconderia call site
+ * esquecido em silêncio (mesma cicatriz que motivou "nunca lançar, nunca inventar" da US-41).
  */
-export function getClassFeatures(config: SystemConfig, classKey: string): string[] {
-  const map = config.classFeatures
-  if (!map) return []
-  return (map[classKey] ?? map.default ?? []).map((f) => f.key)
+export function getClassFeatures(config: SystemConfig, classKey: string, level: number): string[] {
+  return classFeatureList(config, classKey, level).sort(byLevelThenKey).map((f) => f.key)
+}
+
+/**
+ * Features de SUBCLASSE do kit (US-231), espelha `getClassFeatures`: filtra por `level <= level`
+ * informado, ordena por nível crescente com empate por `key`. `subclassKey` `undefined` (classe
+ * sem subclasse resolvida — não deveria acontecer hoje desde a US-205, mas a função não assume)
+ * devolve `[]`, nunca lança. Sem `config.subclassFeatures` → [] (config legado pré-US-231).
+ */
+export function getSubclassFeatures(config: SystemConfig, subclassKey: string | undefined, level: number): string[] {
+  return subclassFeatureList(config, subclassKey, level).sort(byLevelThenKey).map((f) => f.key)
+}
+
+/**
+ * Features de classe E de subclasse JUNTAS (US-231), pelo nível informado. `getClassFeatures`/
+ * `getSubclassFeatures` cada uma já ordena por nível dentro da PRÓPRIA fonte — mas concatenar
+ * duas listas já-ordenadas não intercala por nível entre as duas (uma feature de SUBCLASSE de
+ * nível 3 ficaria depois de uma feature de CLASSE de nível 5, se a lista de classe inteira viesse
+ * primeiro). Esta função funde as duas listas ANTES de ordenar, então "nível crescente, empate
+ * por key" vale pro conjunto inteiro — é o que `character.service.ts` (materialização) e
+ * `SetupWizard.tsx` (preview) precisam para a ficha/preview mostrar UMA lista por nível, não duas
+ * coladas (ver US-231 §Escopo "Ordenação").
+ */
+export function getCharacterFeatureKeys(config: SystemConfig, classKey: string, subclassKey: string | undefined, level: number): string[] {
+  return [...classFeatureList(config, classKey, level), ...subclassFeatureList(config, subclassKey, level)]
+    .sort(byLevelThenKey)
+    .map((f) => f.key)
 }
 
 /**
