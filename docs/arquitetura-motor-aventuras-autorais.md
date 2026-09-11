@@ -45,10 +45,12 @@ CHAMADA 1 — autoria (modelo deepseek-v4-pro, UMA chamada, tudo junto):
    · mundo autoral + tom          (o bespoke tipo Khemsar)
    · facções (3) com desejos concorrentes
    · conflito central + fecho ramificado (escolha sem herói)
+   · objetivo + recompensa        (meta da missão + item de prêmio, por id a um local)
    · locais + NPCs                (amarrados às facções)
    · segredos / pistas            (referenciam locais/facções por id)
    · atos / sessões + followUps
    · encontros — FICÇÃO só         (local + facção + situação, SEM números — abordagem A)
+   · desafios — não-combate       (teste nomeado + situação, preso a local, SEM CD)
 PASSO 2 — números dos encontros   ← 5e determinístico no código: papel (Minion/Soldier/Brute)
                                      + orçamento pro nível do personagem, preenchendo a ficção da CHAMADA 1
 PASSO 3 — gate                    ← grafo fecha + orçamento cabe. Falha ⇒ regenera a CHAMADA 1
@@ -69,7 +71,9 @@ Sem dependência nova. Reusa a escada de provedores existente (`packages/ai-engi
 - **`factions[]`** — entidade de 1ª classe: `id`, `name`, `kind` (poder/submundo/culto…), `want`, vínculos por `id` a `npcs`/`locations`/`secrets`. Hoje só existe `npc.role` (texto solto).
 - **`acts[]` / sessões** — agrupamento sobre `encounters[]`, cada ato com gancho pro próximo. Hoje `encounters[]` é plano.
 - **`branchedResolution`** — array estruturado `{ choice, consequence }` (vender/entregar/sumir). Hoje `conclusion` é uma string.
-**Fora do schema (decisão 10/09):** `hazardTable`/tabela de perigo — **removida da geração** a pedido da mantenedora. Perigo de viagem, se surgir, fica a cargo do Mestre em jogo; não pré-gera.
+- **`objective`** — meta da missão + `reward` (item de prêmio, ex. "Sino de Vhorn") + ponteiro por `id` ao local onde se resolve. Hoje só há `branchedResolution` (a escolha do fecho), sem a meta/prêmio como campo. *(novo, 10/09 — seção Objective do DnDGenerate.)*
+- **`challenges[]`** — obstáculo **não-combate** autorado e preso a um local (`locationId`): teste nomeado por perícia/atributo + situação + consequência. Distinto de `encounters[]` (combate). CD **não** congela no artefato (US-29 — resolução vem em jogo pela escada de CD, US-111). *(novo, 10/09 — seção Challenges do DnDGenerate.)*
+**Fora do schema (decisão 10/09):** `hazardTable`/tabela de perigo — **removida da geração** a pedido da mantenedora. Perigo de viagem, se surgir, fica a cargo do Mestre em jogo; não pré-gera. **`challenges[]` não a ressuscita:** aquela era d8 **rolável de perigo aleatório**; challenge é obstáculo **específico da trama**, autorado e preso a um local.
 
 **Coerência com os campos que já existem (US-144), pra não deixar campo morto (gate US-89):**
 - **`branchedResolution` SUBSTITUI `conclusion` (string).** O fecho é ramificado (3 escolhas/consequências), não cabe numa frase; manter `conclusion` seria redundância morta. O `generateClosing` (US-181/183/190) passa a emitir os ramos.
@@ -78,6 +82,24 @@ Sem dependência nova. Reusa a escada de provedores existente (`packages/ai-engi
 - **`followUps[]` FICA obrigatório E entra no prompt de autoria (CHAMADA 1).** O Spike esqueceu de pedir — mas é a única continuidade entre one-shots (ver backlog, *O adiamento do arco pra fase 4*), não pode ficar de fora.
 
 Persistência inalterada: coluna congelada `Adventure.generatedAdventure Json?` (ADR 012 D2). Ciclo de vida imutável — o ledger `WorldEntity[]` mutável continua em `Adventure.entities`.
+
+### Camada de render: as 8 seções estilo módulo (DnDGenerate)
+Decisão da mantenedora (10/09): o artefato **exibe-se** como as 8 seções de um módulo clássico — **Setting · Story · Objective · Locations · Challenges · Encounters · Follow Up Ideas · NPCs** — a taxonomia do [DnDGenerate](https://github.com/dhorions/DnDGenerate) (MPL-2.0 — vocabulário/estrutura reusável sem atrito de licença, ≠ GPL-3.0 do RPG-World-Builder). É **camada de apresentação, não a forma do schema:** o mundo-primeiro (`world`/`factions[]`/`acts[]`) segue **interno de autoria** — é o que dá alma (a tensão de facção move a trama) e trava o defeito "genérico/plano". Facções **não** ganham seção própria; aparecem dissolvidas em Story/NPCs, como no exemplar *A Cripta do Véu Silencioso* (Culto do Véu / orcs corrompidos / Vhorn nunca listados, mas movendo tudo).
+
+Mapa campo interno → seção de render:
+
+| Seção (render) | Campo(s) do schema |
+|---|---|
+| Setting | `world` + `tone` |
+| Story | `conflito` + gancho (facções por baixo) |
+| Objective | `objective` (meta + `reward`) |
+| Locations | `locations[]` |
+| Challenges | `challenges[]` (não-combate) |
+| Encounters | `encounters[]` (ficção + números do PASSO 2) |
+| Follow Up Ideas | `followUps[]` |
+| NPCs | `npcs[]` (+ statblock do PASSO 2) |
+
+`acts[]`/sessões e `branchedResolution` **não** são seções do módulo — o render costura os atos sobre Locations/Encounters e dissolve o fecho ramificado dentro de Objective + Encounter final. A UI em si (frontend) fica fora deste doc; aqui fica só o contrato campo→seção.
 
 ### Parâmetros de mundo (US-156/157) no prompt de autoria
 A tela "O Mundo da Aventura" (US-157) dá quatro knobs. Sob a montagem-por-tabela eles indexavam rolagens; sob a inversão, eles **restringem o que o modelo autora**. Mapeamento:
@@ -98,7 +120,9 @@ Quatro regras que o reslice do backlog precisa carregar:
 4. **A combinação dos três é o espaço criativo.** Mitológico + Deserto + Sobrevivência → um mundo tipo Khemsar. Os três em Aleatório → modelo livre.
 
 ### Derivação do personagem: gancho leve (não espinha)
-O mundo/aventura vem dos **params** (cenário/tom/área). O `background` do personagem (`story`/`bonds`/`flaws`/`deity`) entra como **contexto opcional** no prompt de autoria pra semear ganchos — um NPC preso a um `bond`, a `deity` colorindo uma facção — **sem amarrar a trama**. Foi o que o Spike fez ("contexto, não amarra a trama") e funcionou.
+O mundo/aventura vem dos **params** (cenário/tom/área). O `background` entra como **contexto opcional** no prompt de autoria — mas **só a parte de tempero interno**: `deity` (colore uma facção) e `flaws`/traços (cor de personalidade). **`bonds` e `story` (história pregressa) NÃO entram na primeira aventura.**
+
+**Tábula rasa da 1ª aventura (achado do spike, 10/09).** A primeira aventura do personagem é a primeira sessão jogada — não há passado no mundo. Alimentar `bonds`/`story` faz o modelo presumir história pré-jogo: NPCs que já o conhecem, dívidas antigas, um pai desaparecido, aliados do passado — quebrando "primeira aventura". Medido: regenerações do spike com `bonds` (carta-do-pai, velha-trapaceira-que-o-escondeu) no prompt vazaram o vínculo como **espinha de plot** (rumo final "queima a carta do pai"), mesmo com regra explícita proibindo. **Regra de prompt não segura um `bond` alimentado — a cura é não alimentar.** Cortados `bonds`/`story`, a saída ficou limpa (relatório `adventure-authoring-spike-2026-09-11T00-01-37.md`: forasteiro que chega de balão, todos os NPCs estranhos, recompensa com proveniência do mundo). O prompt ainda carrega a regra de tábula rasa como defesa em profundidade (nenhum NPC o conhece; sem eventos/dívidas anteriores como fato; proveniência de item é do mundo, não da biografia; follow-ups introduzem ganchos novos, não dívidas da terra natal).
 
 **Robusto a background vazio:** `Character.background` é `Json @default("{}")` — criar personagem sem preencher é caminho válido (ressalva do backlog). O gancho é opcional por construção: background vazio = prompt sem essa parte, mundo sai completo só dos params. O motor **nunca** depende de `story`/`bonds`/`deity` existirem.
 
@@ -118,7 +142,7 @@ Onde bate: boxed text, descrições de local, segredos e falas de NPC são prosa
 
 Defesa em profundidade, no molde da própria US-29 (prompt + rede determinística):
 1. **Prompt** — a autoria proíbe número mecânico na prosa (CD, dado, dano, HP, CA), mesma regra que `dm-system.ts` já carrega pro turno. Teste é nomeado **qualitativamente** por perícia/atributo canônico do SRD.
-2. **Rede determinística (pré-gate)** — reusa o stripper da US-29 sobre os campos autorados (`boxedText`, `description`, `secret.text`, `npc.interactions[].narrative`): remove número de rolagem vazado; e **valida a perícia nomeada contra o catálogo do sistema** — "Sabor" não existe, reprova → gate regenera.
+2. **Rede determinística (pré-gate)** — reusa o stripper da US-29 sobre os campos autorados (`boxedText`, `description`, `secret.text`, `npc.interactions[].narrative`, **`challenge.description`**): remove número de rolagem vazado; e **valida a perícia nomeada contra o catálogo do sistema** — "Sabor" não existe, reprova → gate regenera. `challenges[]` é o campo mais propenso a vazar CD ("teste de Percepção **CD 15**") — o exemplar da Cripta o traz; o stripper tira o número, mantém o teste nomeado.
 
 Onde número legítimo vive: statblock de encontro (código, US-152, campo estruturado, não prosa) e rolagem em jogo (`rollDice` + escada de CD do SRD 2024, US-111). O artefato **não** congela CD/dano.
 
@@ -143,11 +167,11 @@ Dois estados terminais da tela de espera: sucesso → entra no jogo; falha (teto
 ### Âncora de eval (substitui o determinismo)
 "Reprodutibilidade" são duas coisas; a inversão só mata uma:
 1. **Repro pra debug** — o artefato **congelado** (ADR 012 D1) já fica gravado em `Adventure.generatedAdventure`. Aventura ruim é linha inspecionável, não precisa regenerar. Morre reproduzir o *processo*; o *resultado* fica de graça.
-2. **Regressão** — mede **rubrica (US-36/154) sobre amostra**, a partir de um conjunto **pinado de perfis de entrada**, contra **O Olho de Iremet** como exemplar de referência (resolve a lacuna do backlog: sem exemplar solo/pt-BR/autoral). Golden deixa de ser string, vira barra de qualidade.
+2. **Regressão** — mede **rubrica (US-36/154) sobre amostra**, a partir de um conjunto **pinado de perfis de entrada**, contra dois exemplares de referência: **O Olho de Iremet** (âncora de prosa/densidade) e **A Cripta do Véu Silencioso** ([evals/exemplars/](../evals/exemplars/cripta-do-veu-silencioso.md), âncora da estrutura das 8 seções + presença de Challenges/Objective) — ambos solo/pt-BR/autoral, a lacuna que o backlog velho lamentava. Golden deixa de ser string, vira barra de qualidade.
 
 `seed` se aposenta da produção. Onde a eval precisar de quase-determinismo (testar pipeline, não criatividade): `temperature: 0` + versão de modelo pinada sobre os perfis fixos.
 
-**O exemplar NÃO entra no prompt de produção.** *O Olho de Iremet* é anchor de **eval** (regressão), não texto do prompt. O mundo gerado tem **zero conexão de conteúdo** com o exemplar — só herda qualidade e estrutura. O prompt de autoria ensina qualidade de forma **abstrata** ("mundo autoral nomeado e específico, facções com desejos concorrentes, detalhe sensorial concreto"), sem citar nenhum mundo. Isso corta por construção a convergência de motivo que o Spike 1 expôs (todos os modelos copiaram "ossos de titã" porque o prompt do spike descrevia Khemsar literalmente).
+**Os exemplares NÃO entram no prompt de produção.** *O Olho de Iremet* e *A Cripta do Véu Silencioso* são anchor de **eval** (regressão), não texto do prompt. O mundo gerado tem **zero conexão de conteúdo** com o exemplar — só herda qualidade e estrutura. O prompt de autoria ensina qualidade de forma **abstrata** ("mundo autoral nomeado e específico, facções com desejos concorrentes, detalhe sensorial concreto"), sem citar nenhum mundo. Isso corta por construção a convergência de motivo que o Spike 1 expôs (todos os modelos copiaram "ossos de titã" porque o prompt do spike descrevia Khemsar literalmente).
 
 ### Escopo da ADR 012 (cirúrgico, não do zero)
 | Decisão ADR 012 | Sob a inversão |
@@ -165,11 +189,11 @@ Refazer ADR 012 = reescrever a metade-`seed` do D1 + registrar as decisões do s
 ## Peças que faltam
 
 - Prompt de autoria **call único** mundo-primeiro (uma chamada gera mundo→facções→…→tabela+followUps): não existe; hoje é rolagem + prompt por peça.
-- `factions[]`, `acts[]`/sessões, `branchedResolution`, `world` no schema (US-144 cresce).
+- `factions[]`, `acts[]`/sessões, `branchedResolution`, `world`, `objective`, `challenges[]` no schema (US-144 cresce).
 - Gate (US-150) adaptado: **regenera on-fail** em vez de re-seed; grafo fecha sobre o schema mais rico (facções incluídas).
 - Rubrica de eval **recalibrada** contra O Olho de Iremet como exemplar (US-154/US-36).
 - Remoção de código morto pós-inversão: `deriveAdventureSeed` (US-146) e a rolagem-espinha (US-147) — passar pelo gate de código morto (`pnpm dead`, US-89).
-- Camada de apresentação estilo módulo (renderização da ficha/aventura) — **fora deste doc**, é frontend, decisão à parte.
+- Renderização das 8 seções de módulo (frontend) — **fora deste doc**; o contrato campo→seção está em §*Camada de render* (taxonomia DnDGenerate), a UI é decisão à parte.
 
 ---
 
@@ -179,11 +203,11 @@ Refazer ADR 012 = reescrever a metade-`seed` do D1 + registrar as decisões do s
 
 > **Spike 1 — 2ª rodada (bake-off de 8 modelos, 2026-09-09).** Relatório: `evals/reports/adventure-authoring-spike-2026-09-09T13-32-25.md`. Mesmos slugs do OpenRouter que a mantenedora pediu (nemotron-3.5-lightning, qwen3.8-flash, kimi-k2.6, deepseek-v4-pro, grok-4.3, muse-spark-1.3, gpt-5.6-luna) + deepseek-v4-flash de âncora. Achados: juiz saturou de novo (quase tudo 5/5, não discrimina); `grok-4.3` entregou curto (1726 tokens, aventura incompleta); `muse-spark-1.3` falhou (n=0); **convergência de motivo** — todos inventaram "cidade sobre ossos de titã" porque o `EXEMPLAR_BAR` do prompt descreve Khemsar literalmente (em produção a referência tem de ensinar QUALIDADES, não semear um motivo). **Decisão da mantenedora, lendo cada texto: modelo de prosa = `deepseek/deepseek-v4-pro`** (o texto que mais agradou; ~$0.012/aventura, aceitável por ser one-time e off-turn).
 
-> **Escada de prosa (2026-09-10).** A DeepSeek anunciou descontinuação do `deepseek-v4-pro`. Testado `deepseek/deepseek-v4.1-flash` como substituto (relatório `adventure-authoring-spike-2026-09-10T12-46-00.md`): 5x mais barato ($0.0024) e sobrevive, mas a mantenedora **ainda preferiu o v4-pro** lendo os dois. Decisão: **escada** (mesmo padrão de `narrationModels`), não troca forçada — a autoria tenta na ordem:
-> 1. `deepseek/deepseek-v4-pro` — preferido, **em descontinuação**.
-> 2. `deepseek/deepseek-v4-pro-0813` — snapshot pinado do pro (mais próximo do texto aprovado). **Ressalva:** é da mesma família v4-pro; pode ser desligado junto — fallback de qualidade, não de sobrevivência.
-> 3. `deepseek/deepseek-v4.1-flash` — o **sobrevivente real** (não anunciado pra sair), mais barato; o piso quando os dois pro caírem.
-> Quando o pro sair, a escada troca sozinha; revisitar a preferência quando a data de EOL for conhecida.
+> **Escada de prosa (2026-09-10, atualizada 2026-09-11).** Em 10/09 a DeepSeek anunciou descontinuação do `deepseek-v4-pro`; testou-se `deepseek/deepseek-v4.1-flash` como substituto (relatório `adventure-authoring-spike-2026-09-10T12-46-00.md`): 5x mais barato ($0.0024) e sobrevive, mas a mantenedora **preferiu o v4-pro** lendo os dois. **Em 11/09 a descontinuação foi cancelada — o `v4-pro` fica.** A escada **permanece**, mas agora como **resiliência genérica** (outage/rate-limit/roteamento do OpenRouter), mesmo papel do `narrationModels` — não mais por morte anunciada do pro. Ordem que a autoria tenta:
+> 1. `deepseek/deepseek-v4-pro` — preferido e estável (EOL cancelado).
+> 2. `deepseek/deepseek-v4-pro-0813` — snapshot pinado do pro, o mais próximo do texto aprovado; primeiro fallback.
+> 3. `deepseek/deepseek-v4.1-flash` — piso barato se os dois pro estiverem indisponíveis.
+> Sem urgência de troca; a preferência pelo pro vale enquanto for o melhor texto a olho.
 
 **Spike 1 (registro original) — a inversão produz qualidade Khemsar-grade, e a que custo? (PRIMEIRA AÇÃO, antes de reescrever ADR 012 ou qualquer story)**
 
@@ -207,7 +231,7 @@ O spike responde de uma vez as duas decisões deixadas em aberto na sessão: **m
 
 ## Questões em aberto
 
-1. ~~**Modelo de prosa: forte ou barato?**~~ **RESOLVIDA (09/09, revista 10/09):** escada `deepseek-v4-pro` → `deepseek-v4-pro-0813` → `deepseek-v4.1-flash` (preferência da mantenedora lendo os textos; juiz saturou; pro em descontinuação, escada absorve — ver *Escada de prosa* acima). Referência do prompt ensina QUALIDADES, não semeia o motivo "ossos de titã".
+1. ~~**Modelo de prosa: forte ou barato?**~~ **RESOLVIDA (09/09, revista 10-11/09):** escada `deepseek-v4-pro` → `deepseek-v4-pro-0813` → `deepseek-v4.1-flash` (preferência da mantenedora lendo os textos; juiz saturou). EOL do pro foi anunciado 10/09 e **cancelado 11/09** — escada fica como resiliência genérica, não por morte do pro (ver *Escada de prosa* acima). Referência do prompt ensina QUALIDADES, não semeia o motivo "ossos de titã".
 2. **Âncora de eval final** — recomendado artefato congelado + rubrica sobre perfis pinados, `seed` aposentado; confirmar. (Nota do spike: juiz Gemini satura na tarefa de aventura — a rubrica de regressão precisa de ancoragem mais dura que "nota 1-5", ex. asserts sobre o artefato, como a US-154 já previa.)
 3. ~~**Quantas chamadas ao modelo por aventura?**~~ **RESOLVIDA (09/09): call único de autoria** + passo determinístico de encontros. Mais rápido e menos código que a cadeia; ~$0.012/aventura em deepseek-v4-pro (Spike 1). Cadeia é o caminho de volta se o gate por-peça importar.
 4. ~~**Gerar na criação ou em background?**~~ **RESOLVIDA (09/09):** background/assíncrono com tela de espera (US-197) — síncrono estoura o teto SSE 60s. Falha do gate = erro + retry da autoria, nunca fallback pra "Aventura pronta". Ver §*Gatilho e falha*.

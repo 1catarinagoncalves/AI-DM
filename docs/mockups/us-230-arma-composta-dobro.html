@@ -1,0 +1,416 @@
+<title>Arma Composta e em Dobro</title>
+<style>
+  /* ---- design tokens: espelham 1:1 apps/web/src/app/globals.css (mesmos do mockup US-229) ---- */
+  :root {
+    --background: oklch(0.95 0.018 85);
+    --foreground: oklch(0.28 0.03 50);
+    --card: oklch(0.98 0.012 85);
+    --primary: oklch(0.44 0.15 42);
+    --primary-foreground: oklch(0.98 0.01 85);
+    --muted-foreground: oklch(0.44 0.03 55);
+    --accent: oklch(0.45 0.11 60);
+    --border: oklch(0.55 0.04 60 / 45%);
+    --input: oklch(0.62 0.04 65);
+    --ember: oklch(0.48 0.18 35);
+    --panel-top: oklch(0.99 0.012 85 / 0.94);
+    --panel-bottom: oklch(0.94 0.02 82 / 0.96);
+    --panel-edge: oklch(0.6 0.06 65 / 0.55);
+    --panel-ring: oklch(0.75 0.04 70 / 0.5);
+    --panel-sheen: oklch(1 0 0 / 0.6);
+    --panel-drop: oklch(0.4 0.05 55 / 0.22);
+    --diff-add: oklch(0.5 0.13 150);
+    --diff-add-bg: oklch(0.5 0.13 150 / 0.1);
+    --diff-warn: oklch(0.5 0.03 50 / 0.75);
+    --diff-warn-bg: oklch(0.5 0.03 50 / 0.08);
+    --font-serif: 'Cinzel', Georgia, serif;
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background: oklch(0.17 0.018 55);
+      --foreground: oklch(0.9 0.02 75);
+      --card: oklch(0.22 0.022 55);
+      --primary: oklch(0.68 0.16 55);
+      --primary-foreground: oklch(0.17 0.02 55);
+      --muted-foreground: oklch(0.72 0.03 70);
+      --accent: oklch(0.72 0.15 70);
+      --border: oklch(0.4 0.05 60 / 45%);
+      --input: oklch(0.3 0.03 55);
+      --ember: oklch(0.62 0.19 45);
+      --panel-top: oklch(0.2 0.02 55 / 0.92);
+      --panel-bottom: oklch(0.16 0.018 55 / 0.96);
+      --panel-edge: oklch(0.5 0.08 65 / 0.5);
+      --panel-ring: oklch(0.1 0.01 55 / 0.6);
+      --panel-sheen: oklch(0.7 0.1 70 / 0.15);
+      --panel-drop: oklch(0 0 0 / 0.7);
+      --diff-add: oklch(0.72 0.15 150);
+      --diff-add-bg: oklch(0.72 0.15 150 / 0.13);
+      --diff-warn: oklch(0.72 0.03 70 / 0.85);
+      --diff-warn-bg: oklch(0.72 0.03 70 / 0.1);
+    }
+  }
+  :root[data-theme="dark"] {
+    --background: oklch(0.17 0.018 55);
+    --foreground: oklch(0.9 0.02 75);
+    --card: oklch(0.22 0.022 55);
+    --primary: oklch(0.68 0.16 55);
+    --primary-foreground: oklch(0.17 0.02 55);
+    --muted-foreground: oklch(0.72 0.03 70);
+    --accent: oklch(0.72 0.15 70);
+    --border: oklch(0.4 0.05 60 / 45%);
+    --input: oklch(0.3 0.03 55);
+    --ember: oklch(0.62 0.19 45);
+    --panel-top: oklch(0.2 0.02 55 / 0.92);
+    --panel-bottom: oklch(0.16 0.018 55 / 0.96);
+    --panel-edge: oklch(0.5 0.08 65 / 0.5);
+    --panel-ring: oklch(0.1 0.01 55 / 0.6);
+    --panel-sheen: oklch(0.7 0.1 70 / 0.15);
+    --panel-drop: oklch(0 0 0 / 0.7);
+    --diff-add: oklch(0.72 0.15 150);
+    --diff-add-bg: oklch(0.72 0.15 150 / 0.13);
+    --diff-warn: oklch(0.72 0.03 70 / 0.85);
+    --diff-warn-bg: oklch(0.72 0.03 70 / 0.1);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+  .wrap { max-width: 62rem; margin: 0 auto; display: flex; flex-direction: column; gap: 2.75rem; }
+
+  .doc-head { display: flex; flex-direction: column; gap: 0.6rem; }
+  .eyebrow {
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: var(--font-serif); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.1rem);
+    letter-spacing: 0.01em; margin: 0; text-wrap: balance; color: var(--foreground);
+  }
+  .doc-sub { max-width: 44rem; color: var(--muted-foreground); font-size: 0.92rem; }
+  .doc-sub code {
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; font-size: 0.85em;
+    background: var(--diff-warn-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0.05em 0.35em;
+  }
+
+  section.sample { display: flex; flex-direction: column; gap: 0.9rem; }
+  .sample-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+  .sample-head h2 {
+    font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; margin: 0; color: var(--foreground);
+  }
+  .sample-head .src {
+    font-size: 0.78rem; color: var(--muted-foreground);
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+  }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; align-items: start; }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+
+  .state-tag {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    padding: 0.22rem 0.55rem; border-radius: 999px; width: fit-content;
+  }
+  .state-tag.before { color: var(--diff-warn); background: var(--diff-warn-bg); border: 1px solid var(--border); }
+  .state-tag.after { color: var(--diff-add); background: var(--diff-add-bg); border: 1px solid color-mix(in oklch, var(--diff-add) 35%, transparent); }
+
+  .panel {
+    background: linear-gradient(var(--panel-top), var(--panel-bottom));
+    border: 1px solid var(--panel-edge);
+    box-shadow: 0 0 0 1px var(--panel-ring), inset 0 1px 0 var(--panel-sheen), 0 16px 36px -14px var(--panel-drop);
+    border-radius: 0.5rem;
+    padding: 1.1rem 1.15rem 1.25rem;
+    display: flex; flex-direction: column; gap: 0.65rem;
+  }
+  .sheet-heading {
+    font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--primary); margin: 0;
+  }
+  .fixed-line { font-size: 0.88rem; color: var(--foreground); margin: 0; }
+
+  .field { display: flex; flex-direction: column; gap: 0.3rem; transition: opacity 0.15s; }
+  .field.is-off { opacity: 0.4; }
+  .field-label { font-size: 0.68rem; color: var(--muted-foreground); }
+
+  select.dm-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 0.375rem;
+    border: 1px solid var(--input);
+    background-color: color-mix(in oklch, var(--background) 60%, transparent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b58a5a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    font-size: 0.88rem;
+    color: var(--foreground);
+    backdrop-filter: blur(4px);
+  }
+  select.dm-select:focus { outline: none; border-color: color-mix(in oklch, var(--primary) 60%, var(--input)); }
+  select.dm-select.is-generic { color: var(--diff-warn); font-style: italic; }
+  select.dm-select:disabled { cursor: not-allowed; }
+
+  .radio-row { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.1rem; }
+  .radio-row .field-label { margin-bottom: 0.1rem; }
+  .radio-opt {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.84rem; color: var(--foreground); cursor: pointer;
+  }
+  .radio-opt input { accent-color: var(--primary); width: 0.95rem; height: 0.95rem; }
+
+  .result-line {
+    display: flex; align-items: flex-start; gap: 0.45rem;
+    font-size: 0.82rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; margin-top: 0.1rem;
+  }
+  .result-line svg { flex: none; margin-top: 0.15rem; }
+  .result-label { color: var(--muted-foreground); }
+  .result-value { font-weight: 600; }
+  .result-value.ok { color: var(--diff-add); }
+  .result-value.broken { color: var(--diff-warn); font-style: italic; }
+
+  .notes {
+    display: flex; flex-direction: column; gap: 0.55rem;
+    border-top: 1px solid var(--border); padding-top: 1.4rem;
+  }
+  .notes h2 { font-family: var(--font-serif); font-size: 1rem; margin: 0 0 0.2rem; }
+  .notes ol { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.88rem; color: var(--foreground); }
+  .notes li::marker { color: var(--accent); font-weight: 700; }
+  .notes code {
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; font-size: 0.85em;
+    background: var(--diff-warn-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0.05em 0.35em;
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+
+<div class="wrap">
+
+  <div class="doc-head">
+    <span class="eyebrow">US-230 · mockup de implementação</span>
+    <h1>Arma composta ("+ escudo") e em dobro viram opções reais</h1>
+    <p class="doc-sub">
+      Mesmos tokens e componentes do mockup da <code>US-229</code> — aqui os 2 padrões novos que ela não cobria:
+      Guerreiro/Paladino (as DUAS alternativas do mesmo slot original, "arma+escudo" OU "duas armas", viram
+      <strong>dois <code>&lt;select&gt;</code> separados</strong> — decisão da mantenedora, 2026-09-10) e Patrulheiro
+      (1 alternativa nomeada + 1 genérica "em dobro", mesmo slot de sempre). Os controles abaixo são funcionais.
+    </p>
+  </div>
+
+  <!-- ============ EXEMPLO 1 — GUERREIRO/PALADINO, 2 slots ============ -->
+  <section class="sample">
+    <div class="sample-head">
+      <h2>Guerreiro e Paladino — arma marcial, "+ escudo" ou "em dobro"</h2>
+      <span class="src">startingEquipmentChoices.choices[1] do Guerreiro / choices[0] do Paladino — mesmo texto-fonte nos dois</span>
+    </div>
+
+    <div class="compare">
+      <!-- ANTES -->
+      <div>
+        <span class="state-tag before">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          antes
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Equipamento inicial</p>
+          <p class="fixed-line">Cota de Malha</p>
+
+          <div class="field">
+            <select class="dm-select" id="f-antes" onchange="syncAntes('f-antes','f-res-antes')">
+              <option value="Arma Marcial e Um Escudo" selected>Arma Marcial e Um Escudo</option>
+              <option value="Duas Armas Marciais">Duas Armas Marciais</option>
+            </select>
+          </div>
+
+          <div class="result-line">
+            <svg id="f-res-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+            <span><span class="result-label">inventário grava —</span> <span id="f-res-antes" class="result-value broken">Arma Marcial e Um Escudo</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPOIS -->
+      <div>
+        <span class="state-tag after">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+          depois — 2 slots
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Equipamento inicial</p>
+          <p class="fixed-line">Cota de Malha</p>
+
+          <div class="radio-row">
+            <span class="field-label">como quer se armar</span>
+            <label class="radio-opt">
+              <input type="radio" name="f-mode" value="escudo" checked onchange="syncMode()">
+              Arma marcial e um escudo
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="f-mode" value="dobro" onchange="syncMode()">
+              Duas armas marciais (em dobro)
+            </label>
+          </div>
+
+          <div class="field">
+            <span class="field-label">arma marcial (qualquer tipo — corpo a corpo ou à distância)</span>
+            <select class="dm-select" id="f-depois-arma" onchange="syncDepois()">
+              <optgroup label="Arma Marcial — Corpo a Corpo">
+                <option value="Machado de Batalha" selected>Machado de Batalha</option>
+                <option value="Mangual">Mangual</option>
+                <option value="Glaive">Glaive</option>
+                <option value="Espada Grande">Espada Grande</option>
+                <option value="Alabarda">Alabarda</option>
+                <option value="Lança de Montaria">Lança de Montaria</option>
+                <option value="Espada Longa">Espada Longa</option>
+                <option value="Maul">Maul</option>
+                <option value="Estrela da Manhã">Estrela da Manhã</option>
+                <option value="Pique">Pique</option>
+                <option value="Rapieira">Rapieira</option>
+                <option value="Cimitarra">Cimitarra</option>
+                <option value="Espada Curta">Espada Curta</option>
+                <option value="Tridente">Tridente</option>
+                <option value="Picareta de Guerra">Picareta de Guerra</option>
+                <option value="Martelo de Guerra">Martelo de Guerra</option>
+                <option value="Chicote">Chicote</option>
+              </optgroup>
+              <optgroup label="Arma Marcial — À Distância">
+                <option value="Zarabatana">Zarabatana</option>
+                <option value="Besta de Mão">Besta de Mão</option>
+                <option value="Besta Pesada">Besta Pesada</option>
+                <option value="Arco Longo">Arco Longo</option>
+                <option value="Mosquete">Mosquete</option>
+                <option value="Pistola">Pistola</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="result-line">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-add)"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><span class="result-label">inventário grava —</span> <span id="f-res-depois" class="result-value ok">Machado de Batalha, Escudo</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EXEMPLO 2 — PATRULHEIRO, 1 slot ============ -->
+  <section class="sample">
+    <div class="sample-head">
+      <h2>Patrulheiro — "em dobro" ao lado de uma alternativa já nomeada</h2>
+      <span class="src">startingEquipmentChoices.choices[1] — só 1 das 2 alternativas é genérica, slot não se divide</span>
+    </div>
+
+    <div class="compare">
+      <!-- ANTES -->
+      <div>
+        <span class="state-tag before">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          antes
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Equipamento inicial</p>
+          <p class="fixed-line">Armadura de Couro · Aljava com 20 Flechas</p>
+
+          <div class="field">
+            <select class="dm-select" id="r-antes" onchange="syncAntes('r-antes','r-res-antes')">
+              <option value="Duas Espadas Curtas">Duas Espadas Curtas</option>
+              <option value="Duas Armas Simples Corpo a Corpo" selected>Duas Armas Simples Corpo a Corpo</option>
+            </select>
+          </div>
+
+          <div class="result-line">
+            <svg id="r-res-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+            <span><span class="result-label">inventário grava —</span> <span id="r-res-antes" class="result-value broken">Duas Armas Simples Corpo a Corpo</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPOIS -->
+      <div>
+        <span class="state-tag after">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+          depois — 1 slot só
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Equipamento inicial</p>
+          <p class="fixed-line">Armadura de Couro · Aljava com 20 Flechas</p>
+
+          <div class="field">
+            <select class="dm-select" id="r-depois" onchange="syncDepoisSimple('r-depois','r-res-depois')">
+              <option value="Espada Curta (2)" selected>Espada Curta (2)</option>
+              <optgroup label="Arma Simples Corpo a Corpo (2)">
+                <option value="Clava (2)">Clava (2)</option>
+                <option value="Adaga (2)">Adaga (2)</option>
+                <option value="Dardo (2)">Dardo (2)</option>
+                <option value="Clava Grande (2)">Clava Grande (2)</option>
+                <option value="Machadinha (2)">Machadinha (2)</option>
+                <option value="Azagaia (2)">Azagaia (2)</option>
+                <option value="Martelo Leve (2)">Martelo Leve (2)</option>
+                <option value="Maça (2)">Maça (2)</option>
+                <option value="Bordão (2)">Bordão (2)</option>
+                <option value="Foice (2)">Foice (2)</option>
+                <option value="Lança (2)">Lança (2)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="result-line">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-add)"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><span class="result-label">inventário grava —</span> <span id="r-res-depois" class="result-value ok">Espada Curta (2)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="notes">
+    <h2>O que muda na implementação</h2>
+    <ol>
+      <li>Guerreiro/Paladino: o slot original (2 alternativas, AMBAS genéricas) vira <strong>2 <code>EquipmentChoiceSlot</code></strong> em <code>resolveEquipmentSlots</code>, não 1 — <code>equipmentChoices[i]</code> ganha 1 índice a mais a partir daí. Na UI, o radio escolhe o MODO ("+ escudo" ou "em dobro") e os dois modos compartilham o MESMO <code>&lt;select&gt;</code> de arma (a lista de armas marciais é idêntica nos dois) — só o texto do resultado muda (", Escudo" vs. " (2)"). Fica pra implementação decidir se isso é 1 <code>EquipmentChoiceSlot</code> com um campo de modo extra, ou os 2 slots continuam existindo por baixo e a UI só reaproveita o valor de um select pro outro.</li>
+      <li>Patrulheiro: só 1 das 2 alternativas do slot é genérica ("Espada Curta (2)" continua nomeada) — <code>flattenWeaponOptions</code> expande só a genérica, mesmo mecanismo de sempre, sem dividir slot.</li>
+      <li><code>qty: 2</code> é sempre da MESMA arma escolhida (confirmado pela mantenedora) — nunca duas armas diferentes, nunca 2 itens separados de <code>qty: 1</code>.</li>
+      <li>"Escudo" no padrão composto é string literal fixa, nunca resolvida contra <code>config.weapons</code> (não existe catálogo de armadura/escudo no projeto) — aparece igual em toda <code>&lt;option&gt;</code> do select de "arma + escudo".</li>
+    </ol>
+  </div>
+
+</div>
+
+<script>
+  const okIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-add)"><path d="M20 6 9 17l-5-5"/></svg>';
+  const warnIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-warn)"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
+  const GENERIC = new Set(['Arma Marcial e Um Escudo', 'Duas Armas Marciais', 'Duas Armas Simples Corpo a Corpo']);
+
+  function syncAntes(selectId, resultId) {
+    const select = document.getElementById(selectId);
+    const result = document.getElementById(resultId);
+    const line = result.closest('.result-line');
+    const icon = line.querySelector('svg');
+    const generic = GENERIC.has(select.value);
+    result.textContent = select.value;
+    result.className = 'result-value ' + (generic ? 'broken' : 'ok');
+    icon.outerHTML = generic ? warnIcon : okIcon;
+    select.classList.toggle('is-generic', generic);
+  }
+
+  function syncMode() {
+    syncDepois();
+  }
+
+  function syncDepois() {
+    const escudo = document.querySelector('input[name="f-mode"][value="escudo"]').checked;
+    const arma = document.getElementById('f-depois-arma').value;
+    document.getElementById('f-res-depois').textContent = escudo ? arma + ', Escudo' : arma + ' (2)';
+  }
+
+  function syncDepoisSimple(selectId, resultId) {
+    document.getElementById(resultId).textContent = document.getElementById(selectId).value;
+  }
+
+  // estado inicial dos "antes" (opção genérica já selecionada, espelha os prints reais)
+  syncAntes('f-antes', 'f-res-antes');
+  syncAntes('r-antes', 'r-res-antes');
+</script>

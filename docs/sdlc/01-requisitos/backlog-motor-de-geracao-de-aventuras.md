@@ -17,8 +17,9 @@ Este documento **não é uma user story**. É a sequência de tarefas até a met
 ```
 CHAMADA 1 — autoria (modelo deepseek-v4-pro, UMA chamada):
    mundo autoral + tom · facções (3) · conflito + fecho ramificado ·
-   locais + NPCs (com fala) · segredos · atos/sessões + followUps ·
-   encontros — FICÇÃO só (local + facção + situação, SEM números)
+   objetivo + recompensa · locais + NPCs (com fala) · segredos · atos/sessões + followUps ·
+   encontros — FICÇÃO só (local + facção + situação, SEM números) ·
+   desafios — não-combate (teste nomeado + situação, preso a local, SEM CD)
 PASSO 2 — números dos encontros (código, 5e): papel de statblock + orçamento pro nível
 PASSO 3 — gate: parse + grafo fecha + orçamento cabe + saneamento de mecânica na prosa
                 Falha ⇒ regenera a CHAMADA 1 (teto de tentativas ⇒ erro + retry na tela)
@@ -26,8 +27,9 @@ PASSO 3 — gate: parse + grafo fecha + orçamento cabe + saneamento de mecânic
 
 - **Params de mundo** (cenário/tom/área) viram restrição no prompt; "Aleatório" = campo omitido = modelo livre (sem `seed`). Desafio → orçamento do encontro (PASSO 2), não autoria.
 - **Locale:** prosa no idioma do personagem; chaves canônicas EN.
-- **Exemplar** fica fora do prompt (só eval) — ensina qualidade, não motivo.
-- **Derivação do personagem:** gancho leve, opcional, robusto a `background` vazio.
+- **Exemplares** ficam fora do prompt (só eval) — ensinam qualidade/estrutura, não motivo: *O Olho de Iremet* (prosa) + *A Cripta do Véu Silencioso* (8 seções, [evals/exemplars/](../../../evals/exemplars/cripta-do-veu-silencioso.md)).
+- **Derivação do personagem:** gancho leve = SÓ tempero interno (`deity`/`flaws`); `bonds` e `story` (história pregressa) **não entram** na 1ª aventura — tábula rasa (spike 10/09 mostrou `bond` da carta-do-pai vazando como espinha de plot; regra de prompt não segura, a cura é não alimentar). Robusto a `background` vazio.
+- **Render:** o artefato **exibe-se** nas 8 seções de módulo do [DnDGenerate](https://github.com/dhorions/DnDGenerate) (MPL-2.0) — Setting/Story/Objective/Locations/Challenges/Encounters/Follow Up/NPCs. É apresentação; mundo-primeiro (`world`/`factions[]`/`acts[]`) fica interno. Mapa campo→seção no doc de arquitetura §Camada de render. UI é frontend, fora do corte.
 
 ---
 
@@ -35,7 +37,7 @@ PASSO 3 — gate: parse + grafo fecha + orçamento cabe + saneamento de mecânic
 
 | Story velha | Destino sob a inversão |
 |---|---|
-| **US-144** schema | **Sobrevive e cresce** → MA-1 (`world`/`factions[]`/`acts[]`/`branchedResolution`; `conclusion` sai; `hazardTable` NÃO entra — removida 10/09) |
+| **US-144** schema | **Sobrevive e cresce** → MA-1 (`world`/`factions[]`/`acts[]`/`branchedResolution`/`objective`/`challenges[]`; `conclusion` sai; `hazardTable` NÃO entra — removida 10/09) |
 | **US-150** gate | **Sobrevive, adapta** → MA-4 (regenera-on-fail, grafo sobre schema rico, + saneamento de mecânica) |
 | **US-151** semear ledger do artefato | **Sobrevive** → MA-9 (deriva ledger do artefato congelado) |
 | **US-152** statblocks por papel | **Sobrevive** → MA-3 (PASSO 2) |
@@ -63,8 +65,8 @@ PASSO 3 — gate: parse + grafo fecha + orçamento cabe + saneamento de mecânic
 Caminho crítico marcado ✱.
 
 **✱ MA-1 — schema cresce + prompt de autoria call único**
-Reabre a US-144: schema ganha `world` (nome/descrição/locais-âncora), `factions[]` (id/name/kind/want + vínculos por id), `acts[]` (sessões, cada uma com gancho), `branchedResolution` (`{choice, consequence}[]`, **substitui** `conclusion`); `encounters[]` ganha campo de **ficção** (situação) além de `locationId`/`npcIds[]`. `start`/`followUps[]` ficam.
-Escreve o prompt de autoria mundo-primeiro: uma chamada, via a **escada de prosa** nova em `model.ts` (`deepseek-v4-pro` → `deepseek-v4-pro-0813` → `deepseek-v4.1-flash`, molde de `narrationModels` — pro em descontinuação, escada absorve), que emite tudo acima em ordem (mundo→facções→conflito+fecho→locais/NPCs com fala→segredos→atos+tabela+followUps→ficção dos encontros), no locale do personagem. Params de mundo entram como restrição (rótulo pt-BR); background como gancho leve opcional; exemplar **fora** do prompt (qualidade abstrata). Referência-base: `packages/ai-engine/adventure-authoring-spike.mjs`.
+Reabre a US-144: schema ganha `world` (nome/descrição/locais-âncora), `factions[]` (id/name/kind/want + vínculos por id), `acts[]` (sessões, cada uma com gancho), `branchedResolution` (`{choice, consequence}[]`, **substitui** `conclusion`), `objective` (meta + `reward` item + `id` do local), `challenges[]` (obstáculo não-combate: `locationId` + teste nomeado + situação + consequência, SEM CD); `encounters[]` ganha campo de **ficção** (situação) além de `locationId`/`npcIds[]`. `start`/`followUps[]` ficam.
+Escreve o prompt de autoria mundo-primeiro: uma chamada, via a **escada de prosa** nova em `model.ts` (`deepseek-v4-pro` → `deepseek-v4-pro-0813` → `deepseek-v4.1-flash`, molde de `narrationModels` — escada como resiliência; pro estável, EOL cancelado 11/09), que emite tudo acima em ordem (mundo→facções→conflito+fecho→objetivo+recompensa→locais/NPCs com fala→segredos→atos+followUps→ficção dos encontros→desafios não-combate), no locale do personagem. Params de mundo entram como restrição (rótulo pt-BR); background como gancho leve **só de tempero interno** (`deity`/`flaws`; `bonds`+`story` ficam de fora — tábula rasa da 1ª aventura, achado do spike 10/09); prompt carrega regra de tábula rasa (nenhum NPC já o conhece; sem dívidas/eventos anteriores como fato); exemplar **fora** do prompt (qualidade abstrata). Referência-base: `packages/ai-engine/adventure-authoring-spike.mjs`.
 Depende de: nada. Bloqueia: quase tudo.
 
 **✱ MA-3 — números dos encontros (PASSO 2, 5e determinístico)**
@@ -72,7 +74,7 @@ Reusa US-152 (statblock por papel, do `5e_Monster_Builder.json`) + US-159/160 (o
 Depende de: MA-1, MA-7 (metade Monster Builder).
 
 **✱ MA-4 — gate: parse + grafo + orçamento + saneamento, regenera-on-fail**
-Adapta US-150. Quatro verificações: (1) `parse()` do schema de MA-1; (2) grafo fecha (todo `locationId`/`npcId`/`factionId` referenciado existe; sem órfão); (3) orçamento de cada encontro cabe no nível; (4) **saneamento de mecânica na prosa** (contrato US-29: nenhum número de rolagem/CD/dano na prosa — strip; perícia nomeada validada contra o catálogo do sistema, reprova "Sabor"). Falha ⇒ **regenera a CHAMADA 1** (não re-seed — seed morreu), teto de tentativas explícito. Teto estourado ⇒ sinaliza falha pra MA-5.
+Adapta US-150. Quatro verificações: (1) `parse()` do schema de MA-1; (2) grafo fecha (todo `locationId`/`npcId`/`factionId` referenciado existe — inclui `challenges[].locationId` e `objective` → local; sem órfão); (3) orçamento de cada encontro cabe no nível; (4) **saneamento de mecânica na prosa** (contrato US-29: nenhum número de rolagem/CD/dano na prosa — strip sobre `boxedText`/`description`/`secret.text`/`npc.interactions[].narrative`/**`challenge.description`** (o campo mais propenso a vazar "CD 15"); perícia nomeada validada contra o catálogo do sistema, reprova "Sabor"). Falha ⇒ **regenera a CHAMADA 1** (não re-seed — seed morreu), teto de tentativas explícito. Teto estourado ⇒ sinaliza falha pra MA-5.
 Depende de: MA-1, MA-3.
 
 **✱ MA-5 — gatilho assíncrono + tela de espera + erro/retry**
@@ -92,7 +94,7 @@ Depende de: nada (limpeza). Bloqueia MA-3 na parte Monster Builder.
 Depende de: MA-1, MA-4, US-151.
 
 **MA-8 — eval da aventura gerada, recalibrada**
-Adapta US-154. Exemplar de referência = **O Olho de Iremet** (solo, pt-BR, autoral — a lacuna que o backlog velho lamentava, agora preenchida). Como o juiz LLM **satura** nesta tarefa (medido no Spike 1), a rubrica ancora em **asserts sobre o artefato** (grafo fecha, `secretId` oculto, NPC existe, orçamento cabe), não na nota do juiz. Live eval opcional no caminho de criação.
+Adapta US-154. Exemplares de referência = **O Olho de Iremet** (prosa/densidade) + **A Cripta do Véu Silencioso** ([evals/exemplars/](../../../evals/exemplars/cripta-do-veu-silencioso.md), estrutura das 8 seções + Challenges/Objective) — solo, pt-BR, autoral: a lacuna que o backlog velho lamentava, agora preenchida. Como o juiz LLM **satura** nesta tarefa (medido no Spike 1), a rubrica ancora em **asserts sobre o artefato** (grafo fecha, `secretId` oculto, NPC existe, orçamento cabe), não na nota do juiz. Live eval opcional no caminho de criação.
 Depende de: MA-1, MA-9.
 
 ---
@@ -120,10 +122,11 @@ Critério de saída: um perfil pinado, aventura gerada jogada ponta a ponta à m
 
 Todas em [Arquitetura — motor de aventuras autorais](../../arquitetura-motor-aventuras-autorais.md) e [ADR 012](../../adr/012-aventura-gerada-como-dado.md):
 - Geração **mundo-primeiro** (modelo autora; tabelas viram tempero), **call único** (não cadeia — Spike provou que basta, e é mais rápido/menos código).
-- Mecânica **5e** (só apresentação/estrutura vem do alvo; nada de 2E). Modelo de prosa: **escada** `deepseek-v4-pro` → `-pro-0813` → `deepseek-v4.1-flash` (pro preferido mas em descontinuação; 10/09).
+- Mecânica **5e** (só apresentação/estrutura vem do alvo; nada de 2E). Modelo de prosa: **escada** `deepseek-v4-pro` → `-pro-0813` → `deepseek-v4.1-flash` (pro preferido e **estável** — EOL anunciado 10/09 e cancelado 11/09; escada fica como resiliência genérica, não por morte do pro).
 - `seed` **aposentado**; repro = artefato congelado; eval = rubrica ancorada em asserts.
 - Encontros: **ficção do modelo, números do código** (abordagem A).
 - Saneamento de mecânica na prosa (US-29). Falha do gate = erro + retry, nunca fallback pra pronta. Artefatos velhos **descartados** (sem migração; escopo pré-lançamento).
+- **(10/09)** Render nas **8 seções de módulo** do DnDGenerate (MPL-2.0) — apresentação, não schema; mundo-primeiro fica interno. Novos campos `objective` (meta+recompensa) e `challenges[]` (obstáculo não-combate) cobrem as seções Objective/Challenges. Segundo exemplar de eval: *A Cripta do Véu Silencioso*.
 
 ## Decisões abertas
 
@@ -139,4 +142,5 @@ Todas em [Arquitetura — motor de aventuras autorais](../../arquitetura-motor-a
 - [apps/api/src/adventure-generation/adventure-gate.ts](../../../apps/api/src/adventure-generation/adventure-gate.ts) — gate de MA-4 (adapta o regenera-on-fail).
 - [apps/api/src/adventure/adventure.service.ts](../../../apps/api/src/adventure/adventure.service.ts) — `createForCharacter`, onde MA-9 entra.
 - [packages/shared/src/adventure-seed.ts](../../../packages/shared/src/adventure-seed.ts) — `deriveAdventureSeed`, **código morto** a remover em MA-7.
+- [evals/exemplars/cripta-do-veu-silencioso.md](../../../evals/exemplars/cripta-do-veu-silencioso.md) — 2º exemplar de eval (MA-8), âncora da estrutura das 8 seções.
 - [backlog-aventuras-autorais-lazygm.md](./backlog-aventuras-autorais-lazygm.md) — o produtor B (fase 4), inalterado.

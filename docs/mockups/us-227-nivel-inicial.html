@@ -1,0 +1,466 @@
+<title>Nível Inicial na Criação</title>
+<style>
+  /* ---- design tokens: espelham 1:1 apps/web/src/app/globals.css (mesmos do mockup US-229/US-230) ---- */
+  :root {
+    --background: oklch(0.95 0.018 85);
+    --foreground: oklch(0.28 0.03 50);
+    --card: oklch(0.98 0.012 85);
+    --primary: oklch(0.44 0.15 42);
+    --primary-foreground: oklch(0.98 0.01 85);
+    --muted-foreground: oklch(0.44 0.03 55);
+    --accent: oklch(0.45 0.11 60);
+    --border: oklch(0.55 0.04 60 / 45%);
+    --input: oklch(0.62 0.04 65);
+    --ember: oklch(0.48 0.18 35);
+    --panel-top: oklch(0.99 0.012 85 / 0.94);
+    --panel-bottom: oklch(0.94 0.02 82 / 0.96);
+    --panel-edge: oklch(0.6 0.06 65 / 0.55);
+    --panel-ring: oklch(0.75 0.04 70 / 0.5);
+    --panel-sheen: oklch(1 0 0 / 0.6);
+    --panel-drop: oklch(0.4 0.05 55 / 0.22);
+    --diff-add: oklch(0.5 0.13 150);
+    --diff-add-bg: oklch(0.5 0.13 150 / 0.1);
+    --diff-warn: oklch(0.5 0.03 50 / 0.75);
+    --diff-warn-bg: oklch(0.5 0.03 50 / 0.08);
+    --font-serif: 'Cinzel', Georgia, serif;
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background: oklch(0.17 0.018 55);
+      --foreground: oklch(0.9 0.02 75);
+      --card: oklch(0.22 0.022 55);
+      --primary: oklch(0.68 0.16 55);
+      --primary-foreground: oklch(0.17 0.02 55);
+      --muted-foreground: oklch(0.72 0.03 70);
+      --accent: oklch(0.72 0.15 70);
+      --border: oklch(0.4 0.05 60 / 45%);
+      --input: oklch(0.3 0.03 55);
+      --ember: oklch(0.62 0.19 45);
+      --panel-top: oklch(0.2 0.02 55 / 0.92);
+      --panel-bottom: oklch(0.16 0.018 55 / 0.96);
+      --panel-edge: oklch(0.5 0.08 65 / 0.5);
+      --panel-ring: oklch(0.1 0.01 55 / 0.6);
+      --panel-sheen: oklch(0.7 0.1 70 / 0.15);
+      --panel-drop: oklch(0 0 0 / 0.7);
+      --diff-add: oklch(0.72 0.15 150);
+      --diff-add-bg: oklch(0.72 0.15 150 / 0.13);
+      --diff-warn: oklch(0.72 0.03 70 / 0.85);
+      --diff-warn-bg: oklch(0.72 0.03 70 / 0.1);
+    }
+  }
+  :root[data-theme="dark"] {
+    --background: oklch(0.17 0.018 55);
+    --foreground: oklch(0.9 0.02 75);
+    --card: oklch(0.22 0.022 55);
+    --primary: oklch(0.68 0.16 55);
+    --primary-foreground: oklch(0.17 0.02 55);
+    --muted-foreground: oklch(0.72 0.03 70);
+    --accent: oklch(0.72 0.15 70);
+    --border: oklch(0.4 0.05 60 / 45%);
+    --input: oklch(0.3 0.03 55);
+    --ember: oklch(0.62 0.19 45);
+    --panel-top: oklch(0.2 0.02 55 / 0.92);
+    --panel-bottom: oklch(0.16 0.018 55 / 0.96);
+    --panel-edge: oklch(0.5 0.08 65 / 0.5);
+    --panel-ring: oklch(0.1 0.01 55 / 0.6);
+    --panel-sheen: oklch(0.7 0.1 70 / 0.15);
+    --panel-drop: oklch(0 0 0 / 0.7);
+    --diff-add: oklch(0.72 0.15 150);
+    --diff-add-bg: oklch(0.72 0.15 150 / 0.13);
+    --diff-warn: oklch(0.72 0.03 70 / 0.85);
+    --diff-warn-bg: oklch(0.72 0.03 70 / 0.1);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+  .wrap { max-width: 62rem; margin: 0 auto; display: flex; flex-direction: column; gap: 2.75rem; }
+
+  .doc-head { display: flex; flex-direction: column; gap: 0.6rem; }
+  .eyebrow {
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: var(--font-serif); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.1rem);
+    letter-spacing: 0.01em; margin: 0; text-wrap: balance; color: var(--foreground);
+  }
+  .doc-sub { max-width: 46rem; color: var(--muted-foreground); font-size: 0.92rem; }
+  .doc-sub code {
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; font-size: 0.85em;
+    background: var(--diff-warn-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0.05em 0.35em;
+  }
+
+  section.sample { display: flex; flex-direction: column; gap: 0.9rem; }
+  .sample-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+  .sample-head h2 {
+    font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; margin: 0; color: var(--foreground);
+  }
+  .sample-head .src {
+    font-size: 0.78rem; color: var(--muted-foreground);
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+  }
+
+  .compare { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 1.1rem; align-items: start; }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+
+  .state-tag {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    padding: 0.22rem 0.55rem; border-radius: 999px; width: fit-content;
+  }
+  .state-tag.before { color: var(--diff-warn); background: var(--diff-warn-bg); border: 1px solid var(--border); }
+  .state-tag.after { color: var(--diff-add); background: var(--diff-add-bg); border: 1px solid color-mix(in oklch, var(--diff-add) 35%, transparent); }
+
+  .panel {
+    background: linear-gradient(var(--panel-top), var(--panel-bottom));
+    border: 1px solid var(--panel-edge);
+    box-shadow: 0 0 0 1px var(--panel-ring), inset 0 1px 0 var(--panel-sheen), 0 16px 36px -14px var(--panel-drop);
+    border-radius: 0.5rem;
+    padding: 1.1rem 1.15rem 1.25rem;
+    display: flex; flex-direction: column; gap: 0.75rem;
+  }
+  .sheet-heading {
+    font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--primary); margin: 0;
+  }
+  .fixed-line { font-size: 0.88rem; color: var(--foreground); margin: 0; }
+
+  .field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .field-label { font-size: 0.68rem; color: var(--muted-foreground); }
+
+  /* ---- stepper de nível: novo, US-227 ---- */
+  .level-stepper {
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .level-stepper button {
+    all: unset; display: flex; align-items: center; justify-content: center;
+    width: 2rem; height: 2rem; border-radius: 0.375rem; cursor: pointer;
+    border: 1px solid var(--input); color: var(--foreground);
+    background: color-mix(in oklch, var(--background) 60%, transparent);
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .level-stepper button:hover { border-color: var(--primary); color: var(--primary); }
+  .level-stepper button:disabled { opacity: 0.35; cursor: not-allowed; border-color: var(--input); color: var(--foreground); }
+  .level-stepper .level-readout {
+    flex: 1;
+    display: flex; align-items: baseline; justify-content: center; gap: 0.3rem;
+    border: 1px solid var(--input); border-radius: 0.375rem; padding: 0.3rem 0.75rem;
+    background: color-mix(in oklch, var(--background) 60%, transparent);
+  }
+  .level-readout input {
+    all: unset; width: 2.4rem; text-align: center;
+    font-family: var(--font-serif); font-size: 1.2rem; font-weight: 700; color: var(--foreground);
+  }
+  .level-readout input::-webkit-inner-spin-button,
+  .level-readout input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .level-readout input:focus { color: var(--primary); }
+  .level-readout .of { font-size: 0.72rem; color: var(--muted-foreground); }
+  .level-hint { font-size: 0.72rem; color: var(--muted-foreground); }
+
+  .stat-row { display: flex; gap: 0.6rem; border-top: 1px dashed var(--border); padding-top: 0.7rem; margin-top: 0.1rem; }
+  .stat-tile {
+    flex: 1; display: flex; flex-direction: column; gap: 0.15rem;
+    border: 1px solid var(--border); border-radius: 0.4rem; padding: 0.5rem 0.65rem;
+    background: color-mix(in oklch, var(--card) 70%, transparent);
+  }
+  .stat-tile .stat-label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-foreground); }
+  .stat-tile .stat-value { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700; color: var(--diff-add); transition: color 0.15s; }
+  .stat-tile .stat-formula { font-size: 0.66rem; color: var(--muted-foreground); font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; }
+
+  select.dm-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 0.375rem;
+    border: 1px solid var(--input);
+    background-color: color-mix(in oklch, var(--background) 60%, transparent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b58a5a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    font-size: 0.88rem;
+    color: var(--foreground);
+    backdrop-filter: blur(4px);
+  }
+  select.dm-select:focus { outline: none; border-color: color-mix(in oklch, var(--primary) 60%, var(--input)); }
+
+  /* ---- tag de dado de vida: pattern capturado de refined-wizard-glow.lovable.app
+     (card de classe expandido, badge "D12 DE VIDA" ao lado do nome) — mesmos
+     tokens --primary/--border do projeto, nenhuma cor nova. ---- */
+  .class-heading-row { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+  .class-name { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 600; color: var(--foreground); margin: 0; }
+  .hitdice-tag {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    border-radius: 999px; border: 0.8px solid color-mix(in oklch, var(--primary) 50%, transparent);
+    padding: 0.1rem 0.6rem; font-size: 0.66rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary);
+  }
+
+  .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .class-card {
+    text-align: left; border-radius: 0.4rem; border: 1px solid var(--border);
+    background: color-mix(in oklch, var(--card) 65%, transparent);
+    padding: 0.5rem 0.65rem; cursor: pointer; font-size: 0.8rem; color: var(--foreground);
+  }
+  .class-card.is-active { border-color: var(--primary); background: color-mix(in oklch, var(--primary) 12%, var(--card)); font-weight: 600; }
+
+  dl.review-list { display: flex; flex-direction: column; }
+  dl.review-list > div {
+    display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+    padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  }
+  dl.review-list dt { font-size: 0.82rem; color: var(--muted-foreground); }
+  dl.review-list dd { font-size: 0.82rem; font-weight: 600; color: var(--foreground); text-align: right; }
+  dl.review-list dd.is-new { color: var(--diff-add); }
+
+  .result-line {
+    display: flex; align-items: flex-start; gap: 0.45rem;
+    font-size: 0.82rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; margin-top: 0.1rem;
+  }
+  .result-line svg { flex: none; margin-top: 0.15rem; color: var(--diff-add); }
+  .result-label { color: var(--muted-foreground); }
+  .result-value { font-weight: 600; color: var(--diff-add); }
+
+  .notes {
+    display: flex; flex-direction: column; gap: 0.55rem;
+    border-top: 1px solid var(--border); padding-top: 1.4rem;
+  }
+  .notes h2 { font-family: var(--font-serif); font-size: 1rem; margin: 0 0 0.2rem; }
+  .notes ol { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.88rem; color: var(--foreground); }
+  .notes li::marker { color: var(--accent); font-weight: 700; }
+  .notes code {
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace; font-size: 0.85em;
+    background: var(--diff-warn-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0.05em 0.35em;
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+
+<div class="wrap">
+
+  <div class="doc-head">
+    <span class="eyebrow">US-227 · mockup de implementação</span>
+    <h1>Nível inicial à escolha, com PV e bônus de proficiência ao vivo</h1>
+    <p class="doc-sub">
+      Mesmos tokens e componentes dos mockups <code>US-229</code>/<code>US-230</code>. Hoje a etapa <code>class</code>
+      não tem nenhum controle de nível — todo personagem nasce 1, PV fixo em <code>10 + mod CON</code>.
+      Abaixo: o stepper novo (1–20, default 1) ao lado do cartão de classe já escolhido, e como PV/bônus de
+      proficiência reagem em tempo real — troque a classe ou o nível, os dois lados do painel recalculam.
+      Controles funcionais (JS local, não é a fórmula de produção — só ilustra a reatividade).
+    </p>
+  </div>
+
+  <!-- ============ ETAPA CLASS — cartão de classe + stepper + preview ao vivo ============ -->
+  <section class="sample">
+    <div class="sample-head">
+      <h2>Etapa "Classe" — stepper de nível + PV/bônus recalculados</h2>
+      <span class="src">SetupWizard.tsx — painel de detalhe da classe (perto de :1172, ao lado da subgrade de subclasse)</span>
+    </div>
+
+    <div class="compare">
+      <!-- ANTES -->
+      <div>
+        <span class="state-tag before">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          antes
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Classe</p>
+          <div class="card-grid">
+            <div class="class-card is-active">Bárbaro</div>
+            <div class="class-card">Mago</div>
+            <div class="class-card">Clérigo</div>
+          </div>
+          <p class="fixed-line" style="margin-top:0.3rem;">Todo personagem nasce nível 1 — sem seletor, sem estado, sem campo no schema.</p>
+          <div class="result-line" style="border-top:none;padding-top:0;margin-top:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--diff-warn)"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+            <span><span class="result-label">PV do preview —</span> <span class="result-value" style="color:var(--diff-warn);font-style:italic;">10 + mod CON, igual pra Bárbaro e Mago</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPOIS -->
+      <div>
+        <span class="state-tag after">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+          depois — stepper + preview reativo
+        </span>
+        <div class="panel" style="margin-top:0.5rem;">
+          <p class="sheet-heading">Classe</p>
+          <div class="card-grid">
+            <button type="button" class="class-card is-active" data-class="barbarian" data-hitdice="1d12" onclick="selectClass(this)">Bárbaro</button>
+            <button type="button" class="class-card" data-class="wizard" data-hitdice="1d6" onclick="selectClass(this)">Mago</button>
+            <button type="button" class="class-card" data-class="cleric" data-hitdice="1d8" onclick="selectClass(this)">Clérigo</button>
+          </div>
+
+          <div class="class-heading-row">
+            <p class="class-name" id="class-name-tag">Bárbaro</p>
+            <span class="hitdice-tag" id="hitdice-tag">D12 DE VIDA</span>
+          </div>
+
+          <div class="field" style="margin-top:0.2rem;">
+            <span class="field-label">nível inicial</span>
+            <div class="level-stepper">
+              <button type="button" id="lvl-dec" onclick="stepLevel(-1)" aria-label="diminuir nível">−</button>
+              <div class="level-readout">
+                <input type="number" id="lvl-n" min="1" max="20" value="1"
+                  onchange="setLevel(this.value)" oninput="setLevel(this.value)">
+                <span class="of">/ 20</span>
+              </div>
+              <button type="button" id="lvl-inc" onclick="stepLevel(1)" aria-label="aumentar nível">+</button>
+            </div>
+            <span class="level-hint">1 = origem; 5+ = personagem já experiente ao entrar na campanha</span>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-tile">
+              <span class="stat-label">PV máximo</span>
+              <span class="stat-value" id="stat-hp">12</span>
+              <span class="stat-formula" id="stat-hp-formula">1d12 nível 1 = 12 + CON</span>
+            </div>
+            <div class="stat-tile">
+              <span class="stat-label">Bônus de proficiência</span>
+              <span class="stat-value" id="stat-prof">+2</span>
+              <span class="stat-formula" id="stat-prof-formula">2 + ⌊(1−1)/4⌋</span>
+            </div>
+          </div>
+
+          <div class="result-line">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            <span><span class="result-label">grava —</span> <span class="result-value" id="stat-summary">Character.level = 1 · maxHp = 12 (CON +0) · proficiencyBonus = +2</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ETAPA REVIEW — linha de nível deixa de ser literal ============ -->
+  <section class="sample">
+    <div class="sample-head">
+      <h2>Etapa "Revisão" — nível e PV batem com o que a API grava</h2>
+      <span class="src">SetupWizard.tsx:1838 — <code>[t('setup.review.level'), '1']</code> vira <code>String(level)</code></span>
+    </div>
+
+    <div class="compare">
+      <div class="panel">
+        <p class="sheet-heading">Resumo do personagem</p>
+        <dl class="review-list">
+          <div><dt>Nome</dt><dd>Grendal Punhoférreo</dd></div>
+          <div><dt>Raça</dt><dd>Anão da Colina</dd></div>
+          <div><dt>Classe</dt><dd id="review-class">Bárbaro</dd></div>
+          <div><dt>Nível</dt><dd class="is-new" id="review-level">1</dd></div>
+          <div><dt>PV</dt><dd class="is-new" id="review-hp">12</dd></div>
+        </dl>
+        <p class="level-hint" style="margin-top:0.2rem;">Nível e PV aqui usam a MESMA função (<code>maxHpForLevel</code>) que <code>AdventureService.create</code> usa pra gravar — sem risco do preview divergir do personagem real.</p>
+      </div>
+      <div class="panel">
+        <p class="sheet-heading">Por que o mesmo Bárbaro varia</p>
+        <div class="stat-row" style="border-top:none;padding-top:0;margin-top:0;">
+          <div class="stat-tile">
+            <span class="stat-label">Nível 1</span>
+            <span class="stat-value">12 PV</span>
+            <span class="stat-formula">+2 prof.</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-label">Nível 5</span>
+            <span class="stat-value">40 PV</span>
+            <span class="stat-formula">+3 prof.</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-label">Nível 9</span>
+            <span class="stat-value">68 PV</span>
+            <span class="stat-formula">+4 prof.</span>
+          </div>
+        </div>
+        <p class="level-hint">CON +0 nos 3, só pra isolar o efeito do nível — na ficha real soma <code>conMod × nível</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="notes">
+    <h2>O que muda na implementação</h2>
+    <ol>
+      <li>Caixa numérica digitável (<code>&lt;input type="number" min="1" max="20"&gt;</code>) com +/− ao lado, não <code>&lt;select&gt;</code> de 20 <code>&lt;option&gt;</code> — pedido explícito da mantenedora: digitar "9" é mais rápido que abrir dropdown e rolar. Clamp 1–20 só no <code>blur</code>/valor completo (não a cada tecla, senão apagar pra redigitar trava no mínimo); valor fora de faixa ou não-numérico no <code>onBlur</code> volta pro último válido.</li>
+      <li><code>stat-hp</code>/<code>stat-prof</code> aqui usam a fórmula da <a href="#">US-227 §Notas de implementação</a> reimplementada em JS só pro mockup — a implementação real chama <code>maxHpForLevel</code>/<code>proficiencyBonusForLevel</code> de <code>packages/shared/src/ability.ts</code>, os MESMOS que <code>AdventureService.create</code> usa, pra preview nunca divergir do personagem gravado (critério de aceite).</li>
+      <li>3 classes no card-grid (Bárbaro <code>1d12</code>, Mago <code>1d6</code>, Clérigo <code>1d8</code>) só pra mostrar a variação — a grade real continua com as 13 classes de <code>classCatalog</code>, sem mudança de layout.</li>
+      <li>Linha "Bônus de proficiência" some da revisão hoje — não existe na lista atual (<code>SetupWizard.tsx:1830-1839</code>); o mockup mostra só PV pra não inventar UI fora do escopo da story (proficiência aparece na FICHA em <code>/play</code>, não na revisão da criação).</li>
+    </ol>
+  </div>
+
+</div>
+
+<script>
+  const CLASSES = {
+    barbarian: { label: 'Bárbaro', sides: 12 },
+    wizard: { label: 'Mago', sides: 6 },
+    cleric: { label: 'Clérigo', sides: 8 },
+  };
+  let level = 1;
+  let activeClass = 'barbarian';
+
+  function maxHpForLevel(sides, lvl, conMod) {
+    let hp = sides + conMod;
+    for (let l = 2; l <= lvl; l++) hp += Math.ceil(sides / 2) + 1 + conMod;
+    return hp;
+  }
+  function proficiencyBonusForLevel(lvl) {
+    return 2 + Math.floor((lvl - 1) / 4);
+  }
+
+  function selectClass(btn) {
+    document.querySelectorAll('.class-card').forEach(c => c.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    activeClass = btn.dataset.class;
+    document.getElementById('review-class').textContent = CLASSES[activeClass].label;
+    render();
+  }
+
+  function stepLevel(delta) {
+    setLevel(level + delta);
+  }
+
+  // US-227: caixa digitável, não só +/−. Enquanto a jogadora apaga o campo pra
+  // redigitar (valor vazio/NaN momentâneo), não força nada — só clampa 1–20
+  // quando já dá pra ler um número; o campo só é corrigido de volta no blur
+  // (onchange), o input a cada tecla (oninput) não briga com o cursor.
+  function setLevel(raw) {
+    const n = parseInt(raw, 10);
+    if (!Number.isNaN(n)) level = Math.min(20, Math.max(1, n));
+    render();
+  }
+
+  function render() {
+    const cls = CLASSES[activeClass];
+    const hp = maxHpForLevel(cls.sides, level, 0);
+    const prof = proficiencyBonusForLevel(level);
+
+    document.getElementById('class-name-tag').textContent = cls.label;
+    document.getElementById('hitdice-tag').textContent = `D${cls.sides} de vida`;
+
+    if (document.activeElement.id !== 'lvl-n') document.getElementById('lvl-n').value = level;
+    document.getElementById('lvl-dec').disabled = level <= 1;
+    document.getElementById('lvl-inc').disabled = level >= 20;
+
+    document.getElementById('stat-hp').textContent = hp;
+    document.getElementById('stat-hp-formula').textContent =
+      level === 1 ? `1d${cls.sides} nível 1 = ${cls.sides} + CON` : `1d${cls.sides} × ${level} níveis + CON×${level}`;
+
+    document.getElementById('stat-prof').textContent = '+' + prof;
+    document.getElementById('stat-prof-formula').textContent = `2 + ⌊(${level}−1)/4⌋`;
+
+    document.getElementById('stat-summary').textContent =
+      `Character.level = ${level} · maxHp = ${hp} (CON +0) · proficiencyBonus = +${prof}`;
+
+    document.getElementById('review-level').textContent = level;
+    document.getElementById('review-hp').textContent = hp;
+  }
+
+  render();
+</script>

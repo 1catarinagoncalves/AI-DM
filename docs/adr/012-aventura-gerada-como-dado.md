@@ -1,11 +1,11 @@
 # ADR 012 — Aventura gerada: artefato autoral congelado, mundo-primeiro, coluna própria
 
 **Status:** Aceito
-**Data:** 2026-08-16 · **Revista:** 2026-09-09 (inversão para geração mundo-primeiro)
+**Data:** 2026-08-16 · **Revista:** 2026-09-09 (inversão para geração mundo-primeiro) · 2026-09-10 (render em 8 seções + `objective`/`challenges[]`)
 **Decisores:** Mantenedora
 **Relacionado:** [US-143](../sdlc/01-requisitos/US-143-adr-aventura-como-dado-gerado.md) (story de origem) · [ADR 003](./003-sistemas-como-dado.md) (molde e precedente — "X é dado gerado, não código") · [US-144](../sdlc/01-requisitos/US-144-schema-aventura-shared.md) (schema Zod que consome esta decisão) · [Backlog — motor de geração de aventuras](../sdlc/01-requisitos/backlog-motor-de-geracao-de-aventuras.md) · [Arquitetura — motor de aventuras autorais](../arquitetura-motor-aventuras-autorais.md) (decisão de abordagem que motivou a revisão de 09/09 e o Spike 1)
 
-> **Revisão de 2026-09-09.** A versão de 16/08/2026 desenhava a aventura como **montada de tabelas** (rolagem LGMRD com `seed` determinístico recomputável). O resultado saiu genérico, de estrutura plana e prosa fraca — longe do alvo autoral (o artefato *O Olho de Iremet*). O [doc de arquitetura](../arquitetura-motor-aventuras-autorais.md) e o Spike 1 (2026-09-09) confirmaram a inversão: **o modelo autora o mundo primeiro, tabelas viram tempero**. Esta revisão **mantém** as decisões de persistência (congela, coluna própria, `id`) e **aposenta o `seed`** — a única peça que a inversão derruba. As decisões novas (D5–D7) registram a autoria mundo-primeiro, o crescimento do schema e a âncora de eval que substitui o determinismo.
+> **Revisão de 2026-09-09.** A versão de 16/08/2026 desenhava a aventura como **montada de tabelas** (rolagem LGMRD com `seed` determinístico recomputável). O resultado saiu genérico, de estrutura plana e prosa fraca — longe do alvo autoral (o artefato *O Olho de Iremet*). O [doc de arquitetura](../arquitetura-motor-aventuras-autorais.md) e o Spike 1 (2026-09-09) confirmaram a inversão: **o modelo autora o mundo primeiro, tabelas viram tempero**. Esta revisão **mantém** as decisões de persistência (congela, coluna própria, `id`) e **aposenta o `seed`** — a única peça que a inversão derruba. As decisões novas (D5–D8) registram a autoria mundo-primeiro, o crescimento do schema, a âncora de eval que substitui o determinismo, e (10/09) o render em 8 seções de módulo + os campos `objective`/`challenges[]`.
 
 ---
 
@@ -65,7 +65,7 @@ Call único (não cadeia multi-passo): o Spike 1 provou que uma chamada basta pr
 
 A mecânica **continua 5e SRD** (Open5e, statblocks por papel, CD 2024) — só a **apresentação e a estrutura** vêm do alvo estético (o artefato é AD&D 2E, não se porta a mecânica dele). O passo 7 é a única matemática determinística que fica. As 135 tabelas do LGMRD deixam de ser roladas como espinha; entram como inspiração no prompt, se entrarem (a decidir no reslice do backlog).
 
-**Modelo de prosa:** escada `deepseek/deepseek-v4-pro` → `deepseek/deepseek-v4-pro-0813` → `deepseek/deepseek-v4.1-flash` (preferência da mantenedora lendo as saídas do Spike 1 — o juiz saturou e não discriminou; ver [doc de arquitetura](../arquitetura-motor-aventuras-autorais.md) §*Escada de prosa*). O pro foi anunciado pra descontinuação (10/09); a escada absorve — o `-0813` é fallback de qualidade (mesma família, pode sair junto), o `v4.1-flash` é o sobrevivente. Roda off-turn (sem streaming, sem o teto de 60s do proxy SSE), então paga o modelo forte sem impacto de latência de turno.
+**Modelo de prosa:** escada `deepseek/deepseek-v4-pro` → `deepseek/deepseek-v4-pro-0813` → `deepseek/deepseek-v4.1-flash` (preferência da mantenedora lendo as saídas do Spike 1 — o juiz saturou e não discriminou; ver [doc de arquitetura](../arquitetura-motor-aventuras-autorais.md) §*Escada de prosa*). O pro foi anunciado pra descontinuação em 10/09 e o anúncio foi **cancelado em 11/09** — o pro fica. A escada **permanece como resiliência genérica** (outage/rate-limit), não por morte do pro: `-0813` é o primeiro fallback (snapshot pinado, texto mais próximo do aprovado), `v4.1-flash` o piso barato. Roda off-turn (sem streaming, sem o teto de 60s do proxy SSE), então paga o modelo forte sem impacto de latência de turno.
 
 ### D6 — O schema cresce pra caber a aventura autoral *(novo, 09/09)*
 
@@ -75,7 +75,9 @@ A mecânica **continua 5e SRD** (Open5e, statblocks por papel, CD 2024) — só 
 - **`factions[]`** — entidade de 1ª classe: `id`, `name`, `kind`, `want`, vínculos por `id` a `npcs`/`locations`/`secrets`. Hoje só existe `npc.role` (texto solto), o que produz a tensão fraca do resultado antigo.
 - **`acts[]` / sessões** — agrupamento sobre `encounters[]`, cada ato fechando num gancho. Hoje `encounters[]` é plano.
 - **`branchedResolution`** — array `{ choice, consequence }` (o fecho sem herói). **Substitui** `conclusion` (string), que sai pra não virar campo morto. `start` fica (seed de abertura, código, US-194); `followUps[]` fica obrigatório e passa a entrar no prompt de autoria.
-**Fora do schema (decisão 10/09):** `hazardTable`/tabela de perigo — removida da geração a pedido da mantenedora; perigo de viagem fica a cargo do Mestre em jogo.
+- **`objective`** *(10/09)* — meta da missão + `reward` (item de prêmio) + ponteiro por `id` ao local onde se resolve. Seção Objective do DnDGenerate (ver D8); `branchedResolution` sozinho não trazia a meta/prêmio.
+- **`challenges[]`** *(10/09)* — obstáculo **não-combate** preso a um local (`locationId`): teste nomeado + situação + consequência. Distinto de `encounters[]` (combate). CD **não** congela (US-29; resolução vem em jogo, US-111). Seção Challenges do DnDGenerate.
+**Fora do schema (decisão 10/09):** `hazardTable`/tabela de perigo — removida da geração a pedido da mantenedora; perigo de viagem fica a cargo do Mestre em jogo. `challenges[]` **não** a ressuscita: era d8 rolável de perigo aleatório, challenge é obstáculo específico da trama.
 
 Cada campo novo é chave/estrutura verificável pelo gate ([US-150](../sdlc/01-requisitos/US-150-gate-antes-de-persistir-aventura-gerada.md)), que passa a **regenerar** on-fail (não re-seed — o seed morreu).
 
@@ -84,7 +86,11 @@ Cada campo novo é chave/estrutura verificável pelo gate ([US-150](../sdlc/01-r
 "Reprodutibilidade" são duas coisas; a inversão só mata uma:
 
 1. **Repro pra debug** — o artefato congelado (D1) fica gravado em `Adventure.generatedAdventure`. Aventura ruim é linha inspecionável, não se regenera. Morre reproduzir o *processo*; o *resultado* fica de graça.
-2. **Regressão** — mede rubrica ([US-36](../sdlc/01-requisitos/US-36-eval-de-qualidade-da-narracao.md)/[US-154](../sdlc/01-requisitos/US-154-eval-aventura-gerada.md)) sobre amostra, a partir de perfis pinados, contra **O Olho de Iremet** como exemplar (resolve a lacuna do backlog: sem exemplar solo/pt-BR/autoral). Como o juiz LLM **satura** nesta tarefa (medido no Spike 1: quase tudo 5/5), a rubrica de regressão ancora em **asserts sobre o artefato** (este `secretId` continua oculto, este NPC existe, o grafo fecha), não na nota do juiz.
+2. **Regressão** — mede rubrica ([US-36](../sdlc/01-requisitos/US-36-eval-de-qualidade-da-narracao.md)/[US-154](../sdlc/01-requisitos/US-154-eval-aventura-gerada.md)) sobre amostra, a partir de perfis pinados, contra dois exemplares: **O Olho de Iremet** (prosa/densidade) e **A Cripta do Véu Silencioso** ([evals/exemplars/](../../evals/exemplars/cripta-do-veu-silencioso.md), estrutura das 8 seções + Challenges/Objective) — ambos solo/pt-BR/autoral, a lacuna que o backlog velho lamentava. Como o juiz LLM **satura** nesta tarefa (medido no Spike 1: quase tudo 5/5), a rubrica de regressão ancora em **asserts sobre o artefato** (este `secretId` continua oculto, este NPC existe, o grafo fecha), não na nota do juiz.
+
+### D8 — O artefato se exibe como as 8 seções de um módulo (DnDGenerate) *(novo, 10/09)*
+
+O artefato **renderiza** como um módulo clássico de 8 seções — **Setting · Story · Objective · Locations · Challenges · Encounters · Follow Up Ideas · NPCs** — a taxonomia do [DnDGenerate](https://github.com/dhorions/DnDGenerate) (MPL-2.0; vocabulário/estrutura reusável, ≠ GPL-3.0 do RPG-World-Builder). É **camada de apresentação, não a forma do schema:** o mundo-primeiro (`world`/`factions[]`/`acts[]`, D5/D6) segue **interno de autoria** — é o que dá alma e trava o defeito "genérico/plano". Facções **não** viram seção; dissolvem-se em Story/NPCs (como no exemplar da Cripta). `acts[]` e `branchedResolution` também não são seções — o render os costura sobre Locations/Encounters/Objective. Contrato campo→seção e mapa completo no [doc de arquitetura §Camada de render](../arquitetura-motor-aventuras-autorais.md). A UI (frontend) é decisão à parte.
 
 ---
 
@@ -97,8 +103,9 @@ Cada campo novo é chave/estrutura verificável pelo gate ([US-150](../sdlc/01-r
 | 3 | `GeneratedAdventureSchema.id` mantido | Namespace diferente de `Adventure.id`, sem colisão técnica |
 | 4 | Portabilidade cross-`System` não decidida aqui | Fora do que bloqueia o schema; adiada pra fase 4 |
 | 5 | Geração mundo-primeiro; mecânica 5e; prosa em deepseek-v4-pro | O Spike 1 mostrou que autoria bate a montagem por tabela no nível do exemplar; 5e é a fundação do projeto; pro foi a escolha a olho |
-| 6 | Schema cresce (`world`/`factions[]`/`acts[]`/`branchedResolution`) | Os campos do resultado antigo (registro por chave, `npc.role` solto, `conclusion` string) são exatamente o que saiu genérico e plano |
+| 6 | Schema cresce (`world`/`factions[]`/`acts[]`/`branchedResolution`/`objective`/`challenges[]`) | Os campos do resultado antigo (registro por chave, `npc.role` solto, `conclusion` string) são exatamente o que saiu genérico e plano; `objective`/`challenges[]` cobrem as seções Objective/Challenges do DnDGenerate |
 | 7 | Eval = artefato congelado + rubrica ancorada em asserts | Juiz LLM satura na tarefa (medido); determinismo byte-a-byte não existe mais |
+| 8 | Render em 8 seções de módulo (DnDGenerate), sobre schema mundo-primeiro | A forma do exemplar que a mantenedora quer exibir; mas facções/atos ficam internos (dão alma), só apresentados como seções — apresentação ≠ schema |
 
 ---
 
@@ -122,7 +129,7 @@ Cada campo novo é chave/estrutura verificável pelo gate ([US-150](../sdlc/01-r
 - Aventura autoral no nível do exemplar (Spike 1), a partir de mundo bespoke em vez de rótulo de catálogo.
 - Ledger (`WorldEntity[]`) não muda de forma — o motor só troca a fonte de dado; `recordEntity`/`mergeEntities` seguem intactos.
 - Artefato congelado: jogador não vê a história mudar de forma; repro de bug vem de ler a linha, sem regenerar.
-- O exemplar *O Olho de Iremet* vira âncora de eval solo/pt-BR/autoral que faltava.
+- Os exemplares *O Olho de Iremet* (prosa) e *A Cripta do Véu Silencioso* (estrutura das 8 seções) viram âncora de eval solo/pt-BR/autoral que faltava.
 
 **Negativas / riscos**
 - **Determinismo byte-a-byte morre.** `deriveAdventureSeed` (US-146, implementada) vira código morto a remover (gate `pnpm dead`, US-89). A eval perde o "mesmo seed, mesma aventura" e passa a medir distribuição de qualidade.
@@ -137,7 +144,8 @@ Cada campo novo é chave/estrutura verificável pelo gate ([US-150](../sdlc/01-r
 ## 6. Implementação (referência)
 
 - `apps/api/prisma/schema.prisma` — `Adventure.generatedAdventure Json?` (coluna existente; D6 acrescenta campos ao JSON, não à tabela).
-- `packages/shared/src/types/adventure-generation.ts` — `GeneratedAdventureSchema`; cresce com `world`/`factions[]`/`acts[]`/`branchedResolution` (D6).
+- `packages/shared/src/types/adventure-generation.ts` — `GeneratedAdventureSchema`; cresce com `world`/`factions[]`/`acts[]`/`branchedResolution`/`objective`/`challenges[]` (D6).
+- `evals/exemplars/cripta-do-veu-silencioso.md` — segundo exemplar de eval (D7/D8), âncora da estrutura das 8 seções.
 - `packages/ai-engine/src/model.ts` — nova escada de prosa da autoria (D5): `deepseek/deepseek-v4-pro` → `-pro-0813` → `deepseek/deepseek-v4.1-flash`, no molde de `narrationModels` (tenta em ordem, cai pro próximo na falha).
 - `apps/api/src/adventure-generation/adventure-gate.ts` — o gate passa a regenerar on-fail (D5, PASSO 3), grafo fecha sobre o schema de D6.
 - `packages/shared/src/adventure-seed.ts` — `deriveAdventureSeed`/`createSeededRandom`: **código morto** após a inversão (D1), remover.

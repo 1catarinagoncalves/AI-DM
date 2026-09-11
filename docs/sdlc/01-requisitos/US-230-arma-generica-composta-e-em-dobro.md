@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-229](./US-229-escolha-especifica-de-arma-no-equipamento-inicial.md) (`resolveEquipmentSlots`/`flattenWeaponOptions`/`parseGenericWeaponItem` em [starting-kit.ts:43-129](../../../packages/shared/src/starting-kit.ts:43) — o mecanismo que esta story estende, não substitui) · [US-228](./US-228-categoria-simples-marcial-no-catalogo-de-armas.md) (`config.weapons[].category`/`weaponType`, catálogo de onde vem o pool)
 
 **Criada em:** 2026-09-10
@@ -43,8 +43,8 @@ classes:
 
 | Classe | Slot | Texto EN | Texto PT | Alternativa nomeada (irmã, já funciona) |
 |---|---|---|---|---|
-| Guerreiro (`fighter`) | `choices[0]` | `Martial Weapon and a Shield` | `Arma Marcial e Um Escudo` | `Chain Mail` / `Cota de Malha` — não é bem "irmã", é outro slot; a alternativa NOMEADA deste MESMO slot é `Two Martial Weapons` (também quebrada, ver linha abaixo) |
-| Guerreiro (`fighter`) | `choices[0]` (2ª alternativa do mesmo slot) | `Two Martial Weapons` | `Duas Armas Marciais` | — |
+| Guerreiro (`fighter`) | `choices[1]` (correção: `choices[0]` do Guerreiro é o slot de armadura, "Chain Mail"/"Leather Armor + Longbow" — confirmado direto no JSON) | `Martial Weapon and a Shield` | `Arma Marcial e Um Escudo` | nenhuma nomeada — a outra alternativa deste MESMO slot é `Two Martial Weapons` (também quebrada, ver linha abaixo) |
+| Guerreiro (`fighter`) | `choices[1]` (2ª alternativa do mesmo slot) | `Two Martial Weapons` | `Duas Armas Marciais` | — |
 | Paladino (`paladin`) | `choices[0]` | `Martial Weapon and a Shield` | `Arma Marcial e Um Escudo` | `Two Martial Weapons` (mesma coluna acima) |
 | Paladino (`paladin`) | `choices[0]` (2ª alternativa do mesmo slot) | `Two Martial Weapons` | `Duas Armas Marciais` | — |
 | Patrulheiro (`ranger`) | `choices[1]` | `Two Simple Melee Weapons` | `Duas Armas Simples Corpo a Corpo` | `Two Shortswords` / `Duas Espadas Curtas` (nomeada, já funciona — é literal, não genérica) |
@@ -91,6 +91,24 @@ Feiticeiro/Bruxo/Bárbaro não têm nenhum dos 2 padrões (confirmado na varredu
 tabela acima é exaustiva); Ladino e Mago não têm item genérico de arma nenhum no kit (US-229
 §Contexto já tinha essa lista, sem mudança).
 
+**Adição (mantenedora, 2026-09-10) — alternativa NOMEADA "Duas <Arma>" ganha o mesmo rótulo
+"(2)" das opções expandidas.** Não é mais só os 3 textos genéricos quebrados: pelo mockup desta
+story (Patrulheiro), a mantenedora decidiu que a alternativa NOMEADA irmã (`Two Shortswords`/
+`Duas Espadas Curtas` — já resolvia certo, só o RÓTULO ficava cru) também deve virar
+"Espada Curta (2)", pro mesmo padrão visual das opções expandidas dos 2 novos parsers. Achado
+ao aplicar essa regra: 2 outras alternativas nomeadas no MESMO formato "Two `<Arma
+concreta>`", fora da tabela original (não são texto genérico — não precisavam de
+`parseGenericWeaponItem`, sempre resolveram certo, só o RÓTULO era o texto SRD cru):
+
+| Classe | Slot | Texto EN | Texto PT | Alternativa irmã no mesmo slot |
+|---|---|---|---|---|
+| Bárbaro (`barbarian`) | `choices[1]` | `Two Handaxes` | `Duas Machadinhas` | `Any Simple Weapon`/`Qualquer Arma Simples` (genérica, já resolvida pela US-229) |
+| Guerreiro (`fighter`) | `choices[2]` | `Two Handaxes` | `Duas Machadinhas` | `Light Crossbow and 20 Bolts`/`Besta Leve e 20 Virotes` (nomeada, concreta, sem genérico neste slot) |
+
+Diferença importante pro parser: aqui NÃO tem categoria/tipo pra casar contra `config.weapons`
+— a arma já é conhecida (`handaxe`/`shortsword`). É troca de RÓTULO de uma opção já concreta,
+não expansão de genérico em N `<option>`. Ver §Escopo e §Notas de implementação.
+
 ---
 
 ## Escopo
@@ -110,27 +128,46 @@ tabela acima é exaustiva); Ladino e Mago não têm item genérico de arma nenhu
   `categories: []`, então na prática é só filtro de categoria+tipo, sem lista nomeada — mas a
   função não deve assumir isso, deve reusar o MESMO cruzamento de `matchingWeapons`).
 - **Reaproveitar `resolveEquipmentSlots`/`flattenWeaponOptions`/`matchingWeapons` (US-229):**
-  esta story ESTENDE o parser e o achatamento existentes — não cria um mecanismo paralelo. O
-  `<select>` continua o mesmo, a lista achatada continua indexada por `equipmentChoices[i]`.
+  esta story ESTENDE o parser e o achatamento existentes — não cria um mecanismo paralelo.
+  Patrulheiro (`choices[1]`, só 1 das 2 alternativas é genérica) mantém 1 slot/`<select>` só,
+  igual ao padrão da US-229. **Guerreiro e Paladino são exceção:** o slot original (2
+  alternativas, AMBAS genéricas — "arma+escudo" e "em dobro") tem 2 RESPOSTAS possíveis, mas a
+  UI mostra **1 radio (modo) + 1 `<select>` de arma compartilhado**, não 2 `<select>` repetindo
+  a mesma lista de 23 armas marciais duas vezes (decisão do mockup, 2026-09-10 — ver §Referência
+  à origem) — resolve §Questões em aberto #2. Trocar o radio NÃO reseta a arma escolhida no
+  select (mesmo valor serve pros dois modos); só o texto do resultado muda ("`<Arma>`, Escudo"
+  vs. "`<Arma>` (2)"). Por baixo, `resolveEquipmentSlots` continua com 2 alternativas genéricas
+  nesse `choices[]` original — fica pra implementação decidir se isso persiste como 2
+  `EquipmentChoiceSlot` (radio escolhe QUAL índice de `equipmentChoices` vale, o outro é
+  ignorado) ou como 1 slot novo com um campo de modo — nos dois casos, sem 2 `<select>` visíveis
+  ao mesmo tempo (ver §Referências no código).
 - **Persistência:** `getStartingInventory` devolve a arma (ou arma+escudo, ou arma×2) real,
   nunca o texto composto/em-dobro cru — mesmo critério de aceite da US-229, estendido aos 2
   padrões novos.
 - **Etapa `review` e ficha (`GameView`):** herdam o fix pelo mesmo caminho que a US-229 já
   ligou (`previewFullKit` → `getStartingInventory`) — sem código novo nessas telas, só
   verificação (mesma disciplina da US-229 §Escopo).
-- **Testes:** Guerreiro e Paladino (`choices[0]`, os dois com AS MESMAS 2 alternativas
-  quebradas) e Patrulheiro (`choices[1]`) — os 3 casos reais da tabela acima, contra dataset
-  real ou fixture fiel a ele (não simplificado, pra não repetir o motivo do Guerreiro ter
-  escapado da US-229).
+- **Testes:** Guerreiro (`choices[1]`) e Paladino (`choices[0]`) — os dois com AS MESMAS 2
+  alternativas quebradas, agora esperando 2 slots resolvidos, não 1 — e Patrulheiro
+  (`choices[1]`, 1 slot só) — os 3 casos reais da tabela acima, contra dataset real ou fixture
+  fiel a ele (não simplificado, pra não repetir o motivo do Guerreiro ter escapado da US-229).
+- **Rótulo "(2)" na alternativa nomeada "Duas `<Arma>`":** `Two Shortswords`/`Duas Espadas
+  Curtas` (Patrulheiro), `Two Handaxes`/`Duas Machadinhas` (Bárbaro `choices[1]`, Guerreiro
+  `choices[2]`) passam a exibir "Espada Curta (2)"/"Machadinha (2)" — rótulo da arma (via
+  `config.weapons`) + "(2)", nunca o texto SRD cru. Mesma mudança na PERSISTÊNCIA:
+  `getStartingInventory` grava `{name: 'Espada Curta', qty: 2}`, não `{name: 'Two Shortswords',
+  qty: 1}`. Guerreiro `choices[2]` (besta leve/duas machadinhas) é slot 100% nomeado, sem
+  alternativa genérica — não precisa dividir em 2 slots (§Escopo acima), só troca o RÓTULO de
+  uma das 2 opções já existentes.
 
 ### Fora do escopo
 
 - **Reabrir a US-229** (já implementada e mesclada) — esta story só adiciona 2 formas novas ao
   parser dela, não questiona o que já funciona (os 3 padrões solo continuam intactos).
-- **Decidir a regra 5e de "duas armas marciais"** — se a jogadora deveria poder escolher DUAS
-  armas DIFERENTES em vez de 2 cópias da mesma (ver §Questões em aberto #1). Fora de escopo
-  aqui; a interpretação "2 cópias da mesma arma" é a proposta desta story, não um critério de
-  aceite fechado — ver nota na tabela de critérios.
+- **Escolher duas armas diferentes no padrão "em dobro"** — confirmado pela mantenedora
+  (2026-09-10): as duas armas são a mesma. "Duas Armas Marciais"/"Two Simple Melee Weapons" viram
+  1 `<select>`, `qty: 2` da mesma arma escolhida — não 2 armas diferentes, não 2 `<select>`. Ver
+  §Questões em aberto #1 (resolvida).
 - **Fundo (`background`) e equipamento racial** — mesmo corte da US-229 (não confirmado se
   `backgroundEquipment` tem qualquer um dos 2 padrões; se tiver, é story separada).
 - **Vasculhar TODO texto de equipamento por outras formas ainda não achadas.** A varredura desta
@@ -141,15 +178,24 @@ tabela acima é exaustiva); Ladino e Mago não têm item genérico de arma nenhu
 
 ## Critérios de aceite
 
-- [ ] Guerreiro, slot 0: o `<select>` lista uma `<option>` por arma marcial do catálogo (sem
-      filtro de `weaponType` — nem melee nem ranged exclui nada), cada opção mostrando a arma
-      MAIS "Escudo" (ex. "Machado de Batalha, Escudo") — nunca o texto "Arma Marcial e Um
-      Escudo" — **E** uma `<option>` por arma marcial mostrando a MESMA arma em dobro (ex.
-      "Machado de Batalha (2)") — nunca o texto "Duas Armas Marciais".
-- [ ] Paladino, slot 0: mesmo comportamento do Guerreiro acima (texto-fonte idêntico nos dois).
-- [ ] Patrulheiro, slot 1: o `<select>` lista "Duas Espadas Curtas" (nomeada, já funciona) MAIS
-      uma `<option>` por arma simples corpo a corpo do catálogo em dobro (ex. "Adaga (2)") —
-      nunca o texto "Duas Armas Simples Corpo a Corpo".
+- [ ] Guerreiro (`choices[1]` original): 1 radio de modo ("Arma marcial e um escudo" / "Duas
+      armas marciais") + **1 único `<select>`** com uma `<option>` por arma marcial do catálogo
+      (sem filtro de `weaponType`), compartilhado pelos 2 modos — nunca 2 `<select>` repetindo a
+      mesma lista de armas. Modo "escudo" resolve arma + "Escudo" (ex. "Machado de Batalha,
+      Escudo") — nunca o texto "Arma Marcial e Um Escudo". Modo "em dobro" resolve a MESMA arma
+      escolhida em dobro (ex. "Machado de Batalha (2)") — nunca o texto "Duas Armas Marciais".
+      Trocar de modo preserva a arma já escolhida no select.
+- [ ] Paladino (`choices[0]` original): mesmo comportamento do Guerreiro acima — 1 radio + 1
+      `<select>` compartilhado (texto-fonte idêntico nos dois).
+- [ ] Patrulheiro, slot 1: o `<select>` lista "Espada Curta (2)" (era "Duas Espadas Curtas" —
+      já resolvia certo, rótulo agora no mesmo padrão) MAIS uma `<option>` por arma simples
+      corpo a corpo do catálogo em dobro (ex. "Adaga (2)") — nunca "Duas Espadas Curtas" nem
+      "Duas Armas Simples Corpo a Corpo" crus.
+- [ ] Bárbaro, `choices[1]`: a opção nomeada mostra "Machadinha (2)" — era "Duas Machadinhas" —
+      ao lado de "Qualquer Arma Simples" já expandida pela US-229. Nenhuma outra mudança nesse
+      slot (a expansão genérica já funciona).
+- [ ] Guerreiro, `choices[2]` (besta leve OU duas machadinhas — slot sem alternativa genérica,
+      não se divide): a opção nomeada mostra "Machadinha (2)" — era "Duas Machadinhas".
 - [ ] Escolher a option "arma + escudo" resolve os DOIS itens no inventário final (arma real +
       "Escudo"), nunca só um dos dois.
 - [ ] Escolher a option "em dobro" resolve com `qty: 2` no inventário final — nunca dois itens
@@ -157,9 +203,9 @@ tabela acima é exaustiva); Ladino e Mago não têm item genérico de arma nenhu
 - [ ] Etapa `review` (linha "Kit") e ficha (`GameView`) mostram o resultado resolvido nas 3
       classes — nunca "Arma Marcial e Um Escudo"/"Duas Armas Marciais"/"Duas Armas Simples
       Corpo a Corpo" cru. Mesma disciplina da US-229: verificar a TELA, não só a função.
-  - Está aberto se "duas armas marciais" deveria virar duas armas DIFERENTES (2 `<select>` ou
-    1 `<select>` com combinação) em vez de 2 cópias da mesma — ver §Questões em aberto #1;
-    até decisão em contrário, o critério de aceite é "2 cópias da mesma arma escolhida".
+  - Decidido (mantenedora, 2026-09-10): "duas armas marciais" é 2 cópias da MESMA arma
+    escolhida, não duas armas diferentes — ver §Questões em aberto #1 (resolvida). Critério de
+    aceite fechado.
 - [ ] Nenhuma classe/slot que já funcionava (US-229: Bárbaro, Bardo, Clérigo, Druida, Monge,
       Feiticeiro, Bruxo) muda de comportamento.
 
@@ -197,34 +243,42 @@ tabela acima é exaustiva); Ladino e Mago não têm item genérico de arma nenhu
   ou se basta o texto vir PRONTO do próprio `config` sendo processado — cada locale já carrega
   seu próprio JSON, então talvez baste a chave do mapa cobrir os 2 idiomas com o `companion` já
   no idioma certo, sem precisar de `Record<Locale,_>` — confirmar ao implementar).
+- **Rótulo "(2)" da alternativa NOMEADA** — mapa separado do `GENERIC_WEAPON_ITEMS` (não é
+  categoria+tipo, é arma já concreta): `NAMED_WEAPON_DOUBLE_ITEMS: Record<string, string>`
+  (nome do texto SRD → `key` de `config.weapons`), ex. `'Two Shortswords' → 'shortsword'`,
+  `'Duas Espadas Curtas' → 'shortsword'`, `'Two Handaxes'/'Duas Machadinhas' → 'handaxe'`.
+  `flattenWeaponOptions` (ou uma função irmã, já que aqui a option NÃO expande em N — continua
+  1 alternativa só, só troca o rótulo) resolve a `key` contra `config.weapons`, monta
+  `[{ name: weapon.label, qty: 2 }]` no lugar de `[{ name: 'Two Shortswords', qty: 1 }]`. Reusa
+  o rótulo do CATÁLOGO (já no locale certo) em vez de hardcoded "Espada Curta"/"Shortsword" —
+  evita duplicar string por locale, diferente do `companion` acima (que não tem catálogo pra
+  puxar de).
 
 ---
 
 ## Questões em aberto
 
-1. **"Duas Armas Marciais" — 2 cópias da mesma arma, ou 2 armas diferentes?** O texto do SRD
-   ("two martial weapons") não deixa claro se a jogadora escolhe uma arma e leva duas, ou
-   escolhe duas armas (potencialmente diferentes) da categoria. Esta story propõe "2 cópias da
-   mesma" (mais simples — 1 `<select>`, sem controle novo) mas é decisão de design que a
-   mantenedora precisa confirmar antes da implementação; se a resposta for "2 diferentes", o
-   desenho muda pra 2 `<select>` por slot em vez de 1, escopo maior.
-2. **Ordem das 2 alternativas expandidas no mesmo slot** (composto + em-dobro, caso do
-   Guerreiro/Paladino) — a US-229 já decidiu "opções nomeadas + opções expandidas lado a lado,
-   mesma ordem do JSON" pro caso de 1 alternativa genérica só; aqui são DUAS alternativas
-   genéricas no MESMO slot (nenhuma nomeada) — a ordem provavelmente seria "todas as expansões
-   da alternativa A, depois todas da alternativa B" (ordem do `options[]` original), mas vale
-   confirmar que não fica confuso ter ~36 `<option>` no mesmo `<select>` (18 armas marciais ×
-   2 padrões) sem nenhum separador visual.
+1. ~~**"Duas Armas Marciais" — 2 cópias da mesma arma, ou 2 armas diferentes?**~~ **Resolvida**
+   (mantenedora, 2026-09-10): as duas armas são a mesma. `qty: 2` da MESMA arma escolhida, 1
+   `<select>` por slot — sem controle novo, sem 2º `<select>`.
+2. ~~**Ordem das 2 alternativas expandidas no mesmo slot**~~ **Resolvida** (mockup, 2026-09-10):
+   nem 1 `<select>` mesclado com ~36 `<option>`, nem 2 `<select>` lado a lado repetindo a mesma
+   lista de armas — **1 radio de modo + 1 `<select>` de arma compartilhado**. O radio escolhe
+   "Arma marcial e um escudo" vs. "Duas armas marciais (em dobro)"; o select embaixo tem as 23
+   armas marciais do catálogo (sem filtro de `weaponType`) e vale pros 2 modos — trocar de modo
+   não reseta a arma escolhida, só muda o resultado exibido ("`<Arma>`, Escudo" ou "`<Arma>`
+   (2)"). Ver mockup em [docs/mockups/us-230-arma-composta-dobro.html](../../mockups/us-230-arma-composta-dobro.html).
 
 ---
 
 ## Referências no código
 
-- [packages/shared/src/starting-kit.ts:43-129](../../../packages/shared/src/starting-kit.ts:43) — `GENERIC_WEAPON_ITEMS`/`parseGenericWeaponItem`/`matchingWeapons`/`flattenWeaponOptions`/`resolveEquipmentSlots` (US-229), onde os 2 padrões novos entram.
+- [packages/shared/src/starting-kit.ts:43-129](../../../packages/shared/src/starting-kit.ts:43) — `GENERIC_WEAPON_ITEMS`/`parseGenericWeaponItem`/`matchingWeapons`/`flattenWeaponOptions`/`resolveEquipmentSlots` (US-229), onde os 2 padrões novos entram, e onde `resolveEquipmentSlots` ganha o tratamento do caso Guerreiro/Paladino (2 alternativas genéricas no mesmo `choices[]` original).
 - [scripts/srd/srd-5e.config.en-US.json](../../../scripts/srd/srd-5e.config.en-US.json) / [scripts/srd/srd-5e.config.pt-BR.json](../../../scripts/srd/srd-5e.config.pt-BR.json) — `classes[].startingEquipmentChoices` de `fighter`/`paladin`/`ranger`, os 3 textos quebrados (§Contexto tem a tabela completa com trecho de cada).
-- [apps/web/src/components/setup/SetupWizard.tsx:1130-1161](../../../apps/web/src/components/setup/SetupWizard.tsx:1130) — `<select>` do slot (US-226/US-229), sem mudança esperada (herda o fix de `resolveEquipmentSlots`).
-- [apps/api/src/character/character.service.ts:83-90](../../../apps/api/src/character/character.service.ts:83) — `validateEquipmentChoices` contra `resolveEquipmentSlots(...).slots` (US-229), sem mudança esperada (índice continua validado contra `options.length` da lista achatada, que só cresce).
+- [apps/web/src/components/setup/SetupWizard.tsx:1130-1161](../../../apps/web/src/components/setup/SetupWizard.tsx:1130) — `<select>` do slot (US-226/US-229). **Mudança esperada** pro Guerreiro/Paladino: o slot de arma marcial ganha um radio de modo ACIMA do `<select>` — não 2 `<select>` visíveis ao mesmo tempo (decisão do mockup, §Questões em aberto #2) — Patrulheiro e as demais classes, sem mudança.
+- [apps/api/src/character/character.service.ts:83-90](../../../apps/api/src/character/character.service.ts:83) — `validateEquipmentChoices` contra `resolveEquipmentSlots(...).slots` (US-229). **A confirmar ao implementar** pro Guerreiro/Paladino: se o radio+select vira 2 índices em `equipmentChoices` (um por modo, só o do modo ativo importa) ou 1 índice novo com campo de modo à parte — nos dois casos, checar se algum personagem já criado com essas classes na Fase 1 precisa de migração de `equipmentChoices` persistido, ou se a validação solta (índice fora do intervalo cai em opção 0, nunca lança) já cobre sem migração.
 - [packages/shared/src/starting-kit.test.ts](../../../packages/shared/src/starting-kit.test.ts) — testes da US-229 usam Bárbaro/Bruxo/Druida com fixtures fiéis ao dataset; Guerreiro só aparece com fixture SIMPLIFICADO ("Arma Marcial" genérico de mentira) em `character.service.test.ts`/`SetupWizard.test.tsx` — é onde o bug escapou, ver §Contexto.
+- [docs/mockups/us-230-arma-composta-dobro.html](../../mockups/us-230-arma-composta-dobro.html) — mockup funcional (mesmo padrão de tokens do mockup da US-229): Guerreiro/Paladino com radio de modo + 1 `<select>` compartilhado, Patrulheiro com "Espada Curta (2)" no padrão novo — referência de design pra §Escopo e §Questões em aberto #2.
 
 ---
 
