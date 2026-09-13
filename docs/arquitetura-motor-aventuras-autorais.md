@@ -101,6 +101,8 @@ Mapa campo interno → seção de render:
 
 `acts[]`/sessões e `branchedResolution` **não** são seções do módulo — o render costura os atos sobre Locations/Encounters e dissolve o fecho ramificado dentro de Objective + Encounter final. A UI em si (frontend) fica fora deste doc; aqui fica só o contrato campo→seção.
 
+**Separação local ↔ NPC (regra de autoria).** `location.description` fala **só do lugar e dos itens** — nunca dos NPCs que estão nele. A presença inicial de um NPC num local vive no campo **estruturado** `location.occupants[]` (ids, US-144), não na prosa. Motivo: NPC muda de lugar, morre, é revelado turno a turno pelo ledger; congelar "o estalajadeiro Tobias serve aqui" na descrição do local duplica o dado e apodrece quando o NPC se move. A seção NPCs (render) e o ledger derivam a lotação de `occupants[]`; a descrição do local fica estável.
+
 ### Parâmetros de mundo (US-156/157) no prompt de autoria
 A tela "O Mundo da Aventura" (US-157) dá quatro knobs. Sob a montagem-por-tabela eles indexavam rolagens; sob a inversão, eles **restringem o que o modelo autora**. Mapeamento:
 

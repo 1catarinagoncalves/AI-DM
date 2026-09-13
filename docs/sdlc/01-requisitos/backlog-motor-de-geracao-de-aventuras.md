@@ -52,7 +52,7 @@ PASSO 3 — gate: parse + grafo fecha + orçamento cabe + saneamento de mecânic
 | **US-146** seed determinístico | **SAI** — código morto (seed morto, ADR 012 D1); remover (gate `pnpm dead`, US-89) → MA-7 |
 | **US-147** rolagem registro+conteúdo | **SAI como espinha** — modelo autora, não rola tabela → MA-7 |
 | **US-158** locais/NPCs com prosa (passo próprio) | **Some** — dobra na CHAMADA 1 (autoria produz locais/NPCs) |
-| **US-149** segredos pelos 40 prompts | **Some** — dobra na CHAMADA 1; os 40 prompts podem informar o prompt de autoria |
+| **US-149** segredos pelos 40 prompts | **Some** — segredos saem da formação de aventura (não dobram na CHAMADA 1, decisão 12/09); pista oculta fica em aberto (US-232 §Questões em aberto) |
 | **US-164** orquestrador (encadeia 6 passos) | **Reduz** → MA-1: não encadeia, é o call único + montagem do `GeneratedAdventure` |
 | **US-166** múltiplos encontros | **Some** — a CHAMADA 1 emite N ficções de encontro; PASSO 2 preenche cada |
 | **US-190** antagonista (passo próprio) | **Some** — dobra na CHAMADA 1 (conflito central + facções) |
@@ -64,9 +64,9 @@ PASSO 3 — gate: parse + grafo fecha + orçamento cabe + saneamento de mecânic
 
 Caminho crítico marcado ✱.
 
-**✱ MA-1 — schema cresce + prompt de autoria call único**
-Reabre a US-144: schema ganha `world` (nome/descrição/locais-âncora), `factions[]` (id/name/kind/want + vínculos por id), `acts[]` (sessões, cada uma com gancho), `branchedResolution` (`{choice, consequence}[]`, **substitui** `conclusion`), `objective` (meta + `reward` item + `id` do local), `challenges[]` (obstáculo não-combate: `locationId` + teste nomeado + situação + consequência, SEM CD); `encounters[]` ganha campo de **ficção** (situação) além de `locationId`/`npcIds[]`. `start`/`followUps[]` ficam.
-Escreve o prompt de autoria mundo-primeiro: uma chamada, via a **escada de prosa** nova em `model.ts` (`deepseek-v4-pro` → `deepseek-v4-pro-0813` → `deepseek-v4.1-flash`, molde de `narrationModels` — escada como resiliência; pro estável, EOL cancelado 11/09), que emite tudo acima em ordem (mundo→facções→conflito+fecho→objetivo+recompensa→locais/NPCs com fala→segredos→atos+followUps→ficção dos encontros→desafios não-combate), no locale do personagem. Params de mundo entram como restrição (rótulo pt-BR); background como gancho leve **só de tempero interno** (`deity`/`flaws`; `bonds`+`story` ficam de fora — tábula rasa da 1ª aventura, achado do spike 10/09); prompt carrega regra de tábula rasa (nenhum NPC já o conhece; sem dívidas/eventos anteriores como fato); exemplar **fora** do prompt (qualidade abstrata). Referência-base: `packages/ai-engine/adventure-authoring-spike.mjs`.
+**✱ MA-1 — schema cresce + prompt de autoria call único** → escrita como [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md)
+Reabre a US-144: schema ganha `world` (nome/descrição/locais-âncora), `factions[]` (id/name/kind/want + vínculos por id), `acts[]` (sessões, cada uma com gancho), `branchedResolution` (`{choice, consequence}[]`, **substitui** `conclusion`), `objective` (meta + `reward` item + `id` do local), `challenges[]` (obstáculo não-combate: `locationId` + teste nomeado + situação + consequência, SEM CD); `encounters[]` ganha campo de **ficção** (situação) além de `locationId`/`npcIds[]`. `start`/`followUps[]` ficam. `secrets[]` (US-144) **sai** — segredos saem da formação de aventura, mesmo tratamento do `conclusion` (não vira campo morto). `location.description` fala **só do lugar e itens** — NPC nunca na prosa do local; a presença inicial vive em `location.occupants[]` (ids, US-144), o prompt carrega essa regra.
+Escreve o prompt de autoria mundo-primeiro: uma chamada, via a **escada de prosa** nova em `model.ts` (`deepseek-v4-pro` → `deepseek-v4-pro-0813` → `deepseek-v4.1-flash`, molde de `narrationModels` — escada como resiliência; pro estável, EOL cancelado 11/09), que emite tudo acima em ordem (mundo→facções→conflito+fecho→objetivo+recompensa→locais/NPCs com fala→atos+followUps→ficção dos encontros→desafios não-combate), no locale do personagem. Params de mundo entram como restrição (rótulo pt-BR); background como gancho leve **só de tempero interno** (`deity`/`flaws`; `bonds`+`story` ficam de fora — tábula rasa da 1ª aventura, achado do spike 10/09); prompt carrega regra de tábula rasa (nenhum NPC já o conhece; sem dívidas/eventos anteriores como fato); exemplar **fora** do prompt (qualidade abstrata). Referência-base: `packages/ai-engine/adventure-authoring-spike.mjs`.
 Depende de: nada. Bloqueia: quase tudo.
 
 **✱ MA-3 — números dos encontros (PASSO 2, 5e determinístico)**
@@ -131,7 +131,7 @@ Todas em [Arquitetura — motor de aventuras autorais](../../arquitetura-motor-a
 ## Decisões abertas
 
 1. **As 135 tabelas do LGMRD entram como inspiração no prompt de autoria, ou saem de vez?** O Spike gerou Khemsar-grade **sem** elas. Medir se agregam antes de manter o `sync` da metade LGMRD (a metade Monster Builder fica de qualquer jeito). Decidir junto de MA-1/MA-7.
-2. **Quantos NPCs/segredos/locais a autoria pede?** Os dials US-162/163 viram parâmetro do prompt (MA-1); os números-alvo (~6 locais, ~7 NPCs, ~11 segredos) do backlog velho servem de default, a confirmar contra a qualidade da saída.
+2. **Quantos NPCs/locais a autoria pede?** Os dials US-162/163 viram parâmetro do prompt (MA-1); os números-alvo (~6 locais, ~7 NPCs) do backlog velho servem de default, a confirmar contra a qualidade da saída. (Dial de segredos perde sentido — segredos saem da formação, ver MA-1/US-232.)
 3. **4 sessões/atos × sem progressão de nível.** A estrutura multi-sessão sugere evolução que a fase 1 não entrega (nível trava em 1). Registrado — a aventura pode ser multi-sessão sem subir nível, mas a tensão fica anotada pra quando a D1 existir.
 
 ## Referências no código

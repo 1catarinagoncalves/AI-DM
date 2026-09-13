@@ -32,3 +32,14 @@ export function rollRegistry(characterId: string, order: number, overrides: Adve
     areaType: overrides.areaType ?? pickCandidate(characterId, order, 'areaType', AREA_TYPES, attempt),
   }
 }
+
+// US-232: contagem de facções sorteada em [2,4] no Game Server (determinístico, mesma
+// disciplina de dados — não é o modelo que decide quantas), passada ao prompt de autoria como
+// restrição. Sortear a CONTAGEM (não conteúdo de tabela) mantém variedade estrutural sem
+// reintroduzir a montagem-por-tabela. Sub-seed próprio (`characterId:factionCount`), ao lado de
+// `rollRegistry` — mesmas primitivas já importadas aqui, sem deslocar as rolagens de registro.
+export function rollFactionCount(characterId: string, order: number, attempt = 0): number {
+  const seed = deriveAdventureSeed(`${characterId}:factionCount`, order, attempt)
+  const rand = createSeededRandom(seed)
+  return 2 + Math.floor(rand() * 3) // [2,4]
+}

@@ -2,18 +2,18 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
-import type { AdventureAntagonist, AdventureEncounter, AdventureLocation, AdventureNpc, AdventureSecret, GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
+import type { GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
 import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, DEFAULT_LOCALE, localeNameForPrompt, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
   NARRATION_PROVIDER_OPTIONS,
   EXTRACTION_PROVIDER_OPTIONS,
-  ENGINE_PROVIDER_OPTIONS,
+  authoringModels,
+  AUTHORING_PROVIDER_OPTIONS,
   formatProvenance,
   summaryModel,
   extractionModel,
-  primaryModel,
   buildDmSystemPrompt,
   buildTurnStateBlock,
   buildOpeningInstruction,
@@ -46,9 +46,6 @@ import {
 import { DiceService } from '../game/dice.service'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
-import { localizePatronRow, type RolledAdventureContent } from '../adventure-generation/roll-content'
-import type { AdventureRegistry } from '../adventure-generation/roll-registry'
-import type { SecretPrompts } from '../adventure-generation/lgmrd-tables'
 import { MONSTER_ROLE_CR } from '../adventure-generation/monster-roles'
 import { nextUnrevealedEncounterLocation } from '../adventure-generation/next-encounter-hint'
 
@@ -110,144 +107,144 @@ const OPENING_ENTITIES_SCHEMA = z.object({
 
 const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
 
-// US-158: schema da prosa de locais+NPCs. SEM `id` — quem minta é o código
-// (`generateLocationsAndNpcs`), nunca o modelo.
-//
-// 2026-08-19: `occupants` referenciava NPC pelo NOME (string livre, casado contra
-// `npcs[].name` via `normName` — só normaliza caixa/acento). Com deepseek-v4-flash
-// (trocado nesta data por precisar de mais raciocínio, ver ENGINE_PROVIDER_OPTIONS em
-// model.ts) o nome escrito em `occupants` divergia do `npcs[].name` com frequência
-// maior que o qwen anterior — ex.: "Vesper Thornwood" em occupants vs. um `npcs[].name`
-// que não bate exatamente — e a US-150 trata isso como falha DURA (`checkOccupantReferences`),
-// não órfão: esgotava as 3 tentativas do gate direto. `occupants` agora é ÍNDICE
-// (0-based) em `npcs[]`: sem correspondência de string nenhuma, o modelo só aponta pra
-// uma posição de um array que ele mesmo escreveu — `npcs` vem ANTES de `locations` no
-// schema de propósito, pra já estar "escrito" quando o modelo gera os índices.
-const LOCATIONS_AND_NPCS_SCHEMA = z.object({
-  npcs: z
-    .array(
-      z.object({
-        name: z.string().min(1),
-        role: z.string().min(1).describe('Arquétipo de ficção popular + conexão com a aventura, 1 frase curta'),
-      }),
-    )
-    .min(1),
-  locations: z
-    .array(
-      z.object({
-        title: z.string().min(1),
-        aspects: z.array(z.string()).describe('2-3 aspectos/traços curtos do local, estilo Fate — não frases completas'),
-        boxedText: z.string().min(1).describe('Texto de leitura em voz alta ao chegar no local, 2-3 frases'),
-        description: z.string().min(1).describe('Notas do mestre sobre o local — NÃO lidas em voz alta'),
-        occupants: z.array(z.number().int().min(0)).describe('Índices (0-based) de npcs[] presentes aqui — NÚMERO, nunca o nome — [] se nenhum'),
-        // US-187: rótulo de que tipo de cena este local puxa melhor — consumido pela
-        // distribuição de locationId dos encontros (US-166), nunca pelo ledger.
-        vibe: z.enum(['combat', 'skill', 'social']).describe('Que tipo de cena este local puxa melhor, dado o que você já escreveu acima'),
-      }),
-    )
-    .min(1),
+// US-232: schema BRUTO da autoria mundo-primeiro (call único). Referências cruzadas por
+// ÍNDICE (0-based na array irmã), NUNCA por id — mesmo padrão de `occupants` (US-158): o
+// modelo aponta pra uma posição de um array que ele mesmo escreveu; o código minta os ids
+// reais (`faction-N`/`npc-N`/`loc-N`/…) depois do `.parse()` (adventure.service.ts).
+const AUTHORING_SCHEMA = z.object({
+  world: z.object({
+    name: z.string().min(1).describe('Nome próprio do mundo/lugar inventado — específico, não genérico'),
+    description: z.string().min(1).describe('2-3 parágrafos de worldbuilding sensorial'),
+    anchors: z.array(z.string()).describe('Localidades-âncora nomeadas'),
+  }),
+  summary: z.string().min(1).describe('Sinopse de UMA linha da aventura (lista/quest)'),
+  story: z.string().min(1).describe('A seção Story: o que está errado + as forças (facções dissolvidas na prosa)'),
+  factions: z.array(z.object({
+    name: z.string().min(1),
+    kind: z.string().min(1).describe('poder / submundo / culto / ordem / …'),
+    want: z.string().min(1).describe('o que a facção quer — os desejos das facções COLIDEM'),
+  })).min(1),
+  npcs: z.array(z.object({
+    name: z.string().min(1),
+    role: z.string().min(1).describe('papel + descrição breve, 1 frase'),
+    want: z.string().min(1).describe('motivação INDIVIDUAL do NPC (mais específica que a da facção)'),
+    factionIndex: z.number().int().min(0).optional().describe('Índice (0-based) em factions[] — NÚMERO; omitir se NPC neutro'),
+    speech: z.string().optional().describe('Fala de abertura (palavras EXATAS) — preencha em pelo menos 3 NPCs'),
+  })).min(1),
+  locations: z.array(z.object({
+    title: z.string().min(1),
+    aspects: z.array(z.string()).describe('2-3 aspectos curtos, estilo Fate'),
+    boxedText: z.string().min(1).describe('Texto lido em voz alta ao chegar, 2-3 frases'),
+    description: z.string().min(1).describe('Notas do mestre — SÓ o lugar e itens, NUNCA cite NPCs aqui'),
+    occupants: z.array(z.number().int().min(0)).describe('Índices (0-based) de npcs[] presentes — NÚMERO, [] se nenhum'),
+    factionIndex: z.number().int().min(0).optional().describe('Índice (0-based) em factions[] que controla o local — omitir se neutro'),
+    vibe: z.enum(['combat', 'skill', 'social']),
+  })).min(1),
+  challenges: z.array(z.object({
+    locationIndex: z.number().int().min(0).describe('Índice (0-based) em locations[] onde o desafio acontece'),
+    test: z.string().min(1).describe('perícia/atributo nomeado, SEM CD'),
+    situation: z.string().min(1),
+    consequence: z.string().min(1).describe('consequência da falha'),
+  })).min(1),
+  encounters: z.array(z.object({
+    locationIndex: z.number().int().min(0).describe('Índice (0-based) em locations[]'),
+    npcIndices: z.array(z.number().int().min(0)).describe('Índices (0-based) em npcs[] que participam — [] se nenhum'),
+    type: z.enum(['combat', 'skill', 'social']),
+    fiction: z.string().min(1).describe('A NARRATIVA da cena que o jogador lê — sem números de mecânica'),
+    behaviors: z.string().min(1).describe('o que os presentes fazem agora'),
+    goal: z.string().min(1).describe('por que o personagem foi até lá'),
+    complications: z.string().min(1).describe('o que pode virar o jogo de cabeça pra baixo'),
+    unlocks: z.string().min(1).describe('o que ESTE encontro entrega que faz o próximo existir'),
+  })).min(1),
+  objective: z.object({
+    description: z.string().min(1),
+    reward: z.object({
+      name: z.string().min(1).describe('item mágico nomeado'),
+      effect: z.string().min(1).describe('efeito em FICÇÃO, SEM números'),
+    }),
+    locationIndex: z.number().int().min(0).describe('Índice (0-based) em locations[] onde a meta se resolve'),
+  }),
+  branchedResolution: z.array(z.object({
+    choice: z.string().min(1),
+    consequence: z.string().min(1).describe('o custo dessa escolha — nenhum rumo é "o certo"'),
+  })).min(1),
+  start: z.string().min(1).describe('SÓ o gancho — a última parte da Story ("O gancho: …")'),
+  followUps: z.array(z.string()).min(1).describe('um gancho pós-aventura por rumo do fecho'),
 })
 
-// US-158: `patronsandnpcs` só dá behavior+ancestry (método do LGMRD) — o prompt lista
-// as linhas roladas para o modelo INVENTAR nome+arquétipo em cima delas, nunca copiar.
-// US-192: `premissa` chega já elaborada por `generatePremissa` — não é mais lida de
-// `rolled.premissa` (que deixou de existir; `rolled` agora só carrega os candidatos crus).
-// 2026-08-25: a linha rolada passa por `localizePatronRow` antes de entrar no prompt — em
-// pt-BR o modelo copiava a palavra EN da tabela verbatim para dentro da prosa («o lizardfolk
-// tem a chave»), do mesmo jeito que copiava a palavra-semente de local/monumento.
-function buildLocationsAndNpcsPrompt(rolled: RolledAdventureContent, premissa: string, locale: Locale = DEFAULT_LOCALE): string {
-  const npcRows = rolled.patronsandnpcs
-    .map((row, i) => {
-      const { behavior, ancestry } = localizePatronRow(row, locale)
-      return `${i + 1}. comportamento: ${behavior}; ancestralidade: ${ancestry}`
-    })
-    .join('\n')
+export type AuthoredAdventure = z.infer<typeof AUTHORING_SCHEMA>
+
+// US-232: instruções da autoria mundo-primeiro. Portadas do Spike (adventure-authoring-spike.mjs:
+// authoringPrompt), com a divergência deliberada de *tábula rasa* das Notas de implementação: o
+// exemplar (Khemsar) NÃO entra verbatim — ensina QUALIDADE de forma abstrata (corta a
+// convergência de motivo "ossos de titã" que o Spike expôs).
+function buildAuthoringSystem(locale: Locale): string {
+  const targetLanguage = localeNameForPrompt(locale)
   return [
-    `Premissa da aventura: ${premissa}`,
-    `Local/monumento centrais rolados: ${rolled.locais} — ${rolled.monumentos}`,
-    `Complicação: ${rolled.complicacao.condition} (${rolled.complicacao.description}), origem: ${rolled.complicacao.origin}`,
+    'Você é um designer de aventuras de RPG de mesa (D&D 5e), no nível de um módulo publicado. Escreva uma aventura one-shot ORIGINAL e AUTORAL para UM único personagem.',
     '',
-    `Linhas roladas para os NPCs (uma por NPC, gere exatamente ${rolled.patronsandnpcs.length}):`,
-    npcRows,
+    'INVENTE UM MUNDO NOVO — não use cenários de prateleira (nada de Costa da Espada, Faerûn, etc.). O mundo é seu, específico e nomeado, com detalhe sensorial concreto.',
+    '',
+    'PRIMEIRA AVENTURA — o personagem CHEGA NOVO a este mundo, é a primeira sessão dele: NÃO existe história prévia jogada. Portanto:',
+    '- NENHUM NPC já conhece o personagem, deve favores a ele, ou o reconhece — todos são estranhos no início; qualquer vínculo se constrói DURANTE a aventura.',
+    '- NÃO pressuponha eventos anteriores como fato (dívidas antigas, inimigos que já o caçam, aliados do passado, parentes na trama).',
+    '- NÃO ancore item, recompensa, lugar ou pista no passado específico do personagem — a proveniência das coisas é do MUNDO, não da biografia dele.',
+    '- Follow-ups introduzem ganchos NOVOS do mundo; NÃO afirmam dívidas/inimigos/parentes do personagem que "voltam a persegui-lo".',
+    'O enredo nasce de um gancho que qualquer forasteiro poderia receber ao chegar, não de um passado que o personagem já tem aqui.',
+    '',
+    'MECÂNICA: NÃO escreva número mecânico na prosa — nada de CD, dano, HP, CA, bônus. Testes são nomeados QUALITATIVAMENTE por perícia/atributo ("teste de Sabedoria (Percepção)"), sem CD. Statblocks de inimigo NÃO se escrevem aqui; descreva o inimigo e seu papel só em ficção.',
+    '',
+    'FACÇÕES: invente as facções pedidas com desejos que COLIDEM — elas SÃO o antagonismo (não há um vilão único). Dissolva-as na `story` e nos `npcs` (a alma vem dessa tensão), mas preencha `factions[]` como dado estruturado. NPC neutro tem `want` SEM `factionIndex`.',
+    '',
+    'OBJETIVO E FECHO: `objective` tem meta + recompensa (item mágico nomeado, efeito em ficção, sem números) + local. `branchedResolution` é a escolha final RAMIFICADA — um rumo por facção, cada um com um custo, nenhum "o certo". O último encontro (o Final) amarra essa escolha ramificada.',
+    '',
+    'LOCAIS: a `description` fala SÓ do lugar e dos itens — NÃO cite NPCs que estão nele (quem os habita fica em `occupants`, por índice). Ex.: descreva "o balcão de uma taverna esfumaçada e o mural nos fundos", não "onde o estalajadeiro Tobias serve bebida".',
+    '',
+    'ENCONTROS: `fiction` é a NARRATIVA da cena que o jogador lê; `behaviors`/`goal`/`complications`/`unlocks` são a decomposição (Sly Flourish + trilha) que o motor usa. `unlocks` do encontro N faz o N+1 existir; o Final ecoa o conflito de `branchedResolution`.',
+    '',
+    `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a Onomástica abaixo, não o idioma-alvo. Prosa densa e sensorial, sem placeholders.`,
+    '',
+    `Barra de qualidade da prosa (world/story/boxedText/fiction/role):\n${CRAFT_CORE_SECTION}\n${NPC_VOICE_BULLET}\n\n${ONOMASTICS_SECTION}`,
   ].join('\n')
 }
 
-// US-192: schema minimalista — só a premissa final elaborada. Não expõe os candidatos
-// rolados nem as situações imaginadas pelo modelo (raciocínio interno instruído no
-// `system`), mesma disciplina de `generateAntagonist` (não expõe alternativas descartadas).
-const PREMISSA_SCHEMA = z.object({
-  premissa: z.string().min(1),
-})
-
-function buildPremissaPrompt(params: { candidates: string[]; complicacao: { condition: string; description: string; origin: string } }): string {
-  const candidateLines = params.candidates.map((c, i) => `${i + 1}. ${c}`).join('\n')
+// US-232: restrições POR AVENTURA (contagens, params de mundo, background como tom). Param de
+// mundo entra pelo RÓTULO pt-BR (nunca a chave, US-156); eixo "Aleatório" = omitido = modelo
+// livre. `challenge` (dial de dificuldade) NÃO entra na autoria (é MA-3). `characterStory` entra
+// só como TOM/ressonância — nunca como fato literal de plot; bonds/deity/flaws ficam de fora.
+function buildAuthoringPrompt(params: {
+  world: { setting?: string; tone?: string; areaType?: string }
+  factionCount: number
+  counts: { locations: number; npcs: number; challenges: number; encounters: number }
+  characterStory?: string
+  level: number
+  className: string
+}): string {
+  const worldLines = [
+    params.world.setting && `- Cenário: ${params.world.setting}`,
+    params.world.tone && `- Tom: ${params.world.tone}`,
+    params.world.areaType && `- Tipo de área: ${params.world.areaType}`,
+  ].filter((l): l is string => Boolean(l))
+  const { counts } = params
   return [
-    'Candidatos rolados para a premissa (escolha UM e elabore):',
-    candidateLines,
+    `Personagem: ${params.className}, nível ${params.level}. (Contexto de escala — a aventura NÃO gira em torno dele nem do passado dele.)`,
+    params.characterStory?.trim()
+      ? `História do personagem (use SÓ como TOM/ressonância temática, NUNCA como fato de plot nem teia de relações pré-existentes): ${params.characterStory.trim()}`
+      : 'Sem história de personagem registrada — o tom vem só do mundo e dos params abaixo.',
     '',
-    `Complicação já rolada para esta aventura: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
-  ].join('\n')
-}
-
-// US-149: schema dos SEGREDOS. SEM `id` — mesma disciplina de LOCATIONS_AND_NPCS_SCHEMA
-// (`generateSecrets` minta `secret-N` no código). `locationId` é texto livre no schema
-// (Zod não valida contra a lista de locais em runtime), mas o system prompt instrui a
-// só escolher entre os ids dados — verificação formal é o gate da US-150.
-const SECRETS_SCHEMA = z.object({
-  secrets: z
-    .array(
-      z.object({
-        locationId: z.string().min(1).describe('Um dos ids de locations recebidos — NUNCA invente um id novo'),
-        text: z.string().min(1),
-      }),
-    )
-    .min(1),
-})
-
-const SECRET_CATEGORY_LABEL: Record<keyof SecretPrompts, string> = {
-  charactersecrets: 'Segredos de personagem (ligam a background/origin da personagem)',
-  historicalsecrets: 'Segredos históricos (ligam a um local)',
-  npcandvillainsecrets: 'Segredos de NPC/vilão (ligam a um NPC já gerado)',
-  plotandstorysecrets: 'Segredos de trama (ligam ao gancho/arco geral)',
-}
-
-// US-149, Questão em aberto #2: split fixado 3+3+3+2=11 — vai no PROMPT como instrução
-// fixa de quantidade, não como validação de código (heurística de seleção é implementação,
-// fora do escopo formal da story).
-const SECRET_CATEGORY_COUNT: Record<keyof SecretPrompts, number> = {
-  charactersecrets: 3,
-  historicalsecrets: 3,
-  npcandvillainsecrets: 3,
-  plotandstorysecrets: 2,
-}
-
-function buildSecretsPrompt(locations: AdventureLocation[], npcs: AdventureNpc[], secretPrompts: SecretPrompts): string {
-  const locationLines = locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
-  // Reverse-lookup do local do NPC (mesmo padrão de seed-ledger.ts:43) — sem isso, segredos de
-  // NPC/vilão não têm locationId óbvio e o modelo chuta o id do NPC no campo (visto em prod
-  // 2026-08-19: "segredo referencia locationId inexistente npc-1").
-  const npcLines = npcs
-    .map((npc) => {
-      const location = locations.find((loc) => loc.occupants.includes(npc.id))
-      const locationHint = location ? ` (local: ${location.id})` : ''
-      return `${npc.id}: ${npc.name} — ${npc.role}${locationHint}`
-    })
-    .join('\n')
-  const categoryBlock = (category: keyof SecretPrompts) =>
-    `${SECRET_CATEGORY_LABEL[category]} — escreva exatamente ${SECRET_CATEGORY_COUNT[category]}, escolhendo entre estes moldes:\n` +
-    secretPrompts[category].map((p, i) => `${i + 1}. ${p}`).join('\n')
-  return [
-    `Locais disponíveis (use o id em locationId):\n${locationLines}`,
+    worldLines.length > 0
+      ? `Restrições de mundo (respeite estes eixos):\n${worldLines.join('\n')}`
+      : 'Sem eixos de mundo fixados — você é livre em cenário/tom/tipo de área.',
     '',
-    `NPCs disponíveis:\n${npcLines}`,
+    'Contagens (respeite exatamente):',
+    `- ${params.factionCount} facções com desejos concorrentes`,
+    `- ~${counts.locations} locais`,
+    `- ~${counts.npcs} NPCs`,
+    `- ${counts.challenges} desafios NÃO-COMBATE (cada um preso a um local)`,
+    `- ${counts.encounters} encontros (inclua um Final que amarra o fecho ramificado)`,
+    `- ${params.factionCount} rumos em branchedResolution e ${params.factionCount} followUps (um por facção)`,
     '',
-    categoryBlock('charactersecrets'),
-    '',
-    categoryBlock('historicalsecrets'),
-    '',
-    categoryBlock('npcandvillainsecrets'),
-    '',
-    categoryBlock('plotandstorysecrets'),
+    'Emita na ordem: mundo → facções → conflito+fecho (story/branchedResolution) → objetivo+recompensa → locais/NPCs (com fala e o que cada um quer) → followUps → ficção dos encontros → desafios não-combate.',
   ].join('\n')
 }
 
@@ -263,129 +260,6 @@ export function composeMainQuestText(primary: { title: string; description: stri
   return primary.objective ? `${body}\n${primary.objective}` : body
 }
 
-// US-199: se o antagonista ainda não foi promovido no ledger (`recordEntity({ revelado:
-// true })`), `objective` (que sempre cita `want`/`method` dele, US-169) não pode entrar
-// no `## Main quest` — entregaria o vilão de graça. Extraída, mesmo padrão de
-// `composeMainQuestText`, só pra ser testável isolada; o bypass do caso sem
-// `generatedAdventure` (Free/legado) é montado pelo CALLER, não aqui.
-export function isAntagonistRevealed(antagonistName: string, entities: WorldEntity[] | null | undefined): boolean {
-  if (!antagonistName || !entities) return false
-  return entities.some((e) => norm(e.nome) === norm(antagonistName) && e.revelado === true)
-}
-
-// US-180: lista de âncoras pessoais da personagem (`story`/`origin.adventuresAndAdvancement`)
-// — usada por `generateSecrets` (US-149) pra montar a própria frase de instrução. Extraída
-// pra função pura porque as duas listas eram quase-idênticas e arriscavam divergir com o
-// tempo (mesma disciplina de reuso da seção compartilhada de `dm-system.ts`, US-177/US-179).
-// US-194: `generateOpeningBeat` (a outra consumidora original) foi apagada.
-// `bonds`/`flaws`/`deity` NÃO entram aqui — motor de geração só consome `story` do
-// background (o resto continua servindo só a narração de turno ao vivo). `connection`/
-// `memento` do origin também ficam de fora, mesma razão.
-function characterAnchors(params: {
-  background?: CharacterBackground
-  origin?: { adventuresAndAdvancement?: string }
-}): string[] {
-  return [
-    params.background?.story?.trim() && `História: ${params.background.story}`,
-    params.origin?.adventuresAndAdvancement?.trim() && `Aventura e avanço da origem: ${params.origin.adventuresAndAdvancement}`,
-  ].filter((line): line is string => Boolean(line))
-}
-
-// US-181/US-190: schema do ANTAGONISTA estruturado — `want`/`method`/`trait`/`weakness`
-// sempre presentes (mesmo quando `premissa` não sugere vilão óbvio, o modelo infere uma
-// oposição plausível — campo opcional é pior consumidor a jusante que campo sempre presente).
-// `connection` (US-183): como o antagonista se relaciona com o vínculo pessoal da
-// personagem (`characterAnchors`) — sem âncora registrada, cai pra conexão genérica
-// ancorada em locations/npcs/secrets, nunca vazio (mesma disciplina dos outros 4 campos).
-const ANTAGONIST_SCHEMA = z.object({
-  name: z.string().min(1),
-  want: z.string().min(1),
-  method: z.string().min(1),
-  trait: z.string().min(1),
-  weakness: z.string().min(1),
-  connection: z.string().min(1),
-})
-
-// US-164, passo 6 / US-166: schema do FECHO RAMIFICADO. `followUps[]` não referencia
-// nada, é semente pra PRÓXIMA aventura (US-151 consome como texto, não por id).
-// `encounterSituations` fecha as 4 perguntas restantes de cada uma das 8 SITUAÇÕES (Sly
-// Flourish + US-193 `unlocks`) — posicional, o item `i` corresponde ao `encounterSkeleton[i]`
-// do prompt; `encounterId` (US-193) é só eco pra conferir esse pareamento, não referência real.
-export const CLOSING_SCHEMA = z.object({
-  // US-169: alvo concreto e verificável da aventura, citando NOMES reais (NPC/vilão/facção)
-  // e o `want`/`method` do antagonista — nunca uma paráfrase do `summary` nem só o nome dele.
-  objective: z.string().min(1),
-  conclusion: z.string().min(1),
-  followUps: z.array(z.string()).min(1),
-  encounterSituations: z.array(z.object({
-    // US-193: eco do id da lista do prompt, só pra conferir pareamento posicional em
-    // adventure.service.ts — descartado logo depois, nunca chega em AdventureEncounterSchema.
-    encounterId: z.string().min(1),
-    behaviors: z.string().min(1),
-    goal: z.string().min(1),
-    complications: z.string().min(1),
-    unlocks: z.string().min(1),
-  })).length(8),
-})
-
-// US-191, Parte 2: schema da PROSA REESCRITA do local do confronto final — mesmos dois
-// campos de AdventureLocationSchema (`boxedText`/`description`), agora citando o antagonista
-// pelo nome. `title`/`aspects`/`occupants` do local NÃO mudam por esta chamada.
-const ANTAGONIST_LOCATION_PROSE_SCHEMA = z.object({
-  boxedText: z.string().min(1),
-  description: z.string().min(1),
-})
-
-// US-166: encontro já resolvido (locationId/npcIds → location/npcs reais) — o que
-// `generateClosing` precisa pra escrever behaviors/goal/complications por posição.
-interface EncounterSkeletonEntry {
-  id: string
-  type: 'combat' | 'skill' | 'social'
-  location: AdventureLocation
-  npcs: AdventureNpc[]
-}
-
-// US-181/US-190: `antagonist` é opcional aqui — `generateAntagonist` reusa este builder
-// ANTES de o antagonista existir (é ele quem o decide); `generateClosing` roda DEPOIS,
-// sempre passa o antagonista já pronto pra ancorar a conclusão nele.
-// US-166: `encounterSkeleton` é opcional pela mesma razão — só `generateClosing` precisa da
-// seção dos 8 encontros; `generateAntagonist` não escreve `encounterSituations`.
-function buildClosingPrompt(params: {
-  locations: AdventureLocation[]
-  npcs: AdventureNpc[]
-  secrets: AdventureSecret[]
-  complicacao: { condition: string; description: string; origin: string }
-  premissa: string
-  antagonist?: AdventureAntagonist
-  encounterSkeleton?: EncounterSkeletonEntry[]
-}): string {
-  const locationLines = params.locations.map((loc) => `${loc.id}: ${loc.title}`).join('\n')
-  const npcLines = params.npcs.map((npc) => `${npc.id}: ${npc.name} — ${npc.role}`).join('\n')
-  const secretLines = params.secrets.map((s) => `${s.id} (${s.locationId}): ${s.text}`).join('\n')
-  const antagonistLine = params.antagonist
-    ? `Antagonista já decidido: ${params.antagonist.name} — quer ${params.antagonist.want}; método: ${params.antagonist.method}.`
-    : null
-  const encounterLines = params.encounterSkeleton
-    ?.map((e, i) => {
-      const npcLabel = e.npcs.length > 0 ? e.npcs.map((n) => `${n.name} (${n.role})`).join(', ') : 'nenhum'
-      return `${i + 1}. ${e.id} (${e.type}) — local: ${e.location.title}; moradores: ${npcLabel}`
-    })
-    .join('\n')
-  return [
-    `Premissa: ${params.premissa}`,
-    `Complicação: ${params.complicacao.condition} (${params.complicacao.description}), origem: ${params.complicacao.origin}`,
-    ...(antagonistLine ? ['', antagonistLine] : []),
-    '',
-    `Locais disponíveis:\n${locationLines}`,
-    '',
-    `NPCs disponíveis:\n${npcLines}`,
-    '',
-    `Segredos já escritos:\n${secretLines}`,
-    // US-193: cabeçalho declara TRILHA, não conjunto — o encontro `i` só existe por causa
-    // do `i-1` (hurdles-based design). Sem campo novo no encounterSkeleton: a ordem já é o vínculo.
-    ...(encounterLines ? ['', `Encontros da aventura — uma TRILHA ordenada, cada encontro só acontece por causa do anterior (não um conjunto de cenas soltas). Escreva encounterSituations na MESMA ordem, respondendo cada um:\n${encounterLines}`] : []),
-  ].join('\n')
-}
 
 // US-74 (salvage): instrução da chamada que COMPLETA uma narração truncada. Foco
 // estreito — continuar + fechar nas opções, SEM tools, SEM dados. As opções são
@@ -687,16 +561,12 @@ export class AiService {
     const generatedAdventure = adventure.generatedAdventure as GeneratedAdventure | null
     const entities = (adventure.entities ?? null) as WorldEntity[] | null
     const primary = quests.find((q) => q.isPrimary)
-    // US-199: `objective` só entra no `## Main quest` depois que o Mestre promove o
-    // antagonista via `recordEntity` — antes disso ele nomeia o vilão e o método de
-    // graça, turnos antes de qualquer encontro. Sem `generatedAdventure` (Free/legado)
-    // não há gate: `objective` passa direto, mesmo comportamento de hoje.
-    const antagonistRevealed = generatedAdventure
-      ? isAntagonistRevealed(generatedAdventure.antagonist.name, entities)
-      : true
-    const mainQuest = primary
-      ? composeMainQuestText({ ...primary, objective: antagonistRevealed ? primary.objective : null })
-      : null
+    // US-232: o spoiler-gate do antagonista (US-199) saiu — sem uma entidade única "o
+    // antagonista", não há o que promover no ledger pra decidir se `objective` aparece. O
+    // antagonismo agora são as `factions[]` concorrentes (nenhuma é "o vilão"), então
+    // `objective` (o alvo concreto) é sempre exposto no `## Main quest` quando existe,
+    // mesmo comportamento que já valia pro caminho Free/legado.
+    const mainQuest = primary ? composeMainQuestText(primary) : null
     const activeQuests = quests.filter((q) => !q.isPrimary)
 
     // Rótulos e perícias vêm de System.config (US-21/US-27, já validado na criação);
@@ -1075,12 +945,14 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       }),
 
       // US-169: fecha a quest PRIMÁRIA da aventura corrente — sucesso ou fracasso/desistência
-      // (`outcome: 'failure'` cobre os dois, ver US-169 Questões em aberto #2). Devolve
-      // `conclusionHint` (texto que o motor já escreveu pro desfecho) pro Mestre expandir na
-      // narração do MESMO turno, sem citar verbatim (mesma disciplina do `hookSeed`).
+      // (`outcome: 'failure'` cobre os dois, ver US-169 Questões em aberto #2).
+      // US-232: `Quest.conclusionHint` saiu da tabela — a autoria mundo-primeiro tem fecho
+      // RAMIFICADO (`branchedResolution`, sem herói), não uma conclusão única pré-escrita, e
+      // `completeQuest` não recebe qual ramo o jogador escolheu. O Mestre escreve o fecho a
+      // partir da própria ficção do turno; a tool só marca o estado da quest.
       completeQuest: tool({
         description:
-          'Call this the moment the fiction resolves the adventure\'s main objective — the character achieves it, or clearly fails/gives up on it (flees, refuses to continue, an irreversible change of course). Pass `outcome`: "success" or "failure" (failure also covers abandoning/fleeing the objective). Returns `conclusion`: prose written for this exact ending — use it as the BASIS for your closing narration this turn, never quote it verbatim. Call this only ONCE per adventure; a second call after the quest is already closed does not overwrite it.',
+          'Call this the moment the fiction resolves the adventure\'s main objective — the character achieves it, or clearly fails/gives up on it (flees, refuses to continue, an irreversible change of course). Pass `outcome`: "success" or "failure" (failure also covers abandoning/fleeing the objective). Write the closing narration from the fiction of this turn. Call this only ONCE per adventure; a second call after the quest is already closed does not overwrite it.',
         parameters: z.object({
           outcome: z.enum(['success', 'failure']),
           reason: z.string().optional().describe('Short note of HOW it ended, for the campaign record — e.g. "derrotou Malvora em combate", "fugiu da vila sem enfrentar o culto".'),
@@ -1097,7 +969,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
           // terminal, REJEITA — não sobrescreve (evita duas conclusões narrativas contraditórias
           // vindas de o modelo "se corrigir" por engano). Mesmo outcome repetido é idempotente.
           if (isTerminal && quest.status !== status) {
-            return { alreadyCompleted: true, status: quest.status, conclusion: quest.conclusionHint }
+            return { alreadyCompleted: true, status: quest.status }
           }
 
           await this.prisma.quest.update({
@@ -1113,7 +985,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
             },
           })
 
-          return { conclusion: quest.conclusionHint }
+          return { status }
         },
       }),
 
@@ -1597,356 +1469,54 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     }
   }
 
+
   /**
-   * US-192: passo 1 do motor — em vez do primeiro resultado cru de `1d20quests`
-   * (rollContent, US-147), recebe os `PREMISSA_ROLL_COUNT` candidatos já rolados e,
-   * técnica do *Adventure Generator* do Shadowdark RPG (rolar N, imaginar como a
-   * personagem fica sabendo do problema, escolher a situação mais direta/urgente),
-   * escolhe e escreve a premissa final — com o vínculo pessoal da personagem
-   * (`characterAnchors`) quando existir, e sem contradizer `complicacao`. Roda ANTES
-   * de `generateLocationsAndNpcs` (adventure.service.ts): as outras 4 chamadas do
-   * motor recebem o resultado elaborado, não os candidatos crus.
+   * US-232: motor de autoria mundo-primeiro (call ÚNICO, D5). Substitui os 6 `generate*`
+   * encadeados (premissa/locais/NPCs/segredos/antagonista/fecho) por UMA chamada que emite o
+   * artefato inteiro de FICÇÃO (números do encontro vêm no PASSO 2, MA-3). Escada de prosa
+   * (`authoringModels`, model.ts): tenta cada modelo em ordem, o PRIMEIRO `generateObject` que
+   * não lançar ganha e para (STOP_ON_FIRST) — resiliência a outage/rate-limit, não bake-off.
    *
-   * Schema minimalista (`{ premissa: string }`) — não expõe os candidatos nem as
-   * situações imaginadas, mesma disciplina de `generateAntagonist` (não expõe
-   * alternativas descartadas). NUNCA captura erro — mesma disciplina das outras 5
-   * chamadas do motor: falha aqui é motivo de reseed da US-150, não degradação silenciosa.
+   * Saída BRUTA por ÍNDICE (`AUTHORING_SCHEMA`) — quem minta os ids é `adventure.service.ts`.
+   * NUNCA degrada em silêncio: escada inteira falhando lança (motivo de reseed do gate, MA-4).
+   * `maxTokens: 16000` — 12000 cortava o arm preferido `deepseek-v4-pro` (verboso) com
+   * `AI_NoObjectGeneratedError` (JSON truncado, finishReason tool-calls), forçando cair pro
+   * 0813 e perder a barra de texto do pro; medido no smoke E2E da US-232 (scripts/run-authoring.ts).
    */
-  async generatePremissa(params: {
-    candidates: string[]
-    complicacao: { condition: string; description: string; origin: string }
-    registry: AdventureRegistry
-    background?: CharacterBackground
-    origin?: { adventuresAndAdvancement?: string }
+  async generateAdventureAuthoring(params: {
+    world: { setting?: string; tone?: string; areaType?: string }
+    factionCount: number
+    counts: { locations: number; npcs: number; challenges: number; encounters: number }
+    characterStory?: string
+    level: number
+    className: string
     locale?: Locale
-  }): Promise<{ premissa: string }> {
-    const anchors = characterAnchors(params)
-    const anchorInstruction = anchors.length > 0
-      ? `Vínculo pessoal da personagem — prefira a situação que se encaixa em um destes: ${anchors.join('; ')}.`
-      : 'Sem vínculo pessoal registrado — escolha a situação mais direta/urgente entre os candidatos.'
-    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
+  }): Promise<AuthoredAdventure> {
+    const locale = params.locale ?? DEFAULT_LOCALE
+    const system = buildAuthoringSystem(locale)
+    const prompt = buildAuthoringPrompt(params)
 
-    const { object, providerMetadata } = await generateObject({
-      model: primaryModel,
-      schema: PREMISSA_SCHEMA,
-      system:
-        'Você é o Mestre de um RPG escolhendo a PREMISSA de uma aventura one-shot (técnica do Adventure Generator, Shadowdark RPG). ' +
-        'Para cada um dos candidatos recebidos, imagine como a personagem ficaria sabendo do problema — favoreça a situação que a envolve mais DIRETAMENTE e que mais demanda ação. ' +
-        `${anchorInstruction} ` +
-        'Escreva a premissa final em 1-2 frases como uma chamada à ação: precisa deixar claro qual PROBLEMA existe e precisa ser resolvido, com a personagem já puxada para dentro dele — nunca contradiga a complicação recebida (não precisa citá-la, só não destoar dela). ' +
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador.\n\n${CRAFT_CORE_SECTION}`,
-      prompt: buildPremissaPrompt(params),
-      providerOptions: ENGINE_PROVIDER_OPTIONS,
-    })
-    logExtractionEndpoint('generatePremissa', primaryModel, providerMetadata)
-
-    return object
-  }
-
-  /**
-   * US-158: veste de prosa os ~6 locais e gera os ~7 NPCs a partir do conteúdo bruto
-   * já rolado (US-147), mintando `id` real no CÓDIGO (`loc-N`/`npc-N`) — nunca deixado
-   * ao modelo (a US-149 só CONSOME esses `id`s, esta story é quem os cria). Uma
-   * chamada combinada (não duas): deixa o modelo amarrar `occupants` de local a NPC no
-   * mesmo contexto (Notas de implementação da US-158).
-   *
-   * Ao contrário de `extractOpeningEntities`/`extractOpeningScene` (que engolem falha
-   * e devolvem `null`), esta chamada NUNCA captura erro: sem `locations`/`npcs` a
-   * US-149 (segredos) e o gate da US-150 não têm entrada — a falha aqui é motivo de
-   * reseed, não de degradar em silêncio (US-158, critério de aceite).
-   *
-   * US-192: `premissa` chega explícita, já elaborada por `generatePremissa` — deixou de
-   * ler `rolled.premissa` (campo que não existe mais em `RolledAdventureContent`).
-   */
-  async generateLocationsAndNpcs(params: {
-    rolled: RolledAdventureContent
-    premissa: string
-    registry: AdventureRegistry
-    locale?: Locale
-  }): Promise<{ locations: AdventureLocation[]; npcs: AdventureNpc[] }> {
-    // 2026-08-23: deixou de ancorar em background/origin da ficha (characterAnchors) — elenco
-    // ancora só no que já foi rolado para ESTA aventura, mesma rede de segurança que a US-174
-    // já dava pro caso de background/origin vazios (não o catálogo fixo por classe, US-153).
-    const storyInstruction = 'Sem história registrada — amarre ao menos um NPC ao que já foi rolado para esta aventura (local ou NPC).'
-    // US-178: `system` continua em português (instrução PARA o modelo) — só a SAÍDA segue
-    // o locale do jogador, mesmo padrão de `buildDmSystemPrompt` (dm-system.ts:260).
-    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
-
-    const { object, providerMetadata } = await generateObject({
-      model: primaryModel,
-      schema: LOCATIONS_AND_NPCS_SCHEMA,
-      system:
-        'Você é o Mestre de um RPG vestindo de prosa o conteúdo bruto rolado de uma aventura one-shot (método Lazy GM Resource Document). ' +
-        'Para cada NPC, invente NOME e um ARQUÉTIPO DE FICÇÃO POPULAR a partir do comportamento/ancestralidade dados — nunca invente comportamento ou ancestralidade além do que foi rolado. ' +
-        'O local/monumento rolados chegam em INGLÊS, como palavra-semente da tabela (ex.: "Barrow", "Cove") — não é o nome final: nunca copie essa palavra verbatim como título ou dentro da prosa. Traduza o CONCEITO e construa um nome próprio novo no idioma-alvo, seguindo a Onomástica abaixo. ' +
-        // US-187: setting/areaType entram ao lado do tone já citado — mesmo padrão dos
-        // outros 4 consumidores de prosa (US-186).
-        // 2026-08-23: sem isto o modelo às vezes não marca NENHUM local como vibe:'combat'
-        // — o confronto final (sempre combat, US-166) cai no fallback de round-robin cego
-        // em vez de um local pensado pra ele (buildEncounterDraft, adventure.service.ts).
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ${storyInstruction} ` +
-        `Ao menos UM local precisa ter vibe:'combat' — o confronto final desta aventura é sempre um combate e precisa de um local que sirva a ele. ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a regra de Onomástica abaixo, não o idioma-alvo.\n\n` +
-        // US-179: boxedText é lido em voz alta (método LGMRD) — vale a MESMA barra
-        // abaixo, não uma versão mais fraca por ser um trecho curto.
-        `A prosa de local (boxedText/description) e o role do NPC seguem esta barra de qualidade:\n${CRAFT_CORE_SECTION}\n${NPC_VOICE_BULLET}\n\n${ONOMASTICS_SECTION}`,
-      prompt: buildLocationsAndNpcsPrompt(params.rolled, params.premissa, params.locale ?? DEFAULT_LOCALE),
-      providerOptions: ENGINE_PROVIDER_OPTIONS,
-    })
-    logExtractionEndpoint('generateLocationsAndNpcs', primaryModel, providerMetadata)
-
-    const npcs: AdventureNpc[] = object.npcs.map((npc, i) => ({
-      id: `npc-${i + 1}`,
-      name: npc.name,
-      role: npc.role,
-      interactions: [],
-    }))
-
-    // 2026-08-19: índice fora de faixa (o modelo inventa uma posição que `npcs[]` não
-    // tem) é descartado em silêncio, não vira `occupants` cru — ao contrário do antigo
-    // match por nome, um índice inválido não tem "melhor esforço" possível: não há
-    // string nenhuma pra preservar. Gate (US-150) segue sendo quem pega o local que
-    // ficar sem NENHUM occupant válido.
-    const locations: AdventureLocation[] = object.locations.map((loc, i) => ({
-      id: `loc-${i + 1}`,
-      title: loc.title,
-      aspects: loc.aspects,
-      boxedText: loc.boxedText,
-      description: loc.description,
-      occupants: loc.occupants.filter((idx) => idx < npcs.length).map((idx) => npcs[idx]!.id),
-      vibe: loc.vibe,
-    }))
-
-    return { locations, npcs }
-  }
-
-  /**
-   * US-149: escreve os ~11 segredos da aventura a partir dos 40 prompts-molde do LGMRD,
-   * usando `locations`/`npcs` já decididos (US-158) como âncora referencial e
-   * `background`/`origin` como âncora narrativa. Mesma disciplina de
-   * `generateLocationsAndNpcs`: minta `id` (`secret-N`) no CÓDIGO, nunca no modelo, e
-   * NUNCA captura erro — falha aqui é motivo de reseed da US-150, não degradação silenciosa.
-   * `locations`/`npcs` obrigatórios (não opcionais) força a ordem: esta chamada não roda
-   * sem eles. `hookSeed` (gancho fixo por classe) NÃO é insumo — nem no schema, nem no
-   * `system`/`prompt` (US-174; depois de US-175, nenhuma chamada do motor recebe `hookSeed`).
-   *
-   * 2026-08-23: deixou de receber `background`/`origin` — a âncora narrativa citada acima
-   * não se aplica mais aqui; só `generatePremissa` continua ancorando em vínculo pessoal
-   * da personagem (US-194: `generateOpeningBeat`, a outra que ancorava, foi apagada).
-   */
-  async generateSecrets(params: {
-    locations: AdventureLocation[]
-    npcs: AdventureNpc[]
-    secretPrompts: SecretPrompts
-    registry: AdventureRegistry
-    locale?: Locale
-  }): Promise<AdventureSecret[]> {
-    // US-174: rede de segurança quando background/origin vêm vazios deixou de citar o gancho
-    // fixo por classe (`hookSeed`) — instrução genérica ancorada no que já foi rolado para
-    // ESTA aventura, mesmo padrão de `generateLocationsAndNpcs`.
-    const anchorInstruction = 'Sem background/origin registrados — ancore os segredos ao que já foi rolado para esta aventura (registry/local/NPC).'
-    // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
-    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
-
-    const { object, providerMetadata } = await generateObject({
-      model: primaryModel,
-      schema: SECRETS_SCHEMA,
-      system:
-        'Você é o Mestre de um RPG escrevendo os SEGREDOS de uma aventura one-shot (método Lazy GM Resource Document), a partir de moldes de pergunta. ' +
-        'Para cada segredo, responda a UMA das perguntas-molde dadas, ancorando o fato em um local ou NPC REAL da lista recebida — nunca invente local, NPC ou fato fora do que foi dado. ' +
-        '`locationId` DEVE ser um dos ids de LOCAIS recebidos (nunca um id de NPC), o mais relevante ao segredo. ' +
-        'Para segredo de NPC/vilão, use o "(local: ...)" indicado ao lado do NPC se houver; senão, escolha o local mais relevante da lista. ' +
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ${anchorInstruction} ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
-      prompt: buildSecretsPrompt(params.locations, params.npcs, params.secretPrompts),
-      providerOptions: ENGINE_PROVIDER_OPTIONS,
-    })
-    logExtractionEndpoint('generateSecrets', primaryModel, providerMetadata)
-
-    return object.secrets.map((secret, i) => ({
-      id: `secret-${i + 1}`,
-      locationId: secret.locationId,
-      text: secret.text,
-    }))
-  }
-
-  /**
-   * US-181/US-190: sintetiza o ANTAGONISTA estruturado (`name`/`want`/`method`/`trait`/
-   * `weakness`) a partir de `locations`/`npcs`/`secrets` já decididos (US-158/US-149) e a
-   * `complicacao`/`premissa` roladas — chamada PRÓPRIA, sequencial, rodando depois de
-   * `generateSecrets` e antes de `generateClosing` (US-190: não fica mais implícito dentro
-   * do fecho, pra que outras chamadas também possam vê-lo cedo).
-   * Reusa `buildClosingPrompt` — mesmo bloco de contexto (locais/NPCs/segredos/premissa/
-   * complicação) que `generateClosing` já monta, nenhuma duplicação de prompt builder.
-   *
-   * US-183: ganha `background`/`origin` (mesma forma de `generateSecrets`) e sintetiza
-   * `connection` — reusa `characterAnchors(params)`, mesmo padrão condicional de
-   * `anchorInstruction` que a antiga `generateOpeningBeat` (US-194, apagada) também usava:
-   * com âncora, prefere ligar o antagonista a ela; sem âncora, cai pra conexão genérica
-   * ancorada em locations/npcs/secrets.
-   *
-   * NUNCA captura erro — mesma disciplina de `generateSecrets`/`generateClosing`: falha
-   * aqui é motivo de reseed na US-150, não degradação silenciosa.
-   */
-  /**
-   * 2026-08-23: `connection` NUNCA ancora em `background.story`/`origin.adventuresAndAdvancement`
-   * — QA local achou o antagonista literalizando a feature aberta do background (ex.: Hermit
-   * "voz interior", pensada pra atravessar VÁRIAS aventuras da carreira) como o próprio vilão
-   * desta aventura — derrotá-lo fechava um gancho que devia continuar aberto.
-   *
-   * 2026-08-23 (mesmo dia, reversão posterior): `generateLocationsAndNpcs`/`generateSecrets`/
-   * `generateClosing` também deixaram de receber `background`/`origin` — só `generatePremissa`
-   * continua ancorando em vínculo pessoal via `characterAnchors` (US-194: `generateOpeningBeat`,
-   * a outra que ancorava, foi apagada).
-   */
-  async generateAntagonist(params: {
-    locations: AdventureLocation[]
-    npcs: AdventureNpc[]
-    secrets: AdventureSecret[]
-    registry: AdventureRegistry
-    complicacao: { condition: string; description: string; origin: string }
-    premissa: string
-    locale?: Locale
-    // US-188: `npcId` NÃO sai daqui — o modelo não decide `id` de NPC, quem mintou o
-    // AdventureNpc (adventure.service.ts) fecha essa referência depois desta chamada.
-  }): Promise<Omit<AdventureAntagonist, 'npcId'>> {
-    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
-
-    const { object, providerMetadata } = await generateObject({
-      model: primaryModel,
-      schema: ANTAGONIST_SCHEMA,
-      system:
-        'Você é o Mestre de um RPG decidindo o ANTAGONISTA de uma aventura one-shot (método Lazy GM Resource Document), ancorado nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova fora da lista dada. ' +
-        'Nomeie o antagonista e declare: `want` (o que busca — poder, vingança, recurso, ritual), `method` (o que faz pra conseguir — reunir exército, ritual em curso, espalhar boato), `trait` (maneirismo/marca reconhecível numa frase curta) e `weakness` (ponto cego ou vício explorável numa frase curta, não a derrota dele). ' +
-        'Mesmo que a premissa não aponte vilão óbvio, infira uma oposição plausível — os quatro campos são sempre preenchidos. ' +
-        'Declare também `connection` (1 frase curta): como o antagonista se relaciona com o personagem — nunca vazio, ancorada no que já foi rolado para esta aventura (locations/npcs/secrets recebidos), nunca em vínculo permanente da ficha. ' +
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos (locais/NPCs recebidos) ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
-      prompt: buildClosingPrompt(params),
-      providerOptions: ENGINE_PROVIDER_OPTIONS,
-    })
-    logExtractionEndpoint('generateAntagonist', primaryModel, providerMetadata)
-
-    return object
-  }
-
-  /**
-   * US-164, passo 6: escreve o FECHO RAMIFICADO — `conclusion` (prosa) e `followUps[]`
-   * (sementes pra próxima aventura, US-151) — a partir de `locations`/`npcs`/`secrets` já
-   * decididos (US-158/US-149) e a `complicacao`/`premissa` roladas (US-147). `registry`
-   * entra no system prompt, mesma disciplina de `generateSecrets`/`generateLocationsAndNpcs`
-   * — sem ele o fecho pode destoar do tom fixado. `hookSeed` (gancho fixo por classe) NÃO é
-   * insumo — nem no schema, nem no `system`/`prompt` de `buildClosingPrompt` (US-175: era o
-   * último insumo do motor ainda ancorado no catálogo fixo por classe, `premissa` já
-   * cumpria a mesma função de cor narrativa). US-181/US-190: antagonista deixou de ser
-   * cor narrativa emergente da premissa — chega aqui já decidido (`generateAntagonist`),
-   * a CONCLUSÃO ancora nele em vez de inventar prosa solta. Ainda não é entidade rastreável
-   * (US-164, Questão em aberto #2 — isso é US-188). NUNCA captura erro — mesma disciplina
-   * de `generateSecrets`: falha aqui é motivo de reseed na US-150, não degradação silenciosa.
-   *
-   * US-166: ganha `encounterSkeleton` (8 encontros já resolvidos: locationId/npcIds →
-   * location/npcs reais) e devolve `encounterSituations` — as 3 perguntas restantes de cada
-   * SITUAÇÃO (Sly Flourish: behaviors/goal/complications), posicional. Roda na MESMA chamada
-   * que já escreve `conclusion`/`followUps` — nenhum round-trip a mais.
-   */
-  async generateClosing(params: {
-    locations: AdventureLocation[]
-    npcs: AdventureNpc[]
-    secrets: AdventureSecret[]
-    registry: AdventureRegistry
-    complicacao: { condition: string; description: string; origin: string }
-    premissa: string
-    antagonist: AdventureAntagonist
-    encounterSkeleton: EncounterSkeletonEntry[]
-    locale?: Locale
-  }): Promise<{ objective: string; conclusion: string; followUps: string[]; encounterSituations: Array<{ encounterId: string; behaviors: string; goal: string; complications: string; unlocks: string }> }> {
-    // 2026-08-23: fecho volta a não ancorar em background/origin da ficha (reverte o fix desta
-    // mesma data) — resolve premissa/complicação sempre a partir do que já foi rolado para
-    // esta aventura (locations/npcs/secrets recebidos).
-    const anchorInstruction = 'Sem vínculo pessoal registrado — resolva a premissa/complicação genericamente, ancorada no que já foi rolado para esta aventura (locations/npcs/secrets recebidos).'
-    // US-178: mesmo padrão de `generateLocationsAndNpcs` — só a SAÍDA segue o locale.
-    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
-
-    const { object, providerMetadata } = await generateObject({
-      model: primaryModel,
-      schema: CLOSING_SCHEMA,
-      system:
-        'Você é o Mestre de um RPG escrevendo o FECHO RAMIFICADO de uma aventura one-shot (método Lazy GM Resource Document). ' +
-        // US-169: `objective` nasce ANTES da conclusão no raciocínio do modelo — é o alvo que
-        // o Mestre reconhece cumprido turno a turno; a conclusão é só o texto de fecho. Exige
-        // nome concreto (NPC/vilão/facção) e want/method do antagonista — nunca reduz o
-        // antagonista só ao nome (ex.: "Impedir Malvora" sozinho é ruim; "Impedir que Malvora
-        // drene a vila pra alimentar seu ritual" é o padrão esperado).
-        'Antes disso, escreva `objective`: o alvo concreto e verificável desta aventura, citando NOMES reais dos locais/NPCs/segredos recebidos e SEMPRE o `want`/`method` do antagonista abaixo — nunca reduza o antagonista só ao nome, e nunca escreva uma paráfrase vaga do resumo da aventura. ' +
-        'Escreva a CONCLUSÃO (2-3 parágrafos) resolvendo a premissa e a complicação, ancorada nos locais/NPCs/segredos REAIS recebidos — nunca invente entidade nova. ' +
-        'O antagonista já está decidido (nome/want/method abaixo) — a conclusão resolve o confronto com ELE, sem inventar outro nem contradizer o que já foi definido. ' +
-        `${anchorInstruction} ` +
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
-        'Depois escreva 2-3 followUps: ganchos com história suficiente para virar a PRÓXIMA aventura. ' +
-        'Depois, para CADA um dos 8 encontros listados abaixo (na MESMA ordem), escreva `encounterId` (copie o id da lista abaixo), `behaviors`/`goal`/`complications`/`unlocks` — as 4 perguntas de uma SITUAÇÃO (framework Sly Flourish + hurdles-based design, The Arcane Library): `behaviors` é o que os moradores estão fazendo agora; `goal` é por que o personagem foi até lá; `complications` é o que pode virar o jogo de cabeça pra baixo; `unlocks` é o que ESTE encontro entrega — informação, acesso, aliado ou recurso — que faz o PRÓXIMO encontro existir. ' +
-        'RACIOCINE de trás pra frente: comece pela posição 8 (o confronto final, já ancorado no antagonista) e, para cada posição anterior, pergunte o que o personagem faria naturalmente em seguida e o que o trava — mas EMITA o array na ordem 1→8 mesmo assim, pareado com a lista abaixo. ' +
-        '`goal` da posição 2 em diante RESPONDE ao `unlocks` da posição anterior — o motivo de o personagem estar ali é o que o encontro anterior entregou. A posição 1 é EXCEÇÃO: seu `goal` nasce da premissa/complicação, nunca de um "encontro zero" inventado. ' +
-        'REGRA DE CORTE: se a situação escrita não aproxima o personagem do `objective` desta aventura, reescreva — nenhum dos 8 encontros é cena de passagem. ' +
-        'Use o `type` de cada encontro pra guiar o tom: `skill` → obstáculo físico/ambiental; `social` → negociação ou tensão social; `combat` → ameaça e cerco — sem travar qual perícia é testada, isso continua emergente no turno. ' +
-        'O ÚLTIMO encontro da lista é o confronto final — `behaviors`/`goal`/`complications` DEVEM ecoar diretamente o `want`/`method` do antagonista, sem ambiguidade; seu `unlocks` descreve o que a VITÓRIA resolve, não um nono encontro; os outros 7 só PODEM tocar no antagonista, nunca são obrigados. ' +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
-      prompt: buildClosingPrompt(params),
-      providerOptions: ENGINE_PROVIDER_OPTIONS,
-    })
-    logExtractionEndpoint('generateClosing', primaryModel, providerMetadata)
-
-    return { objective: object.objective, conclusion: object.conclusion, followUps: object.followUps, encounterSituations: object.encounterSituations }
-  }
-
-  /**
-   * US-191, Parte 2: reescreve `boxedText`/`description` do local do CONFRONTO FINAL
-   * citando o antagonista pelo nome. `generateLocationsAndNpcs` (passo 2) roda ANTES do
-   * antagonista existir e não pode nomeá-lo — esta chamada roda depois, em paralelo a
-   * `generateClosing` (mesmo `Promise.all`), e só troca esses dois campos desse local;
-   * `title`/`aspects`/`occupants` ficam como `generateLocationsAndNpcs` já decidiu.
-   *
-   * `antagonist` é `Pick<'name' | 'method' | 'trait'>`, não `AdventureAntagonist` inteiro —
-   * `weakness`/`connection` nem existem no parâmetro, o compilador recusa se este prompt
-   * tentar lê-los.
-   *
-   * US-194: `generateOpeningBeat` foi apagada — `start` (a abertura) deixou de ser gerada
-   * por IA, agora é composta por código a partir do encontro 1 (`composeStartBriefing`,
-   * adventure.service.ts). `Promise.all` de `generateAdventure` fica com duas pernas
-   * (`generateClosing` + esta função), não mais três.
-   *
-   * NUNCA captura erro — mesma disciplina de `generateClosing`: falha aqui é motivo de
-   * reseed na US-150, não degradação silenciosa.
-   */
-  async generateAntagonistLocationProse(params: {
-    location: AdventureLocation
-    antagonist: Pick<AdventureAntagonist, 'name' | 'method' | 'trait'>
-    registry: AdventureRegistry
-    locale?: Locale
-  }): Promise<{ boxedText: string; description: string }> {
-    const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
-
-    const { object, providerMetadata } = await generateObject({
-      model: primaryModel,
-      schema: ANTAGONIST_LOCATION_PROSE_SCHEMA,
-      system:
-        'Você é o Mestre de um RPG reescrevendo boxedText/description do local do CONFRONTO FINAL de uma aventura one-shot (método Lazy GM Resource Document), agora que o antagonista já está decidido. ' +
-        'Reescreva os dois campos citando o antagonista PELO NOME em pelo menos um deles — nunca revele a weakness dele. ' +
-        'Mantenha o mesmo local e tema (o título e os aspectos do local não mudam, só a prosa). ' +
-        `Tom: ${params.registry.tone}. Cenário: ${params.registry.setting}. Tipo de área: ${params.registry.areaType}. ` +
-        `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios já estabelecidos ficam como estão.\n\n${CRAFT_CORE_SECTION}`,
-      prompt: [
-        `Local: ${params.location.title} (aspectos: ${params.location.aspects.join(', ')})`,
-        `boxedText atual: ${params.location.boxedText}`,
-        `description atual: ${params.location.description}`,
-        '',
-        `Antagonista já decidido — nome: ${params.antagonist.name}; método: ${params.antagonist.method}; traço: ${params.antagonist.trait}.`,
-      ].join('\n'),
-      providerOptions: ENGINE_PROVIDER_OPTIONS,
-    })
-    logExtractionEndpoint('generateAntagonistLocationProse', primaryModel, providerMetadata)
-
-    return { boxedText: object.boxedText, description: object.description }
+    let lastErr: unknown
+    for (const model of authoringModels) {
+      try {
+        const { object, providerMetadata } = await generateObject({
+          model,
+          schema: AUTHORING_SCHEMA,
+          system,
+          prompt,
+          maxTokens: 16000,
+          providerOptions: AUTHORING_PROVIDER_OPTIONS,
+        })
+        logExtractionEndpoint('generateAdventureAuthoring', model, providerMetadata)
+        return object
+      } catch (err) {
+        lastErr = err
+        logLlmFailure('autoria de aventura (escada)', `caindo pro próximo modelo da escada após ${model.modelId}`, err)
+      }
+    }
+    throw lastErr instanceof Error
+      ? lastErr
+      : new Error(`generateAdventureAuthoring: escada de ${authoringModels.length} modelos esgotada — ${String(lastErr)}`)
   }
 
   /**

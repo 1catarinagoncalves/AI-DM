@@ -102,6 +102,10 @@ export function buildEncounterNpcs(roles: MonsterRole[], existingNpcs: Adventure
     id: `npc-${nextId + i}`,
     name: role,
     role,
+    // US-232: AdventureNpc ganhou `want` obrigatório. Combatente genérico do motor (PASSO 2,
+    // MA-3) não tem motivação individual — `want` ecoa o papel. (Esta função fica sem chamador
+    // desde a US-232, ver adventure.service.ts; cleanup em MA-7.)
+    want: role,
     interactions: [],
   }))
 }
