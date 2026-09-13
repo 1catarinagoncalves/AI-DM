@@ -93,7 +93,7 @@ describe('sem regressão em pt-BR', () => {
   // conteúdo é que não pode mudar: a ficha já reordena por nível e nome na exibição (GameView).
   it('as features herdadas mostram o mesmo texto curado de hoje', () => {
     expect(names(buildFreeClassFeatures(ptBR, 'pt-BR').rogue).sort())
-      .toEqual(['Ataque Furtivo', 'Especialização', 'Gíria de Ladrão'])
+      .toEqual(['Ataque Furtivo', 'Especialização', 'Gíria dos Ladrões'])
   })
 
   it('a lista do clérigo tem os mesmos 9 truques de hoje, os 2 autorais incluídos', () => {
