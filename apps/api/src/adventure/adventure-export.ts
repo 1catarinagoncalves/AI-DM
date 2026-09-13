@@ -1,9 +1,8 @@
 import { GeneratedAdventureSchema, type GeneratedAdventure } from '@ai-dm/shared'
 import { MONSTER_ROLE_CR } from '../adventure-generation/monster-roles'
 
-// US-202: as seis fontes que o export junta (ver Modelo de dados da US) — formato já
-// achatado pro que `buildAdventureExportView` consome, não as rows cruas do Prisma
-// (o service faz esse achatamento em `getExportData`; este ficheiro fica testável sem banco).
+// US-202: as fontes que o export junta — formato já achatado pro que `buildAdventureExportView`
+// consome, não as rows cruas do Prisma (o service faz esse achatamento em `getExportData`).
 export interface AdventureExportAdventure {
   id: string
   title: string
@@ -15,13 +14,13 @@ export interface AdventureExportAdventure {
   generatedAdventure: unknown
 }
 
+// US-232: `conclusionHint` saiu da tabela Quest (fecho é ramificado, não pré-escrito).
 export interface AdventureExportQuest {
   title: string
   description: string
   status: string
   isPrimary: boolean
   objective: string | null
-  conclusionHint: string | null
 }
 
 export interface AdventureExportCharacter {
@@ -65,15 +64,15 @@ export interface AdventureExportData {
   system: AdventureExportSystem
 }
 
-// US-202: rubrica fixa de leitura — o roteiro do que julgar à mão, sem nota nem chamada de
-// modelo (Questão em aberto #1 da US, resolvida por texto estático colado no output).
+// US-202/US-232: rubrica fixa de leitura — o roteiro do que julgar à mão, sem nota nem chamada
+// de modelo. Ajustada pra autoria mundo-primeiro (facções no lugar de antagonista único).
 export const EXPORT_RUBRIC = [
   'NPCs se repetem com nomes diferentes? (mesmo papel, mesma função narrativa)',
-  'Algum "segredo" não é segredo — já dado a conhecer em boxedText/description?',
+  'As facções têm desejos que REALMENTE colidem, ou são rótulos intercambiáveis?',
   'unlocks de cada encontro encadeia no seguinte, ou é frase solta?',
-  'O antagonista está ancorado nos segredos/locais, ou colado genérico no fim?',
-  'boxedText varia entre os locais, ou é a mesma prosa reciclada?',
-  'connection do antagonista cita o personagem real (origin/background), ou é genérica?',
+  'O fecho é ramificado sem herói (cada rumo com um custo), ou há um "rumo certo" disfarçado?',
+  'boxedText/description varia entre os locais, ou é a mesma prosa reciclada?',
+  'A description de algum local cita NPC (não deveria — presença fica em occupants)?',
 ]
 
 type ArtifactView =
@@ -84,32 +83,34 @@ type ArtifactView =
       valid: true
       registry: GeneratedAdventure['registry']
       summary: string
+      world: GeneratedAdventure['world']
+      story: string
       start: string
-      antagonist: GeneratedAdventure['antagonist'] & { npcName: string }
-      npcs: Array<GeneratedAdventure['npcs'][number] & { isGenericCombatant: boolean }>
-      secrets: Array<GeneratedAdventure['secrets'][number] & { locationTitle: string }>
-      locations: Array<GeneratedAdventure['locations'][number] & { occupantNames: string[] }>
+      factions: GeneratedAdventure['factions']
+      npcs: Array<GeneratedAdventure['npcs'][number] & { isGenericCombatant: boolean; factionName?: string }>
+      locations: Array<GeneratedAdventure['locations'][number] & { occupantNames: string[]; factionName?: string }>
+      challenges: Array<GeneratedAdventure['challenges'][number] & { locationTitle: string }>
       encounters: Array<{
         id: string
         type: string
         locationTitle: string
         npcNames: string[]
+        fiction: string
         behaviors: string
         goal: string
         complications: string
         unlocks: string
       }>
-      objective: string
-      conclusion: string
+      objective: { description: string; reward: GeneratedAdventure['objective']['reward']; locationTitle: string }
+      branchedResolution: GeneratedAdventure['branchedResolution']
       followUps: string[]
     }
 
 /**
- * US-202: tipa `Adventure.generatedAdventure` na leitura (nunca confia no `Json` cru) e
- * resolve toda referência por id para o nome/título real — a junção que hoje se faz no
- * olho no Prisma Studio. `raw == null` é aventura pré-US-168 (sem artefato); parse falho é
- * artefato pré-US-193 que não revalida (US-193, "reparse de artefato antigo não é caminho
- * suportado") — os dois casos degradam em vez de derrubar o export inteiro.
+ * US-202: tipa `Adventure.generatedAdventure` na leitura (nunca confia no `Json` cru) e resolve
+ * toda referência por id para o nome/título real. `raw == null` = aventura sem artefato; parse
+ * falho = artefato de schema antigo (US-232: sem world/factions, com conclusion/antagonist) que
+ * não revalida — os dois casos degradam em vez de derrubar o export inteiro.
  */
 function resolveArtifact(raw: unknown): ArtifactView {
   if (raw == null) return { available: false }
@@ -120,13 +121,14 @@ function resolveArtifact(raw: unknown): ArtifactView {
       valid: false,
       raw,
       warning:
-        'Artefato gravado não revalida contra o GeneratedAdventureSchema atual (provável artefato pré-US-193/pré-US-168) — mostrado cru abaixo, sem resolução de referência.',
+        'Artefato gravado não revalida contra o GeneratedAdventureSchema atual (provável artefato de schema anterior à US-232) — mostrado cru abaixo, sem resolução de referência.',
     }
   }
 
   const a = parsed.data
   const locationTitleById = new Map(a.locations.map((l) => [l.id, l.title]))
   const npcNameById = new Map(a.npcs.map((n) => [n.id, n.name]))
+  const factionNameById = new Map(a.factions.map((f) => [f.id, f.name]))
   const resolveNpcNames = (ids: string[]) => ids.map((id) => npcNameById.get(id) ?? id)
 
   return {
@@ -134,26 +136,41 @@ function resolveArtifact(raw: unknown): ArtifactView {
     valid: true,
     registry: a.registry,
     summary: a.summary,
+    world: a.world,
+    story: a.story,
     start: a.start,
-    antagonist: { ...a.antagonist, npcName: npcNameById.get(a.antagonist.npcId) ?? a.antagonist.name },
-    // US-202 Notas de implementação: NPC de combate (`role` ∈ MONSTER_ROLE_CR) é combatente
-    // genérico do motor, não personagem — marcado para não ser lido como "NPC sem
-    // personalidade" por falha do modelo.
-    npcs: a.npcs.map((n) => ({ ...n, isGenericCombatant: n.role in MONSTER_ROLE_CR })),
-    secrets: a.secrets.map((s) => ({ ...s, locationTitle: locationTitleById.get(s.locationId) ?? s.locationId })),
-    locations: a.locations.map((l) => ({ ...l, occupantNames: resolveNpcNames(l.occupants) })),
+    factions: a.factions,
+    // US-202 Notas: NPC de combate (`role` ∈ MONSTER_ROLE_CR) é combatente genérico do motor —
+    // marcado pra não ser lido como "NPC sem personalidade". (Autoria mundo-primeiro não gera
+    // mais esses, mas a marca é barata e robusta a mudança futura.)
+    npcs: a.npcs.map((n) => ({
+      ...n,
+      isGenericCombatant: n.role in MONSTER_ROLE_CR,
+      ...(n.factionId ? { factionName: factionNameById.get(n.factionId) ?? n.factionId } : {}),
+    })),
+    locations: a.locations.map((l) => ({
+      ...l,
+      occupantNames: resolveNpcNames(l.occupants),
+      ...(l.factionId ? { factionName: factionNameById.get(l.factionId) ?? l.factionId } : {}),
+    })),
+    challenges: a.challenges.map((c) => ({ ...c, locationTitle: locationTitleById.get(c.locationId) ?? c.locationId })),
     encounters: a.encounters.map((e) => ({
       id: e.id,
       type: e.type,
       locationTitle: locationTitleById.get(e.locationId) ?? e.locationId,
       npcNames: resolveNpcNames(e.npcIds),
+      fiction: e.fiction,
       behaviors: e.behaviors,
       goal: e.goal,
       complications: e.complications,
       unlocks: e.unlocks,
     })),
-    objective: a.objective,
-    conclusion: a.conclusion,
+    objective: {
+      description: a.objective.description,
+      reward: a.objective.reward,
+      locationTitle: locationTitleById.get(a.objective.locationId) ?? a.objective.locationId,
+    },
+    branchedResolution: a.branchedResolution,
     followUps: a.followUps,
   }
 }
@@ -169,9 +186,8 @@ export interface AdventureExportView {
   system: AdventureExportSystem
 }
 
-// US-202: uma view só alimenta os dois formatos (`?format=json` serializa isto direto;
-// o Markdown é `renderAdventureExportMarkdown` sobre o mesmo objeto) — "mesmo conteúdo",
-// não duas montagens que podem divergir.
+// US-202: uma view só alimenta os dois formatos (`?format=json` serializa isto direto; o
+// Markdown é `renderAdventureExportMarkdown` sobre o mesmo objeto).
 export function buildAdventureExportView(data: AdventureExportData): AdventureExportView {
   return {
     rubric: EXPORT_RUBRIC,
@@ -185,9 +201,7 @@ export function buildAdventureExportView(data: AdventureExportData): AdventureEx
   }
 }
 
-// US-202 Notas de implementação: ACTION/NARRATION viram diálogo legível; os demais tipos
-// (DICE_ROLL, QUEST_UPDATE, CHARACTER_UPDATE) viram uma linha compacta — o log é contexto
-// para a leitura, não o objeto principal dela.
+// US-202: ACTION/NARRATION viram diálogo legível; os demais tipos viram uma linha compacta.
 function renderEventLine(log: AdventureExportEventLog): string {
   const ts = log.createdAt.toISOString()
   if (log.type === 'ACTION') return `**Jogador** (${ts}): ${(log.payload as { text?: string }).text ?? ''}`
@@ -196,9 +210,8 @@ function renderEventLine(log: AdventureExportEventLog): string {
 }
 
 /**
- * US-202: Markdown na ordem do pipeline de geração (registro → sumário → antagonista →
- * NPCs → segredos → locais → encontros com `unlocks` → objetivo → conclusão →
- * desdobramentos → log de jogo) — ler de cima a baixo é reconstituir a geração.
+ * US-202/US-232: Markdown na ordem da autoria (mundo → story/facções → objetivo → NPCs →
+ * locais → desafios → encontros com `unlocks` → fecho ramificado → desdobramentos → log).
  */
 export function renderAdventureExportMarkdown(view: AdventureExportView): string {
   const lines: string[] = []
@@ -224,7 +237,6 @@ export function renderAdventureExportMarkdown(view: AdventureExportView): string
   for (const q of view.quests) {
     lines.push(`- **${q.title}** — status ${q.status}${q.isPrimary ? ' (primária)' : ''}`)
     if (q.objective) lines.push(`  - Objetivo: ${q.objective}`)
-    if (q.conclusionHint) lines.push(`  - Conclusão prevista: ${q.conclusionHint}`)
   }
   lines.push('')
 
@@ -250,7 +262,7 @@ export function renderAdventureExportMarkdown(view: AdventureExportView): string
 
 function renderArtifact(artifact: ArtifactView): string[] {
   if (!artifact.available) {
-    return ['## Artefato da aventura gerada', '**Ausente** — esta aventura foi criada antes da US-168 (sem `generatedAdventure`).', '']
+    return ['## Artefato da aventura gerada', '**Ausente** — esta aventura foi criada sem `generatedAdventure`.', '']
   }
   if (!artifact.valid) {
     return ['## Artefato da aventura gerada', `**Aviso:** ${artifact.warning}`, '```json', JSON.stringify(artifact.raw, null, 2), '```', '']
@@ -261,50 +273,67 @@ function renderArtifact(artifact: ArtifactView): string[] {
   lines.push('## Registro')
   lines.push(`- Tom: ${a.registry.tone} | Cenário: ${a.registry.setting} | Tipo de área: ${a.registry.areaType}`, '')
 
+  lines.push('## Mundo')
+  lines.push(`### ${a.world.name}`)
+  lines.push(a.world.description)
+  if (a.world.anchors && a.world.anchors.length > 0) lines.push(`- Âncoras: ${a.world.anchors.join(', ')}`)
+  lines.push('')
+
   lines.push('## Sumário', a.summary, '')
+  lines.push('## Story', a.story, '')
   lines.push('## Início', a.start, '')
 
-  lines.push('## Antagonista')
-  lines.push(`- Nome: ${a.antagonist.name} (NPC: ${a.antagonist.npcName})`)
-  lines.push(`- Quer: ${a.antagonist.want}`)
-  lines.push(`- Método: ${a.antagonist.method}`)
-  lines.push(`- Traço: ${a.antagonist.trait}`)
-  lines.push(`- Fraqueza: ${a.antagonist.weakness}`)
-  lines.push(`- Conexão: ${a.antagonist.connection}`, '')
+  lines.push('## Facções')
+  for (const f of a.factions) lines.push(`- **${f.name}** (${f.kind}) — quer: ${f.want}`)
+  lines.push('')
+
+  lines.push('## Objetivo')
+  lines.push(a.objective.description)
+  lines.push(`- Recompensa: ${a.objective.reward.name} — ${a.objective.reward.effect}`)
+  lines.push(`- Resolve em: ${a.objective.locationTitle}`, '')
 
   lines.push('## NPCs')
   for (const npc of a.npcs) {
     const tag = npc.isGenericCombatant ? ' (combatente genérico do motor, não personagem)' : ''
-    lines.push(`- **${npc.name}** — ${npc.role}${tag}`)
+    const faction = npc.factionName ? ` [${npc.factionName}]` : ''
+    lines.push(`- **${npc.name}** — ${npc.role}${faction}${tag}`)
+    lines.push(`  - Quer: ${npc.want}`)
     for (const it of npc.interactions) lines.push(`  - "${it.narrative}"`)
   }
   lines.push('')
 
-  lines.push('## Segredos')
-  for (const s of a.secrets) lines.push(`- Em ${s.locationTitle}: ${s.text}`)
-  lines.push('')
-
   lines.push('## Locais')
   for (const l of a.locations) {
-    lines.push(`### ${l.title} — vibe: ${l.vibe}`)
+    lines.push(`### ${l.title} — vibe: ${l.vibe}${l.factionName ? ` [${l.factionName}]` : ''}`)
     lines.push(`- Aspectos: ${l.aspects.join(', ') || '(nenhum)'}`)
     lines.push(`- Ocupantes: ${l.occupantNames.join(', ') || '(nenhum)'}`)
     lines.push(`- Boxed text: ${l.boxedText}`)
     lines.push(`- Descrição: ${l.description}`, '')
   }
 
+  lines.push('## Desafios (não-combate)')
+  for (const c of a.challenges) {
+    lines.push(`### ${c.locationTitle}`)
+    lines.push(`- Teste: ${c.test}`)
+    lines.push(`- Situação: ${c.situation}`)
+    lines.push(`- Consequência: ${c.consequence}`, '')
+  }
+
   lines.push('## Encontros')
   a.encounters.forEach((e, i) => {
     lines.push(`### Encontro ${i + 1} — ${e.type} em ${e.locationTitle}`)
     lines.push(`- NPCs: ${e.npcNames.join(', ') || '(nenhum)'}`)
+    lines.push(`- Ficção: ${e.fiction}`)
     lines.push(`- Comportamento: ${e.behaviors}`)
     lines.push(`- Objetivo: ${e.goal}`)
     lines.push(`- Complicação: ${e.complications}`)
     lines.push(`- Unlocks: ${e.unlocks}`, '')
   })
 
-  lines.push('## Objetivo', a.objective, '')
-  lines.push('## Conclusão (spoiler)', a.conclusion, '')
+  lines.push('## Fecho ramificado')
+  for (const b of a.branchedResolution) lines.push(`- **${b.choice}** → ${b.consequence}`)
+  lines.push('')
+
   lines.push('## Desdobramentos')
   for (const f of a.followUps) lines.push(`- ${f}`)
   lines.push('')

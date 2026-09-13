@@ -328,6 +328,34 @@ export const ENGINE_PROVIDER_OPTIONS = {
   },
 } as const
 
+// US-232: escada de AUTORIA (motor mundo-primeiro, call único de `generateAdventureAuthoring`
+// em ai.service.ts) — molde de `narrationModels`. `deepseek-v4-pro` primeiro (a barra de texto
+// que a mantenedora aprovou no Spike de autoria); cai pro snapshot fixo `-0813` e depois pro
+// `v4.1-flash` (piso barato) em erro/corpo-vazio. Resiliência, não bake-off: o serviço tenta
+// em ordem e para no PRIMEIRO que gerar (STOP_ON_FIRST). Roda OFF-TURN (sem o teto de 60s do
+// proxy SSE) — pode pagar o modelo forte sem impacto de latência de jogo.
+export const authoringModels: LanguageModelV1[] = [
+  openrouter('deepseek/deepseek-v4-pro', {}, WITH_PROVENANCE),
+  openrouter('deepseek/deepseek-v4-pro-0813', {}, WITH_PROVENANCE),
+  openrouter('deepseek/deepseek-v4.1-flash', {}, WITH_PROVENANCE),
+]
+
+/**
+ * US-232: opções da chamada de autoria — mesma forma EXATA do `PO` do Spike
+ * (adventure-authoring-spike.mjs:45): `reasoning:{enabled:false}`, SEM pin de rota
+ * (`provider`). Decidido em US-232 §Dúvidas de implementação #5: os números medidos no Spike
+ * (custo ~$0.013/aventura, formato Khemsar-grade) são do arm SEM pin; a allowlist
+ * `DEEPSEEK_ALLOWED_PROVIDERS` foi calibrada pros endpoints do slug `deepseek-v4-flash`
+ * (ADR 008) — herdar pra `v4-pro`/`v4.1-flash` sem re-medir arrisca reproduzir o 404
+ * `tool_choice` de 23/08. `enabled:false` desliga o thinking (mesma colisão tool_choice/
+ * thinking do modo tool que `ENGINE_PROVIDER_OPTIONS`/`EXTRACTION_PROVIDER_OPTIONS` já tratam).
+ */
+export const AUTHORING_PROVIDER_OPTIONS = {
+  openrouter: {
+    reasoning: { enabled: false },
+  },
+} as const
+
 /**
  * US-114: modelo utilitário para extração estruturada e fecho de turno truncado —
  * `extractOpeningScene`/`extractOpeningEntities`/`reconcileScene`/`completeTruncatedTurn`

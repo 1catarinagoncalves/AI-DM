@@ -58,16 +58,21 @@ function checkReferencesResolve(adventure: GeneratedAdventure): string | null {
   const encounterIds = new Set(adventure.encounters.map((e) => e.id))
 
   return (
-    checkSecretLocationIds(adventure, locationIds) ??
+    checkChallengeLocationIds(adventure, locationIds) ??
     checkEncounterReferences(adventure, locationIds, npcIds) ??
     checkOccupantReferences(adventure, npcIds) ??
     checkInteractionReferences(adventure, encounterIds)
   )
 }
 
-function checkSecretLocationIds(adventure: GeneratedAdventure, locationIds: Set<string>): string | null {
-  for (const secret of adventure.secrets) {
-    if (!locationIds.has(secret.locationId)) return `segredo "${secret.id}" referencia locationId inexistente "${secret.locationId}"`
+// US-232: `secrets[]` saiu do artefato; `challenges[]` (obstáculo não-combate preso a local)
+// entrou — mesma verificação de referência que `checkSecretLocationIds` fazia.
+function checkChallengeLocationIds(adventure: GeneratedAdventure, locationIds: Set<string>): string | null {
+  for (const challenge of adventure.challenges) {
+    if (!locationIds.has(challenge.locationId)) return `desafio "${challenge.id}" referencia locationId inexistente "${challenge.locationId}"`
+  }
+  if (!locationIds.has(adventure.objective.locationId)) {
+    return `objective referencia locationId inexistente "${adventure.objective.locationId}"`
   }
   return null
 }
@@ -106,13 +111,19 @@ function checkNoOrphans(adventure: GeneratedAdventure): string | null {
   return checkNoOrphanLocations(adventure) ?? checkNoOrphanNpcs(adventure)
 }
 
+// US-232: âncoras de local — encontro, desafio, objetivo, ou NPC morando ali (occupants). Sem
+// `secrets[]` (saiu do schema) e com só ~3 encontros pra ~6 locais, encontro sozinho reprovaria
+// quase toda geração; as âncoras extras (challenges/objective/occupants) + o backstop de minting
+// (adventure.service.ts) fazem isto passar SEMPRE, sem depender do regenerate do MA-4 (Dúvidas #9).
 function checkNoOrphanLocations(adventure: GeneratedAdventure): string | null {
   const referenced = new Set([
-    ...adventure.secrets.map((s) => s.locationId),
     ...adventure.encounters.map((e) => e.locationId),
+    ...adventure.challenges.map((c) => c.locationId),
+    adventure.objective.locationId,
+    ...adventure.locations.filter((l) => l.occupants.length > 0).map((l) => l.id),
   ])
   for (const location of adventure.locations) {
-    if (!referenced.has(location.id)) return `local "${location.id}" órfão — nenhum encontro ou segredo aponta para ele`
+    if (!referenced.has(location.id)) return `local "${location.id}" órfão — nenhum encontro, desafio, objetivo ou morador aponta para ele`
   }
   return null
 }

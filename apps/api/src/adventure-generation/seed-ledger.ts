@@ -3,67 +3,77 @@ import { MONSTER_ROLE_CR } from './monster-roles'
 
 /**
  * US-151: semeia o ledger `Adventure.entities` a partir do artefato JÁ VALIDADO pelo gate
- * (US-150) — substitui `extractOpeningEntities` (ai.service.ts) como fonte quando a
- * aventura vem do motor: leitura determinística de um objeto estruturado, não extração
- * por LLM de prosa livre. Síncrona de propósito (sem chamada de rede).
+ * (US-150) — leitura determinística de um objeto estruturado, não extração por LLM. Síncrona.
  *
- * NPC de combate (`role` ∈ `MONSTER_ROLE_CR`) é filtrado de `npcEntities` — não é entidade
- * nomeada durável, é um combatente genérico ("Brute", "Soldier") que morre no próprio
- * encontro. US-171: mas a AMEAÇA em si precisa chegar ao Mestre antes do confronto —
- * ver `encounterNpcEntities` abaixo, semeada de `adventure.encounters` (não de `npcs[]`
- * direto), `revelado: false` (ameaça ainda não descoberta).
+ * US-232: autoria mundo-primeiro — `antagonist`/`secrets` saíram do artefato, então as entradas
+ * derivadas deles saíram daqui. Em troca, semeia o que a US-232 introduz (piso desta story; a
+ * derivação avançada — revelar facção aos poucos, edges de tensão — é MA-9):
+ *   - `factionEntities` (1 por facção, `tipo: 'faccao'`, `revelado: false`);
+ *   - `npcEntities.nota` inclui `want` + nome da facção (quando `factionId` presente);
+ *   - `locationEntities.nota` inclui um segmento por `challenges[]` do local (mesmo padrão de
+ *     `encounters[]`).
+ * Sem isso o ledger nasceria mais POBRE exatamente na parte que esta story existe pra melhorar.
+ *
+ * `revelado: false` em tudo: nenhuma entidade nasce "conhecida" — o Mestre vê nome/local sob
+ * `⚠ OCULTO` (consistência) até promover via `recordEntity` quando a ficção apresentar (US-199).
  */
 export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure): WorldEntity[] {
   const now = new Date().toISOString()
   const locationTitleById = new Map(adventure.locations.map((l) => [l.id, l.title]))
-  // US-189: o antagonista já é um AdventureNpc (US-188) — excluído por `id`, sempre
-  // incondicional, dos dois mapeamentos abaixo que iterariam `npcs`/`encounters.npcIds` por
-  // engano. As entradas dele no ledger (pública/oculta, US-191) nascem ao final da função.
-  const antagonistNpcId = adventure.antagonist.npcId
+  const factionNameById = new Map(adventure.factions.map((f) => [f.id, f.name]))
 
-  const secretEntities: WorldEntity[] = adventure.secrets.map((secret) => ({
-    nome: secret.id,
-    tipo: 'outro',
-    local: locationTitleById.get(secret.locationId),
-    nota: secret.text,
-    sabido: 'publico',
+  // US-232: facção é entidade de 1ª classe — `tipo: 'faccao'` já existe no enum de WorldEntity
+  // (character.ts), sem uso até aqui, zero mudança de schema.
+  const factionEntities: WorldEntity[] = adventure.factions.map((faction) => ({
+    nome: faction.name,
+    tipo: 'faccao',
+    nota: `${faction.kind} — quer: ${faction.want}`,
     revelado: false,
     atualizadoEm: now,
   }))
 
-  // `revelado: false`: NPC narrativo nasce OCULTO igual segredo/local/ameaça/antagonista
-  // (mesmo mecanismo, US-199) — sem isso o Mestre podia nomeá-lo de graça no turno em que
-  // o personagem entra no local dele, mesmo sem apresentação nenhuma na ficção. O Mestre
-  // continua vendo nome+local (precisa, pra consistência), só sob `⚠ OCULTO` até promover
-  // via `recordEntity` quando a ficção realmente apresentar o NPC.
+  // US-232: `nota` carrega motivação individual (`want`) e afiliação de facção — chegam ao
+  // Mestre pela mesma via que `role` já chegava, sem precisar de `relacoes` (edge é vínculo
+  // DESCOBERTO em jogo; afiliação de facção é fato estrutural do artefato, mesmo status de `role`).
   const npcEntities: WorldEntity[] = adventure.npcs
-    .filter((npc) => !(npc.role in MONSTER_ROLE_CR) && npc.id !== antagonistNpcId)
+    .filter((npc) => !(npc.role in MONSTER_ROLE_CR))
     .map((npc) => ({
       nome: npc.name,
       tipo: 'npc',
       local: findOccupiedLocationTitle(adventure, npc.id),
-      nota: npc.role,
+      nota: [
+        npc.role,
+        npc.want && `Quer: ${npc.want}`,
+        npc.factionId && `Facção: ${factionNameById.get(npc.factionId) ?? npc.factionId}`,
+      ].filter(Boolean).join(' — '),
       revelado: false,
       atualizadoEm: now,
     }))
 
-  // US-166: cada encontro que hospeda um local soma um segmento de situação (Sly Flourish:
-  // type/goal/behaviors/complications) à `nota` — vários encontros no mesmo local (piso de
-  // 8 locais é só instrução de prompt, não garantia de código) se acumulam, separados por " | ".
+  // US-166/US-232: cada encontro/desafio que hospeda um local soma um segmento à `nota` — sem
+  // isso o obstáculo não-combate de um local nunca chega ao ledger (mesma lacuna que existiria
+  // pra encontro se a US não portasse behaviors/goal/complications).
   const encountersByLocationId = new Map<string, typeof adventure.encounters>()
   for (const encounter of adventure.encounters) {
     const list = encountersByLocationId.get(encounter.locationId) ?? []
     list.push(encounter)
     encountersByLocationId.set(encounter.locationId, list)
   }
+  const challengesByLocationId = new Map<string, typeof adventure.challenges>()
+  for (const challenge of adventure.challenges) {
+    const list = challengesByLocationId.get(challenge.locationId) ?? []
+    list.push(challenge)
+    challengesByLocationId.set(challenge.locationId, list)
+  }
 
-  // US-170: prosa de `boxedText`/`aspects` (US-158) ficava órfã — nunca lida fora do
-  // teste. `revelado: false` sempre: nenhum local nasce "conhecido" (Questão #1 da US).
   const locationEntities: WorldEntity[] = adventure.locations.map((location) => {
     const baseNota = [location.boxedText, location.aspects.join(', ')].filter(Boolean).join(' — ')
     const encounterSegments = (encountersByLocationId.get(location.id) ?? [])
       .map((e) => `${e.type} — objetivo: ${e.goal}; comportamento: ${e.behaviors}; complicação: ${e.complications}`)
-    const nota = encounterSegments.length > 0 ? [baseNota, ...encounterSegments].join(' | ') : baseNota
+    const challengeSegments = (challengesByLocationId.get(location.id) ?? [])
+      .map((c) => `desafio — teste: ${c.test}; situação: ${c.situation}; consequência: ${c.consequence}`)
+    const extra = [...encounterSegments, ...challengeSegments]
+    const nota = extra.length > 0 ? [baseNota, ...extra].join(' | ') : baseNota
     return {
       nome: location.title,
       tipo: 'local',
@@ -73,83 +83,10 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
     }
   })
 
-  // US-171/US-166: itera só encontros `type === 'combat'` — `skill`/`social` nunca têm
-  // combatente orçado (`npcIds` deles nunca contém role de `MONSTER_ROLE_CR`, mas o filtro
-  // explícito por `type` deixa a invariante robusta a mudança futura). `nome` inclui o `id`
-  // porque `role` se repete no mesmo encontro (3 Soldier).
-  const encounterNpcEntities: WorldEntity[] = adventure.encounters
-    .filter((encounter) => encounter.type === 'combat')
-    .flatMap((encounter) => {
-      const local = locationTitleById.get(encounter.locationId)
-      return encounter.npcIds
-        .filter((npcId) => npcId !== antagonistNpcId)
-        .map((npcId) => adventure.npcs.find((npc) => npc.id === npcId))
-        .filter((npc): npc is (typeof adventure.npcs)[number] => npc !== undefined)
-        .map((npc) => ({
-          nome: `${npc.role} (${npc.id})`,
-          tipo: 'npc' as const,
-          local,
-          nota: npc.role,
-          revelado: false,
-          atualizadoEm: now,
-        }))
-    })
-
-  // US-189/US-191: `want`/`method`/`trait`/`weakness`/`connection` só existiam no artefato,
-  // nunca chegavam ao Mestre durante o turno — mesmo mecanismo `revelado: false` de segredo/
-  // local/combatente (US-151/170/171). `.at(-1)` em vez de `[length - 1]!`: encontro final
-  // SEMPRE existe hoje (US-166), mas `.at` devolve `undefined` em vez de lançar se essa
-  // garantia algum dia quebrar — a função degrada (ledger sem entrada do antagonista) em vez
-  // de derrubar toda a geração.
-  //
-  // US-191: o NOME do antagonista deixou de ser segredo (Parte 2 já libera nomeá-lo desde a
-  // abertura) — DUAS entradas em vez de uma: `antagonistPublicEntity` (nome, local,
-  // sem `nota`) e `antagonistHiddenEntity` (mesmo nome — `WorldEntity.nome` é obrigatório,
-  // não dá pra omitir sem mudar schema — `nota` com want/method/trait/weakness/connection,
-  // `revelado: false`, o que ainda importa proteger até o confronto).
-  //
-  // US-199: reverte a Parte 2 — `antagonistPublicEntity` nasce `revelado: false` também.
-  // O Mestre continua vendo nome+local (precisa, pra ser consistente), mas sob `⚠ OCULTO`
-  // até promover via `recordEntity`. A ORDEM do `return` abaixo (pública ANTES da oculta)
-  // é o que faz essa promoção acertar só a pública — `mergeEntities` patcheia a PRIMEIRA
-  // ocorrência por `nome` (`findIndex`) — sem isso, `recordEntity({ revelado: true })`
-  // promoveria a oculta junto e vazaria weakness/method no turno errado.
-  const finalEncounter = adventure.encounters.at(-1)
-  const antagonistLocal = finalEncounter && locationTitleById.get(finalEncounter.locationId)
-  const antagonistPublicEntity: WorldEntity | undefined = finalEncounter && {
-    nome: adventure.antagonist.name,
-    tipo: 'npc',
-    local: antagonistLocal,
-    revelado: false,
-    atualizadoEm: now,
-  }
-  const antagonistHiddenEntity: WorldEntity | undefined = finalEncounter && {
-    nome: adventure.antagonist.name,
-    tipo: 'npc',
-    local: antagonistLocal,
-    nota: [
-      `Quer: ${adventure.antagonist.want}`,
-      `Método: ${adventure.antagonist.method}`,
-      `Traço: ${adventure.antagonist.trait}`,
-      `Fraqueza: ${adventure.antagonist.weakness}`,
-      `Conexão: ${adventure.antagonist.connection}`,
-    ].join(' — '),
-    revelado: false,
-    atualizadoEm: now,
-  }
-
-  return [
-    ...secretEntities,
-    ...npcEntities,
-    ...locationEntities,
-    ...encounterNpcEntities,
-    ...(antagonistPublicEntity ? [antagonistPublicEntity] : []),
-    ...(antagonistHiddenEntity ? [antagonistHiddenEntity] : []),
-  ]
+  return [...factionEntities, ...npcEntities, ...locationEntities]
 }
 
-// NPC narrativo nunca aparece em `encounters[].npcIds` (só combate aparece lá) — o
-// reverse-lookup certo é `locations[].occupants[]`, que já guarda `id` (não nome, US-158).
+// NPC narrativo mora em `locations[].occupants[]`, que guarda `id` (não nome, US-158).
 function findOccupiedLocationTitle(adventure: GeneratedAdventure, npcId: string): string | undefined {
   return adventure.locations.find((location) => location.occupants.includes(npcId))?.title
 }

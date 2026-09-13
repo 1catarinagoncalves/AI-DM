@@ -129,6 +129,7 @@ describe('buildEncounterNpcs (US-152)', () => {
     id: `npc-${i + 1}`,
     name: `Narrativo ${i + 1}`,
     role: 'aliado',
+    want: 'ajudar',
     interactions: [],
   }))
 
@@ -139,7 +140,7 @@ describe('buildEncounterNpcs (US-152)', () => {
 
   it('cada instância vira um item de npcs[] com role = papel e interactions vazio', () => {
     const [minion] = buildEncounterNpcs(['Minion'], existingNpcs)
-    expect(minion).toEqual({ id: 'npc-8', name: 'Minion', role: 'Minion', interactions: [] })
+    expect(minion).toEqual({ id: 'npc-8', name: 'Minion', want: 'Minion', role: 'Minion', interactions: [] })
   })
 
   it('duas instâncias do mesmo papel recebem ids distintos, sem campo count — contagem é o tamanho de npcIds[] filtrado por role', () => {

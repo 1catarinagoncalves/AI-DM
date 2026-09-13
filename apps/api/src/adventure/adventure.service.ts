@@ -1,18 +1,14 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, maxHpForLevel, proficiencyBonusForLevel, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type AdventureAntagonist, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
+import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, maxHpForLevel, proficiencyBonusForLevel, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureChallenge, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
-import { rollAdventure } from '../adventure-generation/roll-adventure'
-import { composeEncounterRoles, buildEncounterNpcs, chooseAntagonistRole, MONSTER_ROLE_CR, type EncounterChallenge } from '../adventure-generation/monster-roles'
-import { shuffleEncounterTypes, type EncounterType } from '../adventure-generation/shuffle-encounter-types'
-import { readSecretPrompts } from '../adventure-generation/lgmrd-tables'
-import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
+import { type EncounterChallenge } from '../adventure-generation/monster-roles'
+import { rollRegistry, rollFactionCount, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
 import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-ledger'
-import { pickLocationIdForType } from '../adventure-generation/assign-location-vibe'
 import type { AdventureExportData } from './adventure-export'
 
 export interface CreateAdventureDto {
@@ -42,42 +38,6 @@ export interface AdventureProfile {
   origin: OriginNarrative
   hookSeed: string
   challenge: EncounterChallenge // US-167: default 'adventure', resolvido em createForCharacter
-}
-
-/**
- * US-166: encontro já resolvido (locationId/npcIds → location/npcs reais) — o formato que
- * `AiService.generateClosing` consome como `encounterSkeleton` e que `buildEncounterDraft`
- * produz. Achatado pra `AdventureEncounter` (schema) só depois que `encounterSituations`
- * chega do modelo.
- */
-interface EncounterDraft {
-  id: string
-  type: EncounterType
-  location: AdventureLocation
-  npcs: AdventureNpc[]
-}
-
-/**
- * US-194: compõe `start` (a abertura) por CÓDIGO, a partir do encontro 1 — não mais por
- * IA (`generateOpeningBeat`, apagada). Briefing ROTULADO em inglês, não parágrafo colado:
- * `start` nunca foi lido pela jogadora (é semente de `generateOpeningNarration`), e colar
- * `boxedText`+`goal` numa prosa só herdaria o pior dos dois — lê como narração sem ser
- * narrável. `complications` fica de fora de propósito (é a virada da cena, não a semente).
- *
- * Assinatura restritiva por design: só `EncounterDraft` (que carrega a referência do local
- * PRÉ-`generateAntagonistLocationProse`) + `goal` (string solta, só existe depois do
- * `Promise.all` de `generateClosing`). Sem parâmetro de array de locais — a implementação
- * errada (procurar o local por id em `locationsWithAntagonist`, que nomeia o antagonista no
- * local do encontro final) não tem como COMPILAR contra esta assinatura.
- */
-export function composeStartBriefing(draft: EncounterDraft, goal: string): string {
-  const present = draft.npcs.length > 0 ? draft.npcs.map((npc) => npc.name).join(', ') : 'none'
-  return [
-    `Location: ${draft.location.title} — ${draft.location.boxedText}`,
-    `Situation: ${goal}`,
-    `Scene type: ${draft.type}`,
-    `Present: ${present}`,
-  ].join('\n')
 }
 
 @Injectable()
@@ -168,267 +128,166 @@ export class AdventureService {
   }
 
   /**
-   * US-166/US-187: monta a locationId (round-robin filtrado por `vibe`, US-187) e npcIds
-   * (por type) de um encontro, mutando `state.npcs`/`state.socialIndex`/`state.vibeCounts`
-   * — não é puro de propósito: `combat` precisa acumular NPCs ENTRE encontros
-   * (`buildEncounterNpcs` cumulativo, senão `id` colide), `social` precisa de um contador
-   * estável entre chamadas (fallback round-robin), e a escolha de local precisa de um
-   * contador POR vibe, independente de `socialIndex` (esse é fallback de NPC, não de local).
-   * `isFinalPosition` avisa quando `index` é o encontro final (posição 8) — só ali um
-   * fallback de local sem `vibe:'combat'` disponível gera log/warn (critério de aceite).
-   */
-  private buildEncounterDraft(
-    type: EncounterType,
-    index: number,
-    isFinalPosition: boolean,
-    locations: AdventureLocation[],
-    combatRoles: ReturnType<typeof composeEncounterRoles>,
-    state: { npcs: AdventureNpc[]; socialIndex: number; vibeCounts: Record<EncounterType, number> },
-  ): EncounterDraft {
-    const id = `encounter-${index + 1}`
-    const { id: locationId, usedFallback } = pickLocationIdForType(locations, type, state.vibeCounts[type], index)
-    state.vibeCounts[type]++
-    if (isFinalPosition && type === 'combat' && usedFallback) {
-      console.warn(
-        "[AdventureService][buildEncounterDraft] encontro final (posição 8, type='combat') sem local vibe:'combat' disponível — caiu no round-robin cego (fallback)",
-      )
-    }
-    const location = locations.find((loc) => loc.id === locationId)!
-
-    if (type === 'combat') {
-      const encounterNpcs = buildEncounterNpcs(combatRoles, state.npcs)
-      state.npcs = [...state.npcs, ...encounterNpcs]
-      return { id, type, location, npcs: encounterNpcs }
-    }
-
-    if (type === 'social') {
-      if (location.occupants.length > 0) {
-        const occupants = location.occupants
-          .map((npcId) => state.npcs.find((npc) => npc.id === npcId))
-          .filter((npc): npc is AdventureNpc => npc !== undefined)
-        return { id, type, location, npcs: occupants }
-      }
-      // US-166 (Notas de implementação): fallback round-robin sobre os NPCs narrativos,
-      // contador próprio (`socialIndex`) — `npcs.length === 0` (defensivo) devolve [].
-      const fallback = state.npcs.length > 0 ? state.npcs[state.socialIndex % state.npcs.length] : undefined
-      state.socialIndex++
-      return { id, type, location, npcs: fallback ? [fallback] : [] }
-    }
-
-    return { id, type, location, npcs: [] } // skill: sem moradores estruturados
-  }
-
-  /**
-   * US-164/US-166: orquestrador do motor — executa os passos 1-6 da *Ordem de geração*
-   * (backlog do motor de aventuras) e devolve um `GeneratedAdventure` que passa em
-   * `.parse()` (só FORMA; grafo fechar/orçamento continuam sendo o gate da US-150).
+   * US-232: orquestrador do motor mundo-primeiro — UMA chamada de autoria (`generateAdventureAuthoring`,
+   * escada `authoringModels`) + montagem determinística (minta ids dos índices que o modelo
+   * emitiu) + backstop de local órfão. Substitui o encadeamento de 6 `generate*` (MA-1). Devolve
+   * um `GeneratedAdventure` que passa em `.parse()` (só FORMA; grafo/orçamento seguem no gate US-150).
    *
-   * US-166: `encounters` tem sempre 8 elementos, `type` sorteado por seed determinístico
-   * (`shuffleEncounterTypes`) — posição 8 sempre o confronto final (`combat` viável,
-   * `social` quando o composer devolve `[]`, ver *Decisões fechadas* da US-166).
-   * `locationId` é round-robin sobre `locations[]`; `npcIds` resolvido por `type`
-   * (`buildEncounterDraft`). Os NPCs de combate entram também em `npcs[]` (referência
-   * real, não solta) — `combatRoles` é computado UMA VEZ (puro em level/challenge) e
-   * reusado em cada encontro `combat`, com `existingNpcs` cumulativo entre eles.
+   * Contagem de FACÇÕES sorteada [2,4] no Game Server (`rollFactionCount`) e passada como
+   * restrição do prompt; locais/NPCs/desafios/encontros FIXOS nos defaults (têm dial, US-162/163
+   * — vira a alavanca de variação depois, nunca dado). `registry` continua vindo de `rollRegistry`
+   * inteiro (dimensão de filtro/eval); só os eixos com override viram RÓTULO pt-BR no prompt
+   * ("Aleatório" = omitido). `config` novo (US-232): resolve o rótulo — `registryOverrides` só
+   * carrega a CHAVE.
    *
-   * `attempt` (US-150): default `0`, repassado a `rollAdventure`/`shuffleEncounterTypes` —
-   * o gate que envolve esta função incrementa a cada reseed, pra rolar registro/conteúdo/
-   * tipos NOVOS, não reamostrar em cima do mesmo material (ver adventure-gate.ts).
+   * `attempt` (US-150): default `0`, repassado a `rollRegistry`/`rollFactionCount` — o gate
+   * re-semeia com attempt+1, rolando registro/contagem novos em vez de reamostrar o mesmo.
    */
   async generateAdventure(
     profile: AdventureProfile,
     characterId: string,
     order: number,
     locale: Locale,
+    config: SystemConfig,
     registryOverrides: AdventureRegistryOverrides = {},
     attempt = 0,
   ): Promise<GeneratedAdventure> {
-    const { registry, content } = rollAdventure(characterId, order, registryOverrides, attempt)
+    const registry = rollRegistry(characterId, order, registryOverrides, attempt)
+    const factionCount = rollFactionCount(characterId, order, attempt)
 
-    // US-192: passo 1 do motor — escolhe/elabora a premissa a partir dos candidatos
-    // rolados, ANTES de qualquer chamada que a consome como insumo. Sequencial (não no
-    // Promise.all abaixo): locais/NPCs/segredos/antagonista/fecho dependem do resultado.
-    const { premissa } = await this.ai.generatePremissa({
-      candidates: content.premissaCandidates,
-      complicacao: content.complicacao,
-      registry,
-      background: profile.background,
-      origin: profile.origin,
-      locale,
-    })
-
-    const { locations, npcs } = await this.ai.generateLocationsAndNpcs({
-      rolled: content,
-      premissa,
-      registry,
-      locale,
-    })
-
-    const secrets = await this.ai.generateSecrets({
-      locations,
-      npcs,
-      secretPrompts: readSecretPrompts(),
-      registry,
-      locale,
-    })
-
-    // US-188: papel/CR do antagonista, calculável CEDO (só level/challenge, sem esperar o
-    // modelo) — reserva o CR dele no orçamento do encontro final ANTES do loop guloso de
-    // `composeEncounterRoles`, pra não estourar `checkEncounterBudget` por composição cega.
-    const antagonistRole = chooseAntagonistRole(profile.level, profile.challenge)
-    const antagonistCr = antagonistRole ? MONSTER_ROLE_CR[antagonistRole] : 0
-    const combatRoles = composeEncounterRoles(profile.level, profile.challenge)
-    const finalCombatRoles = composeEncounterRoles(profile.level, profile.challenge, antagonistCr)
-    const combatViable = combatRoles.length > 0
-    const types = shuffleEncounterTypes(characterId, order, combatViable, attempt)
-
-    const state = { npcs: [...npcs], socialIndex: 0, vibeCounts: { combat: 0, skill: 0, social: 0 } }
-    // Posição 8 (índice 7, encontro final) usa `finalCombatRoles` (orçamento já descontado do
-    // antagonista) — as demais continuam com `combatRoles` sem reserva, como antes desta story.
-    const drafts: EncounterDraft[] = types.map((type, i) =>
-      this.buildEncounterDraft(type, i, i === types.length - 1, locations, i === types.length - 1 ? finalCombatRoles : combatRoles, state),
-    )
-    const npcsBeforeAntagonist = state.npcs
-
-    // US-181/US-190: antagonista é passo PRÓPRIO, sequencial — roda depois de segredos e
-    // antes do Promise.all, porque `generateClosing` (abaixo) precisa dele já pronto pra
-    // ancorar a conclusão nele em vez de improvisar prosa.
-    // 2026-08-23: `background`/`origin` NÃO entram aqui (ver comentário em
-    // `AiService.generateAntagonist`) — `connection` do vilão nunca ancora em vínculo
-    // permanente da ficha, só no que já foi rolado para esta aventura.
-    const antagonist = await this.ai.generateAntagonist({
-      locations,
-      npcs: npcsBeforeAntagonist,
-      secrets,
-      registry,
-      complicacao: content.complicacao,
-      premissa,
-      locale,
-    })
-
-    // US-188: o antagonista vira, ele mesmo, um AdventureNpc real — `role` é o MonsterRole
-    // calculado acima (soma no gate) quando existe; nível 1-3/'adventure' (sem CR seguro) cai
-    // de volta pro texto livre `antagonist.trait`, comportamento original desta story. `id`
-    // some ao array final e é adicionado a `npcIds` do encontro final (último draft) — o
-    // combatente que o jogador enfrenta é LITERALMENTE o antagonista, mesmo quando
-    // `finalCombatRoles` é `[]`.
-    const antagonistNpc: AdventureNpc = {
-      id: `npc-${npcsBeforeAntagonist.length + 1}`,
-      name: antagonist.name,
-      role: antagonistRole ?? antagonist.trait,
-      interactions: [],
+    // Params de mundo → RÓTULO pt-BR só pros eixos que o jogador escolheu (têm override); os
+    // demais são omitidos do prompt (modelo livre nesse eixo). O `registry` gravado no artefato
+    // continua vindo de `rollRegistry` inteiro, sem mudança — só a linha de restrição do prompt
+    // difere entre "veio do jogador" e "Aleatório".
+    const world = {
+      setting: registryOverrides.setting ? catalogLabel(config.settings, registryOverrides.setting) : undefined,
+      tone: registryOverrides.tone ? catalogLabel(config.tones, registryOverrides.tone) : undefined,
+      areaType: registryOverrides.areaType ? catalogLabel(config.areaTypes, registryOverrides.areaType) : undefined,
     }
-    const allNpcs = [...npcsBeforeAntagonist, antagonistNpc]
-    const finalDraft = drafts[drafts.length - 1]!
-    drafts[drafts.length - 1] = { ...finalDraft, npcs: [...finalDraft.npcs, antagonistNpc] }
-    const antagonistWithNpcId: AdventureAntagonist = { ...antagonist, npcId: antagonistNpc.id }
+    const counts = { locations: 6, npcs: 7, challenges: 3, encounters: 3 }
 
-    // US-191, Parte 1: antagonistNpc.id também entra em occupants[] do local do confronto
-    // final — mesmo padrão que NPCs sociais já usam (US-158). antagonistNpc/finalDraft.location
-    // já estão os dois em mãos aqui, SEM esperar o Promise.all abaixo (só a Parte 2, prosa,
-    // depende da chamada nova que roda nele).
-    const locationsWithOccupant = locations.map((loc) => {
-      if (loc.id !== finalDraft.location.id) return loc
-      const occupants = loc.occupants.includes(antagonistNpc.id) ? loc.occupants : [...loc.occupants, antagonistNpc.id]
-      return { ...loc, occupants }
+    const authored = await this.ai.generateAdventureAuthoring({
+      world,
+      factionCount,
+      counts,
+      // US-232: background como TOM — só `character.story`; bonds/deity/flaws ficam de fora.
+      characterStory: profile.background.story,
+      level: profile.level,
+      className: catalogLabel(config.classes, profile.classKey),
+      locale,
     })
 
-    // US-191, Parte 2: `generateAntagonistLocationProse` roda em paralelo a `generateClosing`
-    // — nenhuma das duas depende da outra, as duas só precisam de locations/npcs/secrets/
-    // registry/premissa (+ antagonist), já prontos aqui. `Promise.all` no lugar de dois
-    // `await` sequenciais não adiciona latência de rede sobre o `await` que já existia.
-    // US-194: `generateOpeningBeat` (3ª perna) foi apagada — `start` deixou de vir de IA,
-    // agora é composto por código a partir do encontro 1 (`composeStartBriefing` abaixo).
-    const [{ objective, conclusion, followUps, encounterSituations }, { boxedText, description }] = await Promise.all([
-      this.ai.generateClosing({
-        locations,
-        npcs: allNpcs,
-        secrets,
-        registry,
-        complicacao: content.complicacao,
-        premissa,
-        antagonist: antagonistWithNpcId,
-        encounterSkeleton: drafts,
-        locale,
-      }),
-      this.ai.generateAntagonistLocationProse({
-        location: finalDraft.location,
-        antagonist: antagonistWithNpcId,
-        registry,
-        locale,
-      }),
+    // Minting: a saída BRUTA referencia por índice (0-based na array irmã) — o código minta os
+    // ids reais aqui. Índice fora de faixa é filtrado (occupants/npcIndices) ou clampa pro
+    // primeiro local (locationIndex obrigatório), mesma disciplina de `occupants` da US-158.
+    const factions = authored.factions.map((f, i) => ({ id: `faction-${i + 1}`, name: f.name, kind: f.kind, want: f.want }))
+    const factionId = (idx: number | undefined): string | undefined =>
+      idx !== undefined && idx >= 0 && idx < factions.length ? factions[idx]!.id : undefined
+
+    const npcs: AdventureNpc[] = authored.npcs.map((n, i) => ({
+      id: `npc-${i + 1}`,
+      name: n.name,
+      role: n.role,
+      want: n.want,
+      ...(factionId(n.factionIndex) ? { factionId: factionId(n.factionIndex) } : {}),
+      interactions: n.speech?.trim() ? [{ narrative: n.speech.trim() }] : [],
+    }))
+
+    const locations: AdventureLocation[] = authored.locations.map((l, i) => ({
+      id: `loc-${i + 1}`,
+      title: l.title,
+      aspects: l.aspects,
+      boxedText: l.boxedText,
+      description: l.description,
+      occupants: l.occupants.filter((idx) => idx < npcs.length).map((idx) => npcs[idx]!.id),
+      ...(factionId(l.factionIndex) ? { factionId: factionId(l.factionIndex) } : {}),
+      vibe: l.vibe,
+    }))
+    const locationId = (idx: number): string => (idx >= 0 && idx < locations.length ? locations[idx]!.id : locations[0]!.id)
+
+    const challenges: AdventureChallenge[] = authored.challenges.map((c, i) => ({
+      id: `challenge-${i + 1}`,
+      locationId: locationId(c.locationIndex),
+      test: c.test,
+      situation: c.situation,
+      consequence: c.consequence,
+    }))
+
+    const encounters: AdventureEncounter[] = authored.encounters.map((e, i) => ({
+      id: `encounter-${i + 1}`,
+      locationId: locationId(e.locationIndex),
+      npcIds: e.npcIndices.filter((idx) => idx < npcs.length).map((idx) => npcs[idx]!.id),
+      type: e.type,
+      fiction: e.fiction,
+      behaviors: e.behaviors,
+      goal: e.goal,
+      complications: e.complications,
+      unlocks: e.unlocks,
+    }))
+
+    const objective = {
+      description: authored.objective.description,
+      reward: authored.objective.reward,
+      locationId: locationId(authored.objective.locationIndex),
+    }
+
+    // US-232 (Dúvidas de implementação #9): backstop determinístico de local órfão. Todo local
+    // fora do conjunto ancorado (encounter/challenge/objective.locationId + occupants não-vazio)
+    // recebe 1 npcId em `occupants`, round-robin sobre NPCs ainda sem local (ou sobre todos, se
+    // nenhum estiver livre). Garante `checkNoOrphanLocations` passando SEMPRE, sem depender do
+    // regenerate do MA-4. NPC ocupar 2 locais não é problema: continuidade é rastreada no ledger
+    // por revelado/nome (global por NPC, não por local, US-199).
+    const anchoredLocationIds = new Set<string>([
+      ...encounters.map((e) => e.locationId),
+      ...challenges.map((c) => c.locationId),
+      objective.locationId,
+      ...locations.filter((l) => l.occupants.length > 0).map((l) => l.id),
     ])
-
-    // US-194: `start` cita/situa SEMPRE o local do encontro 1 — `drafts[0].location` é a
-    // referência PRÉ-`generateAntagonistLocationProse` (nunca `locationsWithAntagonist`,
-    // que abaixo reescreve o local do encontro FINAL citando o antagonista pelo nome; os
-    // dois podem ser o MESMO local quando `pickLocationIdForType` colide). `goal` do
-    // encontro 1 só existe agora, depois do `Promise.all` (vem de `encounterSituations[0]`,
-    // pareado posicionalmente com `drafts[0]` — mesmo contrato que a validação abaixo confere
-    // para os 8 encontros).
-    const start = composeStartBriefing(drafts[0]!, encounterSituations[0]!.goal)
-
-    // US-191, Parte 2: patch final sobre `locationsWithOccupant` (não sobre `locations`
-    // original) — encadeado, senão um dos dois `.map` apagaria o que o outro escreveu.
-    const locationsWithAntagonist = locationsWithOccupant.map((loc) =>
-      loc.id === finalDraft.location.id ? { ...loc, boxedText, description } : loc,
-    )
-
-    const encounters: AdventureEncounter[] = drafts.map((draft, i) => {
-      const situation = encounterSituations[i]!
-      // US-193: o array é posicional (contrato da US-166) e todos os campos são prosa livre —
-      // se o modelo emitir de trás pra frente, nada mais detecta (o gate só olha id/grafo/CR).
-      // Eco do id é a única verificação mecânica possível sem DAG entre encontros.
-      if (situation.encounterId !== draft.id) {
-        throw new Error(
-          `encounterSituations[${i}].encounterId "${situation.encounterId}" != esqueleto "${draft.id}" (array fora de ordem)`,
-        )
-      }
-      return {
-        id: draft.id,
-        locationId: draft.location.id,
-        npcIds: draft.npcs.map((npc) => npc.id),
-        type: draft.type,
-        behaviors: situation.behaviors,
-        goal: situation.goal,
-        complications: situation.complications,
-        unlocks: situation.unlocks,
-      }
-    })
+    const occupiedNpcIds = new Set(locations.flatMap((l) => l.occupants))
+    const freeNpcs = npcs.filter((n) => !occupiedNpcIds.has(n.id))
+    const pool = freeNpcs.length > 0 ? freeNpcs : npcs
+    let rr = 0
+    for (const loc of locations) {
+      if (anchoredLocationIds.has(loc.id) || pool.length === 0) continue
+      loc.occupants = [...loc.occupants, pool[rr % pool.length]!.id]
+      rr++
+    }
 
     return GeneratedAdventureSchema.parse({
       id: `${characterId}:${order}`,
       levelRange: { min: profile.level, max: profile.level },
       registry,
-      summary: premissa,
-      npcs: allNpcs,
-      secrets,
-      locations: locationsWithAntagonist,
+      summary: authored.summary,
+      world: authored.world,
+      story: authored.story,
+      factions,
+      npcs,
+      locations,
+      challenges,
       encounters,
-      start,
+      start: authored.start,
       objective,
-      conclusion,
-      followUps,
-      antagonist: antagonistWithNpcId,
+      branchedResolution: authored.branchedResolution,
+      followUps: authored.followUps,
     })
   }
 
   /**
-   * US-150: gate antes de persistir — envolve `generateAdventure` com as três verificações
-   * mecânicas (parse, grafo fecha, orçamento do encontro) e o reseed correto por verificação
-   * (ver adventure-gate.ts). Não lança: devolve `GateResult`, quem chama decide o que fazer
-   * com `ok: false` (nenhum consumidor de persistência ainda — fora do escopo desta story).
+   * US-150: gate antes de persistir — envolve `generateAdventure` com as verificações mecânicas
+   * (parse, grafo fecha) e o reseed correto (ver adventure-gate.ts). US-232: `config` threading
+   * pro rótulo pt-BR dos params de mundo.
    */
   async generateGatedAdventure(
     profile: AdventureProfile,
     characterId: string,
     order: number,
     locale: Locale,
+    config: SystemConfig,
     registryOverrides: AdventureRegistryOverrides = {},
     maxAttempts = 3,
   ): Promise<GateResult> {
     return generateWithGate(
-      (attempt) => this.generateAdventure(profile, characterId, order, locale, registryOverrides, attempt),
+      (attempt) => this.generateAdventure(profile, characterId, order, locale, config, registryOverrides, attempt),
       maxAttempts,
       profile.challenge,
     )
@@ -598,7 +457,7 @@ export class AdventureService {
     // gancho (`profile.hookSeed`) só ancora a abertura, não decide mais locais/NPCs/segredos/
     // quest. Gate (US-150) antes de persistir; teto de tentativas esgotado → sem fallback
     // estático (ao contrário de generateOpeningNarration, não existe aventura fixa pra cair).
-    const gateResult = await this.generateGatedAdventure(profile, characterId, order, locale, {
+    const gateResult = await this.generateGatedAdventure(profile, characterId, order, locale, config, {
       tone: dto.tone ? this.validateCatalogKey(config.tones, dto.tone, 'Tom') : undefined,
       setting: dto.setting ? this.validateCatalogKey(config.settings, dto.setting, 'Cenário') : undefined,
       areaType: dto.areaType ? this.validateCatalogKey(config.areaTypes, dto.areaType, 'Tipo de Área') : undefined,
@@ -694,21 +553,17 @@ export class AdventureService {
 
       // US-153: quest principal derivada do artefato gerado (não mais do gancho fixo por
       // classe) — dá objetivo ao DM (ver AiService).
-      // US-169: `objective` (alvo concreto) é exposto ao Mestre todo turno (buildTurnStateBlock);
-      // `conclusionHint` = `generated.conclusion` fica GUARDADO mas nunca exposto em turno
-      // algum — só `completeQuest` o devolve, quando o Mestre chama (US-153 Questões em
-      // aberto #4: vazaria o desfecho antes do jogo começar).
-      // US-194: `description` passa a ser `generated.summary` (a premissa), não mais a cena
-      // de abertura (`start`, que agora é briefing rotulado, não prosa relível todo turno).
-      // `mainQuest` (ai.service.ts) para de concatenar title/description quando são o mesmo
-      // texto — a duplicação morre lá, não aqui.
+      // US-169: `objective` (alvo concreto) é exposto ao Mestre todo turno (buildTurnStateBlock).
+      // US-232: `objective` do artefato virou objeto — grava só `.description` (a coluna Quest é
+      // texto). `Quest.conclusionHint` SAIU da tabela: a autoria mundo-primeiro tem fecho
+      // RAMIFICADO (`branchedResolution`, sem herói), não uma conclusão única pré-escrita.
+      // US-194: `description` = `generated.summary` (a premissa), não a cena de abertura.
       await tx.quest.create({
         data: {
           adventureId: adventure.id,
           title: generated.summary,
           description: generated.summary,
-          objective: generated.objective,
-          conclusionHint: generated.conclusion,
+          objective: generated.objective.description,
           isPrimary: true,
         },
       })
@@ -815,7 +670,7 @@ export class AdventureService {
     const [quests, characterRow, characterState, eventLogs, system] = await Promise.all([
       this.prisma.quest.findMany({
         where: { adventureId },
-        select: { title: true, description: true, status: true, isPrimary: true, objective: true, conclusionHint: true },
+        select: { title: true, description: true, status: true, isPrimary: true, objective: true },
       }),
       this.prisma.character.findUniqueOrThrow({
         where: { id: characterId },
