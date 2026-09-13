@@ -114,7 +114,7 @@ O enredo: o que está errado, quem são as forças em jogo (as 3 facções apare
 ## Objective
 Descrição da meta; Recompensa (um item mágico nomeado, com efeito descrito em ficção, sem números); Localização (em qual local se resolve). A meta inclui uma escolha final RAMIFICADA (3 rumos, cada um com custo, nenhum "o certo").
 ## Locations
-~6 locais nomeados, cada um com descrição sensorial curta e itens notáveis (se houver).
+~6 locais nomeados, cada um com descrição sensorial curta e itens notáveis (se houver). A descrição fala SÓ do lugar e dos itens — NÃO cite NPCs que estão nele (quem os habita fica na seção NPCs, cada NPC ligado ao seu local). Ex.: descreva "o balcão de uma taverna esfumaçada e o mural nos fundos", não "onde o estalajadeiro Tobias serve bebida".
 ## Challenges
 3 desafios de NÃO-COMBATE, cada um preso a um local nomeado acima: a situação + o teste nomeado (perícia/atributo, SEM CD) + a consequência da falha.
 ## Encounters
