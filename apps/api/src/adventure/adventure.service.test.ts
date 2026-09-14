@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
 import { AdventureService, type AdventureProfile } from './adventure.service'
+import { NAMING_REGISTERS } from '../adventure-generation/registry-catalog'
 import type { AiService } from '../ai/ai.service'
 import type { PrismaService } from '../prisma.service'
 
@@ -440,6 +441,7 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     expect(capture['counts']).toEqual({ locations: 6, npcs: 7, challenges: 3, encounters: 3 })
     expect(capture['className']).toBe('Mago')
     expect((capture['world'] as Record<string, unknown>)['tone']).toBe('Heroico')
+    expect(NAMING_REGISTERS).toContain(capture['namingRegister'])
   })
 
   it('backstop: local órfão (sem encontro/desafio/objetivo/occupant) recebe um occupant', async () => {
@@ -472,6 +474,14 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     const a = await service(fakeAi()).generateAdventure(profile, 'char-1', 7, 'pt-BR', config)
     const b = await service(fakeAi()).generateAdventure(profile, 'char-1', 7, 'pt-BR', config)
     expect(a.registry).toEqual(b.registry)
+  })
+
+  // US-240: registro de nomenclatura sorteado ao lado de registry/factionCount, passado
+  // pro prompt de autoria — não persiste no artefato (só influencia os nomes que saem).
+  it('sorteia namingRegister e passa pro prompt de autoria', async () => {
+    const capture: Record<string, unknown> = {}
+    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+    expect(NAMING_REGISTERS).toContain(capture['namingRegister'])
   })
 
   it('encounters[].fiction presente, npc[].want não vazio', async () => {

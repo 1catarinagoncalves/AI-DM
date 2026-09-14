@@ -1,5 +1,5 @@
 import { createSeededRandom, deriveAdventureSeed, type AdventureRegistry } from '@ai-dm/shared'
-import { AREA_TYPES, SETTINGS, TONES } from './registry-catalog'
+import { AREA_TYPES, NAMING_REGISTERS, SETTINGS, TONES } from './registry-catalog'
 
 export type { AdventureRegistry }
 
@@ -42,4 +42,14 @@ export function rollFactionCount(characterId: string, order: number, attempt = 0
   const seed = deriveAdventureSeed(`${characterId}:factionCount`, order, attempt)
   const rand = createSeededRandom(seed)
   return 2 + Math.floor(rand() * 3) // [2,4]
+}
+
+// US-240: UM registro de nomenclatura sorteado pra aventura INTEIRA (mundo, facções, locais,
+// NPCs, recompensa) — nunca um por entidade, pra não soar como colcha de retalhos cultural.
+// Mesmo formato de `rollFactionCount` (sub-seed próprio `characterId:namingRegister`, ao lado
+// das outras rolagens, sem deslocá-las); sorteio ÚNICO, sem `slot`, sem loop.
+export function rollNamingRegister(characterId: string, order: number, attempt = 0): string {
+  const seed = deriveAdventureSeed(`${characterId}:namingRegister`, order, attempt)
+  const rand = createSeededRandom(seed)
+  return NAMING_REGISTERS[Math.floor(rand() * NAMING_REGISTERS.length)]!
 }

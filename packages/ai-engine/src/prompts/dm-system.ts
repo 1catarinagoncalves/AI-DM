@@ -193,7 +193,7 @@ Register cheat-sheet — a starting point for the SOUND, calibrate it, never cop
 - Rustic — halflings, villages, inns: homely, earthy, pt-BR-friendly.
 - Others as the scene needs (Japonic, Egyptian, Mesoamerican, Hebraic/celestial, Sanskrit, Sub-Saharan African…): invent a coherent sound of its own.
 
-OPEN PALETTE, not a closed list: when a scene needs a culture the cheat-sheet skips, INVENT a coherent register of its own and keep it consistent across every name from that people/place. Draw on a sound "in the spirit of" a language — never lift a real religious/historical figure's actual name, never caricature a real culture. The only boundary is slop: it is a FAILURE to fall back on generic default names, or to give NPCs from different cultures the same generic sound.`
+OPEN PALETTE, not a closed list: when a scene needs a culture the cheat-sheet skips, INVENT a coherent register of its own and keep it consistent across every name from that people/place. Draw on a sound "in the spirit of" a language — never lift a real religious/historical figure's actual name, never caricature a real culture. The only boundary is slop: it is a FAILURE to fall back on generic default names, or to give NPCs from different cultures the same generic sound. A common-noun epithet with an article ("the Guardian", "the Wanderer") only counts as invented sound when the WORD ITSELF carries the register's texture — a compound, an archaic form, a foreign root; a plain dictionary noun with an article in front is the SAME failure as reaching for a shelf-name, not a valid shortcut around the work of inventing one.`
 
 /**
  * US-179: núcleo da barra de ofício aplicável a PROSA GERADA UMA VEZ (motor de

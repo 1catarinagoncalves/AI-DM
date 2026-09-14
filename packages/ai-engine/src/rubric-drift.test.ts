@@ -16,7 +16,11 @@ import { DIMENSIONS } from './rubric'
 // Ao MUDAR a barra de propósito:
 //   1. revise DIMENSIONS em rubric.ts (a rubrica precisa cobrir a exigência nova);
 //   2. cole o novo hash (a mensagem de erro imprime o valor atual) em REVIEWED_CRAFT_HASH.
-const REVIEWED_CRAFT_HASH = 'f49075246b8443473ad03f33009b2202f6385b2ccaa0d58d3c33915d799d00c3'
+// US-240: bullet novo no parágrafo OPEN PALETTE da Onomástica (atalho de epíteto-substantivo-
+// comum-com-artigo). Revisado: `onomastica` (DIMENSIONS) já cobre — "Nomes próprios ORIGINAIS
+// (sem clichês...)" reprova esse atalho igual reprovaria um nome de prateleira; sem mudança de
+// texto na dimensão.
+const REVIEWED_CRAFT_HASH = 'dc1cb42f8f745dbca143a12f5509886290b28e729ff7333ab33091fa8b16ca8e'
 
 describe('drift da barra de ofício vs rubrica (US-36)', () => {
   it('a barra de ofício não mudou sem revisão da rubrica', () => {

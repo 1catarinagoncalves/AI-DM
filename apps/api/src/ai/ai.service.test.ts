@@ -838,7 +838,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
   it('devolve o objeto bruto do modelo (sem mintar ids — isso é do adventure.service)', async () => {
     genObj.error = undefined
     genObj.result = authored
-    const result = await svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, level: 3, className: 'ladino' })
+    const result = await svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', level: 3, className: 'ladino' })
     expect(result).toBe(authored)
   })
 
@@ -850,6 +850,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       factionCount: 4,
       counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
       characterStory: 'cresceu batendo carteira nos cais',
+      namingRegister: 'Celtic',
       level: 3,
       className: 'ladino',
     })
@@ -858,10 +859,30 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
     expect(genObj.prompt).toContain('Sombrio')
   })
 
+  // US-240: registro de nomenclatura sorteado por adventure.service entra como restrição
+  // cobrindo TODO nome próprio — não só o mundo — e prima sobre o passo 1 da Onomástica.
+  it('registro de nomenclatura entra no prompt, cobrindo mundo/facções/locais/NPCs/recompensa', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: {},
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Norse/Germanic',
+      level: 3,
+      className: 'ladino',
+    })
+    expect(genObj.prompt).toContain('Norse/Germanic')
+    expect(genObj.prompt).toMatch(/facç(ões|ão)/)
+    expect(genObj.prompt).toMatch(/locais/)
+    expect(genObj.prompt).toMatch(/NPCs/)
+    expect(genObj.prompt).toMatch(/recompensa/)
+  })
+
   it('escada esgotada (todos os modelos falham) LANÇA — nunca degrada em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
     await expect(
-      svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, level: 3, className: 'ladino' }),
+      svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', level: 3, className: 'ladino' }),
     ).rejects.toThrow('modelo indisponível')
   })
 })

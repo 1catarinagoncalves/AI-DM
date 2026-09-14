@@ -217,6 +217,7 @@ function buildAuthoringPrompt(params: {
   factionCount: number
   counts: { locations: number; npcs: number; challenges: number; encounters: number }
   characterStory?: string
+  namingRegister: string
   level: number
   className: string
 }): string {
@@ -235,6 +236,12 @@ function buildAuthoringPrompt(params: {
     worldLines.length > 0
       ? `Restrições de mundo (respeite estes eixos):\n${worldLines.join('\n')}`
       : 'Sem eixos de mundo fixados — você é livre em cenário/tom/tipo de área.',
+    '',
+    // US-240: UM registro pra toda a aventura — nunca um por facção/local/NPC (colcha de
+    // retalhos cultural sem razão narrativa). Prima sobre o passo 1 da Onomástica (registro por
+    // raça/classe/cena) só NESTA chamada; a Onomástica compartilhada não muda esse passo, que
+    // continua certo pra narração ao vivo.
+    `Registro de nomenclatura desta aventura: ${params.namingRegister}. Todo nome próprio que você inventar — mundo, facções, locais-âncora, NPCs, item de recompensa — soa nesse mesmo registro: é a identidade sonora de UM mundo específico, nunca uma mistura de culturas sem relação. Isto tem prioridade sobre o passo 1 da Onomástica pra esta aventura.`,
     '',
     'Contagens (respeite exatamente):',
     `- ${params.factionCount} facções com desejos concorrentes`,
@@ -1035,9 +1042,11 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       // Teto explícito de saída. Sem isto vale o default do provider — e como o
       // raciocínio oculto do deepseek (reasoning.exclude) CONTA no orçamento mas
       // não volta, a narração era cortada no meio da frase (finishReason=length).
-      // 4000 comporta o raciocínio cheio (sem effort cap, pra manter aderência ao
-      // prompt) + narração + opções com folga.
-      maxTokens: 4000,
+      // 4000 ainda cortava cenas mais longas/emocionais (US-240, eval `npc-vulneravel`:
+      // finishReason=length com 5406 tokens de entrada, narração incompleta reprovou
+      // sensorial/tensão/concretude/língua-pt-BR). 8000 dá folga extra pro raciocínio
+      // cheio + narração + opções nesses casos.
+      maxTokens: 8000,
       // Anti-loop degenerado (US-69). Penalidade de repetição — 1ª linha probabilística
       // contra "cra cra cra…" em região OOD; a rede determinística do guard (controller)
       // é a 2ª. openai-compatible@0.2.16 envia como `presence_penalty`; OpenRouter/DeepSeek
@@ -1488,6 +1497,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     factionCount: number
     counts: { locations: number; npcs: number; challenges: number; encounters: number }
     characterStory?: string
+    namingRegister: string
     level: number
     className: string
     locale?: Locale
