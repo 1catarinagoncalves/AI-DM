@@ -204,6 +204,12 @@ function buildAuthoringSystem(locale: Locale): string {
     '',
     `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a Onomástica abaixo, não o idioma-alvo. Prosa densa e sensorial, sem placeholders.`,
     '',
+    // US-241: a semente de `summary` (restrição no prompt, `questSeed`) chega EM INGLÊS — mesma
+    // categoria de risco de `patronsandnpcs` (roll-content.ts:89-97, o bug real de
+    // "lizardfolk"/"cheery" vazando cru na narração pt-BR), mas aqui não há mapa fixo possível
+    // (combinatória grande demais, ver US-241 §Fora do escopo): o guarda-corpo é de PROMPT.
+    `A semente de gancho (abaixo, "Gancho central desta aventura") vem EM INGLÊS — TRADUZA/ADAPTE a ideia pro ${targetLanguage} ao escrever \`summary\`; NUNCA copie a palavra em inglês crua para a prosa.`,
+    '',
     `Barra de qualidade da prosa (world/story/boxedText/fiction/role):\n${CRAFT_CORE_SECTION}\n${NPC_VOICE_BULLET}\n\n${ONOMASTICS_SECTION}`,
   ].join('\n')
 }
@@ -220,6 +226,7 @@ function buildAuthoringPrompt(params: {
   namingRegister: string
   level: number
   className: string
+  questSeed: string
 }): string {
   const worldLines = [
     params.world.setting && `- Cenário: ${params.world.setting}`,
@@ -227,6 +234,18 @@ function buildAuthoringPrompt(params: {
     params.world.areaType && `- Tipo de área: ${params.world.areaType}`,
   ].filter((l): l is string => Boolean(l))
   const { counts } = params
+  // US-241: `questSeed` (rollQuestSeed, fórmula do LGMRD) vira restrição obrigatória de
+  // `summary` — mesmo tratamento de `worldLines`/`characterStory`, sem chamada de IA nova. Com
+  // `setting` fixado, soma a instrução de TRANSPOR o vocabulário medieval-padrão do MacGuffin
+  // pro eixo de Cenário restringido (o LGMRD é nativamente fantasia medieval; `SETTINGS` inclui
+  // eixos que destoam disso, ex. `cyberpunk`/`sci-fi-space-opera`) — mesmo condicional de
+  // `worldLines.length > 0` logo abaixo: sem Cenário fixado (Aleatório), o modelo fica livre
+  // pra manter ou não o registro medieval-padrão.
+  const questSeedLines = [
+    `Gancho central desta aventura (semente em inglês — ver instrução de tradução no system): "${params.questSeed}". Escreva \`summary\` TRADUZINDO/ADAPTANDO essa ideia pro idioma-alvo, nunca copiando a palavra em inglês; \`story\`/\`objective\` não podem contradizê-la.`,
+    params.world.setting &&
+      `O MacGuffin da semente acima é vocabulário PADRÃO do LGMRD (fantasia medieval) — TRANSPONHA os substantivos pro eixo de Cenário já restringido acima (ex.: obelisco/cripta → núcleo de reator/estação abandonada, num Cenário sci-fi), mantendo conceito+motivo; NÃO force cripta/obelisco/patrono élfico se o Cenário destoar.`,
+  ].filter((l): l is string => Boolean(l))
   return [
     `Personagem: ${params.className}, nível ${params.level}. (Contexto de escala — a aventura NÃO gira em torno dele nem do passado dele.)`,
     params.characterStory?.trim()
@@ -236,6 +255,8 @@ function buildAuthoringPrompt(params: {
     worldLines.length > 0
       ? `Restrições de mundo (respeite estes eixos):\n${worldLines.join('\n')}`
       : 'Sem eixos de mundo fixados — você é livre em cenário/tom/tipo de área.',
+    '',
+    questSeedLines.join('\n'),
     '',
     // US-240: UM registro pra toda a aventura — nunca um por facção/local/NPC (colcha de
     // retalhos cultural sem razão narrativa). Prima sobre o passo 1 da Onomástica (registro por
@@ -1500,6 +1521,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     namingRegister: string
     level: number
     className: string
+    questSeed: string
     locale?: Locale
   }): Promise<AuthoredAdventure> {
     const locale = params.locale ?? DEFAULT_LOCALE

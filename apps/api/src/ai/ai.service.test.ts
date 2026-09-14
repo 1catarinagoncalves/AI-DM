@@ -838,7 +838,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
   it('devolve o objeto bruto do modelo (sem mintar ids — isso é do adventure.service)', async () => {
     genObj.error = undefined
     genObj.result = authored
-    const result = await svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', level: 3, className: 'ladino' })
+    const result = await svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', questSeed: 'Kill a villain because a Sly Elf demands it', level: 3, className: 'ladino' })
     expect(result).toBe(authored)
   })
 
@@ -851,6 +851,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
       characterStory: 'cresceu batendo carteira nos cais',
       namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
       level: 3,
       className: 'ladino',
     })
@@ -869,6 +870,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       factionCount: 3,
       counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
       namingRegister: 'Norse/Germanic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
       level: 3,
       className: 'ladino',
     })
@@ -882,7 +884,67 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
   it('escada esgotada (todos os modelos falham) LANÇA — nunca degrada em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
     await expect(
-      svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', level: 3, className: 'ladino' }),
+      svc().generateAdventureAuthoring({
+        world: {},
+        factionCount: 3,
+        counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+        namingRegister: 'Celtic',
+        questSeed: 'Kill a villain because a Sly Elf demands it',
+        level: 3,
+        className: 'ladino',
+      }),
     ).rejects.toThrow('modelo indisponível')
+  })
+
+  // US-241: `rollQuestSeed` vira restrição obrigatória de `summary`, no MESMO call único —
+  // sem round-trip novo. `system` ganha o guarda-corpo negativo contra vazamento de palavra em
+  // inglês (mesma categoria de risco de `patronsandnpcs`); só com `world.setting` presente o
+  // `prompt` pede a TRANSPOSIÇÃO do vocabulário medieval-padrão do MacGuffin pro eixo de Cenário.
+  it('questSeed chega ao prompt, e o system instrui traduzir/adaptar sem copiar a palavra em inglês', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: {},
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because of the Obelisk in the Crypts, which is Smoky and Ruined',
+      level: 3,
+      className: 'ladino',
+    })
+    expect(genObj.prompt).toContain('Kill a villain because of the Obelisk in the Crypts, which is Smoky and Ruined')
+    expect(genObj.system).toMatch(/traduza|adapte/i)
+    expect(genObj.system).toMatch(/nunca copie a palavra em ingl[êe]s/i)
+  })
+
+  it('com world.setting presente, o prompt pede TRANSPOR o MacGuffin pro Cenário restringido', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: { setting: 'cyberpunk' },
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
+      level: 3,
+      className: 'ladino',
+    })
+    expect(genObj.prompt).toMatch(/TRANSPON[HA]A|transponha/i)
+    expect(genObj.prompt).toMatch(/Cenário/)
+  })
+
+  it('sem world.setting (Aleatório), a instrução de transposição NÃO entra no prompt', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: {},
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
+      level: 3,
+      className: 'ladino',
+    })
+    expect(genObj.prompt).not.toMatch(/TRANSPON[HA]A|transponha/i)
   })
 })

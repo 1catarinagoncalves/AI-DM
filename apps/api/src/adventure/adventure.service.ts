@@ -7,6 +7,7 @@ import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackgro
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 import { type EncounterChallenge } from '../adventure-generation/monster-roles'
 import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
+import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
 import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-ledger'
 import type { AdventureExportData } from './adventure-export'
@@ -155,6 +156,7 @@ export class AdventureService {
     const registry = rollRegistry(characterId, order, registryOverrides, attempt)
     const factionCount = rollFactionCount(characterId, order, attempt)
     const namingRegister = rollNamingRegister(characterId, order, attempt)
+    const questSeed = rollQuestSeed(characterId, order, attempt)
 
     // Params de mundo → RÓTULO pt-BR só pros eixos que o jogador escolheu (têm override); os
     // demais são omitidos do prompt (modelo livre nesse eixo). O `registry` gravado no artefato
@@ -174,6 +176,7 @@ export class AdventureService {
       // US-232: background como TOM — só `character.story`; bonds/deity/flaws ficam de fora.
       characterStory: profile.background.story,
       namingRegister,
+      questSeed,
       level: profile.level,
       className: catalogLabel(config.classes, profile.classKey),
       locale,

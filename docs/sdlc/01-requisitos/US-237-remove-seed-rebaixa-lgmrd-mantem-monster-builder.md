@@ -65,6 +65,14 @@ A inversão (ADR 012 D5) trocou "montar de tabela com `seed`" por "modelo autora
 
 ---
 
+## Nota (US-241, 2026-09-14)
+
+`readLgmrdTables`/[lgmrd-tables.ts](../../../apps/api/src/adventure-generation/lgmrd-tables.ts) **deixam de ser candidatos a remoção** neste MA-7: [US-241](./US-241-summary-formula-lgmrd-macguffin.md) reverte, só para `summary`, a exclusão total de tabela LGMRD (ADR 012 D5) e ganha um consumidor novo — `rollQuestSeed` ([roll-quest-seed.ts](../../../apps/api/src/adventure-generation/roll-quest-seed.ts)) lê direto as 4 tabelas de rolagem (`1d20quests`/`locationsmonumentsanditems`/`conditiondescriptionandorigin`/`patronsandnpcs`) pra compor a semente de gancho do prompt de autoria.
+
+Continuam mortos e candidatos a remoção nesta story: `rollContent`/`rollPremissaCandidates`/`rollPatronsAndNpcs`/`generatePremissa` (US-192, [roll-content.ts](../../../apps/api/src/adventure-generation/roll-content.ts) — código antigo; `rollQuestSeed` lê as MESMAS tabelas com uma rolagem nova, não revive esse caminho) e os 40 prompts de segredo (US-149, `readSecretPrompts`).
+
+---
+
 ## Referências no código
 
 - [packages/shared/src/adventure-seed.ts](../../../packages/shared/src/adventure-seed.ts) — `deriveAdventureSeed`/`createSeededRandom`, código morto a remover.
