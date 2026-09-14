@@ -48,7 +48,10 @@
       // do Prisma (`prisma migrate`, `prisma generate`), não um import.
       // `src/main.ts` vem junto porque declarar `entry` SUBSTITUI a lista padrão
       // do knip — sem ele, a API inteira é lida como órfã.
-      "entry": ["src/main.ts", "prisma.config.ts"],
+      // scripts/*.ts: scripts de uso manual (ex.: run-authoring.ts, US-232 —
+      // smoke E2E pago, rodado via `pnpm --filter api exec ts-node scripts/...`),
+      // sem importador, mesmo padrão do tools/kanban na raiz.
+      "entry": ["src/main.ts", "prisma.config.ts", "scripts/*.ts"],
       "ignoreDependencies": [
         // Importado pelo client gerado em src/generated/prisma/, que é gitignored
         // — o knip não enxerga o import, mas ele existe em runtime.
