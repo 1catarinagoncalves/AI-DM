@@ -195,7 +195,6 @@ export class AdventureService {
       role: n.role,
       want: n.want,
       ...(factionId(n.factionIndex) ? { factionId: factionId(n.factionIndex) } : {}),
-      interactions: n.speech?.trim() ? [{ narrative: n.speech.trim() }] : [],
     }))
 
     const locations: AdventureLocation[] = authored.locations.map((l, i) => ({
@@ -256,6 +255,21 @@ export class AdventureService {
       if (anchoredLocationIds.has(loc.id) || pool.length === 0) continue
       loc.occupants = [...loc.occupants, pool[rr % pool.length]!.id]
       rr++
+    }
+
+    // US-242: 2º passo do backstop — `interactions` saiu (era a válvula de escape de
+    // `checkNoOrphanNpcs`), então TODO npc precisa de occupant/npcIds próprio agora, não só
+    // os que couberam nos locais órfãos acima. Round-robin sobre `locations` inteiro (não só
+    // as sem âncora): mesmo padrão de "NPC pode ocupar 2 locais, não é problema" (comentário
+    // acima) — fecha o grafo por construção sem depender de conteúdo opcional da autoria.
+    const referencedNpcIds = new Set<string>([...encounters.flatMap((e) => e.npcIds), ...locations.flatMap((l) => l.occupants)])
+    const strandedNpcs = npcs.filter((n) => !referencedNpcIds.has(n.id))
+    let rr2 = 0
+    for (const npc of strandedNpcs) {
+      if (locations.length === 0) break
+      const loc = locations[rr2 % locations.length]!
+      loc.occupants = [...loc.occupants, npc.id]
+      rr2++
     }
 
     return GeneratedAdventureSchema.parse({

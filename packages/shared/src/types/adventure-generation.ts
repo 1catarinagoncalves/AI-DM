@@ -1,23 +1,16 @@
 import { z } from 'zod'
 
-// US-144: fala escrita do NPC numa interação — as PALAVRAS EXATAS, não descrição de
-// personalidade (isso fica em AdventureNpcSchema.role). `encounterId` ausente = interação
-// fora de combate (ex.: NPC encontrado num local sem encontro estruturado).
-const AdventureNpcInteractionSchema = z.object({
-  encounterId: z.string().min(1).optional(),
-  narrative: z.string().min(1),
-})
-
 // US-232: NPC ganha `want` (motivação individual — carrega o antagonismo agora que
 // `antagonist` saiu; NPC neutro tem `want` sem `factionId`) e `factionId?` (vínculo
 // filho→facção, direção única — aponta pra factions[].id; o gate checa que o id existe).
+// US-242: `interactions` (fala pré-escrita na autoria) saiu — nunca era lida no turno ao
+// vivo, a fala do NPC é sempre gerada fresca pelo Mestre (ver ADR/story para o porquê).
 export const AdventureNpcSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   role: z.string().min(1),
   want: z.string().min(1),
   factionId: z.string().min(1).optional(),
-  interactions: z.array(AdventureNpcInteractionSchema),
 })
 
 // US-232: mundo autoral nomeado (ex.: "Khemsar, o Mar de Areia") — DISTINTO da chave

@@ -129,7 +129,6 @@ const AUTHORING_SCHEMA = z.object({
     role: z.string().min(1).describe('papel + descrição breve, 1 frase'),
     want: z.string().min(1).describe('motivação INDIVIDUAL do NPC (mais específica que a da facção)'),
     factionIndex: z.number().int().min(0).optional().describe('Índice (0-based) em factions[] — NÚMERO; omitir se NPC neutro'),
-    speech: z.string().optional().describe('Fala de abertura (palavras EXATAS) — preencha em pelo menos 3 NPCs'),
   })).min(1),
   locations: z.array(z.object({
     title: z.string().min(1),
@@ -272,7 +271,7 @@ function buildAuthoringPrompt(params: {
     `- ${counts.encounters} encontros (inclua um Final que amarra o fecho ramificado)`,
     `- ${params.factionCount} rumos em branchedResolution e ${params.factionCount} followUps (um por facção)`,
     '',
-    'Emita na ordem: mundo → facções → conflito+fecho (story/branchedResolution) → objetivo+recompensa → locais/NPCs (com fala e o que cada um quer) → followUps → ficção dos encontros → desafios não-combate.',
+    'Emita na ordem: mundo → facções → conflito+fecho (story/branchedResolution) → objetivo+recompensa → locais/NPCs (e o que cada um quer) → followUps → ficção dos encontros → desafios não-combate.',
   ].join('\n')
 }
 

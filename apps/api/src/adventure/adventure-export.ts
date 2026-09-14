@@ -298,7 +298,6 @@ function renderArtifact(artifact: ArtifactView): string[] {
     const faction = npc.factionName ? ` [${npc.factionName}]` : ''
     lines.push(`- **${npc.name}** — ${npc.role}${faction}${tag}`)
     lines.push(`  - Quer: ${npc.want}`)
-    for (const it of npc.interactions) lines.push(`  - "${it.narrative}"`)
   }
   lines.push('')
 

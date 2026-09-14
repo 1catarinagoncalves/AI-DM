@@ -94,8 +94,7 @@ export function chooseAntagonistRole(level: number, challenge: EncounterChalleng
 // US-152: cada instância de papel vira um item de `npcs[]` sem schema novo — `id` continua o
 // contador sequencial `npc-N` que `generateLocationsAndNpcs` (US-158, ai.service.ts:1278) já
 // minta, por isso `existingNpcs` precisa ser a lista completa já mintada até aqui (sem
-// namespace por encontro). `name` repete o papel; combatente genérico não tem fala
-// (`interactions: []`).
+// namespace por encontro). `name` repete o papel.
 export function buildEncounterNpcs(roles: MonsterRole[], existingNpcs: AdventureNpc[]): AdventureNpc[] {
   const nextId = existingNpcs.length + 1
   return roles.map((role, i) => ({
@@ -106,6 +105,5 @@ export function buildEncounterNpcs(roles: MonsterRole[], existingNpcs: Adventure
     // MA-3) não tem motivação individual — `want` ecoa o papel. (Esta função fica sem chamador
     // desde a US-232, ver adventure.service.ts; cleanup em MA-7.)
     want: role,
-    interactions: [],
   }))
 }

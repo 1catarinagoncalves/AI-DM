@@ -18,7 +18,7 @@ const adventure: GeneratedAdventure = {
   levelRange: { min: 3, max: 3 },
   registry: { setting: 'floresta', tone: 'sombrio', areaType: 'settlement' },
   summary: 'Uma vila à beira da floresta esconde mais do que aparenta.',
-  npcs: [{ id: 'npc-1', name: 'Ilvaine Torncroft', role: 'anciã da vila', interactions: [] }],
+  npcs: [{ id: 'npc-1', name: 'Ilvaine Torncroft', role: 'anciã da vila' }],
   secrets: [],
   locations: [
     {

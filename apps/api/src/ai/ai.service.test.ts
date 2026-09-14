@@ -825,7 +825,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       { name: 'Guardiões', kind: 'ordem', want: 'selar' },
       { name: 'Sindicato', kind: 'submundo', want: 'vender' },
     ],
-    npcs: [{ name: 'Kesh', role: 'guardiã', want: 'proteger', factionIndex: 0, speech: 'O osso lembra.' }],
+    npcs: [{ name: 'Kesh', role: 'guardiã', want: 'proteger', factionIndex: 0 }],
     locations: [{ title: 'A Nave', aspects: [], boxedText: 'x', description: 'y', occupants: [0], vibe: 'social' }],
     challenges: [{ locationIndex: 0, test: 'teste de Força', situation: 'escalar', consequence: 'cai' }],
     encounters: [{ locationIndex: 0, npcIndices: [0], type: 'combat', fiction: 'z', behaviors: 'a', goal: 'b', complications: 'c', unlocks: 'd' }],

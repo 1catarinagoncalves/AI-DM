@@ -39,9 +39,9 @@ function adventureFixture(overrides: Partial<GeneratedAdventure> = {}): Generate
       { id: 'faction-2', name: 'Sindicato', kind: 'submundo', want: 'saquear a ruína' },
     ],
     npcs: [
-      { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', factionId: 'faction-1', interactions: [] },
-      { id: 'npc-2', name: 'Soldier', role: 'Soldier', want: 'obedecer ordens', interactions: [] },
-      { id: 'npc-3', name: 'Órfão', role: 'coadjuvante', want: 'apenas sobreviver', interactions: [] },
+      { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', factionId: 'faction-1' },
+      { id: 'npc-2', name: 'Soldier', role: 'Soldier', want: 'obedecer ordens' },
+      { id: 'npc-3', name: 'Órfão', role: 'coadjuvante', want: 'apenas sobreviver' },
     ],
     locations: [
       { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'], vibe: 'combat' },

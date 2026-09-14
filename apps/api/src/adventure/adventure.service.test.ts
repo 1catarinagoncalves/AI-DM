@@ -17,7 +17,7 @@ function authored(overrides: Partial<Record<string, unknown>> = {}) {
       { name: 'Guardiões', kind: 'ordem', want: 'selar a enseada' },
       { name: 'Sindicato', kind: 'submundo', want: 'saquear a enseada' },
     ],
-    npcs: [{ name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', factionIndex: 0, speech: 'Cuidado com a maré.' }],
+    npcs: [{ name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', factionIndex: 0 }],
     locations: [{ title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega.', description: 'notas', occupants: [0], vibe: 'social' as const }],
     challenges: [{ locationIndex: 0, test: 'teste de Força', situation: 'escalar', consequence: 'cai' }],
     encounters: [{ locationIndex: 0, npcIndices: [0], type: 'social' as const, fiction: 'Marta barra a passagem.', behaviors: 'observa', goal: 'passar', complications: 'ela desconfia', unlocks: 'o mapa' }],
@@ -417,13 +417,12 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     expect(adventure.factions).toHaveLength(2)
   })
 
-  it('minta ids: faction-N, npc-N (com factionId + interações da fala), loc-N, challenge/encounter/objective resolvidos', async () => {
+  it('minta ids: faction-N, npc-N (com factionId), loc-N, challenge/encounter/objective resolvidos', async () => {
     const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
     expect(adventure.factions[0]!.id).toBe('faction-1')
     const marta = adventure.npcs[0]!
     expect(marta.id).toBe('npc-1')
     expect(marta.factionId).toBe('faction-1')
-    expect(marta.interactions).toEqual([{ narrative: 'Cuidado com a maré.' }])
     expect(adventure.locations[0]!.id).toBe('loc-1')
     expect(adventure.locations[0]!.occupants).toEqual(['npc-1'])
     expect(adventure.challenges[0]!.locationId).toBe('loc-1')
@@ -462,6 +461,24 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     const adventure = await service(fakeAi(null, null, {}, twoLoc)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
     const orphan = adventure.locations.find((l) => l.title === 'Órfã')!
     expect(orphan.occupants.length).toBeGreaterThan(0)
+    expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+  })
+
+  // US-242: `interactions` saiu (era a válvula de escape de checkNoOrphanNpcs) — o backstop
+  // ganhou um 2º passo pra cobrir todo NPC autoral que a autoria deixou sem occupant/encontro,
+  // não só os que couberam nos locais órfãos do 1º passo (fixture aqui não tem local órfão).
+  it('backstop (US-242): NPC autoral fora de todo encontro/occupant original ganha occupant de algum local', async () => {
+    const strandedNpc = authored({
+      npcs: [
+        { name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', factionIndex: 0 },
+        { name: 'Bram', role: 'ferreiro', want: 'lucrar com a maré' },
+      ],
+      // Bram (índice 1) não entra em occupants nem em npcIndices de nenhum encontro.
+    })
+    const adventure = await service(fakeAi(null, null, {}, strandedNpc)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+    const bram = adventure.npcs.find((n) => n.name === 'Bram')!
+    const referenced = new Set([...adventure.encounters.flatMap((e) => e.npcIds), ...adventure.locations.flatMap((l) => l.occupants)])
+    expect(referenced.has(bram.id)).toBe(true)
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
 
@@ -507,21 +524,20 @@ describe('AdventureService.generateGatedAdventure (US-232)', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
-  it('NPC órfão (nunca referenciado, sem local órfão pro backstop): esgota o teto e falha', async () => {
-    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    // 2 NPCs, 1 local já ancorado por occupant npc-0 — npc-1 nunca é referenciado e não há
-    // local órfão pro backstop colocá-lo → checkNoOrphanNpcs reprova toda tentativa.
+  // US-242: `interactions` era a válvula de escape de checkNoOrphanNpcs — sem ela, este NPC
+  // dependia do backstop (adventure.service.ts) pra não reprovar toda tentativa. Com o 2º
+  // passo do backstop, o gate agora passa de primeira.
+  it('NPC órfão (nunca referenciado): backstop cobre e o gate passa na 1ª tentativa', async () => {
     const orphanNpc = authored({
       npcs: [
         { name: 'Marta', role: 'herborista', want: 'w', factionIndex: 0 },
         { name: 'Órfão', role: 'coadjuvante', want: 'w' },
       ],
     })
-    const result = await service(fakeAi(null, null, {}, orphanNpc)).generateGatedAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.reason).toContain('teto de 3 tentativas esgotado')
-    }
-    logSpy.mockRestore()
+    const ai = fakeAi(null, null, {}, orphanNpc)
+    const spy = vi.spyOn(ai, 'generateAdventureAuthoring')
+    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1, 'pt-BR', config)
+    expect(result.ok).toBe(true)
+    expect(spy).toHaveBeenCalledTimes(1)
   })
 })

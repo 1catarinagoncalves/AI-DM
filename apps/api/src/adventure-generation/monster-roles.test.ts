@@ -130,7 +130,6 @@ describe('buildEncounterNpcs (US-152)', () => {
     name: `Narrativo ${i + 1}`,
     role: 'aliado',
     want: 'ajudar',
-    interactions: [],
   }))
 
   it('continua o contador npc-N a partir do fim da lista existente, sem namespace por encontro', () => {
@@ -138,9 +137,9 @@ describe('buildEncounterNpcs (US-152)', () => {
     expect(npcs.map((n) => n.id)).toEqual(['npc-8', 'npc-9'])
   })
 
-  it('cada instância vira um item de npcs[] com role = papel e interactions vazio', () => {
+  it('cada instância vira um item de npcs[] com role = papel', () => {
     const [minion] = buildEncounterNpcs(['Minion'], existingNpcs)
-    expect(minion).toEqual({ id: 'npc-8', name: 'Minion', want: 'Minion', role: 'Minion', interactions: [] })
+    expect(minion).toEqual({ id: 'npc-8', name: 'Minion', want: 'Minion', role: 'Minion' })
   })
 
   it('duas instâncias do mesmo papel recebem ids distintos, sem campo count — contagem é o tamanho de npcIds[] filtrado por role', () => {

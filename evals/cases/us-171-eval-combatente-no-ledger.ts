@@ -19,7 +19,7 @@ const adventure: GeneratedAdventure = {
   levelRange: { min: 3, max: 3 },
   registry: { setting: 'floresta', tone: 'sombrio', areaType: 'ruins' },
   summary: 'Uma emboscada espera na ruína.',
-  npcs: [{ id: 'npc-2', name: 'Soldier', role: 'Soldier', interactions: [] }],
+  npcs: [{ id: 'npc-2', name: 'Soldier', role: 'Soldier' }],
   secrets: [],
   locations: [
     { id: 'loc-1', title: 'Ruína afundada', aspects: ['sombras longas'], boxedText: 'A trilha termina na ruína.', description: 'notas do mestre', occupants: [], vibe: 'combat' },

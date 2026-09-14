@@ -55,13 +55,11 @@ function checkAdventureGraph(adventure: GeneratedAdventure): string | null {
 function checkReferencesResolve(adventure: GeneratedAdventure): string | null {
   const locationIds = new Set(adventure.locations.map((l) => l.id))
   const npcIds = new Set(adventure.npcs.map((n) => n.id))
-  const encounterIds = new Set(adventure.encounters.map((e) => e.id))
 
   return (
     checkChallengeLocationIds(adventure, locationIds) ??
     checkEncounterReferences(adventure, locationIds, npcIds) ??
-    checkOccupantReferences(adventure, npcIds) ??
-    checkInteractionReferences(adventure, encounterIds)
+    checkOccupantReferences(adventure, npcIds)
   )
 }
 
@@ -96,17 +94,6 @@ function checkOccupantReferences(adventure: GeneratedAdventure, npcIds: Set<stri
   return null
 }
 
-function checkInteractionReferences(adventure: GeneratedAdventure, encounterIds: Set<string>): string | null {
-  for (const npc of adventure.npcs) {
-    for (const interaction of npc.interactions) {
-      if (interaction.encounterId && !encounterIds.has(interaction.encounterId)) {
-        return `NPC "${npc.id}" referencia encounterId inexistente "${interaction.encounterId}"`
-      }
-    }
-  }
-  return null
-}
-
 function checkNoOrphans(adventure: GeneratedAdventure): string | null {
   return checkNoOrphanLocations(adventure) ?? checkNoOrphanNpcs(adventure)
 }
@@ -134,9 +121,7 @@ function checkNoOrphanNpcs(adventure: GeneratedAdventure): string | null {
     ...adventure.locations.flatMap((l) => l.occupants),
   ])
   for (const npc of adventure.npcs) {
-    if (!referenced.has(npc.id) && npc.interactions.length === 0) {
-      return `NPC "${npc.id}" órfão — nenhum encontro, local ou interação aponta para ele`
-    }
+    if (!referenced.has(npc.id)) return `NPC "${npc.id}" órfão — nenhum encontro nem local aponta para ele`
   }
   return null
 }

@@ -23,9 +23,9 @@ const seraphine = () => ({
     { id: 'faction-3', name: 'Coro Silente', kind: 'culto', want: 'abrir o sarcófago e libertar o que sussurra' },
   ],
   npcs: [
-    { id: 'npc-1', name: 'Irmã Kesh', role: 'guardiã veterana', want: 'proteger a cidade mesmo à custa da própria fé', factionId: 'faction-1', interactions: [{ narrative: 'O osso lembra. E o que lembra, cobra.' }] },
-    { id: 'npc-2', name: 'Orin Palma-Rápida', role: 'contrabandista', want: 'engarrafar os sussurros e vendê-los', factionId: 'faction-2', interactions: [{ narrative: 'Todo nome tem preço, forasteiro.' }] },
-    { id: 'npc-3', name: 'Tobias', role: 'coveiro assustado', want: 'apenas sobreviver a tudo isto', interactions: [{ narrative: 'Eu só cavo. Não pergunto de quem é o nome.' }] },
+    { id: 'npc-1', name: 'Irmã Kesh', role: 'guardiã veterana', want: 'proteger a cidade mesmo à custa da própria fé', factionId: 'faction-1' },
+    { id: 'npc-2', name: 'Orin Palma-Rápida', role: 'contrabandista', want: 'engarrafar os sussurros e vendê-los', factionId: 'faction-2' },
+    { id: 'npc-3', name: 'Tobias', role: 'coveiro assustado', want: 'apenas sobreviver a tudo isto' },
   ],
   locations: [
     { id: 'loc-1', title: 'A Nave das Costelas', aspects: ['eco de nomes', 'luz coada entre ossos'], boxedText: 'Sob o arco de uma costela colossal, o sarcófago repousa numa poça de poeira que brilha fraco.', description: 'A câmara guarda um cinzel de prata cravado numa costela e um mapa rasgado das catacumbas.', factionId: 'faction-1', occupants: ['npc-1'], vibe: 'social' },

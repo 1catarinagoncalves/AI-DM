@@ -13,7 +13,7 @@ function enc(overrides: Partial<AdventureEncounter> = {}): AdventureEncounter {
 }
 
 function npc(overrides: Partial<AdventureNpc> = {}): AdventureNpc {
-  return { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', interactions: [], ...overrides }
+  return { id: 'npc-1', name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', ...overrides }
 }
 
 // US-232: fixture mundo-primeiro fechada. loc-1 referenciado por encounter-1 e objective; npc-1
@@ -30,7 +30,7 @@ function validAdventure(overrides: Partial<GeneratedAdventure> = {}): GeneratedA
     factions: [{ id: 'faction-1', name: 'Guardiões', kind: 'ordem', want: 'selar a clareira' }],
     npcs: [
       npc(),
-      { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'esmagar', interactions: [] },
+      { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'esmagar' },
     ],
     locations: [
       { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'], vibe: 'combat' },
@@ -90,9 +90,9 @@ describe('runAdventureGate (US-232)', () => {
     if (!result.ok) expect(result.reason).toContain('nome nunca resolvido')
   })
 
-  it('NPC órfão (sem encontro, local ou interação) falha na verificação 2', () => {
+  it('NPC órfão (sem encontro nem local) falha na verificação 2', () => {
     const broken = validAdventure({
-      npcs: [npc(), { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'esmagar', interactions: [] }, { id: 'npc-3', name: 'Órfão', role: 'coadjuvante', want: 'sobreviver', interactions: [] }],
+      npcs: [npc(), { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'esmagar' }, { id: 'npc-3', name: 'Órfão', role: 'coadjuvante', want: 'sobreviver' }],
     })
     const result = runAdventureGate(broken)
     expect(result.ok).toBe(false)
@@ -130,9 +130,9 @@ describe('runAdventureGate (US-232)', () => {
     const broken = validAdventure({
       levelRange: { min: 8, max: 8 },
       npcs: [
-        { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x', interactions: [] },
-        { id: 'npc-3', name: 'Brute', role: 'Brute', want: 'x', interactions: [] },
-        { id: 'npc-4', name: 'Brute', role: 'Brute', want: 'x', interactions: [] },
+        { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x' },
+        { id: 'npc-3', name: 'Brute', role: 'Brute', want: 'x' },
+        { id: 'npc-4', name: 'Brute', role: 'Brute', want: 'x' },
       ],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],
@@ -148,7 +148,7 @@ describe('runAdventureGate (US-232)', () => {
   it('monstro único alcança o teto (>=) falha na verificação 3', () => {
     const broken = validAdventure({
       levelRange: { min: 2, max: 2 },
-      npcs: [{ id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x', interactions: [] }],
+      npcs: [{ id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x' }],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2'] })],
     })
@@ -195,7 +195,7 @@ describe('generateWithGate (US-150, reseed)', () => {
 
   it('verificação 2 (grafo quebrado) re-semeia até fechar o grafo', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const orfao = validAdventure({ npcs: [...validAdventure().npcs, { id: 'npc-3', name: 'Órfão', role: 'x', want: 'x', interactions: [] }] })
+    const orfao = validAdventure({ npcs: [...validAdventure().npcs, { id: 'npc-3', name: 'Órfão', role: 'x', want: 'x' }] })
     const generate = vi.fn(async (attempt: number) => (attempt === 0 ? orfao : validAdventure()))
     const result = await generateWithGate(generate)
     expect(result.ok).toBe(true)
@@ -207,9 +207,9 @@ describe('generateWithGate (US-150, reseed)', () => {
     const superorcado = validAdventure({
       levelRange: { min: 8, max: 8 },
       npcs: [
-        { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x', interactions: [] },
-        { id: 'npc-3', name: 'Brute', role: 'Brute', want: 'x', interactions: [] },
-        { id: 'npc-4', name: 'Brute', role: 'Brute', want: 'x', interactions: [] },
+        { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x' },
+        { id: 'npc-3', name: 'Brute', role: 'Brute', want: 'x' },
+        { id: 'npc-4', name: 'Brute', role: 'Brute', want: 'x' },
       ],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],
@@ -227,7 +227,7 @@ describe('generateWithGate (US-150, reseed)', () => {
 
   it('teto de tentativas esgotado: falha registrada com o motivo da última tentativa', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const orfao = validAdventure({ npcs: [...validAdventure().npcs, { id: 'npc-3', name: 'Órfão', role: 'x', want: 'x', interactions: [] }] })
+    const orfao = validAdventure({ npcs: [...validAdventure().npcs, { id: 'npc-3', name: 'Órfão', role: 'x', want: 'x' }] })
     const generate = vi.fn(async () => orfao)
     const result = await generateWithGate(generate, 3)
     expect(result.ok).toBe(false)

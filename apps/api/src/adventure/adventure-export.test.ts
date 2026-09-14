@@ -17,8 +17,8 @@ const artifact: GeneratedAdventure = {
     { id: 'faction-2', name: 'Cavadores', kind: 'submundo', want: 'abrir o poço' },
   ],
   npcs: [
-    { id: 'npc-1', name: 'Ilvaine Torncroft', role: 'anciã da vila', want: 'manter o poço selado', factionId: 'faction-1', interactions: [] },
-    { id: 'npc-2', name: 'Doran Ashwick', role: 'ferreiro rude', want: 'lucrar com o que houver no poço', factionId: 'faction-2', interactions: [] },
+    { id: 'npc-1', name: 'Ilvaine Torncroft', role: 'anciã da vila', want: 'manter o poço selado', factionId: 'faction-1' },
+    { id: 'npc-2', name: 'Doran Ashwick', role: 'ferreiro rude', want: 'lucrar com o que houver no poço', factionId: 'faction-2' },
   ],
   locations: [
     { id: 'loc-1', title: 'Praça da vila', aspects: ['poço selado'], boxedText: 'x', description: 'x', occupants: ['npc-1'], vibe: 'social' },
