@@ -217,6 +217,10 @@ export const enUS: Record<MessageKey, string> = {
   'setup.background.titulo': 'Background',
   'setup.background.subtitulo': 'Who is {name}? The Dungeon Master uses this to give weight to your choices. All optional — one item per line in ideals, bonds and flaws.',
   'setup.background.defaultName': 'this character',
+  // US-206: the step's two declared halves — origin card + benefits on top, the five free-text
+  // fields below.
+  'setup.background.whatOriginGives': 'What this origin gives you',
+  'setup.background.whatYouWrite': 'What you write',
   'setup.background.story': 'Story',
   'setup.background.storyPlaceholder': 'E.g.: minor noble who lost their family to a demonic cult…',
   'setup.background.ideals': 'Ideals — one per line',

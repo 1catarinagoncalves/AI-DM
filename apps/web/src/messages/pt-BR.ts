@@ -242,6 +242,10 @@ export const ptBR = {
   'setup.background.titulo': 'Background',
   'setup.background.subtitulo': 'Quem é {name}? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.',
   'setup.background.defaultName': 'o personagem',
+  // US-206: as duas metades declaradas da etapa — cartão de origem + benefícios em cima, os
+  // cinco campos livres embaixo.
+  'setup.background.whatOriginGives': 'O que esta origem te dá',
+  'setup.background.whatYouWrite': 'O que você inventa',
   'setup.background.story': 'História',
   'setup.background.storyPlaceholder': 'Ex.: nobre menor que perdeu a família para um culto demoníaco…',
   'setup.background.ideals': 'Ideais — um por linha',

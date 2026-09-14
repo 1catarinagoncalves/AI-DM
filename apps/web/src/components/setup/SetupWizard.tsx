@@ -453,6 +453,18 @@ export function SetupWizard() {
   // US-122: catálogo de origens (backgrounds do A5E, US-121). Ausente → seção "Origem" não
   // aparece e a etapa `background` segue livre, mesmo padrão condicional de skillCatalog acima.
   const backgroundCatalog = system?.config?.backgrounds ?? []
+  // US-206: cartões da grade de origem — mesmo componente da US-205 (CatalogCardGroup), modo
+  // simples (origem não tem variante/subespécie, ver US-206 §Contexto). Sem `blurb` novo:
+  // `kicker` é o nome da feature nomeada da origem (config.backgroundFeatures, US-135) e
+  // `blurb` é o mesmo texto cru do aviso de perícia (US-131) — nenhuma prosa nova, o
+  // `Background.desc` do dataset vem vazio nas 21 entradas (US-121). Ambos ausentes → cartão
+  // só com o nome, continua utilizável (ex.: Acólito, único sem feature própria).
+  const originCards = backgroundCatalog.map(o => ({
+    key: o.key,
+    label: o.name,
+    kicker: system?.config?.backgroundFeatures?.[o.key]?.[0]?.name,
+    blurb: o.benefits.find(b => b.grant?.kind === 'skills')?.description,
+  }))
   // US-157: catálogo do registro da aventura (US-156; `settings`/`areaTypes` voltaram na
   // US-184) — mesmo padrão de raceCatalog/classCatalog acima, consumido só no passo `world`.
   const toneCatalog = system?.config?.tones ?? []
@@ -783,6 +795,18 @@ export function SetupWizard() {
     setRaceAbilityChoice([])
     // US-220: Skill Versatility é escolha da raça — mesmo motivo do reset acima.
     setRaceSkillChoice([])
+  }
+
+  // US-206: cartão de origem substitui o <select> (US-122) — mesmos 5 resets do onChange
+  // anterior, trocar de origem invalida o que dependia da origem ANTERIOR (conexão/memento,
+  // bônus de atributo, perícia(s) e ferramenta(s) escolhidas).
+  function selectOriginCard(key: string) {
+    setOrigin(key)
+    setConnectionRoll(undefined)
+    setMementoRoll(undefined)
+    setAbilityChoice(undefined)
+    setSkillChoice([])
+    setToolChoice([])
   }
 
   function canAdvance(s: Step): boolean {
@@ -1650,140 +1674,131 @@ export function SetupWizard() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   {t('setup.background.subtitulo', { name: charData.name || t('setup.background.defaultName') })}
                 </p>
-                {/* US-122: select de origem do catálogo (US-121) — só o nome, mesmo padrão de
-                    Raça/Classe (US-105). Acima dos campos de texto livre. Sem catálogo no
-                    config, o campo nem renderiza. */}
+                {/* US-206: metade 1 — "o que esta origem te dá": grade de cartão (US-205
+                    reusada, modo simples — origem não tem variante/subespécie, ver US-206
+                    §Contexto) no lugar do <select> da US-122, com os benefícios que já eram
+                    parágrafos soltos agrupados sob o mesmo heading. Sem catálogo no config, a
+                    seção inteira nem renderiza. */}
                 {backgroundCatalog.length > 0 && (
-                  <div className="mt-6">
-                    <FieldLabel htmlFor="char-origin">{t('setup.origin.titulo')}</FieldLabel>
-                    <select id="char-origin" value={origin ?? ''}
-                      onChange={e => {
-                        setOrigin(e.target.value || undefined)
-                        // US-124: conexão/memento são da origem ANTERIOR — trocar de origem invalida a escolha.
-                        setConnectionRoll(undefined)
-                        setMementoRoll(undefined)
-                        // US-123: o bônus de atributo também é da origem ANTERIOR — mesmo motivo.
-                        setAbilityChoice(undefined)
-                        // US-131: as perícias escolhidas também são da origem ANTERIOR — mesmo motivo.
-                        setSkillChoice([])
-                        // US-132: a(s) ferramenta(s) escolhida(s) também são da origem ANTERIOR — mesmo motivo.
-                        setToolChoice([])
-                      }}
-                      className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
-                      <option value="">{t('setup.raceClass.select')}</option>
-                      {backgroundCatalog.map(o => <option key={o.key} value={o.key}>{o.name}</option>)}
-                    </select>
-                  </div>
-                )}
-                {/* US-123: aviso do bônus de atributo — só informativo, a escolha do +1 livre
-                    acontece na etapa `attributes` (o jogador ainda não alocou point-buy aqui). */}
-                {abilityGrant?.kind === 'ability' && (
-                  <p className="mt-4 text-sm text-foreground">
-                    {t('setup.origin.abilityGrant', { attr: attrLabel[abilityGrant.fixed] ?? abilityGrant.fixed })}
-                  </p>
-                )}
-                {/* US-131: perícias do background — só o AVISO aqui, texto CRU do dataset já
-                    resolvido (`skillBenefit.name`/`description`, ex. "Skill Proficiencies:
-                    Deception, and either Culture, Insight, or Sleight of Hand."), mesmo padrão
-                    do aviso de abilityGrant acima. A ESCOLHA em si acontece na etapa `skills`. */}
-                {skillBenefit && (
-                  <p className="mt-4 text-sm text-foreground">
-                    {skillBenefit.name}: {skillBenefit.description}
-                  </p>
-                )}
-                {/* US-132: ferramenta/veículo do background — ao contrário do bônus de atributo
-                    e de perícia (só aviso aqui, escolha adiada pra outra etapa), a ESCOLHA
-                    acontece NESTA MESMA etapa: não existe etapa `tools`/`equipment` própria pra
-                    adiar (US-132 §Onde aparece na criação e na ficha). `fixed` é só texto (nada
-                    a escolher); `chooseFrom` vira <select> agrupado por categoria — design
-                    critique 2026-08-14: cartão clicável não escala pros grants com dezenas de
-                    opções (Guildmember chega a 37), e a ordem alfabética crua embaralhava
-                    categoria (veículo entre ferramenta de artesão). Um <select> por slot de
-                    `chooseCount` (Folk Hero é o único caso com 2 hoje), cada slot excluindo a
-                    chave já usada nos outros pra não deixar repetir. */}
-                {toolGrant && (
-                  <div className="mt-4">
-                    <SheetHeading>{t('setup.origin.toolGrant', { origin: originLabel })}</SheetHeading>
-                    {toolGrant.fixed.length > 0 && (
-                      <ul className="space-y-0.5 text-sm text-foreground">
-                        {toolGrant.fixed.map(key => <li key={key}>{toolLabel[key] ?? key}</li>)}
-                      </ul>
-                    )}
-                    {Array.from({ length: toolGrant.chooseCount }, (_, slotIndex) => {
-                      const chosenElsewhere = toolChoice.filter((_, j) => j !== slotIndex)
-                      const groups = groupToolsByCategory(
-                        toolGrant.chooseFrom.filter(key => !chosenElsewhere.includes(key)),
-                        toolCatalog,
-                      )
-                      const selectLabel = toolGrant.chooseCount > 1
-                        ? `${t('setup.origin.toolGrant', { origin: originLabel })} (${slotIndex + 1}/${toolGrant.chooseCount})`
-                        : t('setup.origin.toolGrant', { origin: originLabel })
-                      return (
-                        <select key={slotIndex} aria-label={selectLabel} value={toolChoice[slotIndex] ?? ''}
-                          onChange={e => setToolChoiceAt(slotIndex, e.target.value)}
-                          className={cn(selectClass, 'mt-3')} style={{ backgroundImage: SELECT_ARROW }}>
-                          <option value="">{t('setup.raceClass.select')}</option>
-                          {groups.map(([category, entries]) => (
-                            <optgroup key={category} label={TOOL_CATEGORY_LABEL[category] ? t(TOOL_CATEGORY_LABEL[category]) : category}>
-                              {entries.map(entry => <option key={entry.key} value={entry.key}>{entry.label}</option>)}
-                            </optgroup>
-                          ))}
-                        </select>
-                      )
-                    })}
-                  </div>
-                )}
-                {/* US-124: benefícios narrativos da origem — adventures_and_advancement como
-                    parágrafo (mesmo padrão de hook.openingNarration) e connection_and_memento
-                    como seleção por bloco. Título/subtítulo da seleção são FIXOS (i18n), não
-                    vêm do heading/preâmbulo do dataset (frágil a tradução automática). */}
-                {adventuresBenefit && (
-                  <div className="mt-6">
-                    <SheetHeading>{adventuresBenefit.name}</SheetHeading>
-                    <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground">{adventuresBenefit.description}</p>
-                  </div>
-                )}
-                {(connectionTable || mementoTable) && (
                   <div className="mt-6 space-y-4">
-                    {connectionTable && (
+                    <SheetHeading>{t('setup.background.whatOriginGives')}</SheetHeading>
+                    <CatalogCardGroup name="char-origin" legend={t('setup.origin.titulo')} hideLegend
+                      items={originCards} value={origin ?? ''} onChange={selectOriginCard} />
+                    {/* US-123: aviso do bônus de atributo — só informativo, a escolha do +1 livre
+                        acontece na etapa `attributes` (o jogador ainda não alocou point-buy aqui). */}
+                    {abilityGrant?.kind === 'ability' && (
+                      <p className="text-sm text-foreground">
+                        {t('setup.origin.abilityGrant', { attr: attrLabel[abilityGrant.fixed] ?? abilityGrant.fixed })}
+                      </p>
+                    )}
+                    {/* US-131: perícias do background — só o AVISO aqui, texto CRU do dataset já
+                        resolvido (`skillBenefit.name`/`description`, ex. "Skill Proficiencies:
+                        Deception, and either Culture, Insight, or Sleight of Hand."), mesmo padrão
+                        do aviso de abilityGrant acima. A ESCOLHA em si acontece na etapa `skills`. */}
+                    {skillBenefit && (
+                      <p className="text-sm text-foreground">
+                        {skillBenefit.name}: {skillBenefit.description}
+                      </p>
+                    )}
+                    {/* US-132: ferramenta/veículo do background — ao contrário do bônus de atributo
+                        e de perícia (só aviso aqui, escolha adiada pra outra etapa), a ESCOLHA
+                        acontece NESTA MESMA etapa: não existe etapa `tools`/`equipment` própria pra
+                        adiar (US-132 §Onde aparece na criação e na ficha). `fixed` é só texto (nada
+                        a escolher); `chooseFrom` vira <select> agrupado por categoria — design
+                        critique 2026-08-14: cartão clicável não escala pros grants com dezenas de
+                        opções (Guildmember chega a 37), e a ordem alfabética crua embaralhava
+                        categoria (veículo entre ferramenta de artesão). Um <select> por slot de
+                        `chooseCount` (Folk Hero é o único caso com 2 hoje), cada slot excluindo a
+                        chave já usada nos outros pra não deixar repetir. */}
+                    {toolGrant && (
                       <div>
-                        <FieldLabel htmlFor="char-connection">{t('setup.origin.connection')}</FieldLabel>
-                        <p className="mb-1.5 text-xs text-muted-foreground">{t('setup.origin.pickHint')}</p>
-                        <div className="flex gap-2">
-                          <select id="char-connection" value={connectionRoll ?? ''}
-                            onChange={e => setConnectionRoll(e.target.value || undefined)}
-                            className={cn(selectClass, 'flex-1')} style={{ backgroundImage: SELECT_ARROW }}>
-                            <option value="">{t('setup.raceClass.select')}</option>
-                            {connectionTable.rows.map(r => <option key={r.roll} value={r.roll}>{r.text}</option>)}
-                          </select>
-                          <DmButton type="button" variant="ghost" onClick={() => rollRandom(connectionTable.rows, setConnectionRoll)}>
-                            <Dices className="size-4" aria-hidden />
-                            {t('setup.origin.random')}
-                          </DmButton>
-                        </div>
+                        <SheetHeading>{t('setup.origin.toolGrant', { origin: originLabel })}</SheetHeading>
+                        {toolGrant.fixed.length > 0 && (
+                          <ul className="space-y-0.5 text-sm text-foreground">
+                            {toolGrant.fixed.map(key => <li key={key}>{toolLabel[key] ?? key}</li>)}
+                          </ul>
+                        )}
+                        {Array.from({ length: toolGrant.chooseCount }, (_, slotIndex) => {
+                          const chosenElsewhere = toolChoice.filter((_, j) => j !== slotIndex)
+                          const groups = groupToolsByCategory(
+                            toolGrant.chooseFrom.filter(key => !chosenElsewhere.includes(key)),
+                            toolCatalog,
+                          )
+                          const selectLabel = toolGrant.chooseCount > 1
+                            ? `${t('setup.origin.toolGrant', { origin: originLabel })} (${slotIndex + 1}/${toolGrant.chooseCount})`
+                            : t('setup.origin.toolGrant', { origin: originLabel })
+                          return (
+                            <select key={slotIndex} aria-label={selectLabel} value={toolChoice[slotIndex] ?? ''}
+                              onChange={e => setToolChoiceAt(slotIndex, e.target.value)}
+                              className={cn(selectClass, 'mt-3')} style={{ backgroundImage: SELECT_ARROW }}>
+                              <option value="">{t('setup.raceClass.select')}</option>
+                              {groups.map(([category, entries]) => (
+                                <optgroup key={category} label={TOOL_CATEGORY_LABEL[category] ? t(TOOL_CATEGORY_LABEL[category]) : category}>
+                                  {entries.map(entry => <option key={entry.key} value={entry.key}>{entry.label}</option>)}
+                                </optgroup>
+                              ))}
+                            </select>
+                          )
+                        })}
                       </div>
                     )}
-                    {mementoTable && (
+                    {/* US-124: benefícios narrativos da origem — adventures_and_advancement como
+                        parágrafo (mesmo padrão de hook.openingNarration) e connection_and_memento
+                        como seleção por bloco. Título/subtítulo da seleção são FIXOS (i18n), não
+                        vêm do heading/preâmbulo do dataset (frágil a tradução automática). */}
+                    {adventuresBenefit && (
                       <div>
-                        <FieldLabel htmlFor="char-memento">{t('setup.origin.memento')}</FieldLabel>
-                        <p className="mb-1.5 text-xs text-muted-foreground">{t('setup.origin.pickHint')}</p>
-                        <div className="flex gap-2">
-                          <select id="char-memento" value={mementoRoll ?? ''}
-                            onChange={e => setMementoRoll(e.target.value || undefined)}
-                            className={cn(selectClass, 'flex-1')} style={{ backgroundImage: SELECT_ARROW }}>
-                            <option value="">{t('setup.raceClass.select')}</option>
-                            {mementoTable.rows.map(r => <option key={r.roll} value={r.roll}>{r.text}</option>)}
-                          </select>
-                          <DmButton type="button" variant="ghost" onClick={() => rollRandom(mementoTable.rows, setMementoRoll)}>
-                            <Dices className="size-4" aria-hidden />
-                            {t('setup.origin.random')}
-                          </DmButton>
-                        </div>
+                        <SheetHeading>{adventuresBenefit.name}</SheetHeading>
+                        <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground">{adventuresBenefit.description}</p>
+                      </div>
+                    )}
+                    {(connectionTable || mementoTable) && (
+                      <div className="space-y-4">
+                        {connectionTable && (
+                          <div>
+                            <FieldLabel htmlFor="char-connection">{t('setup.origin.connection')}</FieldLabel>
+                            <p className="mb-1.5 text-xs text-muted-foreground">{t('setup.origin.pickHint')}</p>
+                            <div className="flex gap-2">
+                              <select id="char-connection" value={connectionRoll ?? ''}
+                                onChange={e => setConnectionRoll(e.target.value || undefined)}
+                                className={cn(selectClass, 'flex-1')} style={{ backgroundImage: SELECT_ARROW }}>
+                                <option value="">{t('setup.raceClass.select')}</option>
+                                {connectionTable.rows.map(r => <option key={r.roll} value={r.roll}>{r.text}</option>)}
+                              </select>
+                              <DmButton type="button" variant="ghost" onClick={() => rollRandom(connectionTable.rows, setConnectionRoll)}>
+                                <Dices className="size-4" aria-hidden />
+                                {t('setup.origin.random')}
+                              </DmButton>
+                            </div>
+                          </div>
+                        )}
+                        {mementoTable && (
+                          <div>
+                            <FieldLabel htmlFor="char-memento">{t('setup.origin.memento')}</FieldLabel>
+                            <p className="mb-1.5 text-xs text-muted-foreground">{t('setup.origin.pickHint')}</p>
+                            <div className="flex gap-2">
+                              <select id="char-memento" value={mementoRoll ?? ''}
+                                onChange={e => setMementoRoll(e.target.value || undefined)}
+                                className={cn(selectClass, 'flex-1')} style={{ backgroundImage: SELECT_ARROW }}>
+                                <option value="">{t('setup.raceClass.select')}</option>
+                                {mementoTable.rows.map(r => <option key={r.roll} value={r.roll}>{r.text}</option>)}
+                              </select>
+                              <DmButton type="button" variant="ghost" onClick={() => rollRandom(mementoTable.rows, setMementoRoll)}>
+                                <Dices className="size-4" aria-hidden />
+                                {t('setup.origin.random')}
+                              </DmButton>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 )}
+                {/* US-206: metade 2 — "o que você inventa": os cinco campos livres de sempre
+                    (US-39/US-40), SEMPRE visíveis (independem de origem/catálogo) — critério de
+                    aceite: nada essencial atrás de acordeão fechado por omissão. */}
                 <div className="mt-6 space-y-4">
+                  <SheetHeading>{t('setup.background.whatYouWrite')}</SheetHeading>
                   {/* US-46: cada textarea com rótulo visível persistente; placeholder vira só exemplo. */}
                   <div>
                     <FieldLabel htmlFor="bg-story">{t('setup.background.story')}</FieldLabel>

@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-204](./US-204-wizard-em-duas-colunas-com-ficha-viva.md) — o layout.
 [US-205](./US-205-escolha-por-cartao-classe-e-raca.md) — o componente de grade de cartões, que
 esta story reusa em vez de escrever um segundo. Desde 2026-09-02 a US-205 também cataloga
@@ -88,6 +88,10 @@ dados.
   parsing de sempre (um item por linha; divindade partida na primeira vírgula).
 - **Enquadramento de etapa** no padrão da US-204: chamada, pergunta, frase de apoio.
 - **Ficha viva** (US-204) passa a mostrar a origem escolhida assim que ela é escolhida.
+  **Não entregue nesta story (14/09/2026):** US-204 nunca foi implementada — o wizard segue de
+  coluna única (`max-w-2xl`), sem painel "Seu personagem" nenhum no código, apesar de constar
+  como dependência aqui e na US-205 (que já subiu ✅ sem ela). Não há painel vivo para a origem
+  aparecer; endereçar junto de US-204, não replicado sozinho aqui.
 - **i18n** dos textos novos nos dois locales.
 
 ### Fora do escopo
@@ -118,24 +122,26 @@ dados.
 
 ## Critérios de aceite
 
-- [ ] A etapa `background` não tem `<select>` de origem; tem grade de cartões, sem campo de busca,
+- [x] A etapa `background` não tem `<select>` de origem; tem grade de cartões, sem campo de busca,
       com as 21 opções todas no DOM.
-- [ ] Cada cartão de origem mostra o nome e, quando o catálogo os traz, a feature e as perícias
+- [x] Cada cartão de origem mostra o nome e, quando o catálogo os traz, a feature e as perícias
       concedidas — e continua utilizável para uma origem sem nenhum benefício estruturado.
-- [ ] Os cinco campos livres (`story`, `ideals`, `bonds`, `flaws`, `deity`) continuam presentes,
+- [x] Os cinco campos livres (`story`, `ideals`, `bonds`, `flaws`, `deity`) continuam presentes,
       nesta etapa, com os mesmos rótulos e o mesmo comportamento de parsing; um personagem criado
       só com eles preenchidos (sem origem escolhida) grava exatamente o que gravava antes.
-- [ ] A etapa distingue visualmente as duas metades — o que a origem concede e o que a jogadora
+- [x] A etapa distingue visualmente as duas metades — o que a origem concede e o que a jogadora
       escreve — sem que nenhuma das duas fique atrás de um acordeão fechado por omissão.
-- [ ] Os quatro benefícios continuam a funcionar: aviso de bônus de atributo (US-123), aviso de
+- [x] Os quatro benefícios continuam a funcionar: aviso de bônus de atributo (US-123), aviso de
       perícias (US-131), **escolha** de ferramenta com `chooseCount` (US-132) e feature (US-135).
-- [ ] `canAdvance('background')` continua a bloquear **apenas** por ferramenta não escolhida —
+- [x] `canAdvance('background')` continua a bloquear **apenas** por ferramenta não escolhida —
       origem, conexão, memento e os campos livres continuam opcionais.
-- [ ] Trocar de origem limpa `connectionRoll`, `mementoRoll`, `abilityChoice`, `skillChoice` e
+- [x] Trocar de origem limpa `connectionRoll`, `mementoRoll`, `abilityChoice`, `skillChoice` e
       `toolChoice`, como hoje.
-- [ ] Conexão e memento continuam com `<select>` e botão de sorteio; sortear preenche o campo.
-- [ ] Em 360 px a grade é uma coluna e as caixas de texto não geram rolagem horizontal (US-66).
-- [ ] **Eval / teste de regressão:** teste em `SetupWizard.test.tsx` que preenche os cinco campos
+- [x] Conexão e memento continuam com `<select>` e botão de sorteio; sortear preenche o campo.
+- [x] Em 360 px a grade é uma coluna e as caixas de texto não geram rolagem horizontal (US-66) —
+      mesmo `CatalogCardGroup` (`grid-cols-[repeat(auto-fill,minmax(220px,1fr))]`) já verificado
+      pela US-205 nas grades de classe/raça, sem CSS novo.
+- [x] **Eval / teste de regressão:** teste em `SetupWizard.test.tsx` que preenche os cinco campos
       livres, escolhe uma origem **pelo cartão** e afirma que o corpo enviado a `createCharacter`
       traz `background` com os cinco campos parseados **e** `origin.key` — os dois juntos, no
       mesmo envio. É o teste que falha se o redesenho aproximar a tela do protótipo apagando os

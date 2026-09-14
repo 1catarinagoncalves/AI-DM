@@ -389,36 +389,32 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     }))
   })
 
-  // US-122: campo "Origem" só aparece quando o sistema tem config.backgrounds; sem catálogo,
-  // etapa `background` continua livre (mesmo comportamento de hoje, sem seleção nenhuma).
-  it('sem config.backgrounds, não mostra o campo Origem e a etapa segue livre', async () => {
+  // US-206: grade de cartão de origem só aparece quando o sistema tem config.backgrounds; sem
+  // catálogo, etapa `background` continua livre (mesmo comportamento de hoje, sem seleção nenhuma).
+  it('sem config.backgrounds, não mostra a grade de Origem e a etapa segue livre', async () => {
     await pickSystemAndFillRaceClass(configWithBudget(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
 
-    expect(screen.queryByLabelText('Origem')).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Origem' })).toBeNull()
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
   })
 
-  // US-122: com catálogo, "Origem" é um <select> (mesmo padrão de Raça/Classe, US-105) com só o
-  // nome de cada background — sem benefícios na opção. Origem é OPCIONAL: não bloqueia o avanço.
-  it('com config.backgrounds, mostra select de Origem (só o nome) e não exige escolha para avançar', async () => {
+  // US-206: com catálogo, "Origem" é uma grade de cartão (US-205 reusada, mesmo padrão de
+  // Classe/Raça) com só o nome de cada background — sem benefícios sem `grant` no cartão.
+  // Origem é OPCIONAL: não bloqueia o avanço.
+  it('com config.backgrounds, mostra cartão de Origem (só o nome) e não exige escolha para avançar', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
 
-    const select = screen.getByLabelText('Origem') as HTMLSelectElement
-    const options = [...select.querySelectorAll('option')].filter(o => o.getAttribute('value'))
-    expect(options.map(o => [o.getAttribute('value'), o.textContent])).toEqual([
-      ['bg-acolyte', 'Acólito'], ['bg-sage', 'Sábio'],
-    ])
-    expect(screen.queryByText('Religião')).toBeNull() // benefícios não aparecem na opção
+    expect(screen.getByRole('radio', { name: 'Acólito' })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: 'Sábio' })).toBeTruthy()
+    expect(screen.queryByText('Religião')).toBeNull() // benefício sem `grant` não aparece no cartão
 
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     expect(nextBtn().disabled).toBe(false) // sem origem escolhida, avanço segue livre
 
-    fireEvent.change(select, { target: { value: 'bg-acolyte' } })
-    expect(nextBtn().disabled).toBe(false)
-
-    fireEvent.change(select, { target: { value: '' } }) // volta ao placeholder → segue livre
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
+    expect((screen.getByRole('radio', { name: 'Acólito' }) as HTMLInputElement).checked).toBe(true)
     expect(nextBtn().disabled).toBe(false)
   })
 
@@ -427,7 +423,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
@@ -447,11 +443,50 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     }))
   })
 
+  // US-206: teste de regressão do redesenho — os cinco campos livres E a origem escolhida PELO
+  // CARTÃO chegam juntos no mesmo envio. É o teste que falha se o redesenho aproximar a tela do
+  // protótipo (cartão de antecedente, sem campos de escrita) apagando os campos livres — o modo
+  // de falha mais provável desta story (US-206 §Critérios de aceite).
+  it('preenche os cinco campos livres e escolhe a origem pelo cartão — os dois juntos no mesmo envio', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillRaceClass(configWithBackgrounds(2))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
+    fireEvent.change(screen.getByLabelText('História'), { target: { value: 'Nobre caída' } })
+    fireEvent.change(screen.getByLabelText(/Ideais/), { target: { value: 'Justiça acima de tudo' } })
+    fireEvent.change(screen.getByLabelText(/Vínculos/), { target: { value: 'Jurou vingança contra o culto' } })
+    fireEvent.change(screen.getByLabelText(/Fraquezas/), { target: { value: 'Não mente' } })
+    fireEvent.change(screen.getByLabelText(/Divindade\/Patrono/), { target: { value: 'Auril, deusa do inverno' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      origin: { key: 'bg-acolyte' },
+      background: {
+        story: 'Nobre caída',
+        ideals: ['Justiça acima de tudo'],
+        bonds: ['Jurou vingança contra o culto'],
+        flaws: ['Não mente'],
+        deity: { name: 'Auril', portfolio: 'deusa do inverno' },
+      },
+    }))
+  })
+
   // US-122: revisão mostra o nome da origem numa linha própria, distinta da linha de background.
   it('revisão mostra o nome da origem, separado da linha de background', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-sage' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Sábio' }))
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
@@ -1035,7 +1070,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_criminal' } })
+    // US-206: kicker do cartão é a feature nomeada da origem ("Thieves' Cant") — nome
+    // ancorado no início, mesmo padrão dos cartões de raça com blurb (ex. /^Elfo/).
+    fireEvent.click(screen.getByRole('radio', { name: /^Criminoso/ }))
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
@@ -1058,7 +1095,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
@@ -1099,7 +1136,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background (US-123: 1º passo agora)
 
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
 
     expect(screen.getByText('Segue servindo o templo em viagem.')).toBeTruthy()
 
@@ -1123,7 +1160,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('botão aleatório sorteia uma opção do bloco certo; trocar manualmente sobrescreve', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
 
     const connectionSelect = screen.getByLabelText('Conexão') as HTMLSelectElement
     expect(connectionSelect.value).toBe('') // nada selecionado ainda
@@ -1147,7 +1184,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithCam(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '1' } })
     fireEvent.change(screen.getByLabelText('Memento'), { target: { value: '2' } })
 
@@ -1171,7 +1208,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('revisão mostra conexão/memento escolhidos, "—" quando nada foi selecionado', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
@@ -1206,7 +1243,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('revisão soma equipamento da origem ao kit; "Memento" só aparece no kit quando escolhido', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
@@ -1238,7 +1275,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('Sailor (bloco único) mostra só o select de Memento, nunca o de Conexão', async () => {
     await pickSystemAndFillRaceClass(configWithCam(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_sailor' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Marinheiro' }))
 
     expect(screen.queryByLabelText('Conexão')).toBeNull()
     const mementoSelect = screen.getByLabelText('Memento') as HTMLSelectElement
@@ -1253,7 +1290,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('origem sem os benefícios narrativos não mostra a seção, sem quebrar', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
 
     expect(screen.queryByLabelText('Conexão')).toBeNull()
     expect(screen.queryByLabelText('Memento')).toBeNull()
@@ -1265,7 +1302,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithAbilityGrant(0))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
 
     // Aviso informativo na própria etapa background — sem <select> aqui.
     expect(screen.getByText('+1 fixo em Sabedoria, +1 à escolha em outro atributo.')).toBeTruthy()
@@ -1297,7 +1334,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('linha fixa nunca é clicável nem mostra selo fantasma; clicar troca/desmarca a escolha', async () => {
     await pickSystemAndFillRaceClass(configWithAbilityGrant(0))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
     // Linha fixa: o selo "+1 origem" é texto (<span>), não um botão — nunca clicável.
@@ -1321,7 +1358,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('background sem grant.kind "ability" não exige escolha nem mostra banner/selos', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'bg-acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
     expect(screen.queryByText('+1 origem')).toBeNull()
@@ -1481,7 +1518,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     await pickSystemAndFillClass(config)
     fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
     const wisdomRow = screen.getByText('Sabedoria').closest('div')!
@@ -1496,7 +1533,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithSkillGrant(0))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_acolyte' } })
+    // US-206: blurb do cartão é o mesmo texto cru do benefício de perícia — nome ancorado no
+    // início, mesmo padrão dos cartões de raça com blurb (ex. /^Elfo/).
+    fireEvent.click(screen.getByRole('radio', { name: /^Acólito/ }))
 
     // Texto informativo na etapa background — texto CRU do benefício (nome: descrição), mesma
     // posição do aviso de abilityGrant, SEM cards aqui (a escolha não acontece nesta etapa).
@@ -1549,7 +1588,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     }
     await pickSystemAndFillRaceClass(config)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_x' } })
+    // US-206: blurb do cartão é o texto cru do benefício ('x') — nome ancorado no início.
+    fireEvent.click(screen.getByRole('radio', { name: /^X/ }))
 
     expect(screen.getByText('Skill Proficiencies: x')).toBeTruthy()
 
@@ -1567,7 +1607,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     await pickSystemAndFillRaceClass(configWithToolGrant(0))
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     fireEvent.click(nextBtn()) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_criminal' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Criminoso' }))
 
     // fixa aparece como texto (não interativa); chooseFrom vira <select> agrupado por
     // categoria — cartão clicável não escala pros grants com dezenas de opções (US-132
@@ -1608,7 +1648,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     await pickSystemAndFillRaceClass(config)
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     fireEvent.click(nextBtn()) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_hermit' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Eremita' }))
 
     expect(screen.getByText('Ferramentas de Ladrão')).toBeTruthy() // fixa aparece, sem chooseFrom
     expect(nextBtn().disabled).toBe(false)
@@ -1633,7 +1673,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     await pickSystemAndFillRaceClass(config)
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     fireEvent.click(nextBtn()) // → background
-    fireEvent.change(screen.getByLabelText('Origem'), { target: { value: 'a5e-ag_folk-hero' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Herói do Povo' }))
 
     const first = screen.getByLabelText('Proficiências de Herói do Povo (1/2)') as HTMLSelectElement
     const second = screen.getByLabelText('Proficiências de Herói do Povo (2/2)') as HTMLSelectElement
