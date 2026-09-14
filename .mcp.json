@@ -3,7 +3,7 @@
     "shadcn": {
       "command": "npx",
       "args": [
-        "shadcn@latest",
+        "shadcn@4.21.0",
         "mcp"
       ]
     },
@@ -11,7 +11,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "vp0-mcp"
+        "vp0-mcp@0.3.0"
       ]
     }
   }
