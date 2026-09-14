@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Proposta
+**Status:** ✅ Implementada
 **Depende de:** [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) ✅ (`buildAuthoringPrompt`/`buildAuthoringSystem`, [ai.service.ts:181-249](../../../apps/api/src/ai/ai.service.ts); `rollFactionCount` como precedente exato do sorteio determinístico, [roll-registry.ts:41-45](../../../apps/api/src/adventure-generation/roll-registry.ts))
 **Relacionado:** [US-177](./US-177-onomastica-em-npcs-e-locais-do-motor.md) (extraiu `ONOMASTICS_SECTION` pra const compartilhada — o bullet novo desta story entra ali, vale pros dois caminhos de uma vez) · [US-236](./US-236-params-de-mundo-como-restricao-e-toggle.md) (mesmo padrão de eixo injetado como linha de restrição no prompt de autoria) · [rubric-drift.test.ts](../../../packages/ai-engine/src/rubric-drift.test.ts) (guard de hash sobre `NARRATIVE_CRAFT_SECTION` — esta story MUDA o valor, precisa atualizar)
 **Criada em:** 2026-09-14 — achado ao revisar duas aventuras exportadas de bake-off: o mundo de uma se chama "Lúcivis" e a antagonista de fato da outra é "A Afogadora", nomes que a mantenedora já viu se repetir em OUTRAS gerações sem relação entre si. **Revisada três vezes no mesmo dia:**
