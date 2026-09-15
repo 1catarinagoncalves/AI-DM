@@ -5,12 +5,18 @@ import { z } from 'zod'
 // filho→facção, direção única — aponta pra factions[].id; o gate checa que o id existe).
 // US-242: `interactions` (fala pré-escrita na autoria) saiu — nunca era lida no turno ao
 // vivo, a fala do NPC é sempre gerada fresca pelo Mestre (ver ADR/story para o porquê).
+// US-233: `combatRole?` — papel de statblock (Minion/Soldier/Brute, US-152), preenchido pelo
+// PASSO 2 determinístico pra NPC que é inimigo de encontro `combat`. Ausente pra NPC narrativo.
+// NÃO é `role` (texto narrativo livre, US-232) — valores espelham MonsterRole
+// (apps/api/src/adventure-generation/monster-roles.ts) por VALOR LITERAL, não por import
+// (shared não pode depender de apps/api).
 export const AdventureNpcSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   role: z.string().min(1),
   want: z.string().min(1),
   factionId: z.string().min(1).optional(),
+  combatRole: z.enum(['Minion', 'Soldier', 'Brute']).optional(),
 })
 
 // US-232: mundo autoral nomeado (ex.: "Khemsar, o Mar de Areia") — DISTINTO da chave

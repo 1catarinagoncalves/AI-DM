@@ -506,6 +506,52 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     expect(adventure.encounters.every((e) => e.fiction.length > 0)).toBe(true)
     expect(adventure.npcs.every((n) => n.want.length > 0)).toBe(true)
   })
+
+  // US-233 (PASSO 2): casa fiction com mecânica — papel de statblock por posição, sem número
+  // vindo do modelo. `combatRole` só existe em NPC de encontro `combat`.
+  describe('PASSO 2 — mecânica 5e determinística (US-233)', () => {
+    function combatAuthored() {
+      return authored({
+        npcs: [
+          { name: 'Chefe', role: 'bandido líder', want: 'defender o esconderijo' },
+          { name: 'Capanga', role: 'bandido', want: 'sobreviver' },
+          { name: 'Capanga 2', role: 'bandido', want: 'sobreviver' },
+        ],
+        encounters: [
+          {
+            locationIndex: 0, npcIndices: [0, 1, 2], type: 'combat' as const,
+            fiction: 'O bando cerca a clareira.', behaviors: 'vigiam', goal: 'expulsar intrusos',
+            complications: 'reforços a caminho', unlocks: 'o mapa do esconderijo',
+          },
+        ],
+      })
+    }
+
+    it('atribui combatRole Brute→Soldier→Minion por posição em encontro combat', async () => {
+      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      const [chefe, capanga1, capanga2] = adventure.encounters[0]!.npcIds.map((id) => adventure.npcs.find((n) => n.id === id)!)
+      expect(chefe!.combatRole).toBe('Brute')
+      expect(capanga1!.combatRole).toBe('Soldier')
+      expect(capanga2!.combatRole).toBe('Minion')
+    })
+
+    it('não atribui combatRole a NPC de encontro social/skill', async () => {
+      const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      expect(adventure.encounters[0]!.type).toBe('social')
+      expect(adventure.npcs[0]!.combatRole).toBeUndefined()
+    })
+
+    it('mesma fiction (npcIndices fixo), mesmo resultado de combatRole — determinístico, sem seed', async () => {
+      const a = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      const b = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      expect(a.npcs.map((n) => n.combatRole)).toEqual(b.npcs.map((n) => n.combatRole))
+    })
+
+    it('resultado passa em .parse() com combatRole preenchido', async () => {
+      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+    })
+  })
 })
 
 describe('AdventureService.generateGatedAdventure (US-232)', () => {

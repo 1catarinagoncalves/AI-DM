@@ -133,21 +133,21 @@ function checkNoOrphanNpcs(adventure: GeneratedAdventure): string | null {
  * (sem isto, um encontro montado sob orçamento maior de propósito seria sempre rejeitado
  * contra o limiar menor). CR de monstro único não pode ALCANÇAR OU PASSAR (`>=`)
  * `singleMonsterCrCap` — mesmos operadores do LGMRD, para UM personagem no nível da aventura,
- * independente do dial (regra mais forte, não a que o dial troca). NPCs narrativos (role fora
- * de `MONSTER_ROLE_CR`) não têm CR e não entram na soma. US-166: só encontros `type === 'combat'`
+ * independente do dial (regra mais forte, não a que o dial troca). NPC narrativo (sem
+ * `combatRole`, US-233) não tem CR e não entra na soma. US-166: só encontros `type === 'combat'`
  * carregam orçamento — `skill`/`social` nunca reprovam por ausência dele.
  */
 function checkEncounterBudget(adventure: GeneratedAdventure, challenge: EncounterChallenge): string | null {
   const level = adventure.levelRange.min
   const soloCap = singleMonsterCrCap(level)
   const sumBudget = challenge === 'challenge' ? soloCap : encounterDeadlyThreshold(level)
-  const roleByNpcId = new Map(adventure.npcs.map((n) => [n.id, n.role]))
+  const roleByNpcId = new Map(adventure.npcs.map((n) => [n.id, n.combatRole]))
 
   for (const encounter of adventure.encounters) {
     if (encounter.type !== 'combat') continue
     const roles = encounter.npcIds
       .map((id) => roleByNpcId.get(id))
-      .filter((role): role is MonsterRole => role !== undefined && role in MONSTER_ROLE_CR)
+      .filter((role): role is MonsterRole => role !== undefined)
 
     const oversized = roles.find((role) => MONSTER_ROLE_CR[role] >= soloCap)
     if (oversized) return `encontro "${encounter.id}" tem monstro único CR ${MONSTER_ROLE_CR[oversized]} >= teto ${soloCap} (nível ${level})`

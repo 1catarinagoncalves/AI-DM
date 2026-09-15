@@ -30,7 +30,7 @@ function validAdventure(overrides: Partial<GeneratedAdventure> = {}): GeneratedA
     factions: [{ id: 'faction-1', name: 'Guardiões', kind: 'ordem', want: 'selar a clareira' }],
     npcs: [
       npc(),
-      { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'esmagar' },
+      { id: 'npc-2', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'esmagar' },
     ],
     locations: [
       { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: ['npc-1'], vibe: 'combat' },
@@ -92,7 +92,7 @@ describe('runAdventureGate (US-232)', () => {
 
   it('NPC órfão (sem encontro nem local) falha na verificação 2', () => {
     const broken = validAdventure({
-      npcs: [npc(), { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'esmagar' }, { id: 'npc-3', name: 'Órfão', role: 'coadjuvante', want: 'sobreviver' }],
+      npcs: [npc(), { id: 'npc-2', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'esmagar' }, { id: 'npc-3', name: 'Órfão', role: 'coadjuvante', want: 'sobreviver' }],
     })
     const result = runAdventureGate(broken)
     expect(result.ok).toBe(false)
@@ -130,9 +130,9 @@ describe('runAdventureGate (US-232)', () => {
     const broken = validAdventure({
       levelRange: { min: 8, max: 8 },
       npcs: [
-        { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x' },
-        { id: 'npc-3', name: 'Brute', role: 'Brute', want: 'x' },
-        { id: 'npc-4', name: 'Brute', role: 'Brute', want: 'x' },
+        { id: 'npc-2', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'x' },
+        { id: 'npc-3', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'x' },
+        { id: 'npc-4', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'x' },
       ],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],
@@ -148,7 +148,7 @@ describe('runAdventureGate (US-232)', () => {
   it('monstro único alcança o teto (>=) falha na verificação 3', () => {
     const broken = validAdventure({
       levelRange: { min: 2, max: 2 },
-      npcs: [{ id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x' }],
+      npcs: [{ id: 'npc-2', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'x' }],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2'] })],
     })
@@ -207,9 +207,9 @@ describe('generateWithGate (US-150, reseed)', () => {
     const superorcado = validAdventure({
       levelRange: { min: 8, max: 8 },
       npcs: [
-        { id: 'npc-2', name: 'Brute', role: 'Brute', want: 'x' },
-        { id: 'npc-3', name: 'Brute', role: 'Brute', want: 'x' },
-        { id: 'npc-4', name: 'Brute', role: 'Brute', want: 'x' },
+        { id: 'npc-2', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'x' },
+        { id: 'npc-3', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'x' },
+        { id: 'npc-4', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'x' },
       ],
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],

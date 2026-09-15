@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { MONSTER_ROLE_CR, composeEncounterRoles, chooseAntagonistRole, totalCr, buildEncounterNpcs } from './monster-roles'
+import { MONSTER_ROLE_CR, composeEncounterRoles, chooseAntagonistRole, totalCr, buildEncounterNpcs, assignCombatRoles } from './monster-roles'
 import { encounterDeadlyThreshold, singleMonsterCrCap } from './lazy-encounter-benchmark'
 import type { AdventureNpc } from '@ai-dm/shared'
 
@@ -147,5 +147,28 @@ describe('buildEncounterNpcs (US-152)', () => {
     const minionIds = npcs.filter((n) => n.role === 'Minion').map((n) => n.id)
     expect(minionIds).toEqual(['npc-8', 'npc-9'])
     expect(new Set(npcs.map((n) => n.id)).size).toBe(npcs.length)
+  })
+})
+
+describe('assignCombatRoles (US-233)', () => {
+  it('cicla Brute→Soldier→Minion por índice, não por orçamento', () => {
+    expect(assignCombatRoles(3)).toEqual(['Brute', 'Soldier', 'Minion'])
+  })
+
+  it('primeiro inimigo é sempre o mais forte (Brute) — padrão líder + capangas', () => {
+    expect(assignCombatRoles(1)).toEqual(['Brute'])
+    expect(assignCombatRoles(5)[0]).toBe('Brute')
+  })
+
+  it('degrada e recicla quando count excede os 3 papéis', () => {
+    expect(assignCombatRoles(5)).toEqual(['Brute', 'Soldier', 'Minion', 'Brute', 'Soldier'])
+  })
+
+  it('count 0 devolve array vazio', () => {
+    expect(assignCombatRoles(0)).toEqual([])
+  })
+
+  it('determinístico — mesmo count produz sempre a mesma sequência', () => {
+    expect(assignCombatRoles(4)).toEqual(assignCombatRoles(4))
   })
 })

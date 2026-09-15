@@ -5,7 +5,7 @@ import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
-import { type EncounterChallenge } from '../adventure-generation/monster-roles'
+import { assignCombatRoles, type EncounterChallenge } from '../adventure-generation/monster-roles'
 import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
@@ -270,6 +270,18 @@ export class AdventureService {
       const loc = locations[rr2 % locations.length]!
       loc.occupants = [...loc.occupants, npc.id]
       rr2++
+    }
+
+    // US-233 (PASSO 2): casa a fiction (npcIds já resolvidos) com a mecânica 5e — papel de
+    // statblock por posição (assignCombatRoles), determinístico, sem pedir número ao modelo.
+    // Orçamento pro nível é checado pelo gate (US-150 verificação 3), não aqui.
+    for (const encounter of encounters) {
+      if (encounter.type !== 'combat') continue
+      const roles = assignCombatRoles(encounter.npcIds.length)
+      encounter.npcIds.forEach((npcId, i) => {
+        const npc = npcs.find((n) => n.id === npcId)
+        if (npc) npc.combatRole = roles[i]
+      })
     }
 
     return GeneratedAdventureSchema.parse({

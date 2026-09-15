@@ -19,7 +19,7 @@ export const MONSTER_ROLE_CR: Record<MonsterRole, number> = {
   Brute: 2,
 }
 
-const ROLES_BY_IMPACT: MonsterRole[] = ['Brute', 'Soldier', 'Minion']
+export const ROLES_BY_IMPACT: MonsterRole[] = ['Brute', 'Soldier', 'Minion']
 
 export function totalCr(roles: MonsterRole[]): number {
   return roles.reduce((sum, role) => sum + MONSTER_ROLE_CR[role], 0)
@@ -89,6 +89,17 @@ export function chooseAntagonistRole(level: number, challenge: EncounterChalleng
     if (MONSTER_ROLE_CR[role] < budget) return role
   }
   return undefined
+}
+
+/**
+ * US-233 (PASSO 2): papel por POSIÇÃO, não por orçamento — direção oposta de
+ * `composeEncounterRoles` (que monta a lista de papéis A PARTIR do orçamento, sem saber quantos
+ * inimigos a ficção já escreveu). Aqui a contagem já é fixa (`encounter.npcIds.length`, decidida
+ * pela autoria/US-232) — só falta decidir QUEM é o quê. Cicla `ROLES_BY_IMPACT` por índice:
+ * inimigo 0 é sempre o mais forte, o resto degrada. Determinístico puro (sem seed/RNG).
+ */
+export function assignCombatRoles(count: number): MonsterRole[] {
+  return Array.from({ length: count }, (_, i) => ROLES_BY_IMPACT[i % ROLES_BY_IMPACT.length]!)
 }
 
 // US-152: cada instância de papel vira um item de `npcs[]` sem schema novo — `id` continua o
