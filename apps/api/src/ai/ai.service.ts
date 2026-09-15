@@ -195,7 +195,7 @@ function buildAuthoringSystem(locale: Locale): string {
     '',
     'FACÇÕES: invente as facções pedidas com desejos que COLIDEM — elas SÃO o antagonismo (não há um vilão único). Dissolva-as na `story` e nos `npcs` (a alma vem dessa tensão), mas preencha `factions[]` como dado estruturado. NPC neutro tem `want` SEM `factionIndex`.',
     '',
-    'OBJETIVO E FECHO: `objective` tem meta + recompensa (item mágico nomeado, efeito em ficção, sem números) + local. `branchedResolution` é a escolha final RAMIFICADA — um rumo por facção, cada um com um custo, nenhum "o certo". O último encontro (o Final) amarra essa escolha ramificada.',
+    'OBJETIVO E FECHO: `objective` tem meta + recompensa (item mágico nomeado, efeito em ficção, sem números) + local. `branchedResolution` é a escolha final RAMIFICADA — um rumo por facção, cada um com um custo, nenhum "o certo". O último encontro (o Final) amarra essa escolha ramificada. A ameaça/criatura central da premissa (a que dá nome ao conflito) PRECISA estar presente, fisicamente, em pelo menos um encontro no local do objetivo — a resolução não pode acontecer só entre NPCs alheios, em outro lugar, sem ela.',
     '',
     'LOCAIS: a `description` fala SÓ do lugar e dos itens — NÃO cite NPCs que estão nele (quem os habita fica em `occupants`, por índice). Ex.: descreva "o balcão de uma taverna esfumaçada e o mural nos fundos", não "onde o estalajadeiro Tobias serve bebida".',
     '',
