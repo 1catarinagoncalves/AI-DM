@@ -87,8 +87,15 @@ const config: SystemConfig = {
 interface Recorded {
   adventureCreate?: Record<string, unknown>
   adventureUpdateMany?: Record<string, unknown>
+  // US-235: gravações do job em background (finalizeGeneratedAdventure), separadas da
+  // criação síncrona acima — `adventureCreate` só tem a linha GENERATING/placeholder agora.
+  adventureUpdate?: Record<string, unknown>
+  // US-235: `this.prisma.adventure.update` FORA da transação — só o caminho FAILED (gate
+  // esgotado ou exceção) escreve aqui, fora do `tx` de sucesso.
+  adventureFailedUpdate?: Record<string, unknown>
   participantCreate?: Record<string, unknown>
   characterStateCreate?: Record<string, unknown>
+  characterStateUpdate?: Record<string, unknown>
   questCreate?: Record<string, unknown>
   eventLogCreate?: Record<string, unknown>
 }
@@ -100,8 +107,12 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
     adventure: {
       updateMany: async (args: Record<string, unknown>) => { recorded.adventureUpdateMany = args; return { count: 0 } },
       create: async ({ data }: { data: Record<string, unknown> }) => { recorded.adventureCreate = data; return { id: 'adv-1', ...data } },
+      update: async ({ data }: { data: Record<string, unknown> }) => { recorded.adventureUpdate = data; return { id: 'adv-1', ...data } },
     },
-    characterState: { create: async ({ data }: { data: Record<string, unknown> }) => { recorded.characterStateCreate = data; return data } },
+    characterState: {
+      create: async ({ data }: { data: Record<string, unknown> }) => { recorded.characterStateCreate = data; return data },
+      update: async ({ data }: { data: Record<string, unknown> }) => { recorded.characterStateUpdate = data; return data },
+    },
     quest: { create: async ({ data }: { data: Record<string, unknown> }) => { recorded.questCreate = data; return { id: 'quest-1', ...data } } },
     eventLog: { create: async ({ data }: { data: Record<string, unknown> }) => { recorded.eventLogCreate = data; return { id: 'evt-1', ...data } } },
   }
@@ -114,22 +125,68 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
       },
     },
     adventureParticipant: { count: async () => participantCount },
+    // US-235: gravação FORA da transação — só o caminho FAILED de `runAdventureGeneration`
+    // chama isto (a transação de sucesso usa `tx.adventure.update`, acima).
+    adventure: {
+      update: async ({ data }: { data: Record<string, unknown> }) => { recorded.adventureFailedUpdate = data; return { id: 'adv-1', ...data } },
+    },
     $transaction: async (fn: (tx: unknown) => unknown) => fn(tx),
   } as unknown as PrismaService
   return { prisma, recorded }
 }
 
-describe('AdventureService.createForCharacter (US-232)', () => {
+// US-235: `createForCharacter` (ramo gerado) devolve a linha GENERATING sem esperar o motor
+// — o job roda solto (`void this.runAdventureGeneration(...)`, sem await). Para testar o
+// ESTADO FINAL (quest/eventLog/generatedAdventure/sceneState), os testes espiam o método
+// público `runAdventureGeneration` (spy sem mockImplementation continua chamando o real) e
+// aguardam a promise que ele devolveu — mesma técnica de qualquer spy de método assíncrono,
+// sem precisar reconstruir profile/config/opening à mão fora do serviço.
+async function createAndGenerate(
+  service: AdventureService,
+  characterId: string,
+  dto: Parameters<AdventureService['createForCharacter']>[1] = {},
+) {
+  const genSpy = vi.spyOn(service, 'runAdventureGeneration')
+  const adventure = await service.createForCharacter(characterId, dto)
+  const pending = genSpy.mock.results[0]?.value as Promise<void> | undefined
+  if (pending) await pending
+  genSpy.mockRestore()
+  return adventure
+}
+
+describe('AdventureService.createForCharacter (US-232/US-235)', () => {
   const baseChar = {
     id: 'char-1', userId: 'user-1', systemId: 'sys-1', name: 'Elara', class: 'wizard', race: 'human', level: 1,
     baseAttributes: { constitution: 14 }, system: { config },
   }
 
-  it('título e quest vêm do artefato gerado (summary/objective), sem conclusionHint', async () => {
+  // US-235: a linha nasce GENERATING/placeholder na hora do clique — sem esperar o motor.
+  // `generateAdventureAuthoring` nunca resolve aqui de propósito: se `createForCharacter`
+  // esperasse por ele, este teste travaria (timeout do runner) em vez de passar.
+  it('devolve a Adventure GENERATING com título placeholder, sem esperar o motor terminar', async () => {
     const { prisma, recorded } = fakePrisma(baseChar)
-    const adventure = await new AdventureService(prisma, fakeAi()).createForCharacter('char-1', {})
+    const stuckAi = { generateOpeningNarration: vi.fn(), extractOpeningScene: vi.fn(), extractOpeningEntities: vi.fn(), generateAdventureAuthoring: () => new Promise(() => {}) } as unknown as AiService
+    const adventure = await new AdventureService(prisma, stuckAi).createForCharacter('char-1', {})
 
-    expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: 'Três facções disputam a Enseada Cinzenta.', order: 1 })
+    expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: 'Aventura de Elara', order: 1, status: 'GENERATING' })
+    expect(recorded.adventureCreate).toMatchObject({ status: 'GENERATING', order: 1 })
+    expect(recorded.questCreate).toBeUndefined()
+    expect(recorded.eventLogCreate).toBeUndefined()
+  })
+
+  it('placeholder do título é locale-aware (en-US)', async () => {
+    const { prisma } = fakePrisma({ ...baseChar, user: { locale: 'en-US' } })
+    const stuckAi = { generateOpeningNarration: vi.fn(), extractOpeningScene: vi.fn(), extractOpeningEntities: vi.fn(), generateAdventureAuthoring: () => new Promise(() => {}) } as unknown as AiService
+    const adventure = await new AdventureService(prisma, stuckAi).createForCharacter('char-1', {})
+    expect(adventure.title).toBe("Elara's Adventure")
+  })
+
+  it('título e quest do job em background vêm do artefato gerado (summary/objective), sem conclusionHint', async () => {
+    const { prisma, recorded } = fakePrisma(baseChar)
+    const service = new AdventureService(prisma, fakeAi())
+    await createAndGenerate(service, 'char-1', {})
+
+    expect(recorded.adventureUpdate).toMatchObject({ status: 'ACTIVE', title: 'Três facções disputam a Enseada Cinzenta.' })
     expect(recorded.questCreate).toMatchObject({
       title: 'Três facções disputam a Enseada Cinzenta.',
       description: 'Três facções disputam a Enseada Cinzenta.',
@@ -142,29 +199,34 @@ describe('AdventureService.createForCharacter (US-232)', () => {
 
   it('caminho IA: texto do modelo é persistido como abertura', async () => {
     const { prisma, recorded } = fakePrisma(baseChar)
-    await new AdventureService(prisma, fakeAi('A chuva fina cai sobre Elara.')).createForCharacter('char-1', {})
+    const service = new AdventureService(prisma, fakeAi('A chuva fina cai sobre Elara.'))
+    await createAndGenerate(service, 'char-1', {})
     expect(recorded.eventLogCreate).toMatchObject({ type: 'NARRATION', payload: { text: 'A chuva fina cai sobre Elara.' } })
   })
 
-  it('US-35: extração devolve patch → sceneState preenchido', async () => {
+  it('US-35: extração devolve patch → sceneState preenchido no CharacterState já existente', async () => {
     const { prisma, recorded } = fakePrisma(baseChar)
     const patch = { local: 'estrada', ambiente: 'externo', periodo: 'anoitecer', presentes: ['velho'], objetos_em_cena: ['chuva'] }
-    await new AdventureService(prisma, fakeAi('A chuva cai.', patch)).createForCharacter('char-1', {})
-    expect((recorded.characterStateCreate as Record<string, unknown>)['sceneState']).toMatchObject(patch)
+    const service = new AdventureService(prisma, fakeAi('A chuva cai.', patch))
+    await createAndGenerate(service, 'char-1', {})
+    expect(recorded.characterStateCreate).not.toHaveProperty('sceneState') // criação síncrona, antes da abertura
+    expect((recorded.characterStateUpdate as Record<string, unknown>)['sceneState']).toMatchObject(patch)
   })
 
-  it('US-35: extração null → sem sceneState, sem erro', async () => {
+  it('US-35: extração null → sem sceneState, sem erro, sem update do CharacterState', async () => {
     const { prisma, recorded } = fakePrisma(baseChar)
-    await new AdventureService(prisma, fakeAi('A chuva cai.', null)).createForCharacter('char-1', {})
-    expect(recorded.characterStateCreate).not.toHaveProperty('sceneState')
+    const service = new AdventureService(prisma, fakeAi('A chuva cai.', null))
+    await createAndGenerate(service, 'char-1', {})
+    expect(recorded.characterStateUpdate).toBeUndefined()
   })
 
   // US-232: entities vêm do artefato — facções + NPC narrativo (want+facção) + local (nota com
   // encontro+desafio); SEM antagonista nem segredo.
   it('entities: facções, NPC narrativo com want/facção e local, sem antagonista/segredo', async () => {
     const { prisma, recorded } = fakePrisma(baseChar)
-    await new AdventureService(prisma, fakeAi()).createForCharacter('char-1', {})
-    const entities = recorded.adventureCreate?.['entities'] as Array<{ nome: string; tipo: string; nota?: string; revelado: boolean }>
+    const service = new AdventureService(prisma, fakeAi())
+    await createAndGenerate(service, 'char-1', {})
+    const entities = recorded.adventureUpdate?.['entities'] as Array<{ nome: string; tipo: string; nota?: string; revelado: boolean }>
     expect(entities.filter((e) => e.tipo === 'faccao').map((e) => e.nome)).toEqual(['Guardiões', 'Sindicato'])
     const marta = entities.find((e) => e.nome === 'Marta')!
     expect(marta.nota).toBe('herborista suspeita — Quer: proteger o bosque — Facção: Guardiões')
@@ -175,7 +237,8 @@ describe('AdventureService.createForCharacter (US-232)', () => {
   it('classe desconhecida cai no gancho default, sem erro', async () => {
     const character = { ...baseChar, name: 'Nyx', class: 'Cartógrafa Estelar' }
     const { prisma, recorded } = fakePrisma(character)
-    const adventure = await new AdventureService(prisma, fakeAi()).createForCharacter('char-1', {})
+    const service = new AdventureService(prisma, fakeAi())
+    const adventure = await createAndGenerate(service, 'char-1', {})
     expect(typeof adventure.title).toBe('string')
     expect(recorded.eventLogCreate).toMatchObject({ payload: { text: 'Alguém pronuncia a tua classe: Cartógrafa Estelar.' } })
   })
@@ -189,7 +252,8 @@ describe('AdventureService.createForCharacter (US-232)', () => {
   it('a abertura recebe o RÓTULO de raça e classe, não a chave', async () => {
     const { prisma } = fakePrisma({ ...baseChar, baseAttributes: { constitution: 10 } })
     const seen: Record<string, unknown> = {}
-    await new AdventureService(prisma, fakeAi(null, null, seen)).createForCharacter('char-1', {})
+    const service = new AdventureService(prisma, fakeAi(null, null, seen))
+    await createAndGenerate(service, 'char-1', {})
     expect(seen['characterClass']).toBe('Mago')
     expect(seen['characterRace']).toBe('Humano')
   })
@@ -197,7 +261,8 @@ describe('AdventureService.createForCharacter (US-232)', () => {
   it('seededEntities chega a generateOpeningNarration como entities', async () => {
     const { prisma } = fakePrisma(baseChar)
     const seen: Record<string, unknown> = {}
-    await new AdventureService(prisma, fakeAi(null, null, seen)).createForCharacter('char-1', {})
+    const service = new AdventureService(prisma, fakeAi(null, null, seen))
+    await createAndGenerate(service, 'char-1', {})
     const entities = seen['entities'] as Array<{ nome: string }>
     expect(entities.some((e) => e.nome === 'Marta')).toBe(true)
     expect(entities.some((e) => e.nome === 'Guardiões')).toBe(true)
@@ -205,8 +270,32 @@ describe('AdventureService.createForCharacter (US-232)', () => {
 
   it('generatedAdventure é persistido com o artefato', async () => {
     const { prisma, recorded } = fakePrisma(baseChar)
-    await new AdventureService(prisma, fakeAi()).createForCharacter('char-1', {})
-    expect(recorded.adventureCreate?.['generatedAdventure']).toMatchObject({ id: 'char-1:1', summary: expect.any(String), start: expect.any(String) })
+    const service = new AdventureService(prisma, fakeAi())
+    await createAndGenerate(service, 'char-1', {})
+    expect(recorded.adventureUpdate?.['generatedAdventure']).toMatchObject({ id: 'char-1:1', summary: expect.any(String), start: expect.any(String) })
+  })
+
+  describe('US-235: teto do gate estourado → FAILED (nunca cai na "Aventura pronta")', () => {
+    it('gate devolve ok:false → status FAILED com generationError, sem quest/eventLog', async () => {
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const service = new AdventureService(prisma, fakeAi())
+      vi.spyOn(service, 'generateGatedAdventure').mockResolvedValue({ ok: false, reason: 'teto de 3 tentativas esgotado — última falha: x', attempt: 2 })
+      await createAndGenerate(service, 'char-1', {})
+
+      expect(recorded.adventureFailedUpdate).toMatchObject({ status: 'FAILED', generationError: 'teto de 3 tentativas esgotado — última falha: x' })
+      expect(recorded.adventureUpdate).toBeUndefined()
+      expect(recorded.questCreate).toBeUndefined()
+      expect(recorded.eventLogCreate).toBeUndefined()
+    })
+
+    it('exceção inesperada na abertura → FAILED com a mensagem do erro, nunca propaga', async () => {
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const crashingAi = { ...fakeAi(), generateOpeningNarration: vi.fn().mockRejectedValue(new Error('provider caiu')) } as unknown as AiService
+      const service = new AdventureService(prisma, crashingAi)
+      await expect(createAndGenerate(service, 'char-1', {})).resolves.toMatchObject({ status: 'GENERATING' })
+
+      expect(recorded.adventureFailedUpdate).toMatchObject({ status: 'FAILED', generationError: 'provider caiu' })
+    })
   })
 
   it('rejeita quando o personagem não existe', async () => {
@@ -335,6 +424,31 @@ describe('AdventureService.createForCharacter (US-232)', () => {
       expect(recorded.adventureCreate).not.toHaveProperty('entities')
       expect(recorded.questCreate).not.toHaveProperty('objective')
     })
+  })
+})
+
+describe('AdventureService.getGenerationStatus (US-235)', () => {
+  function prismaWithAdventure(adventure: { status: string; generationError?: string | null } | null): PrismaService {
+    return { adventure: { findFirst: async () => adventure } } as unknown as PrismaService
+  }
+
+  it('devolve status sem error quando não FAILED', async () => {
+    const prisma = prismaWithAdventure({ status: 'GENERATING', generationError: null })
+    const result = await new AdventureService(prisma, fakeAi()).getGenerationStatus('char-1', 'adv-1')
+    expect(result).toEqual({ status: 'GENERATING' })
+  })
+
+  it('devolve error junto quando FAILED', async () => {
+    const prisma = prismaWithAdventure({ status: 'FAILED', generationError: 'teto esgotado' })
+    const result = await new AdventureService(prisma, fakeAi()).getGenerationStatus('char-1', 'adv-1')
+    expect(result).toEqual({ status: 'FAILED', error: 'teto esgotado' })
+  })
+
+  // US-235 (nota de implementação): mesma disciplina de `getExportData` — adventureId tem de
+  // pertencer a ESTE characterId (via participants), senão vazaria estado de outro personagem.
+  it('aventura inexistente ou de outro personagem: 404', async () => {
+    const prisma = prismaWithAdventure(null)
+    await expect(new AdventureService(prisma, fakeAi()).getGenerationStatus('char-1', 'adv-x')).rejects.toThrow('Aventura adv-x não encontrada')
   })
 })
 

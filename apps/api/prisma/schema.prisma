@@ -112,6 +112,10 @@ model Adventure {
   title           String
   order           Int
   status          AdventureStatus        @default(ACTIVE)
+  // US-235: motivo da falha quando `status` é FAILED (teto do gate de geração
+  // estourado, US-234) — a tela de erro não mostra este texto (interno/não localizado),
+  // só decide se mostra erro+retry. Ausente em qualquer outro status.
+  generationError String?
   memorySummary   String?
   // Registro estruturado de entidades duráveis da campanha (NPCs, locais, objetos
   // notáveis). Vive FORA do EventLog/resumo: nunca é comprimido nem apagado pela
@@ -145,6 +149,11 @@ enum AdventureStatus {
   ACTIVE
   COMPLETED
   ARCHIVED
+  // US-235: gatilho assíncrono — a linha existe (id consultável pela tela de espera)
+  // antes do motor terminar. GENERATING → ACTIVE (sucesso) ou FAILED (teto do gate
+  // estourado, US-234); nunca desvia pra "Aventura pronta".
+  GENERATING
+  FAILED
 }
 
 model Quest {

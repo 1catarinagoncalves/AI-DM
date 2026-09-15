@@ -99,6 +99,11 @@ export const ptBR = {
   'setup.world.loading.4': 'Escolhendo os primeiros perigos do caminho...',
   'setup.world.loading.5': 'Amarrando os fios que vão puxar a história...',
   'setup.world.loading.6': 'Afiando os detalhes antes de abrir a cortina...',
+  // US-235: teto do gate estourado (ou timeout do polling) — nunca desvia pra "Aventura
+  // pronta"; retry reenvia os mesmos parâmetros (tone/setting/areaType/challenge).
+  'setup.world.error.titulo': 'A geração deu errado',
+  'setup.world.error.mensagem': 'Não foi possível terminar de tecer esta aventura. Cada nova tentativa cria um mundo diferente.',
+  'setup.world.error.retry': 'Criar aventura de novo',
 
   // ---- wizard: sistema ----
   'setup.system.titulo': 'Escolha o Sistema',

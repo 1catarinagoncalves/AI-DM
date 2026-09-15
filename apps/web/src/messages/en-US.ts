@@ -90,6 +90,11 @@ export const enUS: Record<MessageKey, string> = {
   'setup.world.loading.4': 'Choosing the first dangers on your path...',
   'setup.world.loading.5': 'Tying the threads that will pull the story forward...',
   'setup.world.loading.6': 'Sharpening the details before the curtain opens...',
+  // US-235: gate attempt ceiling exhausted (or client polling timeout) — never falls back
+  // to "Ready adventure"; retry resends the same params (tone/setting/areaType/challenge).
+  'setup.world.error.titulo': 'Generation went wrong',
+  'setup.world.error.mensagem': "We couldn't finish weaving this adventure. Each new attempt creates a different world.",
+  'setup.world.error.retry': 'Create adventure again',
 
   // ---- wizard: sistema ----
   'setup.system.titulo': 'Choose the System',

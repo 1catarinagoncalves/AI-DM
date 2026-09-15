@@ -48,6 +48,17 @@ export class AdventureController {
     return this.adventureService.getTurns(characterId, adventureId)
   }
 
+  @ApiOperation({ summary: 'US-235: estado da geração assíncrona (GENERATING/ACTIVE/FAILED) — consultado pela tela de espera.' })
+  @Get(':adventureId/status')
+  async getStatus(
+    @Param('characterId') characterId: string,
+    @Param('adventureId') adventureId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    await this.assertOwner(characterId, user)
+    return this.adventureService.getGenerationStatus(characterId, adventureId)
+  }
+
   private async assertOwner(characterId: string, user: AuthUser) {
     if (!user.userId) throw new ForbiddenException('Token sem identidade de utilizador')
     await this.adventureService.assertCharacterOwner(characterId, user.userId)

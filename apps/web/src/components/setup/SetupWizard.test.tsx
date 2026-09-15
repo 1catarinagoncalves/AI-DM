@@ -2,13 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within, act } from '@testing-library/react'
 import type { SystemConfig } from '@ai-dm/shared'
 
-const { listSystems, createCharacter, createAdventure } = vi.hoisted(() => ({
+const { listSystems, createCharacter, createAdventure, getAdventureStatus, routerPush } = vi.hoisted(() => ({
   listSystems: vi.fn(),
   createCharacter: vi.fn(),
   createAdventure: vi.fn(),
+  getAdventureStatus: vi.fn(),
+  routerPush: vi.fn(),
 }))
-vi.mock('@/lib/api', () => ({ api: { listSystems, createCharacter, createAdventure } }))
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
+vi.mock('@/lib/api', () => ({ api: { listSystems, createCharacter, createAdventure, getAdventureStatus } }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: routerPush }) }))
 
 import { SetupWizard } from './SetupWizard'
 
@@ -251,6 +253,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     listSystems.mockReset()
     createCharacter.mockReset()
     createAdventure.mockReset()
+    getAdventureStatus.mockReset()
+    routerPush.mockReset()
   })
   afterEach(() => cleanup())
 
@@ -956,6 +960,79 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
       const bg = document.querySelector('img[aria-hidden]') as HTMLImageElement
       expect(bg.src).toContain('tavern.png')
     })
+  })
+
+  // US-235: `createAdventure` devolve GENERATING no ramo "criar" — o cliente consulta
+  // `getAdventureStatus` até ACTIVE (navega) ou FAILED/timeout (tela de erro dedicada,
+  // nunca volta ao formulário nem desvia pra "Aventura pronta").
+  describe('gatilho assíncrono + polling do status (US-235)', () => {
+    afterEach(() => vi.useRealTimers())
+
+    it('GENERATING → poll até ACTIVE → navega pro jogo', async () => {
+      createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
+      getAdventureStatus
+        .mockResolvedValueOnce({ status: 'GENERATING' })
+        .mockResolvedValueOnce({ status: 'ACTIVE' })
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(6000) })
+
+      expect(getAdventureStatus).toHaveBeenCalledWith('char-1', 'adv-1')
+      expect(routerPush).toHaveBeenCalledWith('/play/adv-1?characterId=char-1')
+    })
+
+    it('GENERATING → poll até FAILED → tela de erro dedicada, nunca volta ao formulário nem à pronta', async () => {
+      createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
+      getAdventureStatus.mockResolvedValue({ status: 'FAILED', error: 'teto esgotado' })
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+
+      expect(screen.getByText('A geração deu errado')).toBeTruthy()
+      expect(screen.getByRole('button', { name: /Criar aventura de novo/ })).toBeTruthy()
+      // nunca o erro genérico de validação/rede, nem o formulário, nem "Aventura pronta"
+      expect(screen.queryByText('Erro ao iniciar a aventura. Tente novamente.')).toBeNull()
+      expect(screen.queryByRole('radio', { name: /Aventura pronta/ })).toBeNull()
+      expect(routerPush).not.toHaveBeenCalled()
+    })
+
+    it('"Criar aventura de novo" redispara createAdventure com os mesmos parâmetros', async () => {
+      createAdventure.mockResolvedValueOnce({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
+      getAdventureStatus.mockResolvedValueOnce({ status: 'FAILED' })
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+      fireEvent.click(screen.getByLabelText('Sombrio')) // tone: grim, fica no estado do wizard
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+      expect(createAdventure).toHaveBeenCalledWith('char-1', { tone: 'grim' })
+
+      createAdventure.mockResolvedValueOnce({ id: 'adv-2', title: 'Aventura', status: 'GENERATING' })
+      getAdventureStatus.mockResolvedValueOnce({ status: 'ACTIVE' })
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura de novo/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+
+      expect(createAdventure).toHaveBeenLastCalledWith('char-1', { tone: 'grim' })
+      expect(routerPush).toHaveBeenCalledWith('/play/adv-2?characterId=char-1')
+    })
+
+    // US-235 (nota de implementação): teto ~120s do lado cliente — cai em erro+retry sozinho
+    // mesmo sem o servidor emitir FAILED (dyno pode reiniciar no meio do job).
+    it('sem status final dentro do teto → mesma tela de erro (timeout do polling)', async () => {
+      createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
+      getAdventureStatus.mockResolvedValue({ status: 'GENERATING' })
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(125_000) })
+
+      expect(screen.getByText('A geração deu errado')).toBeTruthy()
+    }, 15000)
   })
 
   // US-127: a revisão espelha o que a ficha vai mostrar depois — atributos e perícias com

@@ -3,7 +3,7 @@ import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogL
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
-import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type OriginNarrative } from '@ai-dm/ai-engine'
+import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type ClassFeature, type KnownSpell, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 import { assignCombatRoles, type EncounterChallenge } from '../adventure-generation/monster-roles'
 import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
@@ -39,6 +39,37 @@ export interface AdventureProfile {
   origin: OriginNarrative
   hookSeed: string
   challenge: EncounterChallenge // US-167: default 'adventure', resolvido em createForCharacter
+}
+
+// US-235: título placeholder da linha `GENERATING` — trocado por `generated.summary` no
+// sucesso (finalizeGeneratedAdventure). Locale-aware como MEMENTO_ITEM_LABEL (starting-kit.ts).
+const GENERATING_ADVENTURE_TITLE: Record<Locale, string> = {
+  'pt-BR': 'Aventura de {characterName}',
+  'en-US': "{characterName}'s Adventure",
+}
+
+/**
+ * US-235: tudo que `finalizeGeneratedAdventure` precisa para a abertura (US-34) e para o
+ * `CharacterState`/inventário, calculado ANTES do gatilho assíncrono em `createForCharacter`
+ * — o job em background não refaz nenhuma dessas consultas.
+ */
+interface AdventureOpeningContext {
+  systemName: string
+  characterName: string
+  characterGender: string
+  className: string
+  raceName: string
+  level: number
+  maxHp: number
+  attrs: Record<string, number>
+  skills?: { label: string; modifier: number; proficient: boolean }[]
+  attributeLabels: Record<string, string>
+  background: CharacterBackground
+  features: ClassFeature[]
+  knownSpells: KnownSpell[]
+  fullInventory: InventoryItem[]
+  hookSeed: string
+  locale: Locale
 }
 
 @Injectable()
@@ -497,45 +528,137 @@ export class AdventureService {
     }
 
     const profile = this.buildAdventureProfile(character, config, dto.challenge ?? 'adventure')
-
-    // US-153: motor de geração (US-164) substitui o catálogo fixo por classe (US-28) — o
-    // gancho (`profile.hookSeed`) só ancora a abertura, não decide mais locais/NPCs/segredos/
-    // quest. Gate (US-150) antes de persistir; teto de tentativas esgotado → sem fallback
-    // estático (ao contrário de generateOpeningNarration, não existe aventura fixa pra cair).
-    const gateResult = await this.generateGatedAdventure(profile, characterId, order, locale, config, {
+    const registryOverrides: AdventureRegistryOverrides = {
       tone: dto.tone ? this.validateCatalogKey(config.tones, dto.tone, 'Tom') : undefined,
       setting: dto.setting ? this.validateCatalogKey(config.settings, dto.setting, 'Cenário') : undefined,
       areaType: dto.areaType ? this.validateCatalogKey(config.areaTypes, dto.areaType, 'Tipo de Área') : undefined,
-    })
-    if (!gateResult.ok) throw new Error(gateResult.reason)
-    const generated = gateResult.adventure
-    const mainQuest = `${generated.summary}\n${generated.start}`
-    // US-151: ledger semeado do artefato JÁ VALIDADO — substitui `extractOpeningEntities`
-    // (extração por LLM da prosa) como fonte, agora que a aventura sempre vem do motor
-    // (US-153). Síncrono: não entra no Promise.all abaixo, que é só para chamadas de LLM.
-    const seededEntities = seedLedgerFromGeneratedAdventure(generated)
+    }
 
-    const generatedOpening = await this.ai.generateOpeningNarration({
+    // US-235: Adventure/AdventureParticipant/CharacterState nascem AQUI, síncronos — tudo
+    // que os alimenta já estava calculado ANTES da chamada de IA (só moveu pra cima). O
+    // `id` criado agora é o identificador que a tela de espera consulta; o motor (gate +
+    // abertura) roda em background (`runAdventureGeneration`, sem `await`) e termina a
+    // linha depois, em ACTIVE (sucesso) ou FAILED (teto do gate estourado, US-234).
+    const placeholderTitle = resolveHookTemplate(GENERATING_ADVENTURE_TITLE[locale], { characterName: character.name, characterClass: className })
+    const adventure = await this.prisma.$transaction(async (tx) => {
+      // Fecha a aventura ativa anterior do personagem (continuidade sequencial, ver ADR 002)
+      await tx.adventure.updateMany({
+        where: { status: 'ACTIVE', participants: { some: { characterId } } },
+        data: { status: 'COMPLETED', completedAt: new Date() },
+      })
+
+      const created = await tx.adventure.create({
+        data: { systemId: character.systemId, creatorId: character.userId, title: placeholderTitle, order, status: 'GENERATING' },
+      })
+
+      await tx.adventureParticipant.create({ data: { adventureId: created.id, characterId } })
+
+      await tx.characterState.create({
+        data: {
+          characterId,
+          adventureId: created.id,
+          hp: maxHp,
+          maxHp,
+          attributes: character.baseAttributes as object,
+          inventory: fullInventory as unknown as object,
+        },
+      })
+
+      return created
+    })
+
+    const opening: AdventureOpeningContext = {
       systemName: system.name,
       characterName: character.name,
       characterGender: character.gender,
-      characterClass: className,
-      characterRace: raceName,
+      className,
+      raceName,
+      level: character.level,
+      maxHp,
+      attrs,
+      skills,
+      attributeLabels: Object.fromEntries(labelPairs),
+      background: (character.background ?? {}) as unknown as CharacterBackground,
+      features,
+      knownSpells,
+      fullInventory,
+      hookSeed: profile.hookSeed,
+      locale,
+    }
+
+    void this.runAdventureGeneration(adventure.id, characterId, profile, order, locale, config, registryOverrides, opening)
+
+    return adventure
+  }
+
+  /**
+   * US-235: promise solta do controller/`createForCharacter` — sem fila no repo (sem
+   * BullMQ/Redis) e Render Free é instância única, aceito para fase 1 (mesmo raciocínio
+   * do doc de arquitetura §Artefatos do motor velho). Nunca lança: qualquer falha (gate
+   * esgotado ou exceção inesperada) termina a linha em FAILED, nunca deixa a Adventure
+   * presa em GENERATING por um erro não tratado.
+   */
+  async runAdventureGeneration(
+    adventureId: string,
+    characterId: string,
+    profile: AdventureProfile,
+    order: number,
+    locale: Locale,
+    config: SystemConfig,
+    registryOverrides: AdventureRegistryOverrides,
+    opening: AdventureOpeningContext,
+  ): Promise<void> {
+    try {
+      const gateResult = await this.generateGatedAdventure(profile, characterId, order, locale, config, registryOverrides)
+      if (!gateResult.ok) {
+        await this.prisma.adventure.update({ where: { id: adventureId }, data: { status: 'FAILED', generationError: gateResult.reason } })
+        return
+      }
+      await this.finalizeGeneratedAdventure(adventureId, characterId, gateResult.adventure, opening)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(JSON.stringify({ event: 'adventure_generation_crashed', adventureId, timestamp: new Date().toISOString(), errorMessage: message }))
+      await this.prisma.adventure.update({ where: { id: adventureId }, data: { status: 'FAILED', generationError: message } }).catch(() => {})
+    }
+  }
+
+  /**
+   * US-235: 2ª metade do que `createForCharacter` fazia de uma vez só — abertura (US-34) +
+   * extração de cena (US-35) + persistência do artefato aprovado pelo gate. `CharacterState`
+   * já existe (criado síncrono); aqui só ganha `sceneState` quando a extração devolve patch.
+   */
+  private async finalizeGeneratedAdventure(
+    adventureId: string,
+    characterId: string,
+    generated: GeneratedAdventure,
+    opening: AdventureOpeningContext,
+  ): Promise<void> {
+    const mainQuest = `${generated.summary}\n${generated.start}`
+    // US-151: ledger semeado do artefato JÁ VALIDADO — substitui `extractOpeningEntities`
+    // (extração por LLM da prosa) como fonte, agora que a aventura sempre vem do motor
+    // (US-153).
+    const seededEntities = seedLedgerFromGeneratedAdventure(generated)
+
+    const generatedOpening = await this.ai.generateOpeningNarration({
+      systemName: opening.systemName,
+      characterName: opening.characterName,
+      characterGender: opening.characterGender,
+      characterClass: opening.className,
+      characterRace: opening.raceName,
       mainQuest,
       // US-168: mesmo ledger que a transação abaixo persiste — a abertura vê o elenco
       // que o motor já gerou, em vez de inventar um à parte (violando Onomástica).
       entities: seededEntities,
-      inventory: fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
-      sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
-      hookSeed: profile.hookSeed,
-      attributeLabels: Object.fromEntries(labelPairs),
-      background: (character.background ?? {}) as unknown as CharacterBackground,
-      // US-41: features de classe do kit (o DM já as conhece na 1ª cena). US-100: a ficha guarda
-      // a chave; o texto sai do `config` — que aqui já é o do locale do dono (`configForLocale`).
-      features,
+      inventory: opening.fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
+      sheet: { level: opening.level, hp: opening.maxHp, maxHp: opening.maxHp, attributes: opening.attrs, conditions: [], skills: opening.skills },
+      hookSeed: opening.hookSeed,
+      attributeLabels: opening.attributeLabels,
+      background: opening.background,
+      // US-41: features de classe do kit (o DM já as conhece na 1ª cena).
+      features: opening.features,
       // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
-      spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
-      locale,
+      spells: opening.knownSpells.map((s) => ({ name: s.name, level: s.level })),
+      locale: opening.locale,
       // US-168: direto de `generated.registry.tone` — a abertura já nasce coerente, sem esperar
       // o round-trip pelo banco (que só existe depois da transação, abaixo).
       tone: generated.registry.tone,
@@ -543,10 +666,9 @@ export class AdventureService {
       setting: generated.registry.setting,
       areaType: generated.registry.areaType,
     })
-    // US-101: o fallback estático já sai no idioma certo — `profile.hookSeed` veio do
-    // `config` do locale (linha 85), e o gancho passou a ter versão por idioma. Antes ele
-    // era o único PT que sobrava numa mesa em inglês, e só aparecia quando a geração falhava.
-    const openingText = generatedOpening ?? profile.hookSeed
+    // US-101: o fallback estático já sai no idioma certo — `opening.hookSeed` veio do
+    // `config` do locale do dono, e o gancho tem versão por idioma.
+    const openingText = generatedOpening ?? opening.hookSeed
 
     // US-35: extrai a cena estruturada da abertura ANTES da transação (é LLM). Sem
     // isto o `sceneState` nasce nulo e o turno 1 fica sem âncora de continuidade
@@ -554,47 +676,31 @@ export class AdventureService {
     // idêntico ao comportamento pré-US-35; nunca derruba a criação.
     const scenePatch = await this.ai.extractOpeningScene(
       openingText,
-      fullInventory.map((i) => i.name),
+      opening.fullInventory.map((i) => i.name),
     )
     const sceneState = scenePatch ? mergeSceneState(null, scenePatch) : null
 
-    return this.prisma.$transaction(async (tx) => {
-      // Fecha a aventura ativa anterior do personagem (continuidade sequencial, ver ADR 002)
-      await tx.adventure.updateMany({
-        where: { status: 'ACTIVE', participants: { some: { characterId } } },
-        data: { status: 'COMPLETED', completedAt: new Date() },
-      })
-
-      const adventure = await tx.adventure.create({
-        // US-151: ledger semeado do artefato gerado. Vazio → coluna ausente (default do Prisma).
-        // US-168: `generatedAdventure` (ADR 012 §D2/US-144) finalmente escrita — disponível
-        // de graça a todo turno via `streamChat` (SELECT * implícito, sem query nova).
+    await this.prisma.$transaction(async (tx) => {
+      // US-151: ledger semeado do artefato gerado. Vazio → coluna ausente (default do Prisma).
+      // US-168: `generatedAdventure` (ADR 012 §D2/US-144) finalmente escrita — disponível
+      // de graça a todo turno via `streamChat` (SELECT * implícito, sem query nova).
+      await tx.adventure.update({
+        where: { id: adventureId },
         data: {
-          systemId: character.systemId,
-          creatorId: character.userId,
+          status: 'ACTIVE',
           title: generated.summary,
-          order,
           generatedAdventure: generated as unknown as object,
           ...(seededEntities.length > 0 ? { entities: seededEntities as unknown as object } : {}),
         },
       })
 
-      await tx.adventureParticipant.create({
-        data: { adventureId: adventure.id, characterId },
-      })
-
-      await tx.characterState.create({
-        data: {
-          characterId,
-          adventureId: adventure.id,
-          hp: maxHp,
-          maxHp,
-          attributes: character.baseAttributes as object,
-          inventory: fullInventory as unknown as object,
-          // US-35: cena extraída da abertura. Nulo → coluna ausente (como antes).
-          ...(sceneState ? { sceneState: sceneState as unknown as object } : {}),
-        },
-      })
+      // US-35: cena extraída da abertura, aplicada ao CharacterState já criado (sync).
+      if (sceneState) {
+        await tx.characterState.update({
+          where: { characterId_adventureId: { characterId, adventureId } },
+          data: { sceneState: sceneState as unknown as object },
+        })
+      }
 
       // US-153: quest principal derivada do artefato gerado (não mais do gancho fixo por
       // classe) — dá objetivo ao DM (ver AiService).
@@ -605,7 +711,7 @@ export class AdventureService {
       // US-194: `description` = `generated.summary` (a premissa), não a cena de abertura.
       await tx.quest.create({
         data: {
-          adventureId: adventure.id,
+          adventureId,
           title: generated.summary,
           description: generated.summary,
           objective: generated.objective.description,
@@ -617,15 +723,28 @@ export class AdventureService {
       // e entra na janela de contexto do DM (historyLogs, summarized: false).
       await tx.eventLog.create({
         data: {
-          adventureId: adventure.id,
+          adventureId,
           characterId,
           type: 'NARRATION',
           payload: { text: openingText },
         },
       })
-
-      return adventure
     })
+  }
+
+  /**
+   * US-235: consultado pela tela de espera — `adventureId` tem de pertencer a ESTE
+   * `characterId` (mesma disciplina de `getExportData`), senão vazaria o estado de
+   * geração de outro personagem. `error` só viaja quando FAILED; nunca mostrado ao
+   * jogador (texto interno/não localizado) — o cliente decide só com base em `status`.
+   */
+  async getGenerationStatus(characterId: string, adventureId: string): Promise<{ status: string; error?: string }> {
+    const adventure = await this.prisma.adventure.findFirst({
+      where: { id: adventureId, participants: { some: { characterId } } },
+      select: { status: true, generationError: true },
+    })
+    if (!adventure) throw new NotFoundException(`Aventura ${adventureId} não encontrada para este personagem`)
+    return { status: adventure.status, ...(adventure.generationError ? { error: adventure.generationError } : {}) }
   }
 
   /**

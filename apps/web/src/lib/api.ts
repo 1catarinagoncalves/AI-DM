@@ -119,8 +119,15 @@ export const api = {
   // uma chave "random" (mesma disciplina de ausência = aleatório da US-156).
   // US-217: `preset` pula o motor de geração inteiro (ramo "Aventura pronta", US-216) — os
   // outros 4 campos nunca viajam junto (esse ramo nem mostra os grupos que os preenchem).
+  // US-235: `status` diz se a resposta já é a aventura pronta (`preset`, ACTIVE) ou se a
+  // criação disparou o motor em background (`GENERATING`) — nesse caso o chamador consulta
+  // `getAdventureStatus` até ACTIVE/FAILED.
   createAdventure: (characterId: string, dto: { tone?: string; setting?: string; areaType?: string; challenge?: 'adventure' | 'challenge'; preset?: boolean }) =>
-    post<{ id: string; title: string }>(`/characters/${characterId}/adventures`, dto),
+    post<{ id: string; title: string; status: string }>(`/characters/${characterId}/adventures`, dto),
+
+  // US-235: consultado pela tela de espera enquanto `status` é GENERATING.
+  getAdventureStatus: (characterId: string, adventureId: string) =>
+    get<{ status: string; error?: string }>(`/characters/${characterId}/adventures/${adventureId}/status`),
 
   // US-61: as fichas do próprio utilizador, derivadas do token (sem userId no caminho).
   listCharacters: () =>

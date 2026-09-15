@@ -23,6 +23,7 @@ import { BackgroundPanel, type CharacterBackground } from '@/components/characte
 import { FeaturesPanel } from '@/components/character/FeaturesPanel'
 import { CatalogCardGroup } from './CatalogCardGroup'
 import { AdventureLoadingScreen } from './AdventureLoadingScreen'
+import { AdventureErrorScreen } from './AdventureErrorScreen'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
@@ -379,6 +380,9 @@ export function SetupWizard() {
   // US-28/US-157: depois de confirmar o personagem, o wizard avança para o passo `world`.
   const [charId, setCharId] = useState('')
   const [starting, setStarting] = useState(false)
+  // US-235: teto do gate estourado (ou timeout do polling) — tela de erro dedicada, nunca
+  // volta ao formulário nem desvia pra "Aventura pronta".
+  const [generationError, setGenerationError] = useState(false)
   // US-157: sentinela 'random' só no estado do componente — nunca serializado no DTO
   // (ver createWorldAdventure). Estado inicial: Aleatório. `setting`/`areaType` voltaram
   // ao registro na US-184, mesmo padrão de `tone`.
@@ -982,12 +986,33 @@ export function SetupWizard() {
     finally { setLoading(false) }
   }
 
+  // US-235: intervalo entre consultas e teto total do polling — folga sobre os ~95s
+  // esperados do motor (US-235 §Decisões técnicas). Estourar o teto cai em erro+retry
+  // sozinho, sem depender do servidor emitir FAILED (dyno pode reiniciar no meio do job).
+  const STATUS_POLL_INTERVAL_MS = 3000
+  const STATUS_POLL_TIMEOUT_MS = 120_000
+
+  // US-235: consulta `getAdventureStatus` até ACTIVE (resolve) ou FAILED/timeout (lança) —
+  // GENERATING nunca é o estado final, só o motivo de continuar tentando.
+  async function pollAdventureStatus(adventureId: string): Promise<void> {
+    const deadline = Date.now() + STATUS_POLL_TIMEOUT_MS
+    while (Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, STATUS_POLL_INTERVAL_MS))
+      const { status } = await api.getAdventureStatus(charId, adventureId)
+      if (status === 'ACTIVE') return
+      if (status === 'FAILED') throw new Error('generation_failed')
+    }
+    throw new Error('generation_timeout')
+  }
+
   // US-157: Aleatório OMITE o campo — nunca envia a chave "random" (mesma disciplina de
   // ausência = aleatório da US-156). US-184: mesma regra para `setting`/`areaType`.
   // US-217: ramo "pronta" manda só `preset: true` — nunca toca em setting/tone/areaType/
   // challenge (esse ramo nem mostra os grupos que os preenchem, US-216).
+  // US-235: ramo gerado devolve `status: 'GENERATING'` — a criação em si é rápida (evita o
+  // teto de 60s do proxy SSE, US-60); quem demora é o motor, acompanhado por polling.
   async function createWorldAdventure() {
-    setStarting(true); setError('')
+    setStarting(true); setError(''); setGenerationError(false)
     try {
       const dto = worldMode === 'ready'
         ? { preset: true }
@@ -999,8 +1024,19 @@ export function SetupWizard() {
           ...(challenge !== 'adventure' && { challenge }),
         }
       const adv = await api.createAdventure(charId, dto)
+      if (adv.status === 'GENERATING') await pollAdventureStatus(adv.id)
       router.push(`/play/${adv.id}?characterId=${charId}`)
-    } catch { setError(t('setup.error.start')); setStarting(false) }
+    } catch (err) {
+      // US-235: falha da AUTORIA (teto do gate/timeout) → tela de erro dedicada, com retry
+      // que redispara `createWorldAdventure` (mesmos parâmetros já vivem no estado acima).
+      // Qualquer outro erro (validação, rede) → comportamento de sempre: volta ao formulário.
+      if (err instanceof Error && (err.message === 'generation_failed' || err.message === 'generation_timeout')) {
+        setGenerationError(true)
+      } else {
+        setError(t('setup.error.start'))
+      }
+      setStarting(false)
+    }
   }
 
   // US-27: marca/desmarca proficiência; bloqueia marcar além do orçamento.
@@ -1153,7 +1189,7 @@ export function SetupWizard() {
     // direto sobre a arte de cena — mesmo contraste que app/page.tsx (home) e
     // app/login/page.tsx já usam nesse caso; "heavy" era calibrado para o Panel, que aqui
     // não existe, e escondia a cena quase por inteiro.
-    <SceneFrame scene={starting ? '/scenes/arboretum-moonlit.png' : '/scenes/tavern.png'} dim={starting ? 'medium' : 'heavy'} localeToggle={false}>
+    <SceneFrame scene={starting ? '/scenes/arboretum-moonlit.png' : '/scenes/tavern.png'} dim={starting || generationError ? 'medium' : 'heavy'} localeToggle={false}>
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6 sm:px-6">
 
         {exitToHub}
@@ -1192,6 +1228,10 @@ export function SetupWizard() {
         {step === 'world' && starting ? (
           <div className="flex flex-1 flex-col">
             <AdventureLoadingScreen />
+          </div>
+        ) : step === 'world' && generationError ? (
+          <div className="flex flex-1 flex-col">
+            <AdventureErrorScreen onRetry={createWorldAdventure} />
           </div>
         ) : (
         <Panel className="flex flex-1 flex-col p-6 sm:p-8">
