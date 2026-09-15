@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Proposta
+**Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (o artefato de ficção a validar) · [US-233](./US-233-numeros-dos-encontros-passo-2-5e.md) (números do encontro, pro check de orçamento) · [US-150](./US-150-gate-antes-de-persistir-aventura-gerada.md) (gate original — esta story **adapta**, troca re-seed por regenera) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (contrato de saneamento + o stripper a reusar)
 **Relacionado:** [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (D5 gate/regenera; D1 seed morto) · [Arquitetura — §Saneamento](../../arquitetura-motor-aventuras-autorais.md) · [Backlog — MA-4](./backlog-motor-de-geracao-de-aventuras.md)
 **Criada em:** 2026-09-13
