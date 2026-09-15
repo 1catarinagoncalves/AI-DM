@@ -311,6 +311,57 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(nextBtn().disabled).toBe(false)
   })
 
+  // US-207 (regressão): o custo do point-buy é ACUMULADO, não linear (13→14 e 14→15 custam 2
+  // cada, ver POINT_COST em SetupWizard.tsx) — este teste falha se alguém, ao mostrar o
+  // modificador, passar a calcular o custo a partir dele em vez de a partir de POINT_COST.
+  it('point-buy 13→15: saldo cai 2 e 2 (não-linear), modificador +1→+2, e + desabilita quando o custo seguinte não cabe no saldo', async () => {
+    const budget = 9 // 8→13 custa 5 (sobra 4); 13→14 e 14→15 custam 2 cada (sobra 2, depois 0)
+    await pickSystemAndFillRaceClass({
+      ...configWithBudget(budget),
+      attributes: [{ key: 'strength', label: 'Força', min: 8, max: 18, default: 8 }],
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    const inc = screen.getByLabelText('Aumentar Força') as HTMLButtonElement
+    const remaining = () => screen.getByTestId('attributes-remaining').textContent
+    const modifier = () => document.querySelector('[data-attr-mod="strength"]')!.textContent
+
+    for (let i = 0; i < 5; i++) fireEvent.click(inc) // 8 → 13 (custo 5, sobra 4)
+    expect(remaining()).toBe('4')
+    expect(modifier()).toBe('+1')
+
+    fireEvent.click(inc) // 13 → 14 (custo 2, sobra 2)
+    expect(remaining()).toBe('2')
+
+    fireEvent.click(inc) // 14 → 15 (custo 2, sobra 0)
+    expect(remaining()).toBe('0')
+    expect(modifier()).toBe('+2')
+
+    // 15 → 16 custaria 2 (POINT_COST[16] - POINT_COST[15] = 11 - 9), mas só sobram 0
+    expect(inc.disabled).toBe(true)
+  })
+
+  // US-207: selo `Principal` só aparece quando `config.classes[].primary` (US-203) lista o
+  // atributo; sem `primary` no catálogo (config legado), nenhuma linha mostra o selo.
+  it('selo Principal aparece nos atributos que a classe escolhida lista em `primary`', async () => {
+    await pickSystemAndFillRaceClass({
+      ...configWithBudget(2),
+      attributes: [
+        { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
+        { key: 'constitution', label: 'Constituição', min: 8, max: 15, default: 8 },
+      ],
+      classes: [
+        { key: 'wizard', label: 'Mago', primary: ['strength', 'constitution'] },
+        { key: 'fighter', label: 'Guerreiro' },
+      ],
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    expect(screen.getAllByText('Principal')).toHaveLength(2)
+  })
+
   it('cria o personagem uma única vez ao Confirmar na Revisão', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithBudget(2))

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
@@ -132,6 +132,21 @@ function AbilityBonusBadge({ variant, label, onClick }: { variant: 'solid' | 'gh
     <button type="button" onClick={onClick} className={className}>
       {label}
     </button>
+  )
+}
+
+// US-207: selo de orçamento/contagem — irmão do AbilityBonusBadge acima (mesma pílula, sem
+// `onClick`): fica neutro até o alvo fechar (`complete`), aí muda pro mesmo verde que os
+// selos de bônus já usam. Um componente só pros dois selos da story (pontos restantes em
+// `attributes`, perícias escolhidas em `skills`) — não uma terceira forma de "pílula".
+function CounterBadge({ complete, children }: { complete: boolean; children: ReactNode }) {
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium',
+      complete ? 'border-success/50 bg-success/15 text-success' : 'border-border bg-background/60 text-foreground',
+    )}>
+      {children}
+    </span>
   )
 }
 
@@ -651,14 +666,15 @@ export function SetupWizard() {
   // config legado sem hitDice) cai no fallback de nível 1 já embutido em maxHpForLevel.
   const conMod = abilityModifier(attrs['constitution'] ?? 10)
   const previewHp = maxHpForLevel(classHitDice, levelValue, conMod)
-  // Só as perícias ESCOLHIDAS, com modificador já resolvido — mesmo `buildSkillSheet` da
-  // ficha, filtrado ao que o jogador marcou (a revisão não lista o catálogo inteiro).
-  // US-131: soma as da origem (`originSkillKeys`) às da etapa `skills` — a revisão espelha a
-  // ficha completa que a API vai persistir (US-127), não só a parte escolhida na última etapa.
-  // US-220: perícias de raça (fixas + escolhidas) entram na revisão junto das de origem/classe
-  // — a revisão espelha a ficha (US-127), sem código de exibição novo.
-  const reviewSkills = buildSkillSheet(skillCatalog, attrs, [...raceSkillsFixed, ...raceSkillChoice, ...originSkillKeys, ...skills], system?.config?.proficiency?.bonus ?? 2)
-    .filter(sk => sk.proficient)
+  // Catálogo inteiro com modificador já resolvido (US-27/US-207) — fonte única pra revisão
+  // (só as proficientes, abaixo) e pra etapa `skills` (todas, ao lado de cada perícia): nenhuma
+  // das duas soma o modificador por conta própria, as duas leem daqui.
+  // US-131: soma as da origem (`originSkillKeys`). US-220: soma as de raça (fixas + escolhidas)
+  // — o mesmo conjunto que a API vai persistir (US-127), não só a parte escolhida nesta etapa.
+  const skillSheet = buildSkillSheet(skillCatalog, attrs, [...raceSkillsFixed, ...raceSkillChoice, ...originSkillKeys, ...skills], system?.config?.proficiency?.bonus ?? 2)
+  const skillModifierByKey = Object.fromEntries(skillSheet.map(sk => [sk.key, sk.modifier]))
+  // Só as perícias ESCOLHIDAS — a revisão não lista o catálogo inteiro.
+  const reviewSkills = skillSheet.filter(sk => sk.proficient)
   // US-222: as 2 salvaguardas que a classe torna proficientes, mesmo recorte "só proficiente"
   // de reviewSkills acima — sem escolha do jogador, `classProficiencyEntry.savingThrows` já
   // fixa quais 2 das 6 aparecem aqui.
@@ -1500,9 +1516,11 @@ export function SetupWizard() {
               <div>
                 <SectionTitle>{t('setup.attributes.titulo')}</SectionTitle>
                 {budget !== undefined && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {t('setup.attributes.remaining')} <span className={`font-semibold ${remaining === 0 ? 'text-success' : 'text-primary'}`}>{remaining}</span> / {budget}
-                  </p>
+                  <div className="mt-2">
+                    <CounterBadge complete={remaining === 0}>
+                      {t('setup.attributes.remaining')} <span data-testid="attributes-remaining">{remaining}</span> / {budget}
+                    </CounterBadge>
+                  </div>
                 )}
                 {/* US-123: banner reforça o que a etapa `background` já anunciou — só quando a
                     origem tem grant.kind === 'ability'. Mesmo padrão visual dos avisos do wizard. */}
@@ -1539,10 +1557,15 @@ export function SetupWizard() {
                     const raceEligible = !!raceGrant?.choice && !raceFixed
                     const toggleRace = () => setRaceAbilityChoice(prev => prev.includes(a.key) ? prev.filter(k => k !== a.key) : [...prev, a.key])
                     const bonus = (isFixed || isChosen ? 1 : 0) + (raceFixed?.amount ?? (raceChosen ? raceGrant!.choice!.amount : 0))
+                    // US-207: `primary` vem do catálogo de classe (US-203); sem entrada (config
+                    // legado), nenhuma linha mostra o selo — o resto da etapa não muda.
+                    const isPrimary = (classProficiencyEntry?.primary ?? []).includes(a.key)
+                    const total = (attrs[a.key] ?? a.default) + bonus
                     return (
                       <div key={a.key} className="flex items-center justify-between gap-3 py-3">
                         <span className="flex items-center gap-2">
                           <label className="text-sm font-medium text-foreground">{a.label}</label>
+                          {isPrimary && <AbilityBonusBadge variant="solid" label={t('setup.attributes.primaryBadge')} />}
                           {isFixed && <AbilityBonusBadge variant="solid" label={t('setup.attributes.abilityBadgeFixed')} />}
                           {isChosen && <AbilityBonusBadge variant="solid" label={t('setup.attributes.abilityBadgeFixed')} onClick={toggle} />}
                           {clickable && !isChosen && !abilityChoice && <AbilityBonusBadge variant="ghost" label={t('setup.attributes.abilityBadgeFixed')} onClick={toggle} />}
@@ -1557,16 +1580,22 @@ export function SetupWizard() {
                             <button type="button" aria-label={t('setup.attributes.decrease', { label: a.label })} onClick={() => setAttr(a.key, -1, a.min, a.max)}
                               className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
                               disabled={(attrs[a.key] ?? a.default) <= a.min}><Minus className="size-4" aria-hidden /></button>
-                            <span className="w-8 text-center font-serif text-lg font-bold tabular-nums text-parchment" data-attr={a.key}>{(attrs[a.key] ?? a.default) + bonus}</span>
+                            <span className="flex w-8 flex-col items-center">
+                              <span className="text-center font-serif text-lg font-bold tabular-nums text-parchment" data-attr={a.key}>{total}</span>
+                              <span className="text-[11px] font-medium text-muted-foreground" data-attr-mod={a.key}>{formatModifier(abilityModifier(total))}</span>
+                            </span>
                             <button type="button" aria-label={t('setup.attributes.increase', { label: a.label })} onClick={() => setAttr(a.key, 1, a.min, a.max)}
                               className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
                               disabled={(attrs[a.key] ?? a.default) >= a.max || remaining - ((POINT_COST[(attrs[a.key] ?? a.default) + 1] ?? 0) - (POINT_COST[attrs[a.key] ?? a.default] ?? 0)) < 0}><Plus className="size-4" aria-hidden /></button>
                           </div>
                         ) : (
-                          <input type="number" min={a.min} max={a.max} aria-label={a.label}
-                            value={attrs[a.key] ?? a.default}
-                            onChange={e => setAttrs(p => ({ ...p, [a.key]: Number(e.target.value) }))}
-                            className={fieldClass('w-20 text-center')} />
+                          <div className="flex flex-col items-center gap-1">
+                            <input type="number" min={a.min} max={a.max} aria-label={a.label}
+                              value={attrs[a.key] ?? a.default}
+                              onChange={e => setAttrs(p => ({ ...p, [a.key]: Number(e.target.value) }))}
+                              className={fieldClass('w-20 text-center')} />
+                            <span className="text-[11px] font-medium text-muted-foreground" data-attr-mod={a.key}>{formatModifier(abilityModifier(attrs[a.key] ?? a.default))}</span>
+                          </div>
                         )}
                       </div>
                     )
@@ -1589,6 +1618,9 @@ export function SetupWizard() {
                       {skillGrant.fixed.map(key => (
                         <div key={key} className={optionCardClass(true)}>
                           <span className="block text-sm font-medium text-foreground">{skillLabel[key] ?? key}</span>
+                          {/* US-207: `aria-hidden` pra não mudar o nome acessível (testes
+                              selecionam pelo texto exato do label em vários pontos do arquivo). */}
+                          <span aria-hidden className="block text-xs text-muted-foreground">{formatModifier(skillModifierByKey[key] ?? 0)}</span>
                         </div>
                       ))}
                       {skillGrant.chooseCount > 0 && skillGrant.chooseFrom.map(key => {
@@ -1600,6 +1632,7 @@ export function SetupWizard() {
                             aria-pressed={on}
                             className={optionCardClass(on)}>
                             <span className="block text-sm font-medium text-foreground">{skillLabel[key] ?? key}</span>
+                            <span aria-hidden className="block text-xs text-muted-foreground">{formatModifier(skillModifierByKey[key] ?? 0)}</span>
                           </button>
                         )
                       })}
@@ -1617,6 +1650,7 @@ export function SetupWizard() {
                       {raceSkillsFixed.map(key => (
                         <div key={key} className={optionCardClass(true)}>
                           <span className="block text-sm font-medium text-foreground">{skillLabel[key] ?? key}</span>
+                          <span aria-hidden className="block text-xs text-muted-foreground">{formatModifier(skillModifierByKey[key] ?? 0)}</span>
                         </div>
                       ))}
                       {raceSkillChoiceCount !== undefined && skillCatalog
@@ -1630,18 +1664,24 @@ export function SetupWizard() {
                               aria-pressed={on}
                               className={optionCardClass(on)}>
                               <span className="block text-sm font-medium text-foreground">{sk.label}</span>
+                              <span aria-hidden className="block text-xs text-muted-foreground">{formatModifier(skillModifierByKey[sk.key] ?? 0)}</span>
                             </button>
                           )
                         })}
                     </div>
                   </div>
                 )}
-                {/* US-98: o número deixou de ser um <span> no meio da frase (concatenação
-                    que quebra noutra ordem de palavras); o destaque fica na contagem. */}
                 <p className="mt-6 text-sm text-muted-foreground">
-                  {t('setup.skills.instructions', { n: effectiveSkillChoices, bonus: system.config?.proficiency?.bonus ?? 2 })}{' '}
-                  {t('setup.skills.selected')} <span className={`font-semibold ${skills.length === effectiveSkillChoices ? 'text-success' : 'text-primary'}`}>{skills.length}</span>/{effectiveSkillChoices}
+                  {t('setup.skills.instructions', { n: effectiveSkillChoices, bonus: system.config?.proficiency?.bonus ?? 2 })}
                 </p>
+                {/* US-98/US-207: o número deixou de ser um <span> no meio da frase (concatenação
+                    que quebra noutra ordem de palavras); o destaque é o selo, mesmo componente
+                    do orçamento de atributos. */}
+                <div className="mt-2">
+                  <CounterBadge complete={skills.length === effectiveSkillChoices}>
+                    {t('setup.skills.selected')} <span data-testid="skills-selected">{skills.length}</span>/{effectiveSkillChoices}
+                  </CounterBadge>
+                </div>
                 <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                   {/* US-131/US-220: exclui as perícias já concedidas pela origem (fixas +
                       escolhida) e pela raça (fixas + escolhida) — evita duplicar; `effectiveSkillChoices`
@@ -1661,6 +1701,9 @@ export function SetupWizard() {
                         className={optionCardClass(on)}>
                         <span className="block text-sm font-medium text-foreground">{sk.label}</span>
                         <span className="block text-xs text-muted-foreground">{attrLabel[sk.ability] ?? sk.ability}</span>
+                        {/* US-207: modificador visual — `aria-hidden` pra não mudar o nome
+                            acessível do botão (usado por chave exata em outros testes). */}
+                        <span aria-hidden className="block text-xs text-muted-foreground">{formatModifier(skillModifierByKey[sk.key] ?? 0)}</span>
                       </button>
                     )
                   })}

@@ -181,6 +181,9 @@ export const enUS: Record<MessageKey, string> = {
   // US-212: race ability-score bonus badge — same solid/ghost text (the race's own amount
   // already tells the line apart, no need for a separate "bonus" label).
   'setup.attributes.raceBadge': '+{amount} race',
+  // US-207: badge on the attributes `config.classes[].primary` (US-203) lists for the chosen
+  // class — informs, doesn't recommend a distribution.
+  'setup.attributes.primaryBadge': 'Primary',
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Skills',

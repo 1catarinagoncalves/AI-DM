@@ -206,6 +206,9 @@ export const ptBR = {
   // US-212: selo do bônus de atributo de RAÇA — mesmo texto sólido/fantasma (a quantidade
   // própria da raça já diferencia a linha, sem precisar de rótulo "fantasma" à parte).
   'setup.attributes.raceBadge': '+{amount} raça',
+  // US-207: selo nos atributos que `config.classes[].primary` (US-203) lista pra classe
+  // escolhida — informa, não recomenda distribuição.
+  'setup.attributes.primaryBadge': 'Principal',
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Perícias',

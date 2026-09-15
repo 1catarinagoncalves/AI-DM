@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (15/09/2026)
 **Depende de:** [US-204](./US-204-wizard-em-duas-colunas-com-ficha-viva.md) — o layout e a ficha
 viva. [US-203](./US-203-prosa-de-catalogo-classe-e-raca.md) — o campo `primary`, única fonte do
 selo `Principal`.
@@ -94,22 +94,22 @@ selo. A etapa `skills` mostra o modificador resultante de cada perícia marcada.
 
 ## Critérios de aceite
 
-- [ ] A etapa `attributes` mostra um selo com pontos restantes sobre o orçamento, que muda de
+- [x] A etapa `attributes` mostra um selo com pontos restantes sobre o orçamento, que muda de
       estado ao chegar a zero.
-- [ ] Cada linha de atributo mostra o modificador correspondente ao **total** (base + bônus), no
+- [x] Cada linha de atributo mostra o modificador correspondente ao **total** (base + bônus), no
       formato `+N`/`−N`, e ele muda ao clicar em `+`/`−`.
-- [ ] Com uma classe cujo catálogo traga `primary`, as linhas correspondentes mostram o selo
+- [x] Com uma classe cujo catálogo traga `primary`, as linhas correspondentes mostram o selo
       `Principal`; com um catálogo sem `primary`, nenhuma linha o mostra e nada mais muda.
-- [ ] O selo do `+1` da origem continua com o comportamento da US-123: fixo sólido e não-clicável,
+- [x] O selo do `+1` da origem continua com o comportamento da US-123: fixo sólido e não-clicável,
       escolhido sólido e clicável (clique desmarca), elegíveis com fantasma tracejado enquanto
       nada estiver escolhido.
-- [ ] A etapa `skills` mostra um selo `X / Y escolhidas` e o modificador resultante de cada
+- [x] A etapa `skills` mostra um selo `X / Y escolhidas` e o modificador resultante de cada
       perícia; as perícias concedidas pela origem continuam fora do catálogo desta etapa (US-131).
-- [ ] Os limites do point-buy continuam a valer: `+` desabilita ao esgotar o orçamento ou ao
+- [x] Os limites do point-buy continuam a valer: `+` desabilita ao esgotar o orçamento ou ao
       chegar ao máximo, `−` desabilita no mínimo, e o saldo nunca fica negativo.
-- [ ] Os botões `+`/`−` continuam com alvo de toque de 44 px e `aria-label` que cita o atributo
+- [x] Os botões `+`/`−` continuam com alvo de toque de 44 px e `aria-label` que cita o atributo
       (US-46).
-- [ ] **Eval / teste de regressão:** teste que leva um atributo de 13 a 15 e afirma (a) que o
+- [x] **Eval / teste de regressão:** teste que leva um atributo de 13 a 15 e afirma (a) que o
       saldo cai 2 e depois 2 (o custo **não** é linear), (b) que o modificador mostrado passa de
       `+1` a `+2`, e (c) que `+` fica desabilitado quando o custo seguinte não cabe no saldo. É o
       teste que falha quando alguém, ao mostrar o modificador, passa a calcular o custo a partir
@@ -142,9 +142,12 @@ selo. A etapa `skills` mostra o modificador resultante de cada perícia marcada.
 
 1. **O selo `Principal` aparece também na etapa `skills`**, marcando as perícias ancoradas num
    atributo principal da classe? Ajuda a escolher; arrisca sugerir que existe escolha "certa".
+   **Decidido (15/09/2026): não.** Fora do escopo da história (não é critério de aceite); fica
+   pro lado mais conservador da própria dúvida — evita sugerir "escolha certa" na perícia.
 2. **Mostrar o custo do próximo ponto no botão `+`** (`+2`) quando o custo deixa de ser 1? É a
    informação que falta para entender por que o saldo caiu 2 — e é ruído nas quatro primeiras
-   subidas, em que o custo é 1.
+   subidas, em que o custo é 1. **Decidido (15/09/2026): não.** Fora do escopo; o selo de saldo já
+   mostra o efeito (cai 2 em vez de 1), e o `disabled` do `+` já impede gastar mais do que sobra.
 
 ---
 
