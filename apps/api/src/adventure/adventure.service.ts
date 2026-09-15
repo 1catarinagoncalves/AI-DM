@@ -169,7 +169,7 @@ export class AdventureService {
     }
     const counts = { locations: 6, npcs: 7, challenges: 3, encounters: 3 }
 
-    const authored = await this.ai.generateAdventureAuthoring({
+    const { adventure: authored, modelId } = await this.ai.generateAdventureAuthoring({
       world,
       factionCount,
       counts,
@@ -300,6 +300,7 @@ export class AdventureService {
       objective,
       branchedResolution: authored.branchedResolution,
       followUps: authored.followUps,
+      generationModel: modelId,
     })
   }
 

@@ -42,7 +42,7 @@ function fakeAi(
     extractOpeningEntities: async () => null,
     generateAdventureAuthoring: async (params: Record<string, unknown>) => {
       if (capture) Object.assign(capture, params)
-      return authoredObj
+      return { adventure: authoredObj, modelId: 'fake/model' }
     },
   } as unknown as AiService
 }
@@ -415,6 +415,7 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     expect(adventure.summary).toBe('Três facções disputam a Enseada Cinzenta.')
     expect(adventure.world.name).toBe('Vhel-Toran')
     expect(adventure.factions).toHaveLength(2)
+    expect(adventure.generationModel).toBe('fake/model')
   })
 
   it('minta ids: faction-N, npc-N (com factionId), loc-N, challenge/encounter/objective resolvidos', async () => {

@@ -140,6 +140,10 @@ export const GeneratedAdventureSchema = z.object({
   // US-232: fecho ramificado obrigatório — ≥1 ramo, na prática acompanha a contagem de facções.
   branchedResolution: z.array(AdventureResolutionBranchSchema).min(1),
   followUps: z.array(z.string()),
+  // modelId do arm da escada `authoringModels` (model.ts) que gerou a autoria — proveniência
+  // pra comparar qualidade entre modelos sem precisar dos logs. Opcional: artefato pré-existente
+  // não tem esse dado e não revalida contra o schema (mesma postura de `unlocks` acima).
+  generationModel: z.string().min(1).optional(),
 })
 
 export type AdventureNpc = z.infer<typeof AdventureNpcSchema>

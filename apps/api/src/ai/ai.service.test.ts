@@ -8,7 +8,7 @@ import {
   composeMainQuestText,
   OPENING_SCENE_SCHEMA,
 } from './ai.service'
-import { mergeSceneState, extractionModel } from '@ai-dm/ai-engine'
+import { mergeSceneState, extractionModel, authoringModels } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
@@ -835,11 +835,12 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
     followUps: ['algo desperta'],
   }
 
-  it('devolve o objeto bruto do modelo (sem mintar ids — isso é do adventure.service)', async () => {
+  it('devolve o objeto bruto do modelo (sem mintar ids — isso é do adventure.service) + modelId do arm vencedor', async () => {
     genObj.error = undefined
     genObj.result = authored
     const result = await svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', questSeed: 'Kill a villain because a Sly Elf demands it', level: 3, className: 'ladino' })
-    expect(result).toBe(authored)
+    expect(result.adventure).toBe(authored)
+    expect(result.modelId).toBe(authoringModels[0]!.modelId)
   })
 
   it('contagem de facções, contagens fixas e história do personagem entram no prompt', async () => {

@@ -1511,6 +1511,9 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
    * `maxTokens: 16000` — 12000 cortava o arm preferido `deepseek-v4-pro` (verboso) com
    * `AI_NoObjectGeneratedError` (JSON truncado, finishReason tool-calls), forçando cair pro
    * 0813 e perder a barra de texto do pro; medido no smoke E2E da US-232 (scripts/run-authoring.ts).
+   *
+   * Devolve `modelId` junto do artefato — qual arm da escada gerou, pra registrar proveniência
+   * no `GeneratedAdventure` (adventure.service.ts) sem precisar reabrir a escada pra descobrir.
    */
   async generateAdventureAuthoring(params: {
     world: { setting?: string; tone?: string; areaType?: string }
@@ -1522,7 +1525,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     className: string
     questSeed: string
     locale?: Locale
-  }): Promise<AuthoredAdventure> {
+  }): Promise<{ adventure: AuthoredAdventure; modelId: string }> {
     const locale = params.locale ?? DEFAULT_LOCALE
     const system = buildAuthoringSystem(locale)
     const prompt = buildAuthoringPrompt(params)
@@ -1539,7 +1542,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
           providerOptions: AUTHORING_PROVIDER_OPTIONS,
         })
         logExtractionEndpoint('generateAdventureAuthoring', model, providerMetadata)
-        return object
+        return { adventure: object, modelId: model.modelId }
       } catch (err) {
         lastErr = err
         logLlmFailure('autoria de aventura (escada)', `caindo pro próximo modelo da escada após ${model.modelId}`, err)
