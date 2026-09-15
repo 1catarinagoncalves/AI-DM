@@ -307,7 +307,8 @@ export class AdventureService {
   /**
    * US-150: gate antes de persistir — envolve `generateAdventure` com as verificações mecânicas
    * (parse, grafo fecha) e o reseed correto (ver adventure-gate.ts). US-232: `config` threading
-   * pro rótulo pt-BR dos params de mundo.
+   * pro rótulo pt-BR dos params de mundo. US-234: o mesmo `config` também alimenta o catálogo
+   * de perícia/atributo da verificação 4 (saneamento) — não duplica a fonte de `buildSkillSheet`.
    */
   async generateGatedAdventure(
     profile: AdventureProfile,
@@ -322,6 +323,7 @@ export class AdventureService {
       (attempt) => this.generateAdventure(profile, characterId, order, locale, config, registryOverrides, attempt),
       maxAttempts,
       profile.challenge,
+      config,
     )
   }
 

@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import type { AdventureEncounter, AdventureNpc, GeneratedAdventure } from '@ai-dm/shared'
+import type { AdventureEncounter, AdventureNpc, GeneratedAdventure, SystemConfig } from '@ai-dm/shared'
 import { runAdventureGate, generateWithGate } from './adventure-gate'
+
+// US-234: catálogo mínimo pra verificação 4 — mesma forma de `config.skills`/`config.attributes`.
+const SKILL_CATALOG: Pick<SystemConfig, 'skills' | 'attributes'> = {
+  skills: [{ key: 'perception', label: 'Percepção', ability: 'wisdom' }],
+  attributes: [{ key: 'strength', label: 'Força', min: 1, max: 20, default: 10 }],
+}
 
 function enc(overrides: Partial<AdventureEncounter> = {}): AdventureEncounter {
   return {
@@ -168,6 +174,45 @@ describe('runAdventureGate (US-232)', () => {
     })
     expect(runAdventureGate(adventure).ok).toBe(true)
   })
+
+  // US-234, verificação 4.
+  it('CD vazada na prosa sai saneada e o artefato passa limpo', () => {
+    const adventure = validAdventure({
+      challenges: [{ id: 'challenge-1', locationId: 'loc-1', test: 'Percepção', situation: 'Um teste de Força (CD 15) revela a fenda na parede.', consequence: 'x' }],
+    })
+    const result = runAdventureGate(adventure, 'adventure', SKILL_CATALOG)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.adventure.challenges[0]!.situation).not.toContain('CD 15')
+      expect(result.adventure.challenges[0]!.situation).not.toContain('teste')
+    }
+  })
+
+  it('challenge.test com perícia/atributo inexistente no catálogo falha na verificação 4', () => {
+    const adventure = validAdventure({
+      challenges: [{ id: 'challenge-1', locationId: 'loc-1', test: 'Sabor', situation: 'x', consequence: 'x' }],
+    })
+    const result = runAdventureGate(adventure, 'adventure', SKILL_CATALOG)
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.stage).toBe('saneamento')
+      expect(result.reason).toContain('Sabor')
+    }
+  })
+
+  it('challenge.test que casa com o catálogo (perícia OU atributo) passa', () => {
+    const adventure = validAdventure({
+      challenges: [{ id: 'challenge-1', locationId: 'loc-1', test: 'Força', situation: 'x', consequence: 'x' }],
+    })
+    expect(runAdventureGate(adventure, 'adventure', SKILL_CATALOG).ok).toBe(true)
+  })
+
+  it('sem catálogo (config sem skills), verificação 4 não valida perícia', () => {
+    const adventure = validAdventure({
+      challenges: [{ id: 'challenge-1', locationId: 'loc-1', test: 'Sabor', situation: 'x', consequence: 'x' }],
+    })
+    expect(runAdventureGate(adventure).ok).toBe(true)
+  })
 })
 
 describe('generateWithGate (US-150, reseed)', () => {
@@ -202,8 +247,9 @@ describe('generateWithGate (US-150, reseed)', () => {
     expect(generate).toHaveBeenCalledTimes(2)
   })
 
-  it('verificação 3 (orçamento) falha IMEDIATO, sem reseed', async () => {
-    const logSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  // US-234: reverte a exceção da US-150/US-159 — orçamento agora re-semeia como qualquer estágio.
+  it('verificação 3 (orçamento) re-semeia até caber no limiar', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     const superorcado = validAdventure({
       levelRange: { min: 8, max: 8 },
       npcs: [
@@ -214,15 +260,22 @@ describe('generateWithGate (US-150, reseed)', () => {
       locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'x', description: 'x', occupants: [], vibe: 'combat' }],
       encounters: [enc({ npcIds: ['npc-2', 'npc-3', 'npc-4'] })],
     })
-    const generate = vi.fn(async () => superorcado)
+    const generate = vi.fn(async (attempt: number) => (attempt === 0 ? superorcado : validAdventure()))
     const result = await generateWithGate(generate)
-    expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.attempt).toBe(0)
-      expect(result.reason).toContain('excede limiar')
-    }
-    expect(generate).toHaveBeenCalledTimes(1)
-    expect(logSpy).toHaveBeenCalled()
+    expect(result.ok).toBe(true)
+    expect(generate).toHaveBeenCalledTimes(2)
+  })
+
+  // US-234, verificação 4: perícia inexistente também re-semeia (mesmo tratamento dos outros estágios).
+  it('verificação 4 (perícia inexistente no catálogo) re-semeia até nomear perícia válida', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const semPericia = validAdventure({
+      challenges: [{ id: 'challenge-1', locationId: 'loc-1', test: 'Sabor', situation: 'x', consequence: 'x' }],
+    })
+    const generate = vi.fn(async (attempt: number) => (attempt === 0 ? semPericia : validAdventure()))
+    const result = await generateWithGate(generate, 3, 'adventure', SKILL_CATALOG)
+    expect(result.ok).toBe(true)
+    expect(generate).toHaveBeenCalledTimes(2)
   })
 
   it('teto de tentativas esgotado: falha registrada com o motivo da última tentativa', async () => {

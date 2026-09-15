@@ -48,7 +48,13 @@ function fakeAi(
 }
 
 const config: SystemConfig = {
-  attributes: [{ key: 'constitution', label: 'Con', min: 1, max: 20, default: 10 }],
+  // US-234: `strength`/'Força' casa com o `challenge.test` canned em `authored()` acima
+  // ("teste de Força") — verificação 4 (saneamento) do gate valida perícia/atributo nomeado
+  // contra este catálogo; sem esta entrada, o gate reprovaria o fixture inteiro.
+  attributes: [
+    { key: 'constitution', label: 'Con', min: 1, max: 20, default: 10 },
+    { key: 'strength', label: 'Força', min: 1, max: 20, default: 10 },
+  ],
   startingKits: { fighter: [{ name: 'Espada longa', qty: 1 }], default: [{ name: 'Adaga', qty: 1 }] },
   races: [{ key: 'human', label: 'Humano' }],
   classes: [{ key: 'wizard', label: 'Mago' }],

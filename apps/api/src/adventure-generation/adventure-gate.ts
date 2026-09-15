@@ -1,6 +1,18 @@
-import { GeneratedAdventureSchema, type GeneratedAdventure } from '@ai-dm/shared'
+import {
+  GeneratedAdventureSchema,
+  stripFabricatedRolls,
+  type AdventureChallenge,
+  type AdventureLocation,
+  type GeneratedAdventure,
+  type SystemConfig,
+} from '@ai-dm/shared'
 import { encounterDeadlyThreshold, singleMonsterCrCap } from './lazy-encounter-benchmark'
 import { MONSTER_ROLE_CR, totalCr, type MonsterRole, type EncounterChallenge } from './monster-roles'
+
+// US-234: catálogo mínimo pra validar `challenge.test` — o mesmo `config.skills`/`attributes`
+// que `ai.service.ts` já carrega (buildSkillSheet). O gate recebe o subconjunto de que precisa
+// em vez de buscar o system config sozinho (não duplicar a fonte).
+type SkillCatalog = Pick<SystemConfig, 'skills' | 'attributes'>
 
 /**
  * US-150: resultado público do gate — o que o chamador (futuro consumidor de
@@ -12,21 +24,24 @@ export type GateResult =
   | { ok: true; adventure: GeneratedAdventure }
   | { ok: false; reason: string; attempt: number }
 
-// Estágio interno de UMA verificação — decide se o orquestrador re-semeia (parse/graph) ou
-// falha imediato (budget, US-150 Notas de implementação: composeEncounterRoles é puro em
-// `level`, reseed nunca muda o resultado dela).
-type GateStage = 'parse' | 'graph' | 'budget'
+// Estágio interno de UMA verificação. US-234: todo estágio re-semeia no orquestrador — orçamento
+// perdeu a exceção de falha imediata que tinha na US-150 (ver `generateWithGate`).
+type GateStage = 'parse' | 'graph' | 'budget' | 'saneamento'
 
 type GateCheckResult =
   | { ok: true; adventure: GeneratedAdventure }
   | { ok: false; reason: string; stage: GateStage }
 
 /**
- * As três verificações mecânicas (parse, grafo fecha, orçamento), na ordem de custo
- * crescente do backlog. A 4ª verificação do backlog (piso de quantidade por seção) é
- * responsabilidade do PROMPT (US-149), não deste gate (ver Escopo da US-150).
+ * As quatro verificações mecânicas (parse, grafo fecha, orçamento, saneamento — US-234), na
+ * ordem de custo crescente do backlog. Saneamento não reprova por leak de número na prosa —
+ * limpa e segue; só reprova por perícia/atributo nomeado que não existe no catálogo.
  */
-export function runAdventureGate(candidate: unknown, challenge: EncounterChallenge = 'adventure'): GateCheckResult {
+export function runAdventureGate(
+  candidate: unknown,
+  challenge: EncounterChallenge = 'adventure',
+  catalog?: SkillCatalog,
+): GateCheckResult {
   const parsed = GeneratedAdventureSchema.safeParse(candidate)
   if (!parsed.success) {
     const issue = parsed.error.issues[0]
@@ -40,7 +55,11 @@ export function runAdventureGate(candidate: unknown, challenge: EncounterChallen
   const budgetReason = checkEncounterBudget(parsed.data, challenge)
   if (budgetReason) return { ok: false, reason: budgetReason, stage: 'budget' }
 
-  return { ok: true, adventure: parsed.data }
+  const sanitized = sanitizeProse(parsed.data)
+  const skillReason = checkSkillCatalog(sanitized, catalog)
+  if (skillReason) return { ok: false, reason: skillReason, stage: 'saneamento' }
+
+  return { ok: true, adventure: sanitized }
 }
 
 /**
@@ -158,6 +177,66 @@ function checkEncounterBudget(adventure: GeneratedAdventure, challenge: Encounte
   return null
 }
 
+/**
+ * Verificação 4 (US-234): contrato US-29 reimposto aqui — a geração de aventura é OFF-TURN,
+ * então a rede `onFinish` que saneia a narração de turno não roda nela. Reusa o MESMO stripper
+ * (não escreve um segundo) sobre os campos de prosa autorados; retorna cópia limpa (clona antes
+ * de mutar — `parsed.data` do zod não deve ser mexido in-place).
+ */
+function stripProse(text: string): string {
+  return stripFabricatedRolls(text).clean
+}
+
+function sanitizeObjective(adventure: GeneratedAdventure): void {
+  adventure.objective.description = stripProse(adventure.objective.description)
+  adventure.objective.reward.effect = stripProse(adventure.objective.reward.effect)
+}
+
+function sanitizeLocation(location: AdventureLocation): void {
+  location.boxedText = stripProse(location.boxedText)
+  location.description = stripProse(location.description)
+}
+
+function sanitizeChallenge(challenge: AdventureChallenge): void {
+  challenge.situation = stripProse(challenge.situation)
+  challenge.consequence = stripProse(challenge.consequence)
+}
+
+function sanitizeProse(adventure: GeneratedAdventure): GeneratedAdventure {
+  const clean = structuredClone(adventure)
+  clean.world.description = stripProse(clean.world.description)
+  clean.story = stripProse(clean.story)
+  clean.start = stripProse(clean.start)
+  clean.summary = stripProse(clean.summary)
+  clean.followUps = clean.followUps.map(stripProse)
+  sanitizeObjective(clean)
+  clean.locations.forEach(sanitizeLocation)
+  clean.challenges.forEach(sanitizeChallenge)
+  clean.encounters.forEach((e) => { e.fiction = stripProse(e.fiction) })
+  clean.branchedResolution.forEach((b) => { b.consequence = stripProse(b.consequence) })
+  return clean
+}
+
+function normalizeSkillLabel(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+}
+
+// `challenge.test` é nomeado livre pelo modelo ("Percepção", "Sabedoria (Percepção)") — casa
+// por CONTÉM, não igualdade estrita, pra aceitar perícia+atributo colados num só rótulo. Sem
+// catálogo (`config.skills` ausente, sistema legado) não há como validar: passa.
+function checkSkillCatalog(adventure: GeneratedAdventure, catalog?: SkillCatalog): string | null {
+  const labels = [...(catalog?.skills ?? []), ...(catalog?.attributes ?? [])].map((e) => normalizeSkillLabel(e.label))
+  if (labels.length === 0) return null
+
+  for (const challenge of adventure.challenges) {
+    const want = normalizeSkillLabel(challenge.test)
+    if (!labels.some((label) => want.includes(label))) {
+      return `desafio "${challenge.id}" testa perícia/atributo desconhecido: "${challenge.test}"`
+    }
+  }
+  return null
+}
+
 // US-120: mesmo molde de log estruturado do `logLlmFailure` (llm-error.ts) — JSON de uma
 // linha, sem stack (não há um aqui: a falha é de conteúdo, não de exceção do SDK).
 function logGateFailure(reason: string, attempt: number): void {
@@ -168,35 +247,37 @@ async function runGateAttempt(
   generate: (attempt: number) => Promise<GeneratedAdventure>,
   attempt: number,
   challenge: EncounterChallenge,
+  catalog: SkillCatalog | undefined,
 ): Promise<GateCheckResult> {
   try {
     const adventure = await generate(attempt)
-    return runAdventureGate(adventure, challenge)
+    return runAdventureGate(adventure, challenge, catalog)
   } catch (err) {
     return { ok: false, reason: err instanceof Error ? err.message : String(err), stage: 'parse' }
   }
 }
 
 /**
- * Orquestração de reseed (US-150): falha nas verificações 1 (parse, inclui exceção da própria
- * `generate`) ou 2 (grafo) re-semeia com `attempt + 1`, até `maxAttempts`. Falha na verificação
- * 3 (orçamento) NUNCA re-semeia — `composeEncounterRoles` é pura em `level`, reseed não muda o
- * resultado; falha imediata é erro estrutural, registrado como tal.
+ * Orquestração de reseed (US-150, revertida pela US-234): falha em QUALQUER verificação
+ * (parse — inclui exceção da própria `generate` — grafo, orçamento ou saneamento) re-semeia a
+ * CHAMADA 1 com `attempt + 1`, até `maxAttempts`. Orçamento perdeu a exceção de falha imediata
+ * que tinha na US-150/US-159 (`composeEncounterRoles` era pura em `level`): orçamento agora é
+ * autorado pela CHAMADA 1 via LLM, reseed pode corrigir o resultado.
  */
 export async function generateWithGate(
   generate: (attempt: number) => Promise<GeneratedAdventure>,
   maxAttempts = 3,
   challenge: EncounterChallenge = 'adventure',
+  catalog?: SkillCatalog,
 ): Promise<GateResult> {
   let lastReason = 'nenhuma tentativa executada'
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const check = await runGateAttempt(generate, attempt, challenge)
+    const check = await runGateAttempt(generate, attempt, challenge, catalog)
     if (check.ok) return { ok: true, adventure: check.adventure }
 
     lastReason = check.reason
     logGateFailure(check.reason, attempt)
-    if (check.stage === 'budget') return { ok: false, reason: check.reason, attempt }
   }
 
   return { ok: false, reason: `teto de ${maxAttempts} tentativas esgotado — última falha: ${lastReason}`, attempt: maxAttempts - 1 }
