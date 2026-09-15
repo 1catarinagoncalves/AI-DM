@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Proposta
+**Status:** 📋 Planejada (não iniciada)
 **Depende de:** nada (limpeza). **Bloqueia:** [US-233](./US-233-numeros-dos-encontros-passo-2-5e.md) na parte do statblock (o `sync` do Monster Builder fica de pé).
 **Relacionado:** [US-146](./US-146-seed-deterministico-motor-aventura.md) (seed a remover) · [US-147](./US-147-rolagem-registro-conteudo.md) (rolagem-espinha a remover) · [US-145](./US-145-sync-lgmrd-notice.md) (`sync` — metade Monster Builder fica, metade LGMRD rebaixa) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (D1 — seed morto) · [Backlog — MA-7](./backlog-motor-de-geracao-de-aventuras.md)
 **Criada em:** 2026-09-13

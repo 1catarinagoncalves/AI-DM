@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** ✅ Concluída
+**Status:** ✅ Implementada
 **Depende de:** [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (CHAMADA 1) · [US-234](./US-234-gate-regenera-on-fail-com-saneamento.md) (gate — só persiste o que passa) · [US-151](./US-151-semear-ledger-segredos-gerados.md) (semear o ledger a partir do artefato) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md) (remove a validação hook==classe) · [US-217](./US-217-aventura-pronta-sem-motor-de-geracao.md) (gancho de classe vira o ramo `dto.preset`)
 **Relacionado:** [US-155](./US-155-aposentar-quest-fixa-por-classe.md) (aposenta a quest fixa como fonte no ramo gerado) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) · [Backlog — MA-9](./backlog-motor-de-geracao-de-aventuras.md)
 **Criada em:** 2026-09-13

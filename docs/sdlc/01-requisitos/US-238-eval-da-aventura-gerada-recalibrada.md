@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Proposta (fora do corte mínimo)
+**Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (o artefato a avaliar) · [US-239](./US-239-motor-em-createforcharacter-ledger-e-aposenta-gancho.md) (motor no caminho de criação, pro live eval opcional) · [US-154](./US-154-eval-aventura-gerada.md) (eval original — esta story **recalibra**)
 **Relacionado:** [US-36](./US-36-eval-de-qualidade-da-narracao.md) (LLM-judge + rubrica) · [ADR 012](../../adr/012-aventura-gerada-como-dado.md) (D7 — âncora de eval) · [Arquitetura — §Âncora de eval](../../arquitetura-motor-aventuras-autorais.md) · [Backlog — MA-8](./backlog-motor-de-geracao-de-aventuras.md)
 **Criada em:** 2026-09-13
