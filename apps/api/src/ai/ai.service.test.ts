@@ -22,7 +22,10 @@ import type { EventLog } from '../generated/prisma/client'
 // que a falha propaga (critério de aceite da US-158) em vez de cair num catch mudo.
 const { salvage, genObj } = vi.hoisted(() => ({
   salvage: { text: '', system: '', prompt: '', model: undefined as unknown, providerOptions: undefined as unknown },
-  genObj: { result: undefined as unknown, error: undefined as unknown, system: '', prompt: '', model: undefined as unknown },
+  // `hangAttempts`: quantas das primeiras chamadas devem TRAVAR (nunca resolver, exceto
+  // se abortadas) em vez de resolver/rejeitar na hora — simula um provedor da escada que
+  // não responde nem fecha a conexão (bug de timeout ausente, ver AUTHORING_TIMEOUT_MS).
+  genObj: { result: undefined as unknown, error: undefined as unknown, system: '', prompt: '', model: undefined as unknown, calls: 0, hangAttempts: 0 },
 }))
 vi.mock('ai', async (importOriginal) => ({
   ...(await importOriginal<typeof import('ai')>()),
@@ -33,10 +36,16 @@ vi.mock('ai', async (importOriginal) => ({
     salvage.providerOptions = providerOptions
     return { text: salvage.text }
   },
-  generateObject: async ({ system, prompt, model }: { system: string; prompt: string; model: unknown }) => {
+  generateObject: async ({ system, prompt, model, abortSignal }: { system: string; prompt: string; model: unknown; abortSignal?: AbortSignal }) => {
     genObj.system = system
     genObj.prompt = prompt
     genObj.model = model
+    genObj.calls += 1
+    if (genObj.calls <= genObj.hangAttempts) {
+      return new Promise((_resolve, reject) => {
+        abortSignal?.addEventListener('abort', () => reject(new Error('This operation was aborted')))
+      })
+    }
     if (genObj.error) throw genObj.error
     return { object: genObj.result, providerMetadata: undefined }
   },
@@ -895,6 +904,40 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
         className: 'ladino',
       }),
     ).rejects.toThrow('modelo indisponível')
+  })
+
+  // Regressão: modelo que TRAVA (nunca resolve, nunca rejeita — nem timeout nem erro de
+  // rede) tinha o processo pendurado pra sempre, sem cair pro próximo da escada. Fixa via
+  // `abortSignal: AbortSignal.timeout(AUTHORING_TIMEOUT_MS)` na chamada. Aqui o fake
+  // `AbortSignal.timeout` é substituído por um disparo quase instantâneo — o valor real
+  // (180s) não pode rodar num teste — só o encanamento (aborta → cai pro próximo) é testado.
+  it('modelo trava sem responder (nem resolve nem rejeita) → timeout aborta e cai pro próximo da escada', async () => {
+    const realTimeout = AbortSignal.timeout
+    AbortSignal.timeout = ((_ms: number) => {
+      const controller = new AbortController()
+      setTimeout(() => controller.abort(new Error('TimeoutError')), 5)
+      return controller.signal
+    }) as typeof AbortSignal.timeout
+    try {
+      genObj.error = undefined
+      genObj.result = authored
+      genObj.calls = 0
+      genObj.hangAttempts = 1
+      const result = await svc().generateAdventureAuthoring({
+        world: {},
+        factionCount: 3,
+        counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+        namingRegister: 'Celtic',
+        questSeed: 'Kill a villain because a Sly Elf demands it',
+        level: 3,
+        className: 'ladino',
+      })
+      expect(result.adventure).toBe(authored)
+      expect(genObj.calls).toBe(2)
+    } finally {
+      AbortSignal.timeout = realTimeout
+      genObj.hangAttempts = 0
+    }
   })
 
   // US-241: `rollQuestSeed` vira restrição obrigatória de `summary`, no MESMO call único —

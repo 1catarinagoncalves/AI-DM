@@ -311,6 +311,16 @@ const SALVAGE_PROVIDER_OPTIONS = { openrouter: { reasoning: { enabled: false } }
 // sem opções, o jogador NUNCA fica sem saída.
 const SALVAGE_FALLBACK = '\n\n- 💬 Continuar.'
 
+// Sem isto, um provedor da escada que trava (sem responder nem fechar a conexão)
+// pendura o processo por tempo indefinido em vez de cair pro próximo modelo —
+// reproduzido com scripts/run-authoring.ts (nível 5): ~10min de wall time, CPU do
+// processo quase zero, até AI_NoObjectGeneratedError no deepseek-v4-pro-0813.
+// Chamada normal de autoria mede 110–143s (JSON grande, maxTokens 16000); a janela
+// abaixo dá margem generosa sem travar pra sempre.
+const AUTHORING_TIMEOUT_MS = 180_000
+// Mesma janela do `narration-gen.ts` (turnos regulares) — texto livre, sem schema.
+const OPENING_NARRATION_TIMEOUT_MS = 90_000
+
 /**
  * US-73: monta o patch de cena a partir da extração estruturada, protegendo contra
  * ZERAR campos escalares. Um turno só-diálogo devolve `local`/`periodo` vazios — nesse
@@ -1407,7 +1417,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       // escada aqui, a abertura caía direto no template estático.
       for (const model of narrationModels) {
         try {
-          const { text } = await generateText({ model, system, prompt, providerOptions: NARRATION_PROVIDER_OPTIONS })
+          const { text } = await generateText({ model, system, prompt, providerOptions: NARRATION_PROVIDER_OPTIONS, abortSignal: AbortSignal.timeout(OPENING_NARRATION_TIMEOUT_MS) })
           const trimmed = text.trim()
           if (trimmed.length > 0) return trimmed
         } catch (err) {
@@ -1540,6 +1550,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
           prompt,
           maxTokens: 16000,
           providerOptions: AUTHORING_PROVIDER_OPTIONS,
+          abortSignal: AbortSignal.timeout(AUTHORING_TIMEOUT_MS),
         })
         logExtractionEndpoint('generateAdventureAuthoring', model, providerMetadata)
         return { adventure: object, modelId: model.modelId }
