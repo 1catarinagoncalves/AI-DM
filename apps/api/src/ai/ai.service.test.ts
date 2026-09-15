@@ -948,4 +948,36 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
     })
     expect(genObj.prompt).not.toMatch(/TRANSPON[HA]A|transponha/i)
   })
+
+  // US-236: os 3 eixos de mundo (cenário/tom/tipo de área) viram linha de restrição
+  // ROTULADA no prompt quando o jogador escolheu (nunca a chave); "Aleatório" (eixo
+  // ausente) some da lista e cai no fallback "livre" — nenhum sorteio determinístico.
+  it('os 3 eixos de mundo entram como linha rotulada; sem nenhum, cai no fallback "livre"', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: { setting: 'Cyberpunk urbano', tone: 'Sombrio', areaType: 'Masmorra' },
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
+      level: 3,
+      className: 'ladino',
+    })
+    expect(genObj.prompt).toContain('- Cenário: Cyberpunk urbano')
+    expect(genObj.prompt).toContain('- Tom: Sombrio')
+    expect(genObj.prompt).toContain('- Tipo de área: Masmorra')
+
+    await svc().generateAdventureAuthoring({
+      world: {},
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
+      level: 3,
+      className: 'ladino',
+    })
+    expect(genObj.prompt).not.toMatch(/Cenário:|Tom:|Tipo de área:/)
+    expect(genObj.prompt).toContain('Sem eixos de mundo fixados')
+  })
 })
