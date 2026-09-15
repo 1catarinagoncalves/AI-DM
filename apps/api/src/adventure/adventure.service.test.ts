@@ -489,6 +489,16 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
   })
 
+  // Achado lendo um artefato real (Vhal'zeth, 2026-09-15): `world.anchors` citava um 6º lugar
+  // que nunca virou `locations[]` — o modelo mirou `locationIndex` fora de faixa pro Final e pro
+  // objective, e o clamp antigo (pro local 0) mascarava o erro sem falhar. Agora LANÇA — vira
+  // estágio 'parse' no gate (US-234), que re-semeia em vez de persistir o local errado.
+  it('locationIndex fora de faixa (encounter/challenge/objective) LANÇA — não clampa pro local 0', async () => {
+    const foraDeFaixa = authored({ objective: { description: 'd', reward: { name: 'r', effect: 'e' }, locationIndex: 5 } })
+    await expect(service(fakeAi(null, null, {}, foraDeFaixa)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config))
+      .rejects.toThrow('locationIndex 5 fora de faixa — esperado 0..0 (1 locais autorados)')
+  })
+
   it('registryOverrides fixam o registro', async () => {
     const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', config, { tone: 'heroic' })
     expect(adventure.registry.tone).toBe('heroic')

@@ -207,7 +207,18 @@ export class AdventureService {
       ...(factionId(l.factionIndex) ? { factionId: factionId(l.factionIndex) } : {}),
       vibe: l.vibe,
     }))
-    const locationId = (idx: number): string => (idx >= 0 && idx < locations.length ? locations[idx]!.id : locations[0]!.id)
+    // Índice fora de faixa aqui LANÇA (ao contrário de occupants/npcIndices acima, que são
+    // "melhor esforço" e filtram): challenge/encounter/objective.locationId são campos ÚNICOS e
+    // OBRIGATÓRIOS — um clamp silencioso pro local 0 corrompia o local do Final sem erro nenhum
+    // (achado ao ler um artefato real: Final e objective foram parar no local errado porque o
+    // modelo mirou um `anchors` que nunca virou `locations[]`). Lançar aqui vira falha de estágio
+    // 'parse' no gate (US-234), que re-semeia a CHAMADA 1 em vez de persistir o local errado.
+    const locationId = (idx: number): string => {
+      if (idx < 0 || idx >= locations.length) {
+        throw new Error(`locationIndex ${idx} fora de faixa — esperado 0..${locations.length - 1} (${locations.length} locais autorados)`)
+      }
+      return locations[idx]!.id
+    }
 
     const challenges: AdventureChallenge[] = authored.challenges.map((c, i) => ({
       id: `challenge-${i + 1}`,
