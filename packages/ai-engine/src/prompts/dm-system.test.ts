@@ -770,34 +770,40 @@ describe('buildOpeningInstruction — mainQuest domina o gancho fixo (US-168)', 
   })
 })
 
-// US-194: `generateOpeningBeat` foi apagada — `mainQuest` chega como `generated.summary +
-// '\n' + generated.start` (finalizeGeneratedAdventure, adventure.service.ts), prosa livre da
-// autoria mundo-primeiro (AUTHORING_SCHEMA, ai.service.ts), não mais prosa pronta de beat. A
-// instrução pede COMPOR a cena a partir dele (não renderizar um beat já escrito) e carrega,
-// ela mesma, o que sobrevive daquela chamada apagada: in medias res ramificado por Scene type
-// e os 2 de 3 apelos clássicos.
-describe('buildOpeningInstruction — compõe a partir da aventura gerada, não renderiza beat pronto (US-194)', () => {
+// US-245: `start` (dentro de mainQuest) já nasce como prosa autorada com a barra de qualidade
+// da autoria mundo-primeiro (AUTHORING_SCHEMA, ai.service.ts) — a instrução deste ramo passou de
+// "compor uma cena nova a partir dele, sem citar" para "narrar/expandir de perto", preservando
+// nomes/fatos/gancho, sem apelos forçados (US-182 saiu deste ramo) nem a ramificação morta por
+// Scene type (código órfão desde a US-232, nunca verdadeira em produção).
+describe('buildOpeningInstruction — narra o mainQuest de perto, não recompõe cena nova (US-245)', () => {
   const mainQuest = 'Um culto celebra à beira d\'água na Enseada Cinzenta.\nO gancho: Marta corre até você, sangrando, e implora que impeça o ritual antes da lua cheia.'
 
-  it('pede COMPOR a cena, não renderizar', () => {
+  it('pede narrar/expandir o texto de perto, sem proibir citação verbatim', () => {
     const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'gancho', mainQuest })
-    expect(p).toMatch(/Compose the opening scene/)
-    expect(p).not.toMatch(/Render it as the opening scene/)
+    expect(p).not.toMatch(/do NOT quote it verbatim/)
+    expect(p).toMatch(/Narrate the opening scene FROM this text/)
+    expect(p).toMatch(/Stay close to it/)
+    expect(p).toMatch(/Do not invent a new plot element beyond what it already contains/)
   })
 
-  it('carrega os três ramos de in medias res (combat/skill/social)', () => {
+  it('não pede mais os apelos forçados (US-182 saiu deste ramo)', () => {
     const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'gancho', mainQuest })
-    expect(p).toContain('combat — the action already started')
-    expect(p).toContain('skill — the obstacle already blocks the way')
-    expect(p).toContain('social — someone has already addressed the character')
+    expect(p).not.toMatch(/at least 2 of these 3 appeals/)
   })
 
-  it('mira pelo menos 2 dos 3 apelos: reward/heroism/discovery', () => {
+  it('não carrega mais a ramificação morta por Scene type (combat/skill/social)', () => {
     const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'gancho', mainQuest })
+    expect(p).not.toContain('combat — the action already started')
+    expect(p).not.toContain('skill — the obstacle already blocks the way')
+    expect(p).not.toContain('social — someone has already addressed the character')
+  })
+
+  it('sem mainQuest (ramo hookSeed), mantém compor livremente + do NOT quote + apelos + Scene type ausente', () => {
+    const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'gancho' })
+    expect(p).toMatch(/Compose the opening scene from it/)
+    expect(p).toMatch(/do NOT quote it verbatim/)
     expect(p).toMatch(/at least 2 of these 3 appeals/)
-    expect(p).toContain('reward')
-    expect(p).toContain('heroism')
-    expect(p).toContain('discovery')
+    expect(p).not.toContain('combat — the action already started')
   })
 })
 

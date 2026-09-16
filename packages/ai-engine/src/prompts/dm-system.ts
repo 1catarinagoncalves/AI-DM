@@ -687,11 +687,17 @@ ${nextEncounterSection}${summarySection}`.trimEnd()
  * (`finalizeGeneratedAdventure`, adventure.service.ts) — prosa livre da autoria mundo-primeiro
  * (`AUTHORING_SCHEMA`, ai.service.ts: `summary` é sinopse de uma linha, `start` é SÓ o gancho),
  * nunca mais o beat pronto de `generateOpeningBeat` (apagada) nem o briefing rotulado de
- * `composeStartBriefing` (também apagada, US-232). A instrução pede COMPOR a cena a partir dele
- * — e carrega, ela mesma, o que sobrevive daquelas chamadas: abrir *in medias res* (US-172),
- * ramificado por Scene type próprio (não mais lido do briefing), e mirar pelo menos 2 dos 3
- * apelos clássicos — recompensa/heroísmo/descoberta (US-182). A permissão de nomear o
- * antagonista (US-190/US-191) NÃO migra pra cá — ver US-199.
+ * `composeStartBriefing` (também apagada, US-232).
+ *
+ * US-245: com `mainQuest` presente, `start` já nasce como prosa bem escrita pela autoria
+ * mundo-primeiro (mesma barra de qualidade e idioma-alvo, `buildAuthoringSystem`) — a instrução
+ * deste ramo passou de "compor uma cena nova a partir dele, sem citar" para "narrar/expandir de
+ * perto", preservando nomes/fatos/gancho, sem apelos forçados (US-182 saiu deste ramo) nem a
+ * ramificação por "Scene type" (código morto desde a US-232 — nenhuma fixture real carrega esse
+ * rótulo, que só existia no briefing apagado de `composeStartBriefing`). O ramo `hookSeed`
+ * (fallback sem motor de geração) mantém o comportamento anterior intacto: compor livremente, do
+ * NOT quote it verbatim, mirar 2 dos 3 apelos. A permissão de nomear o antagonista
+ * (US-190/US-191) NÃO migra pra cá — ver US-199.
  */
 export function buildOpeningInstruction(params: { characterName: string; hookSeed: string; mainQuest?: string | null; locale?: Locale }): string {
   const { characterName, hookSeed, mainQuest } = params
@@ -701,24 +707,31 @@ export function buildOpeningInstruction(params: { characterName: string; hookSee
   const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
   // US-168: `mainQuest` (a aventura gerada) domina a fagulha da cena quando presente;
   // `hookSeed` (gancho fixo por classe) só volta como semente na ausência dele.
-  // US-194: pede para COMPOR a cena a partir do mainQuest, não mais para "renderizar" um
-  // beat já escrito (`generateOpeningBeat` apagada) — mainQuest é sinopse + gancho em prosa
-  // livre (summary + start, AUTHORING_SCHEMA), então "compor" segue o verbo certo mesmo
-  // sem o briefing rotulado que a intenção original (`composeStartBriefing`) previa.
-  const spark = mainQuest
-    ? `Use this as the spark for the scene — it is the opening briefing generated for this character. Compose the opening scene FROM it, matching the Narrative craft bar; do NOT quote it verbatim:
-"${mainQuest}"`
+  // US-245: `start` (dentro de mainQuest) já nasce no idioma-alvo pela autoria — a ressalva de
+  // idioma da semente só descreve a realidade do ramo hookSeed (gancho fixo, sem essa garantia).
+  const languageLine = mainQuest
+    ? `Write the scene in ${targetLanguage}.`
+    : `Write the scene in ${targetLanguage}. The seed below may be written in another language — that does not change the language of your narration.`
+  // US-245: ramo mainQuest narra/expande o texto autorado de perto (citar ou parafrasear
+  // próximo é o objetivo agora, não algo a evitar) — os apelos forçados (US-182) e a
+  // ramificação por Scene type (código morto, US-194) saem daqui. Ramo hookSeed (fallback sem
+  // motor de geração) mantém o comportamento anterior: compor livremente a partir da semente.
+  const body = mainQuest
+    ? `Narrate the opening scene FROM this text — it is the opening hook already authored for this specific adventure. Stay close to it: preserve the names, facts and hook it already establishes, elaborating only what is needed to turn it into a playable scene. Do not invent a new plot element beyond what it already contains. Quoting or closely paraphrasing it is expected, not something to avoid:
+"${mainQuest}"
+
+Open the scene in medias res — something is already in motion, never a static arrival at an empty location.`
     : `Use this seed as the spark for the scene. Compose the opening scene from it, matching the Narrative craft bar; do NOT quote it verbatim:
-"${hookSeed}"`
+"${hookSeed}"
+
+Open the scene in medias res — something is already in motion, never a static arrival at an empty location.
+
+Aim for at least 2 of these 3 appeals, grounded only in what the spark above already gives you, never a new element: reward (something to gain), heroism (a chance to act well), discovery (a mystery the scene already hints at, without revealing it).`
   return `This is the OPENING of the adventure. The player has NOT acted yet — you are setting the very first scene, before any player action.
 
-Write the scene in ${targetLanguage}. The seed below may be written in another language — that does not change the language of your narration.
+${languageLine}
 
-${spark}
-
-Open the scene in medias res — something is already in motion, never a static arrival at an empty location. Match the pace to the "Scene type" named in the spark above, when present: combat — the action already started, open on violence or its imminence, not the arrival at the location; skill — the obstacle already blocks the way, with a clock running; social — someone has already addressed the character, open mid-conversation, not before it.
-
-Aim for at least 2 of these 3 appeals, grounded only in what the spark above already gives you, never a new element: reward (something to gain), heroism (a chance to act well), discovery (a mystery the scene already hints at, without revealing it).
+${body}
 
 Follow the Narrative craft bar: open on the senses, name concrete things, use ${characterName}'s race and class as a lens on the world, give any NPC a voice and real stakes, stay within 3-5 short paragraphs, then close by addressing ${characterName} by name followed by the action options.
 
