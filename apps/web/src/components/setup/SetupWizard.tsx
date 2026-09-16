@@ -383,6 +383,10 @@ export function SetupWizard() {
   // US-235: teto do gate estourado (ou timeout do polling) — tela de erro dedicada, nunca
   // volta ao formulário nem desvia pra "Aventura pronta".
   const [generationError, setGenerationError] = useState(false)
+  // Bug 16/09/2026: id da aventura que estourou o teto ainda GENERATING — o retry RETOMA o
+  // polling dela (resumeGeneration) em vez de criar outra. Só o timeout preenche isto; FAILED
+  // limpa (aventura morta de verdade → retry recria). '' = nenhum retry pendente de retomada.
+  const [resumeId, setResumeId] = useState('')
   // US-157: sentinela 'random' só no estado do componente — nunca serializado no DTO
   // (ver createWorldAdventure). Estado inicial: Aleatório. `setting`/`areaType` voltaram
   // ao registro na US-184, mesmo padrão de `tone`.
@@ -993,8 +997,11 @@ export function SetupWizard() {
   // (US-234) passou do teto num caso real e só terminou (ACTIVE) segundos DEPOIS do
   // cliente já ter desistido, órfão no banco enquanto a jogadora via "deu errado". 180s
   // dá mais margem; a consulta extra em pollAdventureStatus cobre o resto da corrida.
+  // Bug real (16/09/2026): 180s ainda estourou numa run lenta — aventura terminou ACTIVE no
+  // banco enquanto a jogadora via "deu errado". Subido pra 300s; o retry agora RETOMA o polling
+  // do mesmo id (resumeGeneration) em vez de recriar, então estourar o teto não orfaniza mais.
   const STATUS_POLL_INTERVAL_MS = 3000
-  const STATUS_POLL_TIMEOUT_MS = 180_000
+  const STATUS_POLL_TIMEOUT_MS = 300_000
 
   // US-235: consulta `getAdventureStatus` até ACTIVE (resolve) ou FAILED/timeout (lança) —
   // GENERATING nunca é o estado final, só o motivo de continuar tentando.
@@ -1021,8 +1028,27 @@ export function SetupWizard() {
   // challenge (esse ramo nem mostra os grupos que os preenchem, US-216).
   // US-235: ramo gerado devolve `status: 'GENERATING'` — a criação em si é rápida (evita o
   // teto de 60s do proxy SSE, US-60); quem demora é o motor, acompanhado por polling.
+  // US-235: falha da AUTORIA → tela de erro dedicada. Bug 16/09/2026: `generation_timeout` (teto
+  // estourado com a aventura ainda GENERATING) guarda o id em `resumeId` — o retry retoma o polling
+  // dela em vez de recriar (não orfaniza mais). `generation_failed` (motor emitiu FAILED) limpa o
+  // id: aventura morta de verdade, retry recria. Qualquer outro erro (validação, rede) → volta ao
+  // formulário. `id` chega '' quando a falha foi antes do createAdventure responder.
+  function handleGenerationError(err: unknown, id: string) {
+    if (err instanceof Error && err.message === 'generation_timeout') {
+      setResumeId(id)
+      setGenerationError(true)
+    } else if (err instanceof Error && err.message === 'generation_failed') {
+      setResumeId('')
+      setGenerationError(true)
+    } else {
+      setError(t('setup.error.start'))
+    }
+    setStarting(false)
+  }
+
   async function createWorldAdventure() {
-    setStarting(true); setError(''); setGenerationError(false)
+    setStarting(true); setError(''); setGenerationError(false); setResumeId('')
+    let id = ''
     try {
       const dto = worldMode === 'ready'
         ? { preset: true }
@@ -1034,18 +1060,24 @@ export function SetupWizard() {
           ...(challenge !== 'adventure' && { challenge }),
         }
       const adv = await api.createAdventure(charId, dto)
+      id = adv.id
       if (adv.status === 'GENERATING') await pollAdventureStatus(adv.id)
       router.push(`/play/${adv.id}?characterId=${charId}`)
     } catch (err) {
-      // US-235: falha da AUTORIA (teto do gate/timeout) → tela de erro dedicada, com retry
-      // que redispara `createWorldAdventure` (mesmos parâmetros já vivem no estado acima).
-      // Qualquer outro erro (validação, rede) → comportamento de sempre: volta ao formulário.
-      if (err instanceof Error && (err.message === 'generation_failed' || err.message === 'generation_timeout')) {
-        setGenerationError(true)
-      } else {
-        setError(t('setup.error.start'))
-      }
-      setStarting(false)
+      handleGenerationError(err, id)
+    }
+  }
+
+  // Bug 16/09/2026: retry depois de um timeout — a aventura já existe no banco e pode ter virado
+  // ACTIVE enquanto a tela de erro estava aberta. Retoma o polling do MESMO id (nunca cria outra);
+  // se o motor tiver terminado, navega; se ainda estiver lenta, cai no mesmo tratamento de erro.
+  async function resumeGeneration() {
+    setStarting(true); setError(''); setGenerationError(false)
+    try {
+      await pollAdventureStatus(resumeId)
+      router.push(`/play/${resumeId}?characterId=${charId}`)
+    } catch (err) {
+      handleGenerationError(err, resumeId)
     }
   }
 
@@ -1241,7 +1273,7 @@ export function SetupWizard() {
           </div>
         ) : step === 'world' && generationError ? (
           <div className="flex flex-1 flex-col">
-            <AdventureErrorScreen onRetry={createWorldAdventure} />
+            <AdventureErrorScreen onRetry={resumeId ? resumeGeneration : createWorldAdventure} />
           </div>
         ) : (
         <Panel className="flex flex-1 flex-col p-6 sm:p-8">
