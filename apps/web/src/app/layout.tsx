@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { cookies } from 'next/headers'
 import { Cinzel, Geist } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { LOCALE_COOKIE, localeFromCookie } from '@/lib/locale-cookie'
 import { messagesFor } from '@/messages'
@@ -82,6 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </main>
           </ThemeProvider>
         </Providers>
+        <Analytics />
       </body>
     </html>
   )
