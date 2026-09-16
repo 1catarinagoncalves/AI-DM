@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-239](./US-239-motor-em-createforcharacter-ledger-e-aposenta-gancho.md) (`Adventure.generatedAdventure` é preenchido pelo motor no fluxo real)
 **Relacionado:** [US-243](./US-243-dump-aventura-gerada-na-interface-em-dev.md) (mesmo objetivo em dev, caminho diferente — dump no momento da geração) · [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (`run-authoring.ts`, formato de arquivo reaproveitado)
 **Criada em:** 2026-09-15
@@ -54,13 +54,13 @@ Script standalone (mesmo espírito de `run-authoring.ts`, US-232) que conecta no
 
 ## Critérios de aceite
 
-- [ ] Rodar o script grava um JSON **completo** (sem truncar nenhum campo) por `Adventure` cujo `creator.email` está em `ALLOWED_EMAILS` e tem `generatedAdventure` preenchido, no formato `evals/reports/authoring-<characterId>-<timestamp>.json`.
-- [ ] `ALLOWED_EMAILS` por padrão contém só `catarinagoncalves2005@gmail.com`. `Adventure` de qualquer outro `creator.email` não é extraída, mesmo que passe todos os outros critérios.
-- [ ] Não existe argumento de CLI que amplie ou substitua `ALLOWED_EMAILS` em runtime — a única forma de mudar quem entra é editar a constante no script.
-- [ ] `Adventure` sem `generatedAdventure` (ramo `dto.preset`, US-217) é ignorada — não gera arquivo vazio nem lança.
-- [ ] Um artefato que falha `GeneratedAdventureSchema.parse()` é reportado no console (id da aventura) e **não** é gravado — os demais do lote continuam.
-- [ ] Nenhuma chamada às APIs de IA (OpenRouter/Groq) acontece rodando o script — só leitura do Postgres.
-- [ ] **Eval / teste de regressão:** teste cobrindo (a) `Adventure` de e-mail fora da allowlist não é gravada; (b) `Adventure` de e-mail na allowlist grava o arquivo certo, completo; (c) artefato inválido é pulado sem derrubar o lote.
+- [x] Rodar o script grava um JSON **completo** (sem truncar nenhum campo) por `Adventure` cujo `creator.email` está em `ALLOWED_EMAILS` e tem `generatedAdventure` preenchido, no formato `evals/reports/authoring-<characterId>-<timestamp>.json`.
+- [x] `ALLOWED_EMAILS` por padrão contém só `catarinagoncalves2005@gmail.com`. `Adventure` de qualquer outro `creator.email` não é extraída, mesmo que passe todos os outros critérios.
+- [x] Não existe argumento de CLI que amplie ou substitua `ALLOWED_EMAILS` em runtime — a única forma de mudar quem entra é editar a constante no script.
+- [x] `Adventure` sem `generatedAdventure` (ramo `dto.preset`, US-217) é ignorada — não gera arquivo vazio nem lança.
+- [x] Um artefato que falha `GeneratedAdventureSchema.parse()` é reportado no console (id da aventura) e **não** é gravado — os demais do lote continuam.
+- [x] Nenhuma chamada às APIs de IA (OpenRouter/Groq) acontece rodando o script — só leitura do Postgres.
+- [x] **Eval / teste de regressão:** teste cobrindo (a) `Adventure` de e-mail fora da allowlist não é gravada; (b) `Adventure` de e-mail na allowlist grava o arquivo certo, completo; (c) artefato inválido é pulado sem derrubar o lote.
 
 ---
 
