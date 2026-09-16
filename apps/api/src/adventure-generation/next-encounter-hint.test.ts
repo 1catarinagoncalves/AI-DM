@@ -19,7 +19,7 @@ function entity(overrides: Partial<WorldEntity> = {}): WorldEntity {
 }
 
 describe('nextUnrevealedEncounterLocation (US-166)', () => {
-  it('devolve o encontro de menor id (acima de 1) cujo local ainda não é revelado', () => {
+  it('devolve o encontro de menor id cujo local ainda não é revelado', () => {
     const encounters = [
       encounter({ id: 'encounter-3', locationId: 'loc-3' }),
       encounter({ id: 'encounter-2', locationId: 'loc-2' }),
@@ -88,11 +88,13 @@ describe('nextUnrevealedEncounterLocation (US-166)', () => {
     expect(result?.id).toBe('encounter-2')
   })
 
-  // US-194: encontro 1 é onde a abertura (`start`) já narra a personagem — ele nasce
-  // `revelado: false` no ledger (mesmo `seedLedgerFromGeneratedAdventure` de sempre), mas
-  // esta função nunca pode devolvê-lo, senão o Mestre lê "ainda não descoberto" sobre o
-  // MESMO local que acabou de narrar.
-  it('nunca devolve encounter-1, mesmo sendo o único não revelado', () => {
+  // Regressão (bug adjacente à US-194, achado revendo a US-232): desde a autoria
+  // mundo-primeiro, `start` (a abertura) é prosa livre do modelo (`authored.start`),
+  // sem `locationIndex` nem qualquer vínculo estrutural com `encounters[0]`
+  // (`composeStartBriefing`, que garantia isso, não existe mais). Pular o encontro 1
+  // incondicionalmente escondia um local genuinamente não descoberto pra sempre — a
+  // função não deve mais tratar o id do encontro como sinal, só `revelado`.
+  it('encontro 1 conta como qualquer outro: devolvido quando é o único não revelado', () => {
     const encounters = [
       encounter({ id: 'encounter-1', locationId: 'loc-1' }),
       encounter({ id: 'encounter-2', locationId: 'loc-2' }),
@@ -100,10 +102,11 @@ describe('nextUnrevealedEncounterLocation (US-166)', () => {
     const locations = [location({ id: 'loc-1', title: 'Clareira' }), location({ id: 'loc-2', title: 'Ruína' })]
     const entities = [entity({ nome: 'Ruína', revelado: true })] // só o encontro 1 não é revelado
 
-    expect(nextUnrevealedEncounterLocation(encounters, locations, entities)).toBeNull()
+    const result = nextUnrevealedEncounterLocation(encounters, locations, entities)
+    expect(result?.id).toBe('encounter-1')
   })
 
-  it('ledger recém-semeado (todos os locais revelado: false): devolve encounter-2, não encounter-1', () => {
+  it('ledger recém-semeado (todos os locais revelado: false): devolve encounter-1, o de menor id', () => {
     const encounters = [
       encounter({ id: 'encounter-1', locationId: 'loc-1' }),
       encounter({ id: 'encounter-2', locationId: 'loc-2' }),
@@ -112,6 +115,6 @@ describe('nextUnrevealedEncounterLocation (US-166)', () => {
     const entities = [entity({ nome: 'Clareira', revelado: false }), entity({ nome: 'Ruína', revelado: false })]
 
     const result = nextUnrevealedEncounterLocation(encounters, locations, entities)
-    expect(result?.id).toBe('encounter-2')
+    expect(result?.id).toBe('encounter-1')
   })
 })

@@ -5,11 +5,12 @@ import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type ClassFeature, type KnownSpell, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
-import { assignCombatRoles, type EncounterChallenge } from '../adventure-generation/monster-roles'
+import { assignBudgetedCombatRoles, type EncounterChallenge } from '../adventure-generation/monster-roles'
 import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
 import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-ledger'
+import { writeAuthoringDump } from './adventure-authoring-dump'
 import type { AdventureExportData } from './adventure-export'
 
 export interface CreateAdventureDto {
@@ -315,14 +316,18 @@ export class AdventureService {
     }
 
     // US-233 (PASSO 2): casa a fiction (npcIds já resolvidos) com a mecânica 5e — papel de
-    // statblock por posição (assignCombatRoles), determinístico, sem pedir número ao modelo.
-    // Orçamento pro nível é checado pelo gate (US-150 verificação 3), não aqui.
+    // statblock por posição, determinístico, sem pedir número ao modelo.
+    // Bugfix (Paladina nível 3, 16/09/2026): orçamento pro nível AGORA é aplicado aqui também
+    // (assignBudgetedCombatRoles), não só checado pelo gate depois — nível 1-3 modo 'adventure'
+    // tem orçamento 0 (US-159), então dar papel a TODO npcId sempre estourava a verificação 3
+    // do gate, sem chance de passar em nenhuma das 3 tentativas de regenerate. Posição que não
+    // cabe no orçamento fica sem combatRole (figurante, não desaparece da ficção).
     for (const encounter of encounters) {
       if (encounter.type !== 'combat') continue
-      const roles = assignCombatRoles(encounter.npcIds.length)
+      const roles = assignBudgetedCombatRoles(encounter.npcIds.length, profile.level, profile.challenge)
       encounter.npcIds.forEach((npcId, i) => {
         const npc = npcs.find((n) => n.id === npcId)
-        if (npc) npc.combatRole = roles[i]
+        if (npc && roles[i]) npc.combatRole = roles[i]
       })
     }
 
@@ -730,6 +735,18 @@ export class AdventureService {
         },
       })
     })
+
+    // US-243: dump best-effort do artefato aprovado, só depois da transação confirmar
+    // (senão o JSON em disco não bateria com o que foi persistido). Dev-only, mesmo gate de
+    // `adventure.module.ts` (US-202); nunca bloqueia a criação — falha de disco é só logada.
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        writeAuthoringDump(characterId, generated)
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(JSON.stringify({ event: 'authoring_dump_failed', adventureId, characterId, timestamp: new Date().toISOString(), errorMessage: message }))
+      }
+    }
   }
 
   /**
