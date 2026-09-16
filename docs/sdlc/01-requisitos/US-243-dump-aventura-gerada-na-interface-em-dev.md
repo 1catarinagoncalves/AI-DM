@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-239](./US-239-motor-em-createforcharacter-ledger-e-aposenta-gancho.md) (motor gera o artefato) · [US-235](./US-235-gatilho-assincrono-tela-de-espera-erro-retry.md) (gatilho assíncrono — é este fluxo, não mais `createForCharacter` direto, que hoje detém `gateResult.adventure`)
 **Relacionado:** [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (`run-authoring.ts` já faz este dump, mas só via script manual) · [US-202](./US-202-export-da-aventura-para-analise-manual.md) (mesmo padrão de porta dev-only por `NODE_ENV`)
 **Criada em:** 2026-09-15
@@ -53,11 +53,11 @@ Quando `createForCharacter` gera uma aventura pelo motor (ramo "Criar minha hist
 
 ## Critérios de aceite
 
-- [ ] Em `NODE_ENV !== 'production'`, criar um personagem e escolher "Criar minha história" grava um `evals/reports/authoring-<characterId>-<timestamp>.json` com o mesmo `generated` que foi persistido em `Adventure.generatedAdventure`.
-- [ ] Em `NODE_ENV === 'production'`, nenhum arquivo é escrito — mesma disciplina de porta dupla do `adventure.module.ts` (US-202), não um `if` solto dentro do handler.
-- [ ] O ramo `dto.preset` ("Aventura pronta") não tenta escrever nada (não tem artefato do motor).
-- [ ] Uma falha de escrita (mock de `writeFileSync` lançando) não impede a criação do personagem nem derruba a resposta da API — erro no máximo logado.
-- [ ] **Eval / teste de regressão:** teste em `adventure.service.test.ts` (exercitando `runAdventureGeneration`/`finalizeGeneratedAdventure`, não `createForCharacter` — ver "Notas de implementação") cobrindo (a) dev grava o arquivo com o conteúdo certo; (b) produção não grava; (c) falha de escrita não propaga.
+- [x] Em `NODE_ENV !== 'production'`, criar um personagem e escolher "Criar minha história" grava um `evals/reports/authoring-<characterId>-<timestamp>.json` com o mesmo `generated` que foi persistido em `Adventure.generatedAdventure`.
+- [x] Em `NODE_ENV === 'production'`, nenhum arquivo é escrito — mesma disciplina de porta dupla do `adventure.module.ts` (US-202), não um `if` solto dentro do handler.
+- [x] O ramo `dto.preset` ("Aventura pronta") não tenta escrever nada (não tem artefato do motor).
+- [x] Uma falha de escrita (mock de `writeFileSync` lançando) não impede a criação do personagem nem derruba a resposta da API — erro no máximo logado.
+- [x] **Eval / teste de regressão:** teste em `adventure.service.test.ts` (exercitando `runAdventureGeneration`/`finalizeGeneratedAdventure`, não `createForCharacter` — ver "Notas de implementação") cobrindo (a) dev grava o arquivo com o conteúdo certo; (b) produção não grava; (c) falha de escrita não propaga.
 
 ---
 
@@ -68,7 +68,10 @@ Quando `createForCharacter` gera uma aventura pelo motor (ramo "Criar minha hist
 - Reaproveitar a lógica de nome de arquivo/diretório de [apps/api/scripts/run-authoring.ts:56](../../../apps/api/scripts/run-authoring.ts) em vez de duplicar — extrair pra função pequena compartilhada se o service e o script forem os dois consumidores.
 - Condição de ambiente: mesmo `process.env.NODE_ENV !== 'production'` de [apps/api/src/adventure/adventure.module.ts:14](../../../apps/api/src/adventure/adventure.module.ts) (US-202) — não inventar variável nova sem checar se esta já resolve.
 - Caminho do diretório a partir de `adventure.service.ts` (`apps/api/src/adventure/`) tem 1 nível a mais de profundidade que `scripts/run-authoring.ts` (`apps/api/scripts/`): o script sobe 3 `../` até a raiz, o service precisa de 4 `../` — conferir antes de copiar o literal.
-- **Teste alvo muda:** critério de aceite fala em cobrir `createForCharacter`, mas quem roda a geração é `runAdventureGeneration` (promise solta) → `finalizeGeneratedAdventure`. Teste em `adventure.service.test.ts` precisa exercitar (ou esperar) `runAdventureGeneration`/`finalizeGeneratedAdventure`, não só chamar `createForCharacter` e checar retorno síncrono.
+- **Teste alvo muda:** critério de aceite fala em cobrir `createForCharacter`, mas quem roda a geração é `runAdventureGeneration` (promise solta) → `finalizeGeneratedAdventure`. Teste em `adventure.service.test.ts` precisa exercitar (ou esperar) `runAdventureGeneration`/`finalizeGeneratedAdventure`, não só chamar `createForCharacter` e checar retorno síncrono. Reusar o helper `createAndGenerate` já existente no teste ([adventure.service.test.ts:144](../../../apps/api/src/adventure/adventure.service.test.ts)) — já espiona `runAdventureGeneration` público e aguarda a promise solta, sem precisar expor `finalizeGeneratedAdventure` (privado).
+- **Helper compartilhado do dump:** novo arquivo `apps/api/src/adventure/adventure-authoring-dump.ts`, função `writeAuthoringDump(characterId, generated)` — dir (`evals/reports/`, 4 `../` a partir de `adventure/`), nome de arquivo e stamp (`new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)`, igual [run-authoring.ts:58](../../../apps/api/scripts/run-authoring.ts)). `run-authoring.ts` e `adventure.service.ts` importam os dois.
+- **Gate `NODE_ENV` fica só na chamada** dentro de `finalizeGeneratedAdventure`, nunca dentro de `writeAuthoringDump` — o helper sempre escreve quando chamado. Se o gate entrasse no helper, `run-authoring.ts` (script manual, às vezes roda contra prod pra inspecionar personagem real) pararia de escrever arquivo silenciosamente com `NODE_ENV=production`, quebrando o propósito do script (US-232).
+- **Teste mocka `node:fs`** (`writeFileSync`/`mkdirSync`) em vez de escrever arquivo real em `evals/reports/` — evita sujar disco a cada `pnpm test`. Cobre os 3 casos do critério de aceite (dev grava, produção não grava, falha de escrita não propaga) sem I/O real.
 
 ---
 

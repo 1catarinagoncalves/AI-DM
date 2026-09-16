@@ -10,6 +10,7 @@ import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegis
 import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
 import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-ledger'
+import { writeAuthoringDump } from './adventure-authoring-dump'
 import type { AdventureExportData } from './adventure-export'
 
 export interface CreateAdventureDto {
@@ -734,6 +735,18 @@ export class AdventureService {
         },
       })
     })
+
+    // US-243: dump best-effort do artefato aprovado, só depois da transação confirmar
+    // (senão o JSON em disco não bateria com o que foi persistido). Dev-only, mesmo gate de
+    // `adventure.module.ts` (US-202); nunca bloqueia a criação — falha de disco é só logada.
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        writeAuthoringDump(characterId, generated)
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(JSON.stringify({ event: 'authoring_dump_failed', adventureId, characterId, timestamp: new Date().toISOString(), errorMessage: message }))
+      }
+    }
   }
 
   /**

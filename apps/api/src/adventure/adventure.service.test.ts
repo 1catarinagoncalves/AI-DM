@@ -1,9 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
 import { AdventureService, type AdventureProfile } from './adventure.service'
 import { NAMING_REGISTERS } from '../adventure-generation/registry-catalog'
 import type { AiService } from '../ai/ai.service'
 import type { PrismaService } from '../prisma.service'
+
+// US-243: mocka só mkdirSync/writeFileSync pro arquivo INTEIRO — sem isto, todo
+// `createAndGenerate` abaixo (não só os testes desta US) gravaria de verdade em
+// evals/reports/ a cada `pnpm test` (NODE_ENV=test do Vitest não é 'production', então o
+// dump dispararia). Preserva o resto do módulo real (`importOriginal`): `lgmrd-tables.ts`
+// usa `readFileSync` pra carregar tabelas, e um mock raso derrubaria isso também.
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>()
+  return { ...actual, mkdirSync: vi.fn(), writeFileSync: vi.fn() }
+})
 
 // US-232: artefato BRUTO da autoria (índices, sem ids) que o fake de generateAdventureAuthoring
 // devolve. Graph-closed depois do minting: npc-0 ocupa loc-0, encounter/challenge/objective em
@@ -273,6 +284,55 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
     const service = new AdventureService(prisma, fakeAi())
     await createAndGenerate(service, 'char-1', {})
     expect(recorded.adventureUpdate?.['generatedAdventure']).toMatchObject({ id: 'char-1:1', summary: expect.any(String), start: expect.any(String) })
+  })
+
+  // US-243: dump em evals/reports/ depois da transação confirmar — cobre
+  // runAdventureGeneration/finalizeGeneratedAdventure (createForCharacter só dispara o job
+  // solto, ver `createAndGenerate` acima).
+  describe('US-243: dump da aventura gerada em evals/reports (dev-only)', () => {
+    const originalNodeEnv = process.env.NODE_ENV
+
+    // US-243: testes FORA deste describe também disparam o dump (NODE_ENV=test do Vitest não
+    // é 'production') — limpa antes de cada teste, não só depois, senão a contagem de chamadas
+    // herda os `createAndGenerate` de todo o resto do arquivo.
+    beforeEach(() => {
+      vi.mocked(writeFileSync).mockClear()
+      vi.mocked(mkdirSync).mockClear()
+    })
+
+    afterEach(() => {
+      process.env.NODE_ENV = originalNodeEnv
+    })
+
+    it('dev: grava o JSON com o mesmo artefato persistido em generatedAdventure', async () => {
+      process.env.NODE_ENV = 'test'
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const service = new AdventureService(prisma, fakeAi())
+      await createAndGenerate(service, 'char-1', {})
+
+      expect(writeFileSync).toHaveBeenCalledTimes(1)
+      const [path, contents] = vi.mocked(writeFileSync).mock.calls[0]!
+      expect(path).toMatch(/authoring-char-1-.+\.json$/)
+      expect(JSON.parse(contents as string)).toEqual(recorded.adventureUpdate?.['generatedAdventure'])
+    })
+
+    it('produção: não escreve nada', async () => {
+      process.env.NODE_ENV = 'production'
+      const { prisma } = fakePrisma(baseChar)
+      const service = new AdventureService(prisma, fakeAi())
+      await createAndGenerate(service, 'char-1', {})
+
+      expect(writeFileSync).not.toHaveBeenCalled()
+    })
+
+    it('falha de escrita não derruba a geração nem propaga', async () => {
+      process.env.NODE_ENV = 'test'
+      vi.mocked(writeFileSync).mockImplementationOnce(() => { throw new Error('disco cheio') })
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const service = new AdventureService(prisma, fakeAi())
+      await expect(createAndGenerate(service, 'char-1', {})).resolves.toMatchObject({ status: 'GENERATING' })
+      expect(recorded.adventureUpdate).toMatchObject({ status: 'ACTIVE' })
+    })
   })
 
   describe('US-235: teto do gate estourado → FAILED (nunca cai na "Aventura pronta")', () => {

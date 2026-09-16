@@ -8,14 +8,13 @@
 // (mesmo registro, mesmo gancho do summary). `attempt` (US-150, reseed) é o parâmetro certo
 // pra variar sem fingir um `order` que não existe: default = timestamp, então cada run é um
 // reseed novo; passe um valor fixo no 2º argumento pra reproduzir uma rolagem específica.
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { GeneratedAdventureSchema, SystemConfigSchema, resolveLocale, catalogLabel, type SystemConfig } from '@ai-dm/shared'
 import { resolveAdventuresAndAdvancement, type CharacterBackground } from '@ai-dm/ai-engine'
 import { PrismaService } from '../src/prisma.service'
 import { AiService } from '../src/ai/ai.service'
 import { AdventureService, type AdventureProfile } from '../src/adventure/adventure.service'
 import { configForLocale } from '../src/system/system-locale'
+import { writeAuthoringDump } from '../src/adventure/adventure-authoring-dump'
 
 async function main() {
   const prisma = new PrismaService()
@@ -53,11 +52,7 @@ async function main() {
 
   GeneratedAdventureSchema.parse(adventure) // lança se a forma não bate
 
-  const dir = resolve(__dirname, '../../../evals/reports')
-  mkdirSync(dir, { recursive: true })
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-  const path = resolve(dir, `authoring-${character.id}-${stamp}.json`)
-  writeFileSync(path, JSON.stringify(adventure, null, 2), 'utf8')
+  const path = writeAuthoringDump(character.id, adventure)
 
   console.log(`\n✅ .parse() OK em ${secs}s`)
   console.log(`💾 artefato: ${path}\n`)
