@@ -323,10 +323,11 @@ function chegouEmB(r: ViagemTurnResult): boolean {
 
 // A pergunta da US-116 é sobre o modelo que RODA em produção, não sobre candidatos do
 // bake-off (esses respondem "qual candidato é melhor?", pergunta diferente). Default =
-// `primaryModel` de `model.ts:166` (deepseek-v4-flash via OpenRouter, mesmo slug),
-// roteado pelo prefixo `openrouter:` que `resolveModel` já reconhece (US-17 slice 2).
+// `primaryModel` de `model.ts` (deepseek-v4-flash-0731 via OpenRouter, snapshot
+// pinado desde 16/09/2026 — mesmo slug), roteado pelo prefixo `openrouter:` que
+// `resolveModel` já reconhece (US-17 slice 2).
 // `VIAGEM_MODELS` é env separada de `MODELS` — os dois testes têm roster próprio.
-const VIAGEM_MODELS_DEFAULT = ['openrouter:deepseek/deepseek-v4-flash']
+const VIAGEM_MODELS_DEFAULT = ['openrouter:deepseek/deepseek-v4-flash-0731']
 function parseViagemModels(env: string | undefined): string[] {
   const ids = (env ?? '')
     .split(',')
@@ -531,7 +532,7 @@ describe('spike A/B viagem-pedida (US-116) — bloco de arco muda a taxa de cheg
   it.runIf(process.env['BAKEOFF'])(
     'mede a taxa de chegada em B nas variantes (a) sem arco e (b) com bloco de arco',
     async () => {
-      if (!process.env['OPENROUTER_API_KEY']) throw new Error('Falta OPENROUTER_API_KEY (modelo de produção, deepseek-v4-flash via OpenRouter)')
+      if (!process.env['OPENROUTER_API_KEY']) throw new Error('Falta OPENROUTER_API_KEY (modelo de produção, deepseek-v4-flash-0731 via OpenRouter)')
       const models = parseViagemModels(process.env['VIAGEM_MODELS'])
       const variantes: Array<{ id: 'a' | 'b'; turnState: string }> = [
         { id: 'a', turnState: VIAGEM_TURN_STATE_A },

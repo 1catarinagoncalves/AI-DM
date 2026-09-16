@@ -149,9 +149,8 @@ export const formatProvenance = (metadata: unknown): string => {
 // `createOpenAICompatible` acima — só aqui, por modelo (index.d.ts:284).
 const WITH_PROVENANCE = { metadataExtractor: OPENROUTER_PROVENANCE }
 
-// Narração: deepseek-v4-flash (DeepSeek) como primário, via OpenRouter. O id é o
-// slug do openrouter.ai. Se emitir raciocínio, o `exclude` em
-// NARRATION_PROVIDER_OPTIONS corta antes de vazar na prosa.
+// Narração: deepseek-v4-flash (DeepSeek) como primário, via OpenRouter. Histórico do
+// pin de versão (por que o slug é fixo, não o alias `-latest`):
 //
 // 22/08/2026: trocado de `~deepseek/deepseek-v4-flash-latest` (ROUTER alias, "always
 // redirects to the latest model in the DeepSeek V4 Flash family") para o slug fixo
@@ -160,9 +159,20 @@ const WITH_PROVENANCE = { metadataExtractor: OPENROUTER_PROVENANCE }
 // trocava de versão sozinho debaixo do prompt (medido em 04/08/2026: servia
 // `-0731` enquanto o slug fixo servia outro snapshot) — pin explícito fecha esse
 // drift; trocar de versão agora exige editar esta linha.
-// O pin de rota abaixo continua valendo: os dois probes (reasoning medium/exclude e
-// enabled:false) voltaram 200 com `provider: "DeepSeek"` e `require_parameters: true`.
-export const primaryModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-flash', {}, WITH_PROVENANCE)
+//
+// 16/09/2026: testado `qwen/qwen3.7-flash` (mesmo slug do `extractionModel`,
+// US-114) como primário — revertido no MESMO dia: o gate de qualidade (US-36,
+// `pnpm eval`) estourou os 900s de timeout agregado, sinal de travamento repetido
+// nas chamadas de geração com `reasoning: {effort:'medium', exclude:true}` (o par
+// que a narração usa) — diferente do "corpo vazio" que o `extractionModel` já
+// documentava para esse mesmo par. Não investigado a fundo; qwen3.7-flash não é
+// primário até isso ser resolvido.
+//
+// Mesma data: pin trocado do slug rolling `deepseek/deepseek-v4-flash` para o
+// snapshot datado `-0731` — pin mais duro que o slug nu (que o OpenRouter pode
+// atualizar sozinho para outro snapshot por baixo, como o histórico acima mostra
+// que já aconteceu com o alias `-latest`).
+export const primaryModel: LanguageModelV1 = openrouter('deepseek/deepseek-v4-flash-0731', {}, WITH_PROVENANCE)
 // Fallback: deepseek-v4-pro via OpenRouter. Mesma família do primário (tool
 // calling + raciocínio ok), modelo maior para o dia em que o flash falhar.
 // Nota: primário e fallback no MESMO provider — um outage do OpenRouter derruba
@@ -243,6 +253,13 @@ const DEEPSEEK_ALLOWED_PROVIDERS = [
  *
  * ponytail: o raciocínio ainda é gerado e cobrado, só não volta. Se o custo/TTFT
  * pesar, o próximo passo é `reasoning: { effort: 'low' }`.
+ *
+ * 16/09/2026: por algumas horas isto foi função de `modelId` (`narrationProviderOptions`)
+ * porque o primário virou `qwen/qwen3.7-flash` (não-DeepSeek) e o pin `DEEPSEEK_ROUTE`
+ * não tinha por que casar com o provider da Qwen — mesma lógica do
+ * `EXTRACTION_PROVIDER_OPTIONS` (US-114). Revertido no mesmo dia (ver histórico do
+ * `primaryModel`): voltou a ser objeto estático porque os dois modelos que usam este
+ * bloco (`primaryModel`, `fallbackModel`) são DeepSeek de novo.
  */
 // O pin de rota é o MESMO da narração e das extrações: o motivo dele (cache implícito,
 // fp4 fora, falha fechado) não muda com o tipo da chamada. Só o raciocínio difere.
