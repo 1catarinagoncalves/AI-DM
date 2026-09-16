@@ -683,13 +683,15 @@ ${nextEncounterSection}${summarySection}`.trimEnd()
  * semente. Restringe a saída a prosa + opções (sem tools, dados ou tags internas).
  * Reusa o mesmo system prompt (com a seção de ofício) dos turnos seguintes.
  *
- * US-194: `mainQuest`, quando presente, chega como o briefing ROTULADO composto por código
- * (`composeStartBriefing`, adventure.service.ts) — `Location:`/`Situation:`/`Scene type:`/
- * `Present:`, nunca mais prosa pronta de `generateOpeningBeat` (apagada). A instrução pede
- * COMPOR a cena a partir dele, não renderizar um beat já escrito — e carrega, ela mesma, o
- * que sobrevive daquela chamada: abrir *in medias res* (US-172), ramificado pelo `Scene type:`
- * do briefing, e mirar pelo menos 2 dos 3 apelos clássicos — recompensa/heroísmo/descoberta
- * (US-182). A permissão de nomear o antagonista (US-190/US-191) NÃO migra pra cá — ver US-199.
+ * US-194: `mainQuest`, quando presente, chega como `generated.summary + '\n' + generated.start`
+ * (`finalizeGeneratedAdventure`, adventure.service.ts) — prosa livre da autoria mundo-primeiro
+ * (`AUTHORING_SCHEMA`, ai.service.ts: `summary` é sinopse de uma linha, `start` é SÓ o gancho),
+ * nunca mais o beat pronto de `generateOpeningBeat` (apagada) nem o briefing rotulado de
+ * `composeStartBriefing` (também apagada, US-232). A instrução pede COMPOR a cena a partir dele
+ * — e carrega, ela mesma, o que sobrevive daquelas chamadas: abrir *in medias res* (US-172),
+ * ramificado por Scene type próprio (não mais lido do briefing), e mirar pelo menos 2 dos 3
+ * apelos clássicos — recompensa/heroísmo/descoberta (US-182). A permissão de nomear o
+ * antagonista (US-190/US-191) NÃO migra pra cá — ver US-199.
  */
 export function buildOpeningInstruction(params: { characterName: string; hookSeed: string; mainQuest?: string | null; locale?: Locale }): string {
   const { characterName, hookSeed, mainQuest } = params
@@ -699,9 +701,10 @@ export function buildOpeningInstruction(params: { characterName: string; hookSee
   const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
   // US-168: `mainQuest` (a aventura gerada) domina a fagulha da cena quando presente;
   // `hookSeed` (gancho fixo por classe) só volta como semente na ausência dele.
-  // US-194: pede para COMPOR a cena a partir do briefing, não mais para "renderizar" um
-  // beat já escrito (`generateOpeningBeat` apagada) — o briefing é campo estruturado
-  // (Location/Situation/Scene type/Present), não prosa, então "compor" é o verbo certo.
+  // US-194: pede para COMPOR a cena a partir do mainQuest, não mais para "renderizar" um
+  // beat já escrito (`generateOpeningBeat` apagada) — mainQuest é sinopse + gancho em prosa
+  // livre (summary + start, AUTHORING_SCHEMA), então "compor" segue o verbo certo mesmo
+  // sem o briefing rotulado que a intenção original (`composeStartBriefing`) previa.
   const spark = mainQuest
     ? `Use this as the spark for the scene — it is the opening briefing generated for this character. Compose the opening scene FROM it, matching the Narrative craft bar; do NOT quote it verbatim:
 "${mainQuest}"`

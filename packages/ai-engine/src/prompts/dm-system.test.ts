@@ -770,13 +770,14 @@ describe('buildOpeningInstruction — mainQuest domina o gancho fixo (US-168)', 
   })
 })
 
-// US-194: `generateOpeningBeat` foi apagada — `mainQuest` chega como briefing ROTULADO
-// composto por código (`composeStartBriefing`), não mais prosa pronta. A instrução pede
-// COMPOR a cena a partir dele (não renderizar um beat já escrito) e carrega, ela mesma, o
-// que sobrevive daquela chamada apagada: in medias res ramificado por Scene type e os 2 de
-// 3 apelos clássicos.
-describe('buildOpeningInstruction — compõe a partir do briefing, não renderiza beat pronto (US-194)', () => {
-  const mainQuest = 'Location: Enseada Cinzenta — Você chega.\nSituation: impedir o culto\nScene type: combat\nPresent: Marta'
+// US-194: `generateOpeningBeat` foi apagada — `mainQuest` chega como `generated.summary +
+// '\n' + generated.start` (finalizeGeneratedAdventure, adventure.service.ts), prosa livre da
+// autoria mundo-primeiro (AUTHORING_SCHEMA, ai.service.ts), não mais prosa pronta de beat. A
+// instrução pede COMPOR a cena a partir dele (não renderizar um beat já escrito) e carrega,
+// ela mesma, o que sobrevive daquela chamada apagada: in medias res ramificado por Scene type
+// e os 2 de 3 apelos clássicos.
+describe('buildOpeningInstruction — compõe a partir da aventura gerada, não renderiza beat pronto (US-194)', () => {
+  const mainQuest = 'Um culto celebra à beira d\'água na Enseada Cinzenta.\nO gancho: Marta corre até você, sangrando, e implora que impeça o ritual antes da lua cheia.'
 
   it('pede COMPOR a cena, não renderizar', () => {
     const p = buildOpeningInstruction({ characterName: 'Aria', hookSeed: 'gancho', mainQuest })
