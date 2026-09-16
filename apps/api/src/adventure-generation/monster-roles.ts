@@ -102,6 +102,35 @@ export function assignCombatRoles(count: number): MonsterRole[] {
   return Array.from({ length: count }, (_, i) => ROLES_BY_IMPACT[i % ROLES_BY_IMPACT.length]!)
 }
 
+/**
+ * Bugfix (Paladina nível 3, 16/09/2026): `assignCombatRoles` cru dava papel a TODO npcId sem
+ * checar orçamento — em nível 1-3 modo 'adventure' o orçamento é 0 (US-159, comportamento
+ * esperado do LGMRD), então qualquer encontro `combat` com >=1 NPC estourava sempre a
+ * verificação 3 do gate (adventure-gate.ts), condenando as 3 tentativas de regenerate (US-234)
+ * ao mesmo motivo estrutural — FAILED garantido, nunca dependia de sorte da autoria.
+ *
+ * Aplica o mesmo orçamento greedy de `composeEncounterRoles` POR CIMA da sequência posicional
+ * de `assignCombatRoles` — mantém a ordem/papel, mas descarta (`undefined`) as posições que
+ * estourariam o orçamento do dial. NPC sem `combatRole` não entra na soma que o gate verifica
+ * (adventure-gate.ts, já contemplado desde a US-233) — vira figurante na cena em vez de
+ * quebrar a geração inteira.
+ */
+export function assignBudgetedCombatRoles(
+  count: number,
+  level: number,
+  challenge: EncounterChallenge = 'adventure',
+): (MonsterRole | undefined)[] {
+  const soloCap = singleMonsterCrCap(level)
+  const sumBudget = challenge === 'challenge' ? soloCap : encounterDeadlyThreshold(level)
+  let sum = 0
+  return assignCombatRoles(count).map((role) => {
+    const cr = MONSTER_ROLE_CR[role]
+    if (cr >= soloCap || sum + cr >= sumBudget) return undefined
+    sum += cr
+    return role
+  })
+}
+
 // US-152: cada instância de papel vira um item de `npcs[]` sem schema novo — `id` continua o
 // contador sequencial `npc-N` que `generateLocationsAndNpcs` (US-158, ai.service.ts:1278) já
 // minta, por isso `existingNpcs` precisa ser a lista completa já mintada até aqui (sem

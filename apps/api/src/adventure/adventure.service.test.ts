@@ -641,6 +641,11 @@ describe('AdventureService.generateAdventure (US-232)', () => {
   // US-233 (PASSO 2): casa fiction com mecânica — papel de statblock por posição, sem número
   // vindo do modelo. `combatRole` só existe em NPC de encontro `combat`.
   describe('PASSO 2 — mecânica 5e determinística (US-233)', () => {
+    // Nível alto o bastante (orçamento > 0, US-159) pra mostrar o ciclo posicional puro sem o
+    // orçamento descartar nenhuma posição — o `profile` do describe pai (nível 3) é o caso
+    // ORÇAMENTO-ZERO coberto no bugfix abaixo.
+    const highBudgetProfile: AdventureProfile = { ...profile, level: 8 }
+
     function combatAuthored() {
       return authored({
         npcs: [
@@ -659,7 +664,7 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     }
 
     it('atribui combatRole Brute→Soldier→Minion por posição em encontro combat', async () => {
-      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
       const [chefe, capanga1, capanga2] = adventure.encounters[0]!.npcIds.map((id) => adventure.npcs.find((n) => n.id === id)!)
       expect(chefe!.combatRole).toBe('Brute')
       expect(capanga1!.combatRole).toBe('Soldier')
@@ -667,19 +672,33 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     })
 
     it('não atribui combatRole a NPC de encontro social/skill', async () => {
-      const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      const adventure = await service(fakeAi()).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
       expect(adventure.encounters[0]!.type).toBe('social')
       expect(adventure.npcs[0]!.combatRole).toBeUndefined()
     })
 
     it('mesma fiction (npcIndices fixo), mesmo resultado de combatRole — determinístico, sem seed', async () => {
-      const a = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-      const b = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      const a = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
+      const b = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
       expect(a.npcs.map((n) => n.combatRole)).toEqual(b.npcs.map((n) => n.combatRole))
     })
 
     it('resultado passa em .parse() com combatRole preenchido', async () => {
+      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
+      expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+    })
+
+    // Bugfix (Paladina nível 3, 16/09/2026): reprodução exata do caso real — nível 3, modo
+    // 'adventure' (orçamento 0, US-159), encontro combat com 3 NPCs. Antes do fix, os 3 recebiam
+    // combatRole incondicional e `checkEncounterBudget` (adventure-gate.ts) rejeitava sempre,
+    // esgotando as 3 tentativas de regenerate (US-234) sem chance de passar. Agora nenhuma
+    // posição recebe combatRole (figurantes), mas os NPCs continuam referenciados pelo encontro
+    // — não viram órfãos nem quebram `.parse()`.
+    it('nível 3 modo adventure (orçamento 0): nenhum NPC recebe combatRole, mas continuam no encontro sem quebrar o gate', async () => {
       const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+      const combatNpcs = adventure.encounters[0]!.npcIds.map((id) => adventure.npcs.find((n) => n.id === id)!)
+      expect(combatNpcs).toHaveLength(3)
+      expect(combatNpcs.every((n) => n.combatRole === undefined)).toBe(true)
       expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
     })
   })

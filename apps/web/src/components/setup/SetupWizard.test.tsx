@@ -1020,7 +1020,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
       expect(routerPush).toHaveBeenCalledWith('/play/adv-2?characterId=char-1')
     })
 
-    // US-235 (nota de implementação): teto ~120s do lado cliente — cai em erro+retry sozinho
+    // US-235 (nota de implementação): teto ~180s do lado cliente — cai em erro+retry sozinho
     // mesmo sem o servidor emitir FAILED (dyno pode reiniciar no meio do job).
     it('sem status final dentro do teto → mesma tela de erro (timeout do polling)', async () => {
       createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
@@ -1029,9 +1029,29 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
       vi.useFakeTimers()
       fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
-      await act(async () => { await vi.advanceTimersByTimeAsync(125_000) })
+      await act(async () => { await vi.advanceTimersByTimeAsync(185_000) })
 
       expect(screen.getByText('A geração deu errado')).toBeTruthy()
+    }, 15000)
+
+    // Bug real (Bardo, 15/09/2026): o motor terminou ACTIVE segundos depois do teto do
+    // cliente estourar — a corrida antiga declarava timeout sem checar de novo, deixando
+    // a aventura órfã (jogadora via erro, aventura funcionando no banco). A consulta extra
+    // depois do loop precisa pegar esse ACTIVE tardio em vez de lançar generation_timeout.
+    it('motor termina ACTIVE bem depois do teto → navega em vez de declarar timeout', async () => {
+      createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
+      let calls = 0
+      // 60 = STATUS_POLL_TIMEOUT_MS (180_000) / STATUS_POLL_INTERVAL_MS (3_000): todas as
+      // consultas DENTRO do loop ainda veem GENERATING; só a consulta extra pós-teto vê ACTIVE.
+      getAdventureStatus.mockImplementation(async () => ({ status: ++calls <= 60 ? 'GENERATING' : 'ACTIVE' }))
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(185_000) })
+
+      expect(screen.queryByText('A geração deu errado')).toBeNull()
+      expect(routerPush).toHaveBeenCalledWith('/play/adv-1?characterId=char-1')
     }, 15000)
   })
 

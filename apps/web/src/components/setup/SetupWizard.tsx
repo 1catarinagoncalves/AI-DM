@@ -989,11 +989,18 @@ export function SetupWizard() {
   // US-235: intervalo entre consultas e teto total do polling — folga sobre os ~95s
   // esperados do motor (US-235 §Decisões técnicas). Estourar o teto cai em erro+retry
   // sozinho, sem depender do servidor emitir FAILED (dyno pode reiniciar no meio do job).
+  // Bug real (Bardo, 15/09/2026): 120s tinha pouca folga — o motor com regenera-on-fail
+  // (US-234) passou do teto num caso real e só terminou (ACTIVE) segundos DEPOIS do
+  // cliente já ter desistido, órfão no banco enquanto a jogadora via "deu errado". 180s
+  // dá mais margem; a consulta extra em pollAdventureStatus cobre o resto da corrida.
   const STATUS_POLL_INTERVAL_MS = 3000
-  const STATUS_POLL_TIMEOUT_MS = 120_000
+  const STATUS_POLL_TIMEOUT_MS = 180_000
 
   // US-235: consulta `getAdventureStatus` até ACTIVE (resolve) ou FAILED/timeout (lança) —
   // GENERATING nunca é o estado final, só o motivo de continuar tentando.
+  // Bug real (Bardo, 15/09/2026): estourar o teto não significa que o motor falhou — ele
+  // pode terminar bem um instante depois do cliente parar de esperar. Uma última consulta
+  // depois do loop evita declarar timeout numa aventura que, na verdade, já é ACTIVE.
   async function pollAdventureStatus(adventureId: string): Promise<void> {
     const deadline = Date.now() + STATUS_POLL_TIMEOUT_MS
     while (Date.now() < deadline) {
@@ -1002,6 +1009,9 @@ export function SetupWizard() {
       if (status === 'ACTIVE') return
       if (status === 'FAILED') throw new Error('generation_failed')
     }
+    const { status } = await api.getAdventureStatus(charId, adventureId)
+    if (status === 'ACTIVE') return
+    if (status === 'FAILED') throw new Error('generation_failed')
     throw new Error('generation_timeout')
   }
 

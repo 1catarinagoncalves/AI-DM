@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { MONSTER_ROLE_CR, composeEncounterRoles, chooseAntagonistRole, totalCr, buildEncounterNpcs, assignCombatRoles } from './monster-roles'
+import { MONSTER_ROLE_CR, composeEncounterRoles, chooseAntagonistRole, totalCr, buildEncounterNpcs, assignCombatRoles, assignBudgetedCombatRoles } from './monster-roles'
 import { encounterDeadlyThreshold, singleMonsterCrCap } from './lazy-encounter-benchmark'
 import type { AdventureNpc } from '@ai-dm/shared'
 
@@ -170,5 +170,58 @@ describe('assignCombatRoles (US-233)', () => {
 
   it('determinístico — mesmo count produz sempre a mesma sequência', () => {
     expect(assignCombatRoles(4)).toEqual(assignCombatRoles(4))
+  })
+})
+
+// Bugfix (Paladina nível 3, 16/09/2026): `assignCombatRoles` cru dava papel a TODO npcId sem
+// checar orçamento — em nível 1-3 modo 'adventure' o orçamento é 0 (US-159, esperado), então
+// qualquer encontro combat com >=1 NPC estourava a verificação 3 do gate sempre, condenando as
+// 3 tentativas de regenerate ao mesmo motivo (FAILED garantido). Ver adventure-gate.ts.
+describe('assignBudgetedCombatRoles (bugfix — orçamento por posição)', () => {
+  it('nível 1-3, modo adventure (orçamento 0): nenhuma posição cabe — tudo undefined, nunca estoura o gate', () => {
+    for (const level of [1, 2, 3]) {
+      expect(assignBudgetedCombatRoles(3, level)).toEqual([undefined, undefined, undefined])
+    }
+  })
+
+  it('reproduz o caso real: Paladina nível 3, encontro com 1 NPC (Brute posicional) → undefined em vez de CR 2 > limiar 0', () => {
+    expect(assignBudgetedCombatRoles(1, 3)).toEqual([undefined])
+  })
+
+  it('nível 4+, modo adventure: descarta só o que não cabe, mantém o resto dentro do limiar de soma', () => {
+    const roles = assignBudgetedCombatRoles(3, 4)
+    const kept = roles.filter((r): r is 'Minion' | 'Soldier' | 'Brute' => r !== undefined)
+    expect(totalCr(kept)).toBeLessThan(encounterDeadlyThreshold(4))
+    expect(roles).toEqual([undefined, 'Soldier', 'Minion'])
+  })
+
+  it("modo challenge, nível onde Brute cabe sozinho (CR 2 < soloCap): mantém a posição", () => {
+    // soloCap('challenge') = singleMonsterCrCap(level) = level (level < 5) — nível 3+ dá folga
+    // pro Brute (CR 2) não bater no teto de monstro único (`>=`, mesmo operador do gate).
+    for (const level of [3, 4, 8]) {
+      expect(assignBudgetedCombatRoles(1, level, 'challenge')).toEqual(assignCombatRoles(1))
+    }
+  })
+
+  it('modo challenge, nível onde o Brute sozinho JÁ bate o teto de monstro único: descarta (mesma regra do gate)', () => {
+    // singleMonsterCrCap(2) = 2 — Brute (CR 2) alcança o teto (`>=`), oversized mesmo em challenge.
+    expect(assignBudgetedCombatRoles(1, 2, 'challenge')).toEqual([undefined])
+  })
+
+  it('nunca degrada um papel que já estoura o teto de monstro único sozinho (mesmo abaixo do limiar de soma)', () => {
+    // nível 8 challenge: soloCap = 8; Brute (CR 2) cabe sozinho, mas count alto não deve
+    // "reciclar" um Brute além do que o teto de monstro único permitiria — aqui só garante que
+    // nenhum papel mantido tem CR >= soloCap.
+    const roles = assignBudgetedCombatRoles(6, 8, 'challenge')
+    const kept = roles.filter((r): r is 'Minion' | 'Soldier' | 'Brute' => r !== undefined)
+    expect(kept.every((r) => MONSTER_ROLE_CR[r] < singleMonsterCrCap(8))).toBe(true)
+  })
+
+  it('count 0 devolve array vazio', () => {
+    expect(assignBudgetedCombatRoles(0, 3)).toEqual([])
+  })
+
+  it("'adventure' omitido bate com 'adventure' explícito — default não quebra chamador existente", () => {
+    expect(assignBudgetedCombatRoles(3, 5)).toEqual(assignBudgetedCombatRoles(3, 5, 'adventure'))
   })
 })
