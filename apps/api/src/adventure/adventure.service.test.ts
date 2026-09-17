@@ -750,6 +750,13 @@ describe('AdventureService.generateAdventure (US-232)', () => {
       expect(capanga2!.combatRole).toBe('Minion')
     })
 
+    // US-252: todo NPC com combatRole ganha nominalCreature (bestiário SRD) na mesma passada.
+    it('atribui nominalCreature a todo NPC que recebe combatRole', async () => {
+      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
+      const combatNpcs = adventure.encounters[0]!.npcIds.map((id) => adventure.npcs.find((n) => n.id === id)!)
+      expect(combatNpcs.every((n) => n.combatRole && n.nominalCreature)).toBe(true)
+    })
+
     it('não atribui combatRole a NPC de encontro social/skill', async () => {
       const adventure = await service(fakeAi()).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
       expect(adventure.encounters[0]!.type).toBe('social')
@@ -778,6 +785,7 @@ describe('AdventureService.generateAdventure (US-232)', () => {
       const combatNpcs = adventure.encounters[0]!.npcIds.map((id) => adventure.npcs.find((n) => n.id === id)!)
       expect(combatNpcs).toHaveLength(3)
       expect(combatNpcs.every((n) => n.combatRole === undefined)).toBe(true)
+      expect(combatNpcs.every((n) => n.nominalCreature === undefined)).toBe(true)
       expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
     })
   })

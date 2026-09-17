@@ -6,6 +6,7 @@ import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type ClassFeature, type KnownSpell, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
 import { assignBudgetedCombatRoles, composeEncounterRoles, type EncounterChallenge } from '../adventure-generation/monster-roles'
+import { BESTIARY, chooseNominalCreature } from '../adventure-generation/bestiary'
 import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
@@ -328,12 +329,21 @@ export class AdventureService {
     // tem orçamento 0 (US-159), então dar papel a TODO npcId sempre estourava a verificação 3
     // do gate, sem chance de passar em nenhuma das 3 tentativas de regenerate. Posição que não
     // cabe no orçamento fica sem combatRole (figurante, não desaparece da ficção).
+    // US-252: nome de criatura do bestiário SRD (US-251) por trás do combatRole — insumo pra
+    // narração, não rótulo mecânico exposto. `preferredType` fica undefined nesta v1: nem
+    // `encounter.type`/`location.vibe` (mesmo eixo combat/skill/social, não mapeia pra `type`
+    // de criatura) nem `faction.kind` (texto livre, sem correspondência com as categorias do
+    // bestiário) servem de tema hoje — ver US-252, Notas de implementação.
     for (const encounter of encounters) {
       if (encounter.type !== 'combat') continue
       const roles = assignBudgetedCombatRoles(encounter.npcIds.length, profile.level, profile.challenge)
       encounter.npcIds.forEach((npcId, i) => {
         const npc = npcs.find((n) => n.id === npcId)
-        if (npc && roles[i]) npc.combatRole = roles[i]
+        const role = roles[i]
+        if (npc && role) {
+          npc.combatRole = role
+          npc.nominalCreature = chooseNominalCreature(role, undefined, BESTIARY, i)
+        }
       })
     }
 

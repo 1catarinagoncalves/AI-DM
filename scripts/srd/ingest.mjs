@@ -53,6 +53,10 @@ const EN_OVERLAY_PATH = join(HERE, 'locale', 'en-US.json')
 // US-110: único derivado que NÃO mora aqui. Ele é importado como JSON pelo builder do
 // prompt, e importar de fora do pacote arrastaria o `rootDir` do tsc (armadilha da US-108).
 const D20_TESTS_PATH = join(HERE, '..', '..', 'packages', 'ai-engine', 'src', 'prompts', 'd20-tests.srd-2024.json')
+// US-252: mesmo motivo do D20_TESTS_PATH acima — bestiary-5e.json (US-251) é importado como
+// JSON direto por TS em runtime (apps/api/src/adventure-generation/bestiary.ts), então precisa
+// viver DENTRO do pacote consumidor, não em scripts/srd/ (cruzar rootDir quebraria o dist).
+const BESTIARY_PATH = join(HERE, '..', '..', 'apps', 'api', 'src', 'adventure-generation', 'bestiary-5e.json')
 const STRICT = process.argv.includes('--strict')
 const NO_MT = process.argv.includes('--no-mt')
 
@@ -1427,9 +1431,11 @@ async function main() {
   console.log(`\n  ability-modifiers.srd-2024.json: ${abilityModifiers.rows.length} faixas, pontuação ${abilityModifiers.range.min}–${abilityModifiers.range.max} (US-108)`)
 
   // US-251 — bestiário nominal, mesmo motivo de "sem locale" do ability-modifiers acima.
+  // US-252 — grava DENTRO de apps/api (BESTIARY_PATH), não mais em scripts/srd/ (ver comentário
+  // de BESTIARY_PATH acima): precisa ser importável por TS em runtime sem cruzar rootDir.
   const bestiary = buildBestiary(creaturesRaw)
-  await write('bestiary-5e.json', bestiary)
-  console.log(`  bestiary-5e.json: ${bestiary.length} criaturas (US-251)`)
+  await writeFile(BESTIARY_PATH, stableStringify(bestiary) + '\n')
+  console.log(`  ${relative(join(HERE, '..', '..'), BESTIARY_PATH).replace(/\\/g, '/')}: ${bestiary.length} criaturas (US-251/US-252)`)
 
   // US-110 — as tabelas de exemplo do d20 test. As chaves de habilidade são conferidas
   // contra os atributos que ESTE bump construiu: tabela e catálogo discordando falha aqui,

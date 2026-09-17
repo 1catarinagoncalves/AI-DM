@@ -10,6 +10,9 @@ import { z } from 'zod'
 // NÃO é `role` (texto narrativo livre, US-232) — valores espelham MonsterRole
 // (apps/api/src/adventure-generation/monster-roles.ts) por VALOR LITERAL, não por import
 // (shared não pode depender de apps/api).
+// US-252: `nominalCreature?` — nome de criatura do bestiário SRD (US-251) escolhido pra dar
+// forma ficcional ao `combatRole` (ex.: Soldier → "Orc"), em inglês. Insumo pra quem narra, não
+// rótulo exposto cru — ausente pra NPC sem combatRole.
 export const AdventureNpcSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -17,6 +20,7 @@ export const AdventureNpcSchema = z.object({
   want: z.string().min(1),
   factionId: z.string().min(1).optional(),
   combatRole: z.enum(['Minion', 'Soldier', 'Brute']).optional(),
+  nominalCreature: z.string().min(1).optional(),
 })
 
 // US-232: mundo autoral nomeado (ex.: "Khemsar, o Mar de Areia") — DISTINTO da chave
