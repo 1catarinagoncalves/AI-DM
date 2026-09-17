@@ -5,7 +5,7 @@ import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type ClassFeature, type KnownSpell, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
-import { assignBudgetedCombatRoles, composeEncounterRoles, type EncounterChallenge } from '../adventure-generation/monster-roles'
+import { assignBudgetedCombatRoles, composeEncounterRoles, MONSTER_ROLE_CR, type EncounterChallenge, type MonsterRole } from '../adventure-generation/monster-roles'
 import { BESTIARY, chooseNominalCreature } from '../adventure-generation/bestiary'
 import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
@@ -162,6 +162,42 @@ export class AdventureService {
   }
 
   /**
+   * US-253: elenco nominal POR SLOT de encontro (0..`encounterCount`-1), calculado ANTES da
+   * autoria — mesma régua de papel de `assignBudgetedCombatRoles` que o PASSO 2 já usa (não só
+   * `assignCombatRoles`/`ROLES_BY_IMPACT` cru): a composição greedy de `composeEncounterRoles`
+   * (que decide `maxHostileCount`) NÃO é a mesma sequência que um ciclo reto Brute→Soldier→Minion
+   * dá pro MESMO total — em nível 4+ isso já faz `assignBudgetedCombatRoles` descartar 1-2
+   * posições por estourar o orçamento (checado com tsx antes de fechar esta story). Usar aqui a
+   * função de ORÇAMENTO (não a crua) garante que TODO nome prometido no prompt é um nome que o
+   * PASSO 2 vai CONFIRMAR depois — nunca promete mais do que a mecânica sustenta. Índice de
+   * `chooseNominalCreature` usa a posição BRUTA `i` (antes de descartar `undefined`) somada a
+   * `slotIndex * maxHostileCount` — mesma fórmula, mesmo array-base, que o PASSO 2 usa.
+   */
+  private buildCombatCast(
+    combatBudget: { maxHostileCount: number; viable: boolean },
+    encounterCount: number,
+    level: number,
+    challenge: EncounterChallenge,
+  ): Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>> | undefined {
+    if (!combatBudget.viable) return undefined
+    const roles = assignBudgetedCombatRoles(combatBudget.maxHostileCount, level, challenge)
+    const affordableCrs = roles.filter((role): role is MonsterRole => role !== undefined).map((role) => MONSTER_ROLE_CR[role])
+    const strongestCr = Math.max(...affordableCrs)
+    return Array.from({ length: encounterCount }, (_, slotIndex) =>
+      roles.flatMap((role, i) =>
+        role === undefined
+          ? []
+          : [
+              {
+                nominalCreature: chooseNominalCreature(role, undefined, BESTIARY, slotIndex * combatBudget.maxHostileCount + i),
+                strongerThanRest: MONSTER_ROLE_CR[role] === strongestCr,
+              },
+            ],
+      ),
+    )
+  }
+
+  /**
    * US-232: orquestrador do motor mundo-primeiro — UMA chamada de autoria (`generateAdventureAuthoring`,
    * escada `authoringModels`) + montagem determinística (minta ids dos índices que o modelo
    * emitiu) + backstop de local órfão. Substitui o encadeamento de 6 `generate*` (MA-1). Devolve
@@ -206,6 +242,9 @@ export class AdventureService {
     // vira restrição de prompt em vez de checagem tardia que descarta posição em silêncio.
     const combatRoles = composeEncounterRoles(profile.level, profile.challenge)
     const combatBudget = { maxHostileCount: combatRoles.length, viable: combatRoles.length > 0 }
+    // US-253: elenco nominal por slot de encontro — soma ao combatBudget como restrição de
+    // prompt, pra ficção já ser escrita sobre a criatura real (ver buildCombatCast acima).
+    const combatCast = this.buildCombatCast(combatBudget, counts.encounters, profile.level, profile.challenge)
 
     const { adventure: authored, modelId } = await this.ai.generateAdventureAuthoring({
       world,
@@ -218,6 +257,7 @@ export class AdventureService {
       level: profile.level,
       className: catalogLabel(config.classes, profile.classKey),
       combatBudget,
+      combatCast,
       locale,
     })
 
@@ -334,18 +374,22 @@ export class AdventureService {
     // `encounter.type`/`location.vibe` (mesmo eixo combat/skill/social, não mapeia pra `type`
     // de criatura) nem `faction.kind` (texto livre, sem correspondência com as categorias do
     // bestiário) servem de tema hoje — ver US-252, Notas de implementação.
-    for (const encounter of encounters) {
-      if (encounter.type !== 'combat') continue
+    // US-253: índice de `chooseNominalCreature` soma `slotIndex * combatBudget.maxHostileCount`
+    // — MESMA fórmula de `buildCombatCast` (acima), senão o nome de fallback/confirmação aqui
+    // diverge do nome que já foi prometido no prompt de autoria pra aquele slot. `slotIndex` é
+    // a posição do encontro no array (0-based), não um contador só dos `combat`.
+    encounters.forEach((encounter, slotIndex) => {
+      if (encounter.type !== 'combat') return
       const roles = assignBudgetedCombatRoles(encounter.npcIds.length, profile.level, profile.challenge)
       encounter.npcIds.forEach((npcId, i) => {
         const npc = npcs.find((n) => n.id === npcId)
         const role = roles[i]
         if (npc && role) {
           npc.combatRole = role
-          npc.nominalCreature = chooseNominalCreature(role, undefined, BESTIARY, i)
+          npc.nominalCreature = chooseNominalCreature(role, undefined, BESTIARY, slotIndex * combatBudget.maxHostileCount + i)
         }
       })
-    }
+    })
 
     return GeneratedAdventureSchema.parse({
       id: `${characterId}:${order}`,

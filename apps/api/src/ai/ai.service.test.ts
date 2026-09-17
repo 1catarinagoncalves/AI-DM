@@ -1073,4 +1073,48 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
     })
     expect(genObj.prompt).toMatch(/PROIBID[OA].*combat/i)
   })
+
+  // US-253: elenco nominal por posição de encontro (`combatCast`, calculado em
+  // adventure.service.ts ANTES desta chamada) vira restrição do prompt — a ficção do encontro
+  // `combat` já sabe qual criatura real vai lutar em cada slot, no lugar de a mecânica (US-252)
+  // encaixar o nome depois de a prosa já ter decidido outro inimigo.
+  it('combatCast presente → prompt lista os nomes por posição de encontro, com líder marcado', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: {},
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 2 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
+      level: 5,
+      className: 'ladino',
+      combatBudget: { maxHostileCount: 2, viable: true },
+      combatCast: [
+        [{ nominalCreature: 'Ogre', strongerThanRest: true }, { nominalCreature: 'Goblin', strongerThanRest: false }],
+        [{ nominalCreature: 'Skeleton', strongerThanRest: true }, { nominalCreature: 'Zombie', strongerThanRest: false }],
+      ],
+    })
+    expect(genObj.prompt).toContain('Encontro 1')
+    expect(genObj.prompt).toMatch(/Ogre \(mais forte, lidera\)/)
+    expect(genObj.prompt).toMatch(/Goblin \(apoio\)/)
+    expect(genObj.prompt).toContain('Encontro 2')
+    expect(genObj.prompt).toContain('Skeleton')
+  })
+
+  it('combatCast ausente (orçamento não viável) → prompt não sugere nenhuma criatura de combate', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: {},
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
+      level: 3,
+      className: 'ladino',
+      combatBudget: { maxHostileCount: 0, viable: false },
+    })
+    expect(genObj.prompt).not.toMatch(/os inimigos são/)
+  })
 })

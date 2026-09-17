@@ -227,6 +227,7 @@ function buildAuthoringPrompt(params: {
   className: string
   questSeed: string
   combatBudget: { maxHostileCount: number; viable: boolean }
+  combatCast?: Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>>
 }): string {
   const worldLines = [
     params.world.setting && `- Cenário: ${params.world.setting}`,
@@ -254,6 +255,17 @@ function buildAuthoringPrompt(params: {
   const combatBudgetLine = params.combatBudget.viable
     ? `- Em qualquer encontro type: 'combat', NO MÁXIMO ${params.combatBudget.maxHostileCount} inimigo(s) — o personagem não sustenta mais que isso neste nível.`
     : `- PROIBIDO usar type: 'combat' em qualquer encontro desta aventura — o personagem não tem orçamento de combate neste nível/modo.`
+  // US-253: elenco nominal por POSIÇÃO de encontro (buildCombatCast, adventure.service.ts) —
+  // a ficção já sabe qual criatura real vai lutar em cada slot ANTES de escrever, no lugar de a
+  // mecânica (US-252) encaixar o nome depois de a prosa já ter decidido outro inimigo. Ausente
+  // (`combatCast` undefined) quando o orçamento não é viável — nenhum nome é oferecido,
+  // consistente com a proibição de `combat` que `combatBudgetLine` já instrui.
+  const combatCastLines = (params.combatCast ?? []).map((cast, slotIndex) => {
+    const parts = cast.map(
+      ({ nominalCreature, strongerThanRest }) => `${nominalCreature}${strongerThanRest ? ' (mais forte, lidera)' : ' (apoio)'}`,
+    )
+    return `- Se o Encontro ${slotIndex + 1} for de combate, os inimigos são: ${parts.join(' + ')}. Narre ESSAS criaturas pra essa posição (pode adaptar/traduzir o nome pro idioma-alvo, mesma espécie), não invente outras.`
+  })
   return [
     `Personagem: ${params.className}, nível ${params.level}. (Contexto de escala — a aventura NÃO gira em torno dele nem do passado dele.)`,
     params.characterStory?.trim()
@@ -281,6 +293,7 @@ function buildAuthoringPrompt(params: {
     combatBudgetLine,
     `- ${params.factionCount} rumos em branchedResolution e ${params.factionCount} followUps (um por facção)`,
     '',
+    ...(combatCastLines.length > 0 ? [combatCastLines.join('\n'), ''] : []),
     'Emita na ordem: mundo → facções → conflito+fecho (story/branchedResolution) → objetivo+recompensa → locais/NPCs (e o que cada um quer) → followUps → ficção dos encontros → desafios não-combate.',
   ].join('\n')
 }
@@ -1545,6 +1558,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     className: string
     questSeed: string
     combatBudget: { maxHostileCount: number; viable: boolean }
+    combatCast?: Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>>
     locale?: Locale
   }): Promise<{ adventure: AuthoredAdventure; modelId: string }> {
     const locale = params.locale ?? DEFAULT_LOCALE

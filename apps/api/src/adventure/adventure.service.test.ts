@@ -643,6 +643,32 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     expect(capture['combatBudget']).toEqual({ maxHostileCount: expectedCount, viable: true })
   })
 
+  // US-253: elenco nominal por SLOT de encontro chega à autoria já calculado — a ficção sabe
+  // qual criatura vai lutar em cada posição ANTES de escrever (reusa chooseNominalCreature/US-252,
+  // não reimplementa).
+  it('combatCast chega à autoria: ausente com orçamento 0, um elenco por counts.encounters quando viável', async () => {
+    const capture: Record<string, unknown> = {}
+    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+    expect(capture['combatCast']).toBeUndefined()
+
+    const capture2: Record<string, unknown> = {}
+    const highLevelProfile: AdventureProfile = { ...profile, level: 5 }
+    await service(fakeAi(null, null, {}, authored(), capture2)).generateAdventure(highLevelProfile, 'char-1', 1, 'pt-BR', config)
+    const cast = capture2['combatCast'] as Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>>
+    expect(cast).toHaveLength(3) // counts.encounters
+    expect(cast[0]!.length).toBeGreaterThan(0)
+    expect(cast.every((slot) => slot.some((c) => c.strongerThanRest))).toBe(true)
+  })
+
+  it('combatCast: elenco da posição 0 difere do da posição 1 (bestiário tem >1 candidato por papel)', async () => {
+    const capture: Record<string, unknown> = {}
+    const highLevelProfile: AdventureProfile = { ...profile, level: 5 }
+    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(highLevelProfile, 'char-1', 1, 'pt-BR', config)
+    const cast = capture['combatCast'] as Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>>
+    expect(cast.length).toBeGreaterThan(1)
+    expect(cast[0]).not.toEqual(cast[1])
+  })
+
   it('backstop: local órfão (sem encontro/desafio/objetivo/occupant) recebe um occupant', async () => {
     const twoLoc = authored({
       locations: [
@@ -787,6 +813,52 @@ describe('AdventureService.generateAdventure (US-232)', () => {
       expect(combatNpcs.every((n) => n.combatRole === undefined)).toBe(true)
       expect(combatNpcs.every((n) => n.nominalCreature === undefined)).toBe(true)
       expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
+    })
+
+    // US-253 (bugfix): antes, `chooseNominalCreature` recebia só o índice DENTRO do encontro (`i`)
+    // — dois encontros combat com o mesmo papel na posição 0 (Brute) caíam no MESMO nome
+    // (`chooseNominalCreature` é pura). Agora soma `slotIndex * combatBudget.maxHostileCount`,
+    // mesma fórmula de `buildCombatCast` — o nome de fallback bate com o que foi prometido no
+    // prompt pra CADA slot, e dois Brutes em slots diferentes não repetem elenco.
+    it('dois encontros combat, mesmo papel na mesma posição → nominalCreature difere por slot', async () => {
+      const twoCombats = authored({
+        npcs: [
+          { name: 'Chefe A', role: 'bandido líder', want: 'defender o esconderijo' },
+          { name: 'Chefe B', role: 'outro bandido líder', want: 'defender o covil' },
+        ],
+        locations: [{ title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'y', occupants: [0, 1], vibe: 'combat' as const }],
+        encounters: [
+          { locationIndex: 0, npcIndices: [0], type: 'combat' as const, fiction: 'a', behaviors: 'b', goal: 'g', complications: 'c', unlocks: 'u' },
+          { locationIndex: 0, npcIndices: [1], type: 'combat' as const, fiction: 'a2', behaviors: 'b', goal: 'g', complications: 'c', unlocks: 'u' },
+        ],
+      })
+      const adventure = await service(fakeAi(null, null, {}, twoCombats)).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
+      const [chefeA, chefeB] = adventure.npcs
+      expect(chefeA!.combatRole).toBe('Brute')
+      expect(chefeB!.combatRole).toBe('Brute')
+      expect(chefeA!.nominalCreature).not.toBe(chefeB!.nominalCreature)
+    })
+
+    // US-253: garantia de ponta a ponta — o nome que `combatCast` promete no prompt (calculado
+    // com `assignBudgetedCombatRoles`, não o `assignCombatRoles` cru) é o MESMO que o PASSO 2
+    // confirma depois, quando a autoria obedece a contagem MÁXIMA do orçamento. Achado ao testar
+    // manualmente com tsx: em nível 8, `composeEncounterRoles` dá 7 de orçamento, mas um ciclo
+    // reto Brute→Soldier→Minion de 7 estoura o orçamento em 2 posições — sem usar a MESMA função
+    // budgeted dos dois lados, o prompt prometeria nome pra posição que o PASSO 2 depois deixa
+    // sem `combatRole` (figurante muda, contradizendo a ficção).
+    it('nome prometido em combatCast bate, em ordem, com nominalCreature confirmado pelo PASSO 2 (autoria usa a contagem MÁXIMA)', async () => {
+      const capture: Record<string, unknown> = {}
+      const maxCount = composeEncounterRoles(8, 'adventure').length
+      const npcs = Array.from({ length: maxCount }, (_, i) => ({ name: `NPC ${i}`, role: 'combatente', want: 'lutar' }))
+      const obedient = authored({
+        npcs,
+        locations: [{ title: 'Arena', aspects: [], boxedText: 'x', description: 'y', occupants: npcs.map((_, i) => i), vibe: 'combat' as const }],
+        encounters: [{ locationIndex: 0, npcIndices: npcs.map((_, i) => i), type: 'combat' as const, fiction: 'f', behaviors: 'b', goal: 'g', complications: 'c', unlocks: 'u' }],
+      })
+      const adventure = await service(fakeAi(null, null, {}, obedient, capture)).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
+      const promised = (capture['combatCast'] as Array<Array<{ nominalCreature: string }>>)[0]!
+      const confirmed = adventure.npcs.map((n) => n.nominalCreature).filter((n): n is string => n !== undefined)
+      expect(confirmed).toEqual(promised.map((p) => p.nominalCreature))
     })
   })
 })
