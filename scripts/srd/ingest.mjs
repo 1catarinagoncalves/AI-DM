@@ -1112,6 +1112,24 @@ export function buildWeapons(overlay, itemsRaw, weaponMeta, resolve) {
     .sort((a, b) => a.key.localeCompare(b.key))
 }
 
+// --- bestiário (US-251): 325 criaturas nomeadas do SRD 5.1, projeção mínima pro que o motor
+// precisa NESTA fase (nome/CR/tipo/tamanho) — sem ability scores/ataques/HP/CA (statblock
+// completo não tem consumidor até existir combate por turno, mesmo corte da US-152). SEM
+// locale/overlay: nome fica em inglês no dado, tradução é trabalho de quem consome (prompt),
+// mesmo padrão de `ability-modifiers.srd-2024.json` (US-108, "atravessa locale sem tradução").
+// `challenge_rating` chega como string decimal (`"0.125"`, `"2.000"`) — `Number()` direto
+// converte certo pros três valores que MONSTER_ROLE_CR usa, sem precisar de parser de fração.
+export function buildBestiary(creaturesRaw) {
+  return creaturesRaw
+    .map((c) => ({
+      name: c.fields.name,
+      cr: Number(c.fields.challenge_rating),
+      type: c.fields.type,
+      size: c.fields.size,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
 // --- classProficiencies (US-221): armadura/arma/ferramenta por classe, extensão de
 // config.classes[] — a MESMA feature "Proficiencies" que buildClassFeatures agora EXCLUI de
 // classFeatures (ver isProficiencies ali) entra aqui, estruturada. Achada por `parent` +
@@ -1349,7 +1367,7 @@ async function main() {
   const [
     abilities, rules, skillsRaw, languagesRaw, classes2014, features2014, featureItems2014, spells, species2014,
     speciesTraits, backgrounds, backgroundBenefits, items, marshalClasses, marshalFeatures, marshalFeatureItems,
-    weaponsRaw, weaponPropertyAssignments,
+    weaponsRaw, weaponPropertyAssignments, creaturesRaw,
   ] = await Promise.all([
     load('AbilityDescription.json'),
     load('Rule.json'),
@@ -1373,6 +1391,8 @@ async function main() {
     // US-228: mesmo doc srd-2024 de Item.json — metadado de combate (category/weaponType) por arma.
     load('Weapon.json'),
     load('WeaponPropertyAssignment.json'),
+    // US-251: bestiário nominal, só srd-2014 (fonte única, ver sync.mjs).
+    load('Creature.json'),
   ])
   const classes = [...classes2014, ...marshalClasses]
   const features = [...features2014, ...marshalFeatures]
@@ -1405,6 +1425,11 @@ async function main() {
   const abilityModifiers = parseAbilityModifiers(rules, TAG)
   await write('ability-modifiers.srd-2024.json', abilityModifiers)
   console.log(`\n  ability-modifiers.srd-2024.json: ${abilityModifiers.rows.length} faixas, pontuação ${abilityModifiers.range.min}–${abilityModifiers.range.max} (US-108)`)
+
+  // US-251 — bestiário nominal, mesmo motivo de "sem locale" do ability-modifiers acima.
+  const bestiary = buildBestiary(creaturesRaw)
+  await write('bestiary-5e.json', bestiary)
+  console.log(`  bestiary-5e.json: ${bestiary.length} criaturas (US-251)`)
 
   // US-110 — as tabelas de exemplo do d20 test. As chaves de habilidade são conferidas
   // contra os atributos que ESTE bump construiu: tabela e catálogo discordando falha aqui,

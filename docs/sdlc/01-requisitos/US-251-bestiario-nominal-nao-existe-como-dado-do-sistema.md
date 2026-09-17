@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma
 **Relacionado:** [US-47](./US-47-ingestao-srd-como-dado.md) (`scripts/srd/sync.mjs`/`ingest.mjs`, o pipeline cujo padrão esta story reusa) · [ADR 009](../../adr/009-uniao-dos-srd-5-1-e-5-2.md) (união vs. fonte única entre SRD 5.1/5.2 — precedente pra decisão equivalente sobre criaturas) · [US-145](./US-145-sync-lgmrd-notice.md) (`5e_Monster_Builder.json`, bestiário **por papel**, não nominal — convive, não é substituído) · [US-152](./US-152-statblocks-papel-orcamento.md) (`MONSTER_ROLE_CR`, os três papéis que esta story vai casar com nome real, story própria: [US-252](./US-252-papel-do-encontro-vira-monstro-nominal-nao-rotulo-generico.md)) · [ADR 004](../../adr/004-origem-do-dado-de-sistema.md) (origem do dado de sistema — Open5e, mesma proveniência)
 **Criada em:** 2026-09-17 — a jogadora trouxe `dndgenerate.md`/[open5e.com/monsters](https://open5e.com/monsters) pedindo que os encontros do motor usem monstro nominal do SRD, não só papel genérico (Minion/Soldier/Brute); esta story é o passo 1 (o dado), separado da story que consome (US-252/US-253).
@@ -93,13 +93,13 @@ Cada entrada já vem estruturada — `name`, `challenge_rating` (string numéric
 
 ## Critérios de aceite
 
-- [ ] `sync.mjs` baixa `Creature.json` de `srd-2014` (SRD 5.1) no tag `v2.1.0` já pinado — `srd-2024` (5.2) não é baixado por esta story.
-- [ ] `ingest.mjs` produz `bestiary-5e.json` com `name`/`cr`/`type`/`size` por criatura, sem ability scores/ataques/HP/CA.
-- [ ] `cr` no artefato final é número (fração/decimal), não a string bruta do Open5e (`"0.125"`).
-- [ ] Artefato cobre pelo menos uma criatura em cada um dos três CR que `MONSTER_ROLE_CR` usa (1/8, 1/2, 2).
-- [ ] `NOTICE-open5e.md` documenta `Creature.json` como fonte nova (mesmo padrão das entradas anteriores).
-- [ ] `pnpm typecheck` e testes do módulo (`ingest.test.mjs`) passam.
-- [ ] **Eval / teste de regressão:** rodar `ingest.mjs` contra um fixture reduzido de `Creature.json` (2-3 entradas, CR conhecido) e comparar o artefato produzido byte-a-byte com o esperado — mesmo padrão de teste que `ingest.test.mjs` já usa pros outros catálogos.
+- [x] `sync.mjs` baixa `Creature.json` de `srd-2014` (SRD 5.1) no tag `v2.1.0` já pinado — `srd-2024` (5.2) não é baixado por esta story.
+- [x] `ingest.mjs` produz `bestiary-5e.json` com `name`/`cr`/`type`/`size` por criatura, sem ability scores/ataques/HP/CA.
+- [x] `cr` no artefato final é número (fração/decimal), não a string bruta do Open5e (`"0.125"`).
+- [x] Artefato cobre pelo menos uma criatura em cada um dos três CR que `MONSTER_ROLE_CR` usa (1/8, 1/2, 2).
+- [x] `NOTICE-open5e.md` documenta `Creature.json` como fonte nova (mesmo padrão das entradas anteriores).
+- [x] `pnpm typecheck` e testes do módulo (`ingest.test.mjs`) passam.
+- [x] **Eval / teste de regressão:** rodar `ingest.mjs` contra um fixture reduzido de `Creature.json` (2-3 entradas, CR conhecido) e comparar o artefato produzido byte-a-byte com o esperado — mesmo padrão de teste que `ingest.test.mjs` já usa pros outros catálogos.
 
 ---
 

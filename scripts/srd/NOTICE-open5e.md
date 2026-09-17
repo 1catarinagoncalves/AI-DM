@@ -2,7 +2,8 @@
 
 Os artefatos [`srd-5e.config.en-US.json`](./srd-5e.config.en-US.json),
 [`srd-5e.config.pt-BR.json`](./srd-5e.config.pt-BR.json),
-[`ability-modifiers.srd-2024.json`](./ability-modifiers.srd-2024.json) e
+[`ability-modifiers.srd-2024.json`](./ability-modifiers.srd-2024.json),
+[`bestiary-5e.json`](./bestiary-5e.json) e
 [`d20-tests.srd-2024.json`](../../packages/ai-engine/src/prompts/d20-tests.srd-2024.json) são
 **derivados** do System Reference Document 5.2 ("SRD 5.2") e do System Reference Document 5.1
 ("SRD 5.1"), publicados por **Wizards of the Coast LLC**, obtidos a partir do projeto **Open5e**
@@ -11,6 +12,12 @@ Os artefatos [`srd-5e.config.en-US.json`](./srd-5e.config.en-US.json),
 O `ability-modifiers.srd-2024.json` (US-108) é a tabela de modificadores de habilidade extraída do
 texto normativo (`Rule.json`, regras `srd-2024_the-six-abilities_*`) — só SRD 5.2, sem 5.1 e sem
 localização: a tabela é numérica e atravessa locale sem tradução.
+
+O [`bestiary-5e.json`](./bestiary-5e.json) (US-251) é o bestiário nominal — 325 criaturas
+(`name`/`cr`/`type`/`size`, sem statblock de combate) extraídas de `Creature.json`, só do
+SRD 5.1 (`srd-2014`, fonte única — sem união com o `srd-2024`, mesma decisão do parágrafo
+seguinte). Também sem localização: o nome da criatura atravessa locale sem tradução, mesmo
+motivo do `ability-modifiers.srd-2024.json` logo acima.
 
 O `d20-tests.srd-2024.json` (US-110) traz as tabelas de exemplo do ruleset `srd-2024_d20-tests`
 (qual habilidade a situação chama, em teste/salvaguarda/ataque, mais as Classes de Dificuldade) —

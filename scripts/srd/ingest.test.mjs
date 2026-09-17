@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildSubclassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseClassEquipmentChoices, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildWeaponMeta, buildAlignments, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
+import { formatOverlay, flagMissingGlossaryTerms, buildRaces, buildRaceFeatures, buildClasses, buildSubclasses, buildClassFeatures, buildSubclassFeatures, buildClassProficiencies, buildClassSpells, buildStartingKits, firstAlternative, parseSrdEquipmentBullets, parseClassEquipmentChoices, parseA5ePackageEquipment, withRetired, buildBackgrounds, buildSkills, buildLanguages, buildTools, buildWeapons, buildWeaponMeta, buildAlignments, buildBestiary, parseBackgroundEquipment, parseAbilityGrant, parseSkillGrant, parseToolGrant, titleCase, makeResolver } from './ingest.mjs'
 // US-108: a tabela de modificadores mora em módulo próprio (o ingest.mjs já passa de 500
 // linhas), mas os testes ficam AQUI porque é este arquivo que o CI roda (`pnpm srd:ingest:test`).
 import { parseAbilityModifiers } from './ability-modifiers.mjs'
@@ -1821,6 +1821,66 @@ test('buildWeapons: as 44 entradas reais do Item.json pinado batem, com category
   for (const key of stillMelee) {
     const w = result.find((r) => r.key === key)
     assert.equal(w.weaponType, 'melee', `${key} é arremessável mas continua corpo a corpo`)
+  }
+})
+
+// --- US-251 — buildBestiary: Creature.json (srd-2014) → bestiary-5e.json, sem overlay/locale ---
+
+const creature = (pk, name, cr, type, size, extra = {}) => ({
+  pk,
+  fields: { name, challenge_rating: cr, type, size, hit_points: 10, armor_class: 12, ...extra },
+})
+
+test('buildBestiary: projeta só name/cr/type/size, cr vira número, statblock de combate não vaza', () => {
+  const creaturesRaw = [
+    creature('srd_goblin', 'Goblin', '0.250', 'humanoid', 'small'),
+    creature('srd_bandit', 'Bandit', '0.125', 'humanoid', 'medium'),
+  ]
+  const result = buildBestiary(creaturesRaw)
+  assert.deepEqual(result, [
+    { name: 'Bandit', cr: 0.125, type: 'humanoid', size: 'medium' },
+    { name: 'Goblin', cr: 0.25, type: 'humanoid', size: 'small' },
+  ])
+  for (const entry of result) {
+    assert.ok(!('hit_points' in entry) && !('armor_class' in entry), `statblock de combate vazou: ${JSON.stringify(entry)}`)
+  }
+})
+
+test('buildBestiary: fixture reduzido reproduz o artefato esperado byte-a-byte (regressão)', () => {
+  // Mesmas 3 criaturas que MONSTER_ROLE_CR usa (monster-roles.ts): 1/8, 1/2, 2.
+  const creaturesRaw = [
+    creature('srd_bandit', 'Bandit', '0.125', 'humanoid', 'medium'),
+    creature('srd_orc', 'Orc', '0.500', 'humanoid', 'medium'),
+    creature('srd_ogre', 'Ogre', '2.000', 'giant', 'large'),
+  ]
+  const result = buildBestiary(creaturesRaw)
+  assert.deepEqual(result, [
+    { name: 'Bandit', cr: 0.125, type: 'humanoid', size: 'medium' },
+    { name: 'Ogre', cr: 2, type: 'giant', size: 'large' },
+    { name: 'Orc', cr: 0.5, type: 'humanoid', size: 'medium' },
+  ])
+})
+
+// Contra o dataset PINADO real (não fixture): as 325 criaturas do srd-2014 (US-251 §Contexto),
+// cobrindo os três CR que MONSTER_ROLE_CR usa (monster-roles.ts).
+test('buildBestiary: as 325 criaturas reais do Creature.json pinado cobrem os 3 CR de MONSTER_ROLE_CR', () => {
+  const creaturesRaw = JSON.parse(readFileSync(join(import.meta.dirname, '_data', 'Creature.json'), 'utf8'))
+  const result = buildBestiary(creaturesRaw)
+  assert.equal(result.length, 325)
+  const crs = new Set(result.map((c) => c.cr))
+  for (const cr of [0.125, 0.5, 2]) assert.ok(crs.has(cr), `CR ${cr} ausente do bestiário`)
+  for (const c of result) {
+    assert.equal(typeof c.cr, 'number', `cr não numérico em ${c.name}`)
+    assert.ok(c.name && c.type && c.size, `entrada incompleta: ${JSON.stringify(c)}`)
+  }
+})
+
+// --- artefato: bestiary-5e.json sai gravado sem locale, mesma contagem que o dataset real ---
+test('artefato bestiary-5e.json: 325 criaturas com name/cr/type/size', () => {
+  const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'bestiary-5e.json'), 'utf8'))
+  assert.equal(artifact.length, 325)
+  for (const c of artifact) {
+    assert.ok(c.name && typeof c.cr === 'number' && c.type && c.size, `entrada incompleta: ${JSON.stringify(c)}`)
   }
 })
 

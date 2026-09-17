@@ -67,6 +67,10 @@ const FILES = [
   [`${SRD_2014}/ClassFeature.json`, 'ClassFeature.json'],
   [`${SRD_2014}/ClassFeatureItem.json`, 'ClassFeatureItem.json'],
   [`${SRD_2014}/Spell.json`, 'Spell.json'],
+  // US-251: bestiário nominal (325 criaturas), só srd-2014 — decisão de fonte única (sem
+  // união com o 5.2), mesmo padrão de races/classes acima. `srd-2024/Creature.json` existe
+  // (331 criaturas) mas não entra: fora do escopo desta story.
+  [`${SRD_2014}/Creature.json`, 'Creature.json'],
   [`${A5E_AG}/Background.json`, 'Background.json'],
   [`${A5E_AG}/BackgroundBenefit.json`, 'BackgroundBenefit.json'],
   [`${A5E_AG}/CharacterClass.json`, 'CharacterClass.a5e-ag.json'],
