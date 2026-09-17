@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🚧 Em progresso
 **Depende de:** [US-251](./US-251-bestiario-nominal-nao-existe-como-dado-do-sistema.md) (`bestiary-5e.json`, o dado que esta story consome) · [US-233](./US-233-numeros-dos-encontros-passo-2-5e.md) (PASSO 2, `assignCombatRoles`/`assignBudgetedCombatRoles` — o ponto exato onde `npc.combatRole` é atribuído hoje, e onde esta story troca o nome)
 **Relacionado:** [US-152](./US-152-statblocks-papel-orcamento.md) (`MONSTER_ROLE_CR`, os três papéis — não mudam, só ganham nome real por trás) · [US-250](./US-250-autoria-inventa-numero-de-inimigos-sem-orcamento-de-cr.md) (CR como parâmetro de ENTRADA da autoria — eixo diferente, mas sem ela `assignBudgetedCombatRoles` devolve `combatRole: undefined` pra TODO NPC em nível 1-3/modo `'adventure'`, sempre — `sumBudget` é 0 nesse caso, [monster-roles.ts:128](../../../apps/api/src/adventure-generation/monster-roles.ts), qualquer `cr > 0` já estoura; esta story não depende dela pra RODAR, mas sem ela só produz `nominalCreature` em nível 4+ ou modo `'challenge'`) · [US-253](./US-253-autoria-recebe-nome-do-monstro-nominal-como-parametro.md) (evolução desta story: leva o nome escolhido aqui pro prompt de autoria, quando US-250 estiver pronta) · [US-29](./US-29-saneamento-de-rolagens-ficticias.md) (HP/CD/ataque não vêm do modelo nem deste bestiário — só nome/tipo, sem número de combate)
 **Criada em:** 2026-09-17 — segunda parte do pedido de bestiário nominal (US-251 é o dado; esta é o consumo mínimo, sem esperar a inversão de ordem que US-253 propõe).
