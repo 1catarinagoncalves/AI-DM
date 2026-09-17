@@ -114,7 +114,7 @@ Cada entrada já vem estruturada — `name`, `challenge_rating` (string numéric
 
 ## Questões em aberto
 
-1. **`bestiary-5e.json` cresce junto do `srd-5e.config.<locale>.json`, ou fica arquivo à parte?** Proposto à parte (ver *Modelo de dados proposto*) porque não tem locale nem é consumido pelo mesmo caminho (ficha de personagem vs. motor de aventura) — confirmar se compensa juntar mesmo assim.
+Nenhuma — questão #1 (arquivo à parte vs. dentro de `srd-5e.config.<locale>.json`) fechada em 17/09/2026, a pedido da mantenedora: **arquivo à parte** (`scripts/srd/bestiary-5e.json`, ver *Modelo de dados proposto*). Juntar duplicaria as 325 criaturas nos dois locales (en-US/pt-BR) sem motivo — o bestiário não tem texto pra traduzir — e acoplaria o motor de aventura (único consumidor) ao catálogo de personagem inteiro (~8000 linhas de raças/classes/spells) só pra ler nome/CR/tipo.
 
 ---
 
