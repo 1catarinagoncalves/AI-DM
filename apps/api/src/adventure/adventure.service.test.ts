@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
 import { AdventureService, type AdventureProfile } from './adventure.service'
 import { NAMING_REGISTERS } from '../adventure-generation/registry-catalog'
+import { composeEncounterRoles } from '../adventure-generation/monster-roles'
 import type { AiService } from '../ai/ai.service'
 import type { PrismaService } from '../prisma.service'
 
@@ -622,6 +623,24 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     expect(capture['className']).toBe('Mago')
     expect((capture['world'] as Record<string, unknown>)['tone']).toBe('Heroico')
     expect(NAMING_REGISTERS).toContain(capture['namingRegister'])
+  })
+
+  // US-250: orçamento de CR entra na autoria calculado ANTES da chamada (composeEncounterRoles),
+  // não mais só checado depois no PASSO 2 — nível 3/modo 'adventure' tem orçamento SEMPRE 0
+  // (US-159), então a autoria deve receber a proibição de `combat`.
+  it('combatBudget chega à autoria: nível 3/modo adventure → orçamento 0 (composeEncounterRoles é a única fonte)', async () => {
+    const capture: Record<string, unknown> = {}
+    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+    expect(capture['combatBudget']).toEqual({ maxHostileCount: 0, viable: false })
+  })
+
+  it('combatBudget chega à autoria: nível 5+ → orçamento > 0, mesma contagem que composeEncounterRoles devolve', async () => {
+    const capture: Record<string, unknown> = {}
+    const highLevelProfile: AdventureProfile = { ...profile, level: 5 }
+    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(highLevelProfile, 'char-1', 1, 'pt-BR', config)
+    const expectedCount = composeEncounterRoles(5, 'adventure').length
+    expect(expectedCount).toBeGreaterThan(0)
+    expect(capture['combatBudget']).toEqual({ maxHostileCount: expectedCount, viable: true })
   })
 
   it('backstop: local órfão (sem encontro/desafio/objetivo/occupant) recebe um occupant', async () => {

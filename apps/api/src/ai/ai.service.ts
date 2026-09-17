@@ -226,6 +226,7 @@ function buildAuthoringPrompt(params: {
   level: number
   className: string
   questSeed: string
+  combatBudget: { maxHostileCount: number; viable: boolean }
 }): string {
   const worldLines = [
     params.world.setting && `- Cenário: ${params.world.setting}`,
@@ -245,6 +246,14 @@ function buildAuthoringPrompt(params: {
     params.world.setting &&
       `O MacGuffin da semente acima é vocabulário PADRÃO do LGMRD (fantasia medieval) — TRANSPONHA os substantivos pro eixo de Cenário já restringido acima (ex.: obelisco/cripta → núcleo de reator/estação abandonada, num Cenário sci-fi), mantendo conceito+motivo; NÃO force cripta/obelisco/patrono élfico se o Cenário destoar.`,
   ].filter((l): l is string => Boolean(l))
+  // US-250: orçamento de CR (composeEncounterRoles, calculado em adventure.service.ts ANTES
+  // desta chamada) vira restrição de prompt — sem isso a autoria promete N inimigos que o
+  // PASSO 2 (assignBudgetedCombatRoles) descarta em silêncio por estourar o nível. Nível 1-3
+  // modo 'adventure' tem orçamento SEMPRE 0 (US-159): proíbe `combat` de vez, no lugar de deixar
+  // todo encontro combat estourar por construção.
+  const combatBudgetLine = params.combatBudget.viable
+    ? `- Em qualquer encontro type: 'combat', NO MÁXIMO ${params.combatBudget.maxHostileCount} inimigo(s) — o personagem não sustenta mais que isso neste nível.`
+    : `- PROIBIDO usar type: 'combat' em qualquer encontro desta aventura — o personagem não tem orçamento de combate neste nível/modo.`
   return [
     `Personagem: ${params.className}, nível ${params.level}. (Contexto de escala — a aventura NÃO gira em torno dele nem do passado dele.)`,
     params.characterStory?.trim()
@@ -269,6 +278,7 @@ function buildAuthoringPrompt(params: {
     `- ~${counts.npcs} NPCs`,
     `- ${counts.challenges} desafios NÃO-COMBATE (cada um preso a um local)`,
     `- ${counts.encounters} encontros (inclua um Final que amarra o fecho ramificado)`,
+    combatBudgetLine,
     `- ${params.factionCount} rumos em branchedResolution e ${params.factionCount} followUps (um por facção)`,
     '',
     'Emita na ordem: mundo → facções → conflito+fecho (story/branchedResolution) → objetivo+recompensa → locais/NPCs (e o que cada um quer) → followUps → ficção dos encontros → desafios não-combate.',
@@ -1534,6 +1544,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
     level: number
     className: string
     questSeed: string
+    combatBudget: { maxHostileCount: number; viable: boolean }
     locale?: Locale
   }): Promise<{ adventure: AuthoredAdventure; modelId: string }> {
     const locale = params.locale ?? DEFAULT_LOCALE

@@ -844,10 +844,14 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
     followUps: ['algo desperta'],
   }
 
+  // US-250: orçamento de combate neutro (>0) pros testes que não são sobre ele — só os 2
+  // testes dedicados no fim do describe variam `combatBudget`.
+  const combatBudget = { maxHostileCount: 4, viable: true }
+
   it('devolve o objeto bruto do modelo (sem mintar ids — isso é do adventure.service) + modelId do arm vencedor', async () => {
     genObj.error = undefined
     genObj.result = authored
-    const result = await svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', questSeed: 'Kill a villain because a Sly Elf demands it', level: 3, className: 'ladino' })
+    const result = await svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', questSeed: 'Kill a villain because a Sly Elf demands it', level: 3, className: 'ladino', combatBudget })
     expect(result.adventure).toBe(authored)
     expect(result.modelId).toBe(authoringModels[0]!.modelId)
   })
@@ -864,6 +868,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       questSeed: 'Kill a villain because a Sly Elf demands it',
       level: 3,
       className: 'ladino',
+      combatBudget,
     })
     expect(genObj.prompt).toContain('4 facções')
     expect(genObj.prompt).toContain('cresceu batendo carteira nos cais')
@@ -883,6 +888,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       questSeed: 'Kill a villain because a Sly Elf demands it',
       level: 3,
       className: 'ladino',
+      combatBudget,
     })
     expect(genObj.prompt).toContain('Norse/Germanic')
     expect(genObj.prompt).toMatch(/facç(ões|ão)/)
@@ -902,6 +908,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
         questSeed: 'Kill a villain because a Sly Elf demands it',
         level: 3,
         className: 'ladino',
+        combatBudget,
       }),
     ).rejects.toThrow('modelo indisponível')
   })
@@ -931,6 +938,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
         questSeed: 'Kill a villain because a Sly Elf demands it',
         level: 3,
         className: 'ladino',
+        combatBudget,
       })
       expect(result.adventure).toBe(authored)
       expect(genObj.calls).toBe(2)
@@ -955,6 +963,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       questSeed: 'Kill a villain because of the Obelisk in the Crypts, which is Smoky and Ruined',
       level: 3,
       className: 'ladino',
+      combatBudget,
     })
     expect(genObj.prompt).toContain('Kill a villain because of the Obelisk in the Crypts, which is Smoky and Ruined')
     expect(genObj.system).toMatch(/traduza|adapte/i)
@@ -972,6 +981,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       questSeed: 'Kill a villain because a Sly Elf demands it',
       level: 3,
       className: 'ladino',
+      combatBudget,
     })
     expect(genObj.prompt).toMatch(/TRANSPON[HA]A|transponha/i)
     expect(genObj.prompt).toMatch(/Cenário/)
@@ -988,6 +998,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       questSeed: 'Kill a villain because a Sly Elf demands it',
       level: 3,
       className: 'ladino',
+      combatBudget,
     })
     expect(genObj.prompt).not.toMatch(/TRANSPON[HA]A|transponha/i)
   })
@@ -1006,6 +1017,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       questSeed: 'Kill a villain because a Sly Elf demands it',
       level: 3,
       className: 'ladino',
+      combatBudget,
     })
     expect(genObj.prompt).toContain('- Cenário: Cyberpunk urbano')
     expect(genObj.prompt).toContain('- Tom: Sombrio')
@@ -1019,8 +1031,46 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
       questSeed: 'Kill a villain because a Sly Elf demands it',
       level: 3,
       className: 'ladino',
+      combatBudget,
     })
     expect(genObj.prompt).not.toMatch(/Cenário:|Tom:|Tipo de área:/)
     expect(genObj.prompt).toContain('Sem eixos de mundo fixados')
+  })
+
+  // US-250: orçamento de CR calculado ANTES da autoria (composeEncounterRoles, adventure.service.ts)
+  // vira restrição no prompt — a autoria nunca mais escreve `combat` que a mecânica já sabe, de
+  // antemão, que não vai caber (ver US-250, Contexto e motivação).
+  it('orçamento viável (>0) → prompt tem a contagem MÁXIMA de inimigos por encontro combat, sem proibir type: combat', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: {},
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
+      level: 5,
+      className: 'ladino',
+      combatBudget: { maxHostileCount: 6, viable: true },
+    })
+    expect(genObj.prompt).toContain('6')
+    expect(genObj.prompt).toMatch(/combat/)
+    expect(genObj.prompt).not.toMatch(/PROIBID[OA]/i)
+  })
+
+  it('orçamento 0 (nível 1-3, modo adventure) → prompt PROÍBE type: combat em qualquer encontro', async () => {
+    genObj.error = undefined
+    genObj.result = authored
+    await svc().generateAdventureAuthoring({
+      world: {},
+      factionCount: 3,
+      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
+      namingRegister: 'Celtic',
+      questSeed: 'Kill a villain because a Sly Elf demands it',
+      level: 3,
+      className: 'ladino',
+      combatBudget: { maxHostileCount: 0, viable: false },
+    })
+    expect(genObj.prompt).toMatch(/PROIBID[OA].*combat/i)
   })
 })

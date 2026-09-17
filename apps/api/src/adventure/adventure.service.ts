@@ -5,7 +5,7 @@ import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
 import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type ClassFeature, type KnownSpell, type OriginNarrative } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
-import { assignBudgetedCombatRoles, type EncounterChallenge } from '../adventure-generation/monster-roles'
+import { assignBudgetedCombatRoles, composeEncounterRoles, type EncounterChallenge } from '../adventure-generation/monster-roles'
 import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
 import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
 import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
@@ -201,6 +201,11 @@ export class AdventureService {
     }
     const counts = { locations: 6, npcs: 7, challenges: 3, encounters: 3 }
 
+    // US-250: mesmo orçamento do PASSO 2 (composeEncounterRoles), calculado ANTES da autoria —
+    // vira restrição de prompt em vez de checagem tardia que descarta posição em silêncio.
+    const combatRoles = composeEncounterRoles(profile.level, profile.challenge)
+    const combatBudget = { maxHostileCount: combatRoles.length, viable: combatRoles.length > 0 }
+
     const { adventure: authored, modelId } = await this.ai.generateAdventureAuthoring({
       world,
       factionCount,
@@ -211,6 +216,7 @@ export class AdventureService {
       questSeed,
       level: profile.level,
       className: catalogLabel(config.classes, profile.classKey),
+      combatBudget,
       locale,
     })
 
