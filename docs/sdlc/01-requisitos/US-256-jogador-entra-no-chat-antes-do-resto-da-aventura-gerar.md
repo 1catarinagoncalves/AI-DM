@@ -4,8 +4,9 @@
 **Fase:** 1 — MVP single-player
 **Status:** 📋 Planejada (não iniciada)
 **Depende de:** [US-255](./US-255-start-reordenado-apos-locais-nomeados.md) (`start` precisa já estar posicionado depois de `locations` — sem isso a fatia parcial liberada nem teria o gancho pronto) · [US-234](./US-234-gate-regenera-on-fail-com-saneamento.md) (gate + regenera-on-fail — a tensão central desta story) · [US-235](./US-235-gatilho-assincrono-tela-de-espera-erro-retry.md) (gatilho assíncrono + polling que esta story adianta)
-**Relacionado:** [backlog-motor-de-geracao-de-aventuras.md](./backlog-motor-de-geracao-de-aventuras.md) (MA-1/MA-4/MA-5, o desenho que esta story evolui)
+**Relacionado:** [backlog-motor-de-geracao-de-aventuras.md](./backlog-motor-de-geracao-de-aventuras.md) (MA-1/MA-4/MA-5, o desenho que esta story evolui) · [US-257](./US-257-abertura-narra-identidade-do-personagem.md) (✅ — acrescentou `generateIntroNarration` em `Promise.all` com `generateOpeningNarration` dentro de `finalizeGeneratedAdventure`; a fatia parcial desta story precisa cobrir as DUAS chamadas, não só a abertura)
 **Criada em:** 2026-09-17 — desmembrada da US-255 original a pedido da mantenedora, pra reordenação do campo (pronta pra implementar) não ficar presa atrás de uma decisão de arquitetura ainda em aberto.
+**Atualizada em:** 2026-09-18 — referências de linha e Escopo revisados após a implementação da US-257, que mexeu exatamente nas funções que esta story referencia (`finalizeGeneratedAdventure` cresceu de ~90 para ~150 linhas, `generateAdventureAuthoring` deslocou ~80 linhas em `ai.service.ts`).
 
 ---
 
@@ -23,9 +24,9 @@
 
 `createForCharacter` já é assíncrono (US-235): a `Adventure` nasce em `GENERATING` e o controller devolve na hora; quem acompanha é o polling do frontend (`pollAdventureStatus`, [SetupWizard.tsx:1011](../../../apps/web/src/components/setup/SetupWizard.tsx)), que só sai do loop quando o status vira `ACTIVE`. Entre `GENERATING` e `ACTIVE` hoje cabe, em série:
 
-1. `generateAdventure` → **uma** chamada bloqueante (`generateObject`, [ai.service.ts:1571](../../../apps/api/src/ai/ai.service.ts)) que só resolve quando o objeto INTEIRO (`world`…`followUps`, 11 campos) sai pronto — com escada de até 3 modelos se um falhar.
+1. `generateAdventure` → **uma** chamada bloqueante (`generateObject`, [ai.service.ts:1650](../../../apps/api/src/ai/ai.service.ts)) que só resolve quando o objeto INTEIRO (`world`…`followUps`, 11 campos) sai pronto — com escada de até 3 modelos se um falhar.
 2. O gate (US-234, `generateWithGate`) pode **regenerar a CHAMADA 1 inteira** até `maxAttempts` vezes se `parse`/grafo/orçamento/saneamento reprovar.
-3. `finalizeGeneratedAdventure` ainda faz MAIS duas chamadas de LLM em série — `generateOpeningNarration` ([adventure.service.ts:707](../../../apps/api/src/adventure/adventure.service.ts)) e `extractOpeningScene` ([adventure.service.ts:742](../../../apps/api/src/adventure/adventure.service.ts)) — antes de gravar e virar `ACTIVE`.
+3. `finalizeGeneratedAdventure` ainda faz MAIS duas chamadas de LLM em PARALELO — `generateOpeningNarration` e `generateIntroNarration` (US-257, `Promise.all`, [adventure.service.ts:748-796](../../../apps/api/src/adventure/adventure.service.ts), não soma latência entre si) — seguidas de uma TERCEIRA em série, `extractOpeningScene` ([adventure.service.ts:805](../../../apps/api/src/adventure/adventure.service.ts)) — antes de gravar e virar `ACTIVE`.
 
 O jogador só vê a tela de chat depois de TODA essa cadeia. O `start` é conteúdo que já existe muito antes do fim dela — é só a chamada 1 que não expõe nada até acabar por inteiro.
 
@@ -43,7 +44,7 @@ O jogador só vê a tela de chat depois de TODA essa cadeia. O `start` é conte�
 
 - Trocar `generateObject` por `streamObject` em `generateAdventureAuthoring`, consumindo `partialObjectStream` até os campos `world`…`start` estarem completos.
 - Minting parcial: assim que `factions`/`npcs`/`locations`/`start` (+ `summary`/`story`/`world`) estiverem prontos no stream, mintar ids de facção/NPC/local **só dessa fatia** (mesma lógica de `generateAdventure`, [adventure.service.ts:267-300](../../../apps/api/src/adventure/adventure.service.ts), aplicada a um subconjunto) e semear o ledger (`seedLedgerFromGeneratedAdventure`, adaptado pra aceitar um artefato parcial).
-- Rodar `generateOpeningNarration` + `extractOpeningScene` sobre essa fatia parcial, assim que ela estiver pronta — sem esperar o resto do stream.
+- Rodar `generateOpeningNarration` + `generateIntroNarration` (US-257, hoje já em `Promise.all` — só passam a rodar sobre a fatia parcial em vez do artefato inteiro) + `extractOpeningScene` sobre essa fatia parcial, assim que ela estiver pronta — sem esperar o resto do stream.
 - Um novo estado da `Adventure` (nome a definir — candidato `OPENING_READY`, ou o polling passa a aceitar `ACTIVE` mais cedo com um adendo de "resto ainda gerando") que o frontend trata como "pode entrar no chat".
 - `runAdventureGeneration` continua rodando o resto do stream (`challenges`…`followUps`) e o gate completo (US-234) em background, depois do jogador já estar na tela de chat — sem bloquear a UI.
 
@@ -78,18 +79,20 @@ O jogador só vê a tela de chat depois de TODA essa cadeia. O `start` é conte�
 
 ## Notas de implementação
 
-- **`generateObject` → `streamObject` não é drop-in.** A escada de modelos hoje (`for (const model of authoringModels)`, [ai.service.ts:1569](../../../apps/api/src/ai/ai.service.ts)) tenta o próximo arm inteiro só quando o `await` anterior lança. Com stream, uma falha no MEIO do stream (depois de já ter emitido `start` pro jogador) não pode simplesmente "cair pro próximo modelo" sem descartar o que o jogador já viu — o fallback de escada precisa de uma régua nova pra esse caso (abortar e reiniciar do zero silenciosamente perde a fatia já liberada; não abortar deixa a `Adventure` num estado parcial órfão).
+- **`generateObject` → `streamObject` não é drop-in.** A escada de modelos hoje (`for (const model of authoringModels)`, [ai.service.ts:1648](../../../apps/api/src/ai/ai.service.ts)) tenta o próximo arm inteiro só quando o `await` anterior lança. Com stream, uma falha no MEIO do stream (depois de já ter emitido `start` pro jogador) não pode simplesmente "cair pro próximo modelo" sem descartar o que o jogador já viu — o fallback de escada precisa de uma régua nova pra esse caso (abortar e reiniciar do zero silenciosamente perde a fatia já liberada; não abortar deixa a `Adventure` num estado parcial órfão).
 - **`seedLedgerFromGeneratedAdventure`** ([apps/api/src/adventure-generation/seed-ledger.ts](../../../apps/api/src/adventure-generation/seed-ledger.ts)) hoje espera um `GeneratedAdventure` completo (schema `.parse()` já passou) — precisa de uma variante ou flexibilização pra aceitar a fatia parcial se a Questão em aberto #1 for resolvida como (A) ou (B).
-- **`maxTokens: 16000`** no `generateObject` atual já existe por causa de truncamento em modelos verbosos (comentário [ai.service.ts:1544](../../../apps/api/src/ai/ai.service.ts)) — streaming não muda esse limite, mas o `AbortSignal.timeout(AUTHORING_TIMEOUT_MS)` da escada precisa ser revisto: hoje ele aborta a chamada inteira; com stream, um timeout no MEIO pode acontecer depois de `start` já ter sido consumido.
+- **`maxTokens: 16000`** no `generateObject` atual já existe por causa de truncamento em modelos verbosos (comentário [ai.service.ts:1623-1625](../../../apps/api/src/ai/ai.service.ts)) — streaming não muda esse limite, mas o `AbortSignal.timeout(AUTHORING_TIMEOUT_MS)` da escada precisa ser revisto: hoje ele aborta a chamada inteira; com stream, um timeout no MEIO pode acontecer depois de `start` já ter sido consumido.
+- **US-257 acrescentou uma 3ª chamada de LLM em `finalizeGeneratedAdventure`** (`generateIntroNarration`, em `Promise.all` com `generateOpeningNarration`) e uma ramificação no `$transaction` que grava DOIS `EventLog` (`INTRODUCTION` + `NARRATION`, com `createdAt` explícito pra ordem estável — [adventure.service.ts:852-861](../../../apps/api/src/adventure/adventure.service.ts)) quando a introdução não falha. Qualquer desenho de "fatia parcial libera o jogador" desta story precisa decidir se a introdução roda ANTES do jogador entrar no chat (junto da abertura, mesmo `Promise.all`) ou é adiada — não estava no radar quando esta story foi escrita, porque US-257 ainda não existia.
 - ai-engine roda de `dist` — `pnpm --filter @ai-dm/ai-engine build` depois de editar `src`, se a instrução de prompt mudar junto.
 
 ---
 
 ## Referências no código
 
-- [`apps/api/src/ai/ai.service.ts:1551-1590`](../../../apps/api/src/ai/ai.service.ts) — `generateAdventureAuthoring`, `generateObject` → candidato a `streamObject`.
-- [`apps/api/src/adventure/adventure.service.ts:216-412`](../../../apps/api/src/adventure/adventure.service.ts) — `generateAdventure`, minting hoje só roda depois do objeto inteiro existir.
-- [`apps/api/src/adventure/adventure.service.ts:666-756`](../../../apps/api/src/adventure/adventure.service.ts) — `runAdventureGeneration`/`finalizeGeneratedAdventure`, onde o novo estado intermediário entraria.
+- [`apps/api/src/ai/ai.service.ts:1630-1669`](../../../apps/api/src/ai/ai.service.ts) — `generateAdventureAuthoring`, `generateObject` → candidato a `streamObject`.
+- [`apps/api/src/adventure/adventure.service.ts:219-415`](../../../apps/api/src/adventure/adventure.service.ts) — `generateAdventure`, minting hoje só roda depois do objeto inteiro existir.
+- [`apps/api/src/adventure/adventure.service.ts:705-885`](../../../apps/api/src/adventure/adventure.service.ts) — `runAdventureGeneration` (705) / `finalizeGeneratedAdventure` (734), onde o novo estado intermediário entraria. `finalizeGeneratedAdventure` cresceu com a US-257: `Promise.all` de `generateOpeningNarration`+`generateIntroNarration` em [:748-796](../../../apps/api/src/adventure/adventure.service.ts), `extractOpeningScene` em [:805](../../../apps/api/src/adventure/adventure.service.ts).
 - [`apps/api/src/adventure-generation/adventure-gate.ts`](../../../apps/api/src/adventure-generation/adventure-gate.ts) — gate US-234, a tensão da Questão em aberto #1.
 - [`apps/web/src/components/setup/SetupWizard.tsx:1011`](../../../apps/web/src/components/setup/SetupWizard.tsx) — `pollAdventureStatus`, onde o frontend passaria a aceitar o estado antecipado.
 - [US-255](./US-255-start-reordenado-apos-locais-nomeados.md) — pré-requisito: posição do `start` no schema.
+- [US-257](./US-257-abertura-narra-identidade-do-personagem.md) — implementada depois desta story ser escrita; acrescentou `generateIntroNarration` ao mesmo trecho que esta story reestrutura.
