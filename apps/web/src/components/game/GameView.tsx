@@ -12,6 +12,8 @@ import { useLocale, useT } from '@/components/LocaleProvider'
 import { messagesFor, type MessageKey } from '@/messages'
 import { BackgroundPanel, type CharacterBackground } from '@/components/character/BackgroundPanel'
 import { FeaturesPanel, type ClassFeature } from '@/components/character/FeaturesPanel'
+import { useAdventureReadiness } from './useAdventureReadiness'
+import { AdventureReadinessNotice } from './AdventureReadinessNotice'
 
 // US-97: marcador de sessão — o aviso de troca de idioma. Vive SÓ na lista da tela:
 // não é turno de jogo, não vai ao EventLog nem ao histórico que o Mestre recebe (ele
@@ -154,6 +156,10 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   const t = useT()
   const [warming, setWarming] = useState(true)
   const [warmSecs, setWarmSecs] = useState(0)
+  // US-256: OPENING_READY = abertura já no chat, resto da aventura ainda gerando. O backend
+  // recusa turno (409) nessa janela; aqui o input trava junto com o warm-up/streaming.
+  const readiness = useAdventureReadiness(characterId, adventureId)
+  const inputLocked = streaming || warming || readiness.phase !== 'ready'
   const [currentHp, setCurrentHp] = useState(hp)
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory ?? [])
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -201,7 +207,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
   // US-67: início da edição — devolve o texto da última ação ao textarea e entra
   // em modo edição. Bloqueado enquanto o Mestre responde/acorda (igual ao enviar).
   function startEdit() {
-    if (streaming || warming) return
+    if (inputLocked) return
     const lastUser = [...messages].reverse().find((m) => m.role === 'user')
     if (!lastUser || lastUser.role !== 'user') return
     setInput(lastUser.content)
@@ -225,7 +231,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
 
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault()
-    if (!input.trim() || streaming || warming) return
+    if (!input.trim() || inputLocked) return
 
     const userMessage = input.trim()
     setInput('')
@@ -754,7 +760,7 @@ export function GameView({ adventureId, characterId, characterName, characterCla
             // US-67: só a última ação do jogador expõe o botão de editar — e apenas
             // quando o servidor a marcou editável (turno não-resumido e sem mutação de
             // estado). Escondido durante streaming/warming e durante a própria edição.
-            const canEdit = msg.role === 'user' && i === lastUserIndex && msg.editable && !streaming && !warming && !editing
+            const canEdit = msg.role === 'user' && i === lastUserIndex && msg.editable && !inputLocked && !editing
             // Turno em edição (ação + rolagens + narração dele): esmaecido para dar contexto.
             const dimmed = editing && lastUserIndex !== -1 && i >= lastUserIndex
 
@@ -809,6 +815,9 @@ export function GameView({ adventureId, characterId, characterName, characterCla
           </div>
         )}
 
+        {/* US-256: resto da aventura ainda gerando / falhou — aviso não bloqueante acima do input. */}
+        <AdventureReadinessNotice readiness={readiness} />
+
         {/* US-67: barra de modo edição — deixa claro no mobile que se está a reescrever
             uma ação (a bolha esmaecida pode estar fora do ecrã). */}
         {editing && (
@@ -831,19 +840,19 @@ export function GameView({ adventureId, characterId, characterName, characterCla
               onKeyDown={handleKeyDown}
               placeholder={warming ? t('game.warmingPlaceholder') : editing ? t('game.editPlaceholder') : t('game.actionPlaceholder')}
               aria-label={editing ? t('game.editLabel') : t('game.actionLabel')}
-              disabled={streaming || warming}
+              disabled={inputLocked}
               className={fieldClass('scrollbar-thin flex-1 resize-none disabled:opacity-50')}
             />
             {/* Botões: linha própria no mobile (alinhada à direita), inline no desktop. */}
             <div className="flex shrink-0 justify-end gap-3">
               {editing && (
-                <DmButton variant="ghost" type="button" onClick={cancelEdit} disabled={streaming || warming}>
+                <DmButton variant="ghost" type="button" onClick={cancelEdit} disabled={inputLocked}>
                   {t('game.cancel')}
                 </DmButton>
               )}
               <DmButton
                 type="submit"
-                disabled={streaming || warming || !input.trim()}
+                disabled={inputLocked || !input.trim()}
                 aria-label={editing ? t('game.saveEdit') : t('game.send')}
                 className={editing ? undefined : 'px-4'}
               >

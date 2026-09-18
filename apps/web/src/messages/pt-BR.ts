@@ -413,6 +413,11 @@ export const ptBR = {
   'game.saveEdit': 'Salvar edição',
   'game.send': 'Enviar ação',
   'game.error.connect': 'Erro ao conectar com o Mestre. Tente novamente.',
+  // US-256: o chat abre com a abertura pronta enquanto o resto da aventura ainda gera
+  // (OPENING_READY). O botão "Tentar de novo" reusa `common.retry`.
+  'game.rest.preparing': 'O Mestre ainda está preparando o resto da aventura. Leia a abertura enquanto isso — em instantes você poderá agir.',
+  'game.rest.failed': 'O Mestre se enrolou ao preparar o resto da aventura. A abertura que você leu continua valendo — tente de novo.',
+  'game.rest.retryError': 'Não deu para retomar agora. Tente de novo em instantes.',
 } as const
 
 export type MessageKey = keyof typeof ptBR

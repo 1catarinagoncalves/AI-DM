@@ -796,7 +796,7 @@ describe('buildOpeningInstruction — mainQuest domina o gancho fixo (US-168)', 
 })
 
 // US-245: `start` (dentro de mainQuest) já nasce como prosa autorada com a barra de qualidade
-// da autoria mundo-primeiro (AUTHORING_SCHEMA, ai.service.ts) — a instrução deste ramo passou de
+// da autoria mundo-primeiro (AUTHORING_SLICE_SCHEMA, apps/api/src/ai/adventure-authoring.ts — ex-AUTHORING_SCHEMA de ai.service.ts, US-256) — a instrução deste ramo passou de
 // "compor uma cena nova a partir dele, sem citar" para "narrar/expandir de perto", preservando
 // nomes/fatos/gancho, sem apelos forçados (US-182 saiu deste ramo) nem a ramificação morta por
 // Scene type (código órfão desde a US-232, nunca verdadeira em produção).

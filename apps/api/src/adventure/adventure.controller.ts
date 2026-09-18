@@ -48,7 +48,7 @@ export class AdventureController {
     return this.adventureService.getTurns(characterId, adventureId)
   }
 
-  @ApiOperation({ summary: 'US-235: estado da geração assíncrona (GENERATING/ACTIVE/FAILED) — consultado pela tela de espera.' })
+  @ApiOperation({ summary: 'US-235: estado da geração assíncrona (GENERATING/OPENING_READY/ACTIVE/FAILED) — consultado pela tela de espera e pelo chat (US-256).' })
   @Get(':adventureId/status')
   async getStatus(
     @Param('characterId') characterId: string,
@@ -57,6 +57,17 @@ export class AdventureController {
   ) {
     await this.assertOwner(characterId, user)
     return this.adventureService.getGenerationStatus(characterId, adventureId)
+  }
+
+  @ApiOperation({ summary: 'US-256: "tentar de novo" da geração do resto da aventura (FAILED/OPENING_READY) — re-executa só a 1B contra a fatia já liberada.' })
+  @Post(':adventureId/retry-rest')
+  async retryRest(
+    @Param('characterId') characterId: string,
+    @Param('adventureId') adventureId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    await this.assertOwner(characterId, user)
+    return this.adventureService.retryAdventureRest(characterId, adventureId)
   }
 
   private async assertOwner(characterId: string, user: AuthUser) {

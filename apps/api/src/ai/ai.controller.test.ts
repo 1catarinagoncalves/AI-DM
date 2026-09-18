@@ -20,6 +20,8 @@ function fakeAiService(parts: unknown[], extra: Partial<AiService> = {}): AiServ
   return {
     // US-61: posse validada antes do stream; no teste o dono confere.
     assertCharacterOwner: async () => {},
+
+    assertAdventurePlayable: async () => {},
     streamChat: async () => ({
       result: { fullStream: (async function* () { for (const p of parts) yield p })() },
       hasFallback: false,
@@ -54,6 +56,8 @@ describe('AiController.chat — guard anti-degeneração (US-69)', () => {
     const guards: { degenerated: boolean }[] = []
     const svc = {
       assertCharacterOwner: async () => {},
+
+      assertAdventurePlayable: async () => {},
       streamChat: async () => {
         const turnGuard = { degenerated: false }
         guards.push(turnGuard)
@@ -84,6 +88,8 @@ describe('AiController.chat — guard anti-degeneração (US-69)', () => {
     const craParts = () => Array.from({ length: 30 }, () => ({ type: 'text-delta', textDelta: 'cra ' }))
     const svc = {
       assertCharacterOwner: async () => {},
+
+      assertAdventurePlayable: async () => {},
       streamChat: async () => ({
         result: { fullStream: (async function* () { for (const p of craParts()) yield p })() },
         hasFallback: false, // último modelo → esgota re-rolls e cai no erro limpo
@@ -108,6 +114,8 @@ describe('AiController.chat — guard de turno truncado (US-74, salvamento)', ()
     let salvageCalls = 0
     const svc = {
       assertCharacterOwner: async () => {},
+
+      assertAdventurePlayable: async () => {},
       streamChat: async () => ({
         result: { fullStream: (async function* () { for (const p of truncado) yield p })() },
         hasFallback: false,
@@ -149,6 +157,8 @@ describe('AiController.chat — guard de turno truncado (US-74, salvamento)', ()
     const guard = { degenerated: false, incomplete: false }
     const svc = {
       assertCharacterOwner: async () => {},
+
+      assertAdventurePlayable: async () => {},
       streamChat: async () => ({
         result: { fullStream: (async function* () { for (const p of parts) yield p })() },
         hasFallback: false,
@@ -172,6 +182,8 @@ describe('AiController.chat — guard de turno truncado (US-74, salvamento)', ()
     let salvageCalls = 0
     const svc = {
       assertCharacterOwner: async () => {},
+
+      assertAdventurePlayable: async () => {},
       streamChat: async () => ({
         result: { fullStream: (async function* () { for (const p of completo) yield p })() },
         hasFallback: false,
@@ -198,6 +210,8 @@ describe('AiController.chat — turnId por turno (US-117)', () => {
     const turnIdsSeen: string[] = []
     const svc = {
       assertCharacterOwner: async () => {},
+
+      assertAdventurePlayable: async () => {},
       streamChat: async (_input: unknown, _modelIndex: number, _rollState: unknown, turnId: string) => {
         turnIdsSeen.push(turnId)
         const turnGuard = { degenerated: false }
@@ -253,5 +267,24 @@ describe('AiController.chat — edição do último turno (US-67)', () => {
     await controller.chat({ adventureId: 'a1', characterId: 'c1', message: 'finto', edit: true }, res, { userId: 'u1' })
 
     expect(restored).toEqual(savedTurn)
+  })
+})
+
+// US-256: aventura em OPENING_READY (resto ainda gerando) recusa turno ANTES de abrir o SSE —
+// nenhum header/frame sai, o erro do guard propaga limpo (409 no Nest).
+describe('AiController.chat — guard de estado da aventura (US-256)', () => {
+  it('assertAdventurePlayable lança → o turno nunca começa (streamChat não roda, nada é escrito)', async () => {
+    let streamed = false
+    const controller = new AiController(fakeAiService([], {
+      assertAdventurePlayable: async () => { throw new Error('Aventura a1 está em OPENING_READY') },
+      streamChat: async () => { streamed = true; return {} as never },
+    }))
+    const { res, writes } = fakeRes()
+
+    await expect(controller.chat({ adventureId: 'a1', characterId: 'c1', message: 'ataco' }, res, { userId: 'u1' }))
+      .rejects.toThrow('OPENING_READY')
+
+    expect(streamed).toBe(false)
+    expect(writes).toEqual([])
   })
 })

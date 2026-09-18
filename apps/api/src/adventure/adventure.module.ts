@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { AdventureController } from './adventure.controller'
 import { AdventureExportController } from './adventure-export.controller'
 import { AdventureService } from './adventure.service'
+import { AdventureGenerationService } from './adventure-generation.service'
 import { PrismaService } from '../prisma.service'
 import { AiModule } from '../ai/ai.module'
 
@@ -16,7 +17,7 @@ const devExportEnabled = process.env.NODE_ENV !== 'production' && process.env.DE
 @Module({
   imports: [AiModule],
   controllers: [AdventureController, ...(devExportEnabled ? [AdventureExportController] : [])],
-  providers: [AdventureService, PrismaService],
+  providers: [AdventureService, AdventureGenerationService, PrismaService],
   exports: [AdventureService],
 })
 export class AdventureModule {}

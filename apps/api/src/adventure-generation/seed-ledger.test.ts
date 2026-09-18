@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import type { AdventureChallenge, AdventureEncounter, GeneratedAdventure } from '@ai-dm/shared'
+import type { AdventureChallenge, AdventureEncounter, GeneratedAdventure, WorldEntity } from '@ai-dm/shared'
 import { formatEntities } from '@ai-dm/ai-engine'
-import { seedLedgerFromGeneratedAdventure } from './seed-ledger'
+import { enrichLedgerWithRest, seedLedgerFromGeneratedAdventure, seedLedgerFromSlice } from './seed-ledger'
+import { AdventureSliceSchema, type AdventureSlice } from './adventure-slice'
 
 function enc(overrides: Partial<AdventureEncounter> = {}): AdventureEncounter {
   return {
@@ -194,5 +195,61 @@ describe('seedLedgerFromGeneratedAdventure (US-246)', () => {
     expect(mundo?.nota).toBe(longDescription)
     expect(mundo?.nota?.length).toBeLessThanOrEqual(300)
     expect(mundo?.nota?.includes('B')).toBe(false)
+  })
+})
+
+// US-256: o ledger nasce em duas fases — fatia na liberação, enriquecimento na conclusão.
+describe('ledger em duas fases (US-256)', () => {
+  const withoutTimestamp = (entities: WorldEntity[]) => entities.map(({ atualizadoEm: _at, ...rest }) => rest)
+
+  // A 1B pode acrescentar `occupants` (backstops) DEPOIS da liberação: a fatia liberada tem loc-2 sem
+  // moradores, o artefato final tem. Fixture completa: facção, NPC narrativo, NPC de combate, local com
+  // encontro + desafio, âncora de mundo.
+  function fullAdventure(): GeneratedAdventure {
+    return adventureFixture({
+      world: { name: 'Vhel-Toran', description: 'Cidade entre costelas.', anchors: ['A Nave — o coração da cidade'] },
+      locations: [
+        { id: 'loc-1', title: 'Clareira', aspects: ['névoa'], boxedText: 'Você chega à clareira.', description: 'notas', occupants: [], vibe: 'combat' },
+        { id: 'loc-2', title: 'Ruína', aspects: [], boxedText: 'x', description: 'x', occupants: ['npc-1'], vibe: 'skill' },
+      ],
+    })
+  }
+
+  function sliceOf(adventure: GeneratedAdventure): AdventureSlice {
+    const slice = AdventureSliceSchema.parse(adventure)
+    // Na liberação o backstop ainda não rodou: Marta (npc-1) só mora na Ruína depois dele.
+    return { ...slice, locations: slice.locations.map((l) => ({ ...l, occupants: [] })) }
+  }
+
+  it('paridade: fatia + enriquecimento == passada única sobre o mesmo artefato (exceto atualizadoEm)', () => {
+    const adventure = fullAdventure()
+    const twoPhases = enrichLedgerWithRest(seedLedgerFromSlice(sliceOf(adventure)), adventure)
+    expect(withoutTimestamp(twoPhases)).toEqual(withoutTimestamp(seedLedgerFromGeneratedAdventure(adventure)))
+  })
+
+  it('a ledger da liberação NÃO tem os segmentos de encontro/desafio nem o local de quem só o backstop aloca', () => {
+    const adventure = fullAdventure()
+    const released = seedLedgerFromSlice(sliceOf(adventure))
+    const ruina = released.find((e) => e.nome === 'Ruína')!
+    expect(ruina.nota).not.toContain(ENCOUNTER_1_SEGMENT)
+    expect(ruina.nota).not.toContain(CHALLENGE_1_SEGMENT)
+    expect(released.find((e) => e.nome === 'Marta')!.local).toBeUndefined()
+  })
+
+  it('enriquecimento completa nota do local e local do NPC, e PRESERVA o resto da entidade (revelado, atualizadoEm)', () => {
+    const adventure = fullAdventure()
+    const released = seedLedgerFromSlice(sliceOf(adventure)).map((e) => (e.nome === 'Marta' ? { ...e, revelado: true, atualizadoEm: '2026-09-18T00:00:00.000Z' } : e))
+    const enriched = enrichLedgerWithRest(released, adventure)
+    expect(enriched.find((e) => e.nome === 'Ruína')!.nota).toContain(ENCOUNTER_1_SEGMENT)
+    const marta = enriched.find((e) => e.nome === 'Marta')!
+    expect(marta.local).toBe('Ruína')
+    expect(marta.revelado).toBe(true)
+    expect(marta.atualizadoEm).toBe('2026-09-18T00:00:00.000Z')
+  })
+
+  it('ledger desalinhado do artefato (tamanho/tipo) → cai no ledger completo, nunca mistura', () => {
+    const adventure = fullAdventure()
+    const stale = seedLedgerFromSlice(sliceOf(adventure)).slice(1)
+    expect(withoutTimestamp(enrichLedgerWithRest(stale, adventure))).toEqual(withoutTimestamp(seedLedgerFromGeneratedAdventure(adventure)))
   })
 })

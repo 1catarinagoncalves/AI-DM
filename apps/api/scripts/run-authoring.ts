@@ -1,5 +1,8 @@
-// US-232 — smoke E2E: gera uma aventura autoral (call único REAL, paga OpenRouter) para um
+// US-232 — smoke E2E: gera uma aventura autoral (chamadas REAIS, pagas no OpenRouter) para um
 // personagem já criado, e valida contra GeneratedAdventureSchema.parse(). Off do CI; roda à mão:
+// US-256: a autoria é 1A (fatia) + 1B (resto) — o script mede o tempo de cada uma e o total, que é o número
+// do spike de latência (a chamada única antiga media 110–150s; ver a story). Roda as duas em SEQUÊNCIA, sem
+// a narração (que é a mesma antes e depois da story).
 //   npx dotenv-cli -e .env -- pnpm --filter api exec ts-node scripts/run-authoring.ts [characterId] [attempt]
 //
 // `order` fica fixo em 999 (sentinela de "não é aventura real persistida", nunca colide com
@@ -12,7 +15,8 @@ import { GeneratedAdventureSchema, SystemConfigSchema, resolveLocale, catalogLab
 import { resolveAdventuresAndAdvancement, type CharacterBackground } from '@ai-dm/ai-engine'
 import { PrismaService } from '../src/prisma.service'
 import { AiService } from '../src/ai/ai.service'
-import { AdventureService, type AdventureProfile } from '../src/adventure/adventure.service'
+import { AdventureGenerationService, type AdventureProfile } from '../src/adventure/adventure-generation.service'
+import { runAdventureGate } from '../src/adventure-generation/adventure-gate'
 import { configForLocale } from '../src/system/system-locale'
 import { writeAuthoringDump } from '../src/adventure/adventure-authoring-dump'
 
@@ -44,13 +48,21 @@ async function main() {
   console.log(`Personagem: ${character.name} — ${catalogLabel(config.classes, character.class)} nível ${profile.level} (${locale}) [${character.id}] | attempt=${attempt}`)
 
   const ai = new AiService(prisma, {} as never)
-  const svc = new AdventureService(prisma, ai)
+  const generation = new AdventureGenerationService(prisma, ai)
 
   const t0 = Date.now()
-  const adventure = await svc.generateAdventure(profile, character.id, 999, locale, config, {}, attempt)
-  const secs = ((Date.now() - t0) / 1000).toFixed(1)
+  const record = await generation.generateSlice(profile, character.id, 999, locale, config, {}, attempt)
+  const t1 = Date.now()
+  const className = catalogLabel(config.classes, character.class)
+  const adventure = await generation.generateRestArtifact(record.slice, { challenge: record.challenge, namingRegister: record.namingRegister, locale, className })
+  const t2 = Date.now()
+  const seconds = (from: number, to: number) => ((to - from) / 1000).toFixed(1)
+  const secs = seconds(t0, t2)
+  console.log(`⏱ 1A (fatia)=${seconds(t0, t1)}s | 1B (resto)=${seconds(t1, t2)}s | total=${secs}s`)
 
   GeneratedAdventureSchema.parse(adventure) // lança se a forma não bate
+  const gate = runAdventureGate(adventure, record.challenge, config)
+  console.log(gate.ok ? '✅ gate US-234 passa no artefato mesclado' : `❌ gate reprovou (${gate.stage}): ${gate.reason}`)
 
   const path = writeAuthoringDump(character.id, adventure)
 

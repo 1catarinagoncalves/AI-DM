@@ -1,17 +1,27 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor, act } from '@testing-library/react'
 
-const { getTurns } = vi.hoisted(() => ({ getTurns: vi.fn() }))
-vi.mock('@/lib/api', () => ({ api: { getTurns } }))
+const { getTurns, getAdventureStatus, retryAdventureRest } = vi.hoisted(() => ({
+  getTurns: vi.fn(),
+  getAdventureStatus: vi.fn(),
+  retryAdventureRest: vi.fn(),
+}))
+vi.mock('@/lib/api', () => ({ api: { getTurns, getAdventureStatus, retryAdventureRest } }))
 
 import { GameView } from './GameView'
 
 // happy-dom não implementa scrollIntoView; a GameView chama no efeito de mensagens.
 beforeEach(() => {
   getTurns.mockResolvedValue([])
+  // US-256: aventura pronta por padrão — os testes de OPENING_READY sobrescrevem.
+  getAdventureStatus.mockReset().mockResolvedValue({ status: 'ACTIVE' })
+  retryAdventureRest.mockReset()
   Element.prototype.scrollIntoView = vi.fn()
 })
-afterEach(() => cleanup())
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 const baseProps = {
   adventureId: 'adv-1',
@@ -413,5 +423,121 @@ describe('GameView — editar a última ação (US-67)', () => {
     expect(screen.queryByRole('button', { name: 'Cancelar' })).toBeNull()
     // Histórico intacto.
     expect(screen.getByText('A porta range.')).toBeTruthy()
+  })
+})
+
+// US-256: o chat abre com introdução + abertura prontas enquanto o resto da aventura ainda
+// gera (status OPENING_READY). O backend recusa turno nessa janela (409); a UI mostra aviso não
+// bloqueante, desabilita o input e, se o resto falhar, oferece "Tentar de novo".
+describe('GameView — resto da aventura ainda gerando (US-256)', () => {
+  const PREPARING = /O Mestre ainda está preparando o resto da aventura/
+  const FAILED = /O Mestre se enrolou ao preparar o resto da aventura/
+
+  const actionField = () => screen.getByLabelText('A sua ação') as HTMLTextAreaElement
+  const sendButton = () => screen.getByRole('button', { name: 'Enviar ação' }) as HTMLButtonElement
+
+  // Espera o warm-up do getTurns acabar (input só destrava depois dele).
+  async function untilWarm() {
+    await waitFor(() => expect(actionField().placeholder).not.toMatch(/despertando/))
+  }
+
+  it('ACTIVE: sem aviso e o input fica habilitado', async () => {
+    render(<GameView {...baseProps} />)
+    await untilWarm()
+
+    expect(screen.queryByText(PREPARING)).toBeNull()
+    expect(actionField().disabled).toBe(false)
+    expect(getAdventureStatus).toHaveBeenCalledWith('char-1', 'adv-1')
+  })
+
+  it('OPENING_READY: aviso acima do input, textarea e enviar desabilitados', async () => {
+    getAdventureStatus.mockResolvedValue({ status: 'OPENING_READY' })
+    render(<GameView {...baseProps} />)
+
+    expect(await screen.findByText(PREPARING)).toBeTruthy()
+    await untilWarm()
+    expect(actionField().disabled).toBe(true)
+    expect(sendButton().disabled).toBe(true)
+    // O aviso não é modal: a narração (abertura) continua legível.
+    expect(screen.getByRole('log')).toBeTruthy()
+  })
+
+  it('OPENING_READY: não deixa editar a última ação (mesmo bloqueio do streaming)', async () => {
+    getAdventureStatus.mockResolvedValue({ status: 'OPENING_READY' })
+    getTurns.mockResolvedValue([
+      { role: 'user', content: 'abro a porta', editable: true },
+      { role: 'dm', content: 'A porta range.' },
+    ])
+    render(<GameView {...baseProps} />)
+
+    expect(await screen.findByText(PREPARING)).toBeTruthy()
+    await screen.findByText('A porta range.')
+    expect(screen.queryByRole('button', { name: 'Editar a sua última ação' })).toBeNull()
+  })
+
+  it('falha ao consultar o status nunca derruba a tela: sem aviso, input livre', async () => {
+    getAdventureStatus.mockRejectedValue(new Error('Erro cru da API em português'))
+    render(<GameView {...baseProps} />)
+    await untilWarm()
+
+    expect(screen.queryByText(PREPARING)).toBeNull()
+    expect(screen.queryByText('Erro cru da API em português')).toBeNull()
+    expect(actionField().disabled).toBe(false)
+  })
+
+  it('OPENING_READY → ACTIVE por polling: o aviso some e o input reabilita', async () => {
+    vi.useFakeTimers()
+    getAdventureStatus
+      .mockResolvedValueOnce({ status: 'OPENING_READY' })
+      .mockResolvedValueOnce({ status: 'ACTIVE' })
+    render(<GameView {...baseProps} />)
+    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    expect(screen.getByText(PREPARING)).toBeTruthy()
+    expect(actionField().disabled).toBe(true)
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+
+    expect(screen.queryByText(PREPARING)).toBeNull()
+    expect(actionField().disabled).toBe(false)
+  })
+
+  it('FAILED: aviso de falha com "Tentar de novo"; o input continua desabilitado', async () => {
+    getAdventureStatus.mockResolvedValue({ status: 'FAILED' })
+    render(<GameView {...baseProps} />)
+
+    expect(await screen.findByText(FAILED)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeTruthy()
+    expect(screen.queryByText(PREPARING)).toBeNull()
+    await untilWarm()
+    expect(actionField().disabled).toBe(true)
+  })
+
+  it('"Tentar de novo" chama retryAdventureRest e volta ao aviso de preparando', async () => {
+    getAdventureStatus.mockResolvedValue({ status: 'FAILED' })
+    retryAdventureRest.mockImplementation(async () => {
+      getAdventureStatus.mockResolvedValue({ status: 'OPENING_READY' })
+      return { status: 'OPENING_READY' }
+    })
+    render(<GameView {...baseProps} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Tentar de novo' }))
+
+    expect(await screen.findByText(PREPARING)).toBeTruthy()
+    expect(retryAdventureRest).toHaveBeenCalledWith('char-1', 'adv-1')
+    expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull()
+  })
+
+  // AGENTS.md — "Mensagem de erro da API nunca vai para a tela": o corpo cru da API é
+  // português operacional; a tela mostra uma chave do dicionário.
+  it('retry que falha mostra erro genérico do dicionário, nunca a mensagem da API', async () => {
+    getAdventureStatus.mockResolvedValue({ status: 'FAILED' })
+    retryAdventureRest.mockRejectedValue(new Error('A fatia da aventura não foi persistida'))
+    render(<GameView {...baseProps} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Tentar de novo' }))
+
+    expect(await screen.findByText(/Não deu para retomar agora/)).toBeTruthy()
+    expect(screen.queryByText(/A fatia da aventura não foi persistida/)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeTruthy() // dá para tentar outra vez
   })
 })

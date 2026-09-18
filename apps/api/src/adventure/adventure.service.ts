@@ -1,17 +1,14 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, maxHpForLevel, proficiencyBonusForLevel, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type SystemBackground, type AdventureChallenge, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
+import { SystemConfigSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, maxHpForLevel, proficiencyBonusForLevel, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
-import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground, type ClassFeature, type KnownSpell, type OriginNarrative } from '@ai-dm/ai-engine'
+import { mergeSceneState, resolveAdventuresAndAdvancement, type CharacterBackground } from '@ai-dm/ai-engine'
 import { resolveInitialHook, resolveHookTemplate } from '../character/starting-inventory'
-import { assignBudgetedCombatRoles, composeEncounterRoles, MONSTER_ROLE_CR, type EncounterChallenge, type MonsterRole } from '../adventure-generation/monster-roles'
-import { BESTIARY, chooseNominalCreature } from '../adventure-generation/bestiary'
-import { rollRegistry, rollFactionCount, rollNamingRegister, type AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
-import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
-import { generateWithGate, type GateResult } from '../adventure-generation/adventure-gate'
-import { seedLedgerFromGeneratedAdventure } from '../adventure-generation/seed-ledger'
-import { writeAuthoringDump } from './adventure-authoring-dump'
+import type { EncounterChallenge } from '../adventure-generation/monster-roles'
+import type { AdventureRegistryOverrides } from '../adventure-generation/roll-registry'
+import { IN_PROGRESS_ADVENTURE_STATUSES } from '../adventure-generation/adventure-status'
+import { AdventureGenerationService, type AdventureOpeningContext, type AdventureProfile } from './adventure-generation.service'
 import type { AdventureExportData } from './adventure-export'
 
 export interface CreateAdventureDto {
@@ -30,51 +27,15 @@ export interface CreateAdventureDto {
   preset?: boolean
 }
 
-/**
- * US-148: entrada do motor de geração de aventuras (US-149 em diante). `hookSeed` é
- * sempre a rede de segurança — presente mesmo com `background`/`origin` vazios.
- */
-export interface AdventureProfile {
-  level: number
-  classKey: string
-  background: CharacterBackground
-  origin: OriginNarrative
-  hookSeed: string
-  challenge: EncounterChallenge // US-167: default 'adventure', resolvido em createForCharacter
-}
+// US-256: `AdventureProfile` mora em adventure-generation.service.ts (o motor saiu daqui); re-exportado
+// porque testes e scripts/run-authoring.ts importam de './adventure.service'.
+export type { AdventureProfile } from './adventure-generation.service'
 
 // US-235: título placeholder da linha `GENERATING` — trocado por `generated.summary` no
-// sucesso (finalizeGeneratedAdventure). Locale-aware como MEMENTO_ITEM_LABEL (starting-kit.ts).
+// sucesso (`completeGeneration`/`releaseOpening`, adventure-generation.service.ts). Locale-aware como MEMENTO_ITEM_LABEL (starting-kit.ts).
 const GENERATING_ADVENTURE_TITLE: Record<Locale, string> = {
   'pt-BR': 'Aventura de {characterName}',
   'en-US': "{characterName}'s Adventure",
-}
-
-/**
- * US-235: tudo que `finalizeGeneratedAdventure` precisa para a abertura (US-34) e para o
- * `CharacterState`/inventário, calculado ANTES do gatilho assíncrono em `createForCharacter`
- * — o job em background não refaz nenhuma dessas consultas.
- */
-interface AdventureOpeningContext {
-  systemName: string
-  characterName: string
-  characterGender: string
-  className: string
-  raceName: string
-  level: number
-  maxHp: number
-  attrs: Record<string, number>
-  skills?: { label: string; modifier: number; proficient: boolean }[]
-  attributeLabels: Record<string, string>
-  background: CharacterBackground
-  features: ClassFeature[]
-  knownSpells: KnownSpell[]
-  fullInventory: InventoryItem[]
-  hookSeed: string
-  locale: Locale
-  /** US-257: origem escolhida — repassada a `generateIntroNarration` (`finalizeGeneratedAdventure`). */
-  origin: { key?: string; connection?: string; memento?: string }
-  backgrounds?: SystemBackground[]
 }
 
 @Injectable()
@@ -82,6 +43,9 @@ export class AdventureService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ai: AiService,
+    // US-256: default pros ~40 testes que constroem `new AdventureService(prisma, ai)` à mão; o Nest
+    // injeta o provider registrado em adventure.module.ts.
+    private readonly generation: AdventureGenerationService = new AdventureGenerationService(prisma, ai),
   ) {}
 
   /**
@@ -164,280 +128,6 @@ export class AdventureService {
     }
   }
 
-  /**
-   * US-253: elenco nominal POR SLOT de encontro (0..`encounterCount`-1), calculado ANTES da
-   * autoria — mesma régua de papel de `assignBudgetedCombatRoles` que o PASSO 2 já usa (não só
-   * `assignCombatRoles`/`ROLES_BY_IMPACT` cru): a composição greedy de `composeEncounterRoles`
-   * (que decide `maxHostileCount`) NÃO é a mesma sequência que um ciclo reto Brute→Soldier→Minion
-   * dá pro MESMO total — em nível 4+ isso já faz `assignBudgetedCombatRoles` descartar 1-2
-   * posições por estourar o orçamento (checado com tsx antes de fechar esta story). Usar aqui a
-   * função de ORÇAMENTO (não a crua) garante que TODO nome prometido no prompt é um nome que o
-   * PASSO 2 vai CONFIRMAR depois — nunca promete mais do que a mecânica sustenta. Índice de
-   * `chooseNominalCreature` usa a posição BRUTA `i` (antes de descartar `undefined`) somada a
-   * `slotIndex * maxHostileCount` — mesma fórmula, mesmo array-base, que o PASSO 2 usa.
-   */
-  private buildCombatCast(
-    combatBudget: { maxHostileCount: number; viable: boolean },
-    encounterCount: number,
-    level: number,
-    challenge: EncounterChallenge,
-  ): Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>> | undefined {
-    if (!combatBudget.viable) return undefined
-    const roles = assignBudgetedCombatRoles(combatBudget.maxHostileCount, level, challenge)
-    const affordableCrs = roles.filter((role): role is MonsterRole => role !== undefined).map((role) => MONSTER_ROLE_CR[role])
-    const strongestCr = Math.max(...affordableCrs)
-    return Array.from({ length: encounterCount }, (_, slotIndex) =>
-      roles.flatMap((role, i) =>
-        role === undefined
-          ? []
-          : [
-              {
-                nominalCreature: chooseNominalCreature(role, undefined, BESTIARY, slotIndex * combatBudget.maxHostileCount + i),
-                strongerThanRest: MONSTER_ROLE_CR[role] === strongestCr,
-              },
-            ],
-      ),
-    )
-  }
-
-  /**
-   * US-232: orquestrador do motor mundo-primeiro — UMA chamada de autoria (`generateAdventureAuthoring`,
-   * escada `authoringModels`) + montagem determinística (minta ids dos índices que o modelo
-   * emitiu) + backstop de local órfão. Substitui o encadeamento de 6 `generate*` (MA-1). Devolve
-   * um `GeneratedAdventure` que passa em `.parse()` (só FORMA; grafo/orçamento seguem no gate US-150).
-   *
-   * Contagem de FACÇÕES sorteada [2,4] no Game Server (`rollFactionCount`) e passada como
-   * restrição do prompt; locais/NPCs/desafios/encontros FIXOS nos defaults (têm dial, US-162/163
-   * — vira a alavanca de variação depois, nunca dado). `registry` continua vindo de `rollRegistry`
-   * inteiro (dimensão de filtro/eval); só os eixos com override viram RÓTULO pt-BR no prompt
-   * ("Aleatório" = omitido). `config` novo (US-232): resolve o rótulo — `registryOverrides` só
-   * carrega a CHAVE.
-   *
-   * `attempt` (US-150): default `0`, repassado a `rollRegistry`/`rollFactionCount` — o gate
-   * re-semeia com attempt+1, rolando registro/contagem novos em vez de reamostrar o mesmo.
-   */
-  async generateAdventure(
-    profile: AdventureProfile,
-    characterId: string,
-    order: number,
-    locale: Locale,
-    config: SystemConfig,
-    registryOverrides: AdventureRegistryOverrides = {},
-    attempt = 0,
-  ): Promise<GeneratedAdventure> {
-    const registry = rollRegistry(characterId, order, registryOverrides, attempt)
-    const factionCount = rollFactionCount(characterId, order, attempt)
-    const namingRegister = rollNamingRegister(characterId, order, attempt)
-    const questSeed = rollQuestSeed(characterId, order, attempt)
-
-    // Params de mundo → RÓTULO pt-BR só pros eixos que o jogador escolheu (têm override); os
-    // demais são omitidos do prompt (modelo livre nesse eixo). O `registry` gravado no artefato
-    // continua vindo de `rollRegistry` inteiro, sem mudança — só a linha de restrição do prompt
-    // difere entre "veio do jogador" e "Aleatório".
-    const world = {
-      setting: registryOverrides.setting ? catalogLabel(config.settings, registryOverrides.setting) : undefined,
-      tone: registryOverrides.tone ? catalogLabel(config.tones, registryOverrides.tone) : undefined,
-      areaType: registryOverrides.areaType ? catalogLabel(config.areaTypes, registryOverrides.areaType) : undefined,
-    }
-    const counts = { locations: 6, npcs: 7, challenges: 3, encounters: 3 }
-
-    // US-250: mesmo orçamento do PASSO 2 (composeEncounterRoles), calculado ANTES da autoria —
-    // vira restrição de prompt em vez de checagem tardia que descarta posição em silêncio.
-    const combatRoles = composeEncounterRoles(profile.level, profile.challenge)
-    const combatBudget = { maxHostileCount: combatRoles.length, viable: combatRoles.length > 0 }
-    // US-253: elenco nominal por slot de encontro — soma ao combatBudget como restrição de
-    // prompt, pra ficção já ser escrita sobre a criatura real (ver buildCombatCast acima).
-    const combatCast = this.buildCombatCast(combatBudget, counts.encounters, profile.level, profile.challenge)
-
-    const { adventure: authored, modelId } = await this.ai.generateAdventureAuthoring({
-      world,
-      factionCount,
-      counts,
-      // US-232: background como TOM — só `character.story`; bonds/deity/flaws ficam de fora.
-      characterStory: profile.background.story,
-      namingRegister,
-      questSeed,
-      level: profile.level,
-      className: catalogLabel(config.classes, profile.classKey),
-      combatBudget,
-      combatCast,
-      locale,
-    })
-
-    // Minting: a saída BRUTA referencia por índice (0-based na array irmã) — o código minta os
-    // ids reais aqui. Índice fora de faixa é filtrado (occupants/npcIndices) ou clampa pro
-    // primeiro local (locationIndex obrigatório), mesma disciplina de `occupants` da US-158.
-    const factions = authored.factions.map((f, i) => ({ id: `faction-${i + 1}`, name: f.name, kind: f.kind, want: f.want }))
-    // `idx != null`: `null >= 0` é true em JS — sem isso o null do modelo indexaria factions[null] e lançaria.
-    const factionId = (idx: number | null | undefined): string | undefined =>
-      idx != null && idx >= 0 && idx < factions.length ? factions[idx]!.id : undefined
-
-    const npcs: AdventureNpc[] = authored.npcs.map((n, i) => ({
-      id: `npc-${i + 1}`,
-      name: n.name,
-      role: n.role,
-      want: n.want,
-      ...(factionId(n.factionIndex) ? { factionId: factionId(n.factionIndex) } : {}),
-    }))
-
-    const locations: AdventureLocation[] = authored.locations.map((l, i) => ({
-      id: `loc-${i + 1}`,
-      title: l.title,
-      aspects: l.aspects,
-      boxedText: l.boxedText,
-      description: l.description,
-      occupants: l.occupants.filter((idx) => idx < npcs.length).map((idx) => npcs[idx]!.id),
-      ...(factionId(l.factionIndex) ? { factionId: factionId(l.factionIndex) } : {}),
-      vibe: l.vibe,
-    }))
-    // Índice fora de faixa aqui LANÇA (ao contrário de occupants/npcIndices acima, que são
-    // "melhor esforço" e filtram): challenge/encounter/objective.locationId são campos ÚNICOS e
-    // OBRIGATÓRIOS — um clamp silencioso pro local 0 corrompia o local do Final sem erro nenhum
-    // (achado ao ler um artefato real: Final e objective foram parar no local errado porque o
-    // modelo mirou um `anchors` que nunca virou `locations[]`). Lançar aqui vira falha de estágio
-    // 'parse' no gate (US-234), que re-semeia a CHAMADA 1 em vez de persistir o local errado.
-    const locationId = (idx: number): string => {
-      if (idx < 0 || idx >= locations.length) {
-        throw new Error(`locationIndex ${idx} fora de faixa — esperado 0..${locations.length - 1} (${locations.length} locais autorados)`)
-      }
-      return locations[idx]!.id
-    }
-
-    const challenges: AdventureChallenge[] = authored.challenges.map((c, i) => ({
-      id: `challenge-${i + 1}`,
-      locationId: locationId(c.locationIndex),
-      test: c.test,
-      situation: c.situation,
-      consequence: c.consequence,
-    }))
-
-    const encounters: AdventureEncounter[] = authored.encounters.map((e, i) => ({
-      id: `encounter-${i + 1}`,
-      locationId: locationId(e.locationIndex),
-      npcIds: e.npcIndices.filter((idx) => idx < npcs.length).map((idx) => npcs[idx]!.id),
-      type: e.type,
-      fiction: e.fiction,
-      behaviors: e.behaviors,
-      goal: e.goal,
-      complications: e.complications,
-      unlocks: e.unlocks,
-    }))
-
-    const objective = {
-      description: authored.objective.description,
-      reward: authored.objective.reward,
-      locationId: locationId(authored.objective.locationIndex),
-    }
-
-    // US-232 (Dúvidas de implementação #9): backstop determinístico de local órfão. Todo local
-    // fora do conjunto ancorado (encounter/challenge/objective.locationId + occupants não-vazio)
-    // recebe 1 npcId em `occupants`, round-robin sobre NPCs ainda sem local (ou sobre todos, se
-    // nenhum estiver livre). Garante `checkNoOrphanLocations` passando SEMPRE, sem depender do
-    // regenerate do MA-4. NPC ocupar 2 locais não é problema: continuidade é rastreada no ledger
-    // por revelado/nome (global por NPC, não por local, US-199).
-    const anchoredLocationIds = new Set<string>([
-      ...encounters.map((e) => e.locationId),
-      ...challenges.map((c) => c.locationId),
-      objective.locationId,
-      ...locations.filter((l) => l.occupants.length > 0).map((l) => l.id),
-    ])
-    const occupiedNpcIds = new Set(locations.flatMap((l) => l.occupants))
-    const freeNpcs = npcs.filter((n) => !occupiedNpcIds.has(n.id))
-    const pool = freeNpcs.length > 0 ? freeNpcs : npcs
-    let rr = 0
-    for (const loc of locations) {
-      if (anchoredLocationIds.has(loc.id) || pool.length === 0) continue
-      loc.occupants = [...loc.occupants, pool[rr % pool.length]!.id]
-      rr++
-    }
-
-    // US-242: 2º passo do backstop — `interactions` saiu (era a válvula de escape de
-    // `checkNoOrphanNpcs`), então TODO npc precisa de occupant/npcIds próprio agora, não só
-    // os que couberam nos locais órfãos acima. Round-robin sobre `locations` inteiro (não só
-    // as sem âncora): mesmo padrão de "NPC pode ocupar 2 locais, não é problema" (comentário
-    // acima) — fecha o grafo por construção sem depender de conteúdo opcional da autoria.
-    const referencedNpcIds = new Set<string>([...encounters.flatMap((e) => e.npcIds), ...locations.flatMap((l) => l.occupants)])
-    const strandedNpcs = npcs.filter((n) => !referencedNpcIds.has(n.id))
-    let rr2 = 0
-    for (const npc of strandedNpcs) {
-      if (locations.length === 0) break
-      const loc = locations[rr2 % locations.length]!
-      loc.occupants = [...loc.occupants, npc.id]
-      rr2++
-    }
-
-    // US-233 (PASSO 2): casa a fiction (npcIds já resolvidos) com a mecânica 5e — papel de
-    // statblock por posição, determinístico, sem pedir número ao modelo.
-    // Bugfix (Paladina nível 3, 16/09/2026): orçamento pro nível AGORA é aplicado aqui também
-    // (assignBudgetedCombatRoles), não só checado pelo gate depois — nível 1-3 modo 'adventure'
-    // tem orçamento 0 (US-159), então dar papel a TODO npcId sempre estourava a verificação 3
-    // do gate, sem chance de passar em nenhuma das 3 tentativas de regenerate. Posição que não
-    // cabe no orçamento fica sem combatRole (figurante, não desaparece da ficção).
-    // US-252: nome de criatura do bestiário SRD (US-251) por trás do combatRole — insumo pra
-    // narração, não rótulo mecânico exposto. `preferredType` fica undefined nesta v1: nem
-    // `encounter.type`/`location.vibe` (mesmo eixo combat/skill/social, não mapeia pra `type`
-    // de criatura) nem `faction.kind` (texto livre, sem correspondência com as categorias do
-    // bestiário) servem de tema hoje — ver US-252, Notas de implementação.
-    // US-253: índice de `chooseNominalCreature` soma `slotIndex * combatBudget.maxHostileCount`
-    // — MESMA fórmula de `buildCombatCast` (acima), senão o nome de fallback/confirmação aqui
-    // diverge do nome que já foi prometido no prompt de autoria pra aquele slot. `slotIndex` é
-    // a posição do encontro no array (0-based), não um contador só dos `combat`.
-    encounters.forEach((encounter, slotIndex) => {
-      if (encounter.type !== 'combat') return
-      const roles = assignBudgetedCombatRoles(encounter.npcIds.length, profile.level, profile.challenge)
-      encounter.npcIds.forEach((npcId, i) => {
-        const npc = npcs.find((n) => n.id === npcId)
-        const role = roles[i]
-        if (npc && role) {
-          npc.combatRole = role
-          npc.nominalCreature = chooseNominalCreature(role, undefined, BESTIARY, slotIndex * combatBudget.maxHostileCount + i)
-        }
-      })
-    })
-
-    return GeneratedAdventureSchema.parse({
-      id: `${characterId}:${order}`,
-      levelRange: { min: profile.level, max: profile.level },
-      registry,
-      summary: authored.summary,
-      world: authored.world,
-      story: authored.story,
-      factions,
-      npcs,
-      locations,
-      challenges,
-      encounters,
-      start: authored.start,
-      objective,
-      branchedResolution: authored.branchedResolution,
-      followUps: authored.followUps,
-      generationModel: modelId,
-    })
-  }
-
-  /**
-   * US-150: gate antes de persistir — envolve `generateAdventure` com as verificações mecânicas
-   * (parse, grafo fecha) e o reseed correto (ver adventure-gate.ts). US-232: `config` threading
-   * pro rótulo pt-BR dos params de mundo. US-234: o mesmo `config` também alimenta o catálogo
-   * de perícia/atributo da verificação 4 (saneamento) — não duplica a fonte de `buildSkillSheet`.
-   */
-  async generateGatedAdventure(
-    profile: AdventureProfile,
-    characterId: string,
-    order: number,
-    locale: Locale,
-    config: SystemConfig,
-    registryOverrides: AdventureRegistryOverrides = {},
-    maxAttempts = 3,
-  ): Promise<GateResult> {
-    return generateWithGate(
-      (attempt) => this.generateAdventure(profile, characterId, order, locale, config, registryOverrides, attempt),
-      maxAttempts,
-      profile.challenge,
-      config,
-    )
-  }
-
   async createForCharacter(characterId: string, dto: CreateAdventureDto) {
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },
@@ -497,7 +187,7 @@ export class AdventureService {
       .map((item) => ({ ...item, origin: 'equipment' as const }))
     const fullInventory = [...startingInventory, ...originItems, ...raceItems]
 
-    // US-153: order calculado ANTES da transação — generateGatedAdventure roda fora do
+    // US-153: order calculado ANTES da transação — a geração (`generateSlice`/`generateGatedRest`) roda fora do
     // lock (LLM é lento, mesma disciplina de generateOpeningNarration abaixo) e precisa
     // do valor pronto; a transação recebe este MESMO `order`, não recalcula.
     const order = (await this.prisma.adventureParticipant.count({ where: { characterId } })) + 1
@@ -583,7 +273,7 @@ export class AdventureService {
       return this.prisma.$transaction(async (tx) => {
         // Fecha a aventura ativa anterior do personagem (continuidade sequencial, ver ADR 002)
         await tx.adventure.updateMany({
-          where: { status: 'ACTIVE', participants: { some: { characterId } } },
+          where: { status: { in: IN_PROGRESS_ADVENTURE_STATUSES }, participants: { some: { characterId } } },
           data: { status: 'COMPLETED', completedAt: new Date() },
         })
 
@@ -646,7 +336,7 @@ export class AdventureService {
     const adventure = await this.prisma.$transaction(async (tx) => {
       // Fecha a aventura ativa anterior do personagem (continuidade sequencial, ver ADR 002)
       await tx.adventure.updateMany({
-        where: { status: 'ACTIVE', participants: { some: { characterId } } },
+        where: { status: { in: IN_PROGRESS_ADVENTURE_STATUSES }, participants: { some: { characterId } } },
         data: { status: 'COMPLETED', completedAt: new Date() },
       })
 
@@ -697,192 +387,20 @@ export class AdventureService {
   }
 
   /**
-   * US-235: promise solta do controller/`createForCharacter` — sem fila no repo (sem
-   * BullMQ/Redis) e Render Free é instância única, aceito para fase 1 (mesmo raciocínio
-   * do doc de arquitetura §Artefatos do motor velho). Nunca lança: qualquer falha (gate
-   * esgotado ou exceção inesperada) termina a linha em FAILED, nunca deixa a Adventure
-   * presa em GENERATING por um erro não tratado.
+   * US-235: promise solta do controller/`createForCharacter`. US-256: o motor (1A → narração ∥ 1B →
+   * junção) vive em `AdventureGenerationService.run`; este método fino existe porque os testes (e
+   * `createForCharacter`) disparam o job por aqui e o espionam pelo nome.
    */
-  async runAdventureGeneration(
-    adventureId: string,
-    characterId: string,
-    profile: AdventureProfile,
-    order: number,
-    locale: Locale,
-    config: SystemConfig,
-    registryOverrides: AdventureRegistryOverrides,
-    opening: AdventureOpeningContext,
-  ): Promise<void> {
-    try {
-      const gateResult = await this.generateGatedAdventure(profile, characterId, order, locale, config, registryOverrides)
-      if (!gateResult.ok) {
-        await this.prisma.adventure.update({ where: { id: adventureId }, data: { status: 'FAILED', generationError: gateResult.reason } })
-        return
-      }
-      await this.finalizeGeneratedAdventure(adventureId, characterId, gateResult.adventure, opening)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      console.error(JSON.stringify({ event: 'adventure_generation_crashed', adventureId, timestamp: new Date().toISOString(), errorMessage: message }))
-      await this.prisma.adventure.update({ where: { id: adventureId }, data: { status: 'FAILED', generationError: message } }).catch(() => {})
-    }
+  runAdventureGeneration(...args: Parameters<AdventureGenerationService['run']>): Promise<void> {
+    return this.generation.run(...args)
   }
 
   /**
-   * US-235: 2ª metade do que `createForCharacter` fazia de uma vez só — abertura (US-34) +
-   * extração de cena (US-35) + persistência do artefato aprovado pelo gate. `CharacterState`
-   * já existe (criado síncrono); aqui só ganha `sceneState` quando a extração devolve patch.
+   * US-256 (Questão #4): "tentar de novo" da 1B depois da liberação — ver
+   * `AdventureGenerationService.retryRest`. `assertOwner` (controller) já garantiu a posse do personagem.
    */
-  private async finalizeGeneratedAdventure(
-    adventureId: string,
-    characterId: string,
-    generated: GeneratedAdventure,
-    opening: AdventureOpeningContext,
-  ): Promise<void> {
-    const mainQuest = `${generated.summary}\n${generated.start}`
-    // US-151: ledger semeado do artefato JÁ VALIDADO — substitui `extractOpeningEntities`
-    // (extração por LLM da prosa) como fonte, agora que a aventura sempre vem do motor
-    // (US-153).
-    const seededEntities = seedLedgerFromGeneratedAdventure(generated)
-
-    // US-257: introdução em PARALELO à abertura (mesmo Promise.all do ramo preset acima) —
-    // `generateOpeningNarration` recebe EXATAMENTE os mesmos parâmetros de antes.
-    const [generatedOpening, generatedIntro] = await Promise.all([
-      this.ai.generateOpeningNarration({
-        systemName: opening.systemName,
-        characterName: opening.characterName,
-        characterGender: opening.characterGender,
-        characterClass: opening.className,
-        characterRace: opening.raceName,
-        mainQuest,
-        // US-168: mesmo ledger que a transação abaixo persiste — a abertura vê o elenco
-        // que o motor já gerou, em vez de inventar um à parte (violando Onomástica).
-        entities: seededEntities,
-        inventory: opening.fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
-        sheet: { level: opening.level, hp: opening.maxHp, maxHp: opening.maxHp, attributes: opening.attrs, conditions: [], skills: opening.skills },
-        hookSeed: opening.hookSeed,
-        attributeLabels: opening.attributeLabels,
-        background: opening.background,
-        // US-41: features de classe do kit (o DM já as conhece na 1ª cena).
-        features: opening.features,
-        // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
-        spells: opening.knownSpells.map((s) => ({ name: s.name, level: s.level })),
-        locale: opening.locale,
-        // US-168: direto de `generated.registry.tone` — a abertura já nasce coerente, sem esperar
-        // o round-trip pelo banco (que só existe depois da transação, abaixo).
-        tone: generated.registry.tone,
-        // US-185: mesmo registry do tone acima.
-        setting: generated.registry.setting,
-        areaType: generated.registry.areaType,
-      }),
-      this.ai.generateIntroNarration({
-        systemName: opening.systemName,
-        characterName: opening.characterName,
-        characterGender: opening.characterGender,
-        characterClass: opening.className,
-        characterRace: opening.raceName,
-        mainQuest,
-        sheet: { level: opening.level, hp: opening.maxHp, maxHp: opening.maxHp, attributes: opening.attrs, conditions: [], skills: opening.skills },
-        hookSeed: opening.hookSeed,
-        attributeLabels: opening.attributeLabels,
-        background: opening.background,
-        features: opening.features,
-        spells: opening.knownSpells.map((s) => ({ name: s.name, level: s.level })),
-        origin: opening.origin,
-        backgrounds: opening.backgrounds,
-        locale: opening.locale,
-        tone: generated.registry.tone,
-        setting: generated.registry.setting,
-        areaType: generated.registry.areaType,
-      }),
-    ])
-    // US-101: o fallback estático já sai no idioma certo — `opening.hookSeed` veio do
-    // `config` do locale do dono, e o gancho tem versão por idioma.
-    const openingText = generatedOpening ?? opening.hookSeed
-
-    // US-35: extrai a cena estruturada da abertura ANTES da transação (é LLM). Sem
-    // isto o `sceneState` nasce nulo e o turno 1 fica sem âncora de continuidade
-    // (a abertura roda sem tools, nunca chama `updateScene`). Falha/vazio → nulo,
-    // idêntico ao comportamento pré-US-35; nunca derruba a criação.
-    const scenePatch = await this.ai.extractOpeningScene(
-      openingText,
-      opening.fullInventory.map((i) => i.name),
-    )
-    const sceneState = scenePatch ? mergeSceneState(null, scenePatch) : null
-
-    await this.prisma.$transaction(async (tx) => {
-      // US-151: ledger semeado do artefato gerado. Vazio → coluna ausente (default do Prisma).
-      // US-168: `generatedAdventure` (ADR 012 §D2/US-144) finalmente escrita — disponível
-      // de graça a todo turno via `streamChat` (SELECT * implícito, sem query nova).
-      await tx.adventure.update({
-        where: { id: adventureId },
-        data: {
-          status: 'ACTIVE',
-          title: generated.summary,
-          generatedAdventure: generated as unknown as object,
-          ...(seededEntities.length > 0 ? { entities: seededEntities as unknown as object } : {}),
-        },
-      })
-
-      // US-35: cena extraída da abertura, aplicada ao CharacterState já criado (sync).
-      if (sceneState) {
-        await tx.characterState.update({
-          where: { characterId_adventureId: { characterId, adventureId } },
-          data: { sceneState: sceneState as unknown as object },
-        })
-      }
-
-      // US-153: quest principal derivada do artefato gerado (não mais do gancho fixo por
-      // classe) — dá objetivo ao DM (ver AiService).
-      // US-169: `objective` (alvo concreto) é exposto ao Mestre todo turno (buildTurnStateBlock).
-      // US-232: `objective` do artefato virou objeto — grava só `.description` (a coluna Quest é
-      // texto). `Quest.conclusionHint` SAIU da tabela: a autoria mundo-primeiro tem fecho
-      // RAMIFICADO (`branchedResolution`, sem herói), não uma conclusão única pré-escrita.
-      // US-194: `description` = `generated.summary` (a premissa), não a cena de abertura.
-      await tx.quest.create({
-        data: {
-          adventureId,
-          title: generated.summary,
-          description: generated.summary,
-          objective: generated.objective.description,
-          isPrimary: true,
-        },
-      })
-
-      // Primeira narração persistida: aparece como mensagem do Mestre (getTurns)
-      // e entra na janela de contexto do DM (historyLogs, summarized: false).
-      // US-257: introdução ANTES da cena, `createdAt` explícito nas duas — mesma armadilha do
-      // `now()` fixo por transação do ramo preset acima.
-      if (generatedIntro) {
-        const introAt = new Date()
-        await tx.eventLog.create({
-          data: { adventureId, characterId, type: 'INTRODUCTION', payload: { text: generatedIntro }, createdAt: introAt },
-        })
-        await tx.eventLog.create({
-          data: { adventureId, characterId, type: 'NARRATION', payload: { text: openingText }, createdAt: new Date(introAt.getTime() + 1) },
-        })
-      } else {
-        await tx.eventLog.create({
-          data: {
-            adventureId,
-            characterId,
-            type: 'NARRATION',
-            payload: { text: openingText },
-          },
-        })
-      }
-    })
-
-    // US-243: dump best-effort do artefato aprovado, só depois da transação confirmar
-    // (senão o JSON em disco não bateria com o que foi persistido). Dev-only, mesmo gate de
-    // `adventure.module.ts` (US-202); nunca bloqueia a criação — falha de disco é só logada.
-    if (process.env.NODE_ENV !== 'production') {
-      try {
-        writeAuthoringDump(characterId, generated)
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        console.error(JSON.stringify({ event: 'authoring_dump_failed', adventureId, characterId, timestamp: new Date().toISOString(), errorMessage: message }))
-      }
-    }
+  retryAdventureRest(characterId: string, adventureId: string): Promise<{ status: string }> {
+    return this.generation.retryRest(characterId, adventureId)
   }
 
   /**

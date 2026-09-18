@@ -15,7 +15,7 @@ Este documento **não é uma user story**. É a sequência de tarefas até a met
 ## O desenho (resumo — detalhe no doc de arquitetura)
 
 ```
-CHAMADA 1 — autoria (modelo deepseek-v4-pro, UMA chamada):
+CHAMADA 1 — autoria (modelo deepseek-v4-pro; UMA chamada até a US-232, PARTIDA em 1A + 1B pela US-256 — ver a nota abaixo do bloco):
    mundo autoral + tom · facções (3) · conflito + fecho ramificado ·
    objetivo + recompensa · locais + NPCs (com fala) · segredos · atos/sessões + followUps ·
    encontros — FICÇÃO só (local + facção + situação, SEM números) ·
@@ -24,6 +24,8 @@ PASSO 2 — números dos encontros (código, 5e): papel de statblock + orçament
 PASSO 3 — gate: parse + grafo fecha + orçamento cabe + saneamento de mecânica na prosa
                 Falha ⇒ regenera a CHAMADA 1 (teto de tentativas ⇒ erro + retry na tela)
 ```
+
+> **US-256 (18/09/2026) — a CHAMADA 1 virou duas.** **1A (fatia):** `world` · `summary` · `story` · `factions` · `npcs` · `locations` · `start` → saneada, narrada (introdução ∥ abertura → cena) e **liberada** (`Adventure.status = OPENING_READY`, a jogadora entra no chat). **1B (resto), em paralelo à narração, com a fatia inteira no prompt como contexto fixo:** `challenges` · `encounters` · `objective` · `branchedResolution` · `followUps` → PASSO 2 + PASSO 3 sobre o artefato **mesclado**. Gate reprovado regenera **só a 1B** (a fatia liberada é imutável); só depois da junção dos dois ramos é gravado o estado terminal (`ACTIVE`/`FAILED`). O "call único" da US-232 consolidou os 6 `generate*` encadeados num só — duas chamadas com contexto estável entre elas não os trazem de volta. Detalhe, spike de latência e decisões: [US-256](./US-256-jogador-entra-no-chat-antes-do-resto-da-aventura-gerar.md).
 
 - **Params de mundo** (cenário/tom/área) viram restrição no prompt; "Aleatório" = campo omitido = modelo livre (sem `seed`). Desafio → orçamento do encontro (PASSO 2), não autoria.
 - **Locale:** prosa no idioma do personagem; chaves canônicas EN.

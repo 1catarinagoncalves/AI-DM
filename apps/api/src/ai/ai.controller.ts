@@ -42,6 +42,8 @@ export class AiController {
     // stream). Enviar o characterId de outro dono não dá acesso à ficha alheia.
     if (!user.userId) throw new ForbiddenException('Token sem identidade de utilizador')
     await this.aiService.assertCharacterOwner(characterId, user.userId)
+    // US-256: OPENING_READY (resto da aventura ainda gerando) → 409 limpo, antes do SSE.
+    await this.aiService.assertAdventurePlayable(adventureId)
 
     // US-67: numa edição, limpa o rastro do último turno ANTES dos headers SSE —
     // um turno não editável (resumido / mutou estado) rejeita aqui com 400/403

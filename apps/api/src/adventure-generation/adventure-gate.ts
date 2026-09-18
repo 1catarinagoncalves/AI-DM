@@ -7,6 +7,7 @@ import {
   type SystemConfig,
 } from '@ai-dm/shared'
 import { encounterDeadlyThreshold, singleMonsterCrCap } from './lazy-encounter-benchmark'
+import type { AdventureSlice } from './adventure-slice'
 import { MONSTER_ROLE_CR, totalCr, type MonsterRole, type EncounterChallenge } from './monster-roles'
 
 // US-234: catálogo mínimo pra validar `challenge.test` — o mesmo `config.skills`/`attributes`
@@ -202,15 +203,30 @@ function sanitizeChallenge(challenge: AdventureChallenge): void {
   challenge.consequence = stripProse(challenge.consequence)
 }
 
+// US-256: os campos de prosa da FATIA (1A) — o pedaço de `sanitizeProse` que a narração da abertura
+// precisa ANTES de o gate final rodar (a jogadora lê a abertura antes da 1B existir). Mutante, sobre
+// uma cópia: `sanitizeProse` (artefato completo) e `sanitizeSlice` (fatia) dividem este corpo em vez
+// de duplicá-lo — a garantia "narração só recebe texto saneado" sobrevive à divisão da autoria.
+function sanitizeSliceFields(adventure: AdventureSlice): void {
+  adventure.world.description = stripProse(adventure.world.description)
+  adventure.story = stripProse(adventure.story)
+  adventure.start = stripProse(adventure.start)
+  adventure.summary = stripProse(adventure.summary)
+  adventure.locations.forEach(sanitizeLocation)
+}
+
+/** US-256: sanea a fatia 1A (mesmo stripper do gate, US-234) antes de narrar/persistir. Devolve cópia. */
+export function sanitizeSlice(slice: AdventureSlice): AdventureSlice {
+  const clean = structuredClone(slice)
+  sanitizeSliceFields(clean)
+  return clean
+}
+
 function sanitizeProse(adventure: GeneratedAdventure): GeneratedAdventure {
   const clean = structuredClone(adventure)
-  clean.world.description = stripProse(clean.world.description)
-  clean.story = stripProse(clean.story)
-  clean.start = stripProse(clean.start)
-  clean.summary = stripProse(clean.summary)
+  sanitizeSliceFields(clean)
   clean.followUps = clean.followUps.map(stripProse)
   sanitizeObjective(clean)
-  clean.locations.forEach(sanitizeLocation)
   clean.challenges.forEach(sanitizeChallenge)
   clean.encounters.forEach((e) => { e.fiction = stripProse(e.fiction) })
   clean.branchedResolution.forEach((b) => { b.consequence = stripProse(b.consequence) })

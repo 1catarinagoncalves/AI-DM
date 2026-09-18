@@ -148,6 +148,10 @@ export const GeneratedAdventureSchema = z.object({
   // pra comparar qualidade entre modelos sem precisar dos logs. Opcional: artefato pré-existente
   // não tem esse dado e não revalida contra o schema (mesma postura de `unlocks` acima).
   generationModel: z.string().min(1).optional(),
+  // US-256: a autoria virou 2 chamadas (fatia 1A + resto 1B), cada uma com sua escada — `generationModel`
+  // guarda o arm da 1A (a prosa que a jogadora lê primeiro: mundo/NPCs/locais/gancho); este guarda o da 1B
+  // (encontros/desafios/fecho). Opcional pelo mesmo motivo de `generationModel`.
+  restGenerationModel: z.string().min(1).optional(),
 })
 
 export type AdventureNpc = z.infer<typeof AdventureNpcSchema>

@@ -126,6 +126,12 @@ model Adventure {
   // (@ai-dm/shared). Coluna própria, sem reuso de `entities` — namespaces diferentes,
   // `generatedAdventure.id` != `Adventure.id`. `seed` não persiste (US-146, recomputado).
   generatedAdventure Json?
+  // US-256: fatia inicial (1A) liberada antes do resto (1B) terminar. Envelope
+  // `{ slice, challenge }` (AuthoredSliceRecordSchema, adventure-slice.ts) — NÃO mora em
+  // `generatedAdventure`, que é lido com cast pro artefato COMPLETO em todo turno. Serve ao
+  // "tentar de novo" da 1B (re-executa só ela contra a fatia imutável, `challenge` incluso porque
+  // não é persistido em nenhum outro lugar) e sobrevive a dyno reiniciado no meio da 1B.
+  authoredSlice   Json?
   participants    AdventureParticipant[]
   characterStates CharacterState[]
   quests          Quest[]
@@ -154,6 +160,12 @@ enum AdventureStatus {
   // estourado, US-234); nunca desvia pra "Aventura pronta".
   GENERATING
   FAILED
+  // US-256: a abertura (introdução + cena) já está no chat, mas o resto da aventura (desafios/
+  // encontros/objetivo, chamada 1B) ainda gera em segundo plano. GENERATING → OPENING_READY →
+  // ACTIVE. Não é ACTIVE de propósito: ACTIVE segue significando "aventura pronta por inteiro"
+  // (generatedAdventure preenchido + Quest primária), invariante que os consumidores assumem.
+  // O backend recusa turno neste estado (AiService.assertAdventurePlayable).
+  OPENING_READY
 }
 
 model Quest {

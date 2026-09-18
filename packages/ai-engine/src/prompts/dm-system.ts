@@ -691,7 +691,7 @@ ${nextEncounterSection}${summarySection}`.trimEnd()
  *
  * US-194: `mainQuest`, quando presente, chega como `generated.summary + '\n' + generated.start`
  * (`finalizeGeneratedAdventure`, adventure.service.ts) — prosa livre da autoria mundo-primeiro
- * (`AUTHORING_SCHEMA`, ai.service.ts: `summary` é sinopse de uma linha, `start` é SÓ o gancho),
+ * (`AUTHORING_SLICE_SCHEMA`, apps/api/src/ai/adventure-authoring.ts — antes `AUTHORING_SCHEMA` em ai.service.ts, US-256: `summary` é sinopse de uma linha, `start` é SÓ o gancho),
  * nunca mais o beat pronto de `generateOpeningBeat` (apagada) nem o briefing rotulado de
  * `composeStartBriefing` (também apagada, US-232).
  *

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import type { AdventureEncounter, AdventureNpc, GeneratedAdventure, SystemConfig } from '@ai-dm/shared'
-import { runAdventureGate, generateWithGate } from './adventure-gate'
+import { runAdventureGate, generateWithGate, sanitizeSlice } from './adventure-gate'
+import { AdventureSliceSchema } from './adventure-slice'
 
 // US-234: catálogo mínimo pra verificação 4 — mesma forma de `config.skills`/`config.attributes`.
 const SKILL_CATALOG: Pick<SystemConfig, 'skills' | 'attributes'> = {
@@ -290,5 +291,36 @@ describe('generateWithGate (US-150, reseed)', () => {
       expect(result.attempt).toBe(2)
     }
     expect(generate).toHaveBeenCalledTimes(3)
+  })
+})
+
+// US-256: a fatia (1A) é saneada ANTES da narração — o gate final só roda depois da liberação.
+describe('sanitizeSlice (US-256)', () => {
+  const slice = () => AdventureSliceSchema.parse({
+    ...validAdventure(),
+    start: 'O gancho: você chega à clareira. Um teste de Força (CD 15) abre o portão. O vento muda ao anoitecer.',
+    world: { name: 'Vhel-Toran', description: 'Cidade entre costelas. Um teste de Força (CD 12) abre o portão. A maré sobe.' },
+    locations: [{ id: 'loc-1', title: 'Clareira', aspects: [], boxedText: 'Você chega. Um teste de Percepção (CD 10) revela a fenda.', description: 'Notas do lugar. Um teste de Força (CD 14) empurra a pedra.', occupants: ['npc-1'], vibe: 'combat' }],
+  })
+
+  it('limpa número de mecânica vazado na prosa da fatia (start, mundo, texto e notas de local)', () => {
+    const clean = sanitizeSlice(slice())
+    for (const text of [clean.start, clean.world.description, clean.locations[0]!.boxedText, clean.locations[0]!.description]) {
+      expect(text).not.toMatch(/CD \d/)
+    }
+  })
+
+  it('não muta a fatia de entrada e mantém nomes (mundo, NPCs, locais) intactos', () => {
+    const original = slice()
+    const clean = sanitizeSlice(original)
+    expect(original.start).toContain('CD 15')
+    expect(clean.world.name).toBe(original.world.name)
+    expect(clean.npcs.map((n) => n.name)).toEqual(original.npcs.map((n) => n.name))
+    expect(clean.locations.map((l) => l.title)).toEqual(original.locations.map((l) => l.title))
+  })
+
+  it('idempotente: sanear a fatia e depois o artefato (gate) não muda a fatia — a fatia liberada é a do artefato final', () => {
+    const once = sanitizeSlice(slice())
+    expect(sanitizeSlice(once)).toEqual(once)
   })
 })

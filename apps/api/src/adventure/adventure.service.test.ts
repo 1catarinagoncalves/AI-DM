@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { GeneratedAdventureSchema, type SystemConfig } from '@ai-dm/shared'
-import { AdventureService, type AdventureProfile } from './adventure.service'
-import { NAMING_REGISTERS } from '../adventure-generation/registry-catalog'
-import { composeEncounterRoles } from '../adventure-generation/monster-roles'
+import type { SystemConfig } from '@ai-dm/shared'
+import { AdventureService } from './adventure.service'
+import { AdventureGenerationService } from './adventure-generation.service'
+import { authored, fakeAi, fakePrisma, config } from './adventure.test-helpers'
 import type { AiService } from '../ai/ai.service'
 import type { PrismaService } from '../prisma.service'
 
@@ -16,149 +16,6 @@ vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>()
   return { ...actual, mkdirSync: vi.fn(), writeFileSync: vi.fn() }
 })
-
-// US-232: artefato BRUTO da autoria (índices, sem ids) que o fake de generateAdventureAuthoring
-// devolve. Graph-closed depois do minting: npc-0 ocupa loc-0, encounter/challenge/objective em
-// loc-0. `capture` (opcional) recebe os params da chamada, pra afirmar o que chega ao prompt.
-function authored(overrides: Partial<Record<string, unknown>> = {}) {
-  return {
-    world: { name: 'Vhel-Toran', description: 'Cidade entre costelas de um deus.', anchors: ['A Nave'] },
-    summary: 'Três facções disputam a Enseada Cinzenta.',
-    story: 'O conflito central entre as facções.',
-    factions: [
-      { name: 'Guardiões', kind: 'ordem', want: 'selar a enseada' },
-      { name: 'Sindicato', kind: 'submundo', want: 'saquear a enseada' },
-    ],
-    npcs: [{ name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', factionIndex: 0 }],
-    locations: [{ title: 'Enseada Cinzenta', aspects: ['maré alta'], boxedText: 'Você chega.', description: 'notas', occupants: [0], vibe: 'social' as const }],
-    challenges: [{ locationIndex: 0, test: 'teste de Força', situation: 'escalar', consequence: 'cai' }],
-    encounters: [{ locationIndex: 0, npcIndices: [0], type: 'social' as const, fiction: 'Marta barra a passagem.', behaviors: 'observa', goal: 'passar', complications: 'ela desconfia', unlocks: 'o mapa' }],
-    objective: { description: 'Impedir o saque da enseada.', reward: { name: 'Selo', effect: 'sela portais' }, locationIndex: 0 },
-    branchedResolution: [{ choice: 'Selar', consequence: 'os nomes calam' }, { choice: 'Abrir', consequence: 'algo desperta' }],
-    start: 'O gancho: você chega à enseada ao anoitecer.',
-    followUps: ['A dívida volta a assombrar.'],
-    ...overrides,
-  }
-}
-
-// US-257: `intro` (6º parâmetro) é o retorno de `generateIntroNarration` — `null` por
-// padrão (comportamento de toda a suíte pré-existente: nenhuma introdução é gravada).
-function fakeAi(
-  opening: string | null = null,
-  scene: Record<string, unknown> | null = null,
-  seen: Record<string, unknown> = {},
-  authoredObj: Record<string, unknown> = authored(),
-  capture?: Record<string, unknown>,
-  intro: string | null = null,
-  seenIntro: Record<string, unknown> = {},
-): AiService {
-  return {
-    generateOpeningNarration: async (input: Record<string, unknown>) => { Object.assign(seen, input); return opening },
-    generateIntroNarration: async (input: Record<string, unknown>) => { Object.assign(seenIntro, input); return intro },
-    extractOpeningScene: async () => scene,
-    extractOpeningEntities: async () => null,
-    generateAdventureAuthoring: async (params: Record<string, unknown>) => {
-      if (capture) Object.assign(capture, params)
-      return { adventure: authoredObj, modelId: 'fake/model' }
-    },
-  } as unknown as AiService
-}
-
-const config: SystemConfig = {
-  // US-234: `strength`/'Força' casa com o `challenge.test` canned em `authored()` acima
-  // ("teste de Força") — verificação 4 (saneamento) do gate valida perícia/atributo nomeado
-  // contra este catálogo; sem esta entrada, o gate reprovaria o fixture inteiro.
-  attributes: [
-    { key: 'constitution', label: 'Con', min: 1, max: 20, default: 10 },
-    { key: 'strength', label: 'Força', min: 1, max: 20, default: 10 },
-  ],
-  startingKits: { fighter: [{ name: 'Espada longa', qty: 1 }], default: [{ name: 'Adaga', qty: 1 }] },
-  races: [{ key: 'human', label: 'Humano' }],
-  classes: [{ key: 'wizard', label: 'Mago' }],
-  backgroundEquipment: { 'a5e-ag_acolyte': [{ name: 'Símbolo sagrado', qty: 1 }, { name: 'Túnica', qty: 1 }] },
-  backgrounds: [
-    {
-      key: 'a5e-ag_acolyte', name: 'Acólito', source: 'a5e-ag',
-      benefits: [{ type: 'adventures_and_advancement', name: 'Chamado', description: 'O templo pede um favor.' }],
-    },
-  ],
-  initialAdventures: {
-    hooks: [
-      {
-        id: 'mago-arquivo', classKey: 'wizard', title: 'O Arquivo Que Sussurra',
-        pitch: 'Um grimório reconhece {characterName}.',
-        primaryQuestTitle: 'Decifrar o Arquivo', primaryQuestDescription: 'Descubra o que o grimório sussurra a {characterName}.',
-        openingNarration: 'A vela curva-se, {characterName}.',
-        tags: [],
-      },
-      {
-        id: 'default-sinal', classKey: 'default', title: 'O Primeiro Sinal de {characterClass}',
-        pitch: 'Algo reconhece {characterName}.',
-        primaryQuestTitle: 'Responder ao Chamado', primaryQuestDescription: 'Descubra o que o mundo espera de {characterName}, {characterClass}.',
-        openingNarration: 'Alguém pronuncia a tua classe: {characterClass}.', tags: [],
-      },
-    ],
-  },
-}
-
-interface Recorded {
-  adventureCreate?: Record<string, unknown>
-  adventureUpdateMany?: Record<string, unknown>
-  // US-235: gravações do job em background (finalizeGeneratedAdventure), separadas da
-  // criação síncrona acima — `adventureCreate` só tem a linha GENERATING/placeholder agora.
-  adventureUpdate?: Record<string, unknown>
-  // US-235: `this.prisma.adventure.update` FORA da transação — só o caminho FAILED (gate
-  // esgotado ou exceção) escreve aqui, fora do `tx` de sucesso.
-  adventureFailedUpdate?: Record<string, unknown>
-  participantCreate?: Record<string, unknown>
-  characterStateCreate?: Record<string, unknown>
-  characterStateUpdate?: Record<string, unknown>
-  questCreate?: Record<string, unknown>
-  eventLogCreate?: Record<string, unknown>
-  // US-257: ordem/timestamps de INTRODUCTION+NARRATION exigem as DUAS chamadas — `eventLogCreate`
-  // (acima) sozinho só guarda a ÚLTIMA, suficiente pros testes pré-existentes (NARRATION é sempre
-  // a última quando há introdução).
-  eventLogCreates?: Record<string, unknown>[]
-}
-
-function fakePrisma(character: Record<string, unknown> | null, participantCount = 0): { prisma: PrismaService; recorded: Recorded } {
-  const recorded: Recorded = {}
-  const tx = {
-    adventureParticipant: { create: async ({ data }: { data: Record<string, unknown> }) => { recorded.participantCreate = data; return { id: 'participant-1', ...data } } },
-    adventure: {
-      updateMany: async (args: Record<string, unknown>) => { recorded.adventureUpdateMany = args; return { count: 0 } },
-      create: async ({ data }: { data: Record<string, unknown> }) => { recorded.adventureCreate = data; return { id: 'adv-1', ...data } },
-      update: async ({ data }: { data: Record<string, unknown> }) => { recorded.adventureUpdate = data; return { id: 'adv-1', ...data } },
-    },
-    characterState: {
-      create: async ({ data }: { data: Record<string, unknown> }) => { recorded.characterStateCreate = data; return data },
-      update: async ({ data }: { data: Record<string, unknown> }) => { recorded.characterStateUpdate = data; return data },
-    },
-    quest: { create: async ({ data }: { data: Record<string, unknown> }) => { recorded.questCreate = data; return { id: 'quest-1', ...data } } },
-    eventLog: { create: async ({ data }: { data: Record<string, unknown> }) => {
-      recorded.eventLogCreate = data
-      ;(recorded.eventLogCreates ??= []).push(data)
-      return { id: 'evt-1', ...data }
-    } },
-  }
-  const prisma = {
-    character: { findUnique: async () => character },
-    system: {
-      findMany: async () => {
-        const c = character as { system?: unknown; systemId?: string } | null
-        return c?.system ? [{ id: c.systemId, ...(c.system as object) }] : []
-      },
-    },
-    adventureParticipant: { count: async () => participantCount },
-    // US-235: gravação FORA da transação — só o caminho FAILED de `runAdventureGeneration`
-    // chama isto (a transação de sucesso usa `tx.adventure.update`, acima).
-    adventure: {
-      update: async ({ data }: { data: Record<string, unknown> }) => { recorded.adventureFailedUpdate = data; return { id: 'adv-1', ...data } },
-    },
-    $transaction: async (fn: (tx: unknown) => unknown) => fn(tx),
-  } as unknown as PrismaService
-  return { prisma, recorded }
-}
 
 // US-235: `createForCharacter` (ramo gerado) devolve a linha GENERATING sem esperar o motor
 // — o job roda solto (`void this.runAdventureGeneration(...)`, sem await). Para testar o
@@ -186,11 +43,11 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
   }
 
   // US-235: a linha nasce GENERATING/placeholder na hora do clique — sem esperar o motor.
-  // `generateAdventureAuthoring` nunca resolve aqui de propósito: se `createForCharacter`
+  // `generateAdventureSlice` nunca resolve aqui de propósito: se `createForCharacter`
   // esperasse por ele, este teste travaria (timeout do runner) em vez de passar.
   it('devolve a Adventure GENERATING com título placeholder, sem esperar o motor terminar', async () => {
     const { prisma, recorded } = fakePrisma(baseChar)
-    const stuckAi = { generateOpeningNarration: vi.fn(), extractOpeningScene: vi.fn(), extractOpeningEntities: vi.fn(), generateAdventureAuthoring: () => new Promise(() => {}) } as unknown as AiService
+    const stuckAi = { generateOpeningNarration: vi.fn(), extractOpeningScene: vi.fn(), extractOpeningEntities: vi.fn(), generateAdventureSlice: () => new Promise(() => {}) } as unknown as AiService
     const adventure = await new AdventureService(prisma, stuckAi).createForCharacter('char-1', {})
 
     expect(adventure).toMatchObject({ id: 'adv-1', systemId: 'sys-1', creatorId: 'user-1', title: 'Aventura de Elara', order: 1, status: 'GENERATING' })
@@ -201,7 +58,7 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
 
   it('placeholder do título é locale-aware (en-US)', async () => {
     const { prisma } = fakePrisma({ ...baseChar, user: { locale: 'en-US' } })
-    const stuckAi = { generateOpeningNarration: vi.fn(), extractOpeningScene: vi.fn(), extractOpeningEntities: vi.fn(), generateAdventureAuthoring: () => new Promise(() => {}) } as unknown as AiService
+    const stuckAi = { generateOpeningNarration: vi.fn(), extractOpeningScene: vi.fn(), extractOpeningEntities: vi.fn(), generateAdventureSlice: () => new Promise(() => {}) } as unknown as AiService
     const adventure = await new AdventureService(prisma, stuckAi).createForCharacter('char-1', {})
     expect(adventure.title).toBe("Elara's Adventure")
   })
@@ -271,6 +128,14 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
     expect(recorded.eventLogCreate).toMatchObject({ payload: { text: 'Alguém pronuncia a tua classe: Cartógrafa Estelar.' } })
   })
 
+  // US-256: OPENING_READY também é aventura "em andamento" — criar outra enquanto a 1B da anterior ainda gera
+  // tem de fechar a anterior do mesmo jeito que fecha uma ACTIVE.
+  it('criar outra aventura fecha a anterior em ACTIVE ou OPENING_READY', async () => {
+    const { prisma, recorded } = fakePrisma(baseChar)
+    await new AdventureService(prisma, fakeAi()).createForCharacter('char-1', {})
+    expect(recorded.adventureUpdateMany).toMatchObject({ where: { status: { in: ['ACTIVE', 'OPENING_READY'] } }, data: { status: 'COMPLETED' } })
+  })
+
   it('order é calculado pela contagem de aventuras anteriores', async () => {
     const { prisma, recorded } = fakePrisma(baseChar, 2)
     await new AdventureService(prisma, fakeAi()).createForCharacter('char-1', {})
@@ -304,7 +169,7 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
   })
 
   // US-243: dump em evals/reports/ depois da transação confirmar — cobre
-  // runAdventureGeneration/finalizeGeneratedAdventure (createForCharacter só dispara o job
+  // runAdventureGeneration/AdventureGenerationService (createForCharacter só dispara o job
   // solto, ver `createAndGenerate` acima).
   describe('US-243: dump da aventura gerada em evals/reports (dev-only)', () => {
     const originalNodeEnv = process.env.NODE_ENV
@@ -352,16 +217,31 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
     })
   })
 
-  describe('US-235: teto do gate estourado → FAILED (nunca cai na "Aventura pronta")', () => {
-    it('gate devolve ok:false → status FAILED com generationError, sem quest/eventLog', async () => {
+  describe('US-235/US-256: teto do gate estourado → FAILED (nunca cai na "Aventura pronta")', () => {
+    // US-256: a fatia foi liberada ANTES (OPENING_READY + abertura gravadas); a 1B esgota o gate depois.
+    // Estado terminal FAILED, sem Quest (o resto nunca existiu), `authoredSlice` gravado pro retry.
+    it('gate da 1B devolve ok:false → FAILED com generationError, sem quest, com authoredSlice gravado', async () => {
       const { prisma, recorded } = fakePrisma(baseChar)
-      const service = new AdventureService(prisma, fakeAi())
-      vi.spyOn(service, 'generateGatedAdventure').mockResolvedValue({ ok: false, reason: 'teto de 3 tentativas esgotado — última falha: x', attempt: 2 })
+      const ai = fakeAi()
+      const generation = new AdventureGenerationService(prisma, ai)
+      const service = new AdventureService(prisma, ai, generation)
+      vi.spyOn(generation, 'generateGatedRest').mockResolvedValue({ ok: false, reason: 'teto de 3 tentativas esgotado — última falha: x', attempt: 2 })
       await createAndGenerate(service, 'char-1', {})
 
       expect(recorded.adventureFailedUpdate).toMatchObject({ status: 'FAILED', generationError: 'teto de 3 tentativas esgotado — última falha: x' })
-      expect(recorded.adventureUpdate).toBeUndefined()
+      expect(recorded.adventureUpdate).toMatchObject({ status: 'OPENING_READY', authoredSlice: { slice: { id: 'char-1:1' } } })
+      expect(recorded.adventureUpdate).not.toHaveProperty('generatedAdventure')
       expect(recorded.questCreate).toBeUndefined()
+    })
+
+    it('1A esgota o reseed (escada falha 3x) → FAILED sem liberação: nem abertura nem authoredSlice', async () => {
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const ai = { ...fakeAi(), generateAdventureSlice: vi.fn().mockRejectedValue(new Error('escada esgotada')) } as unknown as AiService
+      await createAndGenerate(new AdventureService(prisma, ai), 'char-1', {})
+
+      expect(ai.generateAdventureSlice).toHaveBeenCalledTimes(3)
+      expect(recorded.adventureFailedUpdate).toMatchObject({ status: 'FAILED', generationError: expect.stringContaining('teto de 3 tentativas da fatia esgotado — última falha: escada esgotada') })
+      expect(recorded.adventureUpdate).toBeUndefined()
       expect(recorded.eventLogCreate).toBeUndefined()
     })
 
@@ -388,31 +268,35 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
   })
 
   // US-232: DTO tone/setting/areaType repassados como registryOverrides; config vai como 5º arg.
-  it('tone/setting/areaType do DTO são repassados a generateGatedAdventure com config', async () => {
+  // US-256: o que era `generateGatedAdventure` virou `generateSlice` (1A, com registryOverrides/locale/
+  // profile) + `generateGatedRest` (1B). Os três repasses do DTO acontecem na 1A.
+  function serviceWithSliceSpy(prisma: PrismaService) {
+    const generation = new AdventureGenerationService(prisma, fakeAi())
+    return { service: new AdventureService(prisma, fakeAi(), generation), sliceSpy: vi.spyOn(generation, 'generateSlice') }
+  }
+
+  it('tone/setting/areaType do DTO são repassados a generateSlice com config', async () => {
     const configComCatalogo: SystemConfig = { ...config, tones: [{ key: 'heroic', label: 'Heroico' }], settings: [{ key: 'urban', label: 'Urbano' }], areaTypes: [{ key: 'dungeon', label: 'Masmorra' }] }
     const { prisma } = fakePrisma({ ...baseChar, system: { config: configComCatalogo } })
-    const service = new AdventureService(prisma, fakeAi())
-    const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
-    await service.createForCharacter('char-1', { tone: 'heroic', setting: 'urban', areaType: 'dungeon' })
-    expect(gateSpy).toHaveBeenCalledWith(expect.anything(), 'char-1', 1, 'pt-BR', expect.anything(), { tone: 'heroic', setting: 'urban', areaType: 'dungeon' })
+    const { service, sliceSpy } = serviceWithSliceSpy(prisma)
+    await createAndGenerate(service, 'char-1', { tone: 'heroic', setting: 'urban', areaType: 'dungeon' })
+    expect(sliceSpy).toHaveBeenCalledWith(expect.anything(), 'char-1', 1, 'pt-BR', expect.anything(), { tone: 'heroic', setting: 'urban', areaType: 'dungeon' }, 0)
   })
 
-  it('locale de User.locale (en-US) é repassado a generateGatedAdventure', async () => {
+  it('locale de User.locale (en-US) é repassado a generateSlice', async () => {
     const { prisma } = fakePrisma({ ...baseChar, user: { locale: 'en-US' } })
-    const service = new AdventureService(prisma, fakeAi())
-    const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
-    await service.createForCharacter('char-1', {})
-    expect(gateSpy).toHaveBeenCalledWith(expect.anything(), 'char-1', 1, 'en-US', expect.anything(), expect.anything())
+    const { service, sliceSpy } = serviceWithSliceSpy(prisma)
+    await createAndGenerate(service, 'char-1', {})
+    expect(sliceSpy).toHaveBeenCalledWith(expect.anything(), 'char-1', 1, 'en-US', expect.anything(), expect.anything(), 0)
   })
 
   it('challenge do DTO chega ao profile (default adventure)', async () => {
     const { prisma } = fakePrisma(baseChar)
-    const service = new AdventureService(prisma, fakeAi())
-    const gateSpy = vi.spyOn(service, 'generateGatedAdventure')
-    await service.createForCharacter('char-1', {})
-    expect(gateSpy.mock.calls[0]?.[0]).toMatchObject({ challenge: 'adventure' })
-    await service.createForCharacter('char-1', { challenge: 'challenge' })
-    expect(gateSpy.mock.calls[1]?.[0]).toMatchObject({ challenge: 'challenge' })
+    const { service, sliceSpy } = serviceWithSliceSpy(prisma)
+    await createAndGenerate(service, 'char-1', {})
+    expect(sliceSpy.mock.calls[0]?.[0]).toMatchObject({ challenge: 'adventure' })
+    await createAndGenerate(service, 'char-1', { challenge: 'challenge' })
+    expect(sliceSpy.mock.calls[1]?.[0]).toMatchObject({ challenge: 'challenge' })
   })
 
   describe('US-156/US-184: validação de catálogo (tone/setting/areaType)', () => {
@@ -461,7 +345,7 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
     })
   })
 
-  // US-217: ramo "Aventura pronta" — pula o motor de mundo, não chama generateAdventureAuthoring.
+  // US-217: ramo "Aventura pronta" — pula o motor de mundo, não chama a autoria (1A/1B).
   describe('ramo "Aventura pronta" (dto.preset)', () => {
     function presetAi(opening: string | null = null, scene: Record<string, unknown> | null = null, intro: string | null = null): AiService {
       return {
@@ -469,7 +353,8 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
         generateIntroNarration: vi.fn().mockResolvedValue(intro),
         extractOpeningScene: vi.fn().mockResolvedValue(scene),
         extractOpeningEntities: vi.fn(),
-        generateAdventureAuthoring: vi.fn(),
+        generateAdventureSlice: vi.fn(),
+        generateAdventureRest: vi.fn(),
       } as unknown as AiService
     }
 
@@ -479,7 +364,8 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
       const adventure = await new AdventureService(prisma, ai).createForCharacter('char-1', { preset: true })
       expect(adventure).toMatchObject({ id: 'adv-1', title: 'O Arquivo Que Sussurra', order: 1 })
       expect(recorded.questCreate).toMatchObject({ title: 'Decifrar o Arquivo', isPrimary: true })
-      expect(ai.generateAdventureAuthoring).not.toHaveBeenCalled()
+      expect(ai.generateAdventureSlice).not.toHaveBeenCalled()
+      expect(ai.generateAdventureRest).not.toHaveBeenCalled()
     })
 
     it('abertura continua gerada pela IA', async () => {
@@ -525,7 +411,7 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
   })
 
   // US-257: introdução do Mestre gerada em PARALELO à abertura (Promise.all), ANTES dela na
-  // timeline — cobre o ramo "gerado" (finalizeGeneratedAdventure, via createAndGenerate).
+  // timeline — cobre o ramo "gerado" (AdventureGenerationService.releaseOpening, via createAndGenerate).
   describe('US-257: introdução do Mestre ANTES da cena de abertura (ramo gerado)', () => {
     it('generateIntroNarration resolve → EventLog INTRODUCTION gravado ANTES do NARRATION, createdAt distintos', async () => {
       const { prisma, recorded } = fakePrisma(baseChar)
@@ -675,341 +561,5 @@ describe('AdventureService.buildAdventureProfile', () => {
     const profile = service().buildAdventureProfile({ name: 'Nyx', level: 1, class: 'wizard', background: {}, origin: {} }, config, 'adventure') as Record<string, unknown>
     expect(profile['level']).toBe(1)
     expect(profile['hookSeed']).toBe('A vela curva-se, Nyx.')
-  })
-})
-
-// US-232: orquestrador — 1 chamada de autoria (fake) + montagem determinística + backstop.
-describe('AdventureService.generateAdventure (US-232)', () => {
-  const profile: AdventureProfile = { level: 3, classKey: 'wizard', background: {}, origin: {}, hookSeed: 'x', challenge: 'adventure' }
-
-  function service(ai: AiService) {
-    const { prisma } = fakePrisma(null)
-    return new AdventureService(prisma, ai)
-  }
-
-  it('monta um GeneratedAdventure que passa em .parse()', async () => {
-    const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
-  })
-
-  it('id/levelRange/summary/world/story/factions vêm do artefato', async () => {
-    const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 2, 'pt-BR', config)
-    expect(adventure.id).toBe('char-1:2')
-    expect(adventure.levelRange).toEqual({ min: 3, max: 3 })
-    expect(adventure.summary).toBe('Três facções disputam a Enseada Cinzenta.')
-    expect(adventure.world.name).toBe('Vhel-Toran')
-    expect(adventure.factions).toHaveLength(2)
-    expect(adventure.generationModel).toBe('fake/model')
-  })
-
-  it('minta ids: faction-N, npc-N (com factionId), loc-N, challenge/encounter/objective resolvidos', async () => {
-    const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(adventure.factions[0]!.id).toBe('faction-1')
-    const marta = adventure.npcs[0]!
-    expect(marta.id).toBe('npc-1')
-    expect(marta.factionId).toBe('faction-1')
-    expect(adventure.locations[0]!.id).toBe('loc-1')
-    expect(adventure.locations[0]!.occupants).toEqual(['npc-1'])
-    expect(adventure.challenges[0]!.locationId).toBe('loc-1')
-    expect(adventure.encounters[0]!.locationId).toBe('loc-1')
-    expect(adventure.encounters[0]!.npcIds).toEqual(['npc-1'])
-    expect(adventure.objective.locationId).toBe('loc-1')
-  })
-
-  // Regressão de 18/09/2026: v4.1-flash emite `factionIndex: null` pro NPC/local neutro. `null >= 0`
-  // é true em JS, então o minting indexava factions[null] e lançava — e antes disso o Zod já
-  // descartava o artefato inteiro por `optional()` não aceitar null.
-  it('factionIndex null (NPC/local neutro) não quebra o minting e não gera factionId', async () => {
-    const base = authored()
-    const neutro = authored({
-      npcs: [{ ...base.npcs[0]!, factionIndex: null }],
-      locations: [{ ...base.locations[0]!, factionIndex: null }],
-    })
-    const adventure = await service(fakeAi(null, null, {}, neutro)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(adventure.npcs[0]!.factionId).toBeUndefined()
-    expect(adventure.locations[0]!.factionId).toBeUndefined()
-  })
-
-  it('a autoria recebe factionCount em [2,4], contagens fixas, className rótulo, world label dos overrides', async () => {
-    const capture: Record<string, unknown> = {}
-    const configComTom: SystemConfig = { ...config, tones: [{ key: 'heroic', label: 'Heroico' }] }
-    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(profile, 'char-1', 1, 'pt-BR', configComTom, { tone: 'heroic' })
-    expect(capture['factionCount']).toBeGreaterThanOrEqual(2)
-    expect(capture['factionCount']).toBeLessThanOrEqual(4)
-    expect(capture['counts']).toEqual({ locations: 6, npcs: 7, challenges: 3, encounters: 3 })
-    expect(capture['className']).toBe('Mago')
-    expect((capture['world'] as Record<string, unknown>)['tone']).toBe('Heroico')
-    expect(NAMING_REGISTERS).toContain(capture['namingRegister'])
-  })
-
-  // US-250: orçamento de CR entra na autoria calculado ANTES da chamada (composeEncounterRoles),
-  // não mais só checado depois no PASSO 2 — nível 3/modo 'adventure' tem orçamento SEMPRE 0
-  // (US-159), então a autoria deve receber a proibição de `combat`.
-  it('combatBudget chega à autoria: nível 3/modo adventure → orçamento 0 (composeEncounterRoles é a única fonte)', async () => {
-    const capture: Record<string, unknown> = {}
-    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(capture['combatBudget']).toEqual({ maxHostileCount: 0, viable: false })
-  })
-
-  it('combatBudget chega à autoria: nível 5+ → orçamento > 0, mesma contagem que composeEncounterRoles devolve', async () => {
-    const capture: Record<string, unknown> = {}
-    const highLevelProfile: AdventureProfile = { ...profile, level: 5 }
-    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(highLevelProfile, 'char-1', 1, 'pt-BR', config)
-    const expectedCount = composeEncounterRoles(5, 'adventure').length
-    expect(expectedCount).toBeGreaterThan(0)
-    expect(capture['combatBudget']).toEqual({ maxHostileCount: expectedCount, viable: true })
-  })
-
-  // US-253: elenco nominal por SLOT de encontro chega à autoria já calculado — a ficção sabe
-  // qual criatura vai lutar em cada posição ANTES de escrever (reusa chooseNominalCreature/US-252,
-  // não reimplementa).
-  it('combatCast chega à autoria: ausente com orçamento 0, um elenco por counts.encounters quando viável', async () => {
-    const capture: Record<string, unknown> = {}
-    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(capture['combatCast']).toBeUndefined()
-
-    const capture2: Record<string, unknown> = {}
-    const highLevelProfile: AdventureProfile = { ...profile, level: 5 }
-    await service(fakeAi(null, null, {}, authored(), capture2)).generateAdventure(highLevelProfile, 'char-1', 1, 'pt-BR', config)
-    const cast = capture2['combatCast'] as Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>>
-    expect(cast).toHaveLength(3) // counts.encounters
-    expect(cast[0]!.length).toBeGreaterThan(0)
-    expect(cast.every((slot) => slot.some((c) => c.strongerThanRest))).toBe(true)
-  })
-
-  it('combatCast: elenco da posição 0 difere do da posição 1 (bestiário tem >1 candidato por papel)', async () => {
-    const capture: Record<string, unknown> = {}
-    const highLevelProfile: AdventureProfile = { ...profile, level: 5 }
-    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(highLevelProfile, 'char-1', 1, 'pt-BR', config)
-    const cast = capture['combatCast'] as Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>>
-    expect(cast.length).toBeGreaterThan(1)
-    expect(cast[0]).not.toEqual(cast[1])
-  })
-
-  it('backstop: local órfão (sem encontro/desafio/objetivo/occupant) recebe um occupant', async () => {
-    const twoLoc = authored({
-      locations: [
-        { title: 'Ancorada', aspects: [], boxedText: 'x', description: 'y', occupants: [0], vibe: 'social' },
-        { title: 'Órfã', aspects: [], boxedText: 'x', description: 'y', occupants: [], vibe: 'skill' },
-      ],
-      npcs: [
-        { name: 'Marta', role: 'herborista', want: 'w', factionIndex: 0 },
-        { name: 'Bram', role: 'ferreiro', want: 'w' },
-      ],
-      // encounter/challenge/objective todos em loc-0 → loc-1 fica órfã até o backstop.
-      challenges: [{ locationIndex: 0, test: 't', situation: 's', consequence: 'c' }],
-      encounters: [{ locationIndex: 0, npcIndices: [0], type: 'social', fiction: 'f', behaviors: 'b', goal: 'g', complications: 'c', unlocks: 'u' }],
-      objective: { description: 'd', reward: { name: 'r', effect: 'e' }, locationIndex: 0 },
-    })
-    const adventure = await service(fakeAi(null, null, {}, twoLoc)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    const orphan = adventure.locations.find((l) => l.title === 'Órfã')!
-    expect(orphan.occupants.length).toBeGreaterThan(0)
-    expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
-  })
-
-  // US-242: `interactions` saiu (era a válvula de escape de checkNoOrphanNpcs) — o backstop
-  // ganhou um 2º passo pra cobrir todo NPC autoral que a autoria deixou sem occupant/encontro,
-  // não só os que couberam nos locais órfãos do 1º passo (fixture aqui não tem local órfão).
-  it('backstop (US-242): NPC autoral fora de todo encontro/occupant original ganha occupant de algum local', async () => {
-    const strandedNpc = authored({
-      npcs: [
-        { name: 'Marta', role: 'herborista suspeita', want: 'proteger o bosque', factionIndex: 0 },
-        { name: 'Bram', role: 'ferreiro', want: 'lucrar com a maré' },
-      ],
-      // Bram (índice 1) não entra em occupants nem em npcIndices de nenhum encontro.
-    })
-    const adventure = await service(fakeAi(null, null, {}, strandedNpc)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    const bram = adventure.npcs.find((n) => n.name === 'Bram')!
-    const referenced = new Set([...adventure.encounters.flatMap((e) => e.npcIds), ...adventure.locations.flatMap((l) => l.occupants)])
-    expect(referenced.has(bram.id)).toBe(true)
-    expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
-  })
-
-  // Achado lendo um artefato real (Vhal'zeth, 2026-09-15): `world.anchors` citava um 6º lugar
-  // que nunca virou `locations[]` — o modelo mirou `locationIndex` fora de faixa pro Final e pro
-  // objective, e o clamp antigo (pro local 0) mascarava o erro sem falhar. Agora LANÇA — vira
-  // estágio 'parse' no gate (US-234), que re-semeia em vez de persistir o local errado.
-  it('locationIndex fora de faixa (encounter/challenge/objective) LANÇA — não clampa pro local 0', async () => {
-    const foraDeFaixa = authored({ objective: { description: 'd', reward: { name: 'r', effect: 'e' }, locationIndex: 5 } })
-    await expect(service(fakeAi(null, null, {}, foraDeFaixa)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config))
-      .rejects.toThrow('locationIndex 5 fora de faixa — esperado 0..0 (1 locais autorados)')
-  })
-
-  it('registryOverrides fixam o registro', async () => {
-    const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', config, { tone: 'heroic' })
-    expect(adventure.registry.tone).toBe('heroic')
-  })
-
-  it('registro é determinístico por characterId+order', async () => {
-    const a = await service(fakeAi()).generateAdventure(profile, 'char-1', 7, 'pt-BR', config)
-    const b = await service(fakeAi()).generateAdventure(profile, 'char-1', 7, 'pt-BR', config)
-    expect(a.registry).toEqual(b.registry)
-  })
-
-  // US-240: registro de nomenclatura sorteado ao lado de registry/factionCount, passado
-  // pro prompt de autoria — não persiste no artefato (só influencia os nomes que saem).
-  it('sorteia namingRegister e passa pro prompt de autoria', async () => {
-    const capture: Record<string, unknown> = {}
-    await service(fakeAi(null, null, {}, authored(), capture)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(NAMING_REGISTERS).toContain(capture['namingRegister'])
-  })
-
-  it('encounters[].fiction presente, npc[].want não vazio', async () => {
-    const adventure = await service(fakeAi()).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(adventure.encounters.every((e) => e.fiction.length > 0)).toBe(true)
-    expect(adventure.npcs.every((n) => n.want.length > 0)).toBe(true)
-  })
-
-  // US-233 (PASSO 2): casa fiction com mecânica — papel de statblock por posição, sem número
-  // vindo do modelo. `combatRole` só existe em NPC de encontro `combat`.
-  describe('PASSO 2 — mecânica 5e determinística (US-233)', () => {
-    // Nível alto o bastante (orçamento > 0, US-159) pra mostrar o ciclo posicional puro sem o
-    // orçamento descartar nenhuma posição — o `profile` do describe pai (nível 3) é o caso
-    // ORÇAMENTO-ZERO coberto no bugfix abaixo.
-    const highBudgetProfile: AdventureProfile = { ...profile, level: 8 }
-
-    function combatAuthored() {
-      return authored({
-        npcs: [
-          { name: 'Chefe', role: 'bandido líder', want: 'defender o esconderijo' },
-          { name: 'Capanga', role: 'bandido', want: 'sobreviver' },
-          { name: 'Capanga 2', role: 'bandido', want: 'sobreviver' },
-        ],
-        encounters: [
-          {
-            locationIndex: 0, npcIndices: [0, 1, 2], type: 'combat' as const,
-            fiction: 'O bando cerca a clareira.', behaviors: 'vigiam', goal: 'expulsar intrusos',
-            complications: 'reforços a caminho', unlocks: 'o mapa do esconderijo',
-          },
-        ],
-      })
-    }
-
-    it('atribui combatRole Brute→Soldier→Minion por posição em encontro combat', async () => {
-      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
-      const [chefe, capanga1, capanga2] = adventure.encounters[0]!.npcIds.map((id) => adventure.npcs.find((n) => n.id === id)!)
-      expect(chefe!.combatRole).toBe('Brute')
-      expect(capanga1!.combatRole).toBe('Soldier')
-      expect(capanga2!.combatRole).toBe('Minion')
-    })
-
-    // US-252: todo NPC com combatRole ganha nominalCreature (bestiário SRD) na mesma passada.
-    it('atribui nominalCreature a todo NPC que recebe combatRole', async () => {
-      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
-      const combatNpcs = adventure.encounters[0]!.npcIds.map((id) => adventure.npcs.find((n) => n.id === id)!)
-      expect(combatNpcs.every((n) => n.combatRole && n.nominalCreature)).toBe(true)
-    })
-
-    it('não atribui combatRole a NPC de encontro social/skill', async () => {
-      const adventure = await service(fakeAi()).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
-      expect(adventure.encounters[0]!.type).toBe('social')
-      expect(adventure.npcs[0]!.combatRole).toBeUndefined()
-    })
-
-    it('mesma fiction (npcIndices fixo), mesmo resultado de combatRole — determinístico, sem seed', async () => {
-      const a = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
-      const b = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
-      expect(a.npcs.map((n) => n.combatRole)).toEqual(b.npcs.map((n) => n.combatRole))
-    })
-
-    it('resultado passa em .parse() com combatRole preenchido', async () => {
-      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
-      expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
-    })
-
-    // Bugfix (Paladina nível 3, 16/09/2026): reprodução exata do caso real — nível 3, modo
-    // 'adventure' (orçamento 0, US-159), encontro combat com 3 NPCs. Antes do fix, os 3 recebiam
-    // combatRole incondicional e `checkEncounterBudget` (adventure-gate.ts) rejeitava sempre,
-    // esgotando as 3 tentativas de regenerate (US-234) sem chance de passar. Agora nenhuma
-    // posição recebe combatRole (figurantes), mas os NPCs continuam referenciados pelo encontro
-    // — não viram órfãos nem quebram `.parse()`.
-    it('nível 3 modo adventure (orçamento 0): nenhum NPC recebe combatRole, mas continuam no encontro sem quebrar o gate', async () => {
-      const adventure = await service(fakeAi(null, null, {}, combatAuthored())).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
-      const combatNpcs = adventure.encounters[0]!.npcIds.map((id) => adventure.npcs.find((n) => n.id === id)!)
-      expect(combatNpcs).toHaveLength(3)
-      expect(combatNpcs.every((n) => n.combatRole === undefined)).toBe(true)
-      expect(combatNpcs.every((n) => n.nominalCreature === undefined)).toBe(true)
-      expect(() => GeneratedAdventureSchema.parse(adventure)).not.toThrow()
-    })
-
-    // US-253 (bugfix): antes, `chooseNominalCreature` recebia só o índice DENTRO do encontro (`i`)
-    // — dois encontros combat com o mesmo papel na posição 0 (Brute) caíam no MESMO nome
-    // (`chooseNominalCreature` é pura). Agora soma `slotIndex * combatBudget.maxHostileCount`,
-    // mesma fórmula de `buildCombatCast` — o nome de fallback bate com o que foi prometido no
-    // prompt pra CADA slot, e dois Brutes em slots diferentes não repetem elenco.
-    it('dois encontros combat, mesmo papel na mesma posição → nominalCreature difere por slot', async () => {
-      const twoCombats = authored({
-        npcs: [
-          { name: 'Chefe A', role: 'bandido líder', want: 'defender o esconderijo' },
-          { name: 'Chefe B', role: 'outro bandido líder', want: 'defender o covil' },
-        ],
-        locations: [{ title: 'Enseada Cinzenta', aspects: [], boxedText: 'x', description: 'y', occupants: [0, 1], vibe: 'combat' as const }],
-        encounters: [
-          { locationIndex: 0, npcIndices: [0], type: 'combat' as const, fiction: 'a', behaviors: 'b', goal: 'g', complications: 'c', unlocks: 'u' },
-          { locationIndex: 0, npcIndices: [1], type: 'combat' as const, fiction: 'a2', behaviors: 'b', goal: 'g', complications: 'c', unlocks: 'u' },
-        ],
-      })
-      const adventure = await service(fakeAi(null, null, {}, twoCombats)).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
-      const [chefeA, chefeB] = adventure.npcs
-      expect(chefeA!.combatRole).toBe('Brute')
-      expect(chefeB!.combatRole).toBe('Brute')
-      expect(chefeA!.nominalCreature).not.toBe(chefeB!.nominalCreature)
-    })
-
-    // US-253: garantia de ponta a ponta — o nome que `combatCast` promete no prompt (calculado
-    // com `assignBudgetedCombatRoles`, não o `assignCombatRoles` cru) é o MESMO que o PASSO 2
-    // confirma depois, quando a autoria obedece a contagem MÁXIMA do orçamento. Achado ao testar
-    // manualmente com tsx: em nível 8, `composeEncounterRoles` dá 7 de orçamento, mas um ciclo
-    // reto Brute→Soldier→Minion de 7 estoura o orçamento em 2 posições — sem usar a MESMA função
-    // budgeted dos dois lados, o prompt prometeria nome pra posição que o PASSO 2 depois deixa
-    // sem `combatRole` (figurante muda, contradizendo a ficção).
-    it('nome prometido em combatCast bate, em ordem, com nominalCreature confirmado pelo PASSO 2 (autoria usa a contagem MÁXIMA)', async () => {
-      const capture: Record<string, unknown> = {}
-      const maxCount = composeEncounterRoles(8, 'adventure').length
-      const npcs = Array.from({ length: maxCount }, (_, i) => ({ name: `NPC ${i}`, role: 'combatente', want: 'lutar' }))
-      const obedient = authored({
-        npcs,
-        locations: [{ title: 'Arena', aspects: [], boxedText: 'x', description: 'y', occupants: npcs.map((_, i) => i), vibe: 'combat' as const }],
-        encounters: [{ locationIndex: 0, npcIndices: npcs.map((_, i) => i), type: 'combat' as const, fiction: 'f', behaviors: 'b', goal: 'g', complications: 'c', unlocks: 'u' }],
-      })
-      const adventure = await service(fakeAi(null, null, {}, obedient, capture)).generateAdventure(highBudgetProfile, 'char-1', 1, 'pt-BR', config)
-      const promised = (capture['combatCast'] as Array<Array<{ nominalCreature: string }>>)[0]!
-      const confirmed = adventure.npcs.map((n) => n.nominalCreature).filter((n): n is string => n !== undefined)
-      expect(confirmed).toEqual(promised.map((p) => p.nominalCreature))
-    })
-  })
-})
-
-describe('AdventureService.generateGatedAdventure (US-232)', () => {
-  const profile: AdventureProfile = { level: 3, classKey: 'wizard', background: {}, origin: {}, hookSeed: 'x', challenge: 'adventure' }
-
-  function service(ai: AiService) {
-    const { prisma } = fakePrisma(null)
-    return new AdventureService(prisma, ai)
-  }
-
-  it('grafo fechado: gate passa na 1ª tentativa', async () => {
-    const ai = fakeAi()
-    const spy = vi.spyOn(ai, 'generateAdventureAuthoring')
-    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(result.ok).toBe(true)
-    expect(spy).toHaveBeenCalledTimes(1)
-  })
-
-  // US-242: `interactions` era a válvula de escape de checkNoOrphanNpcs — sem ela, este NPC
-  // dependia do backstop (adventure.service.ts) pra não reprovar toda tentativa. Com o 2º
-  // passo do backstop, o gate agora passa de primeira.
-  it('NPC órfão (nunca referenciado): backstop cobre e o gate passa na 1ª tentativa', async () => {
-    const orphanNpc = authored({
-      npcs: [
-        { name: 'Marta', role: 'herborista', want: 'w', factionIndex: 0 },
-        { name: 'Órfão', role: 'coadjuvante', want: 'w' },
-      ],
-    })
-    const ai = fakeAi(null, null, {}, orphanNpc)
-    const spy = vi.spyOn(ai, 'generateAdventureAuthoring')
-    const result = await service(ai).generateGatedAdventure(profile, 'char-1', 1, 'pt-BR', config)
-    expect(result.ok).toBe(true)
-    expect(spy).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,5 +1,10 @@
 import type { GeneratedAdventure, WorldEntity } from '@ai-dm/shared'
 import { MONSTER_ROLE_CR } from './monster-roles'
+import type { AdventureSlice } from './adventure-slice'
+
+// US-256: o ledger nasce em DUAS fases. A fatia (1A) não tem `encounters`/`challenges` — a `nota` dos
+// locais só ganha os segmentos deles quando a 1B termina (`enrichLedgerWithRest`).
+type LedgerSource = AdventureSlice & Partial<Pick<GeneratedAdventure, 'encounters' | 'challenges'>>
 
 /**
  * US-151: semeia o ledger `Adventure.entities` a partir do artefato JÁ VALIDADO pelo gate
@@ -23,6 +28,39 @@ import { MONSTER_ROLE_CR } from './monster-roles'
  * sem duplicar a prosa inteira a cada turno (custo de tokens/cache).
  */
 export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure): WorldEntity[] {
+  return buildLedger(adventure)
+}
+
+/**
+ * US-256: ledger da liberação — semeado só com a fatia (1A), que é tudo que existe quando a
+ * jogadora entra no chat. Mesmas entidades de `seedLedgerFromGeneratedAdventure`, exceto a `nota` dos
+ * locais (sem os segmentos de encontro/desafio) e o `local` de NPC que só o backstop de `occupants`
+ * da 1B atribui; `enrichLedgerWithRest` completa isso na conclusão.
+ */
+export function seedLedgerFromSlice(slice: AdventureSlice): WorldEntity[] {
+  return buildLedger(slice)
+}
+
+/**
+ * US-256: fase 2 do ledger — depois que a 1B termina, enriquece a `nota` dos locais (segmentos de
+ * encontro/desafio) e o `local` dos NPCs (`occupants` finais, com os backstops), e SÓ isso: o resto de
+ * cada entidade (`revelado`, `sabido`, `atualizadoEm`…) é o que já estava no ledger persistido. Casa
+ * por posição — as duas fases usam o mesmo construtor, então a ordem é idêntica; se o tamanho ou o
+ * tipo não baterem, cai no ledger completo (nunca mistura entidades de origem diferente).
+ */
+export function enrichLedgerWithRest(ledger: WorldEntity[], adventure: GeneratedAdventure): WorldEntity[] {
+  const complete = seedLedgerFromGeneratedAdventure(adventure)
+  const aligned = ledger.length === complete.length && ledger.every((e, i) => e.tipo === complete[i]!.tipo && e.nome === complete[i]!.nome)
+  if (!aligned) return complete
+  return ledger.map((entity, i) => {
+    const fresh = complete[i]!
+    if (entity.tipo === 'npc') return { ...entity, local: fresh.local }
+    if (entity.tipo === 'local') return { ...entity, nota: fresh.nota }
+    return entity
+  })
+}
+
+function buildLedger(adventure: LedgerSource): WorldEntity[] {
   const now = new Date().toISOString()
   const locationTitleById = new Map(adventure.locations.map((l) => [l.id, l.title]))
   const factionNameById = new Map(adventure.factions.map((f) => [f.id, f.name]))
@@ -58,14 +96,14 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
   // US-166/US-232: cada encontro/desafio que hospeda um local soma um segmento à `nota` — sem
   // isso o obstáculo não-combate de um local nunca chega ao ledger (mesma lacuna que existiria
   // pra encontro se a US não portasse behaviors/goal/complications).
-  const encountersByLocationId = new Map<string, typeof adventure.encounters>()
-  for (const encounter of adventure.encounters) {
+  const encountersByLocationId = new Map<string, NonNullable<LedgerSource['encounters']>>()
+  for (const encounter of adventure.encounters ?? []) {
     const list = encountersByLocationId.get(encounter.locationId) ?? []
     list.push(encounter)
     encountersByLocationId.set(encounter.locationId, list)
   }
-  const challengesByLocationId = new Map<string, typeof adventure.challenges>()
-  for (const challenge of adventure.challenges) {
+  const challengesByLocationId = new Map<string, NonNullable<LedgerSource['challenges']>>()
+  for (const challenge of adventure.challenges ?? []) {
     const list = challengesByLocationId.get(challenge.locationId) ?? []
     list.push(challenge)
     challengesByLocationId.set(challenge.locationId, list)
@@ -119,7 +157,7 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
 }
 
 // NPC narrativo mora em `locations[].occupants[]`, que guarda `id` (não nome, US-158).
-function findOccupiedLocationTitle(adventure: GeneratedAdventure, npcId: string): string | undefined {
+function findOccupiedLocationTitle(adventure: Pick<AdventureSlice, 'locations'>, npcId: string): string | undefined {
   return adventure.locations.find((location) => location.occupants.includes(npcId))?.title
 }
 

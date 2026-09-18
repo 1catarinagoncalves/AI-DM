@@ -129,6 +129,12 @@ export const api = {
   getAdventureStatus: (characterId: string, adventureId: string) =>
     get<{ status: string; error?: string }>(`/characters/${characterId}/adventures/${adventureId}/status`),
 
+  // US-256: "Tentar de novo" do chat quando a geração do RESTO da aventura (1B) falhou depois
+  // da liberação — reinicia só a 1B contra a fatia já persistida. Devolve 'OPENING_READY'
+  // quando reiniciou; o chamador volta a consultar `getAdventureStatus`.
+  retryAdventureRest: (characterId: string, adventureId: string) =>
+    post<{ status: string }>(`/characters/${characterId}/adventures/${adventureId}/retry-rest`, {}),
+
   // US-61: as fichas do próprio utilizador, derivadas do token (sem userId no caminho).
   listCharacters: () =>
     get<{ id: string; name: string; race: string; class: string; level: number; currentAdventure: { id: string; title: string } | null }[]>(`/characters/mine`),

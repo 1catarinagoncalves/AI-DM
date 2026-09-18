@@ -382,4 +382,9 @@ export const enUS: Record<MessageKey, string> = {
   'game.saveEdit': 'Save edit',
   'game.send': 'Send action',
   'game.error.connect': "Couldn't reach the Dungeon Master. Try again.",
+  // US-256: the chat opens with the opening ready while the rest of the adventure is still
+  // generating (OPENING_READY). The "Try again" button reuses `common.retry`.
+  'game.rest.preparing': "The Dungeon Master is still preparing the rest of the adventure. Read the opening while you wait — you'll be able to act shortly.",
+  'game.rest.failed': 'The Dungeon Master stumbled while preparing the rest of the adventure. The opening you read still stands — try again.',
+  'game.rest.retryError': "Couldn't pick it back up just now. Try again in a moment.",
 }

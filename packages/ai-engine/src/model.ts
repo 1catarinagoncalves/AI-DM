@@ -346,7 +346,8 @@ export const ENGINE_PROVIDER_OPTIONS = {
 } as const
 
 // US-232: escada de AUTORIA (motor mundo-primeiro, call único de `generateAdventureAuthoring`
-// em ai.service.ts) — molde de `narrationModels`. `deepseek-v4-pro` primeiro (a barra de texto
+// em ai.service.ts; US-256: hoje são duas chamadas — `generateAdventureSlice`/`generateAdventureRest` —
+// e ESTA escada vale por chamada) — molde de `narrationModels`. `deepseek-v4-pro` primeiro (a barra de texto
 // que a mantenedora aprovou no Spike de autoria); cai pro snapshot fixo `-0813` e depois pro
 // `v4.1-flash` (piso barato) em erro/corpo-vazio. Resiliência, não bake-off: o serviço tenta
 // em ordem e para no PRIMEIRO que gerar (STOP_ON_FIRST). Roda OFF-TURN (sem o teto de 60s do

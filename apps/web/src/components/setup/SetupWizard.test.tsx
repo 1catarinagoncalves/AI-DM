@@ -1075,6 +1075,54 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
       expect(screen.queryByText('A geração deu errado')).toBeNull()
       expect(routerPush).toHaveBeenCalledWith('/play/adv-1?characterId=char-1')
     }, 15000)
+
+    // US-256: abertura (introdução + narração) já está no chat, o resto da aventura ainda gera
+    // em segundo plano — o wizard NÃO espera o ACTIVE, navega no OPENING_READY.
+    it('GENERATING → OPENING_READY → navega pro jogo sem esperar ACTIVE (US-256)', async () => {
+      createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
+      getAdventureStatus
+        .mockResolvedValueOnce({ status: 'GENERATING' })
+        .mockResolvedValueOnce({ status: 'OPENING_READY' })
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(6000) })
+
+      expect(getAdventureStatus).toHaveBeenCalledTimes(2) // parou no OPENING_READY, não consultou de novo
+      expect(routerPush).toHaveBeenCalledWith('/play/adv-1?characterId=char-1')
+      expect(screen.queryByText('A geração deu errado')).toBeNull()
+    })
+
+    // US-256: FAILED continua sendo erro — antes da liberação a jogadora ainda está no wizard.
+    it('OPENING_READY não afrouxa o FAILED: continua na tela de erro (US-256)', async () => {
+      createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
+      getAdventureStatus.mockResolvedValue({ status: 'FAILED' })
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+
+      expect(screen.getByText('A geração deu errado')).toBeTruthy()
+      expect(routerPush).not.toHaveBeenCalled()
+    })
+
+    // US-256: a consulta extra pós-teto (US-235, Bardo 15/09/2026) também aceita OPENING_READY —
+    // senão a abertura pronta no último instante viraria "deu errado".
+    it('OPENING_READY só na consulta extra pós-teto → navega em vez de declarar timeout (US-256)', async () => {
+      createAdventure.mockResolvedValue({ id: 'adv-1', title: 'Aventura', status: 'GENERATING' })
+      let calls = 0
+      getAdventureStatus.mockImplementation(async () => ({ status: ++calls <= 100 ? 'GENERATING' : 'OPENING_READY' }))
+      await confirmAndReachWorld(configWithWorldCatalog(2))
+
+      vi.useFakeTimers()
+      fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(305_000) })
+
+      expect(screen.queryByText('A geração deu errado')).toBeNull()
+      expect(routerPush).toHaveBeenCalledWith('/play/adv-1?characterId=char-1')
+    }, 15000)
   })
 
   // US-127: a revisão espelha o que a ficha vai mostrar depois — atributos e perícias com

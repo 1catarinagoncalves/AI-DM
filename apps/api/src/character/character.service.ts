@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { SystemConfigSchema, buildCharacterAttributesSchema, catalogLabel, resolveLocale, getCharacterFeatureKeys, getClassSpells, getBackgroundFeatures, getRaceFeatures, resolveEquipmentSlots, DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE, RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES, type SystemConfig, type SystemBackgroundGrant, type SystemRaceGrant } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached, getSystemsCached, localeOfUser } from '../system/system-locale'
+import { IN_PROGRESS_ADVENTURE_STATUSES } from '../adventure-generation/adventure-status'
 // DTO derivado do schema Zod do controller (fonte única — ver character.schema.ts).
 // Reexporta para quem importava o tipo daqui.
 export type { CreateCharacterDto } from './character.schema'
@@ -594,7 +595,9 @@ export class CharacterService {
         states: { orderBy: { updatedAt: 'desc' }, take: 1 },
         // Aventura em andamento: participação numa Adventure ACTIVE, a mais recente desempata.
         participations: {
-          where: { adventure: { status: 'ACTIVE' } },
+          // US-256: OPENING_READY (abertura no chat, resto gerando) também é "em andamento" — sem isto a
+          // jogadora que sai do chat antes do fim não veria "continuar" no hub.
+          where: { adventure: { status: { in: IN_PROGRESS_ADVENTURE_STATUSES } } },
           include: { adventure: { select: { id: true, title: true } } },
           orderBy: { adventure: { createdAt: 'desc' } },
           take: 1,

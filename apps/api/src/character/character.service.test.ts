@@ -64,6 +64,19 @@ const configWithAlignments: SystemConfig = {
 }
 
 describe('CharacterService.findAllByUser (US-25)', () => {
+  // US-256: OPENING_READY (abertura no chat, resto da aventura ainda gerando) também é aventura em
+  // andamento — sem isto a jogadora que sai do chat antes do fim perde o "continuar" no hub.
+  it('a query do hub pede participação em aventura ACTIVE ou OPENING_READY', async () => {
+    let seen: { include: { participations: { where: unknown } } } | undefined
+    const prisma = {
+      user: { findUnique: async () => ({ locale: 'pt-BR' }) },
+      character: { findMany: async (args: NonNullable<typeof seen>) => { seen = args; return [] } },
+      system: { findMany: async () => [] },
+    } as unknown as PrismaService
+    await new CharacterService(prisma).findAllByUser('u1')
+    expect(seen!.include.participations.where).toEqual({ adventure: { status: { in: ['ACTIVE', 'OPENING_READY'] } } })
+  })
+
   it('embute currentAdventure da participação ACTIVE e ordena por último jogado', async () => {
     const service = new CharacterService(fakePrismaList([
       {

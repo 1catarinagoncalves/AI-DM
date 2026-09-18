@@ -1008,16 +1008,20 @@ export function SetupWizard() {
   // Bug real (Bardo, 15/09/2026): estourar o teto não significa que o motor falhou — ele
   // pode terminar bem um instante depois do cliente parar de esperar. Uma última consulta
   // depois do loop evita declarar timeout numa aventura que, na verdade, já é ACTIVE.
+  // US-256: OPENING_READY também resolve — introdução + abertura já estão no chat e o resto da
+  // aventura gera em segundo plano; a espera da jogadora acaba aqui. O chat (GameView) cuida do
+  // que falta: bloqueia turno até ACTIVE e oferece retry se o resto falhar.
   async function pollAdventureStatus(adventureId: string): Promise<void> {
+    const canEnterChat = (status: string) => status === 'ACTIVE' || status === 'OPENING_READY'
     const deadline = Date.now() + STATUS_POLL_TIMEOUT_MS
     while (Date.now() < deadline) {
       await new Promise(resolve => setTimeout(resolve, STATUS_POLL_INTERVAL_MS))
       const { status } = await api.getAdventureStatus(charId, adventureId)
-      if (status === 'ACTIVE') return
+      if (canEnterChat(status)) return
       if (status === 'FAILED') throw new Error('generation_failed')
     }
     const { status } = await api.getAdventureStatus(charId, adventureId)
-    if (status === 'ACTIVE') return
+    if (canEnterChat(status)) return
     if (status === 'FAILED') throw new Error('generation_failed')
     throw new Error('generation_timeout')
   }

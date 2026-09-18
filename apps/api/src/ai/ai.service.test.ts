@@ -7,8 +7,9 @@ import {
   resolveLostItems,
   composeMainQuestText,
   OPENING_SCENE_SCHEMA,
-  AUTHORING_SCHEMA,
 } from './ai.service'
+import { AUTHORING_SLICE_SCHEMA } from './adventure-authoring'
+import type { AdventureSlice } from '../adventure-generation/adventure-slice'
 import { mergeSceneState, extractionModel, authoringModels } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
@@ -888,87 +889,80 @@ describe('AiService.generateIntroNarration (US-257)', () => {
   })
 })
 
-// US-232: motor de autoria mundo-primeiro (call único, escada de modelos). Fake de
-// `generateObject` (genObj) devolve o objeto bruto por índice; o parse/minting vive em
-// adventure.service, não aqui. Testa o encanamento: params viram restrição no prompt, e a
-// escada NUNCA degrada em silêncio (todos os modelos falhando lança).
-describe('AiService.generateAdventureAuthoring (US-232)', () => {
-  function svc() {
-    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
-  }
-  const authored = {
-    world: { name: 'Vhel-Toran', description: 'Cidade entre costelas.', anchors: [] },
-    summary: 'Três facções disputam um sarcófago.',
-    story: 'O conflito central.',
-    factions: [
-      { name: 'Guardiões', kind: 'ordem', want: 'selar' },
-      { name: 'Sindicato', kind: 'submundo', want: 'vender' },
-    ],
-    npcs: [{ name: 'Kesh', role: 'guardiã', want: 'proteger', factionIndex: 0 }],
-    locations: [{ title: 'A Nave', aspects: [], boxedText: 'x', description: 'y', occupants: [0], vibe: 'social' }],
-    start: 'O gancho.',
-    challenges: [{ locationIndex: 0, test: 'teste de Força', situation: 'escalar', consequence: 'cai' }],
-    encounters: [{ locationIndex: 0, npcIndices: [0], type: 'combat', fiction: 'z', behaviors: 'a', goal: 'b', complications: 'c', unlocks: 'd' }],
-    objective: { description: 'decidir o destino', reward: { name: 'Cinzel', effect: 'sela ecos' }, locationIndex: 0 },
-    branchedResolution: [{ choice: 'selar', consequence: 'os nomes calam' }],
-    followUps: ['algo desperta'],
+// US-232 → US-256: motor de autoria mundo-primeiro em DUAS chamadas (1A fatia + 1B resto), escada
+// de modelos por chamada. Fake de `generateObject` (genObj) devolve o objeto bruto por índice; o
+// parse/minting vive em mint-adventure.ts, não aqui. Testa o encanamento: params viram restrição
+// no prompt, e a escada NUNCA degrada em silêncio (todos os modelos falhando lança). Os testes de
+// TEXTO puro dos prompts (nomes da fatia no prompt da 1B, chaves dos schemas) estão em
+// adventure-authoring.test.ts.
+const authoredSlice = {
+  world: { name: 'Vhel-Toran', description: 'Cidade entre costelas.', anchors: [] },
+  summary: 'Três facções disputam um sarcófago.',
+  story: 'O conflito central.',
+  factions: [
+    { name: 'Guardiões', kind: 'ordem', want: 'selar' },
+    { name: 'Sindicato', kind: 'submundo', want: 'vender' },
+  ],
+  npcs: [{ name: 'Kesh', role: 'guardiã', want: 'proteger', factionIndex: 0 }],
+  locations: [{ title: 'A Nave', aspects: [], boxedText: 'x', description: 'y', occupants: [0], vibe: 'social' }],
+  start: 'O gancho.',
+}
+const authoredRest = {
+  challenges: [{ locationIndex: 0, test: 'teste de Força', situation: 'escalar', consequence: 'cai' }],
+  encounters: [{ locationIndex: 0, npcIndices: [0], type: 'combat', fiction: 'z', behaviors: 'a', goal: 'b', complications: 'c', unlocks: 'd' }],
+  objective: { description: 'decidir o destino', reward: { name: 'Cinzel', effect: 'sela ecos' }, locationIndex: 0 },
+  branchedResolution: [{ choice: 'selar', consequence: 'os nomes calam' }],
+  followUps: ['algo desperta'],
+}
+
+function authoringSvc() {
+  return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+}
+
+describe('AiService.generateAdventureSlice (US-256, ex-US-232)', () => {
+  const baseParams = {
+    world: {},
+    factionCount: 3,
+    counts: { locations: 6, npcs: 7 },
+    namingRegister: 'Celtic',
+    questSeed: 'Kill a villain because a Sly Elf demands it',
+    level: 3,
+    className: 'ladino',
   }
 
   // US-255: `start` reordenado pra logo após `locations` — nesse ponto o modelo já tem
   // facção/NPC/local nomeados (gancho concreto) mas ainda não viu challenges/encounters/
-  // objective/branchedResolution (zero risco do desfecho vazar pro gancho).
-  it('start aparece entre locations e challenges na ordem de AUTHORING_SCHEMA (US-255)', () => {
-    const keys = Object.keys(AUTHORING_SCHEMA.shape)
+  // objective/branchedResolution (zero risco do desfecho vazar pro gancho). US-256: com a divisão,
+  // `start` é o ÚLTIMO campo da 1A e esses quatro campos nem existem no schema dela.
+  it('start é o último campo da fatia, logo após locations (US-255)', () => {
+    const keys = Object.keys(AUTHORING_SLICE_SCHEMA.shape)
     expect(keys.indexOf('start')).toBe(keys.indexOf('locations') + 1)
-    expect(keys.indexOf('start')).toBe(keys.indexOf('challenges') - 1)
+    expect(keys.indexOf('start')).toBe(keys.length - 1)
   })
 
-  // US-250: orçamento de combate neutro (>0) pros testes que não são sobre ele — só os 2
-  // testes dedicados no fim do describe variam `combatBudget`.
-  const combatBudget = { maxHostileCount: 4, viable: true }
-
-  it('devolve o objeto bruto do modelo (sem mintar ids — isso é do adventure.service) + modelId do arm vencedor', async () => {
+  it('devolve o objeto bruto do modelo (sem mintar ids — isso é do mint-adventure) + modelId do arm vencedor', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    const result = await svc().generateAdventureAuthoring({ world: {}, factionCount: 3, counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 }, namingRegister: 'Celtic', questSeed: 'Kill a villain because a Sly Elf demands it', level: 3, className: 'ladino', combatBudget })
-    expect(result.adventure).toBe(authored)
+    genObj.result = authoredSlice
+    const result = await authoringSvc().generateAdventureSlice(baseParams)
+    expect(result.slice).toBe(authoredSlice)
     expect(result.modelId).toBe(authoringModels[0]!.modelId)
   })
 
   it('contagem de facções, contagens fixas e história do personagem entram no prompt', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: { tone: 'Sombrio' },
-      factionCount: 4,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      characterStory: 'cresceu batendo carteira nos cais',
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 3,
-      className: 'ladino',
-      combatBudget,
-    })
+    genObj.result = authoredSlice
+    await authoringSvc().generateAdventureSlice({ ...baseParams, world: { tone: 'Sombrio' }, factionCount: 4, characterStory: 'cresceu batendo carteira nos cais' })
     expect(genObj.prompt).toContain('4 facções')
     expect(genObj.prompt).toContain('cresceu batendo carteira nos cais')
     expect(genObj.prompt).toContain('Sombrio')
   })
 
-  // US-240: registro de nomenclatura sorteado por adventure.service entra como restrição
+  // US-240: registro de nomenclatura sorteado por adventure-generation.service entra como restrição
   // cobrindo TODO nome próprio — não só o mundo — e prima sobre o passo 1 da Onomástica.
   it('registro de nomenclatura entra no prompt, cobrindo mundo/facções/locais/NPCs/recompensa', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: {},
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Norse/Germanic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 3,
-      className: 'ladino',
-      combatBudget,
-    })
+    genObj.result = authoredSlice
+    await authoringSvc().generateAdventureSlice({ ...baseParams, namingRegister: 'Norse/Germanic' })
     expect(genObj.prompt).toContain('Norse/Germanic')
     expect(genObj.prompt).toMatch(/facç(ões|ão)/)
     expect(genObj.prompt).toMatch(/locais/)
@@ -978,25 +972,14 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
 
   it('escada esgotada (todos os modelos falham) LANÇA — nunca degrada em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
-    await expect(
-      svc().generateAdventureAuthoring({
-        world: {},
-        factionCount: 3,
-        counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-        namingRegister: 'Celtic',
-        questSeed: 'Kill a villain because a Sly Elf demands it',
-        level: 3,
-        className: 'ladino',
-        combatBudget,
-      }),
-    ).rejects.toThrow('modelo indisponível')
+    await expect(authoringSvc().generateAdventureSlice(baseParams)).rejects.toThrow('modelo indisponível')
   })
 
   // Regressão: modelo que TRAVA (nunca resolve, nunca rejeita — nem timeout nem erro de
   // rede) tinha o processo pendurado pra sempre, sem cair pro próximo da escada. Fixa via
-  // `abortSignal: AbortSignal.timeout(AUTHORING_TIMEOUT_MS)` na chamada. Aqui o fake
-  // `AbortSignal.timeout` é substituído por um disparo quase instantâneo — o valor real
-  // (240s) não pode rodar num teste — só o encanamento (aborta → cai pro próximo) é testado.
+  // `abortSignal: AbortSignal.timeout(...)` na chamada. Aqui o fake `AbortSignal.timeout` é
+  // substituído por um disparo quase instantâneo — o valor real (centenas de s) não pode rodar
+  // num teste — só o encanamento (aborta → cai pro próximo) é testado.
   it('modelo trava sem responder (nem resolve nem rejeita) → timeout aborta e cai pro próximo da escada', async () => {
     const realTimeout = AbortSignal.timeout
     AbortSignal.timeout = ((_ms: number) => {
@@ -1006,20 +989,11 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
     }) as typeof AbortSignal.timeout
     try {
       genObj.error = undefined
-      genObj.result = authored
+      genObj.result = authoredSlice
       genObj.calls = 0
       genObj.hangAttempts = 1
-      const result = await svc().generateAdventureAuthoring({
-        world: {},
-        factionCount: 3,
-        counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-        namingRegister: 'Celtic',
-        questSeed: 'Kill a villain because a Sly Elf demands it',
-        level: 3,
-        className: 'ladino',
-        combatBudget,
-      })
-      expect(result.adventure).toBe(authored)
+      const result = await authoringSvc().generateAdventureSlice(baseParams)
+      expect(result.slice).toBe(authoredSlice)
       expect(genObj.calls).toBe(2)
     } finally {
       AbortSignal.timeout = realTimeout
@@ -1027,23 +1001,14 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
     }
   })
 
-  // US-241: `rollQuestSeed` vira restrição obrigatória de `summary`, no MESMO call único —
-  // sem round-trip novo. `system` ganha o guarda-corpo negativo contra vazamento de palavra em
+  // US-241: `rollQuestSeed` vira restrição obrigatória de `summary`, no MESMO call — sem
+  // round-trip novo. `system` ganha o guarda-corpo negativo contra vazamento de palavra em
   // inglês (mesma categoria de risco de `patronsandnpcs`); só com `world.setting` presente o
   // `prompt` pede a TRANSPOSIÇÃO do vocabulário medieval-padrão do MacGuffin pro eixo de Cenário.
   it('questSeed chega ao prompt, e o system instrui traduzir/adaptar sem copiar a palavra em inglês', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: {},
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because of the Obelisk in the Crypts, which is Smoky and Ruined',
-      level: 3,
-      className: 'ladino',
-      combatBudget,
-    })
+    genObj.result = authoredSlice
+    await authoringSvc().generateAdventureSlice({ ...baseParams, questSeed: 'Kill a villain because of the Obelisk in the Crypts, which is Smoky and Ruined' })
     expect(genObj.prompt).toContain('Kill a villain because of the Obelisk in the Crypts, which is Smoky and Ruined')
     expect(genObj.system).toMatch(/traduza|adapte/i)
     expect(genObj.system).toMatch(/nunca copie a palavra em ingl[êe]s/i)
@@ -1051,34 +1016,16 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
 
   it('com world.setting presente, o prompt pede TRANSPOR o MacGuffin pro Cenário restringido', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: { setting: 'cyberpunk' },
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 3,
-      className: 'ladino',
-      combatBudget,
-    })
+    genObj.result = authoredSlice
+    await authoringSvc().generateAdventureSlice({ ...baseParams, world: { setting: 'cyberpunk' } })
     expect(genObj.prompt).toMatch(/TRANSPON[HA]A|transponha/i)
     expect(genObj.prompt).toMatch(/Cenário/)
   })
 
   it('sem world.setting (Aleatório), a instrução de transposição NÃO entra no prompt', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: {},
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 3,
-      className: 'ladino',
-      combatBudget,
-    })
+    genObj.result = authoredSlice
+    await authoringSvc().generateAdventureSlice(baseParams)
     expect(genObj.prompt).not.toMatch(/TRANSPON[HA]A|transponha/i)
   })
 
@@ -1087,51 +1034,81 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
   // ausente) some da lista e cai no fallback "livre" — nenhum sorteio determinístico.
   it('os 3 eixos de mundo entram como linha rotulada; sem nenhum, cai no fallback "livre"', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: { setting: 'Cyberpunk urbano', tone: 'Sombrio', areaType: 'Masmorra' },
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 3,
-      className: 'ladino',
-      combatBudget,
-    })
+    genObj.result = authoredSlice
+    await authoringSvc().generateAdventureSlice({ ...baseParams, world: { setting: 'Cyberpunk urbano', tone: 'Sombrio', areaType: 'Masmorra' } })
     expect(genObj.prompt).toContain('- Cenário: Cyberpunk urbano')
     expect(genObj.prompt).toContain('- Tom: Sombrio')
     expect(genObj.prompt).toContain('- Tipo de área: Masmorra')
 
-    await svc().generateAdventureAuthoring({
-      world: {},
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 3,
-      className: 'ladino',
-      combatBudget,
-    })
+    await authoringSvc().generateAdventureSlice(baseParams)
     expect(genObj.prompt).not.toMatch(/Cenário:|Tom:|Tipo de área:/)
     expect(genObj.prompt).toContain('Sem eixos de mundo fixados')
   })
 
-  // US-250: orçamento de CR calculado ANTES da autoria (composeEncounterRoles, adventure.service.ts)
-  // vira restrição no prompt — a autoria nunca mais escreve `combat` que a mecânica já sabe, de
-  // antemão, que não vai caber (ver US-250, Contexto e motivação).
+  // US-256: encontros/desafios/objetivo/fecho são da 1B — a 1A não pode nem ver essas instruções
+  // (senão o gancho `start` volta a poder citar um desfecho que ainda não foi escrito).
+  it('o prompt e o system da fatia não pedem encontros/desafios/objetivo/fecho', async () => {
+    genObj.error = undefined
+    genObj.result = authoredSlice
+    await authoringSvc().generateAdventureSlice(baseParams)
+    expect(genObj.prompt).not.toMatch(/desafios NÃO-COMBATE|encontros \(inclua/)
+    expect(genObj.system).not.toContain('OBJETIVO E FECHO')
+    expect(genObj.system).not.toContain('ENCONTROS:')
+  })
+})
+
+describe('AiService.generateAdventureRest (US-256)', () => {
+  const slice: AdventureSlice = {
+    id: 'c:1',
+    levelRange: { min: 3, max: 3 },
+    registry: { setting: 'x', tone: 'y', areaType: 'z' },
+    summary: 'Três facções disputam um sarcófago.',
+    world: { name: 'Vhel-Toran', description: 'Cidade entre costelas.', anchors: [] },
+    story: 'O conflito central.',
+    factions: [{ id: 'faction-1', name: 'Guardiões', kind: 'ordem', want: 'selar' }, { id: 'faction-2', name: 'Sindicato', kind: 'submundo', want: 'vender' }],
+    npcs: [{ id: 'npc-1', name: 'Kesh', role: 'guardiã', want: 'proteger', factionId: 'faction-1' }],
+    locations: [{ id: 'loc-1', title: 'A Nave', aspects: [], boxedText: 'x', description: 'y', occupants: ['npc-1'], vibe: 'social' }],
+    start: 'O gancho.',
+  }
+  // US-250: orçamento neutro (>0) pros testes que não são sobre ele — só os dedicados variam `combatBudget`.
+  const baseParams = {
+    slice,
+    counts: { challenges: 3, encounters: 3 },
+    namingRegister: 'Celtic',
+    level: 3,
+    className: 'ladino',
+    combatBudget: { maxHostileCount: 4, viable: true },
+  }
+
+  it('devolve o objeto bruto do modelo + modelId do arm vencedor (escada própria da 1B)', async () => {
+    genObj.error = undefined
+    genObj.result = authoredRest
+    const result = await authoringSvc().generateAdventureRest(baseParams)
+    expect(result.rest).toBe(authoredRest)
+    expect(result.modelId).toBe(authoringModels[0]!.modelId)
+  })
+
+  it('escada esgotada LANÇA — a 1B nunca degrada em silêncio (motivo de retry do gate)', async () => {
+    genObj.error = new Error('modelo indisponível')
+    await expect(authoringSvc().generateAdventureRest(baseParams)).rejects.toThrow('modelo indisponível')
+  })
+
+  it('a fatia inteira chega ao prompt, e o system é o da 1B (fecho + encontros, sem a semente em inglês)', async () => {
+    genObj.error = undefined
+    genObj.result = authoredRest
+    await authoringSvc().generateAdventureRest(baseParams)
+    expect(genObj.prompt).toContain('Vhel-Toran')
+    expect(genObj.prompt).toContain('Kesh')
+    expect(genObj.system).toContain('OBJETIVO E FECHO')
+    expect(genObj.system).not.toMatch(/nunca copie a palavra em ingl[êe]s/i)
+  })
+
+  // US-250: orçamento de CR calculado ANTES da autoria (composeEncounterRoles) vira restrição no
+  // prompt — a autoria nunca mais escreve `combat` que a mecânica já sabe, de antemão, que não vai caber.
   it('orçamento viável (>0) → prompt tem a contagem MÁXIMA de inimigos por encontro combat, sem proibir type: combat', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: {},
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 5,
-      className: 'ladino',
-      combatBudget: { maxHostileCount: 6, viable: true },
-    })
+    genObj.result = authoredRest
+    await authoringSvc().generateAdventureRest({ ...baseParams, level: 5, combatBudget: { maxHostileCount: 6, viable: true } })
     expect(genObj.prompt).toContain('6')
     expect(genObj.prompt).toMatch(/combat/)
     expect(genObj.prompt).not.toMatch(/PROIBID[OA]/i)
@@ -1139,35 +1116,21 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
 
   it('orçamento 0 (nível 1-3, modo adventure) → prompt PROÍBE type: combat em qualquer encontro', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: {},
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 3,
-      className: 'ladino',
-      combatBudget: { maxHostileCount: 0, viable: false },
-    })
+    genObj.result = authoredRest
+    await authoringSvc().generateAdventureRest({ ...baseParams, combatBudget: { maxHostileCount: 0, viable: false } })
     expect(genObj.prompt).toMatch(/PROIBID[OA].*combat/i)
   })
 
-  // US-253: elenco nominal por posição de encontro (`combatCast`, calculado em
-  // adventure.service.ts ANTES desta chamada) vira restrição do prompt — a ficção do encontro
-  // `combat` já sabe qual criatura real vai lutar em cada slot, no lugar de a mecânica (US-252)
-  // encaixar o nome depois de a prosa já ter decidido outro inimigo.
+  // US-253: elenco nominal por posição de encontro (`combatCast`) vira restrição do prompt — a
+  // ficção do encontro `combat` já sabe qual criatura real vai lutar em cada slot, no lugar de a
+  // mecânica (US-252) encaixar o nome depois de a prosa já ter decidido outro inimigo.
   it('combatCast presente → prompt lista os nomes por posição de encontro, com líder marcado', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: {},
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 2 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
+    genObj.result = authoredRest
+    await authoringSvc().generateAdventureRest({
+      ...baseParams,
+      counts: { challenges: 3, encounters: 2 },
       level: 5,
-      className: 'ladino',
       combatBudget: { maxHostileCount: 2, viable: true },
       combatCast: [
         [{ nominalCreature: 'Ogre', strongerThanRest: true }, { nominalCreature: 'Goblin', strongerThanRest: false }],
@@ -1183,17 +1146,30 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
 
   it('combatCast ausente (orçamento não viável) → prompt não sugere nenhuma criatura de combate', async () => {
     genObj.error = undefined
-    genObj.result = authored
-    await svc().generateAdventureAuthoring({
-      world: {},
-      factionCount: 3,
-      counts: { locations: 6, npcs: 7, challenges: 3, encounters: 3 },
-      namingRegister: 'Celtic',
-      questSeed: 'Kill a villain because a Sly Elf demands it',
-      level: 3,
-      className: 'ladino',
-      combatBudget: { maxHostileCount: 0, viable: false },
-    })
+    genObj.result = authoredRest
+    await authoringSvc().generateAdventureRest({ ...baseParams, combatBudget: { maxHostileCount: 0, viable: false } })
     expect(genObj.prompt).not.toMatch(/os inimigos são/)
+  })
+})
+
+// US-256: turno só é aceito com a aventura jogável — OPENING_READY (resto ainda gerando) recusa no
+// backend; o input desabilitado na UI é só conveniência. COMPLETED continua abrindo no chat.
+describe('AiService.assertAdventurePlayable (US-256)', () => {
+  function svcWithStatus(status: string | null) {
+    const prisma = { adventure: { findUnique: async () => (status ? { status } : null) } } as unknown as PrismaService
+    return new AiService(prisma, {} as unknown as DiceService)
+  }
+
+  it.each(['OPENING_READY', 'GENERATING', 'FAILED'])('%s → 409 com o estado e o esperado', async (status) => {
+    await expect(svcWithStatus(status).assertAdventurePlayable('adv-1')).rejects.toThrow(`Aventura adv-1 está em ${status}`)
+  })
+
+  it.each(['ACTIVE', 'COMPLETED'])('%s → passa', async (status) => {
+    await expect(svcWithStatus(status).assertAdventurePlayable('adv-1')).resolves.toBeUndefined()
+  })
+
+  // Aventura inexistente é problema do `streamChat` (404 com a mensagem de sempre), não deste guard.
+  it('aventura inexistente → passa (o 404 continua sendo do streamChat)', async () => {
+    await expect(svcWithStatus(null).assertAdventurePlayable('adv-x')).resolves.toBeUndefined()
   })
 })

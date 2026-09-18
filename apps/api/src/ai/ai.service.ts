@@ -1,9 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
 import type { GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
-import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, DEFAULT_LOCALE, localeNameForPrompt, type Locale } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, DEFAULT_LOCALE, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -18,9 +18,6 @@ import {
   buildTurnStateBlock,
   buildOpeningInstruction,
   buildIntroInstruction,
-  ONOMASTICS_SECTION,
-  CRAFT_CORE_SECTION,
-  NPC_VOICE_BULLET,
   resolveKnownSpell,
   resolveAdventuresAndAdvancement,
   buildSummaryInput,
@@ -51,6 +48,19 @@ import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
 import { MONSTER_ROLE_CR } from '../adventure-generation/monster-roles'
 import { nextUnrevealedEncounterLocation } from '../adventure-generation/next-encounter-hint'
+import type { AdventureSlice } from '../adventure-generation/adventure-slice'
+import {
+  AUTHORING_SLICE_SCHEMA,
+  AUTHORING_REST_SCHEMA,
+  buildSliceSystem,
+  buildSlicePrompt,
+  buildRestSystem,
+  buildRestPrompt,
+  type AuthoredSlice,
+  type AuthoredRest,
+  type CombatBudget,
+  type CombatCast,
+} from './adventure-authoring'
 
 export interface ChatInput {
   adventureId: string
@@ -68,6 +78,9 @@ export interface RollTurnState { first: AnchoredRoll | null }
 // = 1 ACTION + 1 NARRATION = 2 eventos. ~15 turnos = ~30 eventos.
 const SUMMARIZE_THRESHOLD = 30
 const KEEP_RECENT = 12
+
+// US-256: estados em que o Mestre NÃO pode receber turno (ver `assertAdventurePlayable`).
+const ADVENTURE_STATUSES_WITHOUT_TURNS: ReadonlySet<string> = new Set(['GENERATING', 'OPENING_READY', 'FAILED'])
 
 // US-35: schema da extração de cena da abertura. Espelha o `ScenePatch`
 // (`packages/ai-engine/src/scene.ts`) com o MESMO vocabulário do `updateScene`.
@@ -109,201 +122,6 @@ const OPENING_ENTITIES_SCHEMA = z.object({
 })
 
 const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').trim()
-
-// US-232: schema BRUTO da autoria mundo-primeiro (call único). Referências cruzadas por
-// ÍNDICE (0-based na array irmã), NUNCA por id — mesmo padrão de `occupants` (US-158): o
-// modelo aponta pra uma posição de um array que ele mesmo escreveu; o código minta os ids
-// reais (`faction-N`/`npc-N`/`loc-N`/…) depois do `.parse()` (adventure.service.ts).
-export const AUTHORING_SCHEMA = z.object({
-  world: z.object({
-    name: z.string().min(1).describe('Nome próprio do mundo/lugar inventado — específico, não genérico'),
-    description: z.string().min(1).describe('2-3 parágrafos de worldbuilding sensorial'),
-    anchors: z.array(z.string()).describe('Localidades-âncora nomeadas'),
-  }),
-  summary: z.string().min(1).describe('Sinopse de UMA linha da aventura (lista/quest)'),
-  story: z.string().min(1).describe('A seção Story: o que está errado + as forças (facções dissolvidas na prosa)'),
-  factions: z.array(z.object({
-    name: z.string().min(1),
-    kind: z.string().min(1).describe('poder / submundo / culto / ordem / …'),
-    want: z.string().min(1).describe('o que a facção quer — os desejos das facções COLIDEM'),
-  })).min(1),
-  npcs: z.array(z.object({
-    name: z.string().min(1),
-    role: z.string().min(1).describe('papel + descrição breve, 1 frase'),
-    want: z.string().min(1).describe('motivação INDIVIDUAL do NPC (mais específica que a da facção)'),
-    // `.nullish()`, não `.optional()`: v4.1-flash emite `"factionIndex": null` pro NPC neutro e o
-    // Zod jogava fora o artefato INTEIRO (~8k tokens válidos) por causa de um campo (18/09/2026).
-    factionIndex: z.number().int().min(0).nullish().describe('Índice (0-based) em factions[] — NÚMERO; omitir se NPC neutro'),
-  })).min(1),
-  locations: z.array(z.object({
-    title: z.string().min(1),
-    aspects: z.array(z.string()).describe('2-3 aspectos curtos, estilo Fate'),
-    boxedText: z.string().min(1).describe('Texto lido em voz alta ao chegar, 2-3 frases'),
-    description: z.string().min(1).describe('Notas do mestre — SÓ o lugar e itens, NUNCA cite NPCs aqui'),
-    occupants: z.array(z.number().int().min(0)).describe('Índices (0-based) de npcs[] presentes — NÚMERO, [] se nenhum'),
-    factionIndex: z.number().int().min(0).nullish().describe('Índice (0-based) em factions[] que controla o local — omitir se neutro'),
-    vibe: z.enum(['combat', 'skill', 'social']),
-  })).min(1),
-  start: z.string().min(1).describe(
-    'SÓ o gancho — a última parte da Story ("O gancho: …"). Escrito AGORA, com facção/NPC/local já nomeados: cite pelo menos um nome próprio. NÃO cite challenges/encounters/objective/branchedResolution — ainda não foram escritos.',
-  ),
-  challenges: z.array(z.object({
-    locationIndex: z.number().int().min(0).describe('Índice (0-based) em locations[] onde o desafio acontece'),
-    test: z.string().min(1).describe('perícia/atributo nomeado, SEM CD'),
-    situation: z.string().min(1),
-    consequence: z.string().min(1).describe('consequência da falha'),
-  })).min(1),
-  encounters: z.array(z.object({
-    locationIndex: z.number().int().min(0).describe('Índice (0-based) em locations[]'),
-    npcIndices: z.array(z.number().int().min(0)).describe('Índices (0-based) em npcs[] que participam — [] se nenhum'),
-    type: z.enum(['combat', 'skill', 'social']),
-    fiction: z.string().min(1).describe('A NARRATIVA da cena que o jogador lê — sem números de mecânica'),
-    behaviors: z.string().min(1).describe('o que os presentes fazem agora'),
-    goal: z.string().min(1).describe('por que o personagem foi até lá'),
-    complications: z.string().min(1).describe('o que pode virar o jogo de cabeça pra baixo'),
-    unlocks: z.string().min(1).describe('o que ESTE encontro entrega que faz o próximo existir'),
-  })).min(1),
-  objective: z.object({
-    description: z.string().min(1),
-    reward: z.object({
-      name: z.string().min(1).describe('item mágico nomeado'),
-      effect: z.string().min(1).describe('efeito em FICÇÃO, SEM números'),
-    }),
-    locationIndex: z.number().int().min(0).describe('Índice (0-based) em locations[] onde a meta se resolve'),
-  }),
-  branchedResolution: z.array(z.object({
-    choice: z.string().min(1),
-    consequence: z.string().min(1).describe('o custo dessa escolha — nenhum rumo é "o certo"'),
-  })).min(1),
-  followUps: z.array(z.string()).min(1).describe('um gancho pós-aventura por rumo do fecho'),
-})
-
-export type AuthoredAdventure = z.infer<typeof AUTHORING_SCHEMA>
-
-// US-232: instruções da autoria mundo-primeiro. Portadas do Spike (adventure-authoring-spike.mjs:
-// authoringPrompt), com a divergência deliberada de *tábula rasa* das Notas de implementação: o
-// exemplar (Khemsar) NÃO entra verbatim — ensina QUALIDADE de forma abstrata (corta a
-// convergência de motivo "ossos de titã" que o Spike expôs).
-function buildAuthoringSystem(locale: Locale): string {
-  const targetLanguage = localeNameForPrompt(locale)
-  return [
-    'Você é um designer de aventuras de RPG de mesa (D&D 5e), no nível de um módulo publicado. Escreva uma aventura one-shot ORIGINAL e AUTORAL para UM único personagem.',
-    '',
-    'INVENTE UM MUNDO NOVO — não use cenários de prateleira (nada de Costa da Espada, Faerûn, etc.). O mundo é seu, específico e nomeado, com detalhe sensorial concreto.',
-    '',
-    'PRIMEIRA AVENTURA — o personagem CHEGA NOVO a este mundo, é a primeira sessão dele: NÃO existe história prévia jogada. Portanto:',
-    '- NENHUM NPC já conhece o personagem, deve favores a ele, ou o reconhece — todos são estranhos no início; qualquer vínculo se constrói DURANTE a aventura.',
-    '- NÃO pressuponha eventos anteriores como fato (dívidas antigas, inimigos que já o caçam, aliados do passado, parentes na trama).',
-    '- NÃO ancore item, recompensa, lugar ou pista no passado específico do personagem — a proveniência das coisas é do MUNDO, não da biografia dele.',
-    '- Follow-ups introduzem ganchos NOVOS do mundo; NÃO afirmam dívidas/inimigos/parentes do personagem que "voltam a persegui-lo".',
-    'O enredo nasce de um gancho que qualquer forasteiro poderia receber ao chegar, não de um passado que o personagem já tem aqui.',
-    '',
-    'MECÂNICA: NÃO escreva número mecânico na prosa — nada de CD, dano, HP, CA, bônus. Testes são nomeados QUALITATIVAMENTE por perícia/atributo ("teste de Sabedoria (Percepção)"), sem CD. Statblocks de inimigo NÃO se escrevem aqui; descreva o inimigo e seu papel só em ficção.',
-    '',
-    'FACÇÕES: invente as facções pedidas com desejos que COLIDEM — elas SÃO o antagonismo (não há um vilão único). Dissolva-as na `story` e nos `npcs` (a alma vem dessa tensão), mas preencha `factions[]` como dado estruturado. NPC neutro tem `want` SEM `factionIndex`.',
-    '',
-    'OBJETIVO E FECHO: `objective` tem meta + recompensa (item mágico nomeado, efeito em ficção, sem números) + local. `branchedResolution` é a escolha final RAMIFICADA — um rumo por facção, cada um com um custo, nenhum "o certo". O último encontro (o Final) amarra essa escolha ramificada. A ameaça/criatura central da premissa (a que dá nome ao conflito) PRECISA estar presente, fisicamente, em pelo menos um encontro no local do objetivo — a resolução não pode acontecer só entre NPCs alheios, em outro lugar, sem ela.',
-    '',
-    'LOCAIS: a `description` fala SÓ do lugar e dos itens — NÃO cite NPCs que estão nele (quem os habita fica em `occupants`, por índice). Ex.: descreva "o balcão de uma taverna esfumaçada e o mural nos fundos", não "onde o estalajadeiro Tobias serve bebida".',
-    '',
-    'ENCONTROS: `fiction` é a NARRATIVA da cena que o jogador lê; `behaviors`/`goal`/`complications`/`unlocks` são a decomposição (Sly Flourish + trilha) que o motor usa. `unlocks` do encontro N faz o N+1 existir; o Final ecoa o conflito de `branchedResolution`.',
-    '',
-    `Responda SEMPRE em ${targetLanguage} — idioma da mesa, escolhido pelo jogador; nomes próprios seguem a Onomástica abaixo, não o idioma-alvo. Prosa densa e sensorial, sem placeholders.`,
-    '',
-    // US-241: a semente de `summary` (restrição no prompt, `questSeed`) chega EM INGLÊS — mesma
-    // categoria de risco de `patronsandnpcs` (roll-content.ts:89-97, o bug real de
-    // "lizardfolk"/"cheery" vazando cru na narração pt-BR), mas aqui não há mapa fixo possível
-    // (combinatória grande demais, ver US-241 §Fora do escopo): o guarda-corpo é de PROMPT.
-    `A semente de gancho (abaixo, "Gancho central desta aventura") vem EM INGLÊS — TRADUZA/ADAPTE a ideia pro ${targetLanguage} ao escrever \`summary\`; NUNCA copie a palavra em inglês crua para a prosa.`,
-    '',
-    `Barra de qualidade da prosa (world/story/boxedText/fiction/role):\n${CRAFT_CORE_SECTION}\n${NPC_VOICE_BULLET}\n\n${ONOMASTICS_SECTION}`,
-  ].join('\n')
-}
-
-// US-232: restrições POR AVENTURA (contagens, params de mundo, background como tom). Param de
-// mundo entra pelo RÓTULO pt-BR (nunca a chave, US-156); eixo "Aleatório" = omitido = modelo
-// livre. `challenge` (dial de dificuldade) NÃO entra na autoria (é MA-3). `characterStory` entra
-// só como TOM/ressonância — nunca como fato literal de plot; bonds/deity/flaws ficam de fora.
-function buildAuthoringPrompt(params: {
-  world: { setting?: string; tone?: string; areaType?: string }
-  factionCount: number
-  counts: { locations: number; npcs: number; challenges: number; encounters: number }
-  characterStory?: string
-  namingRegister: string
-  level: number
-  className: string
-  questSeed: string
-  combatBudget: { maxHostileCount: number; viable: boolean }
-  combatCast?: Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>>
-}): string {
-  const worldLines = [
-    params.world.setting && `- Cenário: ${params.world.setting}`,
-    params.world.tone && `- Tom: ${params.world.tone}`,
-    params.world.areaType && `- Tipo de área: ${params.world.areaType}`,
-  ].filter((l): l is string => Boolean(l))
-  const { counts } = params
-  // US-241: `questSeed` (rollQuestSeed, fórmula do LGMRD) vira restrição obrigatória de
-  // `summary` — mesmo tratamento de `worldLines`/`characterStory`, sem chamada de IA nova. Com
-  // `setting` fixado, soma a instrução de TRANSPOR o vocabulário medieval-padrão do MacGuffin
-  // pro eixo de Cenário restringido (o LGMRD é nativamente fantasia medieval; `SETTINGS` inclui
-  // eixos que destoam disso, ex. `cyberpunk`/`sci-fi-space-opera`) — mesmo condicional de
-  // `worldLines.length > 0` logo abaixo: sem Cenário fixado (Aleatório), o modelo fica livre
-  // pra manter ou não o registro medieval-padrão.
-  const questSeedLines = [
-    `Gancho central desta aventura (semente em inglês — ver instrução de tradução no system): "${params.questSeed}". Escreva \`summary\` TRADUZINDO/ADAPTANDO essa ideia pro idioma-alvo, nunca copiando a palavra em inglês; \`story\`/\`objective\` não podem contradizê-la.`,
-    params.world.setting &&
-      `O MacGuffin da semente acima é vocabulário PADRÃO do LGMRD (fantasia medieval) — TRANSPONHA os substantivos pro eixo de Cenário já restringido acima (ex.: obelisco/cripta → núcleo de reator/estação abandonada, num Cenário sci-fi), mantendo conceito+motivo; NÃO force cripta/obelisco/patrono élfico se o Cenário destoar.`,
-  ].filter((l): l is string => Boolean(l))
-  // US-250: orçamento de CR (composeEncounterRoles, calculado em adventure.service.ts ANTES
-  // desta chamada) vira restrição de prompt — sem isso a autoria promete N inimigos que o
-  // PASSO 2 (assignBudgetedCombatRoles) descarta em silêncio por estourar o nível. Nível 1-3
-  // modo 'adventure' tem orçamento SEMPRE 0 (US-159): proíbe `combat` de vez, no lugar de deixar
-  // todo encontro combat estourar por construção.
-  const combatBudgetLine = params.combatBudget.viable
-    ? `- Em qualquer encontro type: 'combat', NO MÁXIMO ${params.combatBudget.maxHostileCount} inimigo(s) — o personagem não sustenta mais que isso neste nível.`
-    : `- PROIBIDO usar type: 'combat' em qualquer encontro desta aventura — o personagem não tem orçamento de combate neste nível/modo.`
-  // US-253: elenco nominal por POSIÇÃO de encontro (buildCombatCast, adventure.service.ts) —
-  // a ficção já sabe qual criatura real vai lutar em cada slot ANTES de escrever, no lugar de a
-  // mecânica (US-252) encaixar o nome depois de a prosa já ter decidido outro inimigo. Ausente
-  // (`combatCast` undefined) quando o orçamento não é viável — nenhum nome é oferecido,
-  // consistente com a proibição de `combat` que `combatBudgetLine` já instrui.
-  const combatCastLines = (params.combatCast ?? []).map((cast, slotIndex) => {
-    const parts = cast.map(
-      ({ nominalCreature, strongerThanRest }) => `${nominalCreature}${strongerThanRest ? ' (mais forte, lidera)' : ' (apoio)'}`,
-    )
-    return `- Se o Encontro ${slotIndex + 1} for de combate, os inimigos são: ${parts.join(' + ')}. Narre ESSAS criaturas pra essa posição (pode adaptar/traduzir o nome pro idioma-alvo, mesma espécie), não invente outras.`
-  })
-  return [
-    `Personagem: ${params.className}, nível ${params.level}. (Contexto de escala — a aventura NÃO gira em torno dele nem do passado dele.)`,
-    params.characterStory?.trim()
-      ? `História do personagem (use SÓ como TOM/ressonância temática, NUNCA como fato de plot nem teia de relações pré-existentes): ${params.characterStory.trim()}`
-      : 'Sem história de personagem registrada — o tom vem só do mundo e dos params abaixo.',
-    '',
-    worldLines.length > 0
-      ? `Restrições de mundo (respeite estes eixos):\n${worldLines.join('\n')}`
-      : 'Sem eixos de mundo fixados — você é livre em cenário/tom/tipo de área.',
-    '',
-    questSeedLines.join('\n'),
-    '',
-    // US-240: UM registro pra toda a aventura — nunca um por facção/local/NPC (colcha de
-    // retalhos cultural sem razão narrativa). Prima sobre o passo 1 da Onomástica (registro por
-    // raça/classe/cena) só NESTA chamada; a Onomástica compartilhada não muda esse passo, que
-    // continua certo pra narração ao vivo.
-    `Registro de nomenclatura desta aventura: ${params.namingRegister}. Todo nome próprio que você inventar — mundo, facções, locais-âncora, NPCs, item de recompensa — soa nesse mesmo registro: é a identidade sonora de UM mundo específico, nunca uma mistura de culturas sem relação. Isto tem prioridade sobre o passo 1 da Onomástica pra esta aventura.`,
-    '',
-    'Contagens (respeite exatamente):',
-    `- ${params.factionCount} facções com desejos concorrentes`,
-    `- ~${counts.locations} locais`,
-    `- ~${counts.npcs} NPCs`,
-    `- ${counts.challenges} desafios NÃO-COMBATE (cada um preso a um local)`,
-    `- ${counts.encounters} encontros (inclua um Final que amarra o fecho ramificado)`,
-    combatBudgetLine,
-    `- ${params.factionCount} rumos em branchedResolution e ${params.factionCount} followUps (um por facção)`,
-    '',
-    ...(combatCastLines.length > 0 ? [combatCastLines.join('\n'), ''] : []),
-    'Emita na ordem: mundo → facções → conflito+fecho (story/branchedResolution) → objetivo+recompensa → locais/NPCs (e o que cada um quer) → followUps → ficção dos encontros → desafios não-combate.',
-  ].join('\n')
-}
 
 // US-194: título + descrição da quest primária para o DM saber o objetivo (US-28), somando
 // `objective` quando presente (US-169: `String?`, quests legadas pré-US-169 ficam `null` —
@@ -348,7 +166,13 @@ const SALVAGE_FALLBACK = '\n\n- 💬 Continuar.'
 // Chamada normal de autoria mede 110–150s (~7,5k tokens de saída a 33–52 tok/s no
 // `pro`, 18/09/2026); a 33 tok/s são ~225s, então 180s cortava o modelo forte à toa.
 // A janela abaixo dá margem sem travar pra sempre.
-const AUTHORING_TIMEOUT_MS = 240_000
+// US-256: a chamada única virou duas (1A fatia, 1B resto), cada uma com seu timeout. Spike de
+// 18/09/2026 (scripts/run-authoring.ts, 3 execuções, Patrulheiro nível 3): 1A = 58–64s, 1B = 51–63s
+// (a chamada única de antes: 84–110s). Cada metade emite ~metade dos tokens, então o pior caso da
+// conta acima (33 tok/s) cai de ~225s pra ~115s; 150s dá margem sobre isso e cai mais cedo pro
+// próximo da escada num provedor que trava.
+const AUTHORING_SLICE_TIMEOUT_MS = 150_000
+const AUTHORING_REST_TIMEOUT_MS = 150_000
 // Mesma janela do `narration-gen.ts` (turnos regulares) — texto livre, sem schema.
 const OPENING_NARRATION_TIMEOUT_MS = 90_000
 
@@ -511,6 +335,21 @@ export class AiService {
     if (!character) throw new NotFoundException(`Character ${characterId} not found`)
     if (character.userId !== userId) {
       throw new ForbiddenException('Este personagem não pertence ao utilizador autenticado')
+    }
+  }
+
+  /**
+   * US-256: recusa turno enquanto a aventura não está jogável. Em OPENING_READY o chat já mostra a
+   * abertura, mas o resto (`generatedAdventure`, Quest primária) ainda não existe: o turno rodaria
+   * sem tone/setting/areaType, sem `mainQuest` e sem sinal de próximo encontro, e `completeQuest`
+   * lançaria. Este guard é o que vale — o input desabilitado na UI é só conveniência. Chamado pelo
+   * controller ANTES de abrir o SSE (409 limpo, sem headers de stream). COMPLETED fica de fora da
+   * lista de propósito: aventura encerrada continua abrindo no chat.
+   */
+  async assertAdventurePlayable(adventureId: string): Promise<void> {
+    const adventure = await this.prisma.adventure.findUnique({ where: { id: adventureId }, select: { status: true } })
+    if (adventure && ADVENTURE_STATUSES_WITHOUT_TURNS.has(adventure.status)) {
+      throw new ConflictException(`Aventura ${adventureId} está em ${adventure.status}: turnos só são aceitos quando ela está ACTIVE (esperado ACTIVE ou COMPLETED)`)
     }
   }
 
@@ -1618,60 +1457,91 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
 
 
   /**
-   * US-232: motor de autoria mundo-primeiro (call ÚNICO, D5). Substitui os 6 `generate*`
-   * encadeados (premissa/locais/NPCs/segredos/antagonista/fecho) por UMA chamada que emite o
-   * artefato inteiro de FICÇÃO (números do encontro vêm no PASSO 2, MA-3). Escada de prosa
-   * (`authoringModels`, model.ts): tenta cada modelo em ordem, o PRIMEIRO `generateObject` que
-   * não lançar ganha e para (STOP_ON_FIRST) — resiliência a outage/rate-limit, não bake-off.
+   * US-256: chamada 1A da autoria mundo-primeiro (US-232, que era uma chamada ÚNICA) — a fatia
+   * inicial: world/summary/story/factions/npcs/locations/start. É o que a jogadora lê primeiro
+   * (introdução + abertura narram em cima dela) e fica IMUTÁVEL depois de liberada: o gate
+   * reprovado regenera só a 1B (`generateAdventureRest`), nunca esta.
    *
-   * Saída BRUTA por ÍNDICE (`AUTHORING_SCHEMA`) — quem minta os ids é `adventure.service.ts`.
-   * NUNCA degrada em silêncio: escada inteira falhando lança (motivo de reseed do gate, MA-4).
-   * `maxTokens: 16000` — 12000 cortava o arm preferido `deepseek-v4-pro` (verboso) com
-   * `AI_NoObjectGeneratedError` (JSON truncado, finishReason tool-calls), forçando cair pro
-   * 0813 e perder a barra de texto do pro; medido no smoke E2E da US-232 (scripts/run-authoring.ts).
-   *
-   * Devolve `modelId` junto do artefato — qual arm da escada gerou, pra registrar proveniência
-   * no `GeneratedAdventure` (adventure.service.ts) sem precisar reabrir a escada pra descobrir.
+   * Saída BRUTA por ÍNDICE (`AUTHORING_SLICE_SCHEMA`) — quem minta os ids é `mint-adventure.ts`.
+   * Devolve `modelId` junto — qual arm da escada gerou, pra registrar proveniência no
+   * `GeneratedAdventure.generationModel` sem reabrir a escada pra descobrir.
    */
-  async generateAdventureAuthoring(params: {
+  async generateAdventureSlice(params: {
     world: { setting?: string; tone?: string; areaType?: string }
     factionCount: number
-    counts: { locations: number; npcs: number; challenges: number; encounters: number }
+    counts: { locations: number; npcs: number }
     characterStory?: string
     namingRegister: string
     level: number
     className: string
     questSeed: string
-    combatBudget: { maxHostileCount: number; viable: boolean }
-    combatCast?: Array<Array<{ nominalCreature: string; strongerThanRest: boolean }>>
     locale?: Locale
-  }): Promise<{ adventure: AuthoredAdventure; modelId: string }> {
-    const locale = params.locale ?? DEFAULT_LOCALE
-    const system = buildAuthoringSystem(locale)
-    const prompt = buildAuthoringPrompt(params)
+  }): Promise<{ slice: AuthoredSlice; modelId: string }> {
+    const system = buildSliceSystem(params.locale ?? DEFAULT_LOCALE)
+    const { object, modelId } = await this.runAuthoringLadder('generateAdventureSlice', AUTHORING_SLICE_SCHEMA, system, buildSlicePrompt(params), AUTHORING_SLICE_TIMEOUT_MS)
+    return { slice: object, modelId }
+  }
 
+  /**
+   * US-256: chamada 1B — o resto (challenges/encounters/objective/branchedResolution/followUps),
+   * escrito em segundo plano com a fatia INTEIRA no prompt como contexto fixo. Cada chamada tem
+   * a sua escada e o seu timeout. `attempt` não entra: a 1B só re-amostra (o que era variação do
+   * reseed — registry/factionCount/namingRegister/questSeed — pertence à 1A).
+   */
+  async generateAdventureRest(params: {
+    slice: AdventureSlice
+    counts: { challenges: number; encounters: number }
+    namingRegister: string
+    level: number
+    className: string
+    combatBudget: CombatBudget
+    combatCast?: CombatCast
+    locale?: Locale
+  }): Promise<{ rest: AuthoredRest; modelId: string }> {
+    const system = buildRestSystem(params.locale ?? DEFAULT_LOCALE)
+    const { object, modelId } = await this.runAuthoringLadder('generateAdventureRest', AUTHORING_REST_SCHEMA, system, buildRestPrompt(params), AUTHORING_REST_TIMEOUT_MS)
+    return { rest: object, modelId }
+  }
+
+  /**
+   * US-232: escada de prosa (`authoringModels`, model.ts): tenta cada modelo em ordem, o PRIMEIRO
+   * `generateObject` que não lançar ganha e para (STOP_ON_FIRST) — resiliência a outage/
+   * rate-limit, não bake-off. NUNCA degrada em silêncio: escada inteira falhando lança (motivo de
+   * reseed do gate, MA-4). `maxTokens: 16000` — 12000 cortava o arm preferido `deepseek-v4-pro`
+   * (verboso) com `AI_NoObjectGeneratedError` (JSON truncado, finishReason tool-calls), forçando
+   * cair pro 0813 e perder a barra de texto do pro; medido no smoke E2E da US-232
+   * (scripts/run-authoring.ts). US-256: cada metade é bem menor que a chamada única de então, mas
+   * o teto segue igual — é limite de truncamento, não orçamento de custo.
+   */
+  private async runAuthoringLadder<T>(
+    label: string,
+    schema: z.ZodType<T, z.ZodTypeDef, unknown>,
+    system: string,
+    prompt: string,
+    timeoutMs: number,
+  ): Promise<{ object: T; modelId: string }> {
     let lastErr: unknown
     for (const model of authoringModels) {
       try {
         const { object, providerMetadata } = await generateObject({
           model,
-          schema: AUTHORING_SCHEMA,
+          schema,
           system,
           prompt,
           maxTokens: 16000,
           providerOptions: AUTHORING_PROVIDER_OPTIONS,
-          abortSignal: AbortSignal.timeout(AUTHORING_TIMEOUT_MS),
+          abortSignal: AbortSignal.timeout(timeoutMs),
         })
-        logExtractionEndpoint('generateAdventureAuthoring', model, providerMetadata)
-        return { adventure: object, modelId: model.modelId }
+        logExtractionEndpoint(label, model, providerMetadata)
+        return { object, modelId: model.modelId }
       } catch (err) {
         lastErr = err
-        logLlmFailure('autoria de aventura (escada)', `caindo pro próximo modelo da escada após ${model.modelId}`, err)
+        logLlmFailure('autoria de aventura (escada)', `caindo pro próximo modelo da escada após ${model.modelId} (${label})`, err)
       }
     }
     throw lastErr instanceof Error
       ? lastErr
-      : new Error(`generateAdventureAuthoring: escada de ${authoringModels.length} modelos esgotada — ${String(lastErr)}`)
+      : new Error(`${label}: escada de ${authoringModels.length} modelos esgotada — ${String(lastErr)}`)
   }
 
   /**
