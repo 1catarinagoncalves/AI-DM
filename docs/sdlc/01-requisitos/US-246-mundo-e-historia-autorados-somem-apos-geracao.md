@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada (18/09/2026)
 **Depende de:** nenhuma — `GeneratedAdventure.world`/`.story` já existem e já são gravados; é questão de PASSAR o que já existe pra outro lugar, não gerar dado novo.
 **Relacionado:** [US-151](./US-151-semear-ledger-segredos-gerados.md) (`seedLedgerFromGeneratedAdventure`, o mesmo padrão de "ler o artefato e semear o ledger" que esta story estende) · [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (hoje o ÚNICO consumidor de `world`, e é tela — não IA) · [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (introduziu `world`/`story` no schema) · [US-75](./US-75-dimensao-de-proveniencia-no-ledger.md) (regras de provenance/oculto que qualquer entrada nova no ledger precisa respeitar)
 **Criada em:** 2026-09-16 — achado ao mapear quais campos de `GeneratedAdventure` o DM Agent lê em jogo (ver conversa que originou esta story).
@@ -67,12 +67,12 @@ Estender `seedLedgerFromGeneratedAdventure` para semear o ledger também com o q
 
 ## Critérios de aceite
 
-- [ ] Depois de gerar uma aventura, cada string de `world.anchors[]` aparece como uma `WorldEntity` (`tipo: 'local'`) no ledger semeado.
-- [ ] Existe no ledger semeado uma entidade que sintetiza `world.description`+`story` (não o texto integral, ver Notas de implementação), acessível ao Mestre em `buildTurnStateBlock` como qualquer outra entidade.
-- [ ] Todas as entidades novas nascem `revelado: false` — mesma disciplina das demais (US-151).
-- [ ] O Mestre, ao ser perguntado sobre um `anchor` ainda não visitado, tem no ledger o nome e a nota necessários para responder sem inventar do zero (verificável por teste do formato do ledger, não por QA de narração — ver eval).
-- [ ] **Eval / teste de regressão:** artefato com `world.anchors` = `["Thurnhavn — sede do trono"]` gera uma entidade `nome: "Thurnhavn"` (ou equivalente) no ledger; sem esta story, essa entidade não existe e o teste falha.
-- [ ] `pnpm typecheck`, `pnpm test` e `pnpm eval` passam.
+- [x] Depois de gerar uma aventura, cada string de `world.anchors[]` aparece como uma `WorldEntity` (`tipo: 'local'`) no ledger semeado.
+- [x] Existe no ledger semeado uma entidade que sintetiza `world.description`+`story` (não o texto integral, ver Notas de implementação), acessível ao Mestre em `buildTurnStateBlock` como qualquer outra entidade.
+- [x] Todas as entidades novas nascem `revelado: false` — mesma disciplina das demais (US-151).
+- [x] O Mestre, ao ser perguntado sobre um `anchor` ainda não visitado, tem no ledger o nome e a nota necessários para responder sem inventar do zero (verificável por teste do formato do ledger, não por QA de narração — ver eval).
+- [x] **Eval / teste de regressão:** artefato com `world.anchors` = `["Thurnhavn — sede do trono"]` gera uma entidade `nome: "Thurnhavn"` (ou equivalente) no ledger; sem esta story, essa entidade não existe e o teste falha.
+- [x] `pnpm typecheck`, `pnpm test` e `pnpm eval` passam.
 
 ---
 
@@ -81,20 +81,12 @@ Estender `seedLedgerFromGeneratedAdventure` para semear o ledger também com o q
 > *Dicas. O implementador pode divergir com boa justificativa.*
 
 - Arquivo principal: [apps/api/src/adventure-generation/seed-ledger.ts](../../../apps/api/src/adventure-generation/seed-ledger.ts) — `seedLedgerFromGeneratedAdventure`, mesmo padrão de `factionEntities`/`npcEntities`/`locationEntities` já ali.
-- **Síntese, não cópia integral (decidido):** truncamento determinístico, não chamada de LLM — `seedLedgerFromGeneratedAdventure` é síncrona por design (comentário no topo do arquivo) e uma extração por LLM quebraria isso, além de somar mais um ponto de falha à escada de autoria. Heurística: primeira frase de `world.description` + primeira frase de `story`, concatenadas, cortadas em ~300 caracteres arredondando pro fim de frase. Colar `world.description` cru injetaria esse texto todo turno via `entitiesSection` (dm-system.ts:625) — mesmo custo de cache que a US-56 (camadas por volatilidade) já evitou deslocando estado volátil pra fora do system.
+- **Síntese, não cópia integral (decidido):** truncamento determinístico, não chamada de LLM — `seedLedgerFromGeneratedAdventure` é síncrona por design ("leitura determinística de um objeto estruturado, não extração por LLM" — comentário no topo do arquivo); uma chamada de extração quebraria esse contrato, tornaria a função assíncrona, e somaria mais um ponto de falha/timeout à escada de autoria que já precisou de correção recente (commit "Timeout por tentativa na escada de autoria e abertura"). Heurística: primeira frase de `world.description` + primeira frase de `story`, concatenadas, cortadas em ~300 caracteres (arredondar pra fim de frase, não no meio). Colar `world.description` cru injetaria esse texto todo turno via `entitiesSection` (dm-system.ts:625) — mesmo custo de cache que a US-56 (camadas por volatilidade) já evitou deslocando estado volátil pra fora do system. Se a perda de fidelidade se mostrar problema real em produção, revisitar como story separada — não bloquear esta.
 - `WorldEntity.tipo` hoje é `'npc' | 'local' | 'objeto' | 'faccao' | 'outro'` (character.ts) — **decidido: usar `'outro'`**, sem novo valor de enum. Um tipo `'mundo'` dedicado exigiria mudança de schema (`packages/shared`) propagada a `formatEntities` (entities.ts) e `pnpm --filter @ai-dm/shared build` para uma única entidade por aventura — custo que não se paga aqui.
 - `findOccupiedLocationTitle` (seed-ledger.ts:90) não se aplica a anchors — eles não têm `occupants`; a entidade nasce sem `local`.
-
----
-
-## Questões em aberto (resolvidas)
-
-1. **Como sintetizar `world.description`+`story` sem inflar o prompt todo turno?**
-   **Decisão: truncamento determinístico, não extração por LLM.** `seedLedgerFromGeneratedAdventure` é hoje síncrona por design ("leitura determinística de um objeto estruturado, não extração por LLM" — comentário no topo de [seed-ledger.ts](../../../apps/api/src/adventure-generation/seed-ledger.ts)); uma chamada de extração quebraria esse contrato, tornaria a função assíncrona, e somaria mais um ponto de falha/timeout à escada de autoria que já precisou de correção recente (commit "Timeout por tentativa na escada de autoria e abertura"). Truncar é mais barato e não introduz esse risco. Heurística: primeira frase de `world.description` + primeira frase de `story`, concatenadas, cortadas em ~300 caracteres (arredondar pra fim de frase, não no meio). Se a perda de fidelidade se mostrar um problema real em produção, revisitar como story separada — não bloquear esta.
-2. **`anchors[]` nunca referenciados em `locations[]`/`encounters[]` entram no ledger mesmo assim?**
-   **Decisão: sim, semear TODOS.** Mesmo padrão já usado para facções/NPCs/locais em `seedLedgerFromGeneratedAdventure` — nenhum deles é filtrado por "será que isso vai ser usado depois". Construir uma heurística de referência cruzada agora é resolver um problema de ruído hipotético (YAGNI); medir em produção depois de ir ao ar, com dado real, é mais barato que adivinhar agora.
-3. **Vale a pena o Mestre "descobrir" um anchor (`recordEntity` com `revelado: true`) quando a ficção chega lá?**
-   **Decisão: fora do escopo, confirmado.** Depende de profundidade de uso, não da existência do dado — só faz sentido avaliar depois que a entidade de anchor já existir no ledger (esta story) e houver caso real de jogadora chegando lá. Não abrir story nova até isso acontecer.
+- **Gap achado na revisão:** `AdventureWorldSchema.anchors` é `z.array(z.string()).optional()` ([adventure-generation.ts:31](../../../packages/shared/src/types/adventure-generation.ts)) — pode vir `undefined`, diferente de `world`/`story` no nível do artefato (esses sim exigidos pelo parse, `min(1)`). **Decidido: tratar como array vazio** — usar `adventure.world.anchors ?? []` antes do `.map`; zero anchors gera zero `WorldEntity` de local, sem lançar. Sem esse guard quebra em runtime pra artefato sem anchors. Não introduz novo campo obrigatório no schema (fora de escopo desta story).
+- **`anchors[]` nunca referenciados em `locations[]`/`encounters[]` entram no ledger mesmo assim? Decidido: sim, semear TODOS.** Mesmo padrão já usado para facções/NPCs/locais em `seedLedgerFromGeneratedAdventure` — nenhum deles é filtrado por "será que isso vai ser usado depois". Construir uma heurística de referência cruzada agora é resolver um problema de ruído hipotético (YAGNI); medir em produção depois de ir ao ar, com dado real, é mais barato que adivinhar agora.
+- **Vale a pena o Mestre "descobrir" um anchor (`recordEntity` com `revelado: true`) quando a ficção chega lá? Decidido: fora do escopo.** Depende de profundidade de uso, não da existência do dado — só faz sentido avaliar depois que a entidade de anchor já existir no ledger (esta story) e houver caso real de jogadora chegando lá. Não abrir story nova até isso acontecer.
 
 ---
 

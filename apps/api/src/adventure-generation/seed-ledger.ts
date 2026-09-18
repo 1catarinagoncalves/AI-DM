@@ -16,6 +16,11 @@ import { MONSTER_ROLE_CR } from './monster-roles'
  *
  * `revelado: false` em tudo: nenhuma entidade nasce "conhecida" — o Mestre vê nome/local sob
  * `⚠ OCULTO` (consistência) até promover via `recordEntity` quando a ficção apresentar (US-199).
+ *
+ * US-246: `world`/`story` tinham um único consumidor (tela de setup) e nunca chegavam ao DM
+ * Agent em jogo — semeia `world.anchors[]` (`tipo: 'local'`) e uma síntese truncada de
+ * `world.description`+`story` (`tipo: 'outro'`, nome = `world.name`) pra fechar essa lacuna
+ * sem duplicar a prosa inteira a cada turno (custo de tokens/cache).
  */
 export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure): WorldEntity[] {
   const now = new Date().toISOString()
@@ -83,10 +88,50 @@ export function seedLedgerFromGeneratedAdventure(adventure: GeneratedAdventure):
     }
   })
 
-  return [...factionEntities, ...npcEntities, ...locationEntities]
+  // US-246: `world.anchors[]` são locais-âncora que a autoria nomeou no worldbuilding mas não
+  // necessariamente materializou em `locations[]` — sem isso o Mestre não tem esse nome em
+  // lugar nenhum do prompt e arrisca contradizer o que a própria autoria já decidiu.
+  const anchorEntities: WorldEntity[] = (adventure.world.anchors ?? []).map((anchor) => ({
+    nome: (anchor.split(' — ')[0] ?? anchor).trim(),
+    tipo: 'local',
+    nota: anchor,
+    revelado: false,
+    atualizadoEm: now,
+  }))
+
+  // US-246: síntese curta de `world.description`+`story` — não o texto integral (custo de
+  // cache todo turno via `entitiesSection`, mesmo motivo da US-56) — o bastante pro Mestre não
+  // inventar geografia/história que a autoria já decidiu. Truncamento determinístico: esta
+  // função é síncrona por design (ver comentário no topo do arquivo); extração por LLM
+  // quebraria esse contrato.
+  const worldEntity: WorldEntity = {
+    nome: adventure.world.name,
+    tipo: 'outro',
+    nota: truncateToSentence(
+      `${firstSentence(adventure.world.description)} ${firstSentence(adventure.story)}`,
+      300,
+    ),
+    revelado: false,
+    atualizadoEm: now,
+  }
+
+  return [...factionEntities, ...npcEntities, ...locationEntities, ...anchorEntities, worldEntity]
 }
 
 // NPC narrativo mora em `locations[].occupants[]`, que guarda `id` (não nome, US-158).
 function findOccupiedLocationTitle(adventure: GeneratedAdventure, npcId: string): string | undefined {
   return adventure.locations.find((location) => location.occupants.includes(npcId))?.title
+}
+
+function firstSentence(text: string): string {
+  return text.match(/^[^.!?]*[.!?]/)?.[0].trim() ?? text.trim()
+}
+
+// US-246: corta em `maxLen`, mas recua até o último fim de frase dentro do limite — nunca
+// no meio de uma palavra/frase.
+function truncateToSentence(text: string, maxLen: number): string {
+  if (text.length <= maxLen) return text
+  const slice = text.slice(0, maxLen)
+  const lastEnd = Math.max(slice.lastIndexOf('.'), slice.lastIndexOf('!'), slice.lastIndexOf('?'))
+  return lastEnd > 0 ? slice.slice(0, lastEnd + 1) : slice
 }

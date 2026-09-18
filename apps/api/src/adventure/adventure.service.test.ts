@@ -242,7 +242,10 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
     expect(entities.filter((e) => e.tipo === 'faccao').map((e) => e.nome)).toEqual(['Guardiões', 'Sindicato'])
     const marta = entities.find((e) => e.nome === 'Marta')!
     expect(marta.nota).toBe('herborista suspeita — Quer: proteger o bosque — Facção: Guardiões')
-    expect(entities.some((e) => e.tipo === 'outro')).toBe(false) // sem segredo
+    // US-246: a única entidade 'outro' agora é a síntese de world/story, não antagonista/segredo.
+    const outros = entities.filter((e) => e.tipo === 'outro')
+    expect(outros).toHaveLength(1)
+    expect(outros[0]!.nome).toBe('Vhel-Toran')
     expect(entities.every((e) => e.revelado === false)).toBe(true)
   })
 

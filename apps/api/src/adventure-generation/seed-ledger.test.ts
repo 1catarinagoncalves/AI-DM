@@ -126,7 +126,73 @@ describe('seedLedgerFromGeneratedAdventure (US-232)', () => {
 
   it('não semeia mais entradas de antagonista nem de segredo (saíram do artefato)', () => {
     const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
-    expect(entities.some((e) => e.tipo === 'outro')).toBe(false)
+    // US-246: a única entidade 'outro' agora é a síntese de world/story, não antagonista/segredo.
+    const outros = entities.filter((e) => e.tipo === 'outro')
+    expect(outros).toHaveLength(1)
+    expect(outros[0]!.nome).toBe('Vhel-Toran')
     expect(entities.every((e) => e.revelado === false)).toBe(true)
+  })
+})
+
+describe('seedLedgerFromGeneratedAdventure (US-246)', () => {
+  it('cada anchor vira WorldEntity tipo local, nota = texto integral do anchor, revelado false', () => {
+    const entities = seedLedgerFromGeneratedAdventure(
+      adventureFixture({
+        world: {
+          name: 'Vhel-Toran',
+          description: 'Cidade entre costelas.',
+          anchors: ['Thurnhavn — sede do trono', 'Poço Negro — ruína afundada'],
+        },
+      }),
+    )
+    const thurnhavn = entities.find((e) => e.nome === 'Thurnhavn')
+    const poco = entities.find((e) => e.nome === 'Poço Negro')
+    expect(thurnhavn).toEqual({
+      nome: 'Thurnhavn',
+      tipo: 'local',
+      nota: 'Thurnhavn — sede do trono',
+      revelado: false,
+      atualizadoEm: expect.any(String),
+    })
+    expect(poco).toEqual({
+      nome: 'Poço Negro',
+      tipo: 'local',
+      nota: 'Poço Negro — ruína afundada',
+      revelado: false,
+      atualizadoEm: expect.any(String),
+    })
+  })
+
+  it('sem anchors (undefined): não lança, zero WorldEntity de anchor', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
+    const anchorLike = entities.filter((e) => e.tipo === 'local' && e.nome !== 'Clareira' && e.nome !== 'Ruína')
+    expect(anchorLike).toHaveLength(0)
+  })
+
+  it('entidade de mundo sintetiza 1ª frase de description + 1ª frase de story, tipo outro, revelado false', () => {
+    const entities = seedLedgerFromGeneratedAdventure(adventureFixture())
+    const mundo = entities.find((e) => e.nome === 'Vhel-Toran')
+    expect(mundo).toEqual({
+      nome: 'Vhel-Toran',
+      tipo: 'outro',
+      nota: 'Cidade entre costelas. Facções disputam a ruína.',
+      revelado: false,
+      atualizadoEm: expect.any(String),
+    })
+  })
+
+  it('síntese trunca em ~300 caracteres, arredondando pro fim de frase (não no meio)', () => {
+    const longDescription = `${'A'.repeat(279)}.`
+    const longStory = `${'B'.repeat(90)}.`
+    const entities = seedLedgerFromGeneratedAdventure(
+      adventureFixture({
+        world: { name: 'Vhel-Toran', description: longDescription },
+        story: longStory,
+      }),
+    )
+    const mundo = entities.find((e) => e.nome === 'Vhel-Toran')
+    expect(mundo?.nota).toBe(longDescription)
+    expect(mundo?.nota?.length).toBeLessThanOrEqual(300)
+    expect(mundo?.nota?.includes('B')).toBe(false)
   })
 })
