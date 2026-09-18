@@ -130,7 +130,9 @@ export const AUTHORING_SCHEMA = z.object({
     name: z.string().min(1),
     role: z.string().min(1).describe('papel + descrição breve, 1 frase'),
     want: z.string().min(1).describe('motivação INDIVIDUAL do NPC (mais específica que a da facção)'),
-    factionIndex: z.number().int().min(0).optional().describe('Índice (0-based) em factions[] — NÚMERO; omitir se NPC neutro'),
+    // `.nullish()`, não `.optional()`: v4.1-flash emite `"factionIndex": null` pro NPC neutro e o
+    // Zod jogava fora o artefato INTEIRO (~8k tokens válidos) por causa de um campo (18/09/2026).
+    factionIndex: z.number().int().min(0).nullish().describe('Índice (0-based) em factions[] — NÚMERO; omitir se NPC neutro'),
   })).min(1),
   locations: z.array(z.object({
     title: z.string().min(1),
@@ -138,7 +140,7 @@ export const AUTHORING_SCHEMA = z.object({
     boxedText: z.string().min(1).describe('Texto lido em voz alta ao chegar, 2-3 frases'),
     description: z.string().min(1).describe('Notas do mestre — SÓ o lugar e itens, NUNCA cite NPCs aqui'),
     occupants: z.array(z.number().int().min(0)).describe('Índices (0-based) de npcs[] presentes — NÚMERO, [] se nenhum'),
-    factionIndex: z.number().int().min(0).optional().describe('Índice (0-based) em factions[] que controla o local — omitir se neutro'),
+    factionIndex: z.number().int().min(0).nullish().describe('Índice (0-based) em factions[] que controla o local — omitir se neutro'),
     vibe: z.enum(['combat', 'skill', 'social']),
   })).min(1),
   start: z.string().min(1).describe(
@@ -342,9 +344,10 @@ const SALVAGE_FALLBACK = '\n\n- 💬 Continuar.'
 // pendura o processo por tempo indefinido em vez de cair pro próximo modelo —
 // reproduzido com scripts/run-authoring.ts (nível 5): ~10min de wall time, CPU do
 // processo quase zero, até AI_NoObjectGeneratedError no deepseek-v4-pro-0813.
-// Chamada normal de autoria mede 110–143s (JSON grande, maxTokens 16000); a janela
-// abaixo dá margem generosa sem travar pra sempre.
-const AUTHORING_TIMEOUT_MS = 180_000
+// Chamada normal de autoria mede 110–150s (~7,5k tokens de saída a 33–52 tok/s no
+// `pro`, 18/09/2026); a 33 tok/s são ~225s, então 180s cortava o modelo forte à toa.
+// A janela abaixo dá margem sem travar pra sempre.
+const AUTHORING_TIMEOUT_MS = 240_000
 // Mesma janela do `narration-gen.ts` (turnos regulares) — texto livre, sem schema.
 const OPENING_NARRATION_TIMEOUT_MS = 90_000
 

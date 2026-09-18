@@ -716,6 +716,20 @@ describe('AdventureService.generateAdventure (US-232)', () => {
     expect(adventure.objective.locationId).toBe('loc-1')
   })
 
+  // Regressão de 18/09/2026: v4.1-flash emite `factionIndex: null` pro NPC/local neutro. `null >= 0`
+  // é true em JS, então o minting indexava factions[null] e lançava — e antes disso o Zod já
+  // descartava o artefato inteiro por `optional()` não aceitar null.
+  it('factionIndex null (NPC/local neutro) não quebra o minting e não gera factionId', async () => {
+    const base = authored()
+    const neutro = authored({
+      npcs: [{ ...base.npcs[0]!, factionIndex: null }],
+      locations: [{ ...base.locations[0]!, factionIndex: null }],
+    })
+    const adventure = await service(fakeAi(null, null, {}, neutro)).generateAdventure(profile, 'char-1', 1, 'pt-BR', config)
+    expect(adventure.npcs[0]!.factionId).toBeUndefined()
+    expect(adventure.locations[0]!.factionId).toBeUndefined()
+  })
+
   it('a autoria recebe factionCount em [2,4], contagens fixas, className rótulo, world label dos overrides', async () => {
     const capture: Record<string, unknown> = {}
     const configComTom: SystemConfig = { ...config, tones: [{ key: 'heroic', label: 'Heroico' }] }

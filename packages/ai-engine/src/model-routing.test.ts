@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { NARRATION_PROVIDER_OPTIONS, EXTRACTION_PROVIDER_OPTIONS, extractionModel, primaryModel, OPENROUTER_PROVENANCE, formatProvenance } from './model'
+import { NARRATION_PROVIDER_OPTIONS, EXTRACTION_PROVIDER_OPTIONS, AUTHORING_PROVIDER_OPTIONS, extractionModel, primaryModel, OPENROUTER_PROVENANCE, formatProvenance } from './model'
 
 // Guard do pin de roteamento do OpenRouter. O mesmo slug
 // `deepseek/deepseek-v4-flash` é servido por 22 endpoints e só o first-party da
@@ -48,6 +48,27 @@ describe('opções das extrações estruturadas', () => {
   // há rota para herdar por engano (critério de aceite #4 da US-114).
   it('não carrega pin de rota do DeepSeek (o modelo novo não é DeepSeek)', () => {
     expect(openrouter).not.toHaveProperty('provider')
+  })
+})
+
+// Regressão de 18/09/2026: sem pin, a autoria caía em endpoints de 9–18 tok/s (timeout) ou que
+// embrulham os args do tool call (schema "Required" em `world`) — a escada inteira falhava.
+describe('opções da autoria de aventura', () => {
+  const { provider } = AUTHORING_PROVIDER_OPTIONS.openrouter
+  const allowlistNarracao = NARRATION_PROVIDER_OPTIONS.openrouter.provider.only
+
+  it('ordena por throughput dentro do pin', () => {
+    expect(provider.sort).toBe('throughput')
+  })
+
+  it('só admite endpoints da allowlist do ADR 008 (sem fp4)', () => {
+    for (const slug of provider.only) expect(allowlistNarracao).toContain(slug)
+  })
+
+  it('exclui os endpoints medidos como embrulhadores de tool call', () => {
+    // `deepseek` 1st-party é o primeiro da narração e o PIOR aqui — não "corrigir" por simetria.
+    const embrulham = ['deepseek', 'novita', 'cloudflare', 'nextbit', 'gmicloud', 'together']
+    for (const slug of embrulham) expect(provider.only).not.toContain(slug)
   })
 })
 

@@ -268,8 +268,9 @@ export class AdventureService {
     // ids reais aqui. Índice fora de faixa é filtrado (occupants/npcIndices) ou clampa pro
     // primeiro local (locationIndex obrigatório), mesma disciplina de `occupants` da US-158.
     const factions = authored.factions.map((f, i) => ({ id: `faction-${i + 1}`, name: f.name, kind: f.kind, want: f.want }))
-    const factionId = (idx: number | undefined): string | undefined =>
-      idx !== undefined && idx >= 0 && idx < factions.length ? factions[idx]!.id : undefined
+    // `idx != null`: `null >= 0` é true em JS — sem isso o null do modelo indexaria factions[null] e lançaria.
+    const factionId = (idx: number | null | undefined): string | undefined =>
+      idx != null && idx >= 0 && idx < factions.length ? factions[idx]!.id : undefined
 
     const npcs: AdventureNpc[] = authored.npcs.map((n, i) => ({
       id: `npc-${i + 1}`,

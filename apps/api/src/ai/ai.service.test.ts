@@ -996,7 +996,7 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
   // rede) tinha o processo pendurado pra sempre, sem cair pro próximo da escada. Fixa via
   // `abortSignal: AbortSignal.timeout(AUTHORING_TIMEOUT_MS)` na chamada. Aqui o fake
   // `AbortSignal.timeout` é substituído por um disparo quase instantâneo — o valor real
-  // (180s) não pode rodar num teste — só o encanamento (aborta → cai pro próximo) é testado.
+  // (240s) não pode rodar num teste — só o encanamento (aborta → cai pro próximo) é testado.
   it('modelo trava sem responder (nem resolve nem rejeita) → timeout aborta e cai pro próximo da escada', async () => {
     const realTimeout = AbortSignal.timeout
     AbortSignal.timeout = ((_ms: number) => {

@@ -366,10 +366,31 @@ export const authoringModels: LanguageModelV1[] = [
  * (ADR 008) — herdar pra `v4-pro`/`v4.1-flash` sem re-medir arrisca reproduzir o 404
  * `tool_choice` de 23/08. `enabled:false` desliga o thinking (mesma colisão tool_choice/
  * thinking do modo tool que `ENGINE_PROVIDER_OPTIONS`/`EXTRACTION_PROVIDER_OPTIONS` já tratam).
+ *
+ * 18/09/2026: `provider.only` + `sort:'throughput'`. Sem pin o OpenRouter sorteia o endpoint do
+ * slug, e a MESMA chamada (~7,5k tokens de saída, schema grande em modo tool) dava dois
+ * defeitos que a escada inteira sofreu (`adventure_gate_failed`, nível 5):
+ *   1. velocidade de 9 a 157 tok/s — `v4.1-flash` em Wafer (9) e Relace (18) levava 400–800s
+ *      contra `AUTHORING_TIMEOUT_MS`;
+ *   2. args do tool call EMBRULHADOS (`{"name":"json","value":{…}}`, `{"strict":false,
+ *      "json":"…"}`, `{"content":…}`) ou ausentes — o schema falha com "Required" em `world`.
+ * Medido reenviando o request REAL (schema + prompt) por endpoint com `only:[ep]`, 2 amostras:
+ * args limpos só em baidu, streamlake, alibaba, siliconflow. Embrulham/falham: `deepseek`
+ * (1st-party — o oposto da narração!), `novita`, `cloudflare`, `nextbit`, `gmicloud` (flash),
+ * `together` (flash). Todos os 4 escolhidos estão na allowlist do ADR 008 (sem fp4). Com o pin,
+ * 51–68 tok/s estáveis (7,5k tokens ≈ 2 min). NÃO é a rota da narração: lá o first-party vem
+ * primeiro por causa do cache implícito, que a autoria (1 chamada por aventura) não usa.
+ * `flash` não existe em `baidu` (404 → cai no próximo, que é o comportamento certo).
+ * Re-medir se voltar a falhar: capturar o body real do `generateObject` (hook em `fetch`),
+ * reenviar por endpoint com `provider:{only:[ep],allow_fallbacks:false}` e `max_tokens` ~90, e
+ * olhar o começo de `tool_calls[0].function.arguments` (deve abrir com uma chave do schema).
  */
+// Sem `as const`: readonly[] não casa com o JSONValue de providerOptions (mesmo caso de DEEPSEEK_ROUTE_ORDER).
+const AUTHORING_ENDPOINTS = ['baidu', 'streamlake', 'alibaba', 'siliconflow']
 export const AUTHORING_PROVIDER_OPTIONS = {
   openrouter: {
     reasoning: { enabled: false },
+    provider: { only: AUTHORING_ENDPOINTS, sort: 'throughput' },
   },
 } as const
 
