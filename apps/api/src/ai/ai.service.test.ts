@@ -7,6 +7,7 @@ import {
   resolveLostItems,
   composeMainQuestText,
   OPENING_SCENE_SCHEMA,
+  AUTHORING_SCHEMA,
 } from './ai.service'
 import { mergeSceneState, extractionModel, authoringModels } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
@@ -836,13 +837,22 @@ describe('AiService.generateAdventureAuthoring (US-232)', () => {
     ],
     npcs: [{ name: 'Kesh', role: 'guardiã', want: 'proteger', factionIndex: 0 }],
     locations: [{ title: 'A Nave', aspects: [], boxedText: 'x', description: 'y', occupants: [0], vibe: 'social' }],
+    start: 'O gancho.',
     challenges: [{ locationIndex: 0, test: 'teste de Força', situation: 'escalar', consequence: 'cai' }],
     encounters: [{ locationIndex: 0, npcIndices: [0], type: 'combat', fiction: 'z', behaviors: 'a', goal: 'b', complications: 'c', unlocks: 'd' }],
     objective: { description: 'decidir o destino', reward: { name: 'Cinzel', effect: 'sela ecos' }, locationIndex: 0 },
     branchedResolution: [{ choice: 'selar', consequence: 'os nomes calam' }],
-    start: 'O gancho.',
     followUps: ['algo desperta'],
   }
+
+  // US-255: `start` reordenado pra logo após `locations` — nesse ponto o modelo já tem
+  // facção/NPC/local nomeados (gancho concreto) mas ainda não viu challenges/encounters/
+  // objective/branchedResolution (zero risco do desfecho vazar pro gancho).
+  it('start aparece entre locations e challenges na ordem de AUTHORING_SCHEMA (US-255)', () => {
+    const keys = Object.keys(AUTHORING_SCHEMA.shape)
+    expect(keys.indexOf('start')).toBe(keys.indexOf('locations') + 1)
+    expect(keys.indexOf('start')).toBe(keys.indexOf('challenges') - 1)
+  })
 
   // US-250: orçamento de combate neutro (>0) pros testes que não são sobre ele — só os 2
   // testes dedicados no fim do describe variam `combatBudget`.

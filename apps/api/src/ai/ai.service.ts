@@ -111,7 +111,7 @@ const normName = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/
 // ÍNDICE (0-based na array irmã), NUNCA por id — mesmo padrão de `occupants` (US-158): o
 // modelo aponta pra uma posição de um array que ele mesmo escreveu; o código minta os ids
 // reais (`faction-N`/`npc-N`/`loc-N`/…) depois do `.parse()` (adventure.service.ts).
-const AUTHORING_SCHEMA = z.object({
+export const AUTHORING_SCHEMA = z.object({
   world: z.object({
     name: z.string().min(1).describe('Nome próprio do mundo/lugar inventado — específico, não genérico'),
     description: z.string().min(1).describe('2-3 parágrafos de worldbuilding sensorial'),
@@ -139,6 +139,9 @@ const AUTHORING_SCHEMA = z.object({
     factionIndex: z.number().int().min(0).optional().describe('Índice (0-based) em factions[] que controla o local — omitir se neutro'),
     vibe: z.enum(['combat', 'skill', 'social']),
   })).min(1),
+  start: z.string().min(1).describe(
+    'SÓ o gancho — a última parte da Story ("O gancho: …"). Escrito AGORA, com facção/NPC/local já nomeados: cite pelo menos um nome próprio. NÃO cite challenges/encounters/objective/branchedResolution — ainda não foram escritos.',
+  ),
   challenges: z.array(z.object({
     locationIndex: z.number().int().min(0).describe('Índice (0-based) em locations[] onde o desafio acontece'),
     test: z.string().min(1).describe('perícia/atributo nomeado, SEM CD'),
@@ -167,7 +170,6 @@ const AUTHORING_SCHEMA = z.object({
     choice: z.string().min(1),
     consequence: z.string().min(1).describe('o custo dessa escolha — nenhum rumo é "o certo"'),
   })).min(1),
-  start: z.string().min(1).describe('SÓ o gancho — a última parte da Story ("O gancho: …")'),
   followUps: z.array(z.string()).min(1).describe('um gancho pós-aventura por rumo do fecho'),
 })
 

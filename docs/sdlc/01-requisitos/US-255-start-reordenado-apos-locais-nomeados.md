@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (`AUTHORING_SCHEMA`/`buildAuthoringPrompt`, o schema que esta story reordena)
 **Relacionado:** [US-245](./US-245-abertura-narra-start-autorado-quase-verbatim.md) (a abertura narrada já é quase-verbatim do `start`) · [US-256](./US-256-jogador-entra-no-chat-antes-do-resto-da-aventura-gerar.md) (consome esta reordenação pra liberar o jogador mais cedo — story separada, não bloqueia esta)
 **Criada em:** 2026-09-17 — decidida nesta conversa: ponto de reordenação do campo `start` no schema de autoria, separada da story de liberação antecipada (US-256) pra não bloquear uma coisa pronta atrás de uma decisão em aberto.
