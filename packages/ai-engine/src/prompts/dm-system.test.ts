@@ -320,6 +320,19 @@ describe('buildDmSystemPrompt — sem estado volátil no system (US-56 / camadas
     expect(p).toMatch(/TURN RESOLUTION ORDER/)
   })
 
+  // Regressão 18/09/2026: abertura de Ariel Moon (Feminino) saiu com «um forasteiro» numa opção e
+  // «bardo» sem artigo feminino na introdução — a regra só cobria pronome/adjetivo, citava um
+  // "world-state JSON" que não existe desde a US-56 e não dizia nada de "Não-binário" (valor real do wizard).
+  it('regra de gênero cobre substantivos/rótulos, opções e Não-binário, e aponta a linha Gender real', () => {
+    const p = build()
+    expect(p).toMatch(/"Gender" line under "The player's character"/)
+    expect(p).not.toMatch(/world-state JSON/)
+    expect(p).toMatch(/«você, uma forasteira»/)
+    expect(p).toMatch(/OPTIONS list and the closing address obey/)
+    expect(p).toMatch(/"Não-binário"/)
+    expect(p).toMatch(/NEVER default to the masculine/)
+  })
+
   it('proíbe opção atribuir à NPC fala que ela não disse na prosa (US-199-like: ledger vira testemunho fabricado)', () => {
     const p = build()
     expect(p).toMatch(/NEVER attribute to an NPC a line they did not actually SPEAK/)
