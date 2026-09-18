@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** nenhuma — `branchedResolution` já existe e já é gravado; `nextUnrevealedEncounterLocation` já estabelece o padrão de sinal-por-`revelado` que esta story reusa.
 **Relacionado:** [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) (`completeQuest`, `objective` exposto todo turno) · [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (introduziu `branchedResolution`; **a decisão que esta story NÃO reabre**, ver abaixo) · [US-166](./US-166-motor-gera-multiplos-encontros.md) (`nextUnrevealedEncounterLocation`, o padrão de sinal determinístico via `revelado` que esta story reusa) · [US-247](./US-247-recompensa-da-quest-nunca-chega-ao-mestre.md) (mesmo `completeQuest`, eixo diferente — recompensa vs. detecção de resolução)
 **Criada em:** 2026-09-16 — a jogadora questionou por que `branchedResolution` foi descartado como fora de escopo ao mapear os gaps de `GeneratedAdventure`; a resposta revelou um eixo diferente do que a US-232 fechou, que não estava coberto.

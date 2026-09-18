@@ -2,7 +2,7 @@
 
 **Épico:** 3 — Narração e mecânica
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** nenhuma — `objective.reward` já existe e já é gravado; `completeQuest` já existe. É questão de conectar dado que já existe à tool que já existe.
 **Relacionado:** [US-169](./US-169-quest-gerada-ganha-objetivo-e-conclusao-acionavel.md) (criou `objective`/`completeQuest`) · [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (mudou `objective` pra objeto com `reward`, removeu `Quest.conclusionHint`) · [US-200](./US-200-item-da-ficcao-entra-no-inventario.md) (a engine que sincronizaria o item com o inventário DEPOIS que o Mestre narrasse entregá-lo — esta story resolve o passo ANTES: fazer o Mestre saber que o item existe)
 **Criada em:** 2026-09-16 — achado ao mapear quais campos de `GeneratedAdventure` o DM Agent lê em jogo (ver conversa que originou esta story).
@@ -37,6 +37,8 @@ Os dois bugs se resolvem juntos: o lugar natural para o Mestre saber da recompen
 
 `completeQuest`, quando `outcome === 'success'` e a quest tem `Quest.objective` preenchido, passa a devolver um campo `conclusion` — string curta com o nome e o efeito da recompensa prometida (`objective.reward`), servindo de gancho pro Mestre narrar a entrega no fecho do turno. `outcome === 'failure'` não devolve recompensa (a meta não foi alcançada). Isso cumpre a promessa que `dm-system.ts:657` já faz, sem mudar o texto do prompt.
 
+`conclusion` é dado bruto (`${reward.name}: ${reward.effect}`), sem moldura de prosa fixa em português — mesmo padrão de `composeMainQuestText` (ver *Questões em aberto* #3).
+
 ---
 
 ## Escopo
@@ -44,7 +46,7 @@ Os dois bugs se resolvem juntos: o lugar natural para o Mestre saber da recompen
 ### Dentro do escopo
 
 - `Quest` (ou o closure de `completeQuest`) precisa ter acesso a `objective.reward` no momento do `execute` — hoje `Quest.objective` (coluna `String?`) só guarda `objective.description` ([adventure.service.ts:722](../../../apps/api/src/adventure/adventure.service.ts)), perdendo `reward`. Decidir a fonte: reler `adventure.generatedAdventure.objective.reward` (já disponível no `adventure` carregado por `streamChat`, sem query nova) em vez de adicionar coluna — ver Notas de implementação.
-- `completeQuest.execute`, ramo `outcome === 'success'` com `reward` disponível: monta `conclusion` (ex.: `` `A recompensa prometida — ${reward.name} — agora é sua: ${reward.effect}.` ``) e devolve `{ status, conclusion }`.
+- `completeQuest.execute`, ramo `outcome === 'success'` com `reward` disponível: monta `conclusion` (ex.: `` `${reward.name}: ${reward.effect}` `` — dado bruto, sem frase-conectivo em PT fixo, ver *Questões em aberto* #3) e devolve `{ status, conclusion }`.
 - `outcome === 'failure'` ou `reward` indisponível (sistema sem motor de geração — Free/legado): devolve `{ status }` como hoje, sem `conclusion` — o Mestre já lida com a ausência (o prompt não exige o campo, só usa "se vier").
 - Teste cobrindo: `completeQuest` com `outcome: 'success'` e `objective.reward` presente devolve `conclusion` contendo nome+efeito do item; `outcome: 'failure'` não devolve `conclusion`; aventura sem `generatedAdventure` (Free) não quebra.
 - `pnpm eval` roda e passa (mudança no retorno de uma tool que o DM Agent consome).
@@ -60,12 +62,12 @@ Os dois bugs se resolvem juntos: o lugar natural para o Mestre saber da recompen
 
 ## Critérios de aceite
 
-- [ ] `completeQuest` com `outcome: 'success'` numa aventura com `generatedAdventure.objective.reward` presente devolve `{ status: 'COMPLETED', conclusion: <string não vazia citando reward.name e reward.effect> }`.
-- [ ] `completeQuest` com `outcome: 'failure'` devolve `{ status: 'FAILED' }`, sem campo `conclusion`.
-- [ ] `completeQuest` numa aventura sem `generatedAdventure` (caminho Free/legado) não lança erro e devolve `{ status }` sem `conclusion`.
-- [ ] Chamada repetida (`alreadyCompleted: true`) continua sem regressão — comportamento idempotente de hoje intacto.
-- [ ] **Eval / teste de regressão:** artefato com `objective.reward = { name: "Anel de Casca-Viva", effect: "..." }`, `completeQuest({ outcome: 'success' })` → `conclusion` contém "Anel de Casca-Viva"; sem esta story, `conclusion` não existe no retorno e o teste falha.
-- [ ] `pnpm typecheck`, `pnpm test` e `pnpm eval` passam.
+- [x] `completeQuest` com `outcome: 'success'` numa aventura com `generatedAdventure.objective.reward` presente devolve `{ status: 'COMPLETED', conclusion: <string não vazia citando reward.name e reward.effect> }`.
+- [x] `completeQuest` com `outcome: 'failure'` devolve `{ status: 'FAILED' }`, sem campo `conclusion`.
+- [x] `completeQuest` numa aventura sem `generatedAdventure` (caminho Free/legado) não lança erro e devolve `{ status }` sem `conclusion`.
+- [x] Chamada repetida (`alreadyCompleted: true`) continua sem regressão — comportamento idempotente de hoje intacto.
+- [x] **Eval / teste de regressão:** artefato com `objective.reward = { name: "Anel de Casca-Viva", effect: "..." }`, `completeQuest({ outcome: 'success' })` → `conclusion` contém "Anel de Casca-Viva"; sem esta story, `conclusion` não existe no retorno e o teste falha.
+- [x] `pnpm typecheck`, `pnpm test` e `pnpm eval` passam.
 
 ---
 
@@ -85,6 +87,8 @@ Os dois bugs se resolvem juntos: o lugar natural para o Mestre saber da recompen
 
 1. Vale também expor `reward` num bloco visível todo turno (ex.: dentro de `## Main quest`, ao lado de `objective.description`) — pra o Mestre poder aludir à recompensa ANTES do fecho, não só recebê-la no momento de `completeQuest`? A US-169 já decidiu expor `objective.description` todo turno; `reward` seguir o mesmo caminho é natural, mas aumenta o texto reinjetado todo turno (mesma preocupação de custo da US-246). Proposta desta story fica só no momento de fecho (menor custo); expandir pra todo turno fica de discussão futura se o resultado narrativo pedir.
 2. `outcome: 'failure'` nunca dá `reward` — mas caberia uma recompensa DIMINUÍDA ou de consolação em caso de fracasso parcial? Fora do escopo — `objective.reward` no schema de hoje não tem essa granularidade.
+3. ~~O exemplo de `conclusion` embrulha texto autorado em prosa PT fixa — quebra o padrão do repo?~~ **Resolvido:** sim, quebrava. `reward.name`/`reward.effect` vêm de `generatedAdventure`, autorado no locale do dono da ficha ([buildAuthoringSystem(locale)](../../../apps/api/src/ai/ai.service.ts), EN ou PT-BR) — numa aventura EN, o reward sairia em inglês dentro de frase-conectivo fixa em português. `composeMainQuestText` ([ai.service.ts:308](../../../apps/api/src/ai/ai.service.ts)), que lida com o mesmo tipo de dado, nunca embrulha em prosa com conectivos — só concatena `title\ndescription\nobjective` cru. `conclusion` segue o mesmo padrão: `` `${reward.name}: ${reward.effect}` ``, dado bruto (ver *A proposta* e *Notas de implementação*, já atualizados).
+4. ~~AC de "chamada repetida" cobre os dois casos de repetição?~~ **Resolvido:** cobre só um, e é o certo. `alreadyCompleted: true` ([ai.service.ts:1031](../../../apps/api/src/ai/ai.service.ts)) dispara quando o outcome da chamada repetida DIFERE do já gravado — é exatamente o caso já coberto por teste existente ([ai.int.test.ts:417](../../../apps/api/src/ai/ai.int.test.ts), US-169 Questão #4: `success` depois `failure` na mesma quest terminal não sobrescreve). AC #4 desta story protege ESSE teste, não escreve um novo. Chamada repetida com o MESMO outcome (`success` de nova após já `COMPLETED`) não bate o guard `alreadyCompleted` — comportamento pré-existente, sem teste hoje, fora do escopo mudar aqui. Consequência aceita: nesse caso (raro — o prompt já instrui "call this only ONCE"), `conclusion` seria gerado de novo a cada chamada repetida com sucesso; inofensivo (mesmo dado, sem side-effect novo) e não é regressão de nada testado.
 
 ---
 

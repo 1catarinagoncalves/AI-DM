@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** 🗂️ Backlog
 **Depende de:** nenhuma — `followUps` já é gerado e gravado; `order` (Nª aventura do personagem) já existe. É questão de LER o artefato anterior na hora de gerar o próximo, não peça nova de schema.
 **Relacionado:** [US-232](./US-232-schema-cresce-e-prompt-de-autoria-call-unico.md) (introduziu `followUps`, "um gancho pós-aventura por rumo do fecho") · [US-241](./US-241-summary-formula-lgmrd-macguffin.md) (a semente atual da autoria — `questSeed`, por comparação, é sorteio puro, sem relação com aventuras anteriores) · [US-153](./US-153-aventura-deixa-de-ser-derivada-da-classe.md)/[US-239](./US-239-motor-em-createforcharacter-ledger-e-aposenta-gancho.md) (aventura deixou de derivar da classe; esta story é sobre ela também deixar de ignorar a aventura anterior do mesmo personagem)
 **Criada em:** 2026-09-16 — achado ao mapear quais campos de `GeneratedAdventure` o DM Agent lê em jogo (ver conversa que originou esta story).

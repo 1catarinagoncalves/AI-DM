@@ -1045,7 +1045,14 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
             },
           })
 
-          return { status }
+          // US-247: `dm-system.ts:657` já instrui o Mestre a usar `conclusion` como base do
+          // fecho — mas a tool nunca devolvia o campo. `reward` vem de `generatedAdventure`
+          // (closure de `streamChat`), não de `Quest.objective` (só guarda `description`).
+          // Ausente em `outcome: 'failure'` (a meta não foi alcançada) e no caminho Free/legado
+          // (sem `generatedAdventure`). Dado bruto, sem prosa fixa em português — mesmo padrão
+          // de `composeMainQuestText`, porque `reward` pode estar em EN (locale do dono da ficha).
+          const reward = outcome === 'success' ? generatedAdventure?.objective.reward : undefined
+          return reward ? { status, conclusion: `${reward.name}: ${reward.effect}` } : { status }
         },
       }),
 

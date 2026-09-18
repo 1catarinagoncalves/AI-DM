@@ -15,7 +15,11 @@ import type { PrismaClient } from '../generated/prisma/client'
 
 // Estado do dublê. `vi.hoisted` porque a factory do `vi.mock` é içada acima dos imports
 // e não pode fechar sobre um `const` do módulo.
-const dm = vi.hoisted(() => ({ passos: [] as unknown[][] }))
+// `chamadas`: uma entrada por chamada a `doStream`, com os `options` recebidos — inclui
+// `prompt`, o histórico completo que o AI SDK reconstrói a cada step (US-247: é assim
+// que um teste enxerga o `result` que uma tool devolveu, já que o retorno de `execute`
+// não aparece em lugar nenhum do `corpo` SSE, só é repassado ao PRÓXIMO step do modelo).
+const dm = vi.hoisted(() => ({ passos: [] as unknown[][], chamadas: [] as unknown[] }))
 
 // O modelo NÃO é injetável: `narrationModels` é import de módulo (`ai.service.ts:9`),
 // escolhido dentro do método (`:636`). Trocar só esse símbolo evita a mudança de
@@ -42,10 +46,13 @@ vi.mock('@ai-dm/ai-engine', async (importOriginal) => {
     defaultObjectGenerationMode: 'json',
     // Um `shift` por chamada: com `maxSteps: 5` o SDK rechama o modelo depois de cada
     // tool call, então um turno é uma LISTA de passos, não um passo só.
-    doStream: async () => ({
-      stream: streamDe(dm.passos.shift() ?? [{ type: 'finish', finishReason: 'stop', usage: { promptTokens: 0, completionTokens: 0 } }]),
-      rawCall: { rawPrompt: null, rawSettings: {} },
-    }),
+    doStream: async (options: unknown) => {
+      dm.chamadas.push(options)
+      return {
+        stream: streamDe(dm.passos.shift() ?? [{ type: 'finish', finishReason: 'stop', usage: { promptTokens: 0, completionTokens: 0 } }]),
+        rawCall: { rawPrompt: null, rawSettings: {} },
+      }
+    },
     doGenerate: async () => {
       throw new Error('dublê de narração não gera fora de streaming')
     },
@@ -246,8 +253,19 @@ afterAll(async () => {
 
 beforeEach(async () => {
   dm.passos = []
+  dm.chamadas = []
   await truncateGameTables(prisma)
 })
+
+/** Acha o `result` que uma tool devolveu, lendo-o de volta do PRÓXIMO prompt enviado ao
+ * modelo (US-247) — é o único lugar onde o retorno de `execute` sobrevive num teste HTTP. */
+function ultimoResultadoDeTool(toolName: string): unknown {
+  const ultimaChamada = dm.chamadas.at(-1) as { prompt: Array<{ role: string; content: unknown }> } | undefined
+  const mensagemDeTool = ultimaChamada?.prompt.find((m) => m.role === 'tool') as
+    | { content: Array<{ toolName: string; result: unknown }> }
+    | undefined
+  return mensagemDeTool?.content.find((p) => p.toolName === toolName)?.result
+}
 
 describe('US-95 fluxo 1 — a rolagem é ancorada na ficha do banco (US-38)', () => {
   it('o modificador gravado vem da ficha, não do que o modelo mandou', async () => {
@@ -441,6 +459,87 @@ describe('US-95 fluxo 4 (US-169) — completeQuest fecha a quest primária', () 
     await jogarTurno(mesa, 'termino a missão')
     const quests = await prisma.quest.count({ where: { adventureId: mesa.adventureId } })
     expect(quests).toBe(0)
+  })
+})
+
+/**
+ * `GeneratedAdventure` completo e mínimo (US-232/US-247) — o system prompt lê `registry` e
+ * `encounters`/`locations` incondicionalmente quando `generatedAdventure` não é nulo
+ * (`ai.service.ts:710-721`); um objeto parcial (só `objective`) faz o turno inteiro quebrar
+ * antes de chegar em `completeQuest`, não só o campo que este teste quer isolar.
+ */
+function generatedAdventureMinima(reward: { name: string; effect: string }): object {
+  return {
+    id: 'adv-us247',
+    levelRange: { min: 1, max: 1 },
+    registry: { setting: 'fantasy', tone: 'mystery', areaType: 'settlement' },
+    summary: 'Resumo curto da aventura.',
+    world: { name: 'Mundo de teste', description: 'Descrição do mundo de teste.' },
+    story: 'História central de teste.',
+    factions: [],
+    npcs: [],
+    locations: [],
+    challenges: [],
+    encounters: [],
+    start: 'Abertura da aventura de teste.',
+    objective: { description: 'Encontrar a origem das pegadas.', reward, locationId: 'loc-1' },
+    branchedResolution: [{ choice: 'Resolver', consequence: 'Consequência de teste.' }],
+    followUps: [],
+  }
+}
+
+describe('US-247 — completeQuest devolve conclusion com a recompensa (objective.reward)', () => {
+  it('outcome success com generatedAdventure.objective.reward: conclusion cita nome e efeito', async () => {
+    const mesa = await montarMesa()
+    await prisma.adventure.update({
+      where: { id: mesa.adventureId },
+      data: {
+        generatedAdventure: generatedAdventureMinima({
+          name: 'Anel de Casca-Viva',
+          effect: 'a pele do portador endurece como madeira por um instante',
+        }) as unknown as object,
+      },
+    })
+    dm.passos = turnoComTools([{ tool: 'completeQuest', args: { outcome: 'success' } }])
+
+    await jogarTurno(mesa, 'sigo as pegadas até o fim')
+    await esperarNarracaoPersistida(mesa, 2)
+
+    const resultado = ultimoResultadoDeTool('completeQuest') as { status: string; conclusion?: string }
+    expect(resultado.status).toBe('COMPLETED')
+    expect(resultado.conclusion).toContain('Anel de Casca-Viva')
+    expect(resultado.conclusion).toContain('a pele do portador endurece como madeira por um instante')
+  })
+
+  it('outcome failure: não devolve conclusion mesmo com reward disponível (a meta não foi alcançada)', async () => {
+    const mesa = await montarMesa()
+    await prisma.adventure.update({
+      where: { id: mesa.adventureId },
+      data: {
+        generatedAdventure: generatedAdventureMinima({ name: 'Anel de Casca-Viva', effect: 'endurece a pele' }) as unknown as object,
+      },
+    })
+    dm.passos = turnoComTools([{ tool: 'completeQuest', args: { outcome: 'failure' } }])
+
+    await jogarTurno(mesa, 'desisto e volto pra casa')
+    await esperarNarracaoPersistida(mesa, 2)
+
+    const resultado = ultimoResultadoDeTool('completeQuest') as { status: string; conclusion?: string }
+    expect(resultado.status).toBe('FAILED')
+    expect(resultado.conclusion).toBeUndefined()
+  })
+
+  it('aventura sem generatedAdventure (caminho Free/legado): outcome success não quebra e não devolve conclusion', async () => {
+    const mesa = await montarMesa()
+    // montarMesa() já cria a Adventure sem generatedAdventure — é exatamente o caso Free.
+    dm.passos = turnoComTools([{ tool: 'completeQuest', args: { outcome: 'success' } }])
+
+    await jogarTurno(mesa, 'sigo as pegadas até o fim')
+    await esperarNarracaoPersistida(mesa, 2)
+
+    const resultado = ultimoResultadoDeTool('completeQuest') as { status: string; conclusion?: string }
+    expect(resultado.status).toBe('COMPLETED')
+    expect(resultado.conclusion).toBeUndefined()
   })
 })
 
