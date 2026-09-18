@@ -14,10 +14,10 @@
       "port": 3000
     },
     {
-      "_comment": "api+web juntos pelo script da raiz — o ÚNICO caminho com o wrapper `dotenv -e .env`, que é como os secrets de runtime da API chegam (ela não tem ConfigModule/dotenv). As configs `api`/`web` isoladas abaixo/acima sobem sem esses env vars.",
+      "_comment": "api+web juntos pelo script da raiz — o ÚNICO caminho com o wrapper `dotenv -e .env`, que é como os secrets de runtime da API chegam (ela não tem ConfigModule/dotenv). As configs `api`/`web` isoladas abaixo/acima sobem sem esses env vars. PORT/NEXT_PUBLIC_API_URL são setados DENTRO do comando (mesmos valores do iniciar.ps1): o preview injeta PORT=<port> (3000) no processo — `env` da config perde pra ele — e a API lê `process.env.PORT ?? 3001`, então sem isso ela colide com o web (EADDRINUSE :3000).",
       "name": "aidm",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev"],
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-Command", "$env:PORT='3001'; $env:NEXT_PUBLIC_API_URL='http://localhost:3001'; pnpm dev"],
       "port": 3000
     },
     {
