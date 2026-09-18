@@ -24,7 +24,7 @@
 
 `grep GeneratedAdventure apps/api/src` só acha o *import* do tipo — nenhuma função cria uma instância dele. Peças isoladas e sem elo:
 
-- `rollAdventure` ([roll-adventure.ts](../../../apps/api/src/adventure-generation/roll-adventure.ts)) — registro + conteúdo bruto.
+- `rollAdventure` (`roll-adventure.ts`) — registro + conteúdo bruto.
 - `AiService.generateLocationsAndNpcs` ([ai.service.ts:1252](../../../apps/api/src/ai/ai.service.ts)) — locais/NPCs em prosa (US-158).
 - `AiService.generateSecrets` ([ai.service.ts:1308](../../../apps/api/src/ai/ai.service.ts)) — segredos (US-149).
 - `composeEncounterRoles`/`buildEncounterNpcs` ([monster-roles.ts](../../../apps/api/src/adventure-generation/monster-roles.ts)) — papéis de combate (US-152).
@@ -119,7 +119,7 @@ const CLOSING_SCHEMA = z.object({
 ## Referências no código
 
 - [Backlog — Motor de geração de aventuras one-shot §Ordem de geração](./backlog-motor-de-geracao-de-aventuras.md) — os 7 passos que esta story executa.
-- [`apps/api/src/adventure-generation/roll-adventure.ts`](../../../apps/api/src/adventure-generation/roll-adventure.ts) — `rollAdventure`, passos 0-2 (parcial).
+- `apps/api/src/adventure-generation/roll-adventure.ts` — `rollAdventure`, passos 0-2 (parcial).
 - [`apps/api/src/ai/ai.service.ts:1252`](../../../apps/api/src/ai/ai.service.ts) — `generateLocationsAndNpcs` (US-158), passo 3.
 - [`apps/api/src/ai/ai.service.ts:1308`](../../../apps/api/src/ai/ai.service.ts) — `generateSecrets` (US-149), passo 4.
 - [`apps/api/src/adventure-generation/monster-roles.ts`](../../../apps/api/src/adventure-generation/monster-roles.ts) — `composeEncounterRoles`/`buildEncounterNpcs` (US-152/US-160), passo 5.

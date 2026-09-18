@@ -26,7 +26,7 @@ A inversão (ADR 012 D5) trocou "montar de tabela com `seed`" por "modelo autora
 Revisão de 2026-09-18 (grep de call sites contra `AdventureService.generateAdventure`, `apps/api/src/adventure/adventure.service.ts`, US-232) mostra que isso só é meio verdade:
 
 - `generateAdventure` chama `rollRegistry`/`rollFactionCount`/`rollNamingRegister` ([roll-registry.ts](../../../apps/api/src/adventure-generation/roll-registry.ts)) e `rollQuestSeed` ([roll-quest-seed.ts](../../../apps/api/src/adventure-generation/roll-quest-seed.ts), US-241) **diretamente**, e os dois usam `deriveAdventureSeed`/`createSeededRandom`. A inversão não matou o seed — só matou o **caminho antigo** até ele (`rollAdventure`, US-147), que a autoria contornou chamando `rollRegistry`/`rollQuestSeed` sem passar por ele.
-- O que morreu de fato é só o entry point antigo `rollAdventure()` ([roll-adventure.ts](../../../apps/api/src/adventure-generation/roll-adventure.ts)) e tudo que só ele alcançava: `rollContent`/`rollPremissaCandidates`/`rollPatronsAndNpcs`/`generatePremissa` ([roll-content.ts](../../../apps/api/src/adventure-generation/roll-content.ts), US-192) e os 40 prompts de segredo (`readSecretPrompts`, US-149, `lgmrd-tables.ts`).
+- O que morreu de fato é só o entry point antigo `rollAdventure()` (`roll-adventure.ts`) e tudo que só ele alcançava: `rollContent`/`rollPremissaCandidates`/`rollPatronsAndNpcs`/`generatePremissa` (`roll-content.ts`, US-192) e os 40 prompts de segredo (`readSecretPrompts`, US-149, `lgmrd-tables.ts`).
 - O `sync` (US-145) segue dividido como o título original previa: metade **Monster Builder** (`5e_Monster_Builder.json`) alimenta os statblocks do PASSO 2 (US-233, confirmado vivo via `monster-roles.ts`/`lazy-encounter-benchmark.ts`) e **fica**. Das 135 tabelas do LGMRD, as 4 de rolagem de quest (`1d20quests`/`locationsmonumentsanditems`/`conditiondescriptionandorigin`/`patronsandnpcs`) foram revividas em 2026-09-14 por [US-241](./US-241-summary-formula-lgmrd-macguffin.md), que reverte só para `summary` a exclusão total de tabela LGMRD (ADR 012 D5) e ganha em `rollQuestSeed` um consumidor novo que lê essas 4 direto pra compor a semente de gancho do prompt de autoria — **essas ficam**. `rollQuestSeed` lê as MESMAS 4 tabelas com uma rolagem nova; não revive `rollContent` nem o caminho antigo. O resto das 135 (as que só `rollContent`/`readSecretPrompts` liam) segue sem uso e sai.
 
 ---
@@ -35,8 +35,8 @@ Revisão de 2026-09-18 (grep de call sites contra `AdventureService.generateAdve
 
 ### Dentro do escopo
 
-- **Remover `rollAdventure()` inteiro** ([roll-adventure.ts](../../../apps/api/src/adventure-generation/roll-adventure.ts)) — entry point US-147 ("registro depois conteúdo"), só chamado pelo próprio teste; `generateAdventure` não passa por ele.
-- **Remover `rollContent`/`rollPremissaCandidates`/`rollPatronsAndNpcs`/`generatePremissa`** ([roll-content.ts](../../../apps/api/src/adventure-generation/roll-content.ts), US-192) — órfãos, só alcançáveis via `rollAdventure` morto.
+- **Remover `rollAdventure()` inteiro** (`roll-adventure.ts`) — entry point US-147 ("registro depois conteúdo"), só chamado pelo próprio teste; `generateAdventure` não passa por ele.
+- **Remover `rollContent`/`rollPremissaCandidates`/`rollPatronsAndNpcs`/`generatePremissa`** (`roll-content.ts`, US-192) — órfãos, só alcançáveis via `rollAdventure` morto.
 - **Remover `readSecretPrompts`/os 40 prompts de segredo** (US-149, [lgmrd-tables.ts](../../../apps/api/src/adventure-generation/lgmrd-tables.ts)) — sem consumidor fora do próprio arquivo/teste.
 - **Passar no `pnpm dead`** (knip, US-89): nenhum export órfão sobra dessas remoções; grep confirma que nenhum consumidor vivo lê os símbolos acima.
 - **Manter o `sync` do `5e_Monster_Builder.json`** (metade da US-145) — os statblocks que a US-233 consome.
@@ -87,8 +87,8 @@ Revisão de 2026-09-18 (grep de call sites contra `AdventureService.generateAdve
 - [packages/shared/src/adventure-seed.ts](../../../packages/shared/src/adventure-seed.ts) — `deriveAdventureSeed`/`createSeededRandom`. **Vivo**, consumido por `roll-registry.ts`/`roll-quest-seed.ts`; fora do escopo de remoção.
 - [apps/api/src/adventure-generation/roll-registry.ts](../../../apps/api/src/adventure-generation/roll-registry.ts) — `rollRegistry`/`rollFactionCount`/`rollNamingRegister`, chamados direto por `AdventureService.generateAdventure`. Vivo, fora do escopo.
 - [apps/api/src/adventure-generation/roll-quest-seed.ts](../../../apps/api/src/adventure-generation/roll-quest-seed.ts) — `rollQuestSeed` (US-241), chamado direto por `generateAdventure`. Vivo, fora do escopo.
-- [apps/api/src/adventure-generation/roll-adventure.ts](../../../apps/api/src/adventure-generation/roll-adventure.ts) — `rollAdventure()`, entry point US-147. Morto (só o próprio teste chama) — remover.
-- [apps/api/src/adventure-generation/roll-content.ts](../../../apps/api/src/adventure-generation/roll-content.ts) — `rollContent` e afins, US-192. Morto (órfão via `rollAdventure`) — remover.
+- `apps/api/src/adventure-generation/roll-adventure.ts` — `rollAdventure()`, entry point US-147. Morto (só o próprio teste chama) — remover.
+- `apps/api/src/adventure-generation/roll-content.ts` — `rollContent` e afins, US-192. Morto (órfão via `rollAdventure`) — remover.
 - [apps/api/src/adventure-generation/lgmrd-tables.ts](../../../apps/api/src/adventure-generation/lgmrd-tables.ts) — `readLgmrdTables` vivo (US-241/`rollQuestSeed`); `readSecretPrompts` morto — remover só esse export.
 - [US-145](./US-145-sync-lgmrd-notice.md) — `sync`; metade Monster Builder fica, metade LGMRD rebaixa.
 - [US-146](./US-146-seed-deterministico-motor-aventura.md)/[US-147](./US-147-rolagem-registro-conteudo.md) — histórico de onde vieram o seed e a rolagem-espinha antiga.

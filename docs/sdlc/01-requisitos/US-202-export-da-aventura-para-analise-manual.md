@@ -307,7 +307,7 @@ porta dupla) — é uma linha de env a mais, não um mecanismo a mais.
 - [`apps/api/src/adventure/adventure.service.ts`](../../../apps/api/src/adventure/adventure.service.ts) — onde `generatedAdventure` e o ledger são gravados; é o outro lado do que o export lê.
 - [`apps/api/src/adventure-generation/adventure-gate.ts`](../../../apps/api/src/adventure-generation/adventure-gate.ts) — `runAdventureGate`: as três verificações mecânicas que a leitura manual **não** precisa repetir.
 - [`apps/api/src/adventure-generation/seed-ledger.ts`](../../../apps/api/src/adventure-generation/seed-ledger.ts) — como `entities` deriva do artefato; explica divergências entre os dois no dump.
-- [`apps/api/src/adventure-generation/roll-adventure.ts`](../../../apps/api/src/adventure-generation/roll-adventure.ts) — `rollAdventure` e o parâmetro de tentativa não persistido (questão 2).
+- `apps/api/src/adventure-generation/roll-adventure.ts` — `rollAdventure` e o parâmetro de tentativa não persistido (questão 2).
 - [`apps/api/src/adventure/adventure.controller.ts`](../../../apps/api/src/adventure/adventure.controller.ts) — onde a rota entra; `assertOwner` e o `AuthGuard` já montados, e a rota de turnos como molde.
 - [`apps/api/src/auth/auth.guard.ts`](../../../apps/api/src/auth/auth.guard.ts) — `AuthGuard`: 401 sem Bearer, 401 com `sub` órfão. É o que o token de dev da US-201 atravessa.
 - [`apps/api/src/main.ts`](../../../apps/api/src/main.ts) — `DocumentBuilder`: o `.addBearerAuth()` da US-201 é o que faz esta rota ser testável pelo Swagger.

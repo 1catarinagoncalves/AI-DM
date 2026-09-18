@@ -65,12 +65,12 @@ Uma chamada `generateObject` (mesmo molde de `extractOpeningEntities`, [ai.servi
 ## Critérios de aceite
 
 - [x] Função produz `locations: AdventureLocationSchema[]` e `npcs: AdventureNpcSchema[]`, cada item com `id` atribuído no código (nunca pelo modelo), rodando **depois** do conteúdo bruto da US-147 existir e **antes** da chamada de segredos da US-149 — ordem verificável pela assinatura exigir o conteúdo rolado como parâmetro obrigatório. (`AiService.generateLocationsAndNpcs`, [ai.service.ts](../../../apps/api/src/ai/ai.service.ts))
-- [x] `patronsandnpcs` é rolado pelo seed determinístico (US-146), não pelo modelo — nenhuma chamada a `Math.random`. (`rollPatronsAndNpcs`, [roll-content.ts](../../../apps/api/src/adventure-generation/roll-content.ts))
+- [x] `patronsandnpcs` é rolado pelo seed determinístico (US-146), não pelo modelo — nenhuma chamada a `Math.random`. (`rollPatronsAndNpcs`, `roll-content.ts`)
 - [x] Ao menos um NPC (papel ou nome) referencia `background.bonds` quando presente — checagem por palavra-chave ou LLM-judge, molde da rubrica US-36 (mesma disciplina que a US-149 aplica aos segredos). Aqui via instrução explícita no prompt (`bondsInstruction`); a checagem de qualidade da saída real do modelo é trabalho de eval, fora do escopo do teste unitário.
 - [x] Personagem com `background`/`origin` vazios ainda produz `locations`/`npcs` válidos, usando só `hookSeed` como âncora.
 - [x] Chamada usa `extractionModel` (US-114), não `primaryModel`.
 - [x] Falha/timeout propaga erro estruturado — não devolve array vazio silenciosamente; aciona reseed pela US-150. Sem `try/catch`, ao contrário de `extractOpeningEntities`/`extractOpeningScene` — de propósito.
-- [x] **Eval / teste de regressão:** [ai.service.test.ts](../../../apps/api/src/ai/ai.service.test.ts) (`AiService.generateLocationsAndNpcs`) cobre minting de `id`, resolução de `occupants` por nome, uso de `extractionModel`, `bonds` no prompt, fallback pro `hookSeed`, e propagação de erro. [roll-content.test.ts](../../../apps/api/src/adventure-generation/roll-content.test.ts) cobre fixture pinada de `patronsandnpcs` e não-degeneração por `order`.
+- [x] **Eval / teste de regressão:** [ai.service.test.ts](../../../apps/api/src/ai/ai.service.test.ts) (`AiService.generateLocationsAndNpcs`) cobre minting de `id`, resolução de `occupants` por nome, uso de `extractionModel`, `bonds` no prompt, fallback pro `hookSeed`, e propagação de erro. `roll-content.test.ts` cobre fixture pinada de `patronsandnpcs` e não-degeneração por `order`.
 - [ ] **Guard futuro, não desta entrega (dependência da US-152):** todo consumidor de `npcs[]` que gera prosa/elenco pro jogador filtra por `role` conhecido (`Minion`/`Soldier`/`Brute`) antes de tratar a entrada como NPC narrativo. Nenhum consumidor de prosa existe ainda — item fica pendente até a US-152 (que popula statblock em `npcs[]`) e o primeiro consumidor de narração existirem; não bloqueia o status ✅ desta story.
 
 ---
@@ -96,7 +96,7 @@ Nenhuma pendente — as duas questões desta seção (chamada combinada vs. sepa
 
 ## Referências no código
 
-- [apps/api/src/adventure-generation/roll-content.ts](../../../apps/api/src/adventure-generation/roll-content.ts) — `RolledAdventureContent`, padrão `tableSeed` a reusar para `patronsandnpcs`.
+- `apps/api/src/adventure-generation/roll-content.ts` — `RolledAdventureContent`, padrão `tableSeed` a reusar para `patronsandnpcs`.
 - [scripts/lazygm/lgmrd-tables.json](../../../scripts/lazygm/lgmrd-tables.json) — tabela `patronsandnpcs` (`behavior`/`ancestry`), ainda não lida por nenhuma função.
 - [apps/api/src/ai/ai.service.ts:1112](../../../apps/api/src/ai/ai.service.ts) — `extractOpeningEntities`, molde de `generateObject` a espelhar.
 - [packages/shared/src/types/adventure-generation.ts](../../../packages/shared/src/types/adventure-generation.ts) — `AdventureLocationSchema`, `AdventureNpcSchema` (US-144), reusados sem alteração.

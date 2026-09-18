@@ -204,7 +204,7 @@ export function nextUnrevealedEncounterLocation(
 - [`apps/api/src/ai/ai.service.ts`](../../../apps/api/src/ai/ai.service.ts) — `generateClosing` (estendida junto da US-181), `buildClosingPrompt`, `buildLocationsAndNpcsPrompt` (precedente de instrução de quantidade-alvo).
 - [`apps/api/src/adventure-generation/monster-roles.ts`](../../../apps/api/src/adventure-generation/monster-roles.ts) — `composeEncounterRoles`/`buildEncounterNpcs`.
 - [`packages/shared/src/adventure-seed.ts`](../../../packages/shared/src/adventure-seed.ts) — `deriveAdventureSeed`/`createSeededRandom` (US-146), reusados por `shuffleEncounterTypes`.
-- [`apps/api/src/adventure-generation/roll-content.ts`](../../../apps/api/src/adventure-generation/roll-content.ts) — `tableSeed`, padrão de sub-seed que `shuffleEncounterTypes` copia.
+- `apps/api/src/adventure-generation/roll-content.ts` — `tableSeed`, padrão de sub-seed que `shuffleEncounterTypes` copia.
 - [`apps/api/src/adventure-generation/seed-ledger.ts`](../../../apps/api/src/adventure-generation/seed-ledger.ts) — `seedLedgerFromGeneratedAdventure` (`locationEntities`/`encounterNpcEntities`).
 - [`packages/ai-engine/src/prompts/dm-system.ts`](../../../packages/ai-engine/src/prompts/dm-system.ts) — `buildTurnStateBlock`, ganha o bloco novo.
 - [Backlog — Motor de geração de aventuras one-shot §Ordem de geração](./backlog-motor-de-geracao-de-aventuras.md) — passo 5, intenção original substituída.

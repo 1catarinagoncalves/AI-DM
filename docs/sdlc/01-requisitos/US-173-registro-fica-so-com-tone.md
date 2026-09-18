@@ -149,7 +149,7 @@ export interface CreateAdventureDto {
 - [packages/shared/src/types/system.ts:211-217](../../../packages/shared/src/types/system.ts) — `SystemConfigSchema`, perde `settings`(:214)/`areaTypes`(:216).
 - [apps/api/src/adventure-generation/roll-registry.ts](../../../apps/api/src/adventure-generation/roll-registry.ts) — `AdventureRegistry`/`AdventureRegistryOverrides`/`rollRegistry`, os três eixos de sorteio.
 - [apps/api/src/adventure-generation/registry-catalog.ts](../../../apps/api/src/adventure-generation/registry-catalog.ts) — `SETTINGS`/`TONES`/`AREA_TYPES`, lista provisória desalinhada do catálogo real (achado, ver Notas).
-- [apps/api/src/adventure-generation/roll-content.ts:59](../../../apps/api/src/adventure-generation/roll-content.ts) — `locationRow`, conteúdo bruto de `locations[]`, sorteado em eixo separado de `areaType` (achado).
+- `apps/api/src/adventure-generation/roll-content.ts:59` — `locationRow`, conteúdo bruto de `locations[]`, sorteado em eixo separado de `areaType` (achado).
 - [scripts/lazygm/lgmrd-tables.json](../../../scripts/lazygm/lgmrd-tables.json) (tabela `locationsmonumentsanditems`) — 20 linhas sem categoria de área, motivo de não filtrar a rolagem por `areaType`.
 - [apps/api/src/adventure/adventure.controller.ts:11-15,25](../../../apps/api/src/adventure/adventure.controller.ts) — `CreateAdventureSchema` (zod) + exemplo do `ApiBody`.
 - [apps/api/src/adventure/adventure.service.ts:15-20](../../../apps/api/src/adventure/adventure.service.ts) — `CreateAdventureDto`.

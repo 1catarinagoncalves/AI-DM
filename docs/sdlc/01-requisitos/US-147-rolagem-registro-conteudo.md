@@ -119,8 +119,8 @@ Duas rolagens, nesta ordem, ambas pelo seed da [US-146](./US-146-seed-determinis
 - [apps/api/src/adventure-generation/lgmrd-tables.ts](../../../apps/api/src/adventure-generation/lgmrd-tables.ts) — lê `lgmrd-tables.json` via `readFileSync`.
 - [apps/api/src/adventure-generation/roll-registry.ts](../../../apps/api/src/adventure-generation/roll-registry.ts) — rola `setting`/`tone`/`areaType`, cada um com sub-seed independente; aceita overrides.
 - [apps/api/src/adventure-generation/registry-catalog.ts](../../../apps/api/src/adventure-generation/registry-catalog.ts) — a lista provisória de chaves (Questão 2), trocável quando a US-156 chegar.
-- [apps/api/src/adventure-generation/roll-content.ts](../../../apps/api/src/adventure-generation/roll-content.ts) — rola premissa/locais/monumentos/complicação das tabelas do LGMRD.
-- [apps/api/src/adventure-generation/roll-adventure.ts](../../../apps/api/src/adventure-generation/roll-adventure.ts) — orquestrador: registro antes de conteúdo, no código.
+- `apps/api/src/adventure-generation/roll-content.ts` — rola premissa/locais/monumentos/complicação das tabelas do LGMRD.
+- `apps/api/src/adventure-generation/roll-adventure.ts` — orquestrador: registro antes de conteúdo, no código.
 - [US-146](./US-146-seed-deterministico-motor-aventura.md) — `createSeededRandom`/`deriveAdventureSeed`, o gerador que esta story consome (reusado por composição de string para os sub-seeds por campo/tabela, sem função nova em `@ai-dm/shared`).
 - [US-29](./US-29-saneamento-de-rolagens-ficticias.md) — a disciplina "sorteio que o modelo faz não é sorteio", aplicada aqui ao motor de geração.
 - [ADR 012](../../adr/012-aventura-gerada-como-dado.md) — decisão que resolve os rótulos `GEN-N` do backlog para número de story.
