@@ -580,8 +580,14 @@ The character's CURRENT condition right now. A low HP or an active condition MUS
   // com `finishReason=stop` (julgou o turno completo — não foi corte nem falha de provedor).
   // O anti-replay só pode valer para trajeto JÁ narrado, nunca para o que o jogador acabou
   // de escolher, então a autorização passa a ser explícita e com precedência declarada.
+  //
+  // 2026-09-18: 2º defeito da mesma linha — o Mestre MOVIA, mas em corte seco (turno abria já
+  // no destino, trajeto nunca narrado). "narrate the journey" não dava forma, e o prompt
+  // cacheado empurra pro lado oposto (":443 resolva o momento", "abra nos sentidos", "3–5
+  // parágrafos"). Agora a ordem é explícita: trajeto a partir do local atual, depois chegada.
+  // O reforço mais forte fica no resultado do `updateScene` (`sceneMoveHint`, scene.ts).
   const continuityLine = sceneState?.local
-    ? `\nThe character is ALREADY at «${sceneState.local}». The journey and arrival here were narrated on earlier turns — begin INSIDE the scene and narrate ONLY what this new action adds. Do NOT re-narrate the trip, the arrival, or the greeting of anyone already present: that already happened. Location changes ONLY when the player makes a NEW move (walks/enters/leaves) — call \`updateScene\` first, then narrate the move. When the player's action IS that move — going or returning somewhere, INCLUDING a place already visited — it is a NEW move and it OVERRIDES the anti-replay rule above: call \`updateScene\` FIRST, then narrate the journey and the arrival in THIS turn; the anti-replay rule covers only a trip already narrated, never the move the player just chose. NEVER answer a requested move by re-describing «${sceneState.local}» and re-offering the same options — that strands the player exactly where they asked to leave.`
+    ? `\nThe character is ALREADY at «${sceneState.local}». The journey and arrival here were narrated on earlier turns — begin INSIDE the scene and narrate ONLY what this new action adds. Do NOT re-narrate the trip, the arrival, or the greeting of anyone already present: that already happened. Location changes ONLY when the player makes a NEW move (walks/enters/leaves) — call \`updateScene\` first, then narrate the move. When the player's action IS that move — going or returning somewhere, INCLUDING a place already visited — it is a NEW move and it OVERRIDES the anti-replay rule above: call \`updateScene\` FIRST, then narrate the move in THIS turn: first the way there from «${sceneState.local}» (terrain, a landmark, time passing), only then the arrival — NEVER open the turn already at the destination; the anti-replay rule covers only a trip already narrated, never the move the player just chose. NEVER answer a requested move by re-describing «${sceneState.local}» and re-offering the same options — that strands the player exactly where they asked to leave.`
     : ''
   const sceneSection = sceneText
     ? `## ${SCENE_BLOCK} (FONTE DE VERDADE — tem precedência sobre qualquer inferência da prosa)

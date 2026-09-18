@@ -25,6 +25,7 @@ import {
   resolveAdventuresAndAdvancement,
   buildSummaryInput,
   mergeSceneState,
+  sceneMoveHint,
   formatSceneState,
   mergeEntities,
   norm,
@@ -930,7 +931,9 @@ export class AiService {
             },
           })
 
-          return next
+          // Só o resultado devolvido ao modelo carrega a dica; `sceneJson` (persistido) não muda.
+          const deslocamento = sceneMoveHint(current, next)
+          return deslocamento ? { ...next, deslocamento } : next
         },
       }),
 

@@ -551,6 +551,17 @@ describe('buildTurnStateBlock — estado volátil na mensagem (US-56 / camada 3)
     expect(s).toMatch(/\b(never|nunca)\b[^.]{0,120}(same options|mesmas opções)/i)
   })
 
+  // 2026-09-18: 2º defeito da mesma família. Aqui o Mestre MOVIA (a cena mudava), mas em
+  // corte seco: o turno abria já no destino e o trajeto nunca era narrado ("rumar direto ao
+  // Círculo" → "X está na borda do círculo…"). "narrate the journey" era uma cláusula solta
+  // contra o prompt cacheado inteiro mandando abrir nos sentidos e resolver o momento.
+  // Agora a linha dá a FORMA: trajeto a partir do local atual primeiro, chegada depois.
+  it('exige trânsito ANTES da chegada e proíbe abrir já no destino', () => {
+    const s = buildState({ sceneState: scene })
+    expect(s).toMatch(/(way there|caminho)[^.]{0,20}«Praça da vila ao anoitecer»/i)
+    expect(s).toMatch(/\b(never|nunca)\b[^.]{0,30}open[^.]{0,40}(already at the destination|já no destino)/i)
+  })
+
   it('sem `local` na cena → nenhum sinal de continuidade', () => {
     const s = buildState({ sceneState: { ...scene, local: '' } })
     expect(s).not.toMatch(/is ALREADY at/)

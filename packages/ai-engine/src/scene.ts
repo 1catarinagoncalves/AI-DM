@@ -31,6 +31,27 @@ export function mergeSceneState(
   }
 }
 
+// 2026-09-18: o Mestre movia a cena mas abria o turno JÁ no destino, sem narrar o trajeto.
+// Este é o texto mais recente que o modelo lê antes de escrever a prosa (vai no resultado
+// da tool `updateScene`), só em turno que de fato mudou o `local` — custo zero nos demais e
+// fora do prefixo cacheado. Igualdade por string aparada: um `local` só reescrito ("Círculo"
+// → "borda do Círculo") dispara a dica à toa; inofensivo, e comparar semântica exigiria modelo.
+export type SceneMoveHint = { de: string; para: string; instrucao: string }
+
+export function sceneMoveHint(
+  before: SceneState | null | undefined,
+  after: SceneState,
+): SceneMoveHint | null {
+  const de = before?.local.trim()
+  const para = after.local.trim()
+  if (!de || de === para) return null
+  return {
+    de,
+    para,
+    instrucao: `The scene moved from «${de}» to «${para}». Narrate the way there FIRST (terrain, a landmark, time passing), and only then the arrival. NEVER open the turn already at the destination.`,
+  }
+}
+
 // Formato compacto chave: valor, para reinjeção no prompt e no resumo.
 // Vazio quando não há cena estabelecida ainda — nada a injetar.
 export function formatSceneState(scene: SceneState | null | undefined): string {
