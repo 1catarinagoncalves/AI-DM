@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "shadcn": {
+    "shadcn-ui": {
       "command": "npx",
       "args": [
-        "shadcn@4.21.0",
-        "mcp"
+        "-y",
+        "@jpisnice/shadcn-ui-mcp-server@2.0.0"
       ]
     },
     "vp0": {
