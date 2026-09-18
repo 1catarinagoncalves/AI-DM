@@ -201,6 +201,7 @@ enum EventType {
   DICE_ROLL
   QUEST_UPDATE
   CHARACTER_UPDATE
+  INTRODUCTION // US-257: mensagem do Mestre ANTES da cena de abertura — fora de history/summarizeOldTurns de propósito
 }
 
 model System {

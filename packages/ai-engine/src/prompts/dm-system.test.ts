@@ -5,6 +5,7 @@ import type { SystemBackground } from '@ai-dm/shared'
 import {
   buildDmSystemPrompt,
   buildOpeningInstruction,
+  buildIntroInstruction,
   buildTurnStateBlock,
   resolveAdventuresAndAdvancement,
   SCENE_BLOCK,
@@ -804,6 +805,49 @@ describe('buildOpeningInstruction — narra o mainQuest de perto, não recompõe
     expect(p).toMatch(/do NOT quote it verbatim/)
     expect(p).toMatch(/at least 2 of these 3 appeals/)
     expect(p).not.toContain('combat — the action already started')
+  })
+})
+
+// US-257: prólogo do Mestre, SEPARADO da cena de abertura — mesmo formato de parâmetros de
+// buildOpeningInstruction, instrução de conteúdo oposta (nunca in medias res, nunca cena/NPC).
+describe('buildIntroInstruction — prólogo separado da cena de abertura (US-257)', () => {
+  const hookSeed = 'Um Eladrin convida você para dançar na corte feérica sob a lua cheia.'
+  const mainQuest = 'Proteja a criança Mira dos caçadores que cercam a mina de Kelgrund.'
+
+  it('proíbe explicitamente in medias res e lista de opções de ação — não é um turno', () => {
+    const p = buildIntroInstruction({ characterName: 'Aria', hookSeed })
+    expect(p).toMatch(/do NOT open in medias res/i)
+    expect(p).toMatch(/do NOT end with an action options list/i)
+  })
+
+  it('proíbe citar cena/local/NPC — a introdução não tem elenco nem lugar', () => {
+    const p = buildIntroInstruction({ characterName: 'Aria', hookSeed })
+    expect(p).toMatch(/do NOT describe any specific location/i)
+    expect(p).toMatch(/do NOT introduce any NPC/i)
+  })
+
+  it('amarra o gancho/mundo à identidade do personagem (raça, classe, background, origem)', () => {
+    const p = buildIntroInstruction({ characterName: 'Aria', hookSeed })
+    expect(p).toContain('Aria')
+    expect(p).toMatch(/race, class, background and origin/i)
+  })
+
+  it('com mainQuest presente, ele vira a base da introdução — hookSeed some dela', () => {
+    const p = buildIntroInstruction({ characterName: 'Aria', hookSeed, mainQuest })
+    expect(p).toContain(mainQuest)
+    expect(p).not.toContain(hookSeed)
+  })
+
+  it('sem mainQuest, usa hookSeed como base', () => {
+    const p = buildIntroInstruction({ characterName: 'Aria', hookSeed })
+    expect(p).toContain(hookSeed)
+  })
+
+  it('idioma-alvo explícito (US-97), mesma disciplina da abertura', () => {
+    const en = buildIntroInstruction({ characterName: 'Aria', hookSeed, locale: 'en-US' })
+    const pt = buildIntroInstruction({ characterName: 'Aria', hookSeed })
+    expect(en).toContain('English')
+    expect(pt).toContain('Brazilian Portuguese (pt-BR)')
   })
 })
 

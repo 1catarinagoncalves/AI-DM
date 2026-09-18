@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
-import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, maxHpForLevel, proficiencyBonusForLevel, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type AdventureChallenge, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
+import { SystemConfigSchema, GeneratedAdventureSchema, buildSkillSheet, catalogLabel, resolveLocale, resolveSheetEntries, stripFabricatedRolls, getStartingInventory, getBackgroundEquipment, getRaceToolEquipment, MEMENTO_ITEM_LABEL, maxHpForLevel, proficiencyBonusForLevel, type InitialAdventureHook, type ChatTurn, type InventoryItem, type SystemConfig, type SystemBackground, type AdventureChallenge, type AdventureEncounter, type AdventureLocation, type AdventureNpc, type GeneratedAdventure, type Locale } from '@ai-dm/shared'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
 import { AiService } from '../ai/ai.service'
@@ -72,6 +72,9 @@ interface AdventureOpeningContext {
   fullInventory: InventoryItem[]
   hookSeed: string
   locale: Locale
+  /** US-257: origem escolhida — repassada a `generateIntroNarration` (`finalizeGeneratedAdventure`). */
+  origin: { key?: string; connection?: string; memento?: string }
+  backgrounds?: SystemBackground[]
 }
 
 @Injectable()
@@ -527,24 +530,45 @@ export class AdventureService {
       const questDescription = resolveHookTemplate(rawHook.primaryQuestDescription, vars)
       const hookOpening = resolveHookTemplate(rawHook.openingNarration, vars)
 
-      const generatedOpening = await this.ai.generateOpeningNarration({
-        systemName: system.name,
-        characterName: character.name,
-        characterGender: character.gender,
-        characterClass: className,
-        characterRace: raceName,
-        mainQuest: `${questTitle}\n${questDescription}`,
-        inventory: fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
-        sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
-        hookSeed: hookOpening,
-        attributeLabels: Object.fromEntries(labelPairs),
-        background: (character.background ?? {}) as unknown as CharacterBackground,
-        features,
-        spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
-        locale,
-        // Sem `tone`/`setting`/`areaType`/`entities`: não há registry nem ledger semeado
-        // nesse ramo (não há motor gerado) — mesmas 4 ausências do caminho "Free/legado".
-      })
+      // US-257: introdução roda em PARALELO à abertura (mesmo padrão de Promise.all da
+      // US-168) — `generateOpeningNarration` recebe EXATAMENTE os mesmos parâmetros de antes.
+      const [generatedOpening, generatedIntro] = await Promise.all([
+        this.ai.generateOpeningNarration({
+          systemName: system.name,
+          characterName: character.name,
+          characterGender: character.gender,
+          characterClass: className,
+          characterRace: raceName,
+          mainQuest: `${questTitle}\n${questDescription}`,
+          inventory: fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
+          sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
+          hookSeed: hookOpening,
+          attributeLabels: Object.fromEntries(labelPairs),
+          background: (character.background ?? {}) as unknown as CharacterBackground,
+          features,
+          spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
+          locale,
+          // Sem `tone`/`setting`/`areaType`/`entities`: não há registry nem ledger semeado
+          // nesse ramo (não há motor gerado) — mesmas 4 ausências do caminho "Free/legado".
+        }),
+        this.ai.generateIntroNarration({
+          systemName: system.name,
+          characterName: character.name,
+          characterGender: character.gender,
+          characterClass: className,
+          characterRace: raceName,
+          mainQuest: `${questTitle}\n${questDescription}`,
+          sheet: { level: character.level, hp: maxHp, maxHp, attributes: attrs, conditions: [], skills },
+          hookSeed: hookOpening,
+          attributeLabels: Object.fromEntries(labelPairs),
+          background: (character.background ?? {}) as unknown as CharacterBackground,
+          features,
+          spells: knownSpells.map((s) => ({ name: s.name, level: s.level })),
+          origin,
+          backgrounds: config.backgrounds,
+          locale,
+        }),
+      ])
       const openingText = generatedOpening ?? hookOpening
 
       // US-35: mesma extração de cena do ramo gerado — o turno 1 do ramo "pronta" merece
@@ -584,9 +608,22 @@ export class AdventureService {
           data: { adventureId: adventure.id, title: questTitle, description: questDescription, isPrimary: true },
         })
 
-        await tx.eventLog.create({
-          data: { adventureId: adventure.id, characterId, type: 'NARRATION', payload: { text: openingText } },
-        })
+        // US-257: `createdAt` explícito quando a introdução existe — `now()` do Postgres é
+        // fixo por TRANSAÇÃO (não por statement), então duas `create` na mesma `$transaction`
+        // empatariam sem isto, quebrando a ordem (`orderBy: createdAt`) entre intro e cena.
+        if (generatedIntro) {
+          const introAt = new Date()
+          await tx.eventLog.create({
+            data: { adventureId: adventure.id, characterId, type: 'INTRODUCTION', payload: { text: generatedIntro }, createdAt: introAt },
+          })
+          await tx.eventLog.create({
+            data: { adventureId: adventure.id, characterId, type: 'NARRATION', payload: { text: openingText }, createdAt: new Date(introAt.getTime() + 1) },
+          })
+        } else {
+          await tx.eventLog.create({
+            data: { adventureId: adventure.id, characterId, type: 'NARRATION', payload: { text: openingText } },
+          })
+        }
 
         return adventure
       })
@@ -649,6 +686,8 @@ export class AdventureService {
       fullInventory,
       hookSeed: profile.hookSeed,
       locale,
+      origin,
+      backgrounds: config.backgrounds,
     }
 
     void this.runAdventureGeneration(adventure.id, characterId, profile, order, locale, config, registryOverrides, opening)
@@ -704,33 +743,57 @@ export class AdventureService {
     // (US-153).
     const seededEntities = seedLedgerFromGeneratedAdventure(generated)
 
-    const generatedOpening = await this.ai.generateOpeningNarration({
-      systemName: opening.systemName,
-      characterName: opening.characterName,
-      characterGender: opening.characterGender,
-      characterClass: opening.className,
-      characterRace: opening.raceName,
-      mainQuest,
-      // US-168: mesmo ledger que a transação abaixo persiste — a abertura vê o elenco
-      // que o motor já gerou, em vez de inventar um à parte (violando Onomástica).
-      entities: seededEntities,
-      inventory: opening.fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
-      sheet: { level: opening.level, hp: opening.maxHp, maxHp: opening.maxHp, attributes: opening.attrs, conditions: [], skills: opening.skills },
-      hookSeed: opening.hookSeed,
-      attributeLabels: opening.attributeLabels,
-      background: opening.background,
-      // US-41: features de classe do kit (o DM já as conhece na 1ª cena).
-      features: opening.features,
-      // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
-      spells: opening.knownSpells.map((s) => ({ name: s.name, level: s.level })),
-      locale: opening.locale,
-      // US-168: direto de `generated.registry.tone` — a abertura já nasce coerente, sem esperar
-      // o round-trip pelo banco (que só existe depois da transação, abaixo).
-      tone: generated.registry.tone,
-      // US-185: mesmo registry do tone acima.
-      setting: generated.registry.setting,
-      areaType: generated.registry.areaType,
-    })
+    // US-257: introdução em PARALELO à abertura (mesmo Promise.all do ramo preset acima) —
+    // `generateOpeningNarration` recebe EXATAMENTE os mesmos parâmetros de antes.
+    const [generatedOpening, generatedIntro] = await Promise.all([
+      this.ai.generateOpeningNarration({
+        systemName: opening.systemName,
+        characterName: opening.characterName,
+        characterGender: opening.characterGender,
+        characterClass: opening.className,
+        characterRace: opening.raceName,
+        mainQuest,
+        // US-168: mesmo ledger que a transação abaixo persiste — a abertura vê o elenco
+        // que o motor já gerou, em vez de inventar um à parte (violando Onomástica).
+        entities: seededEntities,
+        inventory: opening.fullInventory.map((i) => (i.qty > 1 ? `${i.name} (${i.qty})` : i.name)),
+        sheet: { level: opening.level, hp: opening.maxHp, maxHp: opening.maxHp, attributes: opening.attrs, conditions: [], skills: opening.skills },
+        hookSeed: opening.hookSeed,
+        attributeLabels: opening.attributeLabels,
+        background: opening.background,
+        // US-41: features de classe do kit (o DM já as conhece na 1ª cena).
+        features: opening.features,
+        // US-42: magias conhecidas — só os nomes vão ao prompt (descrição via getSpell nos turnos).
+        spells: opening.knownSpells.map((s) => ({ name: s.name, level: s.level })),
+        locale: opening.locale,
+        // US-168: direto de `generated.registry.tone` — a abertura já nasce coerente, sem esperar
+        // o round-trip pelo banco (que só existe depois da transação, abaixo).
+        tone: generated.registry.tone,
+        // US-185: mesmo registry do tone acima.
+        setting: generated.registry.setting,
+        areaType: generated.registry.areaType,
+      }),
+      this.ai.generateIntroNarration({
+        systemName: opening.systemName,
+        characterName: opening.characterName,
+        characterGender: opening.characterGender,
+        characterClass: opening.className,
+        characterRace: opening.raceName,
+        mainQuest,
+        sheet: { level: opening.level, hp: opening.maxHp, maxHp: opening.maxHp, attributes: opening.attrs, conditions: [], skills: opening.skills },
+        hookSeed: opening.hookSeed,
+        attributeLabels: opening.attributeLabels,
+        background: opening.background,
+        features: opening.features,
+        spells: opening.knownSpells.map((s) => ({ name: s.name, level: s.level })),
+        origin: opening.origin,
+        backgrounds: opening.backgrounds,
+        locale: opening.locale,
+        tone: generated.registry.tone,
+        setting: generated.registry.setting,
+        areaType: generated.registry.areaType,
+      }),
+    ])
     // US-101: o fallback estático já sai no idioma certo — `opening.hookSeed` veio do
     // `config` do locale do dono, e o gancho tem versão por idioma.
     const openingText = generatedOpening ?? opening.hookSeed
@@ -786,14 +849,26 @@ export class AdventureService {
 
       // Primeira narração persistida: aparece como mensagem do Mestre (getTurns)
       // e entra na janela de contexto do DM (historyLogs, summarized: false).
-      await tx.eventLog.create({
-        data: {
-          adventureId,
-          characterId,
-          type: 'NARRATION',
-          payload: { text: openingText },
-        },
-      })
+      // US-257: introdução ANTES da cena, `createdAt` explícito nas duas — mesma armadilha do
+      // `now()` fixo por transação do ramo preset acima.
+      if (generatedIntro) {
+        const introAt = new Date()
+        await tx.eventLog.create({
+          data: { adventureId, characterId, type: 'INTRODUCTION', payload: { text: generatedIntro }, createdAt: introAt },
+        })
+        await tx.eventLog.create({
+          data: { adventureId, characterId, type: 'NARRATION', payload: { text: openingText }, createdAt: new Date(introAt.getTime() + 1) },
+        })
+      } else {
+        await tx.eventLog.create({
+          data: {
+            adventureId,
+            characterId,
+            type: 'NARRATION',
+            payload: { text: openingText },
+          },
+        })
+      }
     })
 
     // US-243: dump best-effort do artefato aprovado, só depois da transação confirmar
@@ -832,8 +907,9 @@ export class AdventureService {
   async getTurns(characterId: string, adventureId: string): Promise<ChatTurn[]> {
     // US-67: inclui CHARACTER_UPDATE (não renderizado) só para decidir a
     // editabilidade do último turno — ele não é editável se mutou o estado.
+    // US-257: INTRODUCTION vira uma bolha do Mestre a mais, antes da cena de abertura.
     const logs = await this.prisma.eventLog.findMany({
-      where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION', 'DICE_ROLL', 'CHARACTER_UPDATE'] } },
+      where: { adventureId, characterId, type: { in: ['ACTION', 'NARRATION', 'DICE_ROLL', 'CHARACTER_UPDATE', 'INTRODUCTION'] } },
       orderBy: { createdAt: 'asc' },
     })
 
@@ -848,7 +924,7 @@ export class AdventureService {
         // US-29: sanea narrações no replay — linhas persistidas antes do saneador
         // no persist ainda podem conter número inventado.
         const content = stripFabricatedRolls((log.payload as { text?: string }).text ?? '').clean
-        return { role: log.type === 'NARRATION' ? 'dm' : 'user', content }
+        return { role: log.type === 'NARRATION' || log.type === 'INTRODUCTION' ? 'dm' : 'user', content }
       })
       .filter((m) => m.role === 'roll' || m.content.trim().length > 0)
 

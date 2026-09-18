@@ -819,6 +819,75 @@ describe('AiService.generateOpeningNarration (US-168)', () => {
   })
 })
 
+describe('AiService.generateIntroNarration (US-257)', () => {
+  function svc() {
+    return new AiService({} as unknown as PrismaService, {} as unknown as DiceService)
+  }
+
+  const baseParams = {
+    systemName: 'D&D 5e',
+    characterName: 'Aria',
+    characterGender: 'feminino',
+    characterClass: 'bardo',
+    characterRace: 'humana',
+    sheet: { level: 1, hp: 10, maxHp: 10, attributes: {}, conditions: [] },
+    hookSeed: 'Um Eladrin convida você para dançar na corte feérica.',
+  }
+
+  it('mainQuest presente vira a base do prompt — hookSeed some dele (mesmo molde da abertura)', async () => {
+    salvage.text = 'introdução gerada'
+    const mainQuest = 'Proteja a criança Mira dos caçadores que cercam a mina de Kelgrund.'
+
+    await svc().generateIntroNarration({ ...baseParams, mainQuest })
+
+    expect(salvage.prompt).toContain(mainQuest)
+    expect(salvage.prompt).not.toContain(baseParams.hookSeed)
+  })
+
+  it('a instrução (prompt) nunca pede cena/in medias res/lista de opções — não é um turno', async () => {
+    salvage.text = 'introdução gerada'
+
+    await svc().generateIntroNarration({ ...baseParams })
+
+    expect(salvage.prompt).toMatch(/do NOT open in medias res/i)
+    expect(salvage.prompt).toMatch(/do NOT end with an action options list/i)
+  })
+
+  it('origin/backgrounds preenchem originNarrative no system, a partir de character.origin + config.backgrounds', async () => {
+    salvage.text = 'introdução gerada'
+    const backgrounds = [
+      { key: 'a5e-ag_acolyte', name: 'Acólito', source: 'a5e-ag', benefits: [{ type: 'adventures_and_advancement' as const, name: 'Chamado', description: 'O templo pede um favor.' }] },
+    ]
+
+    await svc().generateIntroNarration({ ...baseParams, origin: { key: 'a5e-ag_acolyte', connection: 'O templo', memento: 'Símbolo gasto' }, backgrounds })
+
+    expect(salvage.system).toContain('O templo pede um favor.')
+    expect(salvage.system).toContain('O templo')
+    expect(salvage.system).toContain('Símbolo gasto')
+  })
+
+  it('sem origin, nenhuma seção de origin narrative quebra a geração (awareness ausente)', async () => {
+    salvage.text = 'introdução gerada'
+    await expect(svc().generateIntroNarration({ ...baseParams })).resolves.toBe('introdução gerada')
+  })
+
+  it('tone entra no system prompt da introdução (mesmo campo dos turnos normais)', async () => {
+    salvage.text = 'introdução gerada'
+
+    await svc().generateIntroNarration({ ...baseParams, tone: 'grimdark' })
+
+    expect(salvage.system).toMatch(/Narrate in this register: grimdark/)
+  })
+
+  it('texto vazio do modelo → null (mesma disciplina de generateOpeningNarration)', async () => {
+    salvage.text = '   '
+
+    const result = await svc().generateIntroNarration({ ...baseParams })
+
+    expect(result).toBeNull()
+  })
+})
+
 // US-232: motor de autoria mundo-primeiro (call único, escada de modelos). Fake de
 // `generateObject` (genObj) devolve o objeto bruto por índice; o parse/minting vive em
 // adventure.service, não aqui. Testa o encanamento: params viram restrição no prompt, e a

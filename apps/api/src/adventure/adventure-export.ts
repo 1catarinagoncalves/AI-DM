@@ -202,10 +202,11 @@ export function buildAdventureExportView(data: AdventureExportData): AdventureEx
 }
 
 // US-202: ACTION/NARRATION viram diálogo legível; os demais tipos viram uma linha compacta.
+// US-257: INTRODUCTION (prólogo do Mestre ANTES da cena) usa o MESMO formato de NARRATION.
 function renderEventLine(log: AdventureExportEventLog): string {
   const ts = log.createdAt.toISOString()
   if (log.type === 'ACTION') return `**Jogador** (${ts}): ${(log.payload as { text?: string }).text ?? ''}`
-  if (log.type === 'NARRATION') return `**Mestre** (${ts}): ${(log.payload as { text?: string }).text ?? ''}`
+  if (log.type === 'NARRATION' || log.type === 'INTRODUCTION') return `**Mestre** (${ts}): ${(log.payload as { text?: string }).text ?? ''}`
   return `- [${log.type}] ${JSON.stringify(log.payload)} — ${ts}`
 }
 

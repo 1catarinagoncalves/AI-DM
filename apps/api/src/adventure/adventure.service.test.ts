@@ -41,15 +41,20 @@ function authored(overrides: Partial<Record<string, unknown>> = {}) {
   }
 }
 
+// US-257: `intro` (6º parâmetro) é o retorno de `generateIntroNarration` — `null` por
+// padrão (comportamento de toda a suíte pré-existente: nenhuma introdução é gravada).
 function fakeAi(
   opening: string | null = null,
   scene: Record<string, unknown> | null = null,
   seen: Record<string, unknown> = {},
   authoredObj: Record<string, unknown> = authored(),
   capture?: Record<string, unknown>,
+  intro: string | null = null,
+  seenIntro: Record<string, unknown> = {},
 ): AiService {
   return {
     generateOpeningNarration: async (input: Record<string, unknown>) => { Object.assign(seen, input); return opening },
+    generateIntroNarration: async (input: Record<string, unknown>) => { Object.assign(seenIntro, input); return intro },
     extractOpeningScene: async () => scene,
     extractOpeningEntities: async () => null,
     generateAdventureAuthoring: async (params: Record<string, unknown>) => {
@@ -110,6 +115,10 @@ interface Recorded {
   characterStateUpdate?: Record<string, unknown>
   questCreate?: Record<string, unknown>
   eventLogCreate?: Record<string, unknown>
+  // US-257: ordem/timestamps de INTRODUCTION+NARRATION exigem as DUAS chamadas — `eventLogCreate`
+  // (acima) sozinho só guarda a ÚLTIMA, suficiente pros testes pré-existentes (NARRATION é sempre
+  // a última quando há introdução).
+  eventLogCreates?: Record<string, unknown>[]
 }
 
 function fakePrisma(character: Record<string, unknown> | null, participantCount = 0): { prisma: PrismaService; recorded: Recorded } {
@@ -126,7 +135,11 @@ function fakePrisma(character: Record<string, unknown> | null, participantCount 
       update: async ({ data }: { data: Record<string, unknown> }) => { recorded.characterStateUpdate = data; return data },
     },
     quest: { create: async ({ data }: { data: Record<string, unknown> }) => { recorded.questCreate = data; return { id: 'quest-1', ...data } } },
-    eventLog: { create: async ({ data }: { data: Record<string, unknown> }) => { recorded.eventLogCreate = data; return { id: 'evt-1', ...data } } },
+    eventLog: { create: async ({ data }: { data: Record<string, unknown> }) => {
+      recorded.eventLogCreate = data
+      ;(recorded.eventLogCreates ??= []).push(data)
+      return { id: 'evt-1', ...data }
+    } },
   }
   const prisma = {
     character: { findUnique: async () => character },
@@ -450,9 +463,10 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
 
   // US-217: ramo "Aventura pronta" — pula o motor de mundo, não chama generateAdventureAuthoring.
   describe('ramo "Aventura pronta" (dto.preset)', () => {
-    function presetAi(opening: string | null = null, scene: Record<string, unknown> | null = null): AiService {
+    function presetAi(opening: string | null = null, scene: Record<string, unknown> | null = null, intro: string | null = null): AiService {
       return {
         generateOpeningNarration: vi.fn().mockResolvedValue(opening),
+        generateIntroNarration: vi.fn().mockResolvedValue(intro),
         extractOpeningScene: vi.fn().mockResolvedValue(scene),
         extractOpeningEntities: vi.fn(),
         generateAdventureAuthoring: vi.fn(),
@@ -487,6 +501,75 @@ describe('AdventureService.createForCharacter (US-232/US-235)', () => {
       expect(recorded.adventureCreate).not.toHaveProperty('generatedAdventure')
       expect(recorded.adventureCreate).not.toHaveProperty('entities')
       expect(recorded.questCreate).not.toHaveProperty('objective')
+    })
+
+    // US-257: mesmo comportamento do ramo gerado (describe abaixo), verificado aqui pro ramo preset.
+    it('generateIntroNarration resolve → EventLog INTRODUCTION gravado ANTES do NARRATION', async () => {
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const ai = presetAi('A vela responde de um jeito novo.', null, 'Prólogo do Mestre.')
+      await new AdventureService(prisma, ai).createForCharacter('char-1', { preset: true })
+
+      const creates = recorded.eventLogCreates as Array<{ type: string; payload: { text: string } }>
+      expect(creates.map((c) => c.type)).toEqual(['INTRODUCTION', 'NARRATION'])
+      expect(creates[0]).toMatchObject({ payload: { text: 'Prólogo do Mestre.' } })
+    })
+
+    it('generateIntroNarration null → nenhum EventLog INTRODUCTION, só NARRATION (idêntico a antes da story)', async () => {
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const ai = presetAi('A vela responde de um jeito novo.')
+      await new AdventureService(prisma, ai).createForCharacter('char-1', { preset: true })
+
+      const creates = recorded.eventLogCreates as Array<{ type: string }>
+      expect(creates.map((c) => c.type)).toEqual(['NARRATION'])
+    })
+  })
+
+  // US-257: introdução do Mestre gerada em PARALELO à abertura (Promise.all), ANTES dela na
+  // timeline — cobre o ramo "gerado" (finalizeGeneratedAdventure, via createAndGenerate).
+  describe('US-257: introdução do Mestre ANTES da cena de abertura (ramo gerado)', () => {
+    it('generateIntroNarration resolve → EventLog INTRODUCTION gravado ANTES do NARRATION, createdAt distintos', async () => {
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const service = new AdventureService(prisma, fakeAi('A cena de abertura.', null, {}, authored(), undefined, 'A introdução do Mestre.'))
+      await createAndGenerate(service, 'char-1', {})
+
+      const creates = recorded.eventLogCreates as Array<{ type: string; payload: { text: string }; createdAt?: Date }>
+      expect(creates).toHaveLength(2)
+      expect(creates[0]).toMatchObject({ type: 'INTRODUCTION', payload: { text: 'A introdução do Mestre.' } })
+      expect(creates[1]).toMatchObject({ type: 'NARRATION', payload: { text: 'A cena de abertura.' } })
+      expect((creates[0]!['createdAt'] as Date).getTime()).toBeLessThan((creates[1]!['createdAt'] as Date).getTime())
+    })
+
+    it('generateIntroNarration null (falha/timeout) → nenhum EventLog INTRODUCTION, aventura idêntica ao comportamento anterior a esta story', async () => {
+      const { prisma, recorded } = fakePrisma(baseChar)
+      const service = new AdventureService(prisma, fakeAi('A cena de abertura.'))
+      await createAndGenerate(service, 'char-1', {})
+
+      const creates = recorded.eventLogCreates as Array<{ type: string }>
+      expect(creates.map((c) => c.type)).toEqual(['NARRATION'])
+    })
+
+    it('generateOpeningNarration não muda de parâmetro nenhum com a introdução em paralelo', async () => {
+      const { prisma } = fakePrisma(baseChar)
+      const seenOpening: Record<string, unknown> = {}
+      const service = new AdventureService(prisma, fakeAi('A cena.', null, seenOpening, authored(), undefined, 'Prólogo.'))
+      await createAndGenerate(service, 'char-1', {})
+
+      // Mesmos campos que os testes pré-existentes já verificam (seededEntities/mainQuest/etc) —
+      // `entities` só existe no caminho de abertura, nunca no de introdução (US-257 §Escopo).
+      expect(seenOpening).toHaveProperty('entities')
+      expect(seenOpening).not.toHaveProperty('origin')
+    })
+
+    it('origin/backgrounds chegam a generateIntroNarration, nunca a generateOpeningNarration', async () => {
+      const { prisma } = fakePrisma({ ...baseChar, origin: { key: 'a5e-ag_acolyte', connection: 'O templo' } })
+      const seenOpening: Record<string, unknown> = {}
+      const seenIntro: Record<string, unknown> = {}
+      const service = new AdventureService(prisma, fakeAi('A cena.', null, seenOpening, authored(), undefined, 'Prólogo.', seenIntro))
+      await createAndGenerate(service, 'char-1', {})
+
+      expect(seenIntro['origin']).toMatchObject({ key: 'a5e-ag_acolyte', connection: 'O templo' })
+      expect(seenIntro['backgrounds']).toEqual(config.backgrounds)
+      expect(seenOpening).not.toHaveProperty('origin')
     })
   })
 })
@@ -529,6 +612,23 @@ describe('AdventureService.getTurns', () => {
     expect(turns).toEqual([
       { role: 'user', content: 'Abro a porta.' },
       { role: 'dm', content: 'A porta range.' },
+      { role: 'user', content: 'Entro.', editable: true },
+      { role: 'dm', content: 'Três figuras...' },
+    ])
+  })
+
+  it('US-257: mapeia INTRODUCTION→dm, antes da NARRATION da cena de abertura', async () => {
+    const logs = [
+      { type: 'INTRODUCTION', payload: { text: 'Um prólogo do Mestre.' }, summarized: false },
+      { type: 'NARRATION', payload: { text: 'A cena de abertura.' }, summarized: false },
+      { type: 'ACTION', payload: { text: 'Entro.' }, summarized: false },
+      { type: 'NARRATION', payload: { text: 'Três figuras...' }, summarized: false },
+    ]
+    const prisma = { eventLog: { findMany: async () => logs } } as unknown as PrismaService
+    const turns = await new AdventureService(prisma, fakeAi()).getTurns('char-1', 'adv-1')
+    expect(turns).toEqual([
+      { role: 'dm', content: 'Um prólogo do Mestre.' },
+      { role: 'dm', content: 'A cena de abertura.' },
       { role: 'user', content: 'Entro.', editable: true },
       { role: 'dm', content: 'Três figuras...' },
     ])

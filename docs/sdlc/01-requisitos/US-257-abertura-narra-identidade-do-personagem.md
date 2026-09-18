@@ -2,11 +2,12 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 🚧 Em progresso
+**Status:** ✅ Implementada
 **Depende de:** [US-125](./US-125-beneficios-origem-no-system-prompt.md) (✅ — dona do tipo `OriginNarrative`, reusado pelo cálculo desta story) · [US-39](./US-39-identidade-narrativa-background-ideais.md) (✅ — dona de `CharacterBackground`) · [US-34](./US-34-qualidade-da-narracao-do-dm.md) (✅ — dona de `generateOpeningNarration`/a cena de abertura atual, que esta story NÃO altera, só precede)
 **Relacionado:** [US-172](./US-172-abertura-gerada-nao-copia-gancho-fixo.md) (heurística *in medias res* da cena de abertura — o motivo desta story existir como beat SEPARADO, não como mudança da cena) · [US-168](./US-168-abertura-narra-gancho-fixo-nao-aventura-gerada.md) (`Promise.all` como precedente de 2 chamadas de IA paralelas na criação da aventura)
 **Criada em:** 2026-09-18
 **Atualizada em:** 2026-09-18 — reescrita após correção da mantenedora: a versão original propunha ESTENDER a cena de abertura existente (`buildOpeningInstruction`) para narrar identidade; a decisão correta é uma mensagem NOVA e SEPARADA, narrada pelo Mestre ANTES da cena de abertura — a cena em si (`generateOpeningNarration`, `buildOpeningInstruction`, `extractOpeningScene`) fica intocada.
+**Implementada em:** 2026-09-18 — todos os critérios de código/teste/migração fechados. Pendente: o critério de eval qualitativa dedicada (bake-off US-17, item "amarra raça/classe/background/origem ao mundo/gancho") não foi escrito nesta rodada — `pnpm eval` (regressão estrutural) passa, mas nenhum fixture novo cobre a qualidade da PROSA da introdução via juiz-LLM.
 
 ---
 

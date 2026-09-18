@@ -739,3 +739,30 @@ Obey the Onomastics rule from the first scene: any NPC, place or thing you name 
 
 Output ONLY narrative prose and the options list. Do NOT roll dice, do NOT call any tool, and do NOT emit any control tags, bracketed control blocks, raw JSON, or stat blocks in the text.`
 }
+
+/**
+ * US-257: prólogo do Mestre gerado ANTES da cena de abertura, como mensagem SEPARADA
+ * (função IRMÃ de `buildOpeningInstruction`, mesmo formato de parâmetros) — instrução de
+ * conteúdo OPOSTA: nunca in medias res, nunca cena/local/NPC, nunca lista de opções (não é
+ * um turno). Situa o mundo/gancho da aventura e amarra a ele quem `${characterName}` é
+ * (raça/classe/background/origem já vêm do system prompt via `buildDmSystemPrompt`).
+ */
+export function buildIntroInstruction(params: { characterName: string; hookSeed: string; mainQuest?: string | null; locale?: Locale }): string {
+  const { characterName, hookSeed, mainQuest } = params
+  const targetLanguage = localeNameForPrompt(params.locale ?? DEFAULT_LOCALE)
+  const languageLine = `Write this introduction in ${targetLanguage}.`
+  const spark = mainQuest
+    ? `This is the premise/hook already authored for this specific adventure — ground the introduction in it, preserving its names and facts:
+"${mainQuest}"`
+    : `Use this seed as the premise of the world/hook the introduction should evoke:
+"${hookSeed}"`
+  return `This is a SHORT PROLOGUE, spoken by the DM BEFORE the opening scene and before the player has acted — it is NOT a turn and NOT the opening scene itself: do NOT open in medias res, do NOT describe any specific location, do NOT introduce any NPC, and do NOT end with an action options list.
+
+${languageLine}
+
+${spark}
+
+Tie this premise to who ${characterName} is: their race, class, background and origin (as given above) — explain how the world/hook connects to them specifically, so the player understands their character and the world before the story begins.
+
+Keep it to 1-2 short paragraphs. Output ONLY prose — no options list, no dice, no tool calls, no control tags or JSON.`
+}

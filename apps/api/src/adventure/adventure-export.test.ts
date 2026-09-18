@@ -64,7 +64,10 @@ function fixtureData(generatedAdventure: unknown = artifact): AdventureExportDat
     quests: [{ title: 'Quest', description: 'desc', status: 'OPEN', isPrimary: true, objective: artifact.objective.description }],
     character: { name: 'Aria', race: 'human', class: 'wizard', level: 1, background: {}, origin: {}, locale: 'pt-BR' },
     characterState: { hp: 10, maxHp: 10, inventory: [], conditions: [], sceneState: null },
-    eventLogs: [{ type: 'ACTION', payload: { text: 'Falo com Ilvaine.' }, summarized: false, createdAt: new Date('2026-09-01T00:05:00.000Z') }],
+    eventLogs: [
+      { type: 'INTRODUCTION', payload: { text: 'Um prólogo do Mestre.' }, summarized: false, createdAt: new Date('2026-09-01T00:04:00.000Z') },
+      { type: 'ACTION', payload: { text: 'Falo com Ilvaine.' }, summarized: false, createdAt: new Date('2026-09-01T00:05:00.000Z') },
+    ],
     system: { id: 'sys-1', name: 'D&D 5e', version: '5.2', sourceType: 'SRD' },
   }
 }
@@ -103,5 +106,13 @@ describe('US-202 — renderAdventureExportMarkdown resolve referências por id',
     const md = render(broken)
     expect(md).toContain('não revalida')
     expect(md).toContain(artifact.summary)
+  })
+
+  // US-257: INTRODUCTION renderiza como diálogo do Mestre (mesmo formato de NARRATION),
+  // nunca o fallback genérico `[TIPO] JSON`.
+  it('renderiza EventLog INTRODUCTION como fala do Mestre, não como fallback genérico', () => {
+    const md = render()
+    expect(md).toContain('**Mestre** (2026-09-01T00:04:00.000Z): Um prólogo do Mestre.')
+    expect(md).not.toContain('[INTRODUCTION]')
   })
 })

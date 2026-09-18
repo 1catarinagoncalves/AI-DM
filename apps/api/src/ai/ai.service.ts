@@ -17,6 +17,7 @@ import {
   buildDmSystemPrompt,
   buildTurnStateBlock,
   buildOpeningInstruction,
+  buildIntroInstruction,
   ONOMASTICS_SECTION,
   CRAFT_CORE_SECTION,
   NPC_VOICE_BULLET,
@@ -43,6 +44,7 @@ import {
   type KnownSpell,
   type SummaryTurn,
 } from '@ai-dm/ai-engine'
+import type { SystemBackground } from '@ai-dm/shared'
 import { DiceService } from '../game/dice.service'
 import { PrismaService } from '../prisma.service'
 import { configForLocale, getSystemCached } from '../system/system-locale'
@@ -1459,6 +1461,74 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` �
       return null
     } catch (err) {
       logLlmFailure('geração da abertura por IA', 'usa o openingNarration estático do gancho', err)
+      return null
+    }
+  }
+
+  /**
+   * US-257: prólogo do Mestre ANTES da cena de abertura, mensagem SEPARADA (função IRMÃ de
+   * `generateOpeningNarration`, mesma disciplina de resiliência — nunca lança, `null` em
+   * qualquer falha). Roda em paralelo à abertura (`Promise.all` em adventure.service.ts),
+   * sem tools. `origin`/`backgrounds` computam `originNarrative` aqui dentro, mesma fórmula
+   * de `streamChat` (linhas 669-675 acima) — `generateOpeningNarration` não muda.
+   */
+  async generateIntroNarration(params: {
+    systemName: string
+    characterName: string
+    characterGender: string
+    characterClass: string
+    characterRace: string
+    mainQuest?: string | null
+    sheet: DmCharacterSheet
+    hookSeed: string
+    attributeLabels?: Record<string, string>
+    background?: CharacterBackground
+    features?: ClassFeature[]
+    spells?: KnownSpell[]
+    /** US-125: origem escolhida (chave + conexão/memento) — ausente/sem catálogo → awareness vazio. */
+    origin?: { key?: string; connection?: string; memento?: string } | null
+    backgrounds?: SystemBackground[]
+    locale?: Locale
+    tone?: string
+    setting?: string
+    areaType?: string
+  }): Promise<string | null> {
+    try {
+      const originNarrative = {
+        adventuresAndAdvancement: resolveAdventuresAndAdvancement(params.backgrounds, params.origin?.key),
+        connection: params.origin?.connection,
+        memento: params.origin?.memento,
+      }
+      const system = buildDmSystemPrompt({
+        systemName: params.systemName,
+        characterName: params.characterName,
+        characterGender: params.characterGender,
+        characterClass: params.characterClass,
+        characterRace: params.characterRace,
+        sheet: params.sheet,
+        attributeLabels: params.attributeLabels,
+        background: params.background,
+        features: params.features,
+        spells: params.spells,
+        originNarrative,
+        locale: params.locale,
+        tone: params.tone,
+        setting: params.setting,
+        areaType: params.areaType,
+      })
+      const prompt = buildIntroInstruction({ characterName: params.characterName, hookSeed: params.hookSeed, mainQuest: params.mainQuest, locale: params.locale })
+      for (const model of narrationModels) {
+        try {
+          const { text } = await generateText({ model, system, prompt, providerOptions: NARRATION_PROVIDER_OPTIONS, abortSignal: AbortSignal.timeout(OPENING_NARRATION_TIMEOUT_MS) })
+          const trimmed = text.trim()
+          if (trimmed.length > 0) return trimmed
+        } catch (err) {
+          logLlmFailure(`introdução no modelo ${model.modelId ?? 'unknown'}`, 'desce para o próximo modelo da escada', err)
+        }
+      }
+      return null
+    } catch (err) {
+      logLlmFailure('geração da introdução por IA', 'aventura nasce sem introdução', err)
       return null
     }
   }
