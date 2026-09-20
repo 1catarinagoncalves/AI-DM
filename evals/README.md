@@ -23,12 +23,14 @@ configurado** ([ci.yml](../.github/workflows/ci.yml)), então o eval de qualidad
 narração é pulado lá: para o portão valer, o job precisa exportar as chaves. Leia a
 contagem de *skipped* do vitest antes de confiar num verde.
 
-## Os quatro modos
+## Os cinco modos
 
 | Modo | Comando | Gateia? | Chaves | Relatório |
 |---|---|---|---|---|
 | Suite de eval cases | `pnpm eval` (ou `pnpm eval us-36` para um só) | **sim**, no CI | a maioria não usa; o de qualidade da narração exige `OPENROUTER_API_KEY` (narração) + `GEMINI_API_KEY` (juiz), senão **pula** | só o de narração grava, ver abaixo |
 | Guard de drift da rubrica | `pnpm test` | **sim**, no CI | nenhuma (compara hash) | nenhum |
+| Eval da aventura gerada — regressão dos asserts | `pnpm test` (`apps/api`, `adventure-eval.test.ts`) | **sim**, no CI | nenhuma (fixture bom/quebrado) | nenhum |
+| Eval da aventura gerada — ao vivo | `npx dotenv-cli -e .env -- pnpm --filter api exec ts-node scripts/run-adventure-eval.ts [--pipeline]`, da raiz | não (exit 1 se um assert falhar) | `OPENROUTER_API_KEY` + banco; `GEMINI_API_KEY` só para a nota do juiz (sem ela pula) | `evals/reports/us-238-<data>.md` |
 | Bake-off / A-B de modelos | `node --env-file=..\..\.env run-bakeoff.mjs`, de dentro de [packages/ai-engine](../packages/ai-engine) | não | varia por runner; sempre `GEMINI_API_KEY` para o juiz | `evals/reports/<data>-<tag>.md` |
 | Live eval em dev | `DM_LIVE_EVAL` ligada, jogando um turno normal | não | `GEMINI_API_KEY` | log da API |
 
@@ -63,6 +65,31 @@ A US-70 fechou dois furos da versão original, que gateava só pela média:
 
 Cada execução grava `evals/reports/us-36-<timestamp>.md`: narração, notas por dimensão,
 justificativas e metadados (git HEAD/branch, modelo que serviu, sampling, tokens, juiz).
+
+## Aventura gerada (US-238)
+
+Mede a aventura que o motor de autoria gera (`GeneratedAdventure`), não a narração. **Quem decide
+é o assert sobre o artefato, não a nota do juiz** — o juiz satura nesta tarefa (quase tudo 5/5,
+US-17), então a nota é registrada e nunca aprova nem reprova.
+
+Os 8 asserts (`adventure-eval.ts`, puros): `grafo-fecha` (toda referência por `id` resolve; inclui
+NPC de encontro/morador e `factionId`), `ledger-oculto` (nada semeado nasce revelado — o que
+sobrou do "segredo oculto" da US-154 depois que `secrets[]` saiu do schema), `orcamento-cabe`,
+`facoes` (contagem pinada pelo sorteio + `want` distintos), `objetivo-com-premio`,
+`desafios-nao-combate`, `prosa-sem-numero` e `estrutura-8-secoes` (as seções do exemplar
+[cripta-do-veu-silencioso.md](exemplars/cripta-do-veu-silencioso.md); um teste falha se os
+cabeçalhos dele deixarem de bater).
+
+**Ele não está em `pnpm eval`.** Os asserts reusam o gate, o orçamento de CR e o `seed-ledger`, que
+moram em `apps/api` — fora do alias do `vitest.eval.config.ts`. A regressão (artefato bom passa,
+quebrado falha) roda no `pnpm test`.
+
+**Ao vivo:** `run-adventure-eval.ts` gera uma aventura por perfil pinado
+(`adventure-eval-profiles.ts`) e roda os asserts no artefato **bruto** — o gate sanea número na
+prosa, então só antes dele o vazamento aparece. `--pipeline` = `temperature: 0` + snapshot pinado
+do modelo (teste de pipeline, não de criatividade; "quase" determinismo, o OpenRouter ainda escolhe
+o endpoint); sem a flag, a escada de produção. Com `DM_LIVE_EVAL`, cada criação real em dev também
+loga uma linha `adventure_live_eval` (asserts que falharam + nota do juiz).
 
 ## Ao vivo em dev (`DM_LIVE_EVAL`)
 

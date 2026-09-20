@@ -10,7 +10,7 @@ import {
 } from './ai.service'
 import { AUTHORING_SLICE_SCHEMA } from './adventure-authoring'
 import type { AdventureSlice } from '../adventure-generation/adventure-slice'
-import { mergeSceneState, extractionModel, authoringModels } from '@ai-dm/ai-engine'
+import { mergeSceneState, extractionModel, authoringModels, PIPELINE_AUTHORING_SAMPLING } from '@ai-dm/ai-engine'
 import type { InventoryItem, SceneState, WorldEntity } from '@ai-dm/shared'
 import type { PrismaService } from '../prisma.service'
 import type { DiceService } from '../game/dice.service'
@@ -27,7 +27,7 @@ const { salvage, genObj } = vi.hoisted(() => ({
   // `hangAttempts`: quantas das primeiras chamadas devem TRAVAR (nunca resolver, exceto
   // se abortadas) em vez de resolver/rejeitar na hora — simula um provedor da escada que
   // não responde nem fecha a conexão (bug de timeout ausente, ver AUTHORING_TIMEOUT_MS).
-  genObj: { result: undefined as unknown, error: undefined as unknown, system: '', prompt: '', model: undefined as unknown, calls: 0, hangAttempts: 0 },
+  genObj: { result: undefined as unknown, error: undefined as unknown, system: '', prompt: '', model: undefined as unknown, temperature: undefined as unknown, calls: 0, hangAttempts: 0 },
 }))
 vi.mock('ai', async (importOriginal) => ({
   ...(await importOriginal<typeof import('ai')>()),
@@ -38,10 +38,11 @@ vi.mock('ai', async (importOriginal) => ({
     salvage.providerOptions = providerOptions
     return { text: salvage.text }
   },
-  generateObject: async ({ system, prompt, model, abortSignal }: { system: string; prompt: string; model: unknown; abortSignal?: AbortSignal }) => {
+  generateObject: async ({ system, prompt, model, temperature, abortSignal }: { system: string; prompt: string; model: unknown; temperature?: number; abortSignal?: AbortSignal }) => {
     genObj.system = system
     genObj.prompt = prompt
     genObj.model = model
+    genObj.temperature = temperature
     genObj.calls += 1
     if (genObj.calls <= genObj.hangAttempts) {
       return new Promise((_resolve, reject) => {
@@ -973,6 +974,35 @@ describe('AiService.generateAdventureSlice (US-256, ex-US-232)', () => {
   it('escada esgotada (todos os modelos falham) LANÇA — nunca degrada em silêncio', async () => {
     genObj.error = new Error('modelo indisponível')
     await expect(authoringSvc().generateAdventureSlice(baseParams)).rejects.toThrow('modelo indisponível')
+  })
+
+  // US-238: quase-determinismo do teste de pipeline. Sem `sampling` a produção segue igual
+  // (escada + temperatura padrão do provedor); com ele, UM modelo pinado e temperature 0.
+  it('sem sampling: escada de produção, temperature não é forçada', async () => {
+    genObj.error = undefined
+    genObj.result = authoredSlice
+    await authoringSvc().generateAdventureSlice(baseParams)
+    expect(genObj.model).toBe(authoringModels[0])
+    expect(genObj.temperature).toBeUndefined()
+  })
+
+  it('com sampling de pipeline: temperature 0 e o modelo pinado, fora da escada', async () => {
+    genObj.error = undefined
+    genObj.result = authoredSlice
+    genObj.calls = 0
+    const result = await authoringSvc().generateAdventureSlice({ ...baseParams, sampling: PIPELINE_AUTHORING_SAMPLING })
+    expect(genObj.temperature).toBe(0)
+    expect(genObj.model).toBe(PIPELINE_AUTHORING_SAMPLING.models[0])
+    expect(authoringModels).not.toContain(PIPELINE_AUTHORING_SAMPLING.models[0])
+    expect(result.modelId).toBe('deepseek/deepseek-v4-pro-0813')
+    expect(genObj.calls).toBe(1)
+  })
+
+  it('sampling com o modelo pinado falhando LANÇA — não cai pra escada de produção (mudaria o modelo medido)', async () => {
+    genObj.error = new Error('snapshot indisponível')
+    genObj.calls = 0
+    await expect(authoringSvc().generateAdventureSlice({ ...baseParams, sampling: PIPELINE_AUTHORING_SAMPLING })).rejects.toThrow('snapshot indisponível')
+    expect(genObj.calls).toBe(1)
   })
 
   // Regressão: modelo que TRAVA (nunca resolve, nunca rejeita — nem timeout nem erro de

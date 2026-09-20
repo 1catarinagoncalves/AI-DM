@@ -352,6 +352,26 @@ describe('AdventureGenerationService.generateGatedRest (US-256, ex-generateGated
     expect(restSpy).toHaveBeenCalledTimes(1)
   })
 
+  // US-238: o runner do eval de pipeline pina temperature 0 + modelo nas DUAS chamadas; produção
+  // (create/retry) nunca passa `sampling` e segue na escada.
+  it('sampling chega à 1A e à 1B quando passado; sem ele, nenhuma das duas o recebe', async () => {
+    const sampling = { temperature: 0, models: [] }
+    const { prisma } = fakePrisma(null)
+    const ai = fakeAi()
+    const sliceSpy = vi.spyOn(ai, 'generateAdventureSlice')
+    const restSpy = vi.spyOn(ai, 'generateAdventureRest')
+    const generation = new AdventureGenerationService(prisma, ai)
+    const record = await generation.generateSlice(profile, 'char-1', 1, 'pt-BR', config, {}, 0, sampling)
+    await generation.generateRestArtifact(record.slice, { challenge: 'adventure', namingRegister: record.namingRegister, locale: 'pt-BR', className: 'Mago', sampling })
+    expect(sliceSpy.mock.calls[0]![0]).toMatchObject({ sampling })
+    expect(restSpy.mock.calls[0]![0]).toMatchObject({ sampling })
+
+    await generation.generateSlice(profile, 'char-1', 1, 'pt-BR', config)
+    await generation.generateRestArtifact(record.slice, { challenge: 'adventure', namingRegister: record.namingRegister, locale: 'pt-BR', className: 'Mago' })
+    expect(sliceSpy.mock.calls[1]![0].sampling).toBeUndefined()
+    expect(restSpy.mock.calls[1]![0].sampling).toBeUndefined()
+  })
+
   // US-242: `interactions` era a válvula de escape de checkNoOrphanNpcs — sem ela, este NPC
   // dependia do backstop (mint-adventure.ts) pra não reprovar toda tentativa. Com o 2º passo do
   // backstop, o gate agora passa de primeira.

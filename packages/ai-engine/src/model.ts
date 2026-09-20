@@ -359,6 +359,23 @@ export const authoringModels: LanguageModelV1[] = [
 ]
 
 /**
+ * US-238: amostragem do teste de PIPELINE da autoria — `temperature: 0` + o snapshot FIXO
+ * (`-0813`) sem a escada, sobre perfis pinados (adventure-eval-profiles.ts). Mede se o pipeline
+ * (prompt → mint → gate → asserts) mudou, não a criatividade: em produção a escada e a temperatura
+ * padrão seguem valendo e ninguém passa isto. "Quase" determinismo: o OpenRouter ainda escolhe o
+ * endpoint (`AUTHORING_PROVIDER_OPTIONS`), então dois runs não são idênticos byte a byte.
+ */
+export interface AuthoringSampling {
+  temperature?: number
+  models: LanguageModelV1[]
+}
+
+export const PIPELINE_AUTHORING_SAMPLING: AuthoringSampling = {
+  temperature: 0,
+  models: [openrouter('deepseek/deepseek-v4-pro-0813', {}, WITH_PROVENANCE)],
+}
+
+/**
  * US-232: opções da chamada de autoria — mesma forma EXATA do `PO` do Spike
  * (adventure-authoring-spike.mjs:45): `reasoning:{enabled:false}`, SEM pin de rota
  * (`provider`). Decidido em US-232 §Dúvidas de implementação #5: os números medidos no Spike

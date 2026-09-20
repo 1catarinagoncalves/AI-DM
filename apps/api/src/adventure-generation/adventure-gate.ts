@@ -68,7 +68,8 @@ export function runAdventureGate(
  * `location.occupants`, que `generateLocationsAndNpcs` deixa como "melhor esforço", ver
  * ai.service.ts:1316 — e `encounterId`), e nenhuma locação/NPC declarado fica órfão.
  */
-function checkAdventureGraph(adventure: GeneratedAdventure): string | null {
+// Exportada (US-238): o eval mede o MESMO grafo que o gate exige, sem segundo detector.
+export function checkAdventureGraph(adventure: GeneratedAdventure): string | null {
   return checkReferencesResolve(adventure) ?? checkNoOrphans(adventure)
 }
 
@@ -79,8 +80,23 @@ function checkReferencesResolve(adventure: GeneratedAdventure): string | null {
   return (
     checkChallengeLocationIds(adventure, locationIds) ??
     checkEncounterReferences(adventure, locationIds, npcIds) ??
-    checkOccupantReferences(adventure, npcIds)
+    checkOccupantReferences(adventure, npcIds) ??
+    checkFactionReferences(adventure)
   )
+}
+
+// US-238: `npc.factionId`/`location.factionId` → `factions[].id` estava no escopo e nos AC da US-234,
+// mas nunca foi verificado no código. `mintSlice` (resolveFactionId) descarta índice fora da faixa,
+// então hoje o órfão não nasce do pipeline — a verificação existe pra não depender disso.
+function checkFactionReferences(adventure: GeneratedAdventure): string | null {
+  const factionIds = new Set(adventure.factions.map((f) => f.id))
+  for (const npc of adventure.npcs) {
+    if (npc.factionId && !factionIds.has(npc.factionId)) return `NPC "${npc.id}" referencia factionId inexistente "${npc.factionId}"`
+  }
+  for (const location of adventure.locations) {
+    if (location.factionId && !factionIds.has(location.factionId)) return `local "${location.id}" referencia factionId inexistente "${location.factionId}"`
+  }
+  return null
 }
 
 // US-232: `secrets[]` saiu do artefato; `challenges[]` (obstáculo não-combate preso a local)
@@ -157,7 +173,7 @@ function checkNoOrphanNpcs(adventure: GeneratedAdventure): string | null {
  * `combatRole`, US-233) não tem CR e não entra na soma. US-166: só encontros `type === 'combat'`
  * carregam orçamento — `skill`/`social` nunca reprovam por ausência dele.
  */
-function checkEncounterBudget(adventure: GeneratedAdventure, challenge: EncounterChallenge): string | null {
+export function checkEncounterBudget(adventure: GeneratedAdventure, challenge: EncounterChallenge): string | null {
   const level = adventure.levelRange.min
   const soloCap = singleMonsterCrCap(level)
   const sumBudget = challenge === 'challenge' ? soloCap : encounterDeadlyThreshold(level)
@@ -222,7 +238,9 @@ export function sanitizeSlice(slice: AdventureSlice): AdventureSlice {
   return clean
 }
 
-function sanitizeProse(adventure: GeneratedAdventure): GeneratedAdventure {
+// Exportada (US-238): o assert "sem número na prosa" do eval compara o artefato com esta cópia
+// saneada — mesmo stripper, mesma lista de campos, nenhum detector paralelo.
+export function sanitizeProse(adventure: GeneratedAdventure): GeneratedAdventure {
   const clean = structuredClone(adventure)
   sanitizeSliceFields(clean)
   clean.followUps = clean.followUps.map(stripProse)

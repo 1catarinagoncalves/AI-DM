@@ -11,6 +11,7 @@ import {
   EXTRACTION_PROVIDER_OPTIONS,
   authoringModels,
   AUTHORING_PROVIDER_OPTIONS,
+  type AuthoringSampling,
   formatProvenance,
   summaryModel,
   extractionModel,
@@ -1476,9 +1477,11 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` â
     className: string
     questSeed: string
     locale?: Locale
+    /** US-238: sÃ³ o teste de pipeline passa isto (temperature 0 + modelo pinado); produÃ§Ã£o omite. */
+    sampling?: AuthoringSampling
   }): Promise<{ slice: AuthoredSlice; modelId: string }> {
     const system = buildSliceSystem(params.locale ?? DEFAULT_LOCALE)
-    const { object, modelId } = await this.runAuthoringLadder('generateAdventureSlice', AUTHORING_SLICE_SCHEMA, system, buildSlicePrompt(params), AUTHORING_SLICE_TIMEOUT_MS)
+    const { object, modelId } = await this.runAuthoringLadder('generateAdventureSlice', AUTHORING_SLICE_SCHEMA, system, buildSlicePrompt(params), AUTHORING_SLICE_TIMEOUT_MS, params.sampling)
     return { slice: object, modelId }
   }
 
@@ -1497,9 +1500,11 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` â
     combatBudget: CombatBudget
     combatCast?: CombatCast
     locale?: Locale
+    /** US-238: ver `generateAdventureSlice`. */
+    sampling?: AuthoringSampling
   }): Promise<{ rest: AuthoredRest; modelId: string }> {
     const system = buildRestSystem(params.locale ?? DEFAULT_LOCALE)
-    const { object, modelId } = await this.runAuthoringLadder('generateAdventureRest', AUTHORING_REST_SCHEMA, system, buildRestPrompt(params), AUTHORING_REST_TIMEOUT_MS)
+    const { object, modelId } = await this.runAuthoringLadder('generateAdventureRest', AUTHORING_REST_SCHEMA, system, buildRestPrompt(params), AUTHORING_REST_TIMEOUT_MS, params.sampling)
     return { rest: object, modelId }
   }
 
@@ -1519,15 +1524,18 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` â
     system: string,
     prompt: string,
     timeoutMs: number,
+    sampling?: AuthoringSampling,
   ): Promise<{ object: T; modelId: string }> {
     let lastErr: unknown
-    for (const model of authoringModels) {
+    const ladder = sampling?.models ?? authoringModels
+    for (const model of ladder) {
       try {
         const { object, providerMetadata } = await generateObject({
           model,
           schema,
           system,
           prompt,
+          temperature: sampling?.temperature,
           maxTokens: 16000,
           providerOptions: AUTHORING_PROVIDER_OPTIONS,
           abortSignal: AbortSignal.timeout(timeoutMs),
@@ -1541,7 +1549,7 @@ Links between two ledger entities (US-113) go in \`relacoes\`, NOT in \`nota\` â
     }
     throw lastErr instanceof Error
       ? lastErr
-      : new Error(`${label}: escada de ${authoringModels.length} modelos esgotada â€” ${String(lastErr)}`)
+      : new Error(`${label}: escada de ${ladder.length} modelos esgotada â€” ${String(lastErr)}`)
   }
 
   /**
