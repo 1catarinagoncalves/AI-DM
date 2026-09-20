@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { SystemConfigSchema, catalogLabel, resolveLocale, type GeneratedAdventure, type InventoryItem, type Locale, type SystemBackground, type SystemConfig, type WorldEntity } from '@ai-dm/shared'
-import { mergeSceneState, type CharacterBackground, type ClassFeature, type KnownSpell, type OriginNarrative } from '@ai-dm/ai-engine'
+import { mergeSceneState, type AuthoringSampling, type CharacterBackground, type ClassFeature, type KnownSpell, type OriginNarrative } from '@ai-dm/ai-engine'
 import type { Prisma } from '../generated/prisma/client'
 import { PrismaService } from '../prisma.service'
 import { AiService } from '../ai/ai.service'
@@ -13,6 +13,7 @@ import { rollQuestSeed } from '../adventure-generation/roll-quest-seed'
 import { generateWithGate, sanitizeSlice, type GateResult } from '../adventure-generation/adventure-gate'
 import { enrichLedgerWithRest, seedLedgerFromSlice } from '../adventure-generation/seed-ledger'
 import { mintRestOntoSlice, mintSlice } from '../adventure-generation/mint-adventure'
+import { liveEvalAdventure } from '../adventure-generation/adventure-eval-live'
 import { AuthoredSliceRecordSchema, type AdventureSlice, type AuthoredSliceRecord } from '../adventure-generation/adventure-slice'
 import { writeAuthoringDump } from './adventure-authoring-dump'
 
@@ -56,8 +57,8 @@ export interface AdventureOpeningContext {
 }
 
 // Locais/NPCs/desafios/encontros FIXOS nos defaults (têm dial, US-162/163 — vira a alavanca de
-// variação depois, nunca dado).
-const AUTHORING_COUNTS = { locations: 6, npcs: 7, challenges: 3, encounters: 3 }
+// variação depois, nunca dado). Exportada (US-238): o eval cobra `minChallenges` desta mesma contagem.
+export const AUTHORING_COUNTS = { locations: 6, npcs: 7, challenges: 3, encounters: 3 }
 const MAX_ATTEMPTS = 3
 
 interface RestContext {
@@ -65,6 +66,8 @@ interface RestContext {
   namingRegister: string
   locale: Locale
   className: string
+  /** US-238: só o runner do eval de pipeline passa isto; produção omite (escada + temperatura padrão). */
+  sampling?: AuthoringSampling
 }
 
 type Tx = Prisma.TransactionClient
@@ -139,6 +142,7 @@ export class AdventureGenerationService {
     config: SystemConfig,
     registryOverrides: AdventureRegistryOverrides = {},
     attempt = 0,
+    sampling?: AuthoringSampling,
   ): Promise<AuthoredSliceRecord> {
     const registry = rollRegistry(characterId, order, registryOverrides, attempt)
     const namingRegister = rollNamingRegister(characterId, order, attempt)
@@ -158,6 +162,7 @@ export class AdventureGenerationService {
       level: profile.level,
       className: catalogLabel(config.classes, profile.classKey),
       locale,
+      sampling,
     })
     const minted = mintSlice(slice, { id: `${characterId}:${order}`, level: profile.level, registry, modelId })
     return { slice: sanitizeSlice(minted), challenge: profile.challenge, namingRegister }
@@ -212,6 +217,7 @@ export class AdventureGenerationService {
       combatBudget,
       combatCast,
       locale: ctx.locale,
+      sampling: ctx.sampling,
     })
     return mintRestOntoSlice(slice, rest, { level, challenge: ctx.challenge, maxHostileCount: combatBudget.maxHostileCount, modelId })
   }
@@ -224,6 +230,11 @@ export class AdventureGenerationService {
    */
   generateGatedRest(slice: AdventureSlice, ctx: RestContext, config: SystemConfig, maxAttempts = MAX_ATTEMPTS): Promise<GateResult> {
     return generateWithGate(() => this.generateRestArtifact(slice, ctx), maxAttempts, ctx.challenge, config)
+      .then((result) => {
+        // US-238: medição de dev (DM_LIVE_EVAL), fire-and-forget — nunca atrasa nem derruba a criação.
+        if (result.ok) void liveEvalAdventure(result.adventure, { challenge: ctx.challenge, minChallenges: 1 })
+        return result
+      })
       .catch((err): GateResult => ({ ok: false, reason: messageOf(err), attempt: 0 }))
   }
 

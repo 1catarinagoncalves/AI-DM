@@ -294,6 +294,32 @@ describe('generateWithGate (US-150, reseed)', () => {
   })
 })
 
+// US-238: o AC da US-234 ("npc.factionId apontando pra id inexistente ⇒ reprova") não tinha código.
+describe('runAdventureGate — factionId órfão (US-238)', () => {
+  it('npc.factionId inexistente → falha no grafo, nomeando o NPC e a facção', () => {
+    const result = runAdventureGate(validAdventure({ npcs: [npc({ factionId: 'faction-9' }), { id: 'npc-2', name: 'Brute', role: 'Brute', combatRole: 'Brute', want: 'esmagar' }] }))
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.stage).toBe('graph')
+      expect(result.reason).toContain('npc-1')
+      expect(result.reason).toContain('faction-9')
+    }
+  })
+
+  it('location.factionId inexistente → falha no grafo', () => {
+    const base = validAdventure()
+    const result = runAdventureGate({ ...base, locations: [{ ...base.locations[0]!, factionId: 'faction-9' }] })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toContain('faction-9')
+  })
+
+  it('factionId que existe em factions[] passa', () => {
+    const base = validAdventure()
+    const result = runAdventureGate({ ...base, npcs: [npc({ factionId: 'faction-1' }), base.npcs[1]!] })
+    expect(result.ok).toBe(true)
+  })
+})
+
 // US-256: a fatia (1A) é saneada ANTES da narração — o gate final só roda depois da liberação.
 describe('sanitizeSlice (US-256)', () => {
   const slice = () => AdventureSliceSchema.parse({
