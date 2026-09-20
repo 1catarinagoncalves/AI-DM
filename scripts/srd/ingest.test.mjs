@@ -1877,7 +1877,9 @@ test('buildBestiary: as 325 criaturas reais do Creature.json pinado cobrem os 3 
 
 // --- artefato: bestiary-5e.json sai gravado sem locale, mesma contagem que o dataset real ---
 test('artefato bestiary-5e.json: 325 criaturas com name/cr/type/size', () => {
-  const artifact = JSON.parse(readFileSync(join(import.meta.dirname, 'bestiary-5e.json'), 'utf8'))
+  // US-252 moveu o artefato pra dentro do pacote consumidor (ver BESTIARY_PATH no ingest.mjs).
+  const bestiaryPath = join(import.meta.dirname, '..', '..', 'apps', 'api', 'src', 'adventure-generation', 'bestiary-5e.json')
+  const artifact = JSON.parse(readFileSync(bestiaryPath, 'utf8'))
   assert.equal(artifact.length, 325)
   for (const c of artifact) {
     assert.ok(c.name && typeof c.cr === 'number' && c.type && c.size, `entrada incompleta: ${JSON.stringify(c)}`)
