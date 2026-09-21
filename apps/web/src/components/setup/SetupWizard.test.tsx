@@ -1308,11 +1308,12 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     // Troca a origem antes de confirmar — o preview atualiza, sem misturar a feature anterior.
     // US-210: `identity` entra entre `spells` e `review` — mais um "Voltar" no caminho.
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → identidade
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → magias
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → atributos
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
+    // US-260: `^Voltar$` — depois da 1ª volta "Voltar à revisão" aparece e casaria `/Voltar/`.
+    fireEvent.click(screen.getByRole('button', { name: /^Voltar$/ })) // → identidade
+    fireEvent.click(screen.getByRole('button', { name: /^Voltar$/ })) // → magias
+    fireEvent.click(screen.getByRole('button', { name: /^Voltar$/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /^Voltar$/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /^Voltar$/ })) // → background
     fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias

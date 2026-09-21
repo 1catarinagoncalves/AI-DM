@@ -24,6 +24,7 @@ import { FeaturesPanel } from '@/components/character/FeaturesPanel'
 import { CatalogCardGroup } from './CatalogCardGroup'
 import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 import { AdventureErrorScreen } from './AdventureErrorScreen'
+import { resolveJump } from './stepJump'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
@@ -284,6 +285,9 @@ export function SetupWizard() {
   const { locale } = useLocale()
   const router = useRouter()
   const [step, setStep] = useState<Step>('system')
+  // US-260: índice da etapa mais distante já alcançada em ordem — a trilha deixa saltar até ela.
+  // Nunca passa de `review` (ver `enter`).
+  const [furthest, setFurthest] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -774,6 +778,8 @@ export function SetupWizard() {
     setToolChoice([])
     // US-224: pool e contagem da etapa `skills` dependem da CLASSE — mesmo motivo do reset acima.
     setSkills([])
+    // US-260: o que foi alcançado valia para o sistema ANTERIOR — a trilha recomeça em `class`.
+    setFurthest(steps.indexOf('class'))
     setStep('class')
   }
 
@@ -909,14 +915,23 @@ export function SetupWizard() {
     }
   }
 
+  // US-260: para trás vai direto; para a frente só até `furthest` e parando na primeira etapa
+  // que a edição invalidou (`resolveJump`).
   function goTo(target: Step) {
-    // Só navega para etapas já concluídas (índice antes da atual).
-    if (steps.indexOf(target) < steps.indexOf(step)) setStep(target)
+    const landing = resolveJump(steps, step, target, furthest, canAdvance)
+    if (landing !== step) setStep(landing)
+  }
+
+  // `world` fica de fora do teto: só se chega lá por `handleConfirm`, que grava o personagem —
+  // um salto pela trilha pularia a gravação.
+  function enter(target: Step) {
+    setStep(target)
+    setFurthest(f => Math.max(f, Math.min(steps.indexOf(target), steps.indexOf('review'))))
   }
 
   function next() {
     const i = steps.indexOf(step)
-    if (canAdvance(step) && i < steps.length - 1) setStep(steps[i + 1]!)
+    if (canAdvance(step) && i < steps.length - 1) enter(steps[i + 1]!)
   }
 
   function back() {
@@ -1240,7 +1255,8 @@ export function SetupWizard() {
 
         {exitToHub}
 
-        {/* Trilha de progresso navegável: etapas concluídas são clicáveis.
+        {/* Trilha de progresso navegável: etapas até a mais distante já alcançada (`furthest`,
+            US-260) são clicáveis — as à frente da atual passam pela checagem de `goTo`.
             US-66: no mobile as 7 barras ficam, mas os rótulos escondem (`hidden sm:block`)
             e um rótulo único "Etapa X de N — Label" resume a etapa atual — sem espremer
             rótulos de 10px lado a lado. A partir de `sm:` volta a trilha completa. */}
@@ -1250,7 +1266,7 @@ export function SetupWizard() {
           </p>
           <div className="flex gap-2">
             {steps.map((s, i) => {
-              const state = s === step ? 'atual' : i < idx ? 'concluída' : 'pendente'
+              const state = s === step ? 'atual' : i <= furthest ? 'concluída' : 'pendente'
               return (
                 <button
                   key={s} type="button"
@@ -2295,10 +2311,19 @@ export function SetupWizard() {
                   </DmButton>
                 )
               ) : (
-                <DmButton type="button" onClick={next} disabled={!canAdvance(step)}>
-                  {t('setup.next')}
-                  <ArrowRight className="size-4" aria-hidden />
-                </DmButton>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {/* US-260: atalho para quem veio corrigir algo — só depois de a revisão ter
+                      sido alcançada e enquanto a etapa atual é anterior a ela. */}
+                  {furthest >= steps.indexOf('review') && idx < steps.indexOf('review') && (
+                    <DmButton variant="ghost" type="button" onClick={() => goTo('review')}>
+                      {t('setup.backToReview')}
+                    </DmButton>
+                  )}
+                  <DmButton type="button" onClick={next} disabled={!canAdvance(step)}>
+                    {t('setup.next')}
+                    <ArrowRight className="size-4" aria-hidden />
+                  </DmButton>
+                </div>
               )}
             </div>
           )}

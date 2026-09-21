@@ -78,7 +78,8 @@ origem, história, features e magias). Mesmo dado, mesma fonte de cálculo, form
   Não existem no produto (verificado, 01/09/2026); a CA tem
   [backlog próprio](./backlog-classe-de-armadura-e-ataque.md).
 - **Editar a partir da revisão.** Corrigir continua a ser voltar à etapa, que a trilha permite.
-  Edição em linha é outra tela e outra história.
+  Edição em linha é outra tela e outra história. A volta em um clique (trilha até a etapa mais
+  distante alcançada + atalho "Voltar à revisão") é da [US-260](./US-260-corrigir-a-partir-da-revisao-sem-refazer-o-caminho.md).
 - **Retrato na ficha.** Espaço reservado com monograma, como na ficha viva (US-204).
 - **Mudar o que é enviado a `createCharacter`.** Nem um campo a mais, nem um a menos.
 - **Mexer no passo `world`.** Ele continua depois desta etapa, com o conteúdo que tem (US-157,

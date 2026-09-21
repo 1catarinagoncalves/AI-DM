@@ -62,6 +62,9 @@ export const enUS: Record<MessageKey, string> = {
   // por isso o rótulo nomeia o DESTINO, e não repete o verbo sozinho.
   'setup.exit': 'Back to characters',
   'setup.next': 'Next',
+  // US-260: footer shortcut — jumps to review without walking the steps in between (stops at
+  // the first one the edit invalidated).
+  'setup.backToReview': 'Back to review',
   'setup.confirming': 'Creating...',
   // US-157: seventh step, after `review` — adventure setting/tone/area type.
   'setup.world.titulo': 'The world of the adventure',

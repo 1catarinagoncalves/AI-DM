@@ -2,11 +2,12 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-26](./US-26-criacao-personagem-em-etapas.md) (✅ — **reabre** a regra "etapa à frente da atual não é clicável")
 **Relacionada a:** [US-204](./US-204-wizard-em-duas-colunas-com-ficha-viva.md) (📋 — redesenha a trilha em chips; **coordenar**, ver Questões) · [US-208](./US-208-revisao-em-forma-de-ficha.md) (📋 — redesenha a revisão e deixa "Editar a partir da revisão" fora do escopo, com o argumento de que "a trilha permite") · [US-258](./US-258-voltar-do-mundo-recria-o-personagem.md) (fecha as etapas depois de criar)
 **Criada em:** 2026-09-18
 **Origem:** crítica de design do fluxo de criação (2026-09-18), lida do código.
+**Implementada em:** 2026-09-21 — ver *Como ficou*.
 
 ---
 
@@ -52,12 +53,26 @@ A trilha lembra a **etapa mais distante já alcançada**. Etapas até ela ficam 
 
 ## Critérios de aceite
 
-- [ ] Da revisão, clicar em `class` na trilha, e depois em `review`, volta à revisão em um clique **se** as etapas do meio ainda são válidas.
-- [ ] Se a troca de classe invalida uma etapa do meio (ex.: `skills` exige as perícias da nova classe), o salto para nessa etapa.
-- [ ] A trilha nunca deixa alcançar por clique uma etapa que nunca foi alcançada em ordem.
-- [ ] "Voltar à revisão" só aparece depois de a revisão ter sido alcançada.
-- [ ] Trocar de sistema zera `furthest`.
-- [ ] **Teste de regressão:** percorre até `review`, volta a `class`, muda a classe, aciona "Voltar à revisão" e afirma que o wizard para em `skills` (perícias da classe anterior já não valem).
+- [x] Da revisão, clicar em `class` na trilha, e depois em `review`, volta à revisão em um clique **se** as etapas do meio ainda são válidas.
+- [x] Se a troca de classe invalida uma etapa do meio (ex.: `skills` exige as perícias da nova classe), o salto para nessa etapa.
+- [x] A trilha nunca deixa alcançar por clique uma etapa que nunca foi alcançada em ordem.
+- [x] "Voltar à revisão" só aparece depois de a revisão ter sido alcançada.
+- [x] Trocar de sistema zera `furthest`.
+- [x] **Teste de regressão:** percorre até `review`, volta a `class`, muda a classe, aciona "Voltar à revisão" e afirma que o wizard para em `skills` (perícias da classe anterior já não valem).
+
+---
+
+## Como ficou (2026-09-21)
+
+- **Regra:** [`resolveJump(steps, from, to, furthest, canAdvance)`](../../../apps/web/src/components/setup/stepJump.ts) — pura. Para trás devolve `to` sem consultar `canAdvance`; para a frente, `from` se `to` passa de `furthest`, senão a primeira etapa de `[from, to)` que reprova em `canAdvance`, senão `to`. **A etapa de partida entra na conta** (é a que se está deixando): com ela inválida o wizard não sai do lugar. Etapa fora da trilha lança com o valor ofensor.
+- **Estado:** `furthest` é um índice (`SetupWizard.tsx:290`); `enter` (:927) sobe-o em `next`. `goTo` (:920) e a trilha (:1269, `i <= furthest`) leem dele. `back` não mexe.
+- **Teto em `review`:** `furthest` nunca passa de `review`. `world` só se alcança por `handleConfirm` (grava o personagem); com `world` no alcance, um clique na trilha o pularia. Fora do enunciado da story — nasceu de ler o fluxo até o fim.
+- **Atalho:** "Voltar à revisão" (`setup.backToReview`, nos dois locales) à esquerda do "Próximo", quando `furthest >= review` e a etapa atual é anterior. Chama `goTo('review')` — a mesma regra da trilha.
+- **Trocar de sistema:** `handleSelectSystem` põe `furthest` em `class` (a etapa para onde vai), que é o "zerado" do fluxo.
+- **Testes:** [`stepJump.test.ts`](../../../apps/web/src/components/setup/stepJump.test.ts) (a função) e [`SetupWizard.furthest.test.tsx`](../../../apps/web/src/components/setup/SetupWizard.furthest.test.tsx) (fake class `FakeSetupApi`, sistema com duas classes e uma perícia). Antes do código, 4 dos 6 testes do wizard falharam (sem atalho, revisão não alcançável pela trilha); os outros 2 são guardas do comportamento que já valia e não podem quebrar.
+- **Teste antigo:** um caso de `SetupWizard.test.tsx` clicava `/Voltar/` cinco vezes a partir da revisão; depois da primeira volta "Voltar à revisão" também casa a regex. Passou a `/^Voltar$/`.
+- **Questão #1** decidida pela recomendação (esta primeiro): a regra nasce no `SetupWizard` atual e a US-204 herda. **Questão #2** segue para a US-208 (registrado lá).
+- **Não verificado no navegador:** o `/setup` exige login e API; o comportamento está coberto em jsdom. O layout do rodapé com três botões em tela estreita (`flex-wrap`) não foi visto.
 
 ---
 

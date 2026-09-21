@@ -68,6 +68,9 @@ export const ptBR = {
   // por isso o rótulo nomeia o DESTINO, e não repete o verbo sozinho.
   'setup.exit': 'Voltar aos personagens',
   'setup.next': 'Próximo',
+  // US-260: atalho do rodapé — leva à revisão sem repassar as etapas do meio (para na primeira
+  // que a edição invalidou).
+  'setup.backToReview': 'Voltar à revisão',
   'setup.confirming': 'A criar...',
   // US-157: sétimo passo, depois de `review` — cenário/tom/tipo de área da aventura.
   'setup.world.titulo': 'O mundo da aventura',
