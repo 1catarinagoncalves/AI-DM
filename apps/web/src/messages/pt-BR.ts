@@ -71,7 +71,35 @@ export const ptBR = {
   // US-260: atalho do rodapé — leva à revisão sem repassar as etapas do meio (para na primeira
   // que a edição invalidou).
   'setup.backToReview': 'Voltar à revisão',
+  // US-259: linha acima do rodapé quando o "Próximo" está desabilitado. Cada pendência é texto
+  // fixo da UI (nunca tradução de SRD), em minúsculas porque entra numa lista separada por
+  // vírgula — a chave é a de `missingFor` (components/setup/missingFor.ts).
+  'setup.missing.prefix': 'Falta: {items}.',
+  'setup.missing.system': 'sistema',
+  'setup.missing.class': 'classe',
+  'setup.missing.subclass': 'subclasse',
+  'setup.missing.classTool': 'ferramenta da classe',
+  'setup.missing.equipment': 'equipamento inicial',
+  'setup.missing.race': 'espécie',
+  'setup.missing.draconicAncestry': 'ancestralidade dracônica',
+  'setup.missing.raceTool': 'ferramenta da espécie',
+  'setup.missing.raceLanguage': 'idioma extra',
+  'setup.missing.attributePoints': 'pontos de atributo a distribuir',
+  'setup.missing.originAbility': 'atributo do bônus de origem',
+  'setup.missing.raceAbility': 'atributo do bônus de espécie',
+  'setup.missing.skills': 'perícias da classe',
+  'setup.missing.originSkills': 'perícias da origem',
+  'setup.missing.raceSkills': 'perícias da espécie',
+  'setup.missing.raceCantrip': 'truque de mago da espécie',
+  'setup.missing.name': 'nome',
+  'setup.missing.gender': 'gênero',
+  'setup.missing.alignment': 'alinhamento',
+  'setup.missing.originTools': 'ferramentas da origem',
   'setup.confirming': 'A criar...',
+  // US-258: a revisão GRAVA o personagem (não há edição depois) — o rótulo diz isso em vez de
+  // "Próximo", que prometia só avançar.
+  'setup.review.confirm': 'Criar personagem',
+  'setup.world.saved': 'Personagem salvo. As etapas anteriores ficam fechadas depois de criado.',
   // US-157: sétimo passo, depois de `review` — cenário/tom/tipo de área da aventura.
   'setup.world.titulo': 'O mundo da aventura',
   'setup.world.subtitulo': 'Escolha cenário, tom e tipo de área — ou deixe cada um no Aleatório.',
@@ -240,7 +268,9 @@ export const ptBR = {
 
   // ---- wizard: identidade (US-210) ----
   'setup.identity.titulo': 'Identidade',
-  'setup.identity.subtitulo': 'Nada aqui é obrigatório além do nome — o resto é textura para o seu personagem.',
+  // US-259: a copy antiga ("nada é obrigatório além do nome") contradizia canAdvance, que exige
+  // nome, gênero E alinhamento — quem preenchia só o nome ficava parada sem saber por quê.
+  'setup.identity.subtitulo': 'Nome, gênero e alinhamento são obrigatórios. Aparência e personalidade são opcionais — textura para o seu personagem.',
   // US-210: alinhamento é dado de catálogo (config.alignments, SRD) — o rótulo do <select>
   // vem daqui; o de cada opção vem do catálogo, não deste dicionário (mesmo padrão de raça/classe).
   'setup.identity.alignment': 'Alinhamento',

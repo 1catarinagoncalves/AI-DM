@@ -56,10 +56,15 @@ export function DmButton({ variant = 'primary', className, children, ...props }:
   )
 }
 
-/** US-46: rótulo visível e persistente acima do campo — placeholder nunca é o único rótulo. */
-export function FieldLabel({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) {
+/**
+ * US-46: rótulo visível e persistente acima do campo — placeholder nunca é o único rótulo.
+ * US-259: `required` marca o campo obrigatório com um asterisco por CSS (`::after`) — fora do
+ * texto do rótulo, então o nome acessível do campo (`getByLabelText('Alinhamento')`) não muda.
+ */
+export function FieldLabel({ children, htmlFor, required }: { children: ReactNode; htmlFor?: string; required?: boolean }) {
   return (
-    <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+    <label htmlFor={htmlFor}
+      className={cn('mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground', required && "after:ml-1 after:text-primary after:content-['*']")}>
       {children}
     </label>
   )

@@ -65,7 +65,8 @@ A trilha lembra a **etapa mais distante já alcançada**. Etapas até ela ficam 
 ## Como ficou (2026-09-21)
 
 - **Regra:** [`resolveJump(steps, from, to, furthest, canAdvance)`](../../../apps/web/src/components/setup/stepJump.ts) — pura. Para trás devolve `to` sem consultar `canAdvance`; para a frente, `from` se `to` passa de `furthest`, senão a primeira etapa de `[from, to)` que reprova em `canAdvance`, senão `to`. **A etapa de partida entra na conta** (é a que se está deixando): com ela inválida o wizard não sai do lugar. Etapa fora da trilha lança com o valor ofensor.
-- **Estado:** `furthest` é um índice (`SetupWizard.tsx:290`); `enter` (:927) sobe-o em `next`. `goTo` (:920) e a trilha (:1269, `i <= furthest`) leem dele. `back` não mexe.
+- **Estado:** `furthest` é um índice (`SetupWizard.tsx:292`); `enter` (:883) sobe-o em `next`. `goTo` (:875) e a trilha (:1228, `i <= furthest`) leem dele. `back` não mexe.
+- **Com a [US-258](./US-258-voltar-do-mundo-recria-o-personagem.md):** `goTo` devolve cedo quando `isClosedStep` — etapa fechada (personagem já gravado) nunca é destino, nem para trás nem para a frente; a trilha soma o mesmo `disabled`. Com `canAdvance` da [US-259](./US-259-proximo-desabilitado-diz-o-que-falta.md) (`missingFor`), quando o salto para numa etapa inválida a linha "Falta: …" já diz o que corrigir ali.
 - **Teto em `review`:** `furthest` nunca passa de `review`. `world` só se alcança por `handleConfirm` (grava o personagem); com `world` no alcance, um clique na trilha o pularia. Fora do enunciado da story — nasceu de ler o fluxo até o fim.
 - **Atalho:** "Voltar à revisão" (`setup.backToReview`, nos dois locales) à esquerda do "Próximo", quando `furthest >= review` e a etapa atual é anterior. Chama `goTo('review')` — a mesma regra da trilha.
 - **Trocar de sistema:** `handleSelectSystem` põe `furthest` em `class` (a etapa para onde vai), que é o "zerado" do fluxo.

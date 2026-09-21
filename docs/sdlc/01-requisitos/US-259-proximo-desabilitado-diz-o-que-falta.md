@@ -7,6 +7,7 @@
 **Relacionada a:** [US-268](./US-268-atribuir-bonus-de-origem-e-raca-com-controle-explicito.md) (o beco sem saída mais provável: o +1 de atributo) · [US-269](./US-269-acessibilidade-do-wizard-alvos-erro-e-foco.md)
 **Criada em:** 2026-09-18
 **Origem:** crítica de design do fluxo de criação (2026-09-18), lida do código.
+**Implementada em:** 2026-09-21 — ver *Como ficou*.
 
 ---
 
@@ -50,12 +51,25 @@ Uma lista do que falta, calculada pela mesma regra que decide `disabled`, mostra
 
 ## Critérios de aceite
 
-- [ ] Para cada etapa com bloqueio, existe um caso em que a linha "Falta: …" lista exatamente as pendências reais e some quando o último item é preenchido.
-- [ ] `canAdvance(s)` e `missingFor(s)` não podem divergir: `canAdvance` é derivada (não duplica as condições).
-- [ ] `identity`: nome, gênero e alinhamento aparecem marcados como obrigatórios; a copy não contradiz a validação.
-- [ ] O botão "Próximo" tem `aria-describedby` apontando para a linha de ajuda quando desabilitado.
-- [ ] Textos novos existem em pt-BR e en-US.
-- [ ] **Teste de regressão:** na etapa `identity`, só com o nome preenchido, o "Próximo" está desabilitado **e** a tela lista "gênero" e "alinhamento" como faltantes.
+- [x] Para cada etapa com bloqueio, existe um caso em que a linha "Falta: …" lista exatamente as pendências reais e some quando o último item é preenchido.
+- [x] `canAdvance(s)` e `missingFor(s)` não podem divergir: `canAdvance` é derivada (não duplica as condições).
+- [x] `identity`: nome, gênero e alinhamento aparecem marcados como obrigatórios; a copy não contradiz a validação.
+- [x] O botão "Próximo" tem `aria-describedby` apontando para a linha de ajuda quando desabilitado.
+- [x] Textos novos existem em pt-BR e en-US.
+- [x] **Teste de regressão:** na etapa `identity`, só com o nome preenchido, o "Próximo" está desabilitado **e** a tela lista "gênero" e "alinhamento" como faltantes.
+
+---
+
+## Como ficou (2026-09-21)
+
+- **Regra:** [`missingFor(step, inputs)`](../../../apps/web/src/components/setup/missingFor.ts) devolve as chaves `setup.missing.*` do que falta; uma função por etapa (4–20 linhas), lista vazia = pode avançar. Recebe `AdvanceInputs` — valores crus (contagens e chaves), montados uma vez no componente ([SetupWizard.tsx:841](../../../apps/web/src/components/setup/SetupWizard.tsx)). Os catálogos derivados continuam no componente; só a *condição* mudou de casa.
+- **`canAdvance`** ([:862](../../../apps/web/src/components/setup/SetupWizard.tsx)) virou `missingFor(s, advanceInputs).length === 0` — sem condição própria. `next()` e o `disabled` do botão leem a mesma lista. Os comentários de US do antigo `canAdvance` (US-123, 131, 132, 210–214, 220, 221, 226, 229…) foram **movidos** para `missingFor.ts`, ao lado da condição que explicam.
+- **Linha de ajuda:** `<p id="setup-missing">` dentro do rodapé, acima de Voltar/Próximo ([:2245](../../../apps/web/src/components/setup/SetupWizard.tsx)): "Falta: gênero, alinhamento." / "Still needed: …". Frase inteira com `{items}`, itens em minúsculas. O rodapé ganhou `flex-wrap` e a linha `w-full` para ocupar a primeira linha sem mexer no `justify-between` dos botões. `aria-describedby` do "Próximo" só existe enquanto há pendência ([:2273](../../../apps/web/src/components/setup/SetupWizard.tsx)).
+- **Etapa `identity`:** `setup.identity.subtitulo` agora diz "Nome, gênero e alinhamento são obrigatórios. Aparência e personalidade são opcionais…" (pt-BR e en-US). `FieldLabel` ganhou `required`: asterisco por CSS (`::after`), **fora do texto do rótulo** — o nome acessível não muda e os ~50 `getByLabelText(Alinhamento)` dos testes antigos seguem valendo. Os três campos também levam o atributo `required`.
+- **Pendências sem parâmetro:** só a chave, sem contagem ("perícias da classe", não "faltam 2"). Contagem exigiria `missingFor` devolver `{key, vars}`; não foi preciso para o critério.
+- **Etapa `system`:** tem `missingFor` (a `canAdvance(system)` continua derivada), mas o rodapé não renderiza nela — escolher o sistema já avança.
+- **Testes:** [`missingFor.test.ts`](../../../apps/web/src/components/setup/missingFor.test.ts) cobre **cada** etapa com bloqueio (lista exata + item que some ao resolver). [`SetupWizard.missing.test.tsx`](../../../apps/web/src/components/setup/SetupWizard.missing.test.tsx) cobre pela tela `identity` (regressão do critério, aria-describedby, obrigatoriedade, copy), `class` e `attributes` — as demais etapas ficam só no nível da função. Arquivo novo em vez de crescer o `SetupWizard.test.tsx` (3489 linhas). Suíte do web: 19 arquivos, 275 testes verdes; `tsc --noEmit` e `pnpm dead` limpos. **Não rodei os testes falhando antes do código** — o teste de `missingFor` foi escrito antes do módulo, mas o primeiro run foi já com o módulo pronto.
+- **Questão #1 segue aberta no visual:** decidida por texto sempre visível, mas **não vi renderizado** — `/setup` exige login e não autentiquei. Falta olhar o `flex-wrap` do rodapé em 320px (Voltar + Próximo na mesma linha?) e o asterisco dos rótulos.
 
 ---
 
@@ -75,6 +89,7 @@ Uma lista do que falta, calculada pela mesma regra que decide `disabled`, mostra
 
 ## Referências no código
 
-- [SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx) — `canAdvance` (:836-910), rodapé (:2273-2299), etapa `identity` (:1990)
+- [SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx) — `advanceInputs`/`canAdvance` (:841-864), rodapé (:2238-2285), etapa `identity` (:1951)
+- [missingFor.ts](../../../apps/web/src/components/setup/missingFor.ts) — a regra por etapa
 - [dm.tsx](../../../apps/web/src/components/ui/dm.tsx) — `dmButtonClass` (:42, `disabled:pointer-events-none`)
 - [pt-BR.ts](../../../apps/web/src/messages/pt-BR.ts) — `setup.identity.subtitulo` (:240)
