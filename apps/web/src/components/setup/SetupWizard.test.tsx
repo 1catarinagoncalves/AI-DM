@@ -386,7 +386,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(review).toBeTruthy()
     expect(createCharacter).not.toHaveBeenCalled() // nada criado antes de confirmar
 
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledTimes(1)
   })
 
@@ -415,7 +415,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ skills: ['athletics', 'perception'] }))
   })
 
@@ -438,7 +438,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: { story: 'Nobre caída', ideals: [], bonds: [], flaws: ['Não mente'] },
     }))
@@ -491,7 +491,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: { key: 'bg-acolyte' },
       background: expect.objectContaining({ story: 'Nobre caída' }),
@@ -524,7 +524,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: { key: 'bg-acolyte' },
       background: {
@@ -578,7 +578,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: expect.objectContaining({ deity: { name: 'Auril', portfolio: 'goddess of winter' } }),
     }))
@@ -602,7 +602,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: expect.objectContaining({ deity: { name: 'Tymora' } }),
     }))
@@ -624,7 +624,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       background: expect.objectContaining({ deity: undefined }),
     }))
@@ -677,7 +677,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     // Na revisão o jogador lê o RÓTULO, nunca a chave.
     expect(screen.getByText('Mago')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'elf', class: 'wizard' }))
   })
 
@@ -779,7 +779,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // confirma personagem → Mundo
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ })) // confirma personagem → Mundo
     await screen.findByRole('heading', { name: 'O mundo da aventura' })
   }
 
@@ -1219,7 +1219,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const hpRow = screen.getByText('PV inicial').closest('div')
     expect(within(hpRow!).getByText('22')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // Confirmar (revisão)
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ })) // Confirmar (revisão)
     const payload = createCharacter.mock.calls[0]![0] as Record<string, unknown>
     expect(payload['level']).toBe(5)
   })
@@ -1416,7 +1416,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: { key: 'a5e-ag_acolyte', connection: 'A high priest awaiting your return.', memento: 'A prayer book with notes.', abilityChoice: undefined },
     }))
@@ -1543,7 +1543,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: expect.objectContaining({ key: 'a5e-ag_acolyte', abilityChoice: 'strength' }),
     }))
@@ -1702,7 +1702,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ raceAbilityChoice: ['dexterity'] }))
   })
 
@@ -1786,7 +1786,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       skills: ['athletics'],
       origin: expect.objectContaining({ key: 'a5e-ag_acolyte', skillChoice: ['insight'] }),
@@ -1848,7 +1848,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(nextBtn()) // → revisão
     expect(screen.getByText('Ferramentas de Ladrão · Jogo de Dados')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: expect.objectContaining({ key: 'a5e-ag_criminal', toolChoice: ['gaming_set_dice'] }),
     }))
@@ -1915,7 +1915,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       origin: expect.objectContaining({ key: 'a5e-ag_folk-hero', toolChoice: ['smiths_tools', 'carriage'] }),
     }))
@@ -1988,7 +1988,7 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ class: 'wizard', race: 'hill-dwarf' }))
   })
@@ -2023,7 +2023,7 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     const payload = createCharacter.mock.calls[0]![0] as Record<string, unknown>
     expect(payload['subclass']).toBeUndefined()
@@ -2056,7 +2056,7 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(nextBtn())
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ class: 'fighter', subclass: 'champion' }))
   })
@@ -2130,7 +2130,7 @@ describe('SetupWizard — subclasse por cartão, aninhada na etapa class (US-205
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Masculino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(nextBtn())
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ class: 'marshal', subclass: key }))
   })
@@ -2297,7 +2297,7 @@ describe('SetupWizard — ancestralidade dracônica do dragonborn (US-211)', () 
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'dragonborn', draconicAncestry: 'red' }))
   })
@@ -2380,7 +2380,7 @@ describe('SetupWizard — traço "Tool Proficiency" do anão', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'hill-dwarf', raceToolChoice: 'masons_tools' }))
   })
@@ -2537,7 +2537,7 @@ describe('SetupWizard — US-214 traço "Extra Language" (Alto-elfo/Humano/Meio-
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: raceKey, raceLanguageChoice: 'sylvan' }))
   })
@@ -2688,7 +2688,7 @@ describe('SetupWizard — etapa "Magias" e truque do Alto-elfo (US-213)', () => 
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ race: 'high-elf', raceCantripChoice: 'mage-hand' }))
   })
@@ -2701,7 +2701,7 @@ describe('SetupWizard — etapa "Magias" e truque do Alto-elfo (US-213)', () => 
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
 
     const payload = createCharacter.mock.calls[0]![0] as Record<string, unknown>
     expect(payload['raceCantripChoice']).toBeUndefined()
@@ -2988,7 +2988,7 @@ describe('SetupWizard — US-221 ferramenta à escolha da classe', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ classToolChoice: ['lute', 'lyre', 'flute'] }))
   })
 })
@@ -3079,7 +3079,7 @@ describe('SetupWizard — US-226 equipamento inicial à escolha da classe', () =
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ equipmentChoices: [1, 0] }))
   })
 
@@ -3104,7 +3104,7 @@ describe('SetupWizard — US-226 equipamento inicial à escolha da classe', () =
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ equipmentChoices: [2] }))
   })
 
@@ -3213,7 +3213,7 @@ describe('SetupWizard — US-229 escolha específica de arma na alternativa gen�
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
 
     await finishToReview()
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ equipmentChoices: [2] }))
   })
 
@@ -3231,7 +3231,7 @@ describe('SetupWizard — US-229 escolha específica de arma na alternativa gen�
     await pickClass(configWithGenericWeaponChoice(0), 'Bruxo')
     fireEvent.change(screen.getByLabelText('Clava ou Adaga'), { target: { value: '1' } })
     await finishToReview()
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ equipmentChoices: [1] }))
   })
 
@@ -3326,7 +3326,7 @@ describe('SetupWizard — US-220 perícias proficientes por raça', () => {
     fireEvent.click(nextBtn()) // → revisão
     // Força 8 (default, budget 0) → modificador -1; perícia proficiente soma +2 → +1 líquido.
     expect(screen.getByText(/Percepção \(\+1\)/)).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ skills: ['athletics'] }))
   })
 
@@ -3364,7 +3364,7 @@ describe('SetupWizard — US-220 perícias proficientes por raça', () => {
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(nextBtn()) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       skills: ['athletics'], raceSkillChoices: ['perception', 'intimidation'],
     }))
@@ -3447,7 +3447,7 @@ describe('SetupWizard — etapa "Identidade" (US-210)', () => {
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledTimes(1)
   })
 
@@ -3462,7 +3462,7 @@ describe('SetupWizard — etapa "Identidade" (US-210)', () => {
     fireEvent.change(screen.getByLabelText('Personalidade'), { target: { value: 'Curiosa e impaciente' } })
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
       alignment: 'chaotic-neutral', appearance: 'Alta, cabelo prateado', personality: 'Curiosa e impaciente',
     }))

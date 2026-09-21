@@ -69,6 +69,10 @@ export const ptBR = {
   'setup.exit': 'Voltar aos personagens',
   'setup.next': 'Próximo',
   'setup.confirming': 'A criar...',
+  // US-258: a revisão GRAVA o personagem (não há edição depois) — o rótulo diz isso em vez de
+  // "Próximo", que prometia só avançar.
+  'setup.review.confirm': 'Criar personagem',
+  'setup.world.saved': 'Personagem salvo. As etapas anteriores ficam fechadas depois de criado.',
   // US-157: sétimo passo, depois de `review` — cenário/tom/tipo de área da aventura.
   'setup.world.titulo': 'O mundo da aventura',
   'setup.world.subtitulo': 'Escolha cenário, tom e tipo de área — ou deixe cada um no Aleatório.',

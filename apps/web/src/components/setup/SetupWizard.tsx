@@ -24,6 +24,7 @@ import { FeaturesPanel } from '@/components/character/FeaturesPanel'
 import { CatalogCardGroup } from './CatalogCardGroup'
 import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 import { AdventureErrorScreen } from './AdventureErrorScreen'
+import { isClosedStep } from './closedSteps'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
@@ -910,8 +911,8 @@ export function SetupWizard() {
   }
 
   function goTo(target: Step) {
-    // Só navega para etapas já concluídas (índice antes da atual).
-    if (steps.indexOf(target) < steps.indexOf(step)) setStep(target)
+    // Só navega para etapas já concluídas (índice antes da atual) e ainda abertas (US-258).
+    if (steps.indexOf(target) < steps.indexOf(step) && !isClosedStep(steps, target, charId)) setStep(target)
   }
 
   function next() {
@@ -926,6 +927,9 @@ export function SetupWizard() {
 
   async function handleConfirm() {
     if (!system) return
+    // US-258: personagem já gravado nunca é gravado de novo. Inalcançável pela UI hoje (as etapas
+    // ficam fechadas depois do `charId`); existe para uma rota futura que reabra `review`.
+    if (charId) { setStep('world'); return }
     setLoading(true); setError('')
     try {
       const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
@@ -1255,7 +1259,7 @@ export function SetupWizard() {
                 <button
                   key={s} type="button"
                   onClick={() => goTo(s)}
-                  disabled={state === 'pendente'}
+                  disabled={state === 'pendente' || isClosedStep(steps, s, charId)}
                   aria-current={state === 'atual' ? 'step' : undefined}
                   data-state={state}
                   className="flex flex-1 flex-col gap-1 text-left disabled:cursor-default"
@@ -2223,6 +2227,11 @@ export function SetupWizard() {
                 "Aventura inicial" (US-28), aposentada junto do gancho fixo por classe. */}
             {step === 'world' && (
               <div>
+                {/* US-258: explica por que não há Voltar nem trilha clicável aqui. */}
+                <p className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="size-4 text-primary" aria-hidden />
+                  {t('setup.world.saved')}
+                </p>
                 <SectionTitle>{t('setup.world.titulo')}</SectionTitle>
                 {/* US-216: bifurcação — primeiro conteúdo do passo, antes de qualquer grupo.
                     `worldMode` começa null: nenhuma prévia nem grupo aparece até a escolha. */}
@@ -2276,13 +2285,17 @@ export function SetupWizard() {
           {/* Voltar / Próximo / Confirmar / Criar aventura */}
           {step !== 'system' && (
             <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
-              <DmButton variant="ghost" type="button" onClick={back}>
-                <ArrowLeft className="size-4" aria-hidden />
-                {t('setup.back')}
-              </DmButton>
+              {/* US-258: em `world` a etapa de trás está fechada — o <span> mantém o botão da
+                  direita na direita (`justify-between`). */}
+              {isClosedStep(steps, steps[idx - 1]!, charId) ? <span aria-hidden /> : (
+                <DmButton variant="ghost" type="button" onClick={back}>
+                  <ArrowLeft className="size-4" aria-hidden />
+                  {t('setup.back')}
+                </DmButton>
+              )}
               {step === 'review' ? (
                 <DmButton type="button" onClick={handleConfirm} disabled={loading}>
-                  {loading ? t('setup.confirming') : t('setup.next')}
+                  {loading ? t('setup.confirming') : t('setup.review.confirm')}
                   <ArrowRight className="size-4" aria-hidden />
                 </DmButton>
               ) : step === 'world' ? (

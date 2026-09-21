@@ -63,6 +63,10 @@ export const enUS: Record<MessageKey, string> = {
   'setup.exit': 'Back to characters',
   'setup.next': 'Next',
   'setup.confirming': 'Creating...',
+  // US-258: the review step SAVES the character (no editing afterwards) — the label says so
+  // instead of "Next", which promised only to move on.
+  'setup.review.confirm': 'Create character',
+  'setup.world.saved': 'Character saved. The earlier steps are locked once it is created.',
   // US-157: seventh step, after `review` — adventure setting/tone/area type.
   'setup.world.titulo': 'The world of the adventure',
   'setup.world.subtitulo': 'Choose setting, tone and area type — or leave each one on Random.',

@@ -2,11 +2,12 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (✅ — dona do passo `world` e do `charId`) · [US-26](./US-26-criacao-personagem-em-etapas.md) (✅ — dona da trilha e do rodapé Voltar/Próximo)
 **Relacionada a:** [US-260](./US-260-corrigir-a-partir-da-revisao-sem-refazer-o-caminho.md) (navegação pela trilha — as duas mexem em `goTo`/`back`)
 **Criada em:** 2026-09-18
 **Origem:** crítica de design do fluxo de criação (2026-09-18), lida do código — **não reproduzida no navegador** (o `/setup` exige login Google). O critério de teste abaixo é a reprodução.
+**Implementada em:** 2026-09-21 — ver *Como ficou*.
 
 ---
 
@@ -57,12 +58,25 @@ Depois que o personagem é criado, o wizard trata as etapas de criação como **
 
 ## Critérios de aceite
 
-- [ ] Em `world` (com `charId` preenchido) não existe botão Voltar.
-- [ ] Em `world`, os botões da trilha das etapas anteriores estão `disabled`; o de `world` continua `aria-current="step"`.
-- [ ] O botão da revisão lê "Criar personagem" (pt-BR) / equivalente em en-US; nenhum `setup.next` na etapa `review`.
-- [ ] `world` mostra que o personagem foi salvo.
-- [ ] `handleConfirm` com `charId` preenchido não chama `api.createCharacter`.
-- [ ] **Teste de regressão:** com `api` mockado por fake class nomeada, percorre o wizard até `world`, tenta voltar (botão e trilha) e afirma que `createCharacter` foi chamado **exatamente uma vez**. O teste falha no código de hoje.
+- [x] Em `world` (com `charId` preenchido) não existe botão Voltar.
+- [x] Em `world`, os botões da trilha das etapas anteriores estão `disabled`; o de `world` continua `aria-current="step"`.
+- [x] O botão da revisão lê "Criar personagem" (pt-BR) / "Create character" (en-US); nenhum `setup.next` na etapa `review`.
+- [x] `world` mostra que o personagem foi salvo.
+- [x] `handleConfirm` com `charId` preenchido não chama `api.createCharacter` — **guarda escrita, sem teste** (ver *Como ficou*).
+- [x] **Teste de regressão:** com `api` mockado por fake class nomeada, percorre o wizard até `world`, tenta voltar (botão e trilha) e afirma que `createCharacter` foi chamado **exatamente uma vez**. O teste falha no código de hoje.
+
+---
+
+## Como ficou (2026-09-21)
+
+- **Regra:** [`isClosedStep(steps, target, charId)`](../../../apps/web/src/components/setup/closedSteps.ts) — puro, verdadeiro para toda etapa antes de `world` quando `charId !== ''`. Chamada por `goTo` (:915), pela trilha (`disabled`, :1262) e pelo rodapé (:2290). Etapa fora da trilha lança com o valor ofensor.
+- **Rodapé:** em `world` o Voltar dá lugar a um `<span aria-hidden />` — sem ele `justify-between` empurraria "Criar aventura" para a esquerda.
+- **Botão da revisão:** `setup.review.confirm` ("Criar personagem" / "Create character"); o carregamento continua `setup.confirming`.
+- **Aviso em `world`:** `setup.world.saved`, uma linha com ícone de check acima do título. Só aparece no formulário — as telas de espera/erro de geração ficam fora do `Panel` e não mostram.
+- **Guarda em `handleConfirm`** (:928): com `charId`, só avança. Inalcançável pela UI (nenhuma rota reabre `review`), por isso **não tem teste** — o critério lista o comportamento, mas exercitá-lo exigiria exportar `handleConfirm` ou abrir uma rota que a story proíbe. Se aparecer rota que reabre `review`, o teste nasce com ela.
+- **Testes:** [`closedSteps.test.ts`](../../../apps/web/src/components/setup/closedSteps.test.ts) (a função) e [`SetupWizard.closedSteps.test.tsx`](../../../apps/web/src/components/setup/SetupWizard.closedSteps.test.tsx) (fake class `FakeSetupApi`, que guarda cada DTO enviado). Arquivo novo em vez de crescer o `SetupWizard.test.tsx` (3489 linhas). Antes do código os três testes do wizard falharam por `Criar personagem` não existir — o botão era "Próximo" e o Voltar renderizava em `world`.
+- **Testes antigos:** 35 cliques de confirmação em `SetupWizard.test.tsx` liam o botão da revisão como `/Próximo/`; passaram a `/Criar personagem/`. Só a confirmação mudou — os avanços comuns seguem `/Próximo/`.
+- **Questão #1** decidida pela recomendação (fechar, sem "apagar e recriar"). **Questão #2** segue aberta: a mensagem de `world` diz só que as etapas ficam fechadas, sem prometer nada sobre o hub.
 
 ---
 
