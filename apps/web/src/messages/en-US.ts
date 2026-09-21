@@ -62,6 +62,28 @@ export const enUS: Record<MessageKey, string> = {
   // por isso o rótulo nomeia o DESTINO, e não repete o verbo sozinho.
   'setup.exit': 'Back to characters',
   'setup.next': 'Next',
+  // US-259: line above the footer while "Next" is disabled (see pt-BR for the rationale).
+  'setup.missing.prefix': 'Still needed: {items}.',
+  'setup.missing.system': 'system',
+  'setup.missing.class': 'class',
+  'setup.missing.subclass': 'subclass',
+  'setup.missing.classTool': 'class tool',
+  'setup.missing.equipment': 'starting equipment',
+  'setup.missing.race': 'species',
+  'setup.missing.draconicAncestry': 'draconic ancestry',
+  'setup.missing.raceTool': 'species tool',
+  'setup.missing.raceLanguage': 'extra language',
+  'setup.missing.attributePoints': 'attribute points to spend',
+  'setup.missing.originAbility': 'origin ability bonus',
+  'setup.missing.raceAbility': 'species ability bonus',
+  'setup.missing.skills': 'class skills',
+  'setup.missing.originSkills': 'origin skills',
+  'setup.missing.raceSkills': 'species skills',
+  'setup.missing.raceCantrip': 'species wizard cantrip',
+  'setup.missing.name': 'name',
+  'setup.missing.gender': 'gender',
+  'setup.missing.alignment': 'alignment',
+  'setup.missing.originTools': 'origin tools',
   'setup.confirming': 'Creating...',
   // US-258: the review step SAVES the character (no editing afterwards) — the label says so
   // instead of "Next", which promised only to move on.
@@ -216,7 +238,7 @@ export const enUS: Record<MessageKey, string> = {
 
   // ---- wizard: identity (US-210) ----
   'setup.identity.titulo': 'Identity',
-  'setup.identity.subtitulo': "Nothing here is required beyond the name — the rest is texture for your character.",
+  'setup.identity.subtitulo': "Name, gender and alignment are required. Appearance and personality are optional — texture for your character.",
   // US-210: alignment is catalog data (config.alignments, SRD) — this label is for the
   // <select> itself; each option's label comes from the catalog, same pattern as race/class.
   'setup.identity.alignment': 'Alignment',

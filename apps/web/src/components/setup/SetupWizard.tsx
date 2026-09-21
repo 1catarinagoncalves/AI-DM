@@ -25,6 +25,7 @@ import { CatalogCardGroup } from './CatalogCardGroup'
 import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 import { AdventureErrorScreen } from './AdventureErrorScreen'
 import { isClosedStep } from './closedSteps'
+import { missingFor, type AdvanceInputs } from './missingFor'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
@@ -42,7 +43,7 @@ import { isClosedStep } from './closedSteps'
 // US-210: `identity` entra entre `spells` e `review` — última etapa antes da revisão da ficha,
 // com nome, gênero (que saem de `class`, ver parágrafo do US-205 acima) e alinhamento (novo,
 // dado de catálogo); ver bloco JSX do `step === 'identity'` mais abaixo.
-type Step = 'system' | 'class' | 'race' | 'background' | 'attributes' | 'skills' | 'spells' | 'identity' | 'review' | 'world'
+export type Step = 'system' | 'class' | 'race' | 'background' | 'attributes' | 'skills' | 'spells' | 'identity' | 'review' | 'world'
 const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 'skills', 'spells', 'identity', 'review', 'world']
 
 // US-98: os rótulos de gênero saíram desta lista para o dicionário, mas a lista FICA em
@@ -834,80 +835,32 @@ export function SetupWizard() {
     setToolChoice([])
   }
 
+  // US-259: valores crus que `canAdvance` sempre leu — a regra de cada etapa (e o porquê de cada
+  // exigência, com os números de US) mora em `missingFor` (missingFor.ts). `canAdvance` é
+  // derivada dela, então a linha "Falta: …" do rodapé e o `disabled` do botão nunca divergem.
+  const advanceInputs: AdvanceInputs = {
+    hasSystem: !!system,
+    classKey: charData.class, classKeys: classCatalog.map(c => c.key),
+    subclassCount: subclassCatalog?.length, subclass,
+    classToolCount: classToolGrant?.count, classToolChosen: classToolChoice.length,
+    equipmentSlotCount: classEquipmentSlots?.slots.length, equipmentChoices,
+    raceKey: charData.race, raceKeys: raceCatalog.map(r => r.key),
+    draconicAncestry, raceToolChoice, raceLanguageChoice,
+    budget, remaining,
+    originAbilityGrant: abilityGrant?.kind === 'ability', abilityChoice,
+    raceAbilityCount: raceGrant?.choice?.count, raceAbilityChosen: raceAbilityChoice.length,
+    skillsRequired: effectiveSkillChoices, skillsChosen: skills.length,
+    originSkillCount: skillGrant?.chooseCount, originSkillChosen: skillChoice.length,
+    raceSkillCount: raceSkillChoiceCount, raceSkillChosen: raceSkillChoice.length,
+    wizardCantripCount: wizardCantrips.length, raceCantripChoice,
+    name: charData.name, gender: charData.gender, genders: GENDERS,
+    alignment: charData.alignment, alignmentKeys: alignmentCatalog.map(a => a.key),
+    originToolCount: toolGrant?.chooseCount, originToolChosen: toolChoice.length,
+  }
+  const missing = missingFor(step, advanceInputs)
+
   function canAdvance(s: Step): boolean {
-    switch (s) {
-      case 'system': return !!system
-      // US-210: nome e gênero saíram daqui — moraram na etapa `class` até a US-205, agora
-      // vivem na etapa `identity` (ver caso abaixo). Sobra só a classe — mais subclasse quando
-      // a classe escolhida tem mais de uma opção (marshal, hoje). Classe com 0 ou 1 subclasse
-      // não exige nada aqui: sem catálogo não há o que escolher, com 1 entrada só ela preenche
-      // sozinha no service.
-      case 'class':
-        return classCatalog.some(c => c.key === charData.class)
-          && (!subclassCatalog || subclassCatalog.length <= 1 || !!subclass)
-          // US-221: classe com `toolProficiencies.choice` (Bardo/Monge) exige exatamente
-          // `choice.count` escolhas — mesmo espírito da checagem de subclass acima.
-          && (!classToolGrant || classToolChoice.length === classToolGrant.count)
-          // US-226: classe com `startingEquipmentChoices` exige um valor não-vazio em CADA
-          // slot — checa por índice (não por `.length`) porque um slot preenchido fora de
-          // ordem deixaria buracos no array que `.length` sozinho não pegaria.
-          // US-229: `.slots` (achatado, inclui o sintético de `fixed`) no lugar de `.choices`
-          // cru — mesma checagem, mais slots quando a classe tem item genérico em `fixed`.
-          && (!classEquipmentSlots || classEquipmentSlots.slots.every((_, i) => equipmentChoices[i] !== undefined && equipmentChoices[i] !== ''))
-      // US-211: dragonborn exige a ancestralidade dracônica escolhida — mesmo espírito da
-      // checagem de subclass em canAdvance('class').
-      case 'race':
-        return raceCatalog.some(r => r.key === charData.race)
-          && (charData.race !== 'dragonborn' || !!draconicAncestry)
-          // Traço "Tool Proficiency" do anão: mesmo espírito da checagem de draconicAncestry acima.
-          && (charData.race !== 'hill-dwarf' || !!raceToolChoice)
-          // US-214: mesmo espírito das duas checagens acima, generalizado às 3 raças de
-          // RACE_EXTRA_LANGUAGE_CHOICE — nunca bloqueia as outras 6.
-          && (!RACE_EXTRA_LANGUAGE_CHOICE.includes(charData.race) || !!raceLanguageChoice)
-      // US-123: além do point-buy fechado, background com grant.kind === 'ability' exige
-      // uma linha escolhida para o +1 livre (a linha fixa não conta, é automática).
-      // US-212: além do point-buy e do grant de origem, raça com grant.choice exige o número
-      // certo de escolhas feitas — mesmo espírito das duas checagens acima, terceira fonte.
-      case 'attributes':
-        return (budget === undefined || remaining === 0)
-          && (abilityGrant?.kind !== 'ability' || !!abilityChoice)
-          && (!raceGrant?.choice || raceAbilityChoice.length === raceGrant.choice.count)
-      // Sem perícias no config → etapa livre; senão exige exatamente `skillChoices`. US-131:
-      // além disso, background com grant.kind === 'skills' exige as `chooseCount` chaves da
-      // origem (mesmo espírito do bônus de atributo, mas aqui a escolha acontece nesta etapa,
-      // não na `background` — perícia de origem e perícia de classe ficam na mesma tela).
-      // US-220: Meio-elfo (Skill Versatility) exige as `raceSkillChoiceCount` escolhas próprias,
-      // além das da classe/origem já checadas acima — `effectiveSkillChoices` já soma a
-      // substituta da colisão fixa×fixa (ver §Colisão) ao orçamento da classe.
-      case 'skills':
-        return (effectiveSkillChoices === 0 || skills.length === effectiveSkillChoices)
-          && (!skillGrant || skillGrant.chooseCount === 0 || skillChoice.length === skillGrant.chooseCount)
-          && (raceSkillChoiceCount === undefined || raceSkillChoice.length === raceSkillChoiceCount)
-      // US-213: só bloqueia quando o Alto-elfo TEM truque de mago pra escolher — nos demais
-      // casos (não é Alto-elfo, ou catálogo do Mago vazio) a etapa nunca bloqueia o avanço.
-      case 'spells':
-        return charData.race !== 'high-elf' || wizardCantrips.length === 0 || !!raceCantripChoice
-      // US-210: nome, gênero e alinhamento — a condição composta que morava em
-      // canAdvance('class') antes da US-205 reabrir a posição (ver Contexto da US-210).
-      // `appearance`/`personality` são opcionais, não entram aqui.
-      case 'identity':
-        return charData.name.trim() !== ''
-          && (GENDERS as readonly string[]).includes(charData.gender)
-          && alignmentCatalog.some(a => a.key === charData.alignment)
-      // Origem, conexão e memento são opcionais — etapa `background` não bloqueia o avanço por
-      // causa deles (mesmo espírito de US-39: texto livre também é opcional). A escolha do
-      // grant de PERÍCIA acontece na etapa `skills` (ver acima), não aqui — mesmo padrão do
-      // bônus de atributo, cujo aviso também é só informativo nesta etapa.
-      // US-132: a escolha do grant de FERRAMENTA é diferente — acontece NESTA etapa (não há
-      // etapa `tools` própria pra adiar, ver §Onde aparece na criação e na ficha), por isso
-      // bloqueia o avanço até `toolChoice` ter exatamente `chooseCount` chaves.
-      case 'background':
-        return !toolGrant || toolGrant.chooseCount === 0 || toolChoice.length === toolGrant.chooseCount
-      case 'review': return true
-      // US-157: Cenário/Tom/Tipo de Área são opcionais (Aleatório é uma escolha válida) —
-      // o passo `world` nunca bloqueia; o footer usa `createWorldAdventure`, não `next()`.
-      case 'world': return true
-    }
+    return missingFor(s, advanceInputs).length === 0
   }
 
   function goTo(target: Step) {
@@ -2003,7 +1956,7 @@ export function SetupWizard() {
                   {/* US-46: rótulo visível persistente acima de cada campo — mesmo par que
                       morava na etapa `class` antes da US-210, campos e ids idênticos. */}
                   <div>
-                    <FieldLabel htmlFor="char-name">{t('setup.raceClass.name')}</FieldLabel>
+                    <FieldLabel htmlFor="char-name" required>{t('setup.raceClass.name')}</FieldLabel>
                     <input id="char-name" required placeholder={t('setup.raceClass.namePlaceholder')}
                       value={charData.name} onChange={e => setCharData(p => ({ ...p, name: e.target.value }))}
                       className={fieldClass()} />
@@ -2011,8 +1964,8 @@ export function SetupWizard() {
                   {/* US-98: `value` em pt-BR (é o que a API entende), rótulo traduzido. US-205
                       §Fora do escopo: gênero são 3 valores sem prosa, o <select> continua adequado. */}
                   <div>
-                    <FieldLabel htmlFor="char-gender">{t('setup.raceClass.gender')}</FieldLabel>
-                    <select id="char-gender" value={charData.gender}
+                    <FieldLabel htmlFor="char-gender" required>{t('setup.raceClass.gender')}</FieldLabel>
+                    <select id="char-gender" required value={charData.gender}
                       onChange={e => setCharData(p => ({ ...p, gender: e.target.value }))}
                       className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                       <option value="">{t('setup.raceClass.select')}</option>
@@ -2022,8 +1975,8 @@ export function SetupWizard() {
                   {/* US-210: alinhamento é dado de catálogo (config.alignments, SRD via
                       ingest) — mesmo padrão de raça/classe, não uma lista literal do componente. */}
                   <div>
-                    <FieldLabel htmlFor="char-alignment">{t('setup.identity.alignment')}</FieldLabel>
-                    <select id="char-alignment" value={charData.alignment}
+                    <FieldLabel htmlFor="char-alignment" required>{t('setup.identity.alignment')}</FieldLabel>
+                    <select id="char-alignment" required value={charData.alignment}
                       onChange={e => setCharData(p => ({ ...p, alignment: e.target.value }))}
                       className={selectClass} style={{ backgroundImage: SELECT_ARROW }}>
                       <option value="">{t('setup.raceClass.select')}</option>
@@ -2284,7 +2237,15 @@ export function SetupWizard() {
 
           {/* Voltar / Próximo / Confirmar / Criar aventura */}
           {step !== 'system' && (
-            <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5">
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+              {/* US-259: o "Próximo" apagado (`pointer-events-none`) não mostra nem `title` — o
+                  motivo fica em texto sempre visível, ligado ao botão por `aria-describedby`.
+                  Mesma lista (`missingFor`) que decide o `disabled`, então nunca diverge. */}
+              {missing.length > 0 && (
+                <p id="setup-missing" className="w-full text-sm text-muted-foreground">
+                  {t('setup.missing.prefix', { items: missing.map(k => t(k)).join(', ') })}
+                </p>
+              )}
               {/* US-258: em `world` a etapa de trás está fechada — o <span> mantém o botão da
                   direita na direita (`justify-between`). */}
               {isClosedStep(steps, steps[idx - 1]!, charId) ? <span aria-hidden /> : (
@@ -2308,7 +2269,8 @@ export function SetupWizard() {
                   </DmButton>
                 )
               ) : (
-                <DmButton type="button" onClick={next} disabled={!canAdvance(step)}>
+                <DmButton type="button" onClick={next} disabled={missing.length > 0}
+                  aria-describedby={missing.length > 0 ? 'setup-missing' : undefined}>
                   {t('setup.next')}
                   <ArrowRight className="size-4" aria-hidden />
                 </DmButton>
