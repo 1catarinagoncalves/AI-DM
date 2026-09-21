@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-26](./US-26-criacao-personagem-em-etapas.md) (✅ — dona de `canAdvance`) · [US-210](./US-210-identidade-como-etapa-propria.md) (✅ — dona da etapa `identity`)
 **Relacionada a:** [US-268](./US-268-atribuir-bonus-de-origem-e-raca-com-controle-explicito.md) (o beco sem saída mais provável: o +1 de atributo) · [US-269](./US-269-acessibilidade-do-wizard-alvos-erro-e-foco.md)
 **Criada em:** 2026-09-18

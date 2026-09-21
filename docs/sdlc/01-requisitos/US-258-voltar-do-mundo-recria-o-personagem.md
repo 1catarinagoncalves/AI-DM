@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-157](./US-157-tela-de-mundo-depois-da-revisao.md) (✅ — dona do passo `world` e do `charId`) · [US-26](./US-26-criacao-personagem-em-etapas.md) (✅ — dona da trilha e do rodapé Voltar/Próximo)
 **Relacionada a:** [US-260](./US-260-corrigir-a-partir-da-revisao-sem-refazer-o-caminho.md) (navegação pela trilha — as duas mexem em `goTo`/`back`)
 **Criada em:** 2026-09-18
