@@ -3,7 +3,7 @@ import type { EventLog } from '../generated/prisma/client'
 import { streamText, generateText, generateObject, tool, type CoreMessage } from 'ai'
 import { logLlmFailure } from './llm-error'
 import type { GeneratedAdventure, InventoryItem, SceneState, SystemConfig, WorldEntity } from '@ai-dm/shared'
-import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, DEFAULT_LOCALE, type Locale } from '@ai-dm/shared'
+import { buildSkillSheet, catalogLabel, resolveSheetEntries, resolveCharacterFeatures, stripFabricatedRolls, stripReasoningLeak, stripWorldStateTags, resolveRollModifier, normalizeDie, hasOptionsList, resolveLocale, DEFAULT_LOCALE, proficiencyBonusForLevel, type Locale } from '@ai-dm/shared'
 import { z } from 'zod'
 import {
   narrationModels,
@@ -491,8 +491,12 @@ export class AiService {
     // Todas as perícias com modificador (US-27): o mestre decide qualquer teste, não só as proficientes.
     // Guarda a versão COM `key` (US-38: a rolagem resolve o modificador por key);
     // a versão sem `key` alimenta o prompt/ficha.
+    // US-264 (regressão): era `config.proficiency?.bonus ?? 2`, FIXO — a ficha que o Mestre lê
+    // pra narrar ficava com o bônus errado a partir do nível 5 (mesmo bug do preview do wizard,
+    // já corrigido). `proficiencyBonusForLevel` é a MESMA função que adventure.service.ts usa
+    // ao salvar e que play/[adventureId]/page.tsx usa na ficha em jogo — as três combinam agora.
     const resolvedSkills = config?.skills
-      ? buildSkillSheet(config.skills, attributes, (character.skills ?? []) as string[], config.proficiency?.bonus ?? 2)
+      ? buildSkillSheet(config.skills, attributes, (character.skills ?? []) as string[], proficiencyBonusForLevel(character.level ?? 1))
       : undefined
     const skills = resolvedSkills?.map(({ label, modifier, proficient }) => ({ label, modifier, proficient }))
     // US-132: ferramentas/veículos proficientes da origem — traço FIXO de nível 1 (mesmo
