@@ -145,6 +145,28 @@ describe('dicionários — paridade entre os dois idiomas (US-98)', () => {
   })
 })
 
+describe('vocabulário único no wizard — espécie/origem, não raça/background (US-267)', () => {
+  // Interpolação tipo '{race}' embute a palavra na CHAVE da variável, não é texto exibido —
+  // sem isto, `setup.attributes.raceBanner` ('{race} concede {bonus}.') falsearia o teste.
+  const semPlaceholders = (texto: string) => texto.replace(/\{[^}]+\}/g, '')
+  const chavesSetup = <T extends Record<string, string>>(dict: T) =>
+    Object.entries(dict).filter(([chave]) => chave.startsWith('setup.'))
+
+  it('pt-BR: nenhuma chave setup.* usa "raça" ou "background" (descartados por "espécie"/"origem")', () => {
+    const ofensoras = chavesSetup(ptBR)
+      .filter(([, valor]) => /\b(raça|background)\b/i.test(semPlaceholders(valor)))
+      .map(([chave]) => chave)
+    expect(ofensoras).toEqual([])
+  })
+
+  it('en-US: nenhuma chave setup.* usa "race" ou "background" (descartados por "species"/"origin")', () => {
+    const ofensoras = chavesSetup(enUS)
+      .filter(([, valor]) => /\b(race|background)\b/i.test(semPlaceholders(valor)))
+      .map(([chave]) => chave)
+    expect(ofensoras).toEqual([])
+  })
+})
+
 describe('locale do servidor a partir do cookie (US-98)', () => {
   it('valor válido do cookie vira locale', () => {
     expect(localeFromCookie('en-US')).toBe('en-US')

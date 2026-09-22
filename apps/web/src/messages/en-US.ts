@@ -51,7 +51,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.step.skills': 'Skills',
   // US-213: new step between Skills and Review — class spell preview + High Elf bonus cantrip.
   'setup.step.spells': 'Spells',
-  'setup.step.background': 'Background',
+  'setup.step.background': 'Origin',
   // US-210: last step before Review — name, gender and alignment leave the `class` step
   // (US-205) and come back to their own step, now at the END of the trail.
   'setup.step.identity': 'Identity',
@@ -152,7 +152,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.raceClass.name': 'Character name',
   'setup.raceClass.namePlaceholder': 'E.g.: Lyra Silvermoon',
   'setup.raceClass.gender': 'Gender',
-  'setup.raceClass.race': 'Race',
+  'setup.raceClass.race': 'Species',
   'setup.raceClass.class': 'Class',
   'setup.raceClass.select': 'Select…',
   'setup.subclass.legend': 'Subclass',
@@ -167,7 +167,7 @@ export const enUS: Record<MessageKey, string> = {
   // US-264: consequence line under the selector — only what the wizard actually derives from
   // level today (maxHpForLevel in the HP preview; proficiencyBonusForLevel on save, @ai-dm/shared).
   'setup.class.level.consequence': 'HP and proficiency bonus follow your level.',
-  'setup.race.detail.features': 'Racial traits',
+  'setup.race.detail.features': 'Species traits',
   'setup.race.variant.legend': 'Choose a variant',
   // US-264: badge on the card selectRootCard pre-selects — disappears once the player clicks
   // any variant (`variantTouched`).
@@ -228,7 +228,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.attributes.abilityBadgeFixed': '+1 origin',
   // US-212: race ability-score bonus badge — same solid/ghost text (the race's own amount
   // already tells the line apart, no need for a separate "bonus" label).
-  'setup.attributes.raceBadge': '+{amount} race',
+  'setup.attributes.raceBadge': '+{amount} species',
   // US-207: badge on the attributes `config.classes[].primary` (US-203) lists for the chosen
   // class — informs, doesn't recommend a distribution.
   'setup.attributes.primaryBadge': 'Primary',
@@ -247,7 +247,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.skills.originGrant': 'Skills from {origin}',
   // US-220: race skill proficiency section — same spot/pattern as originGrant above (Keen
   // Senses/Menacing show as pre-checked, Skill Versatility as a clickable choice underneath).
-  'setup.skills.raceGrant': 'Skills from your race',
+  'setup.skills.raceGrant': 'Skills from your species',
   'setup.skills.instructions': 'Choose {n} proficient skills (+{bonus} each).',
   'setup.skills.selected': 'Selected:',
   // US-266: shown in a block once its own limit is reached, alongside the dimmed disabled
@@ -273,7 +273,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.identity.personalityPlaceholder': 'How do they act and react?',
 
   // ---- wizard: background ----
-  'setup.background.titulo': 'Background',
+  'setup.background.titulo': 'Origin',
   // US-264: no `{name}` — the name is only asked 4 steps later, in `identity` (US-210); before
   // that the text always fell back to "Who is this character?".
   'setup.background.subtitulo': 'Who is this character? The Dungeon Master uses this to give weight to your choices. All optional — one item per line in ideals, bonds and flaws.',
@@ -329,7 +329,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.name': 'Name',
   'setup.review.gender': 'Gender',
   'setup.review.alignment': 'Alignment',
-  'setup.review.race': 'Race',
+  'setup.review.race': 'Species',
   'setup.review.class': 'Class',
   'setup.review.subclass': 'Subclass',
   'setup.review.draconicAncestry': 'Draconic ancestry',
@@ -345,7 +345,7 @@ export const enUS: Record<MessageKey, string> = {
   'setup.review.armor': 'Armor Proficiencies',
   'setup.review.languages': 'Languages',
   'setup.review.kit': 'Starting kit',
-  'setup.review.background': 'Background',
+  'setup.review.background': 'Origin',
   'setup.review.origin': 'Origin',
   'setup.review.connection': 'Connection',
   'setup.review.memento': 'Memento',

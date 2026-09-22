@@ -278,25 +278,25 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   it('navegação ida-e-volta preserva o preenchimento e marca estados na trilha', async () => {
     await pickSystemAndFillRaceClass()
 
-    // avança para Background (US-205: agora vem logo depois de Raça)
+    // avança para Origem (US-205: agora vem logo depois de Espécie)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ }))
-    expect(screen.getByRole('heading', { name: 'Background' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Origem' })).toBeTruthy()
 
-    // trilha: Classe e Espécie concluídas, Background atual
+    // trilha: Classe e Espécie concluídas, Origem atual
     expect(screen.getByRole('button', { name: 'Classe' }).getAttribute('data-state')).toBe('concluída')
     expect(screen.getByRole('button', { name: 'Espécie' }).getAttribute('data-state')).toBe('concluída')
-    expect(screen.getByRole('button', { name: /Background/ }).getAttribute('data-state')).toBe('atual')
+    expect(screen.getByRole('button', { name: /Origem/ }).getAttribute('data-state')).toBe('atual')
 
-    // volta até Classe (Background → Raça → Classe) e avança de novo — valores mantidos
+    // volta até Classe (Origem → Espécie → Classe) e avança de novo — valores mantidos
     // US-210: nome/gênero saíram da etapa `class` (agora moram em `identity`, testado em
     // separado) — aqui só a classe escolhida precisa sobreviver à ida-e-volta.
-    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → Raça
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → Espécie
     fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → Classe
     expect((screen.getByRole('radio', { name: 'Mago' }) as HTMLInputElement).checked).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → Raça
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → Espécie
     expect((screen.getByRole('radio', { name: 'Elfo' }) as HTMLInputElement).checked).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → Background
-    expect(screen.getByRole('heading', { name: 'Background' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → Origem
+    expect(screen.getByRole('heading', { name: 'Origem' })).toBeTruthy()
   })
 
   it('point-buy bloqueia Próximo até o orçamento fechar exatamente', async () => {
@@ -622,8 +622,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     }))
   })
 
-  // US-122: revisão mostra o nome da origem numa linha própria, distinta da linha de background.
-  it('revisão mostra o nome da origem, separado da linha de background', async () => {
+  // US-122/US-267: revisão mostra o nome da origem numa linha própria, distinta da seção de
+  // origem por extenso (story/ideais/vínculos) — as duas usam o mesmo rótulo "Origem" agora.
+  it('revisão mostra o nome da origem, separado da seção de origem por extenso', async () => {
     await pickSystemAndFillRaceClass(configWithBackgrounds(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('radio', { name: 'Sábio' }))
@@ -639,10 +640,10 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
-    const originRow = screen.getByText('Origem').closest('div')
+    const originRow = screen.getAllByText('Origem').find(el => el.tagName === 'DT')!.closest('div')
     expect(within(originRow!).getByText('Sábio')).toBeTruthy()
-    // linha de background segue própria e presente, sem o nome da origem misturado nela
-    expect(screen.getAllByText('Background').length).toBeGreaterThan(0)
+    // seção de origem por extenso segue própria e presente, sem o nome escolhido misturado nela
+    expect(screen.getByRole('heading', { name: 'Origem' })).toBeTruthy()
   })
 
   // US-40: campo "Divindade/Patrono" é parseado na 1ª vírgula → {name, portfolio}.
@@ -1615,7 +1616,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     // US-123: background não fica mais imediatamente antes da revisão — usa a trilha (goTo)
     // para voltar direto à etapa, em vez de um único "Voltar".
-    fireEvent.click(screen.getByRole('button', { name: /^Background$/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Origem$/ }))
     fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
@@ -1647,7 +1648,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const kitRowSemMemento = screen.getByText('Kit inicial').closest('div')
     expect(within(kitRowSemMemento!).getByText('Símbolo sagrado')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /^Background$/ })) // trilha: volta direto
+    fireEvent.click(screen.getByRole('button', { name: /^Origem$/ })) // trilha: volta direto
     fireEvent.change(screen.getByLabelText('Memento'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
@@ -1801,12 +1802,12 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(screen.getByText('Elfo concede +2 Destreza.')).toBeTruthy()
 
     const dexRow = screen.getByText('Destreza').closest('div')!
-    expect(within(dexRow).getByText('+2 raça')).toBeTruthy()
-    expect(within(dexRow).queryByRole('button', { name: '+2 raça' })).toBeNull() // não-clicável
+    expect(within(dexRow).getByText('+2 espécie')).toBeTruthy()
+    expect(within(dexRow).queryByRole('button', { name: '+2 espécie' })).toBeNull() // não-clicável
     expect(within(dexRow).getByText('10')).toBeTruthy() // default 8 + 2
 
     const strRow = screen.getByText('Força').closest('div')!
-    expect(within(strRow).queryByText(/raça/)).toBeNull()
+    expect(within(strRow).queryByText(/espécie/)).toBeNull()
 
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
   })
@@ -1822,8 +1823,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     for (const label of ['Força', 'Destreza']) {
       const row = screen.getByText(label).closest('div')!
-      expect(within(row).getByText('+1 raça')).toBeTruthy()
-      expect(within(row).queryByRole('button', { name: '+1 raça' })).toBeNull()
+      expect(within(row).getByText('+1 espécie')).toBeTruthy()
+      expect(within(row).queryByRole('button', { name: '+1 espécie' })).toBeNull()
     }
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
   })
@@ -1834,7 +1835,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
-    expect(screen.queryByText(/raça/)).toBeNull()
+    expect(screen.queryByText(/espécie/)).toBeNull()
     expect(screen.queryByText(/concede/)).toBeNull() // sem banner também
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
   })
@@ -1850,23 +1851,23 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
     const strRow = screen.getByText('Força').closest('div')!
-    expect(within(strRow).getByText('+2 raça')).toBeTruthy()
-    expect(within(strRow).queryByRole('button', { name: '+2 raça' })).toBeNull() // fixo, não-clicável
+    expect(within(strRow).getByText('+2 espécie')).toBeTruthy()
+    expect(within(strRow).queryByRole('button', { name: '+2 espécie' })).toBeNull() // fixo, não-clicável
 
     const dexRow = screen.getByText('Destreza').closest('div')!
-    const ghost = within(dexRow).getByRole('button', { name: '+1 raça' })
+    const ghost = within(dexRow).getByRole('button', { name: '+1 espécie' })
 
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     expect(nextBtn().disabled).toBe(true) // choice.count = 1, nada escolhido ainda
 
     fireEvent.click(ghost)
-    expect(within(dexRow).getByRole('button', { name: '+1 raça' })).toBeTruthy() // sólido, ainda clicável
+    expect(within(dexRow).getByRole('button', { name: '+1 espécie' })).toBeTruthy() // sólido, ainda clicável
     expect(nextBtn().disabled).toBe(false)
 
-    fireEvent.click(within(dexRow).getByRole('button', { name: '+1 raça' })) // desmarca
+    fireEvent.click(within(dexRow).getByRole('button', { name: '+1 espécie' })) // desmarca
     expect(nextBtn().disabled).toBe(true)
 
-    fireEvent.click(within(dexRow).getByRole('button', { name: '+1 raça' })) // escolhe de novo
+    fireEvent.click(within(dexRow).getByRole('button', { name: '+1 espécie' })) // escolhe de novo
     fireEvent.click(nextBtn()) // → perícias
     fireEvent.click(nextBtn()) // → magias
     fireEvent.click(nextBtn()) // → identidade
@@ -1913,8 +1914,8 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     const wisdomRow = screen.getByText('Sabedoria').closest('div')!
     expect(within(wisdomRow).getByText('+1 origem')).toBeTruthy()
-    expect(within(wisdomRow).getByText('+2 raça')).toBeTruthy()
-    expect(within(wisdomRow).getByText('11')).toBeTruthy() // default 8 + 1 (origem, fixo) + 2 (raça)
+    expect(within(wisdomRow).getByText('+2 espécie')).toBeTruthy()
+    expect(within(wisdomRow).getByText('11')).toBeTruthy() // default 8 + 1 (origem, fixo) + 2 (espécie)
   })
 
   // --- US-131: perícias do background (grant.kind === 'skills') ---
@@ -3506,7 +3507,7 @@ describe('SetupWizard — US-220 perícias proficientes por raça', () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickRaceSkillConfig(configWithRaceSkills(0), 'Elfo')
 
-    expect(screen.getByText('Perícias da sua raça')).toBeTruthy()
+    expect(screen.getByText('Perícias da sua espécie')).toBeTruthy()
     expect(screen.getByText('Percepção')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Percepção/ })).toBeNull() // fixa, não-clicável
 
@@ -3529,21 +3530,21 @@ describe('SetupWizard — US-220 perícias proficientes por raça', () => {
 
   it('Meio-orc: Intimidação pré-marcada e não-clicável', async () => {
     await pickRaceSkillConfig(configWithRaceSkills(0), 'Meio-orc')
-    expect(screen.getByText('Perícias da sua raça')).toBeTruthy()
+    expect(screen.getByText('Perícias da sua espécie')).toBeTruthy()
     expect(screen.getByText('Intimidação')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Intimidação/ })).toBeNull()
   })
 
   it('raça sem traço de perícia (Humano) não mostra a seção "Perícias da sua raça"', async () => {
     await pickRaceSkillConfig(configWithRaceSkills(0), 'Humano')
-    expect(screen.queryByText('Perícias da sua raça')).toBeNull()
+    expect(screen.queryByText('Perícias da sua espécie')).toBeNull()
   })
 
   it('Meio-elfo: exige 2 escolhas próprias (orçamento separado da classe); DTO manda raceSkillChoices', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickRaceSkillConfig(configWithRaceSkills(0), 'Meio-elfo')
 
-    expect(screen.getByText('Perícias da sua raça')).toBeTruthy()
+    expect(screen.getByText('Perícias da sua espécie')).toBeTruthy()
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     expect(nextBtn().disabled).toBe(true)
 
@@ -3643,7 +3644,7 @@ describe('SetupWizard — US-266 perícias: instrução geral e contador por fon
   // paralelo — os cliques abaixo escopam por bloco (`within`) pra não colidir com o card
   // homônimo do outro bloco, não porque a etapa em si seja ambígua pra quem só vê um bloco por vez.
   function originBlock() { return screen.getByText('Perícias de Membro de Guilda').closest('div')! }
-  function raceBlock() { return screen.getByText('Perícias da sua raça').closest('div')! }
+  function raceBlock() { return screen.getByText('Perícias da sua espécie').closest('div')! }
 
   it('Guildmember (2 à escolha) + Meio-elfo (2 à escolha) + classe (4 à escolha): três contadores independentes, fechar um não altera os outros', async () => {
     await goToSkillsWithThreeSources()

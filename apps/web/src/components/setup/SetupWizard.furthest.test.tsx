@@ -104,7 +104,7 @@ describe('SetupWizard — corrigir a partir da revisão sem refazer o caminho (U
 
   it('a trilha nunca alcança por clique uma etapa que nunca foi alcançada em ordem', async () => {
     await pickSystem()
-    for (const name of ['Espécie', 'Background', 'Atributos', 'Perícias', 'Magias', 'Identidade', 'Revisão', 'Mundo']) {
+    for (const name of ['Espécie', 'Origem', 'Atributos', 'Perícias', 'Magias', 'Identidade', 'Revisão', 'Mundo']) {
       expect(trail(name).disabled, name).toBe(true)
     }
   })

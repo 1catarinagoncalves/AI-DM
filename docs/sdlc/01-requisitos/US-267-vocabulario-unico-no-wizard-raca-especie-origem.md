@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Concluída
 **Depende de:** [US-98](./US-98-i18n-da-interface-web.md) (✅ — dicionário de texto) · [US-205](./US-205-escolha-por-cartao-classe-e-raca.md) (✅)
 **Criada em:** 2026-09-18
 **Origem:** crítica de design do fluxo de criação (2026-09-18), lida do código.
@@ -52,10 +52,10 @@ A crítica apontava também dois widgets para "escolha um" (cartão para variant
 
 ## Critérios de aceite
 
-- [ ] Em pt-BR, nenhuma tela de criação usa dois termos para o mesmo conceito.
-- [ ] Em en-US, idem (species/race, background/origin).
-- [ ] Os testes que selecionam por texto (`getByRole('button', { name: 'Espécie' })`, [SetupWizard.test.tsx:287](../../../apps/web/src/components/setup/SetupWizard.test.tsx)) são atualizados junto.
-- [ ] **Teste de regressão:** um teste percorre o dicionário `setup.*` e falha se o termo descartado reaparecer em qualquer chave.
+- [x] Em pt-BR, nenhuma tela de criação usa dois termos para o mesmo conceito.
+- [x] Em en-US, idem (species/race, background/origin).
+- [x] Os testes que selecionam por texto (`getByRole('button', { name: 'Espécie' })`, [SetupWizard.test.tsx:287](../../../apps/web/src/components/setup/SetupWizard.test.tsx)) são atualizados junto.
+- [x] **Teste de regressão:** um teste percorre o dicionário `setup.*` e falha se o termo descartado reaparecer em qualquer chave. Ver [i18n.test.tsx](../../../apps/web/src/components/i18n.test.tsx) → describe `US-267`.
 
 ---
 
@@ -66,10 +66,10 @@ A crítica apontava também dois widgets para "escolha um" (cartão para variant
 
 ---
 
-## Questões em aberto
+## Questões em aberto — resolvidas
 
-1. **Espécie ou Raça?** SRD 5.2 (2024) usa "espécie"; o SRD 5.1 (2014) usa "raça". O produto já migrou a etapa para "Espécie". Decisão de produto da mantenedora.
-2. **Origem ou Background?** O catálogo vem do A5E como "background", a etapa fala em "origem". Recomendação: "Origem" (português), "Background" só no nome do dado.
+1. **Espécie ou Raça?** Decidido: **Espécie**. O produto já tinha migrado a etapa para "Espécie"; "Raça" nas demais chaves (`raceClass.race`, `race.detail.features`, `attributes.raceBadge`, `skills.raceGrant`, `review.race`) era resíduo, não escolha.
+2. **Origem ou Background?** Decidido: **Origem**. "Background" some do texto exibido; sobrevive só como nome de chave interna (`setup.background.*`, `setup.raceClass.race` etc. — fora do escopo por [US-54](./US-54-chaves-canonicas-em-ingles.md)).
 
 ---
 

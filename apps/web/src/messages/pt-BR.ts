@@ -57,7 +57,7 @@ export const ptBR = {
   // US-213: nova etapa entre Perícias e Revisão — prévia das magias da classe + truque
   // bônus do Alto-elfo.
   'setup.step.spells': 'Magias',
-  'setup.step.background': 'Background',
+  'setup.step.background': 'Origem',
   // US-210: última etapa antes da Revisão — nome, gênero e alinhamento saem da etapa `class`
   // (US-205) e voltam a uma etapa própria, agora no FIM da trilha.
   'setup.step.identity': 'Identidade',
@@ -171,7 +171,7 @@ export const ptBR = {
   'setup.raceClass.namePlaceholder': 'Ex.: Lyra Silvermoon',
   'setup.raceClass.gender': 'Gênero',
   // Reusados como LEGENDA da grade de cartão (US-205) — mesmo texto que já rotulava o <select>.
-  'setup.raceClass.race': 'Raça',
+  'setup.raceClass.race': 'Espécie',
   'setup.raceClass.class': 'Classe',
   'setup.raceClass.select': 'Selecionar…',
   // US-205: subgrade de subclasse, aninhada no cartão de classe (só existe fisicamente
@@ -188,7 +188,7 @@ export const ptBR = {
   // US-264: frase de consequência sob o seletor — só o que o wizard hoje deriva do nível
   // (maxHpForLevel no preview de PV; proficiencyBonusForLevel no salvamento, @ai-dm/shared).
   'setup.class.level.consequence': 'PV e bônus de proficiência acompanham o nível.',
-  'setup.race.detail.features': 'Traços raciais',
+  'setup.race.detail.features': 'Traços de espécie',
   // US-142 (correção de 2026-09-02): legenda da segunda grade de cartão da etapa raça — só
   // aparece quando a raiz escolhida tem subespécie.
   'setup.race.variant.legend': 'Escolha uma variante',
@@ -257,7 +257,7 @@ export const ptBR = {
   'setup.attributes.abilityBadgeFixed': '+1 origem',
   // US-212: selo do bônus de atributo de RAÇA — mesmo texto sólido/fantasma (a quantidade
   // própria da raça já diferencia a linha, sem precisar de rótulo "fantasma" à parte).
-  'setup.attributes.raceBadge': '+{amount} raça',
+  'setup.attributes.raceBadge': '+{amount} espécie',
   // US-207: selo nos atributos que `config.classes[].primary` (US-203) lista pra classe
   // escolhida — informa, não recomenda distribuição.
   'setup.attributes.primaryBadge': 'Principal',
@@ -276,7 +276,7 @@ export const ptBR = {
   'setup.skills.originGrant': 'Perícias de {origin}',
   // US-220: seção de perícia de raça — mesmo lugar/padrão de originGrant acima (Keen
   // Senses/Menacing aparecem pré-marcadas, Skill Versatility como escolha clicável abaixo).
-  'setup.skills.raceGrant': 'Perícias da sua raça',
+  'setup.skills.raceGrant': 'Perícias da sua espécie',
   'setup.skills.instructions': 'Escolha {n} perícias proficientes (+{bonus} cada).',
   'setup.skills.selected': 'Selecionadas:',
   // US-266: aparece no bloco quando o limite dele é atingido, ao lado dos cartões desabilitados
@@ -304,7 +304,7 @@ export const ptBR = {
   'setup.identity.personalityPlaceholder': 'Como ele age e reage?',
 
   // ---- wizard: background ----
-  'setup.background.titulo': 'Background',
+  'setup.background.titulo': 'Origem',
   // US-264: sem `{name}` — o nome só é pedido 4 etapas depois, em `identity` (US-210); antes
   // disso o texto sempre caía em "Quem é o personagem?".
   'setup.background.subtitulo': 'Quem é o personagem? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.',
@@ -360,7 +360,7 @@ export const ptBR = {
   'setup.review.name': 'Nome',
   'setup.review.gender': 'Gênero',
   'setup.review.alignment': 'Alinhamento',
-  'setup.review.race': 'Raça',
+  'setup.review.race': 'Espécie',
   'setup.review.class': 'Classe',
   'setup.review.subclass': 'Subclasse',
   // US-211: só aparece na revisão quando `race === 'dragonborn'`.
@@ -377,7 +377,7 @@ export const ptBR = {
   'setup.review.armor': 'Proficiências de armadura',
   'setup.review.languages': 'Idiomas',
   'setup.review.kit': 'Kit inicial',
-  'setup.review.background': 'Background',
+  'setup.review.background': 'Origem',
   'setup.review.origin': 'Origem',
   'setup.review.connection': 'Conexão',
   'setup.review.memento': 'Memento',

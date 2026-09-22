@@ -76,7 +76,7 @@ describe('SetupWizard — etapas fechadas depois de criar o personagem (US-258)'
     expect(screen.queryByRole('button', { name: /Voltar/ })).toBeNull()
     // US-263: este fixture não tem `classSpells` nem raça Alto-elfo — `spells` nunca teve o que
     // mostrar e nem entra na trilha (visibleSteps.ts).
-    for (const name of ['Sistema', 'Classe', 'Espécie', 'Background', 'Atributos', 'Perícias', 'Identidade', 'Revisão']) {
+    for (const name of ['Sistema', 'Classe', 'Espécie', 'Origem', 'Atributos', 'Perícias', 'Identidade', 'Revisão']) {
       const trail = screen.getByRole('button', { name }) as HTMLButtonElement
       expect(trail.disabled, name).toBe(true)
       fireEvent.click(trail)
