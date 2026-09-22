@@ -179,10 +179,16 @@ export const ptBR = {
   'setup.class.detail.level': 'Nível inicial',
   'setup.class.level.decrease': 'Diminuir nível',
   'setup.class.level.increase': 'Aumentar nível',
+  // US-264: frase de consequência sob o seletor — só o que o wizard hoje deriva do nível
+  // (maxHpForLevel no preview de PV; proficiencyBonusForLevel no salvamento, @ai-dm/shared).
+  'setup.class.level.consequence': 'PV e bônus de proficiência acompanham o nível.',
   'setup.race.detail.features': 'Traços raciais',
   // US-142 (correção de 2026-09-02): legenda da segunda grade de cartão da etapa raça — só
   // aparece quando a raiz escolhida tem subespécie.
   'setup.race.variant.legend': 'Escolha uma variante',
+  // US-264: selo do cartão pré-selecionado por selectRootCard — some assim que a jogadora
+  // clica em qualquer variante (`variantTouched`).
+  'setup.race.variant.default': 'Padrão — troque abaixo',
   // Traço "Tool Proficiency" do anão — legenda da grade de escolha da ferramenta de artesão,
   // só aparece para hill-dwarf.
   'setup.race.dwarfTool.legend': 'Escolha a proeficiência de ferramenta de artesão',
@@ -285,8 +291,9 @@ export const ptBR = {
 
   // ---- wizard: background ----
   'setup.background.titulo': 'Background',
-  'setup.background.subtitulo': 'Quem é {name}? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.',
-  'setup.background.defaultName': 'o personagem',
+  // US-264: sem `{name}` — o nome só é pedido 4 etapas depois, em `identity` (US-210); antes
+  // disso o texto sempre caía em "Quem é o personagem?".
+  'setup.background.subtitulo': 'Quem é o personagem? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.',
   // US-206: as duas metades declaradas da etapa — cartão de origem + benefícios em cima, os
   // cinco campos livres embaixo.
   'setup.background.whatOriginGives': 'O que esta origem te dá',

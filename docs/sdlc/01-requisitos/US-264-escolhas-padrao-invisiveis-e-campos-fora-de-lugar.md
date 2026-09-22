@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-227](./US-227-nivel-inicial-pv-e-bonus-de-proficiencia-por-classe.md) (✅) · [US-142](./US-142-tracos-mecanicos-subespecie-srd-5-1.md) (✅) · [US-210](./US-210-identidade-como-etapa-propria.md) (✅)
 **Relacionada a:** [US-259](./US-259-proximo-desabilitado-diz-o-que-falta.md)
 **Criada em:** 2026-09-18
@@ -52,11 +52,11 @@
 
 ## Critérios de aceite
 
-- [ ] Sob o seletor de nível existe a frase de consequência, em pt-BR e en-US.
-- [ ] Escolher uma raiz com subespécie marca a primeira variante como "Padrão" e rola até a grade; clicar em qualquer variante remove o selo.
-- [ ] Raiz sem subespécie não mostra selo nem rola.
-- [ ] Com `charData.name` vazio ou preenchido, o subtítulo de `background` é o mesmo texto.
-- [ ] **Teste de regressão:** o subtítulo de `background` não contém a chave `defaultName` nem depende do nome; o selo "Padrão" aparece só antes da primeira escolha manual de variante.
+- [x] Sob o seletor de nível existe a frase de consequência, em pt-BR e en-US.
+- [x] Escolher uma raiz com subespécie marca a primeira variante como "Padrão" e rola até a grade; clicar em qualquer variante remove o selo.
+- [x] Raiz sem subespécie não mostra selo nem rola.
+- [x] Com `charData.name` vazio ou preenchido, o subtítulo de `background` é o mesmo texto.
+- [x] **Teste de regressão:** o subtítulo de `background` não contém a chave `defaultName` nem depende do nome; o selo "Padrão" aparece só antes da primeira escolha manual de variante.
 
 ---
 
@@ -69,7 +69,7 @@
 
 ## Questões em aberto
 
-1. **O que muda de fato com nível > 1 na criação?** A frase de consequência só pode citar o que é verdade no código de hoje. Verificar antes de escrever.
+1. ~~**O que muda de fato com nível > 1 na criação?**~~ **Verificado e corrigido na mesma sessão.** PV: `previewHp` (SetupWizard.tsx) recalcula via `maxHpForLevel(classHitDice, levelValue, conMod)` a cada troca de nível. Bônus de proficiência: o preview do wizard usava `system.config.proficiency.bonus ?? 2`, FIXO — não reagia ao nível, diferente do PV e diferente do que o servidor grava (`proficiencyBonusForLevel`, adventure.service.ts) e do que a ficha em jogo mostra (play/[adventureId]/page.tsx, já corrigido antes). Trocado por `proficiencyBonusForLevel(levelValue)` (@ai-dm/shared) nas 3 leituras do wizard (skillSheet, savingThrowSheet, instrução da etapa `skills`) — preview, salvamento e ficha agora usam a mesma função. **Achado à parte, também corrigido na mesma sessão:** `apps/api/src/ai/ai.service.ts:495` tinha o mesmo bug — `config.proficiency?.bonus ?? 2` fixo na ficha que o DM Agent lê durante a narração, afetando o jogo em andamento (não só a criação). Trocado por `proficiencyBonusForLevel(character.level ?? 1)`, mesma função que `adventure.service.ts` (salvamento) e `play/[adventureId]/page.tsx` (ficha em jogo) já usavam — os quatro pontos de leitura combinam agora.
 2. **Exigir a escolha da variante em vez de pré-selecionar?** Corta o padrão silencioso, mas custa um clique extra em toda raça com subespécie. Recomendação: manter a pré-seleção e torná-la visível.
 3. **Pedir o nome mais cedo?** Reabre a US-210. Só se dados de uso mostrarem abandono na etapa de identidade; hoje é opinião.
 

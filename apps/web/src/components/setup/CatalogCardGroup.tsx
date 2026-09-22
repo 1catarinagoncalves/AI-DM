@@ -10,7 +10,10 @@ import { optionCardClass } from '@/components/ui/dm'
 // SRD (ver `scripts/srd/race-bonus.mjs`).
 // Mesmo contrato de campo que `SystemCatalogEntry` (@ai-dm/shared), sem importar o tipo
 // inteiro: este componente só lê key/label/kicker/blurb/bonus, nunca grava no catálogo.
-export type CatalogCardEntry = { key: string; label: string; kicker?: string; blurb?: string; bonus?: string }
+// US-264: `badge` marca um cartão pré-escolhido pelo código, não pela jogadora (ex. variante
+// de espécie que selectRootCard preenche sozinha) — pílula neutra, distinta do `bonus` verde
+// de atributo (não é um ganho mecânico, é um aviso "isto foi escolhido por você").
+export type CatalogCardEntry = { key: string; label: string; kicker?: string; blurb?: string; bonus?: string; badge?: string }
 
 // US-205: grade de cartão de rádio — substitui o `<select>` de classe/raça (US-105) e serve
 // a subgrade de subclasse (US-141) aninhada no cartão de classe, e a grade de variante de
@@ -24,6 +27,14 @@ function CardBody({ entry }: { entry: CatalogCardEntry }) {
   return (
     <>
       <span className="block font-serif text-base font-semibold text-parchment">{entry.label}</span>
+      {/* `aria-hidden`: o <label> inteiro empresta o texto pro nome acessível do rádio — sem
+          isto, "Anão da Colina" viraria "Anão da Colina Padrão — troque abaixo" (mesmo motivo
+          do aria-hidden em skillModifierByKey, SetupWizard.tsx). */}
+      {entry.badge && (
+        <span aria-hidden className="mt-1 inline-flex items-center rounded-full border border-dashed border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          {entry.badge}
+        </span>
+      )}
       {entry.kicker && (
         <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{entry.kicker}</span>
       )}

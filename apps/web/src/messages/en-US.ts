@@ -160,8 +160,14 @@ export const enUS: Record<MessageKey, string> = {
   'setup.class.detail.level': 'Starting level',
   'setup.class.level.decrease': 'Decrease level',
   'setup.class.level.increase': 'Increase level',
+  // US-264: consequence line under the selector — only what the wizard actually derives from
+  // level today (maxHpForLevel in the HP preview; proficiencyBonusForLevel on save, @ai-dm/shared).
+  'setup.class.level.consequence': 'HP and proficiency bonus follow your level.',
   'setup.race.detail.features': 'Racial traits',
   'setup.race.variant.legend': 'Choose a variant',
+  // US-264: badge on the card selectRootCard pre-selects — disappears once the player clicks
+  // any variant (`variantTouched`).
+  'setup.race.variant.default': 'Default — change below',
   // Dwarf "Tool Proficiency" trait — legend for the artisan's tool choice grid, hill-dwarf only.
   'setup.race.dwarfTool.legend': "Choose your artisan's tool",
   // High Elf "Extra Language" trait — legend for the extra language <select>, high-elf only.
@@ -256,8 +262,9 @@ export const enUS: Record<MessageKey, string> = {
 
   // ---- wizard: background ----
   'setup.background.titulo': 'Background',
-  'setup.background.subtitulo': 'Who is {name}? The Dungeon Master uses this to give weight to your choices. All optional — one item per line in ideals, bonds and flaws.',
-  'setup.background.defaultName': 'this character',
+  // US-264: no `{name}` — the name is only asked 4 steps later, in `identity` (US-210); before
+  // that the text always fell back to "Who is this character?".
+  'setup.background.subtitulo': 'Who is this character? The Dungeon Master uses this to give weight to your choices. All optional — one item per line in ideals, bonds and flaws.',
   // US-206: the step's two declared halves — origin card + benefits on top, the five free-text
   // fields below.
   'setup.background.whatOriginGives': 'What this origin gives you',

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus, Wand2 } from 'lucide-react'
@@ -11,7 +11,7 @@ import {
   getRaceToolEquipment, MEMENTO_ITEM_LABEL, resolveSheetEntries, resolveCharacterFeatures,
   DRACONIC_ANCESTRY_TABLE, DWARF_TOOL_PROFICIENCY_CHOICES, RACE_LANGUAGES, RACE_EXTRA_LANGUAGE_CHOICE,
   RACE_WEAPON_PROFICIENCIES, RACE_TOOL_PROFICIENCIES, RACE_SKILL_PROFICIENCIES, RACE_SKILL_PROFICIENCY_CHOICES,
-  maxHpForLevel, parseHitDice,
+  maxHpForLevel, parseHitDice, proficiencyBonusForLevel,
   type SystemConfig, type SystemTool, type DraconicDamageType, type InitialAdventureHook,
 } from '@ai-dm/shared'
 import { api } from '@/lib/api'
@@ -345,6 +345,12 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   // raceToolChoice/raceLanguageChoice acima, mas array: a contagem hoje é 2). Resetada ao
   // trocar de raça/raiz (selectRootCard) e de sistema, mesmo motivo dos campos irmãos.
   const [raceSkillChoice, setRaceSkillChoice] = useState<string[]>([])
+  // US-264: selectRootCard preenche a PRIMEIRA variante sozinha (chave jogável, US-142) sem a
+  // jogadora ver — `variantTouched` diferencia esse preenchimento automático de uma escolha
+  // manual, pro selo "Padrão" (grade de variante abaixo) e pro scroll até ela. Resetado junto
+  // dos outros estados de raça em selectRootCard.
+  const [variantTouched, setVariantTouched] = useState(false)
+  const variantGridRef = useRef<HTMLDivElement>(null)
   // US-221: ferramenta(s) escolhida(s) do `toolProficiencies.choice` da CLASSE (Bardo 3 de
   // musical-instrument, Monge 1 entre artisan/musical-instrument) — só existe estado real pra
   // classe com `choice` (mesmo padrão condicional de raceSkillChoice acima). Resetada ao trocar
@@ -470,6 +476,12 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   const raceRoots = raceCatalog.filter(r => !r.parentKey)
   const selectedRootKey = raceCatalog.find(r => r.key === charData.race)?.parentKey ?? charData.race
   const raceVariants = raceCatalog.filter(r => r.parentKey === selectedRootKey)
+  // US-264: rola até a grade de variante ao trocar de raiz — sem isto a grade nasce fora da
+  // dobra e a jogadora segue sem saber que existe (US-264 §Contexto #2). Não dispara ao trocar
+  // só a variante dentro da mesma raiz (`selectedRootKey` não muda nesse caso).
+  useEffect(() => {
+    if (raceVariants.length > 0) variantGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [selectedRootKey])
   // US-211: cartões da grade de ancestralidade dracônica — mesmos 3 campos que
   // CatalogCardEntry já aceita (label/bonus/blurb), sem mudança no componente.
   const draconicAncestryCards = DRACONIC_ANCESTRY_TABLE.map(d => ({
@@ -724,19 +736,24 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   // config legado sem hitDice) cai no fallback de nível 1 já embutido em maxHpForLevel.
   const conMod = abilityModifier(attrs['constitution'] ?? 10)
   const previewHp = maxHpForLevel(classHitDice, levelValue, conMod)
+  // US-264 (regressão): era `system.config.proficiency.bonus ?? 2`, FIXO — não reagia ao
+  // nível escolhido acima, ao contrário do PV (previewHp). `proficiencyBonusForLevel`
+  // (@ai-dm/shared) é a MESMA função que o servidor usa ao salvar (adventure.service.ts) e ao
+  // narrar (ai.service.ts, play/[adventureId]/page.tsx) — preview e resultado final combinam.
+  const proficiencyBonus = proficiencyBonusForLevel(levelValue)
   // Catálogo inteiro com modificador já resolvido (US-27/US-207) — fonte única pra revisão
   // (só as proficientes, abaixo) e pra etapa `skills` (todas, ao lado de cada perícia): nenhuma
   // das duas soma o modificador por conta própria, as duas leem daqui.
   // US-131: soma as da origem (`originSkillKeys`). US-220: soma as de raça (fixas + escolhidas)
   // — o mesmo conjunto que a API vai persistir (US-127), não só a parte escolhida nesta etapa.
-  const skillSheet = buildSkillSheet(skillCatalog, attrs, [...raceSkillsFixed, ...raceSkillChoice, ...originSkillKeys, ...skills], system?.config?.proficiency?.bonus ?? 2)
+  const skillSheet = buildSkillSheet(skillCatalog, attrs, [...raceSkillsFixed, ...raceSkillChoice, ...originSkillKeys, ...skills], proficiencyBonus)
   const skillModifierByKey = Object.fromEntries(skillSheet.map(sk => [sk.key, sk.modifier]))
   // Só as perícias ESCOLHIDAS — a revisão não lista o catálogo inteiro.
   const reviewSkills = skillSheet.filter(sk => sk.proficient)
   // US-222: as 2 salvaguardas que a classe torna proficientes, mesmo recorte "só proficiente"
   // de reviewSkills acima — sem escolha do jogador, `classProficiencyEntry.savingThrows` já
   // fixa quais 2 das 6 aparecem aqui.
-  const reviewSavingThrows = buildSavingThrowSheet(attributes, attrs, classProficiencyEntry?.savingThrows, system?.config?.proficiency?.bonus ?? 2)
+  const reviewSavingThrows = buildSavingThrowSheet(attributes, attrs, classProficiencyEntry?.savingThrows, proficiencyBonus)
     .filter(st => st.proficient)
   // US-132: ferramenta(s) fixa(s) + escolhida(s) da origem, já resolvidas pro rótulo — mesma
   // forma que a API vai persistir (Character.tools), pro preview não divergir do salvo.
@@ -901,6 +918,8 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
     setRaceAbilityChoice([])
     // US-220: Skill Versatility é escolha da raça — mesmo motivo do reset acima.
     setRaceSkillChoice([])
+    // US-264: nova raiz preenche a variante sozinha de novo — o selo "Padrão" volta.
+    setVariantTouched(false)
   }
 
   // US-206: cartão de origem substitui o <select> (US-122) — mesmos 5 resets do onChange
@@ -1466,6 +1485,10 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                             className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
                             disabled={levelValue >= 20}><Plus className="size-4" aria-hidden /></button>
                         </div>
+                        {/* US-264: sem isto o nível era um campo sem propósito visível — PV
+                            (previewHp) e bônus de proficiência (proficiencyBonus, ambos via
+                            @ai-dm/shared) reagem ao nível na hora, aqui e na revisão. */}
+                        <p className="mt-2 text-xs text-muted-foreground">{t('setup.class.level.consequence')}</p>
                       </div>
                       {/* US-226: classe com `startingEquipmentChoices` (12 das 13 — marshal
                           fica no texto corrido de sempre, ver ramo `else`) troca o parágrafo
@@ -1603,10 +1626,17 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                     tem subespécie — mostra o DELTA de cada variante (`variantBonus`), não o
                     total já visível no cartão da raiz logo acima. */}
                 {raceVariants.length > 0 && (
-                  <div className="mt-6">
+                  <div className="mt-6" ref={variantGridRef}>
+                    {/* US-264: selo "Padrão" só no cartão que selectRootCard preencheu sozinho
+                        (a PRIMEIRA variante) e só antes da jogadora escolher qualquer uma —
+                        some pra sempre depois do primeiro clique manual, mesmo repetindo a
+                        mesma variante (a intenção já ficou explícita). */}
                     <CatalogCardGroup name="char-race-variant" legend={t('setup.race.variant.legend')}
-                      items={raceVariants.map(v => ({ ...v, bonus: v.variantBonus }))} value={charData.race}
-                      onChange={key => { setCharData(p => ({ ...p, race: key })); setRaceAbilityChoice([]) }} />
+                      items={raceVariants.map(v => ({
+                        ...v, bonus: v.variantBonus,
+                        badge: !variantTouched && v.key === raceVariants[0]?.key ? t('setup.race.variant.default') : undefined,
+                      }))} value={charData.race}
+                      onChange={key => { setCharData(p => ({ ...p, race: key })); setRaceAbilityChoice([]); setVariantTouched(true) }} />
                   </div>
                 )}
                 {/* US-211 (correção): grade de ancestralidade dracônica — só pra dragonborn, ANTES
@@ -1844,7 +1874,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                   </div>
                 )}
                 <p className="mt-6 text-sm text-muted-foreground">
-                  {t('setup.skills.instructions', { n: effectiveSkillChoices, bonus: system.config?.proficiency?.bonus ?? 2 })}
+                  {t('setup.skills.instructions', { n: effectiveSkillChoices, bonus: proficiencyBonus })}
                 </p>
                 {/* US-98/US-207: o número deixou de ser um <span> no meio da frase (concatenação
                     que quebra noutra ordem de palavras); o destaque é o selo, mesmo componente
@@ -1887,7 +1917,9 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
               <div>
                 <SectionTitle>{t('setup.background.titulo')}</SectionTitle>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {t('setup.background.subtitulo', { name: charData.name || t('setup.background.defaultName') })}
+                  {/* US-264: sem `{name}` — nome só existe a partir de `identity`, 4 etapas
+                      depois (US-210); antes disso este texto sempre caía no fallback. */}
+                  {t('setup.background.subtitulo')}
                 </p>
                 {/* US-206: metade 1 — "o que esta origem te dá": grade de cartão (US-205
                     reusada, modo simples — origem não tem variante/subespécie, ver US-206

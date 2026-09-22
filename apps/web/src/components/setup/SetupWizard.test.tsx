@@ -772,6 +772,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   // segunda grade, "escolha uma variante", com as subespécies daquela raiz. Trocar de raiz troca
   // a grade inteira; clicar outra variante na mesma raiz troca só a chave gravada.
   it('raiz com subespécie é cartão selecionável e abre a grade de variante', async () => {
+    Element.prototype.scrollIntoView = vi.fn()
     listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithRaceSubspecies(2) }])
     render(<SetupWizard />)
     fireEvent.click(await screen.findByText('D&D 5e SRD'))
@@ -781,6 +782,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     // Antes de escolher raiz, nenhuma grade de variante existe ainda.
     expect(screen.queryByRole('radio', { name: 'Anão da Colina' })).toBeNull()
+    expect(screen.queryByText('Padrão — troque abaixo')).toBeNull()
 
     // Clicar a raiz (Anão) é permitido — e preenche a primeira variante sozinho.
     const dwarf = screen.getByRole('radio', { name: 'Anão' }) as HTMLInputElement
@@ -790,19 +792,44 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     const mountainDwarf = screen.getByRole('radio', { name: 'Anão da Montanha' }) as HTMLInputElement
     expect(hillDwarf.checked).toBe(true)
     expect(mountainDwarf.checked).toBe(false)
+    // US-264: escolha automática (selectRootCard) vira selo visível, só na variante preenchida
+    // sozinha — e a grade rola até a vista, pra jogadora não seguir sem ver que existe.
+    expect(screen.getAllByText('Padrão — troque abaixo').length).toBe(1)
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
 
     // Clicar a SEGUNDA variante da mesma raiz troca a chave — a raiz continua marcada (mesmo
-    // grupo `parentKey`), só a subespécie escolhida muda.
+    // grupo `parentKey`), só a subespécie escolhida muda. Escolha MANUAL: o selo "Padrão" some,
+    // mesmo a variante trocada não sendo a primeira.
     fireEvent.click(mountainDwarf)
     expect(mountainDwarf.checked).toBe(true)
     expect(hillDwarf.checked).toBe(false)
     expect(dwarf.checked).toBe(true)
+    expect(screen.queryByText('Padrão — troque abaixo')).toBeNull()
 
-    // Trocar de raiz (Elfo) troca a grade de variante inteira — a de Anão some.
+    // Trocar de raiz (Elfo) troca a grade de variante inteira — a de Anão some. Elfo só tem UMA
+    // variante (Alto-elfo) e ainda assim ganha o selo: a raiz nova volta a preencher sozinha.
     fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
     expect(screen.queryByRole('radio', { name: 'Anão da Colina' })).toBeNull()
     expect(screen.queryByRole('radio', { name: 'Anão da Montanha' })).toBeNull()
     expect((screen.getByRole('radio', { name: 'Alto-elfo' }) as HTMLInputElement).checked).toBe(true)
+    expect(screen.getAllByText('Padrão — troque abaixo').length).toBe(1)
+  })
+
+  // US-264: raiz SEM subespécie (Guerreiro escolhe Humano, sem variante em `configWithBudget`)
+  // não deve mostrar selo nem tentar rolar — não existe grade nenhuma pra rolar até.
+  it('raiz sem subespécie não mostra selo "Padrão" nem rola', async () => {
+    const scrollSpy = vi.fn()
+    Element.prototype.scrollIntoView = scrollSpy
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config: configWithBudget(2) }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+
+    expect(screen.queryByText('Padrão — troque abaixo')).toBeNull()
+    expect(scrollSpy).not.toHaveBeenCalled()
   })
 
   // US-105/US-205: o catálogo passou a depender do sistema. Trocar de sistema com classe já
@@ -1237,6 +1264,38 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect(screen.queryByText(/Furtividade/)).toBeNull()
   })
 
+  // US-264 (regressão): bônus de proficiência do preview era FIXO em `config.proficiency.bonus`
+  // — não reagia ao nível, ao contrário do PV (previewHp). Subir o nível na etapa `class` tem
+  // de mudar o "+{bonus}" da instrução de `skills` E o modificador das perícias na revisão —
+  // proficiencyBonusForLevel(5) === 3, não mais o 2 fixo do config de teste.
+  it('subir o nível na etapa `class` aumenta o bônus de proficiência nas perícias', async () => {
+    await pickSystemAndFillRaceClass(configWithSkills(2))
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → class, pra mexer no nível
+
+    const increase = screen.getByLabelText('Aumentar nível')
+    for (let i = 0; i < 4; i++) fireEvent.click(increase) // nível 1 → 5
+
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race (Elfo já marcado)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    const inc = screen.getByLabelText('Aumentar Força')
+    fireEvent.click(inc); fireEvent.click(inc) // Força 8 → 10 (fecha o orçamento de 2)
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+
+    // A instrução da própria etapa já mostra o bônus por nível, antes de qualquer escolha.
+    expect(screen.getByText('Escolha 2 perícias proficientes (+3 cada).')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Atletismo Força' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' })) // completa as 2 exigidas
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade (sem magias no config)
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+
+    // Força 10 → modificador 0; nível 5 → bônus +3 (não mais o +2 fixo do config de teste).
+    expect(screen.getByText(/Atletismo \(\+3\)/)).toBeTruthy()
+  })
+
   // US-127: PV inicial e kit da classe escolhida aparecem na revisão, calculados do mesmo
   // config que a criação vai usar para persistir — sem chamada de API nova.
   it('revisão mostra PV inicial e o kit da classe escolhida', async () => {
@@ -1269,10 +1328,36 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     expect(screen.getByText('D6 de vida')).toBeTruthy()
     expect((screen.getByLabelText('Nível inicial') as HTMLInputElement).value).toBe('1')
+    // US-264: frase de consequência sob o seletor — o nível deixa de ser um campo sem propósito visível.
+    expect(screen.getByText('PV e bônus de proficiência acompanham o nível.')).toBeTruthy()
 
     // Trocar de classe troca o dado exibido — não fica preso ao 1d6 do Mago.
     fireEvent.click(screen.getByRole('radio', { name: 'Guerreiro' }))
     expect(screen.getByText('D10 de vida')).toBeTruthy()
+  })
+
+  // US-264: subtítulo de `background` interpolava `{name}` — como o nome só existe a partir de
+  // `identity` (4 etapas depois), na primeira passada o texto sempre caía no fallback
+  // "Quem é o personagem?". Preencher o nome e VOLTAR até `background` prova que o texto não
+  // muda mais — a interpolação e a chave `defaultName` saíram de cena.
+  it('subtítulo de background não muda com o nome preenchido depois (US-264)', async () => {
+    await pickSystemAndFillRaceClass(configWithHitDice(0))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    const subtitle = 'Quem é o personagem? O mestre usa isto para dar peso às escolhas. Tudo opcional — um item por linha em ideais, vínculos e fraquezas.'
+    expect(screen.getByText(subtitle)).toBeTruthy()
+
+    // `elf`/`wizard` sem `classSpells` no config → US-263 esconde `spells` da trilha
+    // (hasSpellsContent falso), então de `skills` o Próximo já cai direto em `identity`.
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → perícias
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Voltar/ })) // → background
+
+    expect(screen.getByText(subtitle)).toBeTruthy()
   })
 
   // US-227: nível é independente de classe/raça (não reseta como subclass) — subir o nível na
