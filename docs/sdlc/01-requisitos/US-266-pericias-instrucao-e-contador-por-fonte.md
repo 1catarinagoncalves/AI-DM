@@ -2,7 +2,7 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Concluída
 **Depende de:** [US-207](./US-207-atributos-e-pericias-com-orcamento-visivel.md) (✅ — `CounterBadge`) · [US-131](./US-131-integracao-mecanica-background-proficiency.md) (✅ — grant de perícia da origem) · [US-220](./US-220-pericias-proficientes-por-raca.md) (✅ — perícia à escolha de raça)
 **Relacionada a:** [US-204](./US-204-wizard-em-duas-colunas-com-ficha-viva.md) (📋 — já planeja o cabeçalho de três linhas em todas as etapas; **não duplicar aqui**)
 **Criada em:** 2026-09-18
@@ -55,11 +55,11 @@ Instrução geral no topo ("Você escolhe perícias de até três fontes"), depo
 
 ## Critérios de aceite
 
-- [ ] A instrução geral aparece antes de qualquer bloco de perícia.
-- [ ] Cada fonte com escolha mostra o seu contador, que vira verde ao fechar.
-- [ ] Um cartão bloqueado por limite tem texto explicando, além da opacidade.
-- [ ] Origem sem `chooseCount` e raça sem escolha não mostram contador (só o bloco fixo, se houver).
-- [ ] **Teste de regressão:** com Guildmember (2 à escolha) + classe com 4 perícias, três contadores independentes; fechar um não altera os outros.
+- [x] A instrução geral aparece antes de qualquer bloco de perícia.
+- [x] Cada fonte com escolha mostra o seu contador, que vira verde ao fechar.
+- [x] Um cartão bloqueado por limite tem texto explicando, além da opacidade.
+- [x] Origem sem `chooseCount` e raça sem escolha não mostram contador (só o bloco fixo, se houver).
+- [x] **Teste de regressão:** com Guildmember (2 à escolha) + classe com 4 perícias, três contadores independentes; fechar um não altera os outros.
 
 ---
 

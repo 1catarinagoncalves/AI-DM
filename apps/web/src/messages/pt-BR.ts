@@ -267,6 +267,10 @@ export const ptBR = {
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Perícias',
+  // US-266: instrução geral no TOPO da etapa, antes de qualquer bloco — até aqui a única
+  // "instrução" era a específica da classe, lá embaixo, então as escolhas de origem/raça (que
+  // também bloqueiam o avanço) pareciam não ter enunciado nenhum.
+  'setup.skills.generalInstruction': 'Você escolhe perícias de até três fontes.',
   // US-131: seção das perícias do background, no TOPO desta etapa (a origem já avisou na
   // etapa `background`; aqui é onde a escolha de fato acontece).
   'setup.skills.originGrant': 'Perícias de {origin}',
@@ -275,6 +279,10 @@ export const ptBR = {
   'setup.skills.raceGrant': 'Perícias da sua raça',
   'setup.skills.instructions': 'Escolha {n} perícias proficientes (+{bonus} cada).',
   'setup.skills.selected': 'Selecionadas:',
+  // US-266: aparece no bloco quando o limite dele é atingido, ao lado dos cartões desabilitados
+  // — `aria-describedby` liga cada cartão bloqueado a este texto, o motivo sobrevive a leitor de
+  // tela, não só a opacidade do CSS.
+  'setup.skills.limitReached': 'Limite atingido — desmarque uma para trocar.',
 
   // ---- wizard: magias (US-213) ----
   'setup.spells.titulo': 'Magias',

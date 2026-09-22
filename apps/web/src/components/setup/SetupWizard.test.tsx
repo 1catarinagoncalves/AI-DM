@@ -3568,6 +3568,145 @@ describe('SetupWizard — US-220 perícias proficientes por raça', () => {
   })
 })
 
+// US-266: instrução geral no topo + contador por fonte (origem/raça/classe) na etapa `skills` —
+// antes só a classe tinha selo, origem e raça (que também bloqueiam o avanço) não diziam quanto
+// faltava. Config combina as três fontes com escolha própria: Guildmember (origem, 2 à escolha),
+// Meio-elfo (raça, 2 à escolha via RACE_SKILL_PROFICIENCY_CHOICES) e classe (4 à escolha, config
+// global `proficiency.choices`).
+const configWithThreeSkillSources = (budget: number) => ({
+  ...configWithBudget(budget),
+  races: [
+    { key: 'elf', label: 'Elfo' },
+    { key: 'half-elf', label: 'Meio-elfo' },
+  ],
+  skills: [
+    { key: 'insight', label: 'Intuição', ability: 'strength' },
+    { key: 'persuasion', label: 'Persuasão', ability: 'strength' },
+    { key: 'deception', label: 'Enganação', ability: 'strength' },
+    { key: 'athletics', label: 'Atletismo', ability: 'strength' },
+    { key: 'intimidation', label: 'Intimidação', ability: 'strength' },
+    { key: 'stealth', label: 'Furtividade', ability: 'strength' },
+    { key: 'survival', label: 'Sobrevivência', ability: 'strength' },
+    { key: 'history', label: 'História', ability: 'strength' },
+    { key: 'perception', label: 'Percepção', ability: 'strength' },
+  ],
+  proficiency: { choices: 4, bonus: 2 },
+  backgrounds: [
+    { key: 'a5e-ag_guildmember', name: 'Membro de Guilda', source: 'a5e-ag', benefits: [
+      { type: 'skill_proficiency', name: 'Skill Proficiencies', description: 'Choose two from Insight, Persuasion, Deception.', grant: { kind: 'skills' as const, fixed: [], chooseFrom: ['insight', 'persuasion', 'deception'], chooseCount: 2 } },
+    ] },
+  ],
+  // RACE_EXTRA_LANGUAGE_CHOICE inclui Meio-elfo — mesmo destrave de navegação usado nos testes
+  // da US-214/US-220 acima, sem relação com este teste.
+  languages: [
+    { key: 'common', label: 'Comum', secret: false },
+    { key: 'elvish', label: 'Élfico', secret: false },
+    { key: 'orc', label: 'Orc', secret: false },
+  ],
+})
+
+describe('SetupWizard — US-266 perícias: instrução geral e contador por fonte', () => {
+  beforeEach(() => {
+    listSystems.mockReset()
+    createCharacter.mockReset()
+  })
+  afterEach(() => cleanup())
+
+  async function goToSkillsWithThreeSources() {
+    const config = configWithThreeSkillSources(0)
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Meio-elfo' }))
+    fireEvent.change(screen.getByLabelText('Escolha o idioma adicional'), { target: { value: 'orc' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('radio', { name: /^Membro de Guilda/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+  }
+
+  it('instrução geral aparece antes de qualquer bloco de perícia', async () => {
+    await goToSkillsWithThreeSources()
+    const body = document.body.textContent ?? ''
+    const generalIdx = body.indexOf('Você escolhe perícias de até três fontes')
+    const originIdx = body.indexOf('Perícias de Membro de Guilda')
+    expect(generalIdx).toBeGreaterThan(-1)
+    expect(originIdx).toBeGreaterThan(-1)
+    expect(generalIdx).toBeLessThan(originIdx)
+  })
+
+  // US-266: até o grant escolhido excluir a chave do pool alheio (mesma regra pré-existente de
+  // originSkillKeys/raceSkillChoice), origem e raça oferecem a MESMA perícia não-granted em
+  // paralelo — os cliques abaixo escopam por bloco (`within`) pra não colidir com o card
+  // homônimo do outro bloco, não porque a etapa em si seja ambígua pra quem só vê um bloco por vez.
+  function originBlock() { return screen.getByText('Perícias de Membro de Guilda').closest('div')! }
+  function raceBlock() { return screen.getByText('Perícias da sua raça').closest('div')! }
+
+  it('Guildmember (2 à escolha) + Meio-elfo (2 à escolha) + classe (4 à escolha): três contadores independentes, fechar um não altera os outros', async () => {
+    await goToSkillsWithThreeSources()
+
+    const origin = () => screen.getByTestId('origin-skills-selected').textContent
+    const race = () => screen.getByTestId('race-skills-selected').textContent
+    const klass = () => screen.getByTestId('skills-selected').textContent
+    expect(origin()).toBe('0')
+    expect(race()).toBe('0')
+    expect(klass()).toBe('0')
+
+    fireEvent.click(within(originBlock()).getByRole('button', { name: 'Intuição' }))
+    fireEvent.click(within(originBlock()).getByRole('button', { name: 'Persuasão' }))
+    expect(origin()).toBe('2') // fecha
+    expect(race()).toBe('0') // intocado
+    expect(klass()).toBe('0') // intocado
+    const originBadge = screen.getByTestId('origin-skills-selected').parentElement!
+    expect(originBadge.className).toContain('border-success')
+
+    fireEvent.click(within(raceBlock()).getByRole('button', { name: 'Atletismo' }))
+    fireEvent.click(within(raceBlock()).getByRole('button', { name: 'Intimidação' }))
+    expect(race()).toBe('2') // fecha
+    expect(origin()).toBe('2') // segue fechado, não regrediu
+    expect(klass()).toBe('0')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Furtividade Força' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sobrevivência Força' }))
+    fireEvent.click(screen.getByRole('button', { name: 'História Força' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Percepção Força' }))
+    expect(klass()).toBe('4') // fecha
+    expect(origin()).toBe('2')
+    expect(race()).toBe('2')
+  })
+
+  it('cartão bloqueado por limite explica o motivo, ligado por aria-describedby', async () => {
+    await goToSkillsWithThreeSources()
+    fireEvent.click(within(originBlock()).getByRole('button', { name: 'Intuição' }))
+    fireEvent.click(within(originBlock()).getByRole('button', { name: 'Persuasão' }))
+
+    const blockedCard = within(originBlock()).getByRole('button', { name: 'Enganação' }) as HTMLButtonElement
+    expect(blockedCard.disabled).toBe(true)
+    const describedBy = blockedCard.getAttribute('aria-describedby')
+    expect(describedBy).toBeTruthy()
+    expect(document.getElementById(describedBy!)?.textContent).toMatch(/Limite atingido/)
+  })
+
+  it('origem sem chooseCount e raça sem escolha não mostram contador', async () => {
+    const config = { ...configWithBudget(0), proficiency: { choices: 0, bonus: 2 } }
+    listSystems.mockResolvedValue([{ id: 'sys-1', name: 'D&D 5e SRD', sourceType: 'SRD', config }])
+    render(<SetupWizard />)
+    fireEvent.click(await screen.findByText('D&D 5e SRD'))
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
+    fireEvent.click(screen.getByRole('radio', { name: 'Elfo' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
+
+    expect(screen.queryByTestId('origin-skills-selected')).toBeNull()
+    expect(screen.queryByTestId('race-skills-selected')).toBeNull()
+  })
+})
+
 // --- US-210: etapa "Identidade" (nome, gênero, alinhamento, aparência, personalidade) — última
 // etapa antes da Revisão. Nome/gênero saíram da etapa `class` (US-205) e voltam aqui, junto de
 // um campo novo (alinhamento, dado de catálogo) e dois campos de texto livre opcionais. ---

@@ -1813,6 +1813,10 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
             {step === 'skills' && system && (
               <div>
                 <SectionTitle>{t('setup.skills.titulo')}</SectionTitle>
+                {/* US-266: instrução geral ANTES de qualquer bloco — origem/raça/classe cada uma
+                    tem seu próprio selo logo abaixo (crítica de design 2026-09-18: só a classe
+                    tinha contador, origem e raça bloqueavam o avanço sem dizer quanto faltava). */}
+                <p className="mt-2 text-sm text-muted-foreground">{t('setup.skills.generalInstruction')}</p>
                 {/* US-131: perícias do background — a origem já avisou (etapa `background`,
                     texto informativo) o que ela concede; a ESCOLHA em si acontece aqui, mesmo
                     padrão do bônus de atributo (aviso na `background`, escolha na `attributes`).
@@ -1820,6 +1824,14 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                 {skillGrant && (
                   <div className="mt-4">
                     <SheetHeading>{t('setup.skills.originGrant', { origin: originLabel })}</SheetHeading>
+                    {/* US-266: selo por fonte — antes só a classe (lá embaixo) tinha um. */}
+                    {skillGrant.chooseCount > 0 && (
+                      <div className="mt-2">
+                        <CounterBadge complete={skillChoice.length === skillGrant.chooseCount}>
+                          {t('setup.skills.selected')} <span data-testid="origin-skills-selected">{skillChoice.length}</span>/{skillGrant.chooseCount}
+                        </CounterBadge>
+                      </div>
+                    )}
                     <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                       {skillGrant.fixed.map(key => (
                         <div key={key} className={optionCardClass(true)}>
@@ -1836,6 +1848,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                           <button key={key} type="button" onClick={() => toggleSkillChoice(key)}
                             disabled={full}
                             aria-pressed={on}
+                            aria-describedby={full ? 'origin-skills-limit-hint' : undefined}
                             className={optionCardClass(on)}>
                             <span className="block text-sm font-medium text-foreground">{skillLabel[key] ?? key}</span>
                             <span aria-hidden className="block text-xs text-muted-foreground">{formatModifier(skillModifierByKey[key] ?? 0)}</span>
@@ -1843,6 +1856,11 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                         )
                       })}
                     </div>
+                    {/* US-266: motivo do cartão desabilitado — a opacidade sozinha (`optionCardClass`)
+                        não dizia por quê; `aria-describedby` acima liga cada cartão a este texto. */}
+                    {skillGrant.chooseCount > 0 && skillChoice.length >= skillGrant.chooseCount && (
+                      <p id="origin-skills-limit-hint" className="mt-2 text-xs text-muted-foreground">{t('setup.skills.limitReached')}</p>
+                    )}
                   </div>
                 )}
                 {/* US-220: perícia de raça (Keen Senses do Alto-elfo, Menacing do Meio-orc,
@@ -1852,6 +1870,14 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                 {(raceSkillsFixed.length > 0 || raceSkillChoiceCount !== undefined) && (
                   <div className="mt-4">
                     <SheetHeading>{t('setup.skills.raceGrant')}</SheetHeading>
+                    {/* US-266: selo por fonte, mesmo espírito do bloco de origem acima. */}
+                    {raceSkillChoiceCount !== undefined && (
+                      <div className="mt-2">
+                        <CounterBadge complete={raceSkillChoice.length === raceSkillChoiceCount}>
+                          {t('setup.skills.selected')} <span data-testid="race-skills-selected">{raceSkillChoice.length}</span>/{raceSkillChoiceCount}
+                        </CounterBadge>
+                      </div>
+                    )}
                     <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                       {raceSkillsFixed.map(key => (
                         <div key={key} className={optionCardClass(true)}>
@@ -1868,6 +1894,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                             <button key={sk.key} type="button" onClick={() => toggleRaceSkillChoice(sk.key)}
                               disabled={full}
                               aria-pressed={on}
+                              aria-describedby={full ? 'race-skills-limit-hint' : undefined}
                               className={optionCardClass(on)}>
                               <span className="block text-sm font-medium text-foreground">{sk.label}</span>
                               <span aria-hidden className="block text-xs text-muted-foreground">{formatModifier(skillModifierByKey[sk.key] ?? 0)}</span>
@@ -1875,6 +1902,9 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                           )
                         })}
                     </div>
+                    {raceSkillChoiceCount !== undefined && raceSkillChoice.length >= raceSkillChoiceCount && (
+                      <p id="race-skills-limit-hint" className="mt-2 text-xs text-muted-foreground">{t('setup.skills.limitReached')}</p>
+                    )}
                   </div>
                 )}
                 <p className="mt-6 text-sm text-muted-foreground">
@@ -1904,6 +1934,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                       <button key={sk.key} type="button" onClick={() => toggleSkill(sk.key)}
                         disabled={full}
                         aria-pressed={on}
+                        aria-describedby={full ? 'class-skills-limit-hint' : undefined}
                         className={optionCardClass(on)}>
                         <span className="block text-sm font-medium text-foreground">{sk.label}</span>
                         <span className="block text-xs text-muted-foreground">{attrLabel[sk.ability] ?? sk.ability}</span>
@@ -1914,6 +1945,9 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                     )
                   })}
                 </div>
+                {effectiveSkillChoices > 0 && skills.length >= effectiveSkillChoices && (
+                  <p id="class-skills-limit-hint" className="mt-2 text-xs text-muted-foreground">{t('setup.skills.limitReached')}</p>
+                )}
               </div>
             )}
 

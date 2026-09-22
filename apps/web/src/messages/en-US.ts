@@ -238,6 +238,10 @@ export const enUS: Record<MessageKey, string> = {
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Skills',
+  // US-266: general instruction at the TOP of the step, before any source block — until now the
+  // only "instruction" text was the class-specific one at the bottom, so origin/race choices
+  // (which also block advancing) looked like they had no ask at all.
+  'setup.skills.generalInstruction': 'You choose skills from up to three sources.',
   // US-131: background skills section, at the TOP of this step (the origin already gave the
   // heads-up in the `background` step; this is where the actual choice happens).
   'setup.skills.originGrant': 'Skills from {origin}',
@@ -246,6 +250,10 @@ export const enUS: Record<MessageKey, string> = {
   'setup.skills.raceGrant': 'Skills from your race',
   'setup.skills.instructions': 'Choose {n} proficient skills (+{bonus} each).',
   'setup.skills.selected': 'Selected:',
+  // US-266: shown in a block once its own limit is reached, alongside the dimmed disabled
+  // cards — `aria-describedby` links each blocked card to this text so the reason survives
+  // screen readers, not just the CSS opacity.
+  'setup.skills.limitReached': 'Limit reached — deselect one to swap.',
 
   // ---- wizard: spells (US-213) ----
   'setup.spells.titulo': 'Spells',
