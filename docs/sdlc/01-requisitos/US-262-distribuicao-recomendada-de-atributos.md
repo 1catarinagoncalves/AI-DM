@@ -2,11 +2,12 @@
 
 **Épico:** 1 — Personagem
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-207](./US-207-atributos-e-pericias-com-orcamento-visivel.md) (✅ — dona do orçamento visível de point-buy) · [US-203](./US-203-prosa-de-catalogo-classe-e-raca.md) (✅ — `config.classes[].primary`)
 **Relacionada a:** [US-259](./US-259-proximo-desabilitado-diz-o-que-falta.md) · [US-268](./US-268-atribuir-bonus-de-origem-e-raca-com-controle-explicito.md)
 **Criada em:** 2026-09-18
 **Origem:** crítica de design do fluxo de criação (2026-09-18), lida do código.
+**Implementada em:** 2026-09-22 — ver *Como ficou*.
 
 ---
 
@@ -50,12 +51,22 @@ Na etapa `attributes`, um botão "Distribuição recomendada" preenche os seis v
 
 ## Critérios de aceite
 
-- [ ] Para cada uma das 13 classes do SRD, o botão gera valores que respeitam `min`/`max` de cada atributo, gastam o orçamento inteiro e põem todos os `primary` da classe entre os maiores valores.
-- [ ] Clicar habilita o "Próximo" (`remaining === 0`) sem outra ação, exceto quando há escolha de +1 de origem/raça que o botão não pôde resolver (nesse caso a pendência aparece via [US-259](./US-259-proximo-desabilitado-diz-o-que-falta.md)).
-- [ ] O botão não aparece sem `pointBuy.budget` nem sem `primary`.
-- [ ] Depois de clicar, cada "+"/"−" continua funcionando; o botão pode ser clicado de novo e volta à recomendação.
-- [ ] Rótulo nos dois locales.
-- [ ] **Teste de regressão:** tabela `classe → distribuição esperada` para as 13 classes com o orçamento de 27 (o teste falha se uma classe fica com pontos sobrando).
+- [x] Para cada uma das 13 classes do SRD, o botão gera valores que respeitam `min`/`max` de cada atributo, gastam o orçamento inteiro e põem todos os `primary` da classe entre os maiores valores.
+- [x] Clicar habilita o "Próximo" (`remaining === 0`) sem outra ação, exceto quando há escolha de +1 de origem/raça que o botão não pôde resolver (nesse caso a pendência aparece via [US-259](./US-259-proximo-desabilitado-diz-o-que-falta.md)).
+- [x] O botão não aparece sem `pointBuy.budget` nem sem `primary`.
+- [x] Depois de clicar, cada "+"/"−" continua funcionando; o botão pode ser clicado de novo e volta à recomendação.
+- [x] Rótulo nos dois locales.
+- [x] **Teste de regressão:** tabela `classe → distribuição esperada` para as 13 classes com o orçamento de 27 (o teste falha se uma classe fica com pontos sobrando).
+
+---
+
+## Como ficou (2026-09-22)
+
+- **Função pura:** [`recommendedAttributes(classEntry, attributes, budget)`](../../../apps/web/src/components/setup/recommendedAttributes.ts) — programação dinâmica de soma exata, não busca exaustiva ingênua (a nota de implementação original previa ~262 mil combinações por não contar com a faixa real do seed, min 10/max 18, US-262 §Notas — ainda menor com DP: `atributos × orçamento × 9 valores`). Cada atributo ganha um peso de prioridade (`primary` da classe ≫ Constituição ≫ resto); a DP maximiza peso total sujeito a gastar o orçamento **exatamente**, com backtrack pra reconstruir os 6 valores.
+- **`POINT_COST` saiu de `SetupWizard.tsx`** para este módulo novo — única fonte agora, reusada pelos dois lados (custo do point-buy manual e da recomendação).
+- **Botão:** `setup.attributes` — ao lado do `CounterBadge` de saldo, só quando `budget !== undefined && classPrimary.length > 0` (AC3). `applyRecommended()` chama `setAttrs(recommendedAttributes(...))` e, se a origem (`abilityGrant?.kind === 'ability'`) ou a raça (`raceGrant?.choice`) exigem escolher onde vai o +1 livre, pré-marca `abilityChoice`/`raceAbilityChoice` num atributo `classPrimary` elegível (que não seja o já-fixo). Sem candidato elegível, a escolha não é tocada — a etapa segue bloqueada como hoje (AC2, comportamento existente da US-123/US-212).
+- **Testes:** [`recommendedAttributes.test.ts`](../../../apps/web/src/components/setup/recommendedAttributes.test.ts) — as 13 classes do SRD (`config.classes[].primary` real) com orçamento 27 na faixa do seed (min 10/max 18/default 10), mais orçamento 0 e classe sem `primary`. [`SetupWizard.test.tsx`](../../../apps/web/src/components/setup/SetupWizard.test.tsx) — botão preenche e libera "Próximo", ausente sem `primary`, clique repetido volta à recomendação, e resolve o +1 livre de origem.
+- **Não verificado no navegador:** `/setup` exige login (Google OAuth) e API rodando — mesma limitação já registrada na US-260. Comportamento coberto em jsdom (167 testes de `SetupWizard.test.tsx` + `i18n.test.tsx` + `recommendedAttributes.test.ts`, todos verdes) e `pnpm typecheck`/`pnpm dead` limpos.
 
 ---
 

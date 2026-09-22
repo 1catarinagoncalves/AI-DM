@@ -222,6 +222,9 @@ export const enUS: Record<MessageKey, string> = {
   // US-207: badge on the attributes `config.classes[].primary` (US-203) lists for the chosen
   // class — informs, doesn't recommend a distribution.
   'setup.attributes.primaryBadge': 'Primary',
+  // US-262: button that fills the six attributes for the chosen class, spending the point-buy
+  // budget in full — only shown when the class has `primary` in the catalog.
+  'setup.attributes.recommended': 'Recommended distribution',
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Skills',

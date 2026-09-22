@@ -316,7 +316,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
   })
 
   // US-207 (regressão): o custo do point-buy é ACUMULADO, não linear (13→14 e 14→15 custam 2
-  // cada, ver POINT_COST em SetupWizard.tsx) — este teste falha se alguém, ao mostrar o
+  // cada, ver POINT_COST em recommendedAttributes.ts) — este teste falha se alguém, ao mostrar o
   // modificador, passar a calcular o custo a partir dele em vez de a partir de POINT_COST.
   it('point-buy 13→15: saldo cai 2 e 2 (não-linear), modificador +1→+2, e + desabilita quando o custo seguinte não cabe no saldo', async () => {
     const budget = 9 // 8→13 custa 5 (sobra 4); 13→14 e 14→15 custam 2 cada (sobra 2, depois 0)
@@ -364,6 +364,91 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
     expect(screen.getAllByText('Principal')).toHaveLength(2)
+  })
+
+  // US-262: botão "Distribuição recomendada" — preenche os seis atributos pela classe
+  // escolhida (recommendedAttributes.ts, teste próprio das 13 classes do SRD), gastando o
+  // orçamento por inteiro. `intelligence` é o único `primary` e o orçamento (9) é o custo
+  // exato de 8→15 (ver o teste de POINT_COST não-linear acima) — determinístico: só ele sai
+  // do default, o resto do orçamento não sobra pra distribuir em mais nada.
+  const configWithPrimaryBudget = (budget: number) => ({
+    ...configWithBudget(budget),
+    attributes: [
+      { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
+      { key: 'intelligence', label: 'Inteligência', min: 8, max: 15, default: 8 },
+      { key: 'constitution', label: 'Constituição', min: 8, max: 15, default: 8 },
+    ],
+    classes: [
+      { key: 'wizard', label: 'Mago', primary: ['intelligence'] },
+      { key: 'fighter', label: 'Guerreiro' },
+    ],
+  })
+
+  it('botão Distribuição recomendada preenche o orçamento inteiro e libera Próximo', async () => {
+    await pickSystemAndFillRaceClass(configWithPrimaryBudget(9))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Distribuição recomendada' }))
+    expect(document.querySelector('[data-attr="intelligence"]')!.textContent).toBe('15')
+    expect(screen.getByTestId('attributes-remaining').textContent).toBe('0')
+    expect(nextBtn().disabled).toBe(false)
+  })
+
+  it('botão Distribuição recomendada não aparece sem `primary` no catálogo da classe', async () => {
+    await pickSystemAndFillRaceClass(configWithBudget(2)) // wizard/fighter sem `primary`
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    expect(screen.queryByRole('button', { name: 'Distribuição recomendada' })).toBeNull()
+  })
+
+  it('botão Distribuição recomendada pode ser clicado de novo e volta à recomendação', async () => {
+    await pickSystemAndFillRaceClass(configWithPrimaryBudget(9))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    const recommend = () => screen.getByRole('button', { name: 'Distribuição recomendada' })
+    const remaining = () => screen.getByTestId('attributes-remaining').textContent
+    fireEvent.click(recommend())
+    expect(remaining()).toBe('0')
+
+    fireEvent.click(screen.getByLabelText('Diminuir Inteligência')) // mexe manualmente, reabre saldo
+    expect(remaining()).not.toBe('0')
+
+    fireEvent.click(recommend())
+    expect(remaining()).toBe('0')
+    expect(document.querySelector('[data-attr="intelligence"]')!.textContent).toBe('15')
+  })
+
+  // US-262 (critério de aceite): quando a origem exige escolher onde vai o +1 livre, o botão
+  // também pré-preenche essa escolha num atributo `primary` elegível — senão a etapa
+  // continuaria bloqueada mesmo com o point-buy fechado (ver missingFor.ts).
+  it('botão Distribuição recomendada também resolve o +1 livre de origem num atributo primary elegível', async () => {
+    await pickSystemAndFillRaceClass({
+      ...configWithAbilityGrant(0),
+      attributes: [
+        { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
+        { key: 'wisdom', label: 'Sabedoria', min: 8, max: 15, default: 8 },
+        { key: 'intelligence', label: 'Inteligência', min: 8, max: 15, default: 8 },
+      ],
+      classes: [
+        { key: 'wizard', label: 'Mago', primary: ['intelligence'] },
+        { key: 'fighter', label: 'Guerreiro' },
+      ],
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' })) // grant.kind 'ability', fixo em Sabedoria
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    expect(nextBtn().disabled).toBe(true) // orçamento 0 já fecha, mas falta o +1 livre
+
+    fireEvent.click(screen.getByRole('button', { name: 'Distribuição recomendada' }))
+    expect(nextBtn().disabled).toBe(false) // +1 livre foi pra `intelligence` (primary elegível, ≠ wisdom fixo)
   })
 
   it('cria o personagem uma única vez ao Confirmar na Revisão', async () => {

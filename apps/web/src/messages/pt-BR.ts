@@ -249,6 +249,9 @@ export const ptBR = {
   // US-207: selo nos atributos que `config.classes[].primary` (US-203) lista pra classe
   // escolhida — informa, não recomenda distribuição.
   'setup.attributes.primaryBadge': 'Principal',
+  // US-262: botão que preenche os seis atributos pela classe escolhida, gastando o orçamento
+  // do point-buy por inteiro — só aparece quando a classe tem `primary` no catálogo.
+  'setup.attributes.recommended': 'Distribuição recomendada',
 
   // ---- wizard: perícias ----
   'setup.skills.titulo': 'Perícias',

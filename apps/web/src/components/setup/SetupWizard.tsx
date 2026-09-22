@@ -3,7 +3,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Dices, Minus, Plus, Wand2 } from 'lucide-react'
 import {
   abilityModifier, buildSavingThrowSheet, buildSkillSheet, formatModifier, getCharacterFeatureKeys, getClassSpells,
   getStartingInventory, getBackgroundEquipment, getBackgroundFeatures, getRaceFeatures, resolveEquipmentSlots,
@@ -28,6 +28,7 @@ import { resolveJump } from './stepJump'
 import { isClosedStep } from './closedSteps'
 import { missingFor, type AdvanceInputs } from './missingFor'
 import { clearWizardDraft, loadWizardDraft, stringifyDraft, writeWizardDraft, type WizardDraft } from './wizardDraft'
+import { recommendedAttributes, POINT_COST } from './recommendedAttributes'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
@@ -56,9 +57,6 @@ const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 's
 // `config` do sistema, já no locale ativo: o `value` é a CHAVE, o texto é o `label`.
 // Gênero fica porque não é dado de SRD — não tem catálogo de onde vir.
 const GENDERS = ['Feminino', 'Masculino', 'Não-binário'] as const
-
-// Custo acumulado por valor (point-buy 5e). Não é linear: 13→14 e 14→15 custam 2 cada.
-const POINT_COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9, 16: 11, 17: 13, 18: 15 }
 
 type SystemOption = { id: string; name: string; sourceType: string; config: SystemConfig | null }
 
@@ -480,6 +478,9 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   // US-221: proficiência de ferramenta da classe escolhida (fixa: Ladra/Druida; à escolha:
   // Bardo/Monge) — dado de catálogo, mesmo padrão de acesso de subclassCatalog abaixo.
   const classProficiencyEntry = classCatalog.find(c => c.key === charData.class)
+  // US-262: mesma fonte do selo "Principal" (US-207) abaixo — reaproveitada pelo botão
+  // "Distribuição recomendada" e pelo pré-preenchimento do +1 livre de origem/raça.
+  const classPrimary = classProficiencyEntry?.primary ?? []
   const classToolGrant = classProficiencyEntry?.toolProficiencies?.choice
   const classToolFixed = classProficiencyEntry?.toolProficiencies?.fixed ?? []
   // US-226: equipamento inicial à escolha da classe (arma/armadura/pacote de aventura) — mesmo
@@ -1243,6 +1244,23 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
     })
   }
 
+  // US-262: botão "Distribuição recomendada" — preenche os seis atributos pela classe
+  // escolhida (recommendedAttributes.ts) e, quando origem/raça exigem escolher onde vai o +1
+  // livre, pré-marca um atributo `primary` elegível (o que já é `fixed` não conta, ele já
+  // ganha o +1 sozinho). Sem candidato elegível, a escolha fica como estava — a etapa segue
+  // bloqueada até a jogadora resolver à mão (ver missingFor.ts, mesmo comportamento de hoje).
+  function applyRecommended() {
+    if (budget === undefined) return
+    setAttrs(recommendedAttributes(classProficiencyEntry, attributes, budget))
+    if (abilityGrant?.kind === 'ability') {
+      setAbilityChoice(classPrimary.find(k => k !== abilityGrant.fixed))
+    }
+    if (raceGrant?.choice) {
+      const raceFixedKeys = raceGrant.fixed.map(f => f.attr)
+      setRaceAbilityChoice(classPrimary.filter(k => !raceFixedKeys.includes(k)).slice(0, raceGrant.choice.count))
+    }
+  }
+
   const selectClass = fieldClass('appearance-none bg-[right_0.75rem_center] bg-no-repeat pr-9')
   const errorBox = 'rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive'
   // US-46: rótulo visível persistente (não some ao digitar; contraste AA) — o
@@ -1649,10 +1667,18 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
               <div>
                 <SectionTitle>{t('setup.attributes.titulo')}</SectionTitle>
                 {budget !== undefined && (
-                  <div className="mt-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
                     <CounterBadge complete={remaining === 0}>
                       {t('setup.attributes.remaining')} <span data-testid="attributes-remaining">{remaining}</span> / {budget}
                     </CounterBadge>
+                    {/* US-262: só quando a classe escolhida tem `primary` no catálogo (US-203) —
+                        sem primary não há o que recomendar. */}
+                    {classPrimary.length > 0 && (
+                      <DmButton type="button" variant="ghost" onClick={applyRecommended}>
+                        <Wand2 className="size-4" aria-hidden />
+                        {t('setup.attributes.recommended')}
+                      </DmButton>
+                    )}
                   </div>
                 )}
                 {/* US-123: banner reforça o que a etapa `background` já anunciou — só quando a
@@ -1692,7 +1718,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                     const bonus = (isFixed || isChosen ? 1 : 0) + (raceFixed?.amount ?? (raceChosen ? raceGrant!.choice!.amount : 0))
                     // US-207: `primary` vem do catálogo de classe (US-203); sem entrada (config
                     // legado), nenhuma linha mostra o selo — o resto da etapa não muda.
-                    const isPrimary = (classProficiencyEntry?.primary ?? []).includes(a.key)
+                    const isPrimary = classPrimary.includes(a.key)
                     const total = (attrs[a.key] ?? a.default) + bonus
                     return (
                       <div key={a.key} className="flex items-center justify-between gap-3 py-3">
