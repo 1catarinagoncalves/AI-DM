@@ -65,6 +65,10 @@ export const enUS: Record<MessageKey, string> = {
   // US-260: footer shortcut — jumps to review without walking the steps in between (stops at
   // the first one the edit invalidated).
   'setup.backToReview': 'Back to review',
+  // US-261: notice shown when creation resumed from the session draft (reload, or leave and return).
+  // "Start over" discards the draft and returns to system selection.
+  'setup.draft.resumed': 'We picked up where you left off.',
+  'setup.draft.restart': 'Start over',
   // US-259: line above the footer while "Next" is disabled (see pt-BR for the rationale).
   'setup.missing.prefix': 'Still needed: {items}.',
   'setup.missing.system': 'system',

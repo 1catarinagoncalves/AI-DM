@@ -94,6 +94,7 @@ describe('SetupWizard — corrigir a partir da revisão sem refazer o caminho (U
     fireEvent.click(screen.getByRole('button', { name: 'Voltar' }))
     expect(backToReview()).toBeNull() // já esteve em `race`, mas nunca em `review`
     cleanup()
+    sessionStorage.clear() // US-261: remontar na mesma aba restauraria o rascunho — aqui é outra criação
 
     await reachReview()
     expect(backToReview()).toBeNull() // é a própria revisão

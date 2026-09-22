@@ -27,6 +27,7 @@ import { AdventureErrorScreen } from './AdventureErrorScreen'
 import { resolveJump } from './stepJump'
 import { isClosedStep } from './closedSteps'
 import { missingFor, type AdvanceInputs } from './missingFor'
+import { clearWizardDraft, loadWizardDraft, stringifyDraft, writeWizardDraft, type WizardDraft } from './wizardDraft'
 
 // US-123: `background` passou para ANTES de `attributes`/`skills` — mesma ordem do PHB 2024
 // (a origem decide o bônus de atributo antes de você alocar pontos). `goTo`/`canAdvance`/
@@ -282,7 +283,14 @@ function groupToolsByCategory(keys: string[], catalog: SystemTool[]): [string, S
     .map((cat): [string, SystemTool[]] => [cat, groups.get(cat)!])
 }
 
+// US-261: "Recomeçar" remonta o wizard inteiro (`key`) em vez de repetir ~25 setters de reset —
+// e o remonte já nasce sem rascunho, porque `clearWizardDraft` roda antes.
 export function SetupWizard() {
+  const [run, setRun] = useState(0)
+  return <SetupWizardRun key={run} onRestart={() => { clearWizardDraft(); setRun(r => r + 1) }} />
+}
+
+function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   const t = useT()
   const { locale } = useLocale()
   const router = useRouter()
@@ -405,12 +413,36 @@ export function SetupWizard() {
   // Aleatório/`adventure`), "criar" é a tela de sempre. `null` até a jogadora escolher: nenhum
   // padrão pré-selecionado (ao contrário de `setting`/`tone`/`areaType`, que defendem 'random').
   const [worldMode, setWorldMode] = useState<'ready' | 'custom' | null>(null)
+  // US-261: só depois da tentativa de restaurar o efeito de gravação pode rodar — antes disso o
+  // estado ainda é o vazio do mount e apagaria o rascunho que está prestes a ser lido.
+  const [hydrated, setHydrated] = useState(false)
+  // Etapa em que o rascunho foi retomado: o aviso "Retomamos…" só aparece nela (sai ao andar).
+  const [resumedStep, setResumedStep] = useState<Step | null>(null)
 
   useEffect(() => {
     // US-61: a identidade vem do login (token); o wizard só carrega o catálogo.
     // O toque cedo no banco (listSystems) segue servindo de warm-up (US-57).
-    api.listSystems().then(setSystems).catch(() => setSystemsError(true))
+    // US-261: o rascunho é restaurado com o catálogo já em mãos, para validar cada chave.
+    api.listSystems()
+      .then(list => { setSystems(list); restoreDraft(list); setHydrated(true) })
+      .catch(() => setSystemsError(true))
   }, [])
+
+  // US-261: gravado a cada mudança, sem debounce — ~3 KB de JSON por tecla custam menos que o
+  // re-render que a mesma tecla já causa, e um timer perderia a última edição se a jogadora
+  // saísse (Link "Voltar aos personagens") antes de ele disparar. `null` sem sistema (nada a
+  // guardar) e depois de criar o personagem (`charId`: o rascunho acabou, ver US-258).
+  const draftJson = system && !charId ? stringifyDraft({
+    systemId: system.id, step, furthest, charData, subclass, level, draconicAncestry, raceToolChoice,
+    raceLanguageChoice, raceCantripChoice, raceAbilityChoice, raceSkillChoice, classToolChoice,
+    equipmentChoices, weaponModeChoices, attrs, skills, bg, origin, connectionRoll, mementoRoll,
+    abilityChoice, skillChoice, toolChoice,
+  }) : null
+  useEffect(() => {
+    if (!hydrated) return
+    if (draftJson) writeWizardDraft(draftJson)
+    else if (charId) clearWizardDraft()
+  }, [hydrated, draftJson, charId])
 
   const attributes = system?.config?.attributes ?? []
   const budget = system?.config?.pointBuy?.budget
@@ -783,6 +815,36 @@ export function SetupWizard() {
     // US-260: o que foi alcançado valia para o sistema ANTERIOR — a trilha recomeça em `class`.
     setFurthest(steps.indexOf('class'))
     setStep('class')
+  }
+
+  // US-261: rascunho da sessão (wizardDraft.ts). `loadWizardDraft` já devolve o rascunho
+  // reconciliado com o catálogo (chave que sumiu caiu, etapa recuou); aqui só se aplica. Os
+  // três grupos abaixo espelham os resets de handleSelectSystem/selectClassCard/selectRootCard/
+  // selectOriginCard — "chave do catálogo + escolhas que dependem dela".
+  function restoreDraft(list: SystemOption[]) {
+    const restored = loadWizardDraft(list, steps)
+    if (!restored) return
+    const { system: found, draft } = restored
+    setSystem(found); setStep(draft.step); setFurthest(draft.furthest)
+    setCharData(draft.charData); setLevel(draft.level); setAttrs(draft.attrs); setBg(draft.bg)
+    applyClassDraft(draft); applyRaceDraft(draft); applyOriginDraft(draft)
+    setResumedStep(draft.step)
+  }
+
+  function applyClassDraft(d: WizardDraft) {
+    setSubclass(d.subclass); setClassToolChoice(d.classToolChoice); setEquipmentChoices(d.equipmentChoices)
+    setWeaponModeChoices(d.weaponModeChoices); setSkills(d.skills)
+  }
+
+  function applyRaceDraft(d: WizardDraft) {
+    setDraconicAncestry(d.draconicAncestry); setRaceToolChoice(d.raceToolChoice)
+    setRaceLanguageChoice(d.raceLanguageChoice); setRaceCantripChoice(d.raceCantripChoice)
+    setRaceAbilityChoice(d.raceAbilityChoice); setRaceSkillChoice(d.raceSkillChoice)
+  }
+
+  function applyOriginDraft(d: WizardDraft) {
+    setOrigin(d.origin); setConnectionRoll(d.connectionRoll); setMementoRoll(d.mementoRoll)
+    setAbilityChoice(d.abilityChoice); setSkillChoice(d.skillChoice); setToolChoice(d.toolChoice)
   }
 
   // US-205: troca de classe invalida a subclasse escolhida (chave de outra classe não pode
@@ -1242,6 +1304,16 @@ export function SetupWizard() {
             })}
           </div>
         </nav>
+
+        {/* US-261: aviso de retomada — vive só na etapa onde o rascunho foi restaurado. */}
+        {resumedStep === step && (
+          <div role="status" className="mb-4 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+            {t('setup.draft.resumed')}
+            <button type="button" onClick={onRestart} className={dmButtonClass('ghost', 'px-3 text-xs')}>
+              {t('setup.draft.restart')}
+            </button>
+          </div>
+        )}
 
         {/* US-197: tela de espera SEM o cartão do Panel (quase opaco, `--panel-top/bottom`
             em ~94% alfa) — dentro dele o fundo trocado (arboretum-moonlit.png) ficava

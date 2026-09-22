@@ -3,9 +3,11 @@
 import { useSession, signOut } from 'next-auth/react'
 import { LogOut } from 'lucide-react'
 import { useT } from '@/components/LocaleProvider'
+import { clearWizardDraft } from '@/components/setup/wizardDraft'
 
 // US-61: controlo de sessão global (canto superior). Só aparece autenticado; sai
 // da conta e volta a /login. Fica no layout para não acoplar às telas de jogo.
+// US-261: sair também apaga o rascunho do wizard — a aba pode ser entregue a outra conta.
 export function AuthNav() {
   const t = useT()
   const { status } = useSession()
@@ -16,7 +18,7 @@ export function AuthNav() {
     <div className="fixed top-4 right-16 z-40 flex items-center gap-2 text-xs">
       <button
         type="button"
-        onClick={() => signOut({ redirectTo: '/login' })}
+        onClick={() => { clearWizardDraft(); signOut({ redirectTo: '/login' }) }}
         className="inline-flex min-h-[44px] items-center gap-1.5 rounded-md border border-border bg-card/70 px-3 font-medium text-foreground backdrop-blur transition-colors hover:border-primary/60 hover:text-primary"
       >
         <LogOut className="size-3.5" aria-hidden />

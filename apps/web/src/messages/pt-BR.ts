@@ -71,6 +71,10 @@ export const ptBR = {
   // US-260: atalho do rodapé — leva à revisão sem repassar as etapas do meio (para na primeira
   // que a edição invalidou).
   'setup.backToReview': 'Voltar à revisão',
+  // US-261: aviso quando a criação foi retomada do rascunho da sessão (F5, ou sair e voltar).
+  // "Recomeçar" apaga o rascunho e volta à escolha de sistema.
+  'setup.draft.resumed': 'Retomamos de onde você parou.',
+  'setup.draft.restart': 'Recomeçar',
   // US-259: linha acima do rodapé quando o "Próximo" está desabilitado. Cada pendência é texto
   // fixo da UI (nunca tradução de SRD), em minúsculas porque entra numa lista separada por
   // vírgula — a chave é a de `missingFor` (components/setup/missingFor.ts).
