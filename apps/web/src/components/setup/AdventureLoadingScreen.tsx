@@ -31,19 +31,33 @@ function shuffled(keys: MessageKey[]): MessageKey[] {
   return copy
 }
 
+interface AdventureLoadingScreenProps {
+  /**
+   * US-265: acima do limiar, o carrossel ganha o aviso de demora embaixo. Constante mora em
+   * SetupWizard.tsx, ao lado de STATUS_POLL_TIMEOUT_MS — mesma janela de espera, uma fonte só.
+   */
+  delayThresholdMs: number
+}
+
 /**
  * Tela de espera do passo `world` enquanto `createWorldAdventure` aguarda a API (US-197).
  * Substitui o formulário quando `starting === true` — sem ação possível durante a espera.
  */
-export function AdventureLoadingScreen() {
+export function AdventureLoadingScreen({ delayThresholdMs }: AdventureLoadingScreenProps) {
   const t = useT()
   const [keys] = useState(() => shuffled(LOADING_KEYS))
   const [index, setIndex] = useState(0)
+  const [delayed, setDelayed] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => setIndex(i => (i + 1) % keys.length), CAROUSEL_INTERVAL_MS)
     return () => clearInterval(id)
   }, [keys.length])
+
+  useEffect(() => {
+    const id = setTimeout(() => setDelayed(true), delayThresholdMs)
+    return () => clearTimeout(id)
+  }, [delayThresholdMs])
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
@@ -54,6 +68,15 @@ export function AdventureLoadingScreen() {
       <p className="mt-6 max-w-md font-serif text-lg text-parchment" aria-live="polite">
         {t(keys[index]!)}
       </p>
+      {/* US-265: personagem salvo e o que sair significa — fixas, não entram no carrossel
+          (não são atmosféricas, são fato). */}
+      <p className="mt-4 max-w-md text-sm text-parchment">{t('setup.world.loading.saved')}</p>
+      <p className="mt-1 max-w-md text-sm text-parchment">{t('setup.world.loading.exit')}</p>
+      {delayed && (
+        <p className="mt-4 max-w-md font-serif text-lg text-parchment" aria-live="polite">
+          {t('setup.world.loading.delay')}
+        </p>
+      )}
     </div>
   )
 }

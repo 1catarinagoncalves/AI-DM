@@ -123,6 +123,10 @@ export const enUS: Record<MessageKey, string> = {
   'setup.world.loading.4': 'Choosing the first dangers on your path...',
   'setup.world.loading.5': 'Tying the threads that will pull the story forward...',
   'setup.world.loading.6': 'Sharpening the details before the curtain opens...',
+  // US-265: fixed lines under the carousel — see pt-BR.ts for why this exact wording.
+  'setup.world.loading.saved': 'Your character is already saved.',
+  'setup.world.loading.exit': "You can leave now — the adventure keeps being created. Come back to the hub to continue once it's ready.",
+  'setup.world.loading.delay': 'This is taking longer than usual, but the adventure is still being created.',
   // US-235: gate attempt ceiling exhausted (or client polling timeout) — never falls back
   // to "Ready adventure"; retry resends the same params (tone/setting/areaType/challenge).
   'setup.world.error.titulo': 'Generation went wrong',

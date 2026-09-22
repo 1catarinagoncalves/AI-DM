@@ -134,6 +134,12 @@ export const ptBR = {
   'setup.world.loading.4': 'Escolhendo os primeiros perigos do caminho...',
   'setup.world.loading.5': 'Amarrando os fios que vão puxar a história...',
   'setup.world.loading.6': 'Afiando os detalhes antes de abrir a cortina...',
+  // US-265: linhas fixas da tela de espera, sob o carrossel. `exit` não promete "vai estar lá
+  // quando você voltar" — o hub não sinaliza aventura GENERATING (ver US-265 Notas), então só
+  // "continuar" some, não a garantia de retomar. `delay` não promete prazo nem sugere recarregar.
+  'setup.world.loading.saved': 'Seu personagem já está salvo.',
+  'setup.world.loading.exit': 'Pode sair agora — a aventura continua sendo criada. Volte ao hub pra continuar assim que estiver pronta.',
+  'setup.world.loading.delay': 'Isso está demorando mais que o normal, mas a aventura ainda está sendo criada.',
   // US-235: teto do gate estourado (ou timeout do polling) — nunca desvia pra "Aventura
   // pronta"; retry reenvia os mesmos parâmetros (tone/setting/areaType/challenge).
   'setup.world.error.titulo': 'A geração deu errado',

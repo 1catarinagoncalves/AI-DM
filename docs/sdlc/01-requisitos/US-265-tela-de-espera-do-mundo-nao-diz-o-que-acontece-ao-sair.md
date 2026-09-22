@@ -2,7 +2,7 @@
 
 **Épico:** 2 — Campanha e aventura
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Feita
 **Depende de:** [US-197](./US-197-tela-de-espera-com-carrossel-na-criacao-da-aventura.md) (✅ — dona da tela) · [US-235](./US-235-gatilho-assincrono-tela-de-espera-erro-retry.md) (✅ — polling de até 300 s, retomada)
 **Relacionada a:** [US-256](./US-256-jogador-entra-no-chat-antes-do-resto-da-aventura-gerar.md) · [US-269](./US-269-acessibilidade-do-wizard-alvos-erro-e-foco.md) (o `aria-live` do carrossel)
 **Criada em:** 2026-09-18
@@ -52,13 +52,28 @@ O servidor gera de forma assíncrona (`status: 'GENERATING'`, [US-235](./US-235-
 
 ---
 
+## Copy proposta
+
+Chaves seguem o padrão de `setup.world.loading.*` já usado pelo carrossel ([messages/pt-BR.ts:131-136](../../../apps/web/src/messages/pt-BR.ts)).
+
+| Chave | PT-BR | EN-US |
+|---|---|---|
+| `setup.world.loading.saved` | Seu personagem já está salvo. | Your character is already saved. |
+| `setup.world.loading.exit` | Pode sair agora — a aventura continua sendo criada. Volte ao hub pra continuar assim que estiver pronta. | You can leave now — the adventure keeps being created. Come back to the hub to continue once it's ready. |
+| `setup.world.loading.delay` | Isso está demorando mais que o normal, mas a aventura ainda está sendo criada. | This is taking longer than usual, but the adventure is still being created. |
+
+**Por que essa redação e não outra:**
+- `exit` não promete "vai estar lá quando você voltar" nem "avisa quando terminar" — o hub não tem polling nem indicação de `GENERATING` ([Notas de implementação](#notas-de-implementação) acima), então a única coisa verificável é que sair não mata a geração no servidor (`void this.runAdventureGeneration(...)`, [adventure.service.ts:384](../../../apps/api/src/adventure/adventure.service.ts), fire-and-forget desacoplado da conexão do cliente — comentário em [:330-334](../../../apps/api/src/adventure/adventure.service.ts) confirma a intenção) e que "Continuar" aparece assim que o status vira `OPENING_READY` ou `ACTIVE`.
+- `delay` não promete prazo nem sugere recarregar a página — nenhuma das duas coisas foi verificada.
+- `saved` reaproveita a frase que já está na história do US-265 (linha 16), verdadeira desde `handleConfirm` ([SetupWizard.tsx:974](../../../apps/web/src/components/setup/SetupWizard.tsx)) — não confundir com a chave existente `setup.world.saved`, que fala do formulário do passo `world` (etapas anteriores travadas), contexto diferente da tela de espera.
+
 ## Critérios de aceite
 
-- [ ] A tela de espera diz que o personagem está salvo.
-- [ ] A frase sobre sair é sustentada por teste ou leitura de código citada nas Notas (o que o hub mostra para `GENERATING`).
-- [ ] Após o limiar, a tela mostra o aviso de demora; antes, não.
-- [ ] Textos nos dois locales.
-- [ ] **Teste de regressão:** com timers falsos, a tela não mostra o aviso de demora aos 100 s e mostra aos 130 s.
+- [x] A tela de espera diz que o personagem está salvo.
+- [x] A frase sobre sair é sustentada por teste ou leitura de código citada nas Notas (o que o hub mostra para `GENERATING`).
+- [x] Após o limiar, a tela mostra o aviso de demora; antes, não.
+- [x] Textos nos dois locales.
+- [x] **Teste de regressão:** com timers falsos, a tela não mostra o aviso de demora aos 100 s e mostra aos 130 s.
 
 ---
 
@@ -67,11 +82,25 @@ O servidor gera de forma assíncrona (`status: 'GENERATING'`, [US-235](./US-235-
 - O limiar mora como constante ao lado de `STATUS_POLL_TIMEOUT_MS`; não invente configuração.
 - Registrar aqui, ao fechar, o que o hub mostra para `GENERATING` (arquivo e linha) — é a evidência da frase sobre sair.
 
+### O que o hub mostra para `GENERATING` (verificado em 2026-09-22)
+
+O hub trata personagem com aventura `GENERATING` **igual a personagem sem nenhuma aventura** — sem "continuar", sem indicação de que algo está sendo gerado.
+
+- [character.service.ts:600](../../../apps/api/src/character/character.service.ts) — `currentAdventure` do hub só inclui participação em aventura com status dentro de `IN_PROGRESS_ADVENTURE_STATUSES`.
+- [adventure-status.ts:6](../../../apps/api/src/adventure-generation/adventure-status.ts) — `IN_PROGRESS_ADVENTURE_STATUSES = ['ACTIVE', 'OPENING_READY']`. `GENERATING` fica de fora.
+- [HomeHero.tsx:132-135](../../../apps/web/src/components/HomeHero.tsx) — sem `currentAdventure`, renderiza `home.noAdventure` ("Nenhuma aventura em andamento"), mesmo estado de quem nunca criou aventura.
+- [schema.prisma:154-168](../../../apps/api/prisma/schema.prisma) — ciclo confirmado: `GENERATING → OPENING_READY → ACTIVE` (ou `FAILED`).
+- [HomeHero.tsx:77-79](../../../apps/web/src/components/HomeHero.tsx) — hub não faz polling: busca a lista uma vez, só no mount.
+
+**Consequência pra copy:** sair não mata a geração, mas prometer "volte depois e vai estar lá" é falso enquanto o status ainda é `GENERATING` — a jogadora só vê "continuar" quando a aventura virar `OPENING_READY`. A frase sobre sair não pode prometer progresso visível no hub.
+
+**Personagem salvo:** confirmado. [SetupWizard.tsx:974](../../../apps/web/src/components/setup/SetupWizard.tsx) — wizard só cria o personagem em `handleConfirm`, antes do passo `world`.
+
 ---
 
 ## Questões em aberto
 
-1. **O que o hub mostra hoje para personagem com aventura `GENERATING`?** Bloqueia o resto da story. Responde-se lendo o hub e a API, não pedindo opinião.
+1. ~~**O que o hub mostra hoje para personagem com aventura `GENERATING`?**~~ Respondido — ver Notas de implementação.
 2. **120 s é o limiar certo?** Medir a distribuição real do motor antes de fixar.
 
 ---

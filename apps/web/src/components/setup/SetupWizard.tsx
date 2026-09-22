@@ -1072,6 +1072,10 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   const STATUS_POLL_INTERVAL_MS = 3000
   const STATUS_POLL_TIMEOUT_MS = 300_000
 
+  // US-265: acima dos ~95s esperados do motor, abaixo do teto de polling — troca o carrossel
+  // da tela de espera pelo aviso de demora (AdventureLoadingScreen).
+  const LOADING_DELAY_THRESHOLD_MS = 120_000
+
   // US-235: consulta `getAdventureStatus` até ACTIVE (resolve) ou FAILED/timeout (lança) —
   // GENERATING nunca é o estado final, só o motivo de continuar tentando.
   // Bug real (Bardo, 15/09/2026): estourar o teto não significa que o motor falhou — ele
@@ -1370,7 +1374,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
             praticamente invisível, o mesmo card que sempre cobriu o formulário. */}
         {step === 'world' && starting ? (
           <div className="flex flex-1 flex-col">
-            <AdventureLoadingScreen />
+            <AdventureLoadingScreen delayThresholdMs={LOADING_DELAY_THRESHOLD_MS} />
           </div>
         ) : step === 'world' && generationError ? (
           <div className="flex flex-1 flex-col">
