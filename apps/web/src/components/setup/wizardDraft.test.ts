@@ -8,7 +8,7 @@ const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 's
 // Rascunho completo até `skills`: todo grupo de escolha preenchido, para cada teste poder
 // afirmar o que ficou e o que caiu.
 const draft: WizardDraft = {
-  v: 1, systemId: 'sys-1', step: 'skills', furthest: 5,
+  v: 2, systemId: 'sys-1', step: 'skills', furthest: 'skills',
   charData: { name: 'Lyra', gender: 'Feminino', race: 'elf', class: 'wizard', alignment: 'lawful-good', appearance: '', personality: '' },
   subclass: 'evocation', level: '3',
   draconicAncestry: undefined, raceToolChoice: undefined, raceLanguageChoice: 'dwarvish', raceCantripChoice: 'light',
@@ -36,7 +36,7 @@ describe('reconcileDraft (US-261)', () => {
     const out = reconcileDraft(draft, { ...config, classes: [] } as SystemConfig, steps)
     expect(out.charData.class).toBe('')
     expect([out.subclass, out.classToolChoice, out.equipmentChoices, out.skills]).toEqual([undefined, [], [], []])
-    expect([out.step, out.furthest]).toEqual(['class', steps.indexOf('class')])
+    expect([out.step, out.furthest]).toEqual(['class', 'class'])
     expect(out.charData.race).toBe('elf') // grupo independente: sobrevive
   })
 
@@ -55,8 +55,8 @@ describe('reconcileDraft (US-261)', () => {
   })
 
   it('não avança a etapa: quem estava antes da etapa afetada fica onde estava', () => {
-    const out = reconcileDraft({ ...draft, step: 'class', furthest: 1 }, { ...config, alignments: [] } as SystemConfig, steps)
-    expect([out.step, out.furthest, out.charData.alignment]).toEqual(['class', 1, ''])
+    const out = reconcileDraft({ ...draft, step: 'class', furthest: 'class' }, { ...config, alignments: [] } as SystemConfig, steps)
+    expect([out.step, out.furthest, out.charData.alignment]).toEqual(['class', 'class', ''])
   })
 
   it('buraco de `equipmentChoices` (null depois do JSON) volta a "" — não vira a opção 0', () => {

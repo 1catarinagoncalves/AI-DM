@@ -26,6 +26,7 @@ import { AdventureLoadingScreen } from './AdventureLoadingScreen'
 import { AdventureErrorScreen } from './AdventureErrorScreen'
 import { resolveJump } from './stepJump'
 import { isClosedStep } from './closedSteps'
+import { visibleSteps } from './visibleSteps'
 import { missingFor, type AdvanceInputs } from './missingFor'
 import { clearWizardDraft, loadWizardDraft, stringifyDraft, writeWizardDraft, type WizardDraft } from './wizardDraft'
 import { recommendedAttributes, POINT_COST } from './recommendedAttributes'
@@ -46,8 +47,10 @@ import { recommendedAttributes, POINT_COST } from './recommendedAttributes'
 // US-210: `identity` entra entre `spells` e `review` — última etapa antes da revisão da ficha,
 // com nome, gênero (que saem de `class`, ver parágrafo do US-205 acima) e alinhamento (novo,
 // dado de catálogo); ver bloco JSX do `step === 'identity'` mais abaixo.
+// US-263: `ALL_STEPS` (abaixo) deixou de ser a trilha final — é a lista completa, de onde
+// `visibleSteps` deriva a trilha de cada render (`spells` some sem conteúdo, ver visibleSteps.ts).
 export type Step = 'system' | 'class' | 'race' | 'background' | 'attributes' | 'skills' | 'spells' | 'identity' | 'review' | 'world'
-const steps: Step[] = ['system', 'class', 'race', 'background', 'attributes', 'skills', 'spells', 'identity', 'review', 'world']
+const ALL_STEPS: Step[] = ['system', 'class', 'race', 'background', 'attributes', 'skills', 'spells', 'identity', 'review', 'world']
 
 // US-98: os rótulos de gênero saíram desta lista para o dicionário, mas a lista FICA em
 // pt-BR — ela é o `value` que viaja para a API, não o texto da tela.
@@ -293,9 +296,10 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   const { locale } = useLocale()
   const router = useRouter()
   const [step, setStep] = useState<Step>('system')
-  // US-260: índice da etapa mais distante já alcançada em ordem — a trilha deixa saltar até ela.
-  // Nunca passa de `review` (ver `enter`).
-  const [furthest, setFurthest] = useState(0)
+  // US-260: chave da etapa mais distante já alcançada em ordem — a trilha deixa saltar até ela.
+  // Nunca passa de `review` (ver `enter`). US-263: era índice; virou CHAVE porque `steps` deixou
+  // de ser constante (spells entra/sai) — um índice não sobrevive à lista mudar de tamanho.
+  const [furthest, setFurthest] = useState<Step>('system')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -674,6 +678,13 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   // Alto-elfo, mesma validação que o service faz (`wizard` é a chave CANÔNICA de classe,
   // US-54; 'mago' é só o rótulo pt-BR). Vazio para sistema sem essa entrada em classSpells.
   const wizardCantrips = (system?.config?.classSpells?.['wizard'] ?? []).filter(s => s.level === 0)
+  // US-263: mesma condição que o bloco `step === 'spells'` usa pra decidir o que mostrar (ver
+  // abaixo) — se nenhuma das duas vale, a etapa não tem o que exibir e sai da trilha.
+  const hasSpellsContent = previewSpells.length > 0 || (charData.race === 'high-elf' && wizardCantrips.length > 0)
+  const steps = visibleSteps(ALL_STEPS, charData.class, hasSpellsContent)
+  // US-263: `furthest` guarda uma CHAVE — se a lista encolheu e a chave lembrada saiu dela (ex.:
+  // era `spells` e a classe virou uma sem magia), cai na etapa atual como referência segura.
+  const furthestIndex = steps.includes(furthest) ? steps.indexOf(furthest) : steps.indexOf(step)
   // US-205/US-231: painel de detalhe da etapa `class` — features DA CLASSE (US-41) e da
   // SUBCLASSE já resolvida (automática ou por cartão), sem origem (ainda não escolhida nesta
   // etapa do wizard). `resolveCharacterFeatures` com `originKey` undefined devolve só o que
@@ -814,7 +825,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
     // US-224: pool e contagem da etapa `skills` dependem da CLASSE — mesmo motivo do reset acima.
     setSkills([])
     // US-260: o que foi alcançado valia para o sistema ANTERIOR — a trilha recomeça em `class`.
-    setFurthest(steps.indexOf('class'))
+    setFurthest('class')
     setStep('class')
   }
 
@@ -937,15 +948,17 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   // é destino, nem para trás nem para a frente.
   function goTo(target: Step) {
     if (isClosedStep(steps, target, charId)) return
-    const landing = resolveJump(steps, step, target, furthest, canAdvance)
+    const landing = resolveJump(steps, step, target, furthestIndex, canAdvance)
     if (landing !== step) setStep(landing)
   }
 
   // `world` fica de fora do teto: só se chega lá por `handleConfirm`, que grava o personagem —
-  // um salto pela trilha pularia a gravação.
+  // um salto pela trilha pularia a gravação. US-263: compara por índice (a lista pode ter
+  // mudado desde o último `furthest` gravado), mas guarda de volta a CHAVE.
   function enter(target: Step) {
     setStep(target)
-    setFurthest(f => Math.max(f, Math.min(steps.indexOf(target), steps.indexOf('review'))))
+    const capped = steps.indexOf(target) <= steps.indexOf('review') ? target : 'review'
+    if (steps.indexOf(capped) > furthestIndex) setFurthest(capped)
   }
 
   function next() {
@@ -1305,7 +1318,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
           </p>
           <div className="flex gap-2">
             {steps.map((s, i) => {
-              const state = s === step ? 'atual' : i <= furthest ? 'concluída' : 'pendente'
+              const state = s === step ? 'atual' : i <= furthestIndex ? 'concluída' : 'pendente'
               return (
                 <button
                   key={s} type="button"
@@ -2034,7 +2047,9 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
             )}
 
             {/* US-213: prévia somente-leitura das magias da classe (mesma leitura que a
-                Revisão já faz, US-50) + escolha do truque bônus do Alto-elfo, quando aplicável. */}
+                Revisão já faz, US-50) + escolha do truque bônus do Alto-elfo, quando aplicável.
+                US-263: `steps` só inclui `spells` quando um dos dois blocos abaixo tem conteúdo
+                (`visibleSteps.ts`) — chegar aqui com os dois vazios não acontece mais. */}
             {step === 'spells' && system && (
               <div>
                 <SectionTitle>{t('setup.spells.titulo')}</SectionTitle>
@@ -2055,9 +2070,6 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                       {wizardCantrips.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}
                     </select>
                   </div>
-                )}
-                {previewSpells.length === 0 && !(charData.race === 'high-elf' && wizardCantrips.length > 0) && (
-                  <p className="mt-6 text-sm text-muted-foreground">{t('setup.spells.empty')}</p>
                 )}
               </div>
             )}
@@ -2388,7 +2400,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   {/* US-260: atalho para quem veio corrigir algo — só depois de a revisão ter
                       sido alcançada e enquanto a etapa atual é anterior a ela. */}
-                  {furthest >= steps.indexOf('review') && idx < steps.indexOf('review') && (
+                  {furthestIndex >= steps.indexOf('review') && idx < steps.indexOf('review') && (
                     <DmButton variant="ghost" type="button" onClick={() => goTo('review')}>
                       {t('setup.backToReview')}
                     </DmButton>

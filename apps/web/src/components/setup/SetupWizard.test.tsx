@@ -1340,24 +1340,23 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
   // US-127: sistema sem classFeatures/classSpells no config não modela esse eixo — o bloco
   // "Features"/"Magias" nem aparece na revisão (mesmo padrão condicional de Origem/perícias).
-  it('sistema sem classFeatures/classSpells não mostra bloco de features e magias', async () => {
+  // US-263: sem classSpells (e sem Alto-elfo com truque), a etapa `spells` inteira nem entra na
+  // trilha (visibleSteps.ts) — "Próximo" de `skills` já pula direto para `identity`.
+  it('sistema sem classFeatures/classSpells não mostra bloco de features e magias, nem a etapa Magias', async () => {
     await pickSystemAndFillRaceClass(configWithBudget(2))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     const inc = screen.getByLabelText('Aumentar Força')
     fireEvent.click(inc); fireEvent.click(inc)
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade (pula magias, sem conteúdo)
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
 
     expect(screen.queryByText('Features')).toBeNull()
-    // US-213: "Magias" também é o rótulo da etapa na trilha (sempre presente) — a asserção
-    // precisa contar ocorrências, não checar ausência total do texto.
-    expect(screen.getAllByText('Magias')).toHaveLength(1)
+    expect(screen.queryByText('Magias')).toBeNull()
   })
 
   // US-135: a feature nomeada da origem some ao preview assim que `origin.key` é escolhido,
@@ -1535,8 +1534,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Conexão'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
-    // US-210: `identity` já está preenchida (preservada do primeiro passe) — só mais um clique.
+    // US-263: sem classSpells neste config, `spells` não entra na trilha — pula direto pra
+    // identidade. US-210: `identity` já está preenchida (preservada do primeiro passe) — só
+    // mais um clique.
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão de novo
     expect(within(screen.getByText('Conexão').closest('div')!).getByText('A childhood friend who left the priesthood.')).toBeTruthy()
@@ -1566,8 +1566,9 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.change(screen.getByLabelText('Memento'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → perícias
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
-    // US-210: `identity` já está preenchida (preservada do primeiro passe) — só mais um clique.
+    // US-263: sem classSpells neste config, `spells` não entra na trilha — pula direto pra
+    // identidade. US-210: `identity` já está preenchida (preservada do primeiro passe) — só
+    // mais um clique.
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão, memento escolhido
     const kitRowComMemento = screen.getByText('Kit inicial').closest('div')
@@ -2714,6 +2715,9 @@ describe('SetupWizard — etapa "Magias" e truque do Alto-elfo (US-213)', () => 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → race
   }
 
+  // US-263: quando a combinação classe+raça não tem conteúdo (nem magia própria, nem truque do
+  // Alto-elfo), `spells` nem entra na trilha — o último "Próximo" abaixo pousa direto em
+  // `identity`, não em `spells`. Os testes que exercitam esse caso lidam com isso.
   async function reachSpellsStep(config: SystemConfig, className: string, raceName: string) {
     await pickSpellsConfig(config, className)
     // `high-elf` é a ÚNICA variante de `elf` no catálogo deste teste — clicar a raiz "Elfo"
@@ -2757,11 +2761,12 @@ describe('SetupWizard — etapa "Magias" e truque do Alto-elfo (US-213)', () => 
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('classe sem magia e raça não-Alto-elfo: mostra o estado vazio, sem bloquear avanço', async () => {
+  // US-263: sem conteúdo (nem magia própria, nem truque do Alto-elfo), a etapa nem entra na
+  // trilha — `reachSpellsStep` (cujo último clique tentava "→ magias") já pousa em `identity`.
+  it('classe sem magia e raça não-Alto-elfo: a etapa Magias nem aparece na trilha', async () => {
     await reachSpellsStep(configWithWizardCantrips(2), 'Guerreiro', 'Anão')
-    expect(screen.getByText('Este personagem não tem magias.')).toBeTruthy()
-    expect(screen.queryByLabelText('Escolha um truque de mago')).toBeNull()
-    expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
+    expect(screen.queryByText('Magias')).toBeNull()
+    expect(screen.getByLabelText('Nome do personagem')).toBeTruthy() // já em identidade
   })
 
   it('DTO manda raceCantripChoice quando Alto-elfo escolhe um truque', async () => {
@@ -2781,8 +2786,8 @@ describe('SetupWizard — etapa "Magias" e truque do Alto-elfo (US-213)', () => 
 
   it('raça não-Alto-elfo nunca manda raceCantripChoice, mesmo com config.classSpells.wizard preenchido', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Vex' })
+    // US-263: sem conteúdo, `reachSpellsStep` já pousa em `identity` direto (spells não aparece).
     await reachSpellsStep(configWithWizardCantrips(2), 'Guerreiro', 'Anão')
-    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → identidade
     fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Vex' } })
     fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
     fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
@@ -2812,6 +2817,27 @@ describe('SetupWizard — etapa "Magias" e truque do Alto-elfo (US-213)', () => 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → magias
 
     expect((screen.getByLabelText('Escolha um truque de mago') as HTMLSelectElement).value).toBe('')
+  })
+
+  // US-263 (AC3): `furthest` guarda a CHAVE da etapa mais distante (não o índice) — trocar de
+  // classe depois de alcançar a revisão faz `spells` reaparecer no meio da trilha (a lista
+  // cresce), mas `furthest` continua apontando pra `review` (a chave sobrevive à lista mudar de
+  // tamanho) e "Voltar à revisão" continua funcionando.
+  it('trocar para uma classe com magia depois de alcançar a revisão: `spells` reaparece na trilha e "Voltar à revisão" não quebra', async () => {
+    await reachSpellsStep(configWithWizardCantrips(2), 'Guerreiro', 'Anão') // sem conteúdo: pousa direto em identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Vex' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → revisão
+    expect(screen.queryByText('Magias')).toBeNull() // ainda sem conteúdo, fora da trilha
+
+    fireEvent.click(screen.getByRole('button', { name: /^Classe$/ }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Mago' })) // Mago tem magia própria neste config
+
+    expect(screen.getByRole('button', { name: 'Magias' })).toBeTruthy() // reapareceu na trilha
+
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar à revisão' }))
+    expect(screen.getByRole('button', { name: 'Revisão' }).getAttribute('data-state')).toBe('atual')
   })
 })
 

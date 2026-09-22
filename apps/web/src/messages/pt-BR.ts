@@ -266,9 +266,6 @@ export const ptBR = {
 
   // ---- wizard: magias (US-213) ----
   'setup.spells.titulo': 'Magias',
-  // Só aparece quando a classe não concede magia nenhuma E o Alto-elfo não tem truque de
-  // mago pra escolher (senão o <select> abaixo já preenche a etapa).
-  'setup.spells.empty': 'Este personagem não tem magias.',
   // Legenda do <select> do truque bônus do Alto-elfo — só aparece pra essa raça, quando
   // config.classSpells['wizard'] (nível 0) não está vazio.
   'setup.spells.cantripChoice.legend': 'Escolha um truque de mago',

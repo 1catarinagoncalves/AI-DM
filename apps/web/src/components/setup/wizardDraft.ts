@@ -10,13 +10,15 @@ import type { Step } from './SetupWizard'
 // e o wizard funciona como antes da US-261.
 const DRAFT_KEY = 'aidm.wizard.draft'
 // Rascunho com `v` diferente é descartado, nunca migrado. Mudou o formato → suba este número.
-const DRAFT_VERSION = 1
+// US-263: 1→2 — `furthest` virou a CHAVE da etapa (era índice); `steps` deixou de ser constante
+// (spells entra/sai), então um índice velho podia apontar pra etapa errada.
+const DRAFT_VERSION = 2
 
 export type WizardDraft = {
   v: typeof DRAFT_VERSION
   systemId: string
   step: Step
-  furthest: number
+  furthest: Step
   charData: { name: string; gender: string; race: string; class: string; alignment: string; appearance: string; personality: string }
   subclass: string | undefined
   level: string
@@ -64,7 +66,11 @@ export function reconcileDraft(draft: WizardDraft, config: SystemConfig | null, 
   let out: WizardDraft = { ...draft, equipmentChoices: draft.equipmentChoices.map(choice => choice ?? '') }
   const reset = (at: Step, patch: Partial<WizardDraft>) => {
     const atIndex = steps.indexOf(at)
-    out = { ...out, ...patch, step: steps[Math.min(steps.indexOf(out.step), atIndex)]!, furthest: Math.min(out.furthest, atIndex) }
+    out = {
+      ...out, ...patch,
+      step: steps[Math.min(steps.indexOf(out.step), atIndex)]!,
+      furthest: steps[Math.min(steps.indexOf(out.furthest), atIndex)]!,
+    }
   }
   if (absent(out.charData.class, config?.classes)) reset('class', { charData: { ...out.charData, class: '' }, ...NO_CLASS_CHOICES })
   if (absent(out.subclass, config?.subclasses?.[out.charData.class])) reset('class', { subclass: undefined })

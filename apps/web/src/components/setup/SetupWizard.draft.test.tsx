@@ -84,7 +84,9 @@ describe('SetupWizard — rascunho sobrevive a recarregar (US-261)', () => {
     await resumedNotice()
     expect(current()).toContain('Perícias')
     next() // só libera se Atletismo, atributos, classe e raça voltaram
-    expect(current()).toContain('Magias')
+    // US-263: este fixture não tem `classSpells` nem raça Alto-elfo — `spells` não tem o que
+    // mostrar e sai da trilha (visibleSteps.ts); "Próximo" de `skills` vai direto a `identity`.
+    expect(current()).toContain('Identidade')
   })
 
   it('REGRESSÃO: catálogo que perdeu a classe escolhida volta a `class`, sem erro, com a trilha recuada', async () => {
