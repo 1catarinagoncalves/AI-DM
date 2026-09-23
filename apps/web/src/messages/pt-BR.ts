@@ -247,8 +247,15 @@ export const ptBR = {
   'setup.attributes.remaining': 'Pontos restantes:',
   'setup.attributes.decrease': 'Diminuir {label}',
   'setup.attributes.increase': 'Aumentar {label}',
-  // US-123: bônus de atributo do background (grant.kind === 'ability').
-  'setup.attributes.abilityBanner': '{origin} concede +1 fixo em {attr} e +1 bônus — escolha outro atributo abaixo.',
+  // US-268: legenda do bloco de escolha do +1 de origem (topo da etapa `attributes`) — substitui
+  // o banner de texto (US-123) que só instruía a clicar no selo fantasma da linha.
+  'setup.attributes.abilityChoiceLegend': 'Aplique o +1 da sua origem ({origin})',
+  // US-268: mesma legenda pra RAÇA com escolha (Meio-Elfo) — `{amount}` é o valor de cada
+  // atributo escolhido (`raceGrant.choice.amount`), o CounterBadge ao lado mostra quantos faltam.
+  'setup.attributes.raceChoiceLegend': 'Aplique os +{amount} da sua espécie ({race})',
+  // US-268: motivo do botão desabilitado quando o teto da escolha (origem ou raça) é atingido —
+  // mesmo texto de `setup.skills.limitReached`, mas com "um" (atributo é masculino).
+  'setup.attributes.choiceLimitReached': 'Limite atingido — desmarque um para trocar.',
   // US-212: `{bonus}` é a MESMA frase do cartão de raça (race-bonus.mjs), ex. "+2 Destreza" ou
   // "+2 Carisma, +1 em 2 outros atributos à sua escolha" — sem texto próprio pra não duplicar.
   'setup.attributes.raceBanner': '{race} concede {bonus}.',

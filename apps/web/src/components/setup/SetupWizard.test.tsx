@@ -1689,7 +1689,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
   // --- US-123: bônus de atributo do background (grant.kind === 'ability') ---
 
-  it('background com grant.kind "ability" mostra o aviso na etapa background e o banner+selos na etapa atributos', async () => {
+  it('background com grant.kind "ability" mostra o aviso na etapa background e o bloco de escolha na etapa atributos', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillRaceClass(configWithAbilityGrant(0))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
@@ -1700,13 +1700,16 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
     expect(screen.getByRole('heading', { name: 'Atributos' })).toBeTruthy()
-    expect(screen.getByText('Acólito concede +1 fixo em Sabedoria e +1 bônus — escolha outro atributo abaixo.')).toBeTruthy()
+    // US-268: bloco de escolha no topo (fieldset/legend), contador em vez do banner de texto.
+    expect(screen.getByText('Aplique o +1 da sua origem (Acólito)')).toBeTruthy()
+    expect(screen.getByText('0/1')).toBeTruthy()
 
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
-    expect(nextBtn().disabled).toBe(true) // nenhuma linha escolhida ainda
+    expect(nextBtn().disabled).toBe(true) // nenhuma escolha ainda
 
-    // US-123: o clique é no SELO (+1 origem, fantasma), não na linha inteira.
-    fireEvent.click(screen.getByRole('button', { name: '+1 origem' }))
+    // US-268: o clique é no botão do ATRIBUTO, dentro do bloco de escolha — não mais um selo na linha.
+    fireEvent.click(screen.getByRole('button', { name: 'Força' }))
+    expect(screen.getByText('1/1')).toBeTruthy()
     expect(nextBtn().disabled).toBe(false)
 
     fireEvent.click(nextBtn()) // → perícias
@@ -1722,28 +1725,32 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     }))
   })
 
-  it('linha fixa nunca é clicável nem mostra selo fantasma; clicar troca/desmarca a escolha', async () => {
+  it('linha fixa nunca é clicável; escolha migrou pro bloco do topo — clicar ali alterna a linha', async () => {
     await pickSystemAndFillRaceClass(configWithAbilityGrant(0))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
     // Linha fixa: o selo "+1 origem" é texto (<span>), não um botão — nunca clicável.
-    const wisdomRow = screen.getByText('Sabedoria').closest('div')!
+    const wisdomRow = screen.getByText('Sabedoria', { selector: 'label' }).closest('div')!
     expect(within(wisdomRow).getByText('+1 origem')).toBeTruthy()
     expect(within(wisdomRow).queryByRole('button', { name: '+1 origem' })).toBeNull()
 
-    // Linha elegível: o selo "+1 origem" (fantasma) É um botão — clique nele, não na linha.
-    // US-212: mesmo texto no fantasma e no sólido (antes o fantasma dizia "+1 bônus") — só a
-    // borda/preenchimento muda, então a asserção é sobre CLICÁVEL, não sobre o texto mudar.
-    const strengthRow = screen.getByText('Força').closest('div')!
-    const ghostBadge = within(strengthRow).getByRole('button', { name: '+1 origem' })
+    // Linha elegível: antes de escolher, nenhum selo — a escolha acontece no bloco do topo.
+    const strengthRow = screen.getByText('Força', { selector: 'label' }).closest('div')!
+    expect(within(strengthRow).queryByText('+1 origem')).toBeNull()
 
-    fireEvent.click(ghostBadge)
-    expect(within(strengthRow).getByRole('button', { name: '+1 origem' })).toBeTruthy() // ainda clicável (desmarca)
+    const choiceButton = screen.getByRole('button', { name: 'Força' })
+    expect(choiceButton.getAttribute('aria-pressed')).toBe('false')
 
-    fireEvent.click(within(strengthRow).getByRole('button', { name: '+1 origem' })) // clicar de novo desmarca
-    expect(within(strengthRow).getByRole('button', { name: '+1 origem' })).toBeTruthy() // volta a fantasma, mesmo texto
+    fireEvent.click(choiceButton)
+    expect(choiceButton.getAttribute('aria-pressed')).toBe('true')
+    expect(within(strengthRow).getByText('+1 origem')).toBeTruthy() // linha passa a mostrar o resultado
+    expect(within(strengthRow).queryByRole('button', { name: '+1 origem' })).toBeNull() // mas não é clicável ali
+
+    fireEvent.click(choiceButton) // clicar de novo no bloco desmarca
+    expect(choiceButton.getAttribute('aria-pressed')).toBe('false')
+    expect(within(strengthRow).queryByText('+1 origem')).toBeNull()
   })
 
   it('background sem grant.kind "ability" não exige escolha nem mostra banner/selos', async () => {
@@ -1780,6 +1787,21 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     languages: [
       { key: 'common', label: 'Comum', secret: false },
       { key: 'orc', label: 'Orc', secret: false },
+    ],
+  })
+
+  // US-268: raça com choice.count = 2 (Gnomo aqui é fixture, não SRD real) — prova o "0/2 → 2/2"
+  // e o bloqueio da terceira escolha do critério de aceite; `configWithRaceGrant` acima só cobre
+  // count = 1 (Meio-Elfo), insuficiente pra essa asserção. Três atributos no pool: 2 vagas + 1 sobra.
+  const configWithRaceGrantChoice2 = (budget: number) => ({
+    ...configWithBudget(budget),
+    attributes: [
+      { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
+      { key: 'dexterity', label: 'Destreza', min: 8, max: 15, default: 8 },
+      { key: 'wisdom', label: 'Sabedoria', min: 8, max: 15, default: 8 },
+    ],
+    races: [
+      { key: 'gnome', label: 'Gnomo', bonus: '+1 em 2 atributos à sua escolha', grant: { fixed: [], choice: { count: 2, amount: 1 } } },
     ],
   })
 
@@ -1840,7 +1862,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     expect((screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('Meio-Elfo (fixed + choice): bloqueia avanço até escolher; selo fantasma vira sólido clicável; clicar de novo desmarca', async () => {
+  it('Meio-Elfo (fixed + choice): bloqueia avanço até escolher; botão do bloco alterna; clicar de novo desmarca', async () => {
     createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
     await pickSystemAndFillClass(configWithRaceGrant(0))
     fireEvent.click(screen.getByRole('radio', { name: /^Meio-Elfo/ }))
@@ -1850,24 +1872,31 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
-    const strRow = screen.getByText('Força').closest('div')!
+    const strRow = screen.getByText('Força', { selector: 'label' }).closest('div')!
     expect(within(strRow).getByText('+2 espécie')).toBeTruthy()
     expect(within(strRow).queryByRole('button', { name: '+2 espécie' })).toBeNull() // fixo, não-clicável
 
-    const dexRow = screen.getByText('Destreza').closest('div')!
-    const ghost = within(dexRow).getByRole('button', { name: '+1 espécie' })
+    // US-268: bloco de escolha no topo, mesmo padrão do de origem — legenda + contador.
+    expect(screen.getByText('Aplique os +1 da sua espécie (Meio-Elfo)')).toBeTruthy()
+    expect(screen.getByText('0/1')).toBeTruthy()
+
+    const choiceButton = screen.getByRole('button', { name: 'Destreza' })
 
     const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
     expect(nextBtn().disabled).toBe(true) // choice.count = 1, nada escolhido ainda
 
-    fireEvent.click(ghost)
-    expect(within(dexRow).getByRole('button', { name: '+1 espécie' })).toBeTruthy() // sólido, ainda clicável
+    fireEvent.click(choiceButton)
+    expect(screen.getByText('1/1')).toBeTruthy()
+    const dexRow = screen.getByText('Destreza', { selector: 'label' }).closest('div')!
+    expect(within(dexRow).getByText('+1 espécie')).toBeTruthy()
+    expect(within(dexRow).queryByRole('button', { name: '+1 espécie' })).toBeNull() // não-clicável na linha
     expect(nextBtn().disabled).toBe(false)
 
-    fireEvent.click(within(dexRow).getByRole('button', { name: '+1 espécie' })) // desmarca
+    fireEvent.click(choiceButton) // desmarca
     expect(nextBtn().disabled).toBe(true)
+    expect(within(dexRow).queryByText('+1 espécie')).toBeNull()
 
-    fireEvent.click(within(dexRow).getByRole('button', { name: '+1 espécie' })) // escolhe de novo
+    fireEvent.click(choiceButton) // escolhe de novo
     fireEvent.click(nextBtn()) // → perícias
     fireEvent.click(nextBtn()) // → magias
     fireEvent.click(nextBtn()) // → identidade
@@ -1877,6 +1906,96 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(nextBtn()) // → revisão
     fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
     expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({ raceAbilityChoice: ['dexterity'] }))
+  })
+
+  // US-268: choice.count = 2 — prova a progressão do contador e o bloqueio da terceira escolha
+  // com motivo visível (critério de aceite da US-268).
+  it('raça com escolha de 2 mostra "0/2 → 2/2"; a terceira escolha fica bloqueada com motivo', async () => {
+    await pickSystemAndFillClass(configWithRaceGrantChoice2(0))
+    fireEvent.click(screen.getByRole('radio', { name: /^Gnomo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    expect(screen.getByText('0/2')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Força' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Destreza' }))
+    expect(screen.getByText('2/2')).toBeTruthy()
+
+    const thirdButton = screen.getByRole('button', { name: 'Sabedoria' }) as HTMLButtonElement
+    expect(thirdButton.disabled).toBe(true)
+    fireEvent.click(thirdButton) // desabilitado — não deveria fazer nada
+    expect(screen.getByText('2/2')).toBeTruthy()
+    expect(screen.getByText('Limite atingido — desmarque um para trocar.')).toBeTruthy()
+  })
+
+  // US-268 §Critérios de aceite: teste de regressão — origem "+1 livre" (freeCount: 1) + raça
+  // com escolha de 2, no MESMO personagem. Prova que as três escolhas (1 de origem, 2 de raça)
+  // mudam o total exibido e o payload igual ao fluxo de hoje, e que "Próximo" só libera quando
+  // as três estão feitas — não só cada fonte isolada (já coberto pelos testes acima).
+  const configWithAbilityAndRaceChoice = (budget: number) => ({
+    ...configWithBudget(budget),
+    attributes: [
+      { key: 'strength', label: 'Força', min: 8, max: 15, default: 8 },
+      { key: 'dexterity', label: 'Destreza', min: 8, max: 15, default: 8 },
+      { key: 'constitution', label: 'Constituição', min: 8, max: 15, default: 8 },
+      { key: 'wisdom', label: 'Sabedoria', min: 8, max: 15, default: 8 },
+    ],
+    backgrounds: [
+      { key: 'a5e-ag_acolyte', name: 'Acólito', source: 'a5e-ag', benefits: [
+        { type: 'ability_score', name: 'Ability Score Increases', description: '+1 to Wisdom and one other ability score.', grant: { kind: 'ability' as const, fixed: 'wisdom', freeCount: 1 } },
+      ] },
+    ],
+    races: [
+      { key: 'gnome', label: 'Gnomo', bonus: '+1 em 2 atributos à sua escolha', grant: { fixed: [], choice: { count: 2, amount: 1 } } },
+    ],
+  })
+
+  it('regressão US-268: origem "+1 livre" + raça com escolha de 2 — as três escolhas mudam total e payload; Próximo só libera com as três feitas', async () => {
+    createCharacter.mockResolvedValue({ id: 'char-1', name: 'Lyra' })
+    await pickSystemAndFillClass(configWithAbilityAndRaceChoice(0))
+    fireEvent.click(screen.getByRole('radio', { name: /^Gnomo/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
+    fireEvent.click(screen.getByRole('radio', { name: 'Acólito' }))
+    fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
+
+    const nextBtn = () => screen.getByRole('button', { name: /Próximo/ }) as HTMLButtonElement
+    const total = (key: string) => document.querySelector(`[data-attr="${key}"]`)!.textContent
+    expect(nextBtn().disabled).toBe(true) // nada escolhido ainda
+    expect(total('wisdom')).toBe('9') // fixo de origem, independe de escolha
+    expect(total('strength')).toBe('8')
+    expect(total('dexterity')).toBe('8')
+    expect(total('constitution')).toBe('8')
+
+    // Os dois blocos têm pools sobrepostos (Força elegível nos dois) — escopar por bloco
+    // (fieldset/legend) evita ambiguidade, mesmo padrão de `within(row)` usado nas linhas.
+    const originBlock = screen.getByRole('group', { name: 'Aplique o +1 da sua origem (Acólito)' })
+    const raceBlock = screen.getByRole('group', { name: 'Aplique os +1 da sua espécie (Gnomo)' })
+
+    fireEvent.click(within(originBlock).getByRole('button', { name: 'Força' })) // escolha de origem (1/1)
+    expect(total('strength')).toBe('9')
+    expect(nextBtn().disabled).toBe(true) // ainda faltam as 2 de raça
+
+    fireEvent.click(within(raceBlock).getByRole('button', { name: 'Destreza' })) // 1ª de raça (1/2)
+    expect(total('dexterity')).toBe('9')
+    expect(nextBtn().disabled).toBe(true)
+
+    fireEvent.click(within(raceBlock).getByRole('button', { name: 'Constituição' })) // 2ª de raça (2/2)
+    expect(total('constitution')).toBe('9')
+    expect(nextBtn().disabled).toBe(false) // as três feitas
+
+    fireEvent.click(nextBtn()) // → perícias
+    fireEvent.click(nextBtn()) // → magias
+    fireEvent.click(nextBtn()) // → identidade
+    fireEvent.change(screen.getByLabelText('Nome do personagem'), { target: { value: 'Lyra' } })
+    fireEvent.change(screen.getByLabelText('Gênero'), { target: { value: 'Feminino' } })
+    fireEvent.change(screen.getByLabelText('Alinhamento'), { target: { value: 'lawful-good' } })
+    fireEvent.click(nextBtn()) // → revisão
+    fireEvent.click(screen.getByRole('button', { name: /Criar personagem/ }))
+    expect(createCharacter).toHaveBeenCalledWith(expect.objectContaining({
+      origin: expect.objectContaining({ key: 'a5e-ag_acolyte', abilityChoice: 'strength' }),
+      raceAbilityChoice: ['dexterity', 'constitution'],
+    }))
   })
 
   // US-212: painel de traços raciais some com "Aumento no Valor de Habilidade" para QUALQUER

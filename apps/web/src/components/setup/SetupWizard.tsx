@@ -122,22 +122,20 @@ function rollRandom(rows: { roll: string; text: string }[], setRoll: (roll: stri
   setRoll(rows[Math.floor(Math.random() * rows.length)]!.roll)
 }
 
-// US-123: selo do bônus de atributo do background — sólido na linha fixa e na linha escolhida,
-// fantasma tracejado nas demais linhas elegíveis enquanto nada estiver escolhido. Mesmo texto
-// (`+1 origem`) nas duas variantes (US-212 unificou com o mesmo padrão do selo de raça) — só a
-// borda/preenchimento muda.
-// `onClick` presente → o SELO em si é o alvo de clique (não a linha inteira): vira <button>.
-function AbilityBonusBadge({ variant, label, onClick }: { variant: 'solid' | 'ghost'; label: string; onClick?: () => void }) {
-  const className = cn(
-    'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-    variant === 'solid' ? 'border-success/50 bg-success/15 text-success' : 'border-dashed border-border text-muted-foreground',
-    onClick && 'cursor-pointer transition-colors hover:border-success/80 hover:bg-success/25',
-  )
-  if (!onClick) return <span className={className}>{label}</span>
+// US-268: selo do bônus de atributo — SÓ LEITURA. A escolha em si saiu da linha e foi pro
+// bloco de topo (`AbilityChoiceBlock`, mais abaixo); antes disto era um <button> de 10px
+// (fantasma/sólido) que fazia a escolha — o alvo de toque minúsculo e sem forma de controle
+// que a US-268 veio corrigir. `variant="bonus"` é o selo mecânico (fixo ou escolhido, mesma
+// cor pras duas fontes de origem/raça); `variant="neutral"` é só o selo "Principal"
+// (informativo, não é bônus — lia igual ao mecânico antes desta US).
+function AbilityBonusBadge({ variant, label }: { variant: 'bonus' | 'neutral'; label: string }) {
   return (
-    <button type="button" onClick={onClick} className={className}>
+    <span className={cn(
+      'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+      variant === 'bonus' ? 'border-success/50 bg-success/15 text-success' : 'border-border bg-background/60 text-muted-foreground',
+    )}>
       {label}
-    </button>
+    </span>
   )
 }
 
@@ -153,6 +151,41 @@ function CounterBadge({ complete, children }: { complete: boolean; children: Rea
     )}>
       {children}
     </span>
+  )
+}
+
+// US-268: o CONTROLE real de escolha do +1 de atributo (origem ou raça) — um bloco no topo da
+// etapa `attributes`, não mais um selo de 10px dentro da linha. `fieldset`/`legend` (nomeia o
+// grupo pra leitor de tela), `CounterBadge` (mesmo componente do orçamento de pontos) e botões
+// `optionCardClass` — a MESMA materialidade e alvo de toque dos cartões de escolha de perícia
+// (US-207/US-266), não uma terceira forma de controle. `items` já chega calculado (chosen/
+// disabled) porque origem (troca direta, nunca desabilita) e raça (trava ao bater o teto,
+// exige desmarcar antes) têm regras de toggle diferentes — ver os dois `onToggle` no chamador.
+function AbilityChoiceBlock({ legend, current, total, items, onToggle, hintId, limitReachedText }: {
+  legend: string; current: number; total: number
+  items: { key: string; label: string; chosen: boolean; disabled: boolean }[]
+  onToggle: (key: string) => void
+  hintId: string; limitReachedText: string
+}) {
+  const limitReached = items.some(it => it.disabled)
+  return (
+    <fieldset className="mt-4 rounded-md border border-success/40 bg-success/10 p-4">
+      <legend className="px-1 text-sm font-medium text-foreground">{legend}</legend>
+      <div className="mt-2">
+        <CounterBadge complete={current === total}>{`${current}/${total}`}</CounterBadge>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        {items.map(it => (
+          <button key={it.key} type="button" onClick={() => onToggle(it.key)}
+            disabled={it.disabled} aria-pressed={it.chosen}
+            aria-describedby={it.disabled ? hintId : undefined}
+            className={optionCardClass(it.chosen)}>
+            {it.label}
+          </button>
+        ))}
+      </div>
+      {limitReached && <p id={hintId} className="mt-2 text-xs text-muted-foreground">{limitReachedText}</p>}
+    </fieldset>
   )
 }
 
@@ -586,6 +619,12 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   // `bonus` é a MESMA frase já mostrada no cartão da etapa `race` (race-bonus.mjs) — reaproveitada
   // aqui pro banner da etapa `attributes` em vez de reconstruir o texto a partir de `raceGrant`.
   const raceBonusText = raceCatalog.find(r => r.key === charData.race)?.bonus
+  // US-268: alternar a partir do BLOCO DE TOPO (não mais do selo na linha) — origem troca
+  // direto (count sempre 1, nunca desabilita, ver AbilityChoiceBlock acima); raça acumula até
+  // `raceGrant.choice.count` e trava (a linha `disabled` de cada item já reflete isso).
+  const toggleAbilityChoice = (key: string) => setAbilityChoice(c => (c === key ? undefined : key))
+  const toggleRaceAbilityChoice = (key: string) =>
+    setRaceAbilityChoice(prev => (prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]))
   // US-131: perícias do background, se o ingest reconheceu o padrão de `skill_proficiency`.
   // `skillBenefit` guarda name/description JÁ resolvidos (texto do dataset, ex. "Skill
   // Proficiencies: Deception, and either Culture, Insight, or Sleight of Hand.") — o aviso na
@@ -1728,40 +1767,59 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                     )}
                   </div>
                 )}
-                {/* US-123: banner reforça o que a etapa `background` já anunciou — só quando a
-                    origem tem grant.kind === 'ability'. Mesmo padrão visual dos avisos do wizard. */}
+                {/* US-268: bloco de escolha no topo — substitui o banner de texto (US-123) que só
+                    instruía a clicar no selo fantasma da linha; a legenda já diz o que fazer, o
+                    contador diz quanto falta. Sempre presente quando a origem tem grant.kind
+                    'ability' (o schema nunca dá esse grant sem exigir escolha). */}
                 {abilityGrant?.kind === 'ability' && (
-                  <p className="mt-4 flex items-start gap-2 rounded-md border border-success/40 bg-success/10 p-3 text-sm text-foreground">
-                    <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
-                    {t('setup.attributes.abilityBanner', { origin: originLabel, attr: attrLabel[abilityGrant.fixed] ?? abilityGrant.fixed })}
-                  </p>
+                  <AbilityChoiceBlock
+                    legend={t('setup.attributes.abilityChoiceLegend', { origin: originLabel })}
+                    current={abilityChoice ? 1 : 0}
+                    total={abilityGrant.freeCount}
+                    items={attributes.filter(a => a.key !== abilityGrant.fixed).map(a => ({
+                      key: a.key, label: a.label, chosen: a.key === abilityChoice, disabled: false,
+                    }))}
+                    onToggle={toggleAbilityChoice}
+                    hintId="origin-ability-limit-hint"
+                    limitReachedText={t('setup.attributes.choiceLimitReached')}
+                  />
                 )}
-                {/* US-212: mesmo padrão do banner de origem acima, pra RAÇA — reforça o que o
-                    cartão da etapa `race` já anunciou (`bonus`), agora com o selo mecânico ao lado. */}
-                {raceGrant && raceBonusText && (
+                {/* US-212: raça só com `fixed` (sem escolha, ex. Anão/Humano) não pede ação — o
+                    banner informativo de sempre basta, reforça o cartão da etapa `race`. */}
+                {raceGrant && raceBonusText && !raceGrant.choice && (
                   <p className="mt-4 flex items-start gap-2 rounded-md border border-success/40 bg-success/10 p-3 text-sm text-foreground">
                     <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
                     {t('setup.attributes.raceBanner', { race: raceLabel, bonus: raceBonusText })}
                   </p>
                 )}
+                {/* US-268: raça COM escolha (Meio-Elfo) vira o mesmo bloco de topo da origem
+                    acima — mesmo motivo, a legenda substitui o banner+selo-clicável antigos. */}
+                {raceGrant?.choice && (
+                  <AbilityChoiceBlock
+                    legend={t('setup.attributes.raceChoiceLegend', { race: raceLabel, amount: raceGrant.choice.amount })}
+                    current={raceAbilityChoice.length}
+                    total={raceGrant.choice.count}
+                    items={attributes.filter(a => !raceGrant.fixed.some(f => f.attr === a.key)).map(a => {
+                      const chosen = raceAbilityChoice.includes(a.key)
+                      return { key: a.key, label: a.label, chosen, disabled: !chosen && raceAbilityChoice.length >= raceGrant.choice!.count }
+                    })}
+                    onToggle={toggleRaceAbilityChoice}
+                    hintId="race-ability-limit-hint"
+                    limitReachedText={t('setup.attributes.choiceLimitReached')}
+                  />
+                )}
                 {/* Agrupado por `divide` em vez de card por linha (direção §4: menos box-in-box). */}
                 <div className="mt-6 divide-y divide-border">
                   {attributes.map(a => {
-                    // US-123: a linha fixa (grant.fixed) é sempre sólida e nunca clicável. A
-                    // linha escolhida também é sólida, mas clicável (clique de novo desmarca).
-                    // As demais permanecem clicáveis mesmo sem selo — troca direta entre linhas
-                    // sem precisar desmarcar antes (ver critério de aceite da US-123).
+                    // US-268: a linha só LÊ o resultado — a escolha em si aconteceu no bloco de
+                    // topo (AbilityChoiceBlock). `isFixed`/`raceFixed` nunca são clicáveis (nunca
+                    // foram); `isChosen`/`raceChosen` deixaram de ser clicáveis aqui nesta US.
                     const isFixed = abilityGrant?.kind === 'ability' && a.key === abilityGrant.fixed
                     const isChosen = abilityGrant?.kind === 'ability' && a.key === abilityChoice
-                    const clickable = abilityGrant?.kind === 'ability' && !isFixed
-                    const toggle = () => setAbilityChoice(c => (c === a.key ? undefined : a.key))
                     // US-212: segunda fonte independente — mesma forma fixo/escolha da origem
                     // acima, mas lendo `raceGrant` e somando ao MESMO `bonus` exibido embaixo.
                     const raceFixed = raceGrant?.fixed.find(f => f.attr === a.key)
                     const raceChosen = !!raceGrant?.choice && raceAbilityChoice.includes(a.key)
-                    const raceChoiceFull = !!raceGrant?.choice && raceAbilityChoice.length >= raceGrant.choice.count
-                    const raceEligible = !!raceGrant?.choice && !raceFixed
-                    const toggleRace = () => setRaceAbilityChoice(prev => prev.includes(a.key) ? prev.filter(k => k !== a.key) : [...prev, a.key])
                     const bonus = (isFixed || isChosen ? 1 : 0) + (raceFixed?.amount ?? (raceChosen ? raceGrant!.choice!.amount : 0))
                     // US-207: `primary` vem do catálogo de classe (US-203); sem entrada (config
                     // legado), nenhuma linha mostra o selo — o resto da etapa não muda.
@@ -1771,15 +1829,11 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                       <div key={a.key} className="flex items-center justify-between gap-3 py-3">
                         <span className="flex items-center gap-2">
                           <label className="text-sm font-medium text-foreground">{a.label}</label>
-                          {isPrimary && <AbilityBonusBadge variant="solid" label={t('setup.attributes.primaryBadge')} />}
-                          {isFixed && <AbilityBonusBadge variant="solid" label={t('setup.attributes.abilityBadgeFixed')} />}
-                          {isChosen && <AbilityBonusBadge variant="solid" label={t('setup.attributes.abilityBadgeFixed')} onClick={toggle} />}
-                          {clickable && !isChosen && !abilityChoice && <AbilityBonusBadge variant="ghost" label={t('setup.attributes.abilityBadgeFixed')} onClick={toggle} />}
-                          {raceFixed && <AbilityBonusBadge variant="solid" label={t('setup.attributes.raceBadge', { amount: raceFixed.amount })} />}
-                          {raceChosen && <AbilityBonusBadge variant="solid" label={t('setup.attributes.raceBadge', { amount: raceGrant!.choice!.amount })} onClick={toggleRace} />}
-                          {raceEligible && !raceChosen && !raceChoiceFull && (
-                            <AbilityBonusBadge variant="ghost" label={t('setup.attributes.raceBadge', { amount: raceGrant!.choice!.amount })} onClick={toggleRace} />
-                          )}
+                          {isPrimary && <AbilityBonusBadge variant="neutral" label={t('setup.attributes.primaryBadge')} />}
+                          {isFixed && <AbilityBonusBadge variant="bonus" label={t('setup.attributes.abilityBadgeFixed')} />}
+                          {isChosen && <AbilityBonusBadge variant="bonus" label={t('setup.attributes.abilityBadgeFixed')} />}
+                          {raceFixed && <AbilityBonusBadge variant="bonus" label={t('setup.attributes.raceBadge', { amount: raceFixed.amount })} />}
+                          {raceChosen && <AbilityBonusBadge variant="bonus" label={t('setup.attributes.raceBadge', { amount: raceGrant!.choice!.amount })} />}
                         </span>
                         {budget !== undefined ? (
                           <div className="flex items-center gap-2">

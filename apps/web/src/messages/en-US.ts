@@ -218,8 +218,15 @@ export const enUS: Record<MessageKey, string> = {
   'setup.attributes.remaining': 'Points remaining:',
   'setup.attributes.decrease': 'Decrease {label}',
   'setup.attributes.increase': 'Increase {label}',
-  // US-123: background ability bonus (grant.kind === 'ability').
-  'setup.attributes.abilityBanner': '{origin} grants +1 fixed to {attr} and a +1 bonus — choose another attribute below.',
+  // US-268: legend for the origin +1 choice block (top of the `attributes` step) — replaces the
+  // text banner (US-123) that only instructed clicking the ghost badge on the row.
+  'setup.attributes.abilityChoiceLegend': 'Apply the +1 from your origin ({origin})',
+  // US-268: same legend for RACE with a choice (Half-Elf) — `{amount}` is the value of each
+  // chosen attribute (`raceGrant.choice.amount`), the CounterBadge next to it shows how many remain.
+  'setup.attributes.raceChoiceLegend': 'Apply the +{amount} from your species ({race})',
+  // US-268: reason shown when a choice block's cap (origin or race) is reached — same text as
+  // `setup.skills.limitReached`, kept as its own key since English needs no gender agreement.
+  'setup.attributes.choiceLimitReached': 'Limit reached — deselect one to swap.',
   // US-212: `{bonus}` is the SAME phrase from the race card (race-bonus.mjs), e.g. "+2 Dexterity"
   // or "+2 Charisma, +1 to 2 other abilities of your choice" — no own text to avoid duplicating it.
   'setup.attributes.raceBanner': '{race} grants {bonus}.',
