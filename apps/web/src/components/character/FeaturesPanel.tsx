@@ -76,7 +76,7 @@ export function FeaturesPanel({ features, spells, tone = 'accent' }: { features?
                 <p className="flex items-center gap-2 text-sm font-semibold text-parchment">
                   {f.name}
                   {f.origin && ORIGIN_TAG_KEY[f.origin] && (
-                    <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
+                    <span className="rounded-full border border-border px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-accent">
                       {t(ORIGIN_TAG_KEY[f.origin]!)}
                     </span>
                   )}
@@ -84,7 +84,7 @@ export function FeaturesPanel({ features, spells, tone = 'accent' }: { features?
                       acima, badge PRÓPRIO (não junto do de origem) porque as duas informações
                       são independentes (uma feature de origem pode não ter nível nenhum). */}
                   {typeof f.level === 'number' && (
-                    <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
+                    <span className="rounded-full border border-border px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-accent">
                       {t('game.features.tag.level', { level: f.level })}
                     </span>
                   )}

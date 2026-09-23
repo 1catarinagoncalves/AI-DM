@@ -31,15 +31,15 @@ function CardBody({ entry }: { entry: CatalogCardEntry }) {
           isto, "Anão da Colina" viraria "Anão da Colina Padrão — troque abaixo" (mesmo motivo
           do aria-hidden em skillModifierByKey, SetupWizard.tsx). */}
       {entry.badge && (
-        <span aria-hidden className="mt-1 inline-flex items-center rounded-full border border-dashed border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <span aria-hidden className="mt-1 inline-flex items-center rounded-full border border-dashed border-border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {entry.badge}
         </span>
       )}
       {entry.kicker && (
-        <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{entry.kicker}</span>
+        <span className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">{entry.kicker}</span>
       )}
       {entry.blurb && <span className="mt-1 block text-xs text-muted-foreground">{entry.blurb}</span>}
-      {entry.bonus && <span className="mt-2 block text-[11px] font-medium text-primary">{entry.bonus}</span>}
+      {entry.bonus && <span className="mt-2 block text-xs font-medium text-primary">{entry.bonus}</span>}
     </>
   )
 }

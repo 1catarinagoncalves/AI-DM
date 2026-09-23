@@ -17,10 +17,14 @@ export function Panel({ children, className }: { children: ReactNode; className?
   return <div className={cn('dm-panel rounded-lg', className)}>{children}</div>
 }
 
-/** Título de tela. Serif + acento; o único sítio onde `text-shadow-fantasy` entra. */
+/**
+ * Título de tela. Serif + acento; o único sítio onde `text-shadow-fantasy` entra.
+ * US-269: `tabIndex={-1}` — não entra na ordem de Tab, mas o wizard move o foco para cá ao
+ * trocar de etapa (o anel é apagado em globals.css, como no `<main>`).
+ */
 export function SectionTitle({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <h1 className={cn('text-shadow-fantasy font-serif text-2xl font-bold tracking-wide text-primary sm:text-3xl', className)}>
+    <h1 tabIndex={-1} className={cn('text-shadow-fantasy font-serif text-2xl font-bold tracking-wide text-primary sm:text-3xl', className)}>
       {children}
     </h1>
   )
@@ -98,12 +102,15 @@ export function optionCardClass(selected: boolean) {
  * que já usa `--primary` como rótulo dominante no mesmo ecrã (etapa `race`: eyebrow "ESCOLHA
  * UMA ESPÉCIE") — dois acentos de rótulo lado a lado, do mesmo peso visual, liam como cor
  * errada em vez de dois papéis diferentes.
+ *
+ * US-269: `h2`, não `h3` — no wizard vem logo abaixo do `SectionTitle` (h1) sem nenhum h2 no
+ * meio, e o axe reprova pulo de nível (`heading-order`). A US-46 só rodava o axe na 1ª etapa.
  */
 export function SheetHeading({ children, tone = 'accent' }: { children: ReactNode; tone?: 'accent' | 'primary' }) {
   return (
-    <h3 className={cn('mb-2 text-[11px] font-semibold uppercase tracking-[0.15em]', tone === 'primary' ? 'text-primary' : 'text-accent')}>
+    <h2 className={cn('mb-2 text-xs font-semibold uppercase tracking-[0.15em]', tone === 'primary' ? 'text-primary' : 'text-accent')}>
       {children}
-    </h3>
+    </h2>
   )
 }
 

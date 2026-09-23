@@ -1052,7 +1052,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
       vi.useFakeTimers()
       fireEvent.click(screen.getByRole('button', { name: /Criar aventura/ }))
-      const live = document.querySelector('[aria-live="polite"]')!
+      const live = screen.getByTestId('loading-carousel')
       const first = live.textContent
 
       act(() => { vi.advanceTimersByTime(3000) })
@@ -1732,12 +1732,12 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
     // Linha fixa: o selo "+1 origem" é texto (<span>), não um botão — nunca clicável.
-    const wisdomRow = screen.getByText('Sabedoria', { selector: 'label' }).closest('div')!
+    const wisdomRow = screen.getByRole('group', { name: 'Sabedoria' })
     expect(within(wisdomRow).getByText('+1 origem')).toBeTruthy()
     expect(within(wisdomRow).queryByRole('button', { name: '+1 origem' })).toBeNull()
 
     // Linha elegível: antes de escolher, nenhum selo — a escolha acontece no bloco do topo.
-    const strengthRow = screen.getByText('Força', { selector: 'label' }).closest('div')!
+    const strengthRow = screen.getByRole('group', { name: 'Força' })
     expect(within(strengthRow).queryByText('+1 origem')).toBeNull()
 
     const choiceButton = screen.getByRole('button', { name: 'Força' })
@@ -1872,7 +1872,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → background
     fireEvent.click(screen.getByRole('button', { name: /Próximo/ })) // → atributos
 
-    const strRow = screen.getByText('Força', { selector: 'label' }).closest('div')!
+    const strRow = screen.getByRole('group', { name: 'Força' })
     expect(within(strRow).getByText('+2 espécie')).toBeTruthy()
     expect(within(strRow).queryByRole('button', { name: '+2 espécie' })).toBeNull() // fixo, não-clicável
 
@@ -1887,7 +1887,7 @@ describe('SetupWizard — criação em etapas (US-26)', () => {
 
     fireEvent.click(choiceButton)
     expect(screen.getByText('1/1')).toBeTruthy()
-    const dexRow = screen.getByText('Destreza', { selector: 'label' }).closest('div')!
+    const dexRow = screen.getByRole('group', { name: 'Destreza' })
     expect(within(dexRow).getByText('+1 espécie')).toBeTruthy()
     expect(within(dexRow).queryByRole('button', { name: '+1 espécie' })).toBeNull() // não-clicável na linha
     expect(nextBtn().disabled).toBe(false)

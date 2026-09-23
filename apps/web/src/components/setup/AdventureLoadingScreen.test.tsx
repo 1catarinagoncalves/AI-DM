@@ -10,13 +10,13 @@ describe('AdventureLoadingScreen (US-197)', () => {
     vi.useRealTimers()
   })
 
-  // US-197: mensagem troca sozinha em intervalo fixo, aria-live polite para leitor de tela,
-  // e cicla (nunca para nem fica em branco) mesmo depois de passar por todo o conjunto.
-  it('cicla a mensagem visível em intervalo fixo, com aria-live polite, sem parar nem ficar em branco', () => {
+  // US-197: mensagem troca sozinha em intervalo fixo e cicla (nunca para nem fica em branco)
+  // mesmo depois de passar por todo o conjunto. US-269: o carrossel NÃO é região viva — um
+  // leitor de tela falaria uma frase nova a cada 3 s por até cinco minutos.
+  it('cicla a mensagem visível em intervalo fixo, sem parar nem ficar em branco', () => {
     vi.useFakeTimers()
-    const { container } = render(<AdventureLoadingScreen delayThresholdMs={DELAY_THRESHOLD_MS} />)
-    const live = container.querySelector('[aria-live="polite"]')!
-    expect(live.getAttribute('aria-live')).toBe('polite')
+    const { getByTestId } = render(<AdventureLoadingScreen delayThresholdMs={DELAY_THRESHOLD_MS} />)
+    const live = getByTestId('loading-carousel')
 
     const seen = new Set<string>()
     seen.add(live.textContent!)
@@ -37,6 +37,24 @@ describe('AdventureLoadingScreen (US-197)', () => {
     const { unmount } = render(<AdventureLoadingScreen delayThresholdMs={DELAY_THRESHOLD_MS} />)
     unmount()
     expect(clearSpy).toHaveBeenCalled()
+  })
+})
+
+describe('AdventureLoadingScreen (US-269)', () => {
+  afterEach(() => {
+    cleanup()
+    vi.useRealTimers()
+  })
+
+  it('anuncia "Preparando sua aventura" uma única vez, e o carrossel não é região viva', () => {
+    vi.useFakeTimers()
+    const { getByRole, getByTestId } = render(<AdventureLoadingScreen delayThresholdMs={DELAY_THRESHOLD_MS} />)
+    const status = getByRole('status')
+    expect(status.textContent).toBe('Preparando sua aventura')
+    expect(getByTestId('loading-carousel').closest('[aria-live]')).toBeNull()
+
+    act(() => { vi.advanceTimersByTime(9000) }) // três frases novas depois
+    expect(status.textContent).toBe('Preparando sua aventura')
   })
 })
 

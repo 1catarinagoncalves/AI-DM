@@ -127,6 +127,8 @@ export const enUS: Record<MessageKey, string> = {
   'setup.world.loading.saved': 'Your character is already saved.',
   'setup.world.loading.exit': "You can leave now — the adventure keeps being created. Come back to the hub to continue once it's ready.",
   'setup.world.loading.delay': 'This is taking longer than usual, but the adventure is still being created.',
+  // US-269: the ONLY line a screen reader speaks on this screen — see pt-BR.ts.
+  'setup.world.loading.announce': 'Preparing your adventure',
   // US-235: gate attempt ceiling exhausted (or client polling timeout) — never falls back
   // to "Ready adventure"; retry resends the same params (tone/setting/areaType/challenge).
   'setup.world.error.titulo': 'Generation went wrong',

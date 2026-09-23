@@ -82,7 +82,8 @@ export function HomeHero() {
     return (
       <div className="w-full max-w-md text-center">
         <HubHeading title={t('common.appName')}>
-          <p className="mt-3 text-sm text-muted-foreground">{t('home.error.load')}</p>
+          {/* US-269: `role="alert"` — erro sem ele não é falado por leitor de tela. */}
+          <p role="alert" className="mt-3 text-sm text-muted-foreground">{t('home.error.load')}</p>
         </HubHeading>
         <DmButton onClick={() => fetchCharacters()} className="mt-7 w-full py-3 text-base">
           {t('common.retry')}
@@ -143,7 +144,7 @@ export function HomeHero() {
         </DmButton>
 
         {deleteError && (
-          <p className="text-sm text-destructive">{t('home.error.delete')}</p>
+          <p role="alert" className="text-sm text-destructive">{t('home.error.delete')}</p>
         )}
 
         {characters.length > 1 && (

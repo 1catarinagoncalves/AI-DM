@@ -2,7 +2,7 @@
 
 **Épico:** 4 — Onboarding e navegação
 **Fase:** 1 — MVP single-player
-**Status:** 📋 Planejada (não iniciada)
+**Status:** ✅ Implementada
 **Depende de:** [US-46](./US-46-acessibilidade-wcag-aa.md) (✅ — régua WCAG 2.2 AA) · [US-66](./US-66-telas-mobile-friendly.md) (✅ — alvo ≥44px, trilha mobile)
 **Relacionada a:** [US-204](./US-204-wizard-em-duas-colunas-com-ficha-viva.md) (📋 — troca a trilha por chips; se entrar antes, o item da trilha é atendido lá) · [US-265](./US-265-tela-de-espera-do-mundo-nao-diz-o-que-acontece-ao-sair.md) · [US-268](./US-268-atribuir-bonus-de-origem-e-raca-com-controle-explicito.md) (alvo do selo de +1)
 **Criada em:** 2026-09-18
@@ -51,34 +51,41 @@
 
 ## Critérios de aceite
 
-- [ ] O botão da trilha tem ≥44px de altura de área clicável em 375px de largura (medido, não presumido).
-- [ ] Quando `createCharacter` ou `createAdventure` falha, o leitor de tela anuncia o erro e o erro está visível sem rolar.
-- [ ] Ao avançar de etapa, o foco está no título da nova etapa e a página está no topo.
-- [ ] `axe` sobre cada etapa (não só a inicial) sem violações — [a11y.test.tsx](../../../apps/web/src/components/a11y.test.tsx) já roda `SetupWizard`.
-- [ ] Nenhum texto informativo do wizard abaixo de 12px.
-- [ ] O carrossel não anuncia frase nova a cada 3 s.
-- [ ] **Teste de regressão:** simula falha de `createCharacter` e afirma `role="alert"` com o texto de `setup.error.create`; simula troca de etapa e afirma `document.activeElement` = título da etapa.
+- [x] O botão da trilha tem ≥44px de altura de área clicável em 375px de largura. **Medido** no navegador (24/09/2026, `getBoundingClientRect`, 1ª etapa, onde a trilha tem 10 botões): 44px de altura, barra visual de 2px, **27px de largura** — a largura não chega a 44 (a trilha divide 343px entre todas as etapas), mas passa o mínimo de 24px do WCAG 2.5.8 (AA). Com o sistema escolhido a trilha passa a 9 botões (~31px, calculado: (343 − 8×8) ÷ 9).
+- [x] Quando `createCharacter` ou `createAdventure` falha, o leitor de tela anuncia o erro e o erro está visível sem rolar (`role="alert"` no rodapé, colado ao botão que falhou).
+- [x] Ao avançar de etapa, o foco está no título da nova etapa e a página está no topo. Medido: rolagem em 2747px antes de "Próximo" → `scrollY` 0 e `document.activeElement` = `<h1>` depois.
+- [x] `axe` sobre cada etapa (não só a inicial) sem violações — [SetupWizard.a11y.test.tsx](../../../apps/web/src/components/setup/SetupWizard.a11y.test.tsx) percorre da escolha do sistema até o mundo. O `a11y.test.tsx` original segue só na inicial.
+- [x] Nenhum texto informativo do wizard abaixo de 12px.
+- [x] O carrossel não anuncia frase nova a cada 3 s.
+- [x] **Teste de regressão:** falha de `createCharacter` afirma `role="alert"` com o texto de `setup.error.create`; troca de etapa afirma `document.activeElement` = título da etapa.
 
 ---
 
 ## Notas de implementação
 
-- Medir a trilha com `resize_window` (preset `mobile`) e `getBoundingClientRect` — hoje é inferência.
-- Foco no título: `SectionTitle` precisa aceitar `ref`/`tabIndex` (ver [dm.tsx](../../../apps/web/src/components/ui/dm.tsx)) ou o título é envolvido por um wrapper focável.
-- Foco na troca de etapa é o item mais fácil de errar: não roube o foco ao restaurar rascunho ([US-261](./US-261-rascunho-do-wizard-sobrevive-a-recarregar.md)) nem na montagem.
+- **Erro no rodapé, não no topo** (decide a *Questão em aberto* nº 1). O `errorBox` saiu do topo do `Panel` e foi para o rodapé, antes do "Voltar/Próximo", com `role="alert"`. Trocar de etapa apaga o erro (`changeStep`): antes ele ficava velho no topo da etapa anterior.
+- **Foco na troca de etapa** vive em `changeStep` (`SetupWizard.tsx`): um `ref` marca "a jogadora pediu a troca" e um efeito de `step` faz `scrollTo(0, 0)` + `.focus()` no `<h1>` do contêiner da etapa. `Próximo`, `Voltar`, trilha, `goTo`, escolha do sistema e o salto para `world` passam por ele; **`restoreDraft` (US-261) e a montagem usam `setStep` cru** — não roubam o foco. O `SectionTitle` ganhou `tabIndex={-1}` (sem `ref`: o título mora em nove ramos condicionais, e um `querySelector('h1')` no contêiner é uma linha) e `globals.css` apaga o anel só nele, como já fazia com `<main>`.
+- **Trilha:** `min-h-[44px] justify-center` no botão; a barra `h-0.5` segue fina. Não mexi no `gap` — com 10 etapas a largura nunca chegaria a 44px de qualquer jeito.
+- **Linha de atributo:** o `<label>` órfão virou `<span id>` e a linha é `role="group"` com `aria-labelledby`. Os testes que localizavam a linha por `getByText(..., { selector: 'label' })` agora usam `getByRole('group', { name })`.
+- **Texto ≥12px:** `text-[10px]`/`text-[11px]` → `text-xs` em `SetupWizard`, `CatalogCardGroup`, `SheetHeading` (`dm.tsx`) e `FeaturesPanel` (badges de origem/nível, montado dentro do wizard). `SheetHeading` também é usado na ficha do jogo (`GameView`): lá o rótulo sobe 1px junto. Um teste lê o fonte desses arquivos e falha em qualquer `text-[9–11px]`, porque o walk de axe usa um config enxuto e não renderiza todos os ramos.
+- **Carrossel:** o `<p>` do carrossel perdeu o `aria-live`; uma região `role="status"` só-leitor recebe "Preparando sua aventura" (`setup.world.loading.announce`) num efeito pós-montagem. O aviso de demora da US-265 continua `aria-live="polite"` (aparece uma vez).
+- **Achado que não estava na US — `heading-order`.** Ao rodar o axe na etapa `class` com classe escolhida, `SheetHeading` era `<h3>` logo abaixo do `<h1>`, sem `h2` no meio. A US-46 só rodava o axe na 1ª etapa e nunca viu isso. `SheetHeading` virou `<h2>`.
+- **O item 2 do contexto se confirma, e a classe do defeito era maior.** `role="alert"` só existia em `AdventureReadinessNotice`. Além do `errorBox`, ficavam mudos três textos de erro: catálogo de sistemas do wizard (`setup.system.error`) e, no hub, `home.error.load` e `home.error.delete` (`HomeHero.tsx`). Os três ganharam `role="alert"` com teste de regressão. O erro de conexão da `GameView` (`game.error.connect`) entra na lista de mensagens, que já é `aria-live="polite"` — falado, sem mudança.
 
 ---
 
 ## Questões em aberto
 
-1. **Onde vive o erro de `handleConfirm`?** No rodapé (junto do botão) ou no topo com rolagem? Rodapé é mais simples; topo mantém o padrão atual do `Panel`.
-2. **US-204 antes?** Se os chips substituírem a trilha, o item 1 some daqui. Recomendação: este item pequeno entra independente (é padding), a US-204 herda.
+Nenhuma. As duas originais: (1) o erro de `handleConfirm` vive no rodapé (ver *Notas*); (2) a US-204 não entrou antes — o item da trilha entrou aqui como padding e a US-204 herda.
 
 ---
 
 ## Referências no código
 
-- [SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx) — trilha (:1243-1265), `errorBox` (:1207, :1280), label órfão (:1649)
-- [CatalogCardGroup.tsx](../../../apps/web/src/components/setup/CatalogCardGroup.tsx) — texto de 10–11px (:23-26)
-- [AdventureLoadingScreen.tsx](../../../apps/web/src/components/setup/AdventureLoadingScreen.tsx) — `aria-live` (:56)
-- [a11y.test.tsx](../../../apps/web/src/components/a11y.test.tsx) — axe sobre o wizard
+Verificadas em 24/09/2026.
+
+- [SetupWizard.tsx](../../../apps/web/src/components/setup/SetupWizard.tsx) — `changeStep` (:1022), trilha (:1399-1420), contêiner da etapa (:1448), linha de atributo (:1853), erro no rodapé (:2520)
+- [CatalogCardGroup.tsx](../../../apps/web/src/components/setup/CatalogCardGroup.tsx) — texto de 12px (:34-42)
+- [AdventureLoadingScreen.tsx](../../../apps/web/src/components/setup/AdventureLoadingScreen.tsx) — região `role="status"` e carrossel sem `aria-live` (:73-74)
+- [SetupWizard.a11y.test.tsx](../../../apps/web/src/components/setup/SetupWizard.a11y.test.tsx) — axe por etapa, foco, erro, texto pequeno
+- [a11y.test.tsx](../../../apps/web/src/components/a11y.test.tsx) — axe sobre o wizard (só a etapa inicial)

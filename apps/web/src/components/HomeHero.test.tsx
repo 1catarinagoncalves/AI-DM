@@ -80,14 +80,27 @@ describe('HomeHero — hub orientado a dados (US-25)', () => {
       await waitFor(() => expect(deleteCharacter).toHaveBeenCalledWith('char-2'))
     })
 
-    it('delete que falha mostra o erro', async () => {
+    // US-269: erro sem `role="alert"` não é falado por leitor de tela — a jogadora clica em
+    // "Deletar" e nada acontece, para quem não enxerga.
+    it('delete que falha mostra o erro, anunciado como alerta', async () => {
       listCharacters.mockResolvedValue([lyra])
       deleteCharacter.mockRejectedValue(new Error('boom'))
 
       render(<HomeHero />)
       fireEvent.click(await screen.findByText('Deletar Lyra Silvermoon'))
 
-      await screen.findByText('Não foi possível deletar o personagem. Tente de novo.')
+      const alert = await screen.findByRole('alert')
+      expect(alert.textContent).toBe('Não foi possível deletar o personagem. Tente de novo.')
     })
+  })
+
+  it('falha ao carregar os personagens mostra o erro anunciado como alerta, com "Tentar de novo"', async () => {
+    listCharacters.mockRejectedValue(new Error('boom'))
+
+    render(<HomeHero />)
+
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe('Não foi possível carregar seus personagens.')
+    expect(screen.getByRole('button', { name: /Tentar de novo/ })).toBeTruthy()
   })
 })

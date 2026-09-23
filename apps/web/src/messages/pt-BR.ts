@@ -140,6 +140,9 @@ export const ptBR = {
   'setup.world.loading.saved': 'Seu personagem já está salvo.',
   'setup.world.loading.exit': 'Pode sair agora — a aventura continua sendo criada. Volte ao hub pra continuar assim que estiver pronta.',
   'setup.world.loading.delay': 'Isso está demorando mais que o normal, mas a aventura ainda está sendo criada.',
+  // US-269: a ÚNICA frase que o leitor de tela fala nesta tela (região `role="status"` só-leitor);
+  // o carrossel acima é visual, sem `aria-live`.
+  'setup.world.loading.announce': 'Preparando sua aventura',
   // US-235: teto do gate estourado (ou timeout do polling) — nunca desvia pra "Aventura
   // pronta"; retry reenvia os mesmos parâmetros (tone/setting/areaType/challenge).
   'setup.world.error.titulo': 'A geração deu errado',

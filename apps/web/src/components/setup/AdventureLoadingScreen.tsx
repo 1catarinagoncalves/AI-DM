@@ -48,6 +48,11 @@ export function AdventureLoadingScreen({ delayThresholdMs }: AdventureLoadingScr
   const [keys] = useState(() => shuffled(LOADING_KEYS))
   const [index, setIndex] = useState(0)
   const [delayed, setDelayed] = useState(false)
+  // US-269: o leitor de tela ouve UMA frase ("Preparando sua aventura"), não o carrossel — que
+  // troca a cada 3 s por até cinco minutos. O texto entra num efeito, depois da montagem: região
+  // viva que já nasce cheia nem sempre é falada, uma que ganha texto depois é.
+  const [announcement, setAnnouncement] = useState('')
+  useEffect(() => setAnnouncement(t('setup.world.loading.announce')), [t])
 
   useEffect(() => {
     const id = setInterval(() => setIndex(i => (i + 1) % keys.length), CAROUSEL_INTERVAL_MS)
@@ -65,7 +70,8 @@ export function AdventureLoadingScreen({ delayThresholdMs }: AdventureLoadingScr
       {/* font-serif: mesma família das mensagens ambiente sobre arte de cena (GameView
           game.empty.title, HomeHero); text-lg + text-parchment sem font-serif destoava
           da identidade tipográfica do resto do wizard. */}
-      <p className="mt-6 max-w-md font-serif text-lg text-parchment" aria-live="polite">
+      <p role="status" className="sr-only">{announcement}</p>
+      <p data-testid="loading-carousel" className="mt-6 max-w-md font-serif text-lg text-parchment">
         {t(keys[index]!)}
       </p>
       {/* US-265: personagem salvo e o que sair significa — fixas, não entram no carrossel

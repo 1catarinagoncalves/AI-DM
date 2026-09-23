@@ -204,6 +204,13 @@ main:focus-visible {
   outline: none;
 }
 
+/* US-269: idem para o título de etapa do wizard (`SectionTitle`, tabindex=-1): o foco
+   programático leva o leitor de tela até ele, mas um anel em volta de um título que não é
+   controle só polui. */
+h1[tabindex='-1']:focus-visible {
+  outline: none;
+}
+
 /* US-46: respeitar prefers-reduced-motion (WCAG 2.3.3 / 2.2.2).
    Neutraliza animações contínuas (animate-pulse do loading e do cursor de streaming)
    e transições para quem pede menos movimento. Padrão consagrado. */

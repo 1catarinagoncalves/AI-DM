@@ -131,7 +131,7 @@ function rollRandom(rows: { roll: string; text: string }[], setRoll: (roll: stri
 function AbilityBonusBadge({ variant, label }: { variant: 'bonus' | 'neutral'; label: string }) {
   return (
     <span className={cn(
-      'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+      'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide',
       variant === 'bonus' ? 'border-success/50 bg-success/15 text-success' : 'border-border bg-background/60 text-muted-foreground',
     )}>
       {label}
@@ -384,6 +384,10 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   // dos outros estados de raça em selectRootCard.
   const [variantTouched, setVariantTouched] = useState(false)
   const variantGridRef = useRef<HTMLDivElement>(null)
+  // US-269: contêiner do conteúdo da etapa (onde mora o título) e o pedido de foco — ver
+  // `changeStep`. Ref e não estado: o pedido é consumido pelo efeito de `step`, não redesenha.
+  const stepRef = useRef<HTMLDivElement>(null)
+  const focusTitleOnStep = useRef(false)
   // US-221: ferramenta(s) escolhida(s) do `toolProficiencies.choice` da CLASSE (Bardo 3 de
   // musical-instrument, Monge 1 entre artisan/musical-instrument) — só existe estado real pra
   // classe com `choice` (mesmo padrão condicional de raceSkillChoice acima). Resetada ao trocar
@@ -882,7 +886,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
     setSkills([])
     // US-260: o que foi alcançado valia para o sistema ANTERIOR — a trilha recomeça em `class`.
     setFurthest('class')
-    setStep('class')
+    changeStep('class')
   }
 
   // US-261: rascunho da sessão (wizardDraft.ts). `loadWizardDraft` já devolve o rascunho
@@ -1007,14 +1011,32 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
   function goTo(target: Step) {
     if (isClosedStep(steps, target, charId)) return
     const landing = resolveJump(steps, step, target, furthestIndex, canAdvance)
-    if (landing !== step) setStep(landing)
+    if (landing !== step) changeStep(landing)
   }
+
+  // US-269: TODA troca de etapa por ação da jogadora passa por aqui — o foco vai para o título
+  // da etapa nova e a página volta ao topo (efeito abaixo). A restauração de rascunho (US-261,
+  // `restoreDraft`) e a montagem usam `setStep` cru de propósito: nada a anunciar, e roubar o
+  // foco de quem acabou de abrir a página seria pior que não mover. O erro da etapa anterior
+  // (`createCharacter`/`createAdventure`) não acompanha a jogadora para a etapa seguinte.
+  function changeStep(target: Step) {
+    focusTitleOnStep.current = true
+    setError('')
+    setStep(target)
+  }
+
+  useEffect(() => {
+    if (!focusTitleOnStep.current) return
+    focusTitleOnStep.current = false
+    window.scrollTo(0, 0)
+    stepRef.current?.querySelector<HTMLElement>('h1')?.focus()
+  }, [step])
 
   // `world` fica de fora do teto: só se chega lá por `handleConfirm`, que grava o personagem —
   // um salto pela trilha pularia a gravação. US-263: compara por índice (a lista pode ter
   // mudado desde o último `furthest` gravado), mas guarda de volta a CHAVE.
   function enter(target: Step) {
-    setStep(target)
+    changeStep(target)
     const capped = steps.indexOf(target) <= steps.indexOf('review') ? target : 'review'
     if (steps.indexOf(capped) > furthestIndex) setFurthest(capped)
   }
@@ -1026,14 +1048,14 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
 
   function back() {
     const i = steps.indexOf(step)
-    if (i > 0) setStep(steps[i - 1]!)
+    if (i > 0) changeStep(steps[i - 1]!)
   }
 
   async function handleConfirm() {
     if (!system) return
     // US-258: personagem já gravado nunca é gravado de novo. Inalcançável pela UI hoje (as etapas
     // ficam fechadas depois do `charId`); existe para uma rota futura que reabra `review`.
-    if (charId) { setStep('world'); return }
+    if (charId) { changeStep('world'); return }
     setLoading(true); setError('')
     try {
       const background = { story: bg.story.trim() || undefined, ideals: lines(bg.ideals), bonds: lines(bg.bonds), flaws: lines(bg.flaws), deity: parseDeity(bg.deity) }
@@ -1093,7 +1115,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
       })
       // Personagem já está salvo: guardamos o id e avançamos ao passo `world` (US-157).
       setCharId(char.id)
-      setStep('world')
+      changeStep('world')
     } catch { setError(t('setup.error.create')) }
     finally { setLoading(false) }
   }
@@ -1388,7 +1410,9 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                   disabled={state === 'pendente' || isClosedStep(steps, s, charId)}
                   aria-current={state === 'atual' ? 'step' : undefined}
                   data-state={state}
-                  className="flex flex-1 flex-col gap-1 text-left disabled:cursor-default"
+                  // US-269: a barra visual continua fina (`h-0.5`); a área de toque é do botão —
+                  // `min-h-[44px]` + centralizado, senão o mobile clica em ~2px de altura.
+                  className="flex min-h-[44px] flex-1 flex-col justify-center gap-1 text-left disabled:cursor-default"
                 >
                   <span className={`h-0.5 rounded-full ${state === 'atual' ? 'bg-primary' : state === 'concluída' ? 'bg-primary/40' : 'bg-border'}`} />
                   <span className={`hidden sm:block text-xs ${state === 'atual' ? 'font-semibold text-primary' : state === 'concluída' ? 'text-parchment' : 'text-muted-foreground'}`}>{t(`setup.step.${s}`)}</span>
@@ -1421,9 +1445,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
           </div>
         ) : (
         <Panel className="flex flex-1 flex-col p-6 sm:p-8">
-          {error && <p className={cn(errorBox, 'mb-4')}>{error}</p>}
-
-          <div className="flex-1">
+          <div ref={stepRef} className="flex-1">
             {step === 'system' && (
               <div>
                 <SectionTitle>{t('setup.system.titulo')}</SectionTitle>
@@ -1439,7 +1461,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                     )
                   })}
                   {systemsError
-                    ? <p className="text-sm text-destructive">{t('setup.system.error')}</p>
+                    ? <p role="alert" className="text-sm text-destructive">{t('setup.system.error')}</p>
                     : systems.length === 0 && <p className="text-sm text-muted-foreground">{t('setup.system.loading')}</p>}
                 </div>
               </div>
@@ -1456,7 +1478,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                 {/* Cabeçalho de 3 partes (eyebrow/heading/subtítulo) — mesmo padrão da etapa
                     `race` (eyebrow em --primary, SectionTitle, subtítulo em muted-foreground),
                     pra não ler como duas telas de sistemas diferentes dentro do mesmo wizard. */}
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">{t('setup.class.eyebrow')}</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">{t('setup.class.eyebrow')}</p>
                 <SectionTitle>{t('setup.class.titulo')}</SectionTitle>
                 <p className="mt-1 text-sm text-muted-foreground">{t('setup.raceClass.system', { name: system.name })}</p>
                 <div className="mt-6 space-y-4">
@@ -1476,7 +1498,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                           classe escolhida (independe de subclasse existir). Referência visual:
                           refined-wizard-glow.lovable.app (decisão da mantenedora, 2026-09-10). */}
                       {hitDieSides !== undefined && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.1em] border-primary/50 text-primary">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-[0.1em] border-primary/50 text-primary">
                           {t('setup.class.detail.hitDice', { sides: hitDieSides })}
                         </span>
                       )}
@@ -1658,7 +1680,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
               <div>
                 {/* Cabeçalho de 3 partes (eyebrow/heading/subtítulo) — bate com o protótipo
                     de referência em vez do titulo curto que as outras etapas usam. */}
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">{t('setup.race.eyebrow')}</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">{t('setup.race.eyebrow')}</p>
                 <SectionTitle>{t('setup.race.heading')}</SectionTitle>
                 <p className="mt-1 max-w-prose text-sm text-muted-foreground">{t('setup.race.subtitulo')}</p>
                 <div className="mt-6">
@@ -1826,9 +1848,11 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                     const isPrimary = classPrimary.includes(a.key)
                     const total = (attrs[a.key] ?? a.default) + bonus
                     return (
-                      <div key={a.key} className="flex items-center justify-between gap-3 py-3">
+                      // US-269: grupo nomeado pelo atributo — o `<label>` que estava aqui não tinha
+                      // `htmlFor` nem controle dentro (nos dois ramos o controle já tem `aria-label`).
+                      <div key={a.key} role="group" aria-labelledby={`attr-name-${a.key}`} className="flex items-center justify-between gap-3 py-3">
                         <span className="flex items-center gap-2">
-                          <label className="text-sm font-medium text-foreground">{a.label}</label>
+                          <span id={`attr-name-${a.key}`} className="text-sm font-medium text-foreground">{a.label}</span>
                           {isPrimary && <AbilityBonusBadge variant="neutral" label={t('setup.attributes.primaryBadge')} />}
                           {isFixed && <AbilityBonusBadge variant="bonus" label={t('setup.attributes.abilityBadgeFixed')} />}
                           {isChosen && <AbilityBonusBadge variant="bonus" label={t('setup.attributes.abilityBadgeFixed')} />}
@@ -1842,7 +1866,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                               disabled={(attrs[a.key] ?? a.default) <= a.min}><Minus className="size-4" aria-hidden /></button>
                             <span className="flex w-8 flex-col items-center">
                               <span className="text-center font-serif text-lg font-bold tabular-nums text-parchment" data-attr={a.key}>{total}</span>
-                              <span className="text-[11px] font-medium text-muted-foreground" data-attr-mod={a.key}>{formatModifier(abilityModifier(total))}</span>
+                              <span className="text-xs font-medium text-muted-foreground" data-attr-mod={a.key}>{formatModifier(abilityModifier(total))}</span>
                             </span>
                             <button type="button" aria-label={t('setup.attributes.increase', { label: a.label })} onClick={() => setAttr(a.key, 1, a.min, a.max)}
                               className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-background/60 text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:pointer-events-none disabled:opacity-35"
@@ -1854,7 +1878,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                               value={attrs[a.key] ?? a.default}
                               onChange={e => setAttrs(p => ({ ...p, [a.key]: Number(e.target.value) }))}
                               className={fieldClass('w-20 text-center')} />
-                            <span className="text-[11px] font-medium text-muted-foreground" data-attr-mod={a.key}>{formatModifier(abilityModifier(attrs[a.key] ?? a.default))}</span>
+                            <span className="text-xs font-medium text-muted-foreground" data-attr-mod={a.key}>{formatModifier(abilityModifier(attrs[a.key] ?? a.default))}</span>
                           </div>
                         )}
                       </div>
@@ -2455,7 +2479,7 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
                     (createWorldAdventure já omite o campo nesse estado, sem mudança). */}
                 {worldMode === 'ready' && initialHook && (
                   <div className={cn(optionCardClass(true), 'mt-6')}>
-                    <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {t('setup.world.mode.ready.title')}
                     </span>
                     <span className="mt-1 block font-serif text-base font-semibold text-parchment">{initialHookTitle}</span>
@@ -2490,6 +2514,10 @@ function SetupWizardRun({ onRestart }: { onRestart: () => void }) {
           {/* Voltar / Próximo / Confirmar / Criar aventura */}
           {step !== 'system' && (
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+              {/* US-269: o erro mora AQUI, colado no botão que acabou de falhar (revisão, "Criar
+                  aventura") e não no topo do Panel, fora da dobra numa tela longa. `role="alert"`
+                  o anuncia na inserção; some ao trocar de etapa (`changeStep`). */}
+              {error && <p role="alert" className={cn(errorBox, 'w-full')}>{error}</p>}
               {/* US-259: o "Próximo" apagado (`pointer-events-none`) não mostra nem `title` — o
                   motivo fica em texto sempre visível, ligado ao botão por `aria-describedby`.
                   Mesma lista (`missingFor`) que decide o `disabled`, então nunca diverge. */}
