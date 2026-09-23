@@ -13,11 +13,11 @@
   },
   "dependencies": {
     "@ai-dm/shared": "workspace:*",
-    "@ai-sdk/google": "^1.2.22",
-    "@ai-sdk/groq": "^1.2.9",
-    "@ai-sdk/openai-compatible": "^0.2.16",
-    "ai": "^4.3.16",
-    "zod": "^3.25.67"
+    "@ai-sdk/google": "^4.0.76",
+    "@ai-sdk/groq": "^4.0.46",
+    "@ai-sdk/openai-compatible": "^3.0.53",
+    "ai": "^7.0.107",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^22.15.29",
