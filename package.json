@@ -37,8 +37,8 @@
     "lazygm:extract-monster-roles:test": "node --test scripts/lazygm/extract-monster-roles.test.mjs"
   },
   "devDependencies": {
-    "dotenv-cli": "^11.0.0",
-    "knip": "^6.29.0",
-    "typescript": "^5.8.3"
+    "dotenv-cli": "^11.1.0",
+    "knip": "^6.44.1",
+    "typescript": "^7.0.2"
   }
 }
